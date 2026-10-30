@@ -111,7 +111,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final planState = ref.watch(divePlanNotifierProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     _isReplan = planState.sourceDiveId != null;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // A plan opened via the :planId route is known-persisted, so short-circuit
     // before watching the (DB-backed) summaries provider; that avoids an
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The

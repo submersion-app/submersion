@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/domain/compare/comparison_profile.dart';
 import 'package:submersion/features/dive_3d/domain/compare/profile_resampler.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Live comparison readout at the scrub instant. Listens to the frame-rate
 /// ValueListenable directly (not via Riverpod) so playback never rebuilds the
@@ -27,7 +26,7 @@ class CompareReadoutPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return ValueListenableBuilder<double>(
       valueListenable: position,
       builder: (context, value, _) {

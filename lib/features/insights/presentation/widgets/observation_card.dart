@@ -66,7 +66,7 @@ class ObservationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final canDismiss = ref.watch(currentDiverProvider).valueOrNull != null;
     return Card(

@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Simplified dive profile chart for the editor page.
 ///
@@ -80,8 +79,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+
     final colorScheme = Theme.of(context).colorScheme;
 
     // Calculate max depth in display units

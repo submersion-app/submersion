@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The classic slate range grid: depth variants (rows) x time variants
@@ -16,7 +15,7 @@ class RangeTableSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final table = ref.watch(planRangeTableProvider);
     if (table == null) return const SizedBox.shrink();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
     String depthLabel(double delta) {

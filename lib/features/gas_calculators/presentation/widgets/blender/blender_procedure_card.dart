@@ -12,7 +12,6 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_b
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(BlenderProcedureCard);
@@ -32,9 +31,8 @@ class BlenderProcedureCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final outcome = ref.watch(blenderResultProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final decimals = pressureDecimalsFor(settings.pressureUnit);
+    final units = ref.watch(unitFormatterProvider);
+    final decimals = pressureDecimalsFor(units.settings.pressureUnit);
 
     if (outcome.error != null) {
       return Card(

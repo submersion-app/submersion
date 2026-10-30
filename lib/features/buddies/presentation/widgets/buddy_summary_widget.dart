@@ -10,7 +10,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
@@ -103,7 +102,7 @@ class BuddySummaryWidget extends ConsumerWidget {
         direction: SortDirection.descending,
       ),
     ).take(5).toList();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -50,7 +50,15 @@ class _SafetyReviewSettingsPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          safetyReviewEnabled: s.safetyReviewEnabled,
+          safetyReviewDisabledRules: s.safetyReviewDisabledRules,
+          noFlyPreset: s.noFlyPreset,
+        ),
+      ),
+    );
     final notifier = ref.read(settingsProvider.notifier);
     final enabled = settings.safetyReviewEnabled;
 

@@ -30,7 +30,7 @@ final tissueDecoStatusesProvider =
 
 /// The active tissue color scheme (matches the 2D heat map's coloring).
 final tissueColorSchemeProvider = Provider<TissueColorScheme>(
-  (ref) => ref.watch(settingsProvider).tissueColorScheme,
+  (ref) => ref.watch(settingsProvider.select((s) => s.tissueColorScheme)),
 );
 
 /// The Scene3d + TissueSurfaceGrid for a dive, built in a single pass so the

@@ -7,7 +7,6 @@ import 'package:submersion/features/courses/domain/entities/course_progress.dart
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/add_requirement_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// One requirement row: a checkbox for checklist items, a progress count
 /// plus expandable credited-dive list for dive requirements. Unsatisfied
@@ -114,7 +113,7 @@ class _DiveRequirementTile extends ConsumerWidget {
     final requirement = progress.requirement;
     final theme = Theme.of(context);
     final satisfied = progress.isSatisfied;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return ExpansionTile(
       leading: satisfied

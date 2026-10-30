@@ -15,6 +15,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -242,7 +243,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<void> _setTimeInDive(
     MediaItem item,
     List<DiveProfilePoint> profile,
-    AppSettings settings,
   ) async {
     final choice = await showSetMediaTimeDialog(
       context,
@@ -252,7 +252,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
         profileLengthSeconds: MediaDiveWindow.profileLengthSeconds(profile),
       ),
       isPinned: item.manualElapsedSeconds != null,
-      settings: settings,
+      settings: ref.read(settingsProvider),
     );
     if (choice == null || !mounted) return;
     await ref.read(mediaTimePinnerProvider).apply(item, choice);
@@ -408,7 +408,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     final diveAsync = currentDiveId == null
         ? const AsyncValue<Dive?>.data(null)
         : ref.watch(diveProvider(currentDiveId));
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          perdixOverlayEnabled: s.perdixOverlayEnabled,
+          perdixOverlayX: s.perdixOverlayX,
+          perdixOverlayY: s.perdixOverlayY,
+        ),
+      ),
+    );
 
     return fullscreenPopScope(
       child: Scaffold(
@@ -720,25 +729,21 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           profile: diveProfile,
                           photoElapsedSeconds: enrichment.elapsedSeconds!,
                           photoDepthMeters: enrichment.depthMeters,
-                          settings: settings,
+                          settings: units.settings,
                           visible: _showOverlay,
                         ),
 
                       // Bottom metadata
                       _BottomMetadataOverlay(
                         item: currentItem,
-                        settings: settings,
+                        settings: units.settings,
                         onMomentTap: (tag) => _showMoment(currentItem, tag),
                         profileLengthSeconds: profileLength,
                         // Pinning needs a profile to pin against; a dive with
                         // none has no moments to choose from.
                         onSetTime: diveProfile == null || diveProfile.isEmpty
                             ? null
-                            : () => _setTimeInDive(
-                                currentItem,
-                                diveProfile,
-                                settings,
-                              ),
+                            : () => _setTimeInDive(currentItem, diveProfile),
                         siteName: diveAsync.whenOrNull(
                           data: (dive) => dive?.site?.name,
                         ),
@@ -789,7 +794,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       // Non-null here: the resolver is only ever built for
                       // items passing perdixPrecondition.
                       baseElapsedSeconds: enrichment!.elapsedSeconds!,
-                      settings: settings,
+                      settings: units.settings,
                       topReserve:
                           MediaQuery.paddingOf(context).top +
                           kMediaViewerToolbarHeight,
@@ -1764,7 +1769,7 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
 /// Bottom overlay showing dive metadata for the current photo.
 class _BottomMetadataOverlay extends StatelessWidget {
   final MediaItem item;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final String? siteName;
 
   /// Length of the dive's profile, for the dive-window tolerance.

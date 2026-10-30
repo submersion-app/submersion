@@ -15,7 +15,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/widgets/geofence_editor_sheet.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -263,7 +262,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
             ..._geofences.asMap().entries.map((entry) {
               final i = entry.key;
               final g = entry.value;
-              final formatter = UnitFormatter(ref.watch(settingsProvider));
+              final formatter = ref.watch(unitFormatterProvider);
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.place_outlined),

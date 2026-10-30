@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
@@ -77,8 +76,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Built once for the day's dives rather than per row.
     final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);

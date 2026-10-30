@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Present the follow-a-dive picker as a modal bottom sheet.
@@ -39,7 +38,7 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
   Widget build(BuildContext context) {
     final divesAsync = ref.watch(divesProvider);
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
     final dives = divesAsync.valueOrNull?.take(widget.maxDives).toList();

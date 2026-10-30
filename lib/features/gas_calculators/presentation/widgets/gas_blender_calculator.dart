@@ -108,7 +108,7 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
   @override
   Widget build(BuildContext context) {
     // Subscribes to unit changes; the value is read through [_units].
-    ref.watch(settingsProvider);
+    ref.watch(unitFormatterProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

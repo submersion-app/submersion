@@ -319,7 +319,14 @@ class DiveProfileChartHost extends ConsumerWidget {
     final trackingIndex = ref.watch(profileTrackingIndexProvider(diveId));
     final selectedFinding = ref.watch(selectedSafetyFindingProvider(diveId));
     final safetyReview = ref.watch(safetyReviewProvider(diveId)).value;
-    final appSettings = ref.watch(settingsProvider);
+    final appSettings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          safetyReviewEnabled: s.safetyReviewEnabled,
+          safetyReviewDisabledRules: s.safetyReviewDisabledRules,
+        ),
+      ),
+    );
     final laneFindings = appSettings.safetyReviewEnabled
         ? chartSafetyFindings(
             safetyReview,

@@ -36,7 +36,20 @@ final notificationPermissionProvider = FutureProvider<bool>((ref) async {
 
 /// Provider that schedules notifications when settings or equipment changes
 final notificationSchedulingProvider = FutureProvider<void>((ref) async {
-  final settings = ref.watch(settingsProvider);
+  // Everything [NotificationScheduler] reads. Rescheduling walks all the gear,
+  // so it sits out an edit that cannot move a reminder (issue #3818).
+  ref.watch(
+    settingsProvider.select(
+      (s) => (
+        s.notificationsEnabled,
+        s.serviceReminderDays,
+        s.reminderTime,
+        s.tripServiceLeadDays,
+        s.locale,
+      ),
+    ),
+  );
+  final settings = ref.read(settingsProvider);
   final diverId = ref.watch(currentDiverIdProvider);
   final scheduler = ref.watch(notificationSchedulerProvider);
 

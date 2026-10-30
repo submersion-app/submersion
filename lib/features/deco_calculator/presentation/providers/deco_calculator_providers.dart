@@ -76,8 +76,8 @@ final calcMODProvider = Provider<double>((ref) {
 final calcENDProvider = Provider<double>((ref) {
   final depth = ref.watch(calcDepthProvider);
   final gasMix = ref.watch(calcGasMixProvider);
-  final settings = ref.watch(settingsProvider);
-  return gasMix.end(depth, o2Narcotic: settings.o2Narcotic);
+  final o2Narcotic = ref.watch(settingsProvider.select((s) => s.o2Narcotic));
+  return gasMix.end(depth, o2Narcotic: o2Narcotic);
 });
 
 /// Computed decompression status based on current inputs.
@@ -90,7 +90,11 @@ final calcDecoStatusProvider = Provider<DecoStatus>((ref) {
   final timeMinutes = ref.watch(calcTimeProvider);
   final fN2 = ref.watch(calcN2FractionProvider);
   final fHe = ref.watch(calcHeFractionProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
+    ),
+  );
 
   // Create algorithm with user's GF settings and the configured
   // altitude/salinity environment (same seam the planner engine uses).

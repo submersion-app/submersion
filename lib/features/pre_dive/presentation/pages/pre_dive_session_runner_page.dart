@@ -10,7 +10,6 @@ import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -376,7 +375,7 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
                 // and it is what auto-links this run to a dive. l10n is
                 // threaded through so the date/time connector is translated
                 // rather than falling back to a hardcoded English "at".
-                '${session.completedAt == null ? '' : ' - ${UnitFormatter(ref.watch(settingsProvider)).formatDateTime(session.completedAt, l10n: l10n)}'}',
+                '${session.completedAt == null ? '' : ' - ${ref.watch(unitFormatterProvider).formatDateTime(session.completedAt, l10n: l10n)}'}',
                 style: theme.textTheme.bodyMedium,
               ),
             ),

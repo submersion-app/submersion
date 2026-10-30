@@ -136,8 +136,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   @override
   Widget build(BuildContext context) {
     final isNew = widget.segment == null;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Convert meter values to user's preferred units on first build
     if (!_unitsInitialized) {

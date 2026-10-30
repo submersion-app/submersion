@@ -11,7 +11,6 @@ import 'package:submersion/features/insights/presentation/formatters/focus_facto
 import 'package:submersion/features/insights/presentation/formatters/focus_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_quiet_rows.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Below this width the difference column folds under the group value.
@@ -49,7 +48,7 @@ class _FocusFactorsTableState extends ConsumerState<FocusFactorsTable> {
     if (report.tooFewDives) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),

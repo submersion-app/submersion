@@ -8,7 +8,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -49,7 +48,7 @@ class ServiceClocksCard extends ConsumerWidget {
     );
     final kindsAsync = ref.watch(serviceKindsProvider);
     final allKindsAsync = ref.watch(allServiceKindsByIdProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
 
     return Card(

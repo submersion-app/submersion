@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blend_billing.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
@@ -52,8 +53,8 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = units.settings;
     final billing = ref.watch(blenderBillingProvider);
     final currency = ref.watch(blenderCurrencyProvider);
     final decimals = pressureDecimalsFor(settings.pressureUnit);
@@ -143,7 +144,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
 
   Widget _cylinderRow(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
   ) {
     return BlenderResponsiveHeaderRow(
@@ -183,7 +184,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
   /// the free-text field above.
   Future<void> _chooseCylinder(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
   ) async {
     final picked = await pickBlenderCylinderSpecs(context, ref);
     if (picked == null) return;
@@ -205,7 +206,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
     BuildContext context,
     List<GasCostLine> lines,
     UnitFormatter units,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     String currency,
     int decimals,
   ) {
@@ -340,7 +341,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
   /// likewise read-only, line.
   Widget _flushFeeSettings(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
     String currency,
   ) {
@@ -406,7 +407,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
   Widget _flushFeeTable(
     BuildContext context,
     WidgetRef ref,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
     String currency,
   ) {
@@ -462,7 +463,7 @@ class _BlenderBillingCardState extends ConsumerState<BlenderBillingCard> {
   Widget _flushFeeGasRow(
     BuildContext context,
     BlenderGasRole role,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     double volumeLiters,
     double? price,
     TextStyle? style,

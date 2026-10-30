@@ -791,7 +791,7 @@ class _RangeStatsStrip extends ConsumerWidget {
     return RangeStatsPanel(
       diveId: diveId,
       profile: profile,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
       tanks: tanks,
       isRebreather: isRebreather,
       maxColumns: 8,

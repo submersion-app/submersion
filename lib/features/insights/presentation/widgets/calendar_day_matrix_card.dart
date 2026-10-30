@@ -11,7 +11,6 @@ import 'package:submersion/features/insights/presentation/insights_place_dives.d
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Fill of a calendar cell holding [count] dives when the busiest date holds
@@ -62,7 +61,7 @@ class CalendarDayMatrixCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final matrixAsync = ref.watch(divesByCalendarDayProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return StatSectionCard(
       title: l10n.insights_timePatterns_calendarDays_title,

@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -42,7 +41,7 @@ class GpsTrackListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return ListTile(
       onTap: onTap,
       selected: selected,

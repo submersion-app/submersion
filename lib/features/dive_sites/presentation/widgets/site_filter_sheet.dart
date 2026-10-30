@@ -454,7 +454,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   }
 
   Widget _buildDepthSection() {
-    final depthSymbol = UnitFormatter(ref.watch(settingsProvider)).depthSymbol;
+    final depthSymbol = ref.watch(unitFormatterProvider).depthSymbol;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

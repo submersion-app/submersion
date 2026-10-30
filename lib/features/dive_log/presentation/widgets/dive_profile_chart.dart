@@ -2752,12 +2752,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       return _buildEmptyState(context);
     }
 
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final profileMetricColors = ref.watch(
+      settingsProvider.select((s) => s.profileMetricColors),
+    );
     _palette = ProfileMetricPalette(
-      overrides: settings.profileMetricColors,
+      overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
     );
-    final units = UnitFormatter(settings);
     // Temperature data from the active source or any overlaid source should
     // surface the temperature toggle.
     final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];

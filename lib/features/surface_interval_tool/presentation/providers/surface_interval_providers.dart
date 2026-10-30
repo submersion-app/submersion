@@ -150,7 +150,11 @@ final siPostDiveCompartmentsProvider = Provider<List<TissueCompartment>>((ref) {
   final time = ref.watch(siFirstDiveTimeProvider);
   final fN2 = ref.watch(siFirstDiveFN2Provider);
   final fHe = ref.watch(siFirstDiveFHeProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
+    ),
+  );
 
   final algorithm = BuhlmannAlgorithm(
     gfLow: settings.gfLowDecimal,
@@ -185,7 +189,11 @@ final siSecondDiveNdlProvider = Provider<int>((ref) {
   final secondDiveDepth = ref.watch(siSecondDiveDepthProvider);
   final fN2 = ref.watch(siSecondDiveFN2Provider);
   final fHe = ref.watch(siSecondDiveFHeProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
+    ),
+  );
 
   final algorithm = BuhlmannAlgorithm(
     gfLow: settings.gfLowDecimal,
@@ -278,7 +286,11 @@ final siMinimumIntervalProvider = Provider<SiMinimumInterval>((ref) {
   final secondDiveTime = ref.watch(siSecondDiveTimeProvider);
   final fN2 = ref.watch(siSecondDiveFN2Provider);
   final fHe = ref.watch(siSecondDiveFHeProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
+    ),
+  );
 
   final requiredNdlSeconds = secondDiveTime * 60;
 

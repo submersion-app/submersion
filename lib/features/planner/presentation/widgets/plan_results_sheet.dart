@@ -19,7 +19,6 @@ import 'package:submersion/features/planner/presentation/mission/mission_results
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -147,8 +146,7 @@ class PlanResultsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
     final state = ref.watch(divePlanNotifierProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
     String tankLabel(String? tankId) {

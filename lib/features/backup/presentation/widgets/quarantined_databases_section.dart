@@ -9,7 +9,6 @@ import 'package:submersion/features/backup/domain/entities/quarantined_database.
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/quarantined_database_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -94,7 +93,7 @@ class _QuarantinedDatabaseTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final busy =
         ref.watch(backupOperationProvider).status ==
         BackupOperationStatus.inProgress;

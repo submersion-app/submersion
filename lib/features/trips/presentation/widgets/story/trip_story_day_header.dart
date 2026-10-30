@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
@@ -85,7 +84,7 @@ class TripStoryDayHeader extends ConsumerWidget {
       logged: day.weather,
       stored: storedWeather,
     );
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final scheme = theme.colorScheme;
     final isToday = day.kind == TripStoryDayKind.today;
     // The compact form sits on a band that paints its own background, so only
@@ -117,9 +116,9 @@ class TripStoryDayHeader extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      UnitFormatter(
-                        ref.watch(settingsProvider),
-                      ).formatWeekdayMonthDay(day.date),
+                      ref
+                          .watch(unitFormatterProvider)
+                          .formatWeekdayMonthDay(day.date),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: tinted ? scheme.onPrimaryContainer : null,

@@ -8,7 +8,6 @@ import 'package:submersion/features/insights/presentation/providers/conditions_s
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_band_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Water movement group of the Conditions tab (issue #3118): current
@@ -35,7 +34,7 @@ class WaterMovementGroup extends ConsumerWidget {
                 stats.swellHeight.isEmpty) {
               return const SizedBox.shrink();
             }
-            final units = UnitFormatter(ref.watch(settingsProvider));
+            final units = ref.watch(unitFormatterProvider);
             final total = stats.totalDives;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
