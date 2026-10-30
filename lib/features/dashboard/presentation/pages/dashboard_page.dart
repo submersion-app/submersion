@@ -57,7 +57,12 @@ class DashboardPage extends ConsumerWidget {
       HomeCardType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
       HomeCardType.yearInReview => show(yearInReview, (y) => y != null),
       HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
-      HomeCardType.recentSitesMap => show(sites, (s) => s.isNotEmpty),
+      // Holds for the first photo result: photos arriving later would pull
+      // the map into a shared row, and moving it under that Row remounts it,
+      // paying for the map twice on the way to the same layout.
+      HomeCardType.recentSitesMap =>
+        (media.hasValue || !media.isLoading) &&
+            show(sites, (s) => s.isNotEmpty),
       _ => true,
     };
 

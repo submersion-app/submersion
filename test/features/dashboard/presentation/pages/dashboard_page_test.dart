@@ -90,6 +90,7 @@ Future<void> pumpDashboard(
   WidgetTester tester, {
   DashboardMilestones? milestones,
   List<MediaItem> photos = const [],
+  Future<List<MediaItem>>? lateMedia,
   List<Dive> onThisDay = const [],
   YearInReview? yearInReview,
   List<RecentSitePin> sites = const [],
@@ -153,7 +154,7 @@ Future<void> pumpDashboard(
                 anniversaries: [],
               ),
         ),
-        recentMediaProvider.overrideWith((ref) async => photos),
+        recentMediaProvider.overrideWith((ref) async => lateMedia ?? photos),
         onThisDayProvider.overrideWith((ref) async => onThisDay),
         yearInReviewProvider.overrideWith((ref) async => yearInReview),
         activeCoursesProgressProvider.overrideWith((ref) async => []),
@@ -370,6 +371,77 @@ void main() {
       );
       expect(find.byType(OnThisDayCard, skipOffstage: false), findsNothing);
       expect(find.byType(FlutterMap, skipOffstage: false), findsNothing);
+    });
+
+    group('photos resolving after the sites', () {
+      const pin = RecentSitePin(siteName: 'A', latitude: 36, longitude: 25);
+      final photo = MediaItem(
+        id: 'p1',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.platformGallery,
+        filePath: '/tmp/p1.jpg',
+        takenAt: DateTime(2026, 7, 1),
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      );
+
+      /// A desktop page, where the map and photos pair up on one row.
+      Future<Completer<List<MediaItem>>> pumpWithLatePhotos(
+        WidgetTester tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        final media = Completer<List<MediaItem>>();
+        await pumpDashboard(
+          tester,
+          sites: const [pin],
+          lateMedia: media.future,
+        );
+        return media;
+      }
+
+      Future<void> settle(WidgetTester tester) async {
+        for (var i = 0; i < 5; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      testWidgets('the map mounts once, in its pair', (tester) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        // Mounting it now would throw it away: joining the pair moves the
+        // card under a Row, which no key on the row can keep alive.
+        expect(find.byType(FlutterMap), findsNothing);
+
+        media.complete([photo]);
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+        expect(find.byType(MediaRibbonCard), findsOneWidget);
+      });
+
+      testWidgets('no photos still leaves the map on its own row', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        media.complete(const []);
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+      });
+
+      testWidgets('a failed photo load does not strand the map', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        media.completeError(StateError('no media'));
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+      });
     });
 
     testWidgets('scrolling down builds the card and mounts its map', (
