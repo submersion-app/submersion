@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -236,6 +238,46 @@ class DiveRepository {
   Stream<void> watchDiveListChanges() => _db
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
+
+  /// The tables a hydrated dive reads beyond its own row, by SQL name: what
+  /// [_mapRowsWithPreloadedData] embeds. See [watchDiveHydrationWrites].
+  static const Set<String> diveHydrationTables = {
+    'dive_tanks',
+    'dive_sites',
+    'dive_centers',
+    'trips',
+    'dive_equipment',
+    'equipment',
+    'equipment_attributes',
+    'tags',
+    'dive_tags',
+    'dive_dive_types',
+    'dive_courses',
+    'courses',
+    'dive_diver_roles',
+    'dive_roles',
+    'dive_buddy_roles',
+    'dive_custom_fields',
+    'dive_buddies',
+    'buddies',
+  };
+
+  /// Fires on a write to any of [diveHydrationTables], so a holder of hydrated
+  /// dives can tell a dive may be stale though its own row is not: a synced
+  /// tank never restamps the parent (#1769), and a site rename reaches every
+  /// dive at the site.
+  ///
+  /// Not debounced, unlike the change ticks: it must have fired by the time
+  /// the dives tick for the same burst of writes does. A delete of a dive
+  /// fires it too, as does a raw `customUpdate` of `dives`, which drift reads
+  /// as possibly cascading into these tables. That costs a whole reload,
+  /// never a stale dive.
+  Stream<void> watchDiveHydrationWrites() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      for (final t in tablesNamed(diveHydrationTables))
+        TableUpdateQuery.onTable(t),
+    ]),
+  );
 
   /// The tables [getStatistics] and [getRecords] read, by SQL name, before
   /// any filter joins: the dives themselves and the `dive_sites` JOIN that
@@ -468,6 +510,81 @@ class DiveRepository {
       _log.error('Failed to get all dives', error: e, stackTrace: stackTrace);
       rethrow;
     }
+  }
+
+  /// The list [getAllDives] loads, at the cost of what changed since
+  /// [previous]: every row is digested in SQL, and only rows whose digest moved
+  /// are read and hydrated. Returns [previous] itself when nothing did.
+  ///
+  /// The digest covers the whole row rather than `updated_at`, which a trip
+  /// assignment, a reparse and the dive-type mirror all leave alone. A change
+  /// outside the row is the caller's to notice, through
+  /// [watchDiveHydrationWrites], by passing no [previous].
+  Future<DiveListSnapshot> getDiveListSnapshot({
+    String? diverId,
+    DiveListSnapshot? previous,
+  }) async {
+    try {
+      return await PerfTimer.measure('getDiveListSnapshot', () async {
+        final rows = await _diveRowDigests(diverId);
+        if (previous != null && previous.isCurrentFor(rows)) return previous;
+        final base = previous ?? const DiveListSnapshot.empty();
+        return base.advancedTo(
+          rows,
+          hydrated: await _hydratedDives(base.staleIdsFor(rows)),
+        );
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dive list snapshot',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// `row_digest` over every column of `dives`, grouped so that a table wider
+  /// than SQLite's per-function argument limit still digests whole.
+  late final String _diveRowDigestSql = () {
+    final columns = [for (final c in _db.dives.$columns) '"${c.$name}"'];
+    final groups = [
+      for (final chunk in seriesIdChunks(columns, size: 100))
+        '$kRowDigestFunction(${chunk.join(', ')})',
+    ];
+    return groups.length == 1
+        ? groups.single
+        : '$kRowDigestFunction(${groups.join(', ')})';
+  }();
+
+  /// Each dive's id and row digest, in [getAllDives] order.
+  // stats-scope-exempt: change detection for the displayed list
+  Future<List<DiveRowDigest>> _diveRowDigests(String? diverId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id, $_diveRowDigestSql AS digest FROM dives '
+          '${diverId != null ? 'WHERE diver_id = ? ' : ''}'
+          'ORDER BY COALESCE(entry_time, dive_date_time) DESC, '
+          'dive_number DESC',
+          variables: [if (diverId != null) Variable.withString(diverId)],
+          readsFrom: {_db.dives},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        (id: row.read<String>('id'), digest: row.read<int>('digest')),
+    ];
+  }
+
+  /// The dives [ids] name, hydrated as [getAllDives] hydrates them.
+  Future<List<domain.Dive>> _hydratedDives(List<String> ids) async {
+    final rows = <Dive>[];
+    for (final chunk in seriesIdChunks(ids)) {
+      rows.addAll(
+        await (_db.select(_db.dives)..where((t) => t.id.isIn(chunk))).get(),
+      );
+    }
+    return _mapRowsWithPreloadedData(rows);
   }
 
   /// [rows] as domain dives, each relation read in one statement rather than

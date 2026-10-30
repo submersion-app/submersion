@@ -229,7 +229,7 @@ void main() {
     });
   });
 
-  // Table mode loads every dive and its filtered subset in full.
+  // Table mode counts in SQL rather than from its hydrated lists (#3815).
   group('diveTableCountProvider', () {
     Future<ListEntryCount?> tableCount(ProviderContainer container) async {
       final sub = container.listen(diveTableCountProvider, (_, _) {});
@@ -264,6 +264,58 @@ void main() {
         await tableCount(container),
         const ListEntryCount.filtered(shown: 1, total: 3),
       );
+    });
+
+    test('counts in SQL without hydrating the list', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+
+      await tableCount(container);
+
+      expect(container.exists(diveListNotifierProvider), isFalse);
+    });
+
+    test('follows a dives write', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      await tableCount(container);
+
+      await DiveRepository().createDive(
+        Dive(id: 'd', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
+      );
+      await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
+
+      expect(
+        container.read(diveTableCountProvider),
+        const ListEntryCount.unfiltered(4),
+      );
+    });
+
+    test('hides the count while another diver\'s loads', () async {
+      final other = await DiverRepository().createDiver(
+        Diver(
+          id: '',
+          name: 'Other',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      await tableCount(container);
+
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver(other.id);
+
+      expect(container.read(diveTableCountProvider), isNull);
+      expect(await tableCount(container), const ListEntryCount.unfiltered(0));
     });
   });
 
