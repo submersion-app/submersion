@@ -131,6 +131,11 @@ class SyncResult {
   /// before any sync can proceed.
   final LibraryEpochMarker? replaceMarker;
 
+  /// Set with [SyncResultStatus.authError] when a server refused the account.
+  /// Unset, the status only means there is no session here, which an offline
+  /// cold launch reads as too (issue #3811).
+  final bool accessRefused;
+
   const SyncResult({
     required this.status,
     this.message,
@@ -147,6 +152,7 @@ class SyncResult {
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.replaceMarker,
+    this.accessRefused = false,
   });
 
   bool get isSuccess =>
@@ -1076,6 +1082,7 @@ class SyncService {
         return SyncResult(
           status: SyncResultStatus.authError,
           message: e.message,
+          accessRefused: true,
         );
       }
       return SyncResult(

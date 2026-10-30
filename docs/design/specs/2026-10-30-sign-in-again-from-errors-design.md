@@ -102,8 +102,11 @@ first and which the account's status reflects.
 - `ChangesetReader`: a refusal rethrows out of the per-peer catch
   (`changeset_reader.dart:389`). Otherwise it is filed as one bad peer and the
   sync reports a clean finish. Cursors already written stay written.
-- `SyncFailureKind` gains `auth`. `_runSyncOnce` records it for `authError`
-  (today `other`) and for a refused exception reaching its outer catch.
+- `SyncFailureKind` gains `auth`. `_runSyncOnce` records it for a refused
+  `authError` and for a refused exception reaching its outer catch. An
+  `authError` that only means no session here is recorded as `network`: being
+  signed out is read live from `isAuthenticated`, and a stored `auth` would
+  outlive an offline cold launch.
 - `evaluateSyncHealth`: a current `auth` failure gives
   `HealthReason.syncSignedOut`, failing, the same as `!authenticated`. One
   reason means one line, one button, and no new Data health text.

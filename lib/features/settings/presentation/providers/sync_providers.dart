@@ -1626,7 +1626,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       var result = await _syncService.performSync();
       if (result.status == SyncResultStatus.authError &&
           preCheckCloudError != null) {
-        result = SyncResult(status: result.status, message: preCheckCloudError);
+        result = SyncResult(
+          status: result.status,
+          message: preCheckCloudError,
+          accessRefused: result.accessRefused,
+        );
       }
       _log.debug('Result: ${result.status}, message: ${result.message}');
       // This notifier can be disposed while a launch-triggered sync is in
@@ -1786,7 +1790,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
         );
         await _recordSyncFailure(switch (result.status) {
           SyncResultStatus.networkError => SyncFailureKind.network,
-          SyncResultStatus.authError => SyncFailureKind.auth,
+          // No session here is read live from isAuthenticated, so it clears
+          // itself. Stored as a sign-in failure, an offline cold launch would
+          // keep asking for a sign-in after the network came back.
+          SyncResultStatus.authError =>
+            result.accessRefused
+                ? SyncFailureKind.auth
+                : SyncFailureKind.network,
           _ => SyncFailureKind.other,
         }, message);
         if (!mounted) return false;

@@ -71,13 +71,16 @@ void main() {
     expect(container.read(syncFailureProvider)?.kind, SyncFailureKind.network);
   });
 
-  test('a signed-out provider is recorded as a sign-in failure', () async {
+  // An offline cold launch reads as signed out too, and that must not outlive
+  // the outage: being signed out is read live from isAuthenticated, and only a
+  // server's refusal is stored as a sign-in failure.
+  test('no session here is not stored as a sign-in failure', () async {
     cloud.authenticated = false;
     final container = await makeContainer();
 
     await container.read(syncStateProvider.notifier).performSync();
 
-    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
+    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.network);
   });
 
   test('a refused cloud call is recorded as a sign-in failure', () async {
