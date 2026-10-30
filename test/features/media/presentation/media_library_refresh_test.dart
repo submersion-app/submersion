@@ -19,7 +19,7 @@ MediaLibraryEntry _entry(String id, {String? caption}) => MediaLibraryEntry(
     id: id,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.localFile,
-    filePath: 'photos/$id',
+    filePath: id,
     caption: caption,
     takenAt: _when,
     createdAt: _when,
@@ -156,12 +156,16 @@ void main() {
       expect(state().nextCursor?.id, 'b59');
     });
 
-    test('reads a whole page when fewer rows are loaded', () async {
-      await loadPageOne();
-      repo.reads.clear();
+    test('reads a page past a fully loaded library', () async {
+      notifier();
+      await settle();
+      repo.reads.single.answer(_rows('a', 3));
+      await settle();
 
       await tick();
-      expect(repo.reads.single.limit, pageSize);
+
+      // A read of exactly 3 would lose the last row to any new one.
+      expect(repo.reads.last.limit, 3 + pageSize);
     });
 
     test('drops a row that was deleted or stopped matching', () async {
@@ -338,7 +342,6 @@ void main() {
       await settle();
 
       // The queued read saw the notifier gone and never ran.
-      expect(repo.reads.where((r) => identical(r, inFlight)), hasLength(1));
       expect(repo.reads.last, same(inFlight));
     });
   });

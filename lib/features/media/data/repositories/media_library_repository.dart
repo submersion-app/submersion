@@ -635,10 +635,12 @@ class MediaLibraryRepository {
       )
       .debounce(MediaRepository.changeTickDebounce);
 
-  /// [watchMediaChanges] plus the tables only the library grid's filters
-  /// read, so a row leaves or joins the page without a media row being
-  /// written: `media_species` is the species filter's EXISTS, and `trips`
-  /// holds the side-trip links its trip filter takes in (issue #3658).
+  /// [watchMediaChanges] plus the tables only the library grid reads, so a
+  /// row leaves, joins or changes on the page without a media row being
+  /// written: `media_species` is the species filter's EXISTS, `trips` holds
+  /// the side-trip links its trip filter takes in (issue #3658), and `dives`
+  /// and `dive_sites` give the trip and site filters and each row's dive
+  /// header.
   Stream<void> watchLibraryChanges() => _db
       .tableUpdates(
         TableUpdateQuery.onAllTables([
@@ -647,6 +649,8 @@ class MediaLibraryRepository {
           _db.mediaPeople,
           _db.mediaSpecies,
           _db.trips,
+          _db.dives,
+          _db.diveSites,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);

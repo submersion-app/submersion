@@ -1,4 +1,6 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -102,6 +104,77 @@ void main() {
       expect(ids().toSet(), hasLength(ids().length), reason: 'no repeats');
       expect(ids(), hasLength(pageSize * 2 + 10), reason: 'every row left');
       expect(container.read(mediaLibraryNotifierProvider).hasMore, isFalse);
+    });
+  });
+
+  test('a new row leaves a fully loaded library whole', () async {
+    await seed(pageSize + 5);
+    await notifier().loadFirstPage();
+    await notifier().loadMore();
+    expect(container.read(mediaLibraryNotifierProvider).hasMore, isFalse);
+
+    await insertTestMedia(id: 'newest', takenAt: DateTime(2026, 7, 1));
+    await settleWrite();
+
+    expect(ids().first, 'newest');
+    expect(ids().last, 'm064', reason: 'the oldest row is still there');
+    expect(container.read(mediaLibraryNotifierProvider).hasMore, isFalse);
+  });
+
+  group('a write to the dive behind a row', () {
+    setUp(() async {
+      await insertTestSite('reef', 'Blue Reef');
+      await insertTestSite('wreck', 'Old Wreck');
+      await insertTestDive(
+        id: 'dive',
+        at: DateTime(2026, 6, 1),
+        siteId: 'reef',
+        number: 7,
+      );
+      await insertTestMedia(id: 'photo', diveId: 'dive');
+    });
+
+    Future<void> writeDive(DivesCompanion change) {
+      final db = DatabaseService.instance.database;
+      return (db.update(
+        db.dives,
+      )..where((t) => t.id.equals('dive'))).write(change);
+    }
+
+    MediaLibraryEntry row() =>
+        container.read(mediaLibraryNotifierProvider).entries.single;
+
+    test('renumbers its header', () async {
+      await notifier().loadFirstPage();
+
+      await writeDive(const DivesCompanion(diveNumber: Value(8)));
+      await settleWrite();
+
+      expect(row().diveNumber, 8);
+    });
+
+    test('renames its header when the site is renamed', () async {
+      await notifier().loadFirstPage();
+
+      final db = DatabaseService.instance.database;
+      await (db.update(db.diveSites)..where((t) => t.id.equals('reef'))).write(
+        const DiveSitesCompanion(name: Value('Coral Reef')),
+      );
+      await settleWrite();
+
+      expect(row().siteName, 'Coral Reef');
+    });
+
+    test('drops the row when the dive leaves the filtered site', () async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(siteId: 'reef');
+      await notifier().loadFirstPage();
+      expect(ids(), ['photo']);
+
+      await writeDive(const DivesCompanion(siteId: Value('wreck')));
+      await settleWrite();
+
+      expect(ids(), isEmpty);
     });
   });
 

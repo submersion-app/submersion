@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -194,7 +193,10 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   /// write threw away the rows the diver had scrolled past, their place in the
   /// list and any selection among them. This read still drops rows that were
   /// deleted or stopped matching and takes in new ones, and it leaves the
-  /// cursor on its own last row, so [loadMore] carries on with no gap.
+  /// cursor on its own last row, so [loadMore] carries on with no gap. A
+  /// library read to its end asks for a page more: a new row would otherwise
+  /// push the oldest out with nothing to bring it back, and nothing starts a
+  /// load until the next scroll.
   ///
   /// The rows stay on screen meanwhile. Emptying them would trip the view's
   /// first-load spinner, which replaces the whole grid and so disposes every
@@ -205,12 +207,15 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
     // Queued work can reach its turn after the notifier is gone, and writing
     // state on a disposed StateNotifier throws.
     if (!mounted) return;
+    final loaded = state.entries.length;
     try {
       final page = await _repo.getPage(
         diverId: _diverId,
         filter: _filter,
         sort: _sort,
-        limit: max(state.entries.length, MediaLibraryRepository.pageSize),
+        limit: state.hasMore
+            ? loaded
+            : loaded + MediaLibraryRepository.pageSize,
       );
       if (!mounted) return;
       // isLoadingMore is read here, not before the await: [loadMore] raises it
