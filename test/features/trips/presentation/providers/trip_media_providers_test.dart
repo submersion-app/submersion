@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show UpdateKind, Variable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
@@ -126,6 +126,29 @@ void main() {
       await _tickSettled();
 
       expect((await sub.read()).mediaCount, 1);
+    });
+
+    test('deleting a dive refreshes it without a media write', () async {
+      await media('m1', 'd1', 1000);
+      final c = ProviderContainer(
+        overrides: [
+          tripMediaRepositoryProvider.overrideWithValue(repository),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(c.dispose);
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      expect((await sub.read()).mediaCount, 1);
+
+      await db.customUpdate(
+        "DELETE FROM dives WHERE id = 'd1'",
+        updates: {db.dives},
+        updateKind: UpdateKind.delete,
+      );
+      await _tickSettled();
+
+      expect((await sub.read()).mediaCount, 0);
     });
 
     test('an enrichment write does not re-read it', () async {
