@@ -277,6 +277,28 @@ void main() {
     expect(await currency.getAllEvents(), isEmpty);
   });
 
+  test('a certification linked to an existing one brings nothing', () async {
+    // Linking resolves references to the existing row (#3852). Prefs and
+    // events have no dedup, so they ride only with a certification the import
+    // created, or every re-import would land them on the existing row again.
+    final existing = await CertificationRepository().createCertification(
+      _sourceCert.copyWith(id: 'existing-cert', diverId: _diverId),
+    );
+    final data = await _parse();
+    await UddfEntityImporter().import(
+      data: data,
+      selections: const UddfImportSelections(),
+      repositories: _repositories(),
+      diverId: _diverId,
+      preResolvedCertificationIds: {
+        data.certifications.single['uddfId'] as String: existing.id,
+      },
+    );
+
+    expect(await currency.getAllPrefs(), isEmpty);
+    expect(await currency.getAllEvents(), isEmpty);
+  });
+
   test('without the repository the import still succeeds', () async {
     final data = await _parse();
     await UddfEntityImporter().import(

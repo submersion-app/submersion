@@ -23,6 +23,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -4341,6 +4342,326 @@ void main() {
                 verify(mockDiveRepo.createDive(captureAny)).captured.single
                     as Dive;
             expect(dive.diveTypeIds, ['search_recovery_1a2b3c4d']);
+          },
+        );
+      },
+    );
+
+    for (final action in [DuplicateAction.consolidate, DuplicateAction.skip]) {
+      testWidgets(
+        '${action.name} on a duplicate dive center links the dive to the '
+        'existing center (#3852)',
+        (tester) async {
+          // The shape UddfOperatorCenters.harvest leaves for a dive that only
+          // names an operator: a generated uddfId, not the center's own name.
+          final payload = ImportPayload(
+            entities: {
+              ui.ImportEntityType.diveCenters: [
+                {'name': 'Reef Divers', 'uddfId': 'diveoperator:reef divers'},
+              ],
+              ui.ImportEntityType.dives: [
+                {
+                  'dateTime': DateTime(2026, 3, 15, 10, 0),
+                  'maxDepth': 20.0,
+                  'runtime': const Duration(minutes: 30),
+                  'diveOperator': 'Reef Divers',
+                  'diveCenterRef': 'diveoperator:reef divers',
+                },
+              ],
+            },
+          );
+
+          final existingCenter = DiveCenter(
+            id: 'dc-1',
+            name: 'Reef Divers',
+            createdAt: _now,
+            updatedAt: _now,
+          );
+
+          final mockDiveRepo = MockDiveRepository();
+          when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+          when(mockDiveRepo.createDive(any)).thenAnswer(
+            (invocation) async => invocation.positionalArguments[0] as Dive,
+          );
+
+          final mockDiveCenterRepo = MockDiveCenterRepository();
+          when(
+            mockDiveCenterRepo.getDiveCenterById('dc-1'),
+          ).thenAnswer((_) async => existingCenter);
+
+          final mockTankPresetRepo = MockTankPresetRepository();
+          when(
+            mockTankPresetRepo.getPresetById(any),
+          ).thenAnswer((_) async => null);
+
+          await _runWithAdapter(
+            tester,
+            overrides: _fullOverrides(
+              payload: payload,
+              diver: _testDiver(),
+              existingDiveCenters: [existingCenter],
+              mockDiveRepo: mockDiveRepo,
+              mockDiveCenterRepo: mockDiveCenterRepo,
+              mockTankPresetRepo: mockTankPresetRepo,
+            ),
+            callback: (adapter) async {
+              final checked = await adapter.checkDuplicates(
+                await adapter.buildBundle(),
+              );
+              await adapter.performImport(
+                checked,
+                {
+                  wizard.ImportEntityType.diveCenters: {0},
+                  wizard.ImportEntityType.dives: {0},
+                },
+                {
+                  wizard.ImportEntityType.diveCenters: {0: action},
+                },
+              );
+
+              verifyNever(mockDiveCenterRepo.createDiveCenter(any));
+              final dive =
+                  verify(mockDiveRepo.createDive(captureAny)).captured.single
+                      as Dive;
+              expect(dive.diveCenter?.id, 'dc-1');
+            },
+          );
+        },
+      );
+
+      testWidgets(
+        '${action.name} on a duplicate trip links the dive to the existing '
+        'trip (#3852)',
+        (tester) async {
+          final payload = ImportPayload(
+            entities: {
+              ui.ImportEntityType.trips: [
+                {'name': 'Belize Trip', 'uddfId': 'trip-1'},
+              ],
+              ui.ImportEntityType.dives: [
+                {
+                  'dateTime': DateTime(2026, 3, 15, 10, 0),
+                  'maxDepth': 20.0,
+                  'runtime': const Duration(minutes: 30),
+                  'tripRef': 'trip-1',
+                },
+              ],
+            },
+          );
+
+          final existingTrip = Trip(
+            id: 'existing-trip',
+            name: 'Belize Trip',
+            startDate: DateTime(2026, 3, 1),
+            endDate: DateTime(2026, 3, 7),
+            createdAt: _now,
+            updatedAt: _now,
+          );
+
+          final mockDiveRepo = MockDiveRepository();
+          when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+          when(mockDiveRepo.createDive(any)).thenAnswer(
+            (invocation) async => invocation.positionalArguments[0] as Dive,
+          );
+
+          final mockTripRepo = MockTripRepository();
+
+          final mockTankPresetRepo = MockTankPresetRepository();
+          when(
+            mockTankPresetRepo.getPresetById(any),
+          ).thenAnswer((_) async => null);
+
+          await _runWithAdapter(
+            tester,
+            overrides: _fullOverrides(
+              payload: payload,
+              diver: _testDiver(),
+              existingTrips: [existingTrip],
+              mockDiveRepo: mockDiveRepo,
+              mockTripRepo: mockTripRepo,
+              mockTankPresetRepo: mockTankPresetRepo,
+            ),
+            callback: (adapter) async {
+              final checked = await adapter.checkDuplicates(
+                await adapter.buildBundle(),
+              );
+              await adapter.performImport(
+                checked,
+                {
+                  wizard.ImportEntityType.trips: {0},
+                  wizard.ImportEntityType.dives: {0},
+                },
+                {
+                  wizard.ImportEntityType.trips: {0: action},
+                },
+              );
+
+              verifyNever(mockTripRepo.createTrip(any));
+              final dive =
+                  verify(mockDiveRepo.createDive(captureAny)).captured.single
+                      as Dive;
+              expect(dive.tripId, 'existing-trip');
+            },
+          );
+        },
+      );
+
+      testWidgets(
+        '${action.name} on a duplicate certification links the course to the '
+        'existing certification (#3852)',
+        (tester) async {
+          const payload = ImportPayload(
+            entities: {
+              ui.ImportEntityType.certifications: [
+                {
+                  'name': 'Open Water',
+                  'agency': CertificationAgency.padi,
+                  'uddfId': 'cert-1',
+                },
+              ],
+              ui.ImportEntityType.courses: [
+                {
+                  'name': 'Open Water Course',
+                  'uddfId': 'course-1',
+                  'certificationRefs': ['cert-1'],
+                },
+              ],
+            },
+          );
+
+          final existingCert = Certification(
+            id: 'existing-cert',
+            name: 'Open Water',
+            agency: CertificationAgency.padi.name,
+            createdAt: _now,
+            updatedAt: _now,
+          );
+
+          final mockCertificationRepo = MockCertificationRepository();
+
+          final mockCourseRepo = MockCourseRepository();
+          when(mockCourseRepo.createCourse(any)).thenAnswer(
+            (invocation) async => invocation.positionalArguments[0] as Course,
+          );
+          when(
+            mockCourseRepo.setCourseCertifications(any, any),
+          ).thenAnswer((_) async {});
+
+          await _runWithAdapter(
+            tester,
+            overrides: _fullOverrides(
+              payload: payload,
+              diver: _testDiver(),
+              existingCertifications: [existingCert],
+              mockCertificationRepo: mockCertificationRepo,
+              mockCourseRepo: mockCourseRepo,
+            ),
+            callback: (adapter) async {
+              final checked = await adapter.checkDuplicates(
+                await adapter.buildBundle(),
+              );
+              await adapter.performImport(
+                checked,
+                {
+                  wizard.ImportEntityType.certifications: {0},
+                  wizard.ImportEntityType.courses: {0},
+                },
+                {
+                  wizard.ImportEntityType.certifications: {0: action},
+                },
+              );
+
+              verifyNever(mockCertificationRepo.createCertification(any));
+              verify(
+                mockCourseRepo.setCourseCertifications(any, ['existing-cert']),
+              ).called(1);
+            },
+          );
+        },
+      );
+    }
+
+    testWidgets(
+      'import as new on a duplicate dive center links the dive to the new '
+      'center, not the matched one (#3852)',
+      (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.diveCenters: [
+              {'name': 'Reef Divers', 'uddfId': 'dc-file-1'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'diveCenterRef': 'dc-file-1',
+              },
+            ],
+          },
+        );
+
+        final existingCenter = DiveCenter(
+          id: 'dc-1',
+          name: 'Reef Divers',
+          createdAt: _now,
+          updatedAt: _now,
+        );
+
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
+
+        final created = <String, DiveCenter>{};
+        final mockDiveCenterRepo = MockDiveCenterRepository();
+        when(mockDiveCenterRepo.createDiveCenter(any)).thenAnswer((invocation) {
+          final center = invocation.positionalArguments[0] as DiveCenter;
+          created[center.id] = center;
+          return Future.value(center);
+        });
+        when(mockDiveCenterRepo.getDiveCenterById(any)).thenAnswer(
+          (invocation) async => created[invocation.positionalArguments[0]],
+        );
+
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
+
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingDiveCenters: [existingCenter],
+            mockDiveRepo: mockDiveRepo,
+            mockDiveCenterRepo: mockDiveCenterRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.diveCenters: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.diveCenters: {
+                  0: DuplicateAction.importAsNew,
+                },
+              },
+            );
+
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.diveCenter?.id, created.keys.single);
+            expect(dive.diveCenter?.id, isNot('dc-1'));
           },
         );
       },

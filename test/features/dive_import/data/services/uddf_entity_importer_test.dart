@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_repos
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
@@ -2566,6 +2567,117 @@ void main() {
       final dive =
           verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
       expect(dive.gear.map((g) => g.item.id), ['existing-eq-1']);
+    });
+
+    test('preResolvedDiveCenterIds links a skipped duplicate center to the '
+        'existing record without creating a twin (#3852)', () async {
+      final existing = DiveCenter(
+        id: 'existing-center-1',
+        name: 'Reef Divers',
+        createdAt: now,
+        updatedAt: now,
+      );
+      when(
+        mockDiveCenterRepo.getDiveCenterById('existing-center-1'),
+      ).thenAnswer((_) async => existing);
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        diveCenters: [
+          {'name': 'Reef Divers', 'uddfId': 'diveoperator:reef divers'},
+        ],
+        dives: [
+          {
+            'dateTime': now,
+            'maxDepth': 25.0,
+            'diveCenterRef': 'diveoperator:reef divers',
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        // The center index is NOT selected: the reviewer chose Skip (or Link
+        // to existing) for the flagged duplicate.
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedDiveCenterIds: const {
+          'diveoperator:reef divers': 'existing-center-1',
+        },
+      );
+
+      verifyNever(mockDiveCenterRepo.createDiveCenter(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.diveCenter?.id, 'existing-center-1');
+    });
+
+    test('preResolvedTripIds links a skipped duplicate trip to the existing '
+        'record without creating a twin (#3852)', () async {
+      when(mockDiveRepo.createDive(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Dive,
+      );
+
+      final data = UddfImportResult(
+        trips: [
+          {'name': 'Bonaire', 'uddfId': 'trip-1'},
+        ],
+        dives: [
+          {'dateTime': now, 'maxDepth': 25.0, 'tripRef': 'trip-1'},
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedTripIds: const {'trip-1': 'existing-trip-1'},
+      );
+
+      verifyNever(mockTripRepo.createTrip(any));
+      final dive =
+          verify(mockDiveRepo.createDive(captureAny)).captured.single as Dive;
+      expect(dive.tripId, 'existing-trip-1');
+    });
+
+    test('preResolvedCertificationIds links a course to the existing '
+        'certification of a skipped duplicate (#3852)', () async {
+      when(mockCourseRepo.createCourse(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Course,
+      );
+      when(
+        mockCourseRepo.setCourseCertifications(any, any),
+      ).thenAnswer((_) async {});
+
+      const data = UddfImportResult(
+        certifications: [
+          {'name': 'Open Water', 'uddfId': 'cert-1'},
+        ],
+        courses: [
+          {
+            'name': 'Open Water Course',
+            'uddfId': 'course-1',
+            'certificationRefs': ['cert-1'],
+          },
+        ],
+      );
+
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(courses: {0}),
+        repositories: repos,
+        diverId: diverId,
+        preResolvedCertificationIds: const {'cert-1': 'existing-cert-1'},
+      );
+
+      verifyNever(mockCertificationRepo.createCertification(any));
+      verify(
+        mockCourseRepo.setCourseCertifications(any, ['existing-cert-1']),
+      ).called(1);
     });
 
     test('creates inline buddies for unmatched names', () async {

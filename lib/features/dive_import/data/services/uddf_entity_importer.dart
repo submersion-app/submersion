@@ -484,11 +484,16 @@ class UddfEntityImporter {
   /// spends minutes there (issue #3216). Every other stage is local database
   /// work.
   ///
-  /// [preResolvedBuddyIds], [preResolvedTagIds] and [preResolvedEquipmentIds]
-  /// map source refs (uddfId/name) to EXISTING database ids for flagged
-  /// duplicates the reviewer chose not to import as new rows. Seeding the id
-  /// mappings with them makes dive linking resolve to the existing record
-  /// instead of silently dropping the association (#756).
+  /// [preResolvedBuddyIds], [preResolvedTagIds], [preResolvedEquipmentIds],
+  /// [preResolvedDiveCenterIds] and [preResolvedTripIds] map source refs
+  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
+  /// reviewer chose not to import as new rows. Seeding the id mappings with
+  /// them makes dive linking resolve to the existing record instead of
+  /// silently dropping the association (#756, #3852).
+  ///
+  /// [preResolvedCertificationIds] does the same for the certifications a
+  /// course earned. It stays out of the mapping currency restores from: prefs
+  /// and events ride only with a certification this import created.
   ///
   /// [preResolvedDiveTypeIds] does the same for dive types, keyed by the id
   /// the file's dives reference. The review matches a type by name before
@@ -504,6 +509,9 @@ class UddfEntityImporter {
     Map<String, String> preResolvedTagIds = const {},
     Map<String, String> preResolvedEquipmentIds = const {},
     Map<String, String> preResolvedDiveTypeIds = const {},
+    Map<String, String> preResolvedDiveCenterIds = const {},
+    Map<String, String> preResolvedTripIds = const {},
+    Map<String, String> preResolvedCertificationIds = const {},
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
     String? sourceFileName,
@@ -519,10 +527,10 @@ class UddfEntityImporter {
     );
 
     // ID mappings for cross-references
-    final tripIdMapping = <String, String>{};
+    final tripIdMapping = <String, String>{...preResolvedTripIds};
     final equipmentIdMapping = <String, String>{...preResolvedEquipmentIds};
     final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
-    final diveCenterIdMapping = <String, String>{};
+    final diveCenterIdMapping = <String, String>{...preResolvedDiveCenterIds};
     final tagIdMapping = <String, String>{...preResolvedTagIds};
     final diveTypeIdMapping = <String, String>{...preResolvedDiveTypeIds};
     final siteIdMapping = <String, DiveSite>{};
@@ -867,7 +875,7 @@ class UddfEntityImporter {
             diverId,
             courseIdMapping,
             buddyIdMapping,
-            certIdMapping,
+            {...preResolvedCertificationIds, ...certIdMapping},
             now,
             onProgress,
             certResolver,
