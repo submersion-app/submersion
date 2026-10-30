@@ -299,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 327;
+  static const int currentSchemaVersion = 328;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1484,6 +1484,9 @@ class AppDatabase extends _$AppDatabase {
     // upgraded database (issue #3809). Drift never read or wrote them, and
     // sync never carried them, so the floor does not move.
     327,
+    // v328: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623).
+    328,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

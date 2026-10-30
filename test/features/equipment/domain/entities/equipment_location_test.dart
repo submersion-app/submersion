@@ -26,6 +26,27 @@ void main() {
     });
   });
 
+  group('EquipmentLocation.diveCenterId', () {
+    final place = EquipmentLocation(
+      id: 'p',
+      name: 'Reef locker',
+      kind: EquipmentLocationKind.diveCenter,
+      diveCenterId: 'reef',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    test('copyWith keeps the link unless told otherwise', () {
+      expect(place.copyWith(name: 'x').diveCenterId, 'reef');
+      expect(place.copyWith(diveCenterId: 'bay').diveCenterId, 'bay');
+      expect(place.copyWith(clearDiveCenterId: true).diveCenterId, isNull);
+    });
+
+    test('two places differing only in link are not equal', () {
+      expect(place, isNot(place.copyWith(diveCenterId: 'bay')));
+    });
+  });
+
   group('compareMovesNewestFirst', () {
     EquipmentLocationMove move(String id, int movedAt, int createdAt) =>
         EquipmentLocationMove(

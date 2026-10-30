@@ -701,5 +701,11 @@ extension RungsFromV231 on AppDatabase {
       await _dropMisspelledPpO2DecoBandColumns();
     }
     if (from < 327) await reportProgress();
+
+    // v328: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 328) await _assertEquipmentLocationCenterColumn();
+    if (from < 328) await reportProgress();
   }
 }

@@ -26,6 +26,9 @@ class EquipmentLocation extends Equatable {
   final String? diverId;
   final String name;
   final EquipmentLocationKind kind;
+
+  /// The saved dive center this place stands for, if any (issue #3623).
+  final String? diveCenterId;
   final String notes;
   final bool isArchived;
   final DateTime createdAt;
@@ -36,6 +39,7 @@ class EquipmentLocation extends Equatable {
     this.diverId,
     required this.name,
     required this.kind,
+    this.diveCenterId,
     this.notes = '',
     this.isArchived = false,
     required this.createdAt,
@@ -47,6 +51,8 @@ class EquipmentLocation extends Equatable {
     String? diverId,
     String? name,
     EquipmentLocationKind? kind,
+    String? diveCenterId,
+    bool clearDiveCenterId = false,
     String? notes,
     bool? isArchived,
     DateTime? createdAt,
@@ -56,6 +62,7 @@ class EquipmentLocation extends Equatable {
     diverId: diverId ?? this.diverId,
     name: name ?? this.name,
     kind: kind ?? this.kind,
+    diveCenterId: clearDiveCenterId ? null : diveCenterId ?? this.diveCenterId,
     notes: notes ?? this.notes,
     isArchived: isArchived ?? this.isArchived,
     createdAt: createdAt ?? this.createdAt,
@@ -68,6 +75,7 @@ class EquipmentLocation extends Equatable {
     diverId,
     name,
     kind,
+    diveCenterId,
     notes,
     isArchived,
     createdAt,

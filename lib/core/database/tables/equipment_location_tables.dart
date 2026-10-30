@@ -11,6 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
+import 'package:submersion/core/database/tables/site_tables.dart';
 
 /// A diver's named places where gear can be (v268). No unique name: a
 /// diver merge or a two-device race would otherwise fail; the Manage page
@@ -28,6 +29,15 @@ class EquipmentLocations extends Table {
   BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// The saved center a Dive center place stands for (v328, issue #3623).
+  /// Optional. SET NULL so deleting a center leaves the place; the delete
+  /// paths also clear this by hand, because a SET NULL reaches no peer.
+  TextColumn get diveCenterId => text().nullable().references(
+    DiveCenters,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
 
   /// Hybrid Logical Clock for cross-device conflict resolution.
   TextColumn get hlc => text().nullable()();

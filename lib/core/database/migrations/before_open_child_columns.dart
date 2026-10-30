@@ -37,5 +37,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
     // whole row, for the same reason as the tank columns.
     await _assertTripParentColumn();
+
+    // v328: equipment_locations.dive_center_id (issue #3623). Every place
+    // read selects the whole row, for the same reason as the tank columns.
+    await _assertEquipmentLocationCenterColumn();
   }
 }
