@@ -470,6 +470,64 @@ void main() {
       expect(connected, SetUpConnect.connected);
     });
 
+    group('when the sync account write failed', () {
+      /// Connects with Google Drive already selected, the state a failed
+      /// write leaves: selecting it again notifies nothing. Writes the id on
+      /// the derivation numbered [writesOn], or never.
+      Future<(SetUpConnect, int)> connectAfterFailedWrite(
+        WidgetTester tester, {
+        int? writesOn,
+      }) async {
+        String? syncId;
+        var derivations = 0;
+        final (context, ref) = await pumpHost(
+          tester,
+          extra: [
+            connectedAccountsWithStatusProvider.overrideWith(
+              (ref) async => [(drive.rows.single, AccountStatus.signedIn)],
+            ),
+            connectedAccountUsageProvider.overrideWith(
+              (ref) async => AccountUsageSnapshot(syncAccountId: syncId),
+            ),
+            selectedSyncAccountProvider.overrideWith((ref) async {
+              if (++derivations != writesOn) return null;
+              syncId = 'gd';
+              return drive.rows.single;
+            }),
+          ],
+        );
+        ref.read(selectedCloudProviderTypeProvider.notifier).state =
+            CloudProviderType.googledrive;
+        ref.listenManual(accountGroupsProvider, (_, _) {});
+        final before = await ref.read(accountGroupsProvider.future);
+
+        final connected = await const SetUpSyncActions().connect(
+          context,
+          ref,
+          before.single,
+        );
+        return (connected, derivations);
+      }
+
+      testWidgets('runs the write again, so Check again can recover', (
+        tester,
+      ) async {
+        final (connected, derivations) = await connectAfterFailedWrite(
+          tester,
+          writesOn: 2,
+        );
+
+        expect(connected, SetUpConnect.connected);
+        expect(derivations, 2);
+      });
+
+      testWidgets('reports not connected when it fails again', (tester) async {
+        final (connected, _) = await connectAfterFailedWrite(tester);
+
+        expect(connected, SetUpConnect.failed);
+      });
+    });
+
     testWidgets('reports a device that has synced with that account as in '
         'step', (tester) async {
       final (context, ref) = await pumpHost(
