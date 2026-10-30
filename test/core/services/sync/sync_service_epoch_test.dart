@@ -14,6 +14,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
@@ -622,6 +623,31 @@ void main() {
 
       expect(retried.status, SyncResultStatus.awaitingAdoption);
     });
+
+    for (final (name, failure) in <(String, Object)>[
+      ('a tampered', const EnvelopeCorruptException('bad tag')),
+      ('a locked', const SyncEncryptionRequired(message: 'other key')),
+    ]) {
+      test('$name manifest counts as no readable library', () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+        );
+        await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+        final service = buildService();
+        await service.writeLibraryEpochMarker(cloud, marker);
+        final manifest = ChangesetLogLayout.manifestName('peer-1');
+        cloud
+          ..failDownloadsWhere = ((id) => id.endsWith(manifest))
+          ..downloadFailure = failure;
+
+        final result = await service.adoptReplacedLibrary();
+
+        // Held in the cloud but unusable here, unlike a read that failed: the
+        // answer is "no library this device can read", so recovery runs.
+        expect(result.isSuccess, isTrue);
+        expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
+      });
+    }
 
     test('a corrupt manifest still counts as no readable library', () async {
       await DiveRepository().createDive(

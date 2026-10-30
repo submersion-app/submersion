@@ -65,8 +65,13 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   bool failDownloads = false;
 
   /// When set, a download whose file id this matches throws: the same failure
-  /// as [failDownloads], for one kind of file.
+  /// as [failDownloads], for one kind of file. Throws [downloadFailure].
   bool Function(String fileId)? failDownloadsWhere;
+
+  /// What [failDownloadsWhere] throws.
+  Object downloadFailure = const CloudStorageException(
+    'download failed (test)',
+  );
 
   /// Ordered log of cloud operations, for asserting protocol order (e.g.
   /// "marker written before wipe"). File ids equal filenames in this fake.
@@ -155,9 +160,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   @override
   Future<Uint8List> downloadFile(String fileId) async {
     if (hangOperations || hangDownloads) return _hang<Uint8List>();
-    if (failDownloads || (failDownloadsWhere?.call(fileId) ?? false)) {
+    if (failDownloads) {
       throw const CloudStorageException('download failed (test)');
     }
+    if (failDownloadsWhere?.call(fileId) ?? false) throw downloadFailure;
     final f = _files[fileId];
     if (f == null) {
       throw CloudStorageException('File not found: $fileId');
