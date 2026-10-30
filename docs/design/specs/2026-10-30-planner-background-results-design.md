@@ -178,8 +178,12 @@ The waypoint handles follow the finger throughout, as they do now.
 ### Slate export
 
 `planSlateExport` is already asynchronous. It awaits the `.future` of each of the
-four providers, so a slate always carries results for the current plan. The
-collapsed-contingencies behaviour is unchanged: the slate carries contingency
+four providers, so a slate always carries results for the current plan. It listens
+to all four for as long as it waits, because an edit to a provider nothing is
+listening to drops the running build and starts no new one, which would leave the
+await pending forever. It goes round again if the plan, the settings or the
+Contingencies section changed during the wait, so one slate never mixes revisions.
+The collapsed-contingencies behaviour is unchanged: the slate carries contingency
 tables only when the section is expanded. If a result fails, the export fails
 through its existing error path and never produces a slate with a section
 silently missing.

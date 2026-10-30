@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -312,31 +313,57 @@ void main() {
     );
   });
 
-  test('a burst of edits runs each service once, after the settle', () async {
-    final runner = _CountingRunner();
-    final container = makeContainer(
-      runner: runner,
-      settle: const Duration(milliseconds: 60),
+  test('a burst of edits runs each service once, after the settle', () {
+    fakeAsync((async) {
+      final runner = _CountingRunner();
+      final container = makeContainer(
+        runner: runner,
+        settle: const Duration(milliseconds: 150),
+      );
+      load(container, _ccrWithBailout());
+      container.read(contingenciesExpandedProvider.notifier).state = true;
+      listenToAll(container);
+
+      for (var i = 1; i <= 30; i++) {
+        editBottomTime(container, 1500 + i * 15);
+        container.read(planRangeTableProvider);
+        container.read(planBailoutProvider);
+        container.read(planDeviationsProvider);
+        container.read(planLostGasProvider);
+        async.elapse(const Duration(milliseconds: 16));
+      }
+      expect(runner.runs, isEmpty);
+      // Superseded edits leave nothing behind to fire.
+      expect(async.pendingTimers, hasLength(4));
+
+      async.elapse(const Duration(milliseconds: 150));
+      expect(runner.runsOf(computeRangeTable), 1);
+      expect(runner.runsOf(computeBailout), 1);
+      expect(runner.runsOf(computeDeviations), 1);
+      expect(runner.runsOf(computeLostGas), 1);
+    });
+  });
+
+  test('by default results settle for 150 ms and run on an isolate', () async {
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      ],
     );
-    load(container, _ccrWithBailout());
-    container.read(contingenciesExpandedProvider.notifier).state = true;
-    listenToAll(container);
+    addTearDown(container.dispose);
+    load(container, _ordinaryOc());
+    container.listen(planRangeTableProvider, (_, _) {});
 
-    for (var i = 1; i <= 30; i++) {
-      editBottomTime(container, 1500 + i * 15);
-      container.read(planRangeTableProvider);
-      container.read(planBailoutProvider);
-      container.read(planDeviationsProvider);
-      container.read(planLostGasProvider);
-      await wait(const Duration(milliseconds: 2));
-    }
-    expect(runner.runs, isEmpty);
-
-    await wait(const Duration(milliseconds: 150));
-    expect(runner.runsOf(computeRangeTable), 1);
-    expect(runner.runsOf(computeBailout), 1);
-    expect(runner.runsOf(computeDeviations), 1);
-    expect(runner.runsOf(computeLostGas), 1);
+    expect(
+      container.read(planResultsSettleDelayProvider),
+      const Duration(milliseconds: 150),
+    );
+    expect(
+      container.read(planResultRunnerProvider),
+      isA<IsolatePlanResultRunner>(),
+    );
+    final table = await container.read(planRangeTableProvider.future);
+    expect(table.value, isNotNull);
   });
 
   test('a superseded run never delivers', () async {
@@ -450,7 +477,7 @@ void main() {
     container.read(contingenciesExpandedProvider.notifier).state = true;
     listenToAll(container);
 
-    final results = await planSlateResults(container.read);
+    final results = await planSlateResults(container);
 
     expect(results.rangeTable, isNull);
     expect(results.deviations, isEmpty);
@@ -476,7 +503,7 @@ void main() {
     load(container, _ccrWithBailout());
     container.read(contingenciesExpandedProvider.notifier).state = true;
 
-    final slate = planSlateResults(container.read);
+    final slate = planSlateResults(container);
     await wait(Duration.zero);
     expect(runner.held.map((run) => run.computation).toSet(), {
       computeDeviations,
@@ -642,10 +669,10 @@ void main() {
       load(container, _ccrWithBailout());
       container.read(contingenciesExpandedProvider.notifier).state = true;
       listenToAll(container);
-      final before = await planSlateResults(container.read);
+      final before = await planSlateResults(container);
 
       editBottomTime(container, 2400);
-      final after = await planSlateResults(container.read);
+      final after = await planSlateResults(container);
 
       final state = container.read(divePlanNotifierProvider);
       final config = container.read(planEngineConfigProvider);
@@ -677,7 +704,7 @@ void main() {
 
       var finished = false;
       final slate = planSlateResults(
-        container.read,
+        container,
       ).whenComplete(() => finished = true);
       // The first figure lands, then the plan changes under the others.
       final first = runner.latest(computeDeviations);
@@ -735,7 +762,7 @@ void main() {
         listenToAll(container);
         await wait(Duration.zero);
 
-        final slate = planSlateResults(container.read);
+        final slate = planSlateResults(container);
         final first = runner.latest(computeDeviations);
         runner.held.remove(first);
         first.finish();
@@ -762,7 +789,7 @@ void main() {
         listenToAll(container);
         await wait(Duration.zero);
 
-        final slate = planSlateResults(container.read);
+        final slate = planSlateResults(container);
         await wait(Duration.zero);
         container.read(contingenciesExpandedProvider.notifier).state = true;
         container.read(planDeviationsProvider);
@@ -776,6 +803,29 @@ void main() {
       },
     );
 
+    test(
+      'an edit while nothing is watching still finishes the slate',
+      () async {
+        final runner = HeldPlanResultRunner();
+        final container = makeContainer(runner: runner);
+        load(container, _ccrWithBailout());
+
+        var finished = false;
+        final slate = planSlateResults(
+          container,
+        ).whenComplete(() => finished = true);
+        await wait(Duration.zero);
+        expect(runner.held, isNotEmpty);
+
+        editBottomTime(container, 2400);
+        await wait(Duration.zero);
+        await drain(runner, slate);
+
+        expect(finished, isTrue);
+        await slate;
+      },
+    );
+
     test('a failed result fails the slate', () async {
       final runner = HeldPlanResultRunner();
       final container = makeContainer(runner: runner);
@@ -783,7 +833,7 @@ void main() {
       listenToAll(container);
       await wait(Duration.zero);
 
-      final slate = planSlateResults(container.read);
+      final slate = planSlateResults(container);
       expect(runner.held, hasLength(2));
       runner.held[0].finish();
       runner.held[1].fail(StateError('engine'));
@@ -796,7 +846,7 @@ void main() {
       load(container, _multiGasDeco());
       listenToAll(container);
 
-      final results = await planSlateResults(container.read);
+      final results = await planSlateResults(container);
 
       expect(results.deviations, isEmpty);
       expect(results.lostGas, isEmpty);

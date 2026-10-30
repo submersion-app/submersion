@@ -1,4 +1,5 @@
-import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
+import 'dart:async';
+
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -64,18 +65,41 @@ List<LostGasOutcome> computeLostGas(
 
 const _log = LoggerService('PlanResults');
 
-/// Thrown by a computation that a newer edit replaced while it settled.
-/// Nothing ever sees it: Riverpod drops what a replaced build produces.
-class _Superseded implements Exception {
-  const _Superseded();
-}
+/// Everything a background result depends on, in one place: what the plan
+/// state gives the engine, and the diver's settings. The tissue seed is held
+/// by its raw fields, not as a seeded [TissueState], which has no value
+/// equality.
+typedef _PlanResultInputs = ({
+  domain.DivePlan plan,
+  List<TissueCompartment>? seed,
+  Duration? surfaceInterval,
+  PlanEngineConfig config,
+});
 
-/// What a background result depends on in the plan state. The tissue seed is
-/// selected by its raw fields, not as a seeded [TissueState], which has no
-/// value equality.
-(domain.DivePlan, List<TissueCompartment>?, Duration?) _engineInputs(
-  DivePlanState s,
-) => (planForEngine(s), s.initialTissueState, s.surfaceInterval);
+/// Selected here once, rather than by each result, because the select rebuilds
+/// and compares the plan on every edit.
+final _planResultInputsProvider = Provider<_PlanResultInputs>((ref) {
+  final (plan, seed, surfaceInterval) = ref.watch(
+    divePlanNotifierProvider.select(
+      (s) => (planForEngine(s), s.initialTissueState, s.surfaceInterval),
+    ),
+  );
+  return (
+    plan: plan,
+    seed: seed,
+    surfaceInterval: surfaceInterval,
+    config: ref.watch(planEngineConfigProvider),
+  );
+});
+
+/// Completes once [delay] has passed with this computation still wanted. A
+/// newer edit cancels it, so the computation goes no further and leaves nothing
+/// to fire.
+Future<void> _settle(Ref ref, Duration delay) {
+  final settled = Completer<void>();
+  ref.onDispose(Timer(delay, settled.complete).cancel);
+  return settled.future;
+}
 
 /// Runs [computation] for the plan once its latest edit has settled.
 /// Recomputed when an input the engine reads changes; Riverpod drops the
@@ -86,23 +110,22 @@ Future<PlanBackgroundResult<T>> _settled<T>(
   Ref ref,
   PlanComputation<T> computation,
 ) async {
-  final (plan, _, _) = ref.watch(
-    divePlanNotifierProvider.select(_engineInputs),
-  );
-  final config = ref.watch(planEngineConfigProvider);
+  final inputs = ref.watch(_planResultInputsProvider);
   final runner = ref.watch(planResultRunnerProvider);
   final settle = ref.watch(planResultsSettleDelayProvider);
+  if (settle > Duration.zero) await _settle(ref, settle);
   final startState = startStateForPlan(
     ref.read(divePlanNotifierProvider),
-    config: config,
+    config: inputs.config,
   );
-  if (settle > Duration.zero) {
-    await Future<void>.delayed(settle);
-    if (!ref.mounted) throw const _Superseded();
-  }
   try {
-    final value = await runner.run(computation, plan, startState, config);
-    return PlanBackgroundResult(planId: plan.id, value: value);
+    final value = await runner.run(
+      computation,
+      inputs.plan,
+      startState,
+      inputs.config,
+    );
+    return PlanBackgroundResult(planId: inputs.plan.id, value: value);
   } catch (e, st) {
     _log.error('Could not compute a plan result', error: e, stackTrace: st);
     rethrow;
@@ -123,9 +146,7 @@ bool _hasSegments(Ref ref) =>
 /// must hold its place while [planBailoutProvider] computes.
 final planMayHaveBailoutProvider = Provider<bool>((ref) {
   return ref.watch(
-    divePlanNotifierProvider.select(
-      (s) => planMayHaveBailout(divePlanFromState(s)),
-    ),
+    _planResultInputsProvider.select((i) => planMayHaveBailout(i.plan)),
   );
 });
 
@@ -220,11 +241,16 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 /// older revision. A failure throws: no slate is better than one with a
 /// section silently missing.
 ///
+/// Listened to for as long as the wait lasts: all of them start together
+/// whether or not anything is watching them, and an edit reruns them. With
+/// nothing listening, an edit drops the running build without starting a new
+/// one, and a future awaited on it never completes.
+///
 /// Awaited in turn, and each future taken only when its turn comes, so that a
 /// later result failing first is not an error nobody is listening to.
 ///
-/// [read] must outlive the widget that asked: the diver can leave the canvas
-/// during the wait, so it comes from the container, not a `WidgetRef`.
+/// [container] rather than a `WidgetRef`, which ends if the diver leaves the
+/// canvas during the wait.
 Future<
   ({
     DivePlanState state,
@@ -235,34 +261,39 @@ Future<
     BailoutOutcome? bailout,
   })
 >
-planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
+planSlateResults(ProviderContainer container) async {
+  final listeners = [
+    container.listen(planDeviationsProvider, (_, _) {}),
+    container.listen(planLostGasProvider, (_, _) {}),
+    container.listen(planRangeTableProvider, (_, _) {}),
+    container.listen(planBailoutProvider, (_, _) {}),
+  ];
   // Everything these results depend on. Any of it can change during the wait,
   // after some have resolved, so go round again until all of them agree.
-  (Object, PlanEngineConfig, bool) inputs() => (
-    _engineInputs(read(divePlanNotifierProvider)),
-    read(planEngineConfigProvider),
-    read(contingenciesExpandedProvider),
+  (_PlanResultInputs, bool) inputs() => (
+    container.read(_planResultInputsProvider),
+    container.read(contingenciesExpandedProvider),
   );
-  while (true) {
-    final asked = inputs();
-    // Reading each one starts it, so any nothing is watching run side by side
-    // rather than settling one after another below.
-    read(planDeviationsProvider);
-    read(planLostGasProvider);
-    read(planRangeTableProvider);
-    read(planBailoutProvider);
-    final deviations = await read(planDeviationsProvider.future);
-    final lostGas = await read(planLostGasProvider.future);
-    final rangeTable = await read(planRangeTableProvider.future);
-    final bailout = await read(planBailoutProvider.future);
-    if (inputs() != asked) continue;
-    return (
-      state: read(divePlanNotifierProvider),
-      outcome: read(planOutcomeProvider),
-      deviations: deviations.value,
-      lostGas: lostGas.value,
-      rangeTable: rangeTable.value,
-      bailout: bailout.value,
-    );
+  try {
+    while (true) {
+      final asked = inputs();
+      final deviations = await container.read(planDeviationsProvider.future);
+      final lostGas = await container.read(planLostGasProvider.future);
+      final rangeTable = await container.read(planRangeTableProvider.future);
+      final bailout = await container.read(planBailoutProvider.future);
+      if (inputs() != asked) continue;
+      return (
+        state: container.read(divePlanNotifierProvider),
+        outcome: container.read(planOutcomeProvider),
+        deviations: deviations.value,
+        lostGas: lostGas.value,
+        rangeTable: rangeTable.value,
+        bailout: bailout.value,
+      );
+    }
+  } finally {
+    for (final listener in listeners) {
+      listener.close();
+    }
   }
 }

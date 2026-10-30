@@ -20082,7 +20082,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_range_title => 'טבלת טווחים';
 
   @override
-  String get plannerCanvas_results_calculating => 'מחשב';
+  String get plannerCanvas_results_calculating => 'בחישוב';
 
   @override
   String get plannerCanvas_results_failed => 'לא ניתן לחשב';
@@ -20091,7 +20091,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_results_noDeco => 'לא נדרשת דקומפרסיה';
 
   @override
-  String get plannerCanvas_results_updating => 'מעדכן';
+  String get plannerCanvas_results_updating => 'בעדכון';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
