@@ -16,9 +16,14 @@ import 'package:submersion/core/services/logger_service.dart';
 class _MemoryTokenStore implements GoogleDriveTokenStore {
   gauth.AccessCredentials? stored;
   int saves = 0;
+  Object? loadError;
 
   @override
-  Future<gauth.AccessCredentials?> load() async => stored;
+  Future<gauth.AccessCredentials?> load() async {
+    final error = loadError;
+    if (error != null) throw error;
+    return stored;
+  }
 
   @override
   Future<void> save(gauth.AccessCredentials credentials) async {
@@ -264,6 +269,21 @@ void main() {
       TimeoutHttpClient.defaultConnectTimeout,
     );
   });
+
+  test(
+    'a silent sign-in that throws says so, and the next one clears it',
+    () async {
+      store.loadError = Exception('keychain locked');
+      final auth = authenticator();
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isTrue);
+
+      store.loadError = null;
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isFalse);
+    },
+  );
 
   test('attemptSilentAuth returns false with no stored credentials', () async {
     final auth = authenticator();

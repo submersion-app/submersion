@@ -37,6 +37,11 @@ abstract class GoogleDriveAuthenticator {
   /// leave sync reporting itself unauthenticated after every restart.
   Future<bool> attemptSilentAuth();
 
+  /// Whether the last [attemptSilentAuth] failed on an exception rather than
+  /// finding no grant. It says "could not tell": a dropped network looks like
+  /// this, and must not read as the account being refused.
+  bool get lastSilentAuthThrew;
+
   /// The authorized HTTP client, or null when not authenticated.
   http.Client? get authClient;
 

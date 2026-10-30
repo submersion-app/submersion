@@ -28,6 +28,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   int silentAuthCalls = 0;
   int authFailures = 0;
   bool silentAuthResult = true;
+
+  @override
+  bool lastSilentAuthThrew = false;
   bool signedOut = false;
 
   /// When set, a successful silent re-auth publishes this client, the way a
@@ -456,6 +459,26 @@ void main() {
             'error_description': 'Token has been expired or revoked.',
           },
         );
+
+    test('a refresh that fails on an outage is not a refusal', () async {
+      final failingAuth =
+          _FakeAuthenticator(
+              MockClient((_) async => throw refreshError('invalid_grant')),
+            )
+            ..silentAuthResult = false
+            ..lastSilentAuthThrew = true;
+
+      await expectLater(
+        refreshFailing(failingAuth).listFiles(namePattern: 'ssv1.'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.accessRefused,
+            'accessRefused',
+            isFalse,
+          ),
+        ),
+      );
+    });
 
     test('invalid_grant clears the grant and asks to sign in again', () async {
       final failingAuth = _FakeAuthenticator(

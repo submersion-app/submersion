@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
@@ -203,7 +204,9 @@ class GoogleDriveStorageProvider
       if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
       if (!await _reauthorize(client)) {
-        throw _signInExpired(e);
+        throw _authenticator.lastSilentAuthThrew
+            ? driveRefreshFailed(e)
+            : driveSignInExpired(e);
       }
       final retryClient = _authenticator.authClient;
       try {
@@ -212,7 +215,7 @@ class GoogleDriveStorageProvider
         if (!_isAuthRejection(retryError)) rethrow;
         _log.warning('Drive rejected the re-authorized sign-in: $retryError');
         await _dropRejectedAuth(retryClient);
-        throw _signInExpired(retryError);
+        throw driveSignInExpired(retryError);
       }
     }
   }
@@ -256,22 +259,6 @@ class GoogleDriveStorageProvider
       (e is drive.DetailedApiRequestError && e.status == 401) ||
       _isRevokedGrant(e);
 
-  static CloudStorageException _signInExpired(Object cause) =>
-      CloudAccessRefusedException(
-        'Google Drive sign-in expired. Please sign in again.',
-        cause,
-      );
-
-  /// The 403 reasons that mean this account may not use Drive. An allowlist:
-  /// a reason it does not name (a quota, a rate limit, one Google adds later)
-  /// must not ask a diver to sign in again.
-  static const _refusedReasons = {
-    'insufficientPermissions',
-    'insufficientFilePermissions',
-    'ACCESS_TOKEN_SCOPE_INSUFFICIENT',
-    'authError',
-  };
-
   /// True when [e] is Google's token endpoint refusing the refresh token
   /// itself (revoked, expired, or issued to another client). Any other
   /// token-endpoint failure, a 5xx or a malformed response, is an outage
@@ -301,7 +288,7 @@ class GoogleDriveStorageProvider
     }
     if (e is drive.DetailedApiRequestError &&
         e.status == 403 &&
-        e.errors.any((d) => _refusedReasons.contains(d.reason))) {
+        e.errors.any((d) => driveRefusedReasons.contains(d.reason))) {
       return CloudAccessRefusedException(
         '$operation failed: $e',
         e,

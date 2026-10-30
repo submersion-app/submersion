@@ -35,6 +35,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   Future<void> authenticate({String? expectedAccount}) async {}
 
   @override
+  bool get lastSilentAuthThrew => false;
+
+  @override
   Future<bool> attemptSilentAuth() async {
     client ??= refreshedClient;
     return silentAuthResult;

@@ -152,6 +152,9 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
   }
 
   @override
+  bool get lastSilentAuthThrew => _delegate?.lastSilentAuthThrew ?? false;
+
+  @override
   Future<String?> get userEmail async => (await _resolve()).userEmail;
 
   @override
@@ -189,6 +192,9 @@ class _UnconfiguredDesktopAuthenticator implements GoogleDriveAuthenticator {
   /// must read as "not signed in" rather than crash.
   @override
   Future<bool> attemptSilentAuth() async => false;
+
+  @override
+  bool get lastSilentAuthThrew => false;
 
   @override
   Future<String?> get userEmail async => null;

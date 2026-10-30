@@ -102,8 +102,13 @@ class _FakePlatform extends GoogleSignInPlatform
     ClientAuthorizationTokensForScopesParameters params,
   ) async {
     authorizationCalls++;
+    final error = authorizationError;
+    if (error != null) throw error;
     return authorizationToken;
   }
+
+  /// When set, a scope authorization throws, as it does with no network.
+  Object? authorizationError;
 
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(
@@ -228,6 +233,25 @@ void main() {
       expect(await failing.attemptSilentAuth(), isFalse);
     });
   });
+
+  test(
+    'a silent sign-in that throws says so, unlike having no grant',
+    () async {
+      platform
+        ..lightweightResult = _FakePlatform.resultsFor('diver@example.com')
+        ..authorizationError = Exception('no network');
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isTrue);
+
+      platform
+        ..authorizationError = null
+        ..authorizationToken = null;
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isFalse);
+    },
+  );
 
   group('a sign-in expected to be a particular account (#3811)', () {
     setUp(() {

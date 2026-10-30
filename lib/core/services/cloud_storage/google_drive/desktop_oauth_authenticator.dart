@@ -215,7 +215,11 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
     );
   }
 
+  @override
+  bool lastSilentAuthThrew = false;
+
   Future<bool> _runSilentAuth() async {
+    lastSilentAuthThrew = false;
     try {
       if (_authClient != null) return true;
 
@@ -234,6 +238,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
       return true;
     } catch (e) {
       _log.warning('Silent sign-in failed: $e');
+      lastSilentAuthThrew = true;
       return false;
     }
   }

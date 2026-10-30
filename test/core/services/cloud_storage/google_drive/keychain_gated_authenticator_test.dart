@@ -23,6 +23,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   bool exposeClient = false;
 
   @override
+  bool lastSilentAuthThrew = false;
+
+  @override
   http.Client? get authClient => exposeClient ? client : null;
 
   @override
@@ -77,6 +80,14 @@ void main() {
 
       expect(loopback.authenticateCalls, 1);
       expect(googleSignIn.authenticateCalls, 0);
+    });
+
+    test('reports whether the flow it picked threw', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+      loopback.lastSilentAuthThrew = true;
+      await gate.attemptSilentAuth();
+
+      expect(gate.lastSilentAuthThrew, isTrue);
     });
 
     test('hands the expected account to whichever flow it picked', () async {
