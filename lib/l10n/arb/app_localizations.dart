@@ -5047,6 +5047,18 @@ abstract class AppLocalizations {
   /// **'Enter buddy name'**
   String get buddies_field_nameHint;
 
+  /// No description provided for @buddies_field_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave out of buddy rankings'**
+  String get buddies_field_excludedFromRankings;
+
+  /// No description provided for @buddies_field_excludedFromRankingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives together still count as buddy dives.'**
+  String get buddies_field_excludedFromRankingsHint;
+
   /// No description provided for @buddies_field_nameRequired.
   ///
   /// In en, this message translates to:
@@ -5538,6 +5550,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives Together'**
   String get buddies_stat_divesTogether;
+
+  /// No description provided for @buddies_stat_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out of buddy rankings'**
+  String get buddies_stat_excludedFromRankings;
 
   /// No description provided for @buddies_stat_favoriteSite.
   ///
