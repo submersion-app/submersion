@@ -56,7 +56,8 @@ Google, Dropbox, own servers and Git.
 - Letting a device hold two Google or two Dropbox accounts.
 - Making a scheduled backup's Google Drive copy work. It has no session in that
   isolate today, and still has none.
-- Guarding the account page's own Sign in again. It stays as it is, and is the
+- Guarding the account page's own Sign in again against a different account. It
+  takes no expected account, and is the
   deliberate way to change accounts.
 
 ## Anti-goals
@@ -154,7 +155,9 @@ What it does:
 1. Runs the account's sign-in, as `signInToGroup` does. For Google and Dropbox
    the row's `accountIdentifier` goes with it as the expected account (see
    below).
-2. On success, clears the current `auth` failure for that provider.
+2. On success, `signInToGroup` clears the current `auth` failure when this is
+   sync's account, and `lastCloudCopyNeedsSignIn` when it is the copy's. It does
+   that for a sign-in from anywhere, the account page included.
 3. Retries **everything this account is failing**: a sync through
    `runSyncNow` when it is the sync account (so the replaced-library and
    first-contact gates still apply), and a backup through
