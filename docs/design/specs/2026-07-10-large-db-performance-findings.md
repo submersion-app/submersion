@@ -143,6 +143,14 @@ Signatures (what the profiler actually showed):
   type checks = hydrating enormous object graphs (double full-profile read,
   Buhlmann + residual CNS/tissue/OTU + weekly OTU lookback chains fully
   hydrating dozens of prior dives). WS2's items map one-to-one.
+  Update 2026-10-30 (#3816): the full-profile read is not gone, and is now
+  three reads per open: `getDiveById`, `getProfilesByDataSource` and
+  `getDiveForAnalysis` each issue one `dive_profile_series` SELECT. With a
+  5,000-sample series the blob read and decode costs about 7 ms in a debug
+  build, against a full page rebuild for every provider that resolved during
+  an open before #3816. WS2 left it on the same evidence. Sharing the read
+  would mean merging providers that refresh on different ticks on purpose, so
+  it stays until a profile shows it matters.
 - Ceiling toggle: Skia dash-path measurement (SkContourMeasure::getSegment)
   + full series rebuild = undecimated 4,762-point curves redrawn wholesale
   per toggle. WS3 (decimation + per-series cache scoping) maps directly.
