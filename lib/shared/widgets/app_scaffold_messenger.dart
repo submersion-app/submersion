@@ -12,6 +12,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// A burst of them would otherwise have the user closing every message in
 /// turn to reach what they cover, so while others are waiting the one on show
 /// carries a Dismiss all button.
+///
+/// It also keeps a message with an action on screen for a screen reader user,
+/// however short its duration, since `persist: false` has no such exception.
 class AppScaffoldMessenger extends ScaffoldMessenger {
   const AppScaffoldMessenger({super.key, required super.child});
 
@@ -20,8 +23,8 @@ class AppScaffoldMessenger extends ScaffoldMessenger {
 }
 
 class _AppScaffoldMessengerState extends ScaffoldMessengerState {
-  /// Every message not yet closed, in queue order, so the first is the one on
-  /// show. The queue itself is private to the framework.
+  /// Every message the user could still dismiss, in queue order. The queue
+  /// itself is private to the framework.
   final _open = <ScaffoldFeatureController<SnackBar, SnackBarClosedReason>>[];
 
   final _othersWaiting = ValueNotifier(false);
