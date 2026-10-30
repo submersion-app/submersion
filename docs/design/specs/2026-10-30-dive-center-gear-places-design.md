@@ -68,8 +68,8 @@ stored by name, so its position is safe to change. It appears wherever kinds
 already appear: the picker sections, the Manage list, the Equipment page's
 group-by-location headings, the kind dropdown, the conflict dialog.
 
-Use `Icons.storefront_outlined` *(builder may substitute if another icon already
-stands for dive centers in the app)*.
+Use `Icons.store_outlined`, the outlined form of the `Icons.store` that the dive
+center picker already uses.
 
 ### New place and edit dialog
 
@@ -135,8 +135,8 @@ page.
   column assert in `migrations/helpers/equipment_location_migrations.dart`,
   re-asserted from `before_open_child_columns.dart`. Never in `database.dart`.
 - No backfill, and no existing place changes type.
-- The Drift table in `tables/equipment_location_tables.dart` gains the column.
-  `tables/site_tables.dart` must be importable from there without a cycle.
+- The Drift table in `tables/equipment_location_tables.dart` gains the column,
+  referencing `DiveCenters` from `tables/site_tables.dart`.
 - `EquipmentLocation` gains `diveCenterId`, with `copyWith` able to clear it to
   null. `props` includes it.
 - `EquipmentLocationRepository.createLocation` and `updateLocation` carry it.
@@ -182,7 +182,7 @@ merge moves centers and places together by `diver_id` and needs no change.
 
 ## Localization
 
-New strings in every ARB file (23 locales), translated, not English copies: the
+New strings in every ARB file (11 locales), translated, not English copies: the
 kind name, the Saved dive center label, its None value, the center page section
 title, and the place page row label.
 
