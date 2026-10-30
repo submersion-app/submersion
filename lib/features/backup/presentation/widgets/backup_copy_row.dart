@@ -23,6 +23,9 @@ class BackupCopyRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    // Held for _change: with the copy off the target reads no accounts, and
+    // an account read nothing holds is disposed mid-probe (issue #3780).
+    ref.listen(accountGroupsProvider, (_, _) {});
     final async = ref.watch(backupCopyTargetProvider);
     final target = async.value;
     if (target == null) {
@@ -94,6 +97,11 @@ class BackupCopyRow extends ConsumerWidget {
     try {
       groups = await ref.read(accountGroupsProvider.future);
     } on Object {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.settings_connectedAccounts_loadError)),
+        );
+      }
       return;
     }
     if (!context.mounted) return;
