@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
@@ -605,16 +604,29 @@ void main() {
         bad(metric(), 'current is blank').error.code,
         QueryErrorCode.noneAmbiguous,
       );
+      expect(
+        bad(metric(), 'current is not none').error.code,
+        QueryErrorCode.noneAmbiguous,
+      );
       expect(ok(metric(), 'current is set'), isA<ConditionNode>());
+      expect(ok(metric(), 'current is not blank'), isA<ConditionNode>());
+    });
+
+    test('inside a group it reads the fields of that relation', () {
+      expect(
+        ok(metric(), 'site[country is empty]'),
+        ScopedNode(
+          FieldPath(['site']),
+          ConditionNode(FieldPath(['country']), QueryOp.isEmpty, null),
+        ),
+      );
     });
 
     test('a field that cannot be empty is refused, not searched as text', () {
-      final tree = ok(metric(), 'favorite is blank');
-      expect(tree, isA<ConditionNode>());
-      expect(
-        validateQuery(tree, fixtureDives, fixtureRegistry).single.code,
-        QueryErrorCode.opNotForField,
-      );
+      final error = bad(metric(), 'favorite is blank').error;
+      expect(error.code, QueryErrorCode.opNotForFieldQuoted);
+      expect(error.args['op'], 'blank');
+      expect(error.offset, 'favorite is '.length);
     });
 
     test('reads back through the printer as the canonical form', () {

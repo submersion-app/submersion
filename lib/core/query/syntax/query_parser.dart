@@ -336,8 +336,9 @@ class QueryParser {
         return node;
       }
       if (_isKeyword(v, 'any')) {
+        final node = _presence(path, res, QueryOp.isSet, v);
         _next();
-        return ConditionNode(path, QueryOp.isSet, null);
+        return node;
       }
       if (res.terminalRelation != null) {
         return _relationRef(path, res.terminalRelation!, opTok);
@@ -443,11 +444,12 @@ class QueryParser {
     QueryOp op,
     Token at,
   ) {
-    if (op == QueryOp.isEmpty &&
-        (res.field?.enumValues?.contains('none') ?? false)) {
+    final field = res.field;
+    if ((op == QueryOp.isEmpty || _isKeyword(at, 'none')) &&
+        (field?.enumValues?.contains('none') ?? false)) {
       // `current:none` would read as "unrecorded" while the diver may
-      // mean the stored value "none": refuse the ambiguity and name
-      // both spellings.
+      // mean the stored value "none", and `current is not none` the same
+      // way round: refuse the ambiguity and name both spellings.
       throw _Abort(
         _err(
           QueryErrorCode.noneAmbiguous,
@@ -456,6 +458,7 @@ class QueryParser {
         ),
       );
     }
+    if (field != null) _requireOp(field, op, at);
     return ConditionNode(path, op, null);
   }
 
