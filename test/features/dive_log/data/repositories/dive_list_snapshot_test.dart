@@ -205,6 +205,18 @@ void main() {
     });
   });
 
+  // Readers share the list, so a reorder must not move a dive to another id.
+  test('advancing pairs a held dive with its own row', () async {
+    await seed();
+    final first = await repository.getDiveListSnapshot(diverId: 'diver');
+    first.dives.sort((a, b) => b.id.compareTo(a.id));
+    expect(first.dives.map((d) => d.id), ['old', 'new']);
+
+    final advanced = first.advancedTo(first.rows);
+
+    expect(advanced.rows.map((r) => r.id), advanced.dives.map((d) => d.id));
+  });
+
   group('watchDiveHydrationWrites', () {
     // The incremental refresh reuses a held dive unless its own row changed,
     // and the fallback for everything else a dive embeds is this tick. A table

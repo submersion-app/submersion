@@ -8,8 +8,8 @@ typedef DiveRowDigest = ({String id, int digest});
 /// A hydrated dive list and the row digests it was built from, so the next
 /// refresh can hydrate only what changed (#3815).
 ///
-/// [rows] and [dives] run in step, in list order. Digests are comparable only
-/// within one database connection; after a reconnect every dive reads as
+/// [rows] and [dives] hold the same dives in list order. Digests are comparable
+/// only within one database connection; after a reconnect every dive reads as
 /// changed, which costs one full hydration and nothing else.
 class DiveListSnapshot {
   const DiveListSnapshot._(this.rows, this.dives);
@@ -40,7 +40,7 @@ class DiveListSnapshot {
     List<Dive> hydrated = const [],
   }) {
     final held = {
-      for (var i = 0; i < rows.length; i++) rows[i].id: dives[i],
+      for (final dive in dives) dive.id: dive,
       for (final dive in hydrated) dive.id: dive,
     };
     final kept = latest.where((row) => held.containsKey(row.id)).toList();

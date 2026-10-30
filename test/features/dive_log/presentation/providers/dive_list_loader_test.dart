@@ -148,6 +148,19 @@ void main() {
     });
   });
 
+  test('once the write reports end, nothing held is trusted', () async {
+    await settledSnapshot('mine');
+
+    await repository.hydrationWrites.close();
+    await pumpEventQueue();
+    final refresh = loader.refresh(diverId: 'mine');
+    await pumpEventQueue();
+
+    expect(repository.calls.last.previous, isNull);
+    repository.calls.last.answer.complete(_snapshotOf('mine'));
+    await refresh;
+  });
+
   group('a load a newer one overtook', () {
     test('answers null and leaves the newer list in place', () async {
       final mine = loader.load(diverId: 'mine');

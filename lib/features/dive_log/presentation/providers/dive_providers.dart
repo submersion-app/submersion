@@ -575,10 +575,11 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     state = const AsyncValue.loading();
     try {
       final dives = await _list.load(diverId: _currentDiverId);
-      if (dives == null) return;
-      state = AsyncValue.data(dives);
+      if (!mounted) return;
+      if (dives != null) state = AsyncValue.data(dives);
       // Keep divesProvider in sync so downstream FutureProviders
       // (recentDivesProvider, dashboard stats, etc.) automatically refresh.
+      // A silent reload that overtook this load does not do this for it.
       _ref.invalidate(divesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

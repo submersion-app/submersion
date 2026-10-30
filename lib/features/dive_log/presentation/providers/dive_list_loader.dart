@@ -9,7 +9,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// [refresh] reuses the dives it holds unless a table they embed was written
 /// since they were loaded. That write has no way to say which dives it
 /// touched, and may touch every dive at a site, so the refresh after it loads
-/// the whole list: a dive row's digest cannot see outside the row.
+/// the whole list: a dive row's digest cannot see outside the row. So does
+/// every refresh once the database that write report came from has closed,
+/// since a write to its replacement would go unseen.
 ///
 /// Only the newest load lands. One overtaken by a later load, or by [cancel],
 /// answers null however it ended, so a list loaded for the previous diver
@@ -18,6 +20,7 @@ class DiveListLoader {
   DiveListLoader(this._repository) {
     _hydrationWrites = _repository.watchDiveHydrationWrites().listen(
       (_) => _hydrationWriteCount++,
+      onDone: () => _hydrationWritesEnded = true,
     );
   }
 
@@ -30,6 +33,7 @@ class DiveListLoader {
   /// a write during a load must still read as unseen once the load lands.
   int _snapshotHydrationWrites = 0;
   int _hydrationWriteCount = 0;
+  bool _hydrationWritesEnded = false;
   int _latestLoad = 0;
 
   /// The whole list, trusting nothing held.
@@ -41,24 +45,27 @@ class DiveListLoader {
   /// The list, if it changed from what this loader last returned. Null when
   /// nothing did, or when a newer load overtook this one.
   Future<List<Dive>?> refresh({String? diverId}) async {
-    final load = ++_latestLoad;
+    final generation = ++_latestLoad;
     // Drift reports a write a turn after the write's own future completes, so
     // a reload right behind a write lets that report land before counting.
     await Future<void>.delayed(Duration.zero);
-    if (load != _latestLoad) return null;
+    if (generation != _latestLoad) return null;
     final writes = _hydrationWriteCount;
-    final previous = writes == _snapshotHydrationWrites ? _snapshot : null;
+    final previous =
+        writes == _snapshotHydrationWrites && !_hydrationWritesEnded
+        ? _snapshot
+        : null;
     try {
       final snapshot = await _repository.getDiveListSnapshot(
         diverId: diverId,
         previous: previous,
       );
-      if (load != _latestLoad) return null;
+      if (generation != _latestLoad) return null;
       _snapshot = snapshot;
       _snapshotHydrationWrites = writes;
       return identical(snapshot, previous) ? null : snapshot.dives;
     } catch (_) {
-      if (load != _latestLoad) return null;
+      if (generation != _latestLoad) return null;
       _snapshot = null;
       rethrow;
     }

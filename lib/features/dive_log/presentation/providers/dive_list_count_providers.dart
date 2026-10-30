@@ -43,12 +43,16 @@ final _diveTableCountsProvider = FutureProvider.autoDispose
             ? repository.watchDivesChanges()
             : repository.watchTables({'dives', ...extra}),
       );
-      final shown = repository.getDiveCount(diverId: diverId, filter: filter);
       if (!filter.hasActiveFilters) {
-        return ListEntryCount.unfiltered(await shown);
+        return ListEntryCount.unfiltered(
+          await repository.getDiveCount(diverId: diverId),
+        );
       }
-      final total = repository.getDiveCount(diverId: diverId);
-      return ListEntryCount.filtered(shown: await shown, total: await total);
+      final [shown, total] = await Future.wait([
+        repository.getDiveCount(diverId: diverId, filter: filter),
+        repository.getDiveCount(diverId: diverId),
+      ]);
+      return ListEntryCount.filtered(shown: shown, total: total);
     });
 
 /// The table view's entry count. Null until its first count arrives.
