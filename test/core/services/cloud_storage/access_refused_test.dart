@@ -155,6 +155,24 @@ void main() {
         );
       });
 
+      test('a 401 from the token endpoint is a refusal', () async {
+        await expectLater(
+          manager(
+            MockClient((_) async => http.Response('invalid_client', 401)),
+          ).getAccessToken(),
+          throwsA(refused(true)),
+        );
+      });
+
+      test('a 429 from the token endpoint is not a refusal', () async {
+        await expectLater(
+          manager(
+            MockClient((_) async => http.Response('slow down', 429)),
+          ).getAccessToken(),
+          throwsA(refused(false)),
+        );
+      });
+
       test('a 500 from the token endpoint is not a refusal', () async {
         await expectLater(
           manager(

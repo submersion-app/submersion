@@ -214,7 +214,9 @@ class DropboxAuthManager {
     } on Exception catch (e, st) {
       throw CloudStorageException('Could not reach Dropbox', e, st);
     }
-    if (response.statusCode >= 400 && response.statusCode < 500) {
+    // Dropbox's own refusals. Not every 4xx: a 429 is a rate limit, and must
+    // not ask a diver to sign in again.
+    if (response.statusCode == 400 || response.statusCode == 401) {
       throw CloudAccessRefusedException(
         'Dropbox rejected the authorization. Reconnect Dropbox in '
         'the Cloud Sync settings.',

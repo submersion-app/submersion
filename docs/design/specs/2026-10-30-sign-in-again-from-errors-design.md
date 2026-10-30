@@ -78,7 +78,7 @@ subclass.
 | Provider | Refused | Not refused |
 | --- | --- | --- |
 | Google Drive | `_signInExpired`; a 403 whose reason is `insufficientPermissions`, `insufficientFilePermissions`, `ACCESS_TOKEN_SCOPE_INSUFFICIENT` or `authError` | `_requireApi`'s not-authenticated error, `storageQuotaExceeded`, rate-limit reasons, any other 403 |
-| Dropbox | The second 401; a 4xx refusing the refresh token (`dropbox_auth_manager.dart:205`) | Not connected, 429, insufficient space, could not reach |
+| Dropbox | The second 401; a 400 or 401 refusing the refresh token (`dropbox_auth_manager.dart:205`) | Not connected, 429, insufficient space, could not reach |
 | S3 | 403, except `RequestTimeTooSkewed` | `AuthorizationHeaderMalformed`, 404, 5xx |
 | WebDAV | `unauthorized`, `forbidden` | Everything else |
 | Git | `unauthorized`, `forbidden` | `rateLimited` (a 403 with Retry-After), everything else |
