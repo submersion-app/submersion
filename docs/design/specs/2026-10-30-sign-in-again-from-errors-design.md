@@ -210,9 +210,12 @@ Rules:
   there is nothing to compare, so carry on.
 - A mismatch throws a typed exception carrying the account that signed in. It
   is a `CloudStorageException` subclass, so the existing handlers stay safe.
-- The diver's existing session, row and identity are untouched. The state after
-  a refusal is the state before it, so the error and its button stay in place
-  and no automatic sync can reach the other account.
+- The diver's row and identity are untouched, and so is the session held in the
+  running app, so the error and its button stay in place and no automatic sync
+  can reach the other account. On mobile and macOS Google the session does not
+  outlive a restart: the SDK has already switched user and has no way back, and
+  signing it out means the expected account signs in again rather than the next
+  cold launch returning the wrong one.
 - The expected account is passed per call, so the account page's Sign in again
   and the set-up flows behave as they do today.
 

@@ -11,12 +11,13 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Set while [signInAgain] runs: two OAuth flows at once would race.
-bool _running = false;
+/// The [signInAgain] that is running: two OAuth flows at once would race.
+Object? _attempt;
 
-/// How long a sign-in may hold [_running]. The macOS loopback flow has no
+/// How long a sign-in may hold [_attempt]. The macOS loopback flow has no
 /// timeout and no cancel dialog, so one abandoned in the browser never
-/// returns, and the button must not stay dead until the app restarts.
+/// returns, and the button must not stay dead until the app restarts. An
+/// attempt past this is retired: if it does finish, it retries nothing.
 const _abandonedAfter = Duration(minutes: 5);
 
 /// Runs [group]'s sign-in from a sync or backup error, then retries what the
@@ -32,9 +33,12 @@ Future<void> signInAgain(
   WidgetRef ref,
   AccountGroup group,
 ) async {
-  if (_running) return;
-  _running = true;
-  final abandoned = Timer(_abandonedAfter, () => _running = false);
+  if (_attempt != null) return;
+  final attempt = _attempt = Object();
+  bool current() => identical(_attempt, attempt);
+  final abandoned = Timer(_abandonedAfter, () {
+    if (current()) _attempt = null;
+  });
   try {
     // Read before signing in: the sign-in refreshes both.
     final syncGroup = (await ref.read(accountGroupsProvider.future)).syncing;
@@ -44,7 +48,8 @@ Future<void> signInAgain(
     final copyMissing = ref.read(backupSettingsProvider).lastCloudCopyMissing;
     if (!context.mounted) return;
 
-    if (!await _signIn(context, ref, group) || !context.mounted) return;
+    final signedIn = await _signIn(context, ref, group, isCurrent: current);
+    if (!signedIn || !current() || !context.mounted) return;
 
     if (syncGroup?.key == group.key) await runSyncNow(context, ref);
     if (copyMissing && copyGroup?.key == group.key && context.mounted) {
@@ -52,7 +57,7 @@ Future<void> signInAgain(
     }
   } finally {
     abandoned.cancel();
-    _running = false;
+    if (current()) _attempt = null;
   }
 }
 
@@ -61,8 +66,9 @@ Future<void> signInAgain(
 Future<bool> _signIn(
   BuildContext context,
   WidgetRef ref,
-  AccountGroup group,
-) async {
+  AccountGroup group, {
+  required bool Function() isCurrent,
+}) async {
   while (true) {
     if (!context.mounted) return false;
     String? differentAccount;
@@ -75,7 +81,7 @@ Future<bool> _signIn(
     );
     final other = differentAccount;
     if (other == null) return signedIn;
-    if (!context.mounted) return false;
+    if (!isCurrent() || !context.mounted) return false;
     final tryAgain = await _showDifferentAccountDialog(
       context,
       expected: group.identifier ?? '',

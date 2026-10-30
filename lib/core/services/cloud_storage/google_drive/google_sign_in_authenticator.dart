@@ -168,8 +168,11 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   }
 
   /// The SDK switched its current user as soon as the account was picked, so
-  /// the next cold launch's lightweight sign-in could return it. Nothing of
-  /// this app's session changes: the refused account was never authorized.
+  /// the next cold launch's lightweight sign-in could return it. That cannot
+  /// be undone: the SDK has no way back to the previous user. Signing out
+  /// costs the expected account a sign-in after a restart, which is the safe
+  /// side of syncing into the wrong Drive, and the client held in this process
+  /// is not affected.
   Future<void> _forgetRefusedAccount() async {
     try {
       await _googleSignIn.signOut();

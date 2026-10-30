@@ -464,6 +464,52 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('an abandoned sign-in that finishes late retries nothing', (
+    tester,
+  ) async {
+    // Both attempts wait on one gate, so both finish together: the second
+    // retries, and the one it replaced must not back up or sync as well.
+    await BackupPreferences(prefs).setLastCloudCopyMissing(true);
+    authenticator.gate = Completer<void>();
+    final group = _group();
+    final host = await pumpHost(
+      tester,
+      group: group,
+      copy: CopyFollowsSync(group),
+    );
+
+    final abandoned = signInAgain(host.$1, host.$2, group);
+    await tester.pump();
+    await tester.pump(const Duration(minutes: 6));
+    final current = signInAgain(host.$1, host.$2, group);
+    await tester.pump();
+
+    authenticator.gate!.complete();
+    await tester.pumpAndSettle();
+    await Future.wait([abandoned, current]);
+
+    expect(sync.log, ['sync', 'backup']);
+  });
+
+  testWidgets('an abandoned sign-in that finishes late asks nothing', (
+    tester,
+  ) async {
+    authenticator
+      ..gate = Completer<void>()
+      ..signsInAs = 'other@example.com';
+    final group = _group();
+    final host = await pumpHost(tester, group: group);
+
+    unawaited(signInAgain(host.$1, host.$2, group));
+    await tester.pump();
+    await tester.pump(const Duration(minutes: 6));
+
+    authenticator.gate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text("That's a different account"), findsNothing);
+  });
+
   testWidgets('any sign-in tells sync it is signed in again', (tester) async {
     final group = _group(syncs: false);
     final host = await pumpHost(tester, group: group);
