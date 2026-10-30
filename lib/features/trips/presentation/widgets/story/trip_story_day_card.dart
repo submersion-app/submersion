@@ -184,7 +184,8 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                           diveTypeListVisibilityPredicate,
                       // Pass the story's Dive so the configurable card can
                       // resolve fields absent from the summary (tanks, SAC,
-                      // buddies, weights). It carries no samples (issue #3831).
+                      // buddies, weights). Its profile is empty unless the
+                      // dive's row needed its samples (issue #3831).
                       fullDive: dive,
                       diveNumber: dive.diveNumber ?? index + 1,
                       isHighlighted: dive.id == _highlightedDiveId,

@@ -53,9 +53,11 @@ to `DiveListItem`, whose configurable card can show SAC, RMV, gas consumed, star
 and end pressure, total weight, runtime and water temperature. A plain batched
 read would have blanked or changed those on any dive that depended on a fallback.
 
-The two read paths differ in five places, found by diffing the mappers:
+The detail read and the batched read `getAllDives` already had differ in five
+places, found by diffing the mappers. The new read starts from that batched read
+and closes each gap, which the next section describes:
 
-| Value | Detail read (`_mapRowToDive`) | Batched read |
+| Value | Detail read (`_mapRowToDive`) | `getAllDives` batched read |
 | --- | --- | --- |
 | Water temperature | the row, else the coldest plausible sample | the row |
 | Tank start and end pressure | the row, else the pressure series | the row |

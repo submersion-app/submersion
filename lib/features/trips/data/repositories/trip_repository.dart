@@ -550,8 +550,8 @@ class TripRepository {
 
       if (rows.isEmpty) return [];
 
-      // The assignment dialog lists these, so a wide date range decodes no
-      // samples (issue #3831).
+      // The assignment dialog lists these, so a wide date range decodes samples
+      // only for a dive whose row needs them (issue #3831).
       final diveRepository = DiveRepository();
       final diveIds = rows.map((r) => r.data['dive_id'] as String).toList();
       final dives = await diveRepository.getDivesByIdsWithoutSamples(diveIds);
