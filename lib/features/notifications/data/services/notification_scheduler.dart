@@ -110,7 +110,7 @@ class NotificationScheduler {
   }
 
   /// [items]' clocks keyed by equipment id, an item without one absent. The
-  /// reads are batched, so they do not grow with the item count.
+  /// reads are batched, so they grow by chunk rather than by item.
   Future<Map<String, List<ServiceClockStatus>>> _evaluateClocks({
     required List<EquipmentItem> items,
     required Map<String, ServiceKind> kindsById,

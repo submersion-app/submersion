@@ -986,9 +986,9 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   );
 }
 
-/// Every evaluated clock on [items], keyed by equipment id, in a fixed number
-/// of statements however many items there are. [schedulesById] is the
-/// caller's schedule read; an item without an entry is absent. Registers only
+/// Every evaluated clock on [items], keyed by equipment id, in statements that
+/// grow by chunk rather than by item. [schedulesById] is the caller's schedule
+/// read; an item without an entry is absent. Registers only
 /// the invalidation input that depends on which gear has clocks: the caller
 /// chooses the rest, because a list-wide provider cannot afford the dive
 /// detail stream a single item can.
@@ -1050,7 +1050,7 @@ Future<Map<String, List<ServiceClockStatus>>> _evaluateItems(
 }
 
 /// Every evaluated clock on the gear named by [ids], keyed by equipment id,
-/// in a fixed number of statements however many ids there are. Unlike
+/// in statements that grow by chunk rather than by id. Unlike
 /// [activeEquipmentClocksProvider], retired and spare gear is evaluated
 /// too, and every clock is kept, not only the worst. An id with no gear
 /// row, or gear with no configured clock, is absent.
@@ -1106,7 +1106,7 @@ typedef EquipmentClocks = ({
 });
 
 /// Evaluates the clocks of every active gear item exactly once, in one batch
-/// whose statements do not grow with the item count. Both [dueClocksProvider]
+/// whose statements grow by chunk rather than by item. Both [dueClocksProvider]
 /// (badges/dashboard/trip) and [equipmentServiceUrgencyProvider] (sort/table
 /// columns) derive from this, so a screen watching both pays the evaluation
 /// (schedules + records + usage + window) a single time instead of twice.
