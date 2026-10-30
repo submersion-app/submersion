@@ -202,12 +202,16 @@ class DropboxAuthManager {
     } on Exception catch (e, st) {
       throw CloudStorageException('Could not reach Dropbox', e, st);
     }
+    if (response.statusCode >= 400 && response.statusCode < 500) {
+      throw CloudAccessRefusedException(
+        'Dropbox rejected the authorization. Reconnect Dropbox in '
+        'the Cloud Sync settings.',
+        _bodySummary(response),
+      );
+    }
     if (response.statusCode != 200) {
       throw CloudStorageException(
-        response.statusCode >= 400 && response.statusCode < 500
-            ? 'Dropbox rejected the authorization. Reconnect Dropbox in '
-                  'the Cloud Sync settings.'
-            : 'Dropbox authorization failed (${response.statusCode})',
+        'Dropbox authorization failed (${response.statusCode})',
         _bodySummary(response),
       );
     }

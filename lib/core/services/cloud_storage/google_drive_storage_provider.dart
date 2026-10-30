@@ -252,10 +252,20 @@ class GoogleDriveStorageProvider
       _isRevokedGrant(e);
 
   static CloudStorageException _signInExpired(Object cause) =>
-      CloudStorageException(
+      CloudAccessRefusedException(
         'Google Drive sign-in expired. Please sign in again.',
         cause,
       );
+
+  /// The 403 reasons that mean this account may not use Drive. An allowlist:
+  /// a reason it does not name (a quota, a rate limit, one Google adds later)
+  /// must not ask a diver to sign in again.
+  static const _refusedReasons = {
+    'insufficientPermissions',
+    'insufficientFilePermissions',
+    'ACCESS_TOKEN_SCOPE_INSUFFICIENT',
+    'authError',
+  };
 
   /// True when [e] is Google's token endpoint refusing the refresh token
   /// itself (revoked, expired, or issued to another client). Any other
@@ -280,6 +290,15 @@ class GoogleDriveStorageProvider
         e.errors.any((d) => d.reason == 'storageQuotaExceeded')) {
       return CloudStorageException(
         'Google Drive storage is full',
+        e,
+        stackTrace,
+      );
+    }
+    if (e is drive.DetailedApiRequestError &&
+        e.status == 403 &&
+        e.errors.any((d) => _refusedReasons.contains(d.reason))) {
+      return CloudAccessRefusedException(
+        '$operation failed: $e',
         e,
         stackTrace,
       );

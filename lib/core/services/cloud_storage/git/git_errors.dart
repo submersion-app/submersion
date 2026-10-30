@@ -58,6 +58,10 @@ class GitException extends CloudStorageException {
   final String? serverReason;
 
   @override
+  bool get accessRefused =>
+      code == GitErrorCode.unauthorized || code == GitErrorCode.forbidden;
+
+  @override
   String toString() =>
       'GitException(${code.name}): $message'
       '${serverReason == null ? '' : ' [$serverReason]'}';

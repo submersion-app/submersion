@@ -782,7 +782,7 @@ class S3ApiClient {
           cause,
         );
       }
-      throw CloudStorageException(
+      throw CloudAccessRefusedException(
         'Access denied. Check the access key, secret key, and bucket '
         'permissions.',
         cause,

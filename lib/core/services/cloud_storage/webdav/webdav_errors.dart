@@ -44,6 +44,10 @@ class WebDavException extends CloudStorageException {
   /// The server that could not be reached, for [WebDavErrorCode.unreachable].
   final String? host;
 
+  @override
+  bool get accessRefused =>
+      code == WebDavErrorCode.unauthorized || code == WebDavErrorCode.forbidden;
+
   static const int _excerptLimit = 300;
 
   /// Maps a non-success reply. [isRoot] marks a request for the DAV root

@@ -331,7 +331,7 @@ class DropboxApiClient {
           authRetried = true;
           continue;
         }
-        throw CloudStorageException(
+        throw CloudAccessRefusedException(
           'Dropbox authorization expired. Reconnect Dropbox in the Cloud '
           'Sync settings.',
           _bodySummary(response),
