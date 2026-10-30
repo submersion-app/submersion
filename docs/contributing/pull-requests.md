@@ -159,10 +159,23 @@ When in doubt, include a screenshot.
 
 ### How to add them
 
-Drag the images into the PR description on github.com. GitHub hosts them and
-puts the Markdown in for you. `gh` and the REST API cannot upload images, so a
-PR opened from the command line needs its screenshots added in the browser
-afterwards. Treat that PR as not ready for review until they are there.
+In the browser, drag the images into the PR description on github.com. GitHub
+hosts them and puts the Markdown in for you.
+
+`gh` and the REST API cannot upload images, so a PR opened from the command line
+attaches them through a secret gist instead. Each author keeps one gist for this
+project:
+
+1. Find your gist described `PR screenshots: submersion-app/submersion` with
+   `gh gist list --limit 1000`. If there is none, `gh gist create` a short text
+   file and give it that description.
+2. `gh gist clone` it. A gist has no folders, so name the images
+   `<pr>-<nn>-<screen>-<state>.png`. Copy them in, commit and push.
+3. Embed them in the description with raw URLs pinned to that commit:
+   `https://gist.githubusercontent.com/<owner>/<gist id>/raw/<commit>/<file>`
+
+Deleting the gist breaks the images in every PR that links it, so keep it. Treat
+a PR as not ready for review until its screenshots are there.
 
 A filled-out section looks like this:
 

@@ -5,7 +5,7 @@
 Submersion is a free, open-source dive log for scuba divers: one app for iOS, Android, macOS, Windows, and Linux. Your logbook lives on your own device, no account and no subscription required, and you can export all of it to open standards at any time.
 
 > [!NOTE]
-> New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md).
+> New here? Jump straight to [Installation](installation.md) to get the app, then log your first dive with [Your First Dive](first-dive.md). Want to get one thing done, step by step? The [How-To Guides](how-to-guides.md) walk you through setting up sync, moving from another app, and more.
 
 <!-- screenshot: images/home/dashboard-hero.png: the Dashboard on first open -->
 

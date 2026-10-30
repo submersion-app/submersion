@@ -324,6 +324,57 @@ class UserDocsTests(unittest.TestCase):
         self.assertEqual(len(failures), 2)
         self.assertIn("Markdown", failures[0])
 
+    def _write_how_to(self, index=None):
+        write(
+            self.root,
+            "docs/user/_sidebar.md",
+            "* [Home](README.md)\n* [Sites](dive-sites.md)\n"
+            "* [Guides](how-to-guides.md)\n* [Media](how-to-media-sync.md)\n",
+        )
+        write(self.root, "docs/user/how-to-media-sync.md", "# Set Up Media Sync\n")
+        if index is not None:
+            write(self.root, "docs/user/how-to-guides.md", index)
+
+    def test_how_to_page_missing_from_index_fails(self):
+        self._write_how_to(index="# How-To Guides\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("how-to-media-sync.md", failures[0])
+        self.assertIn("how-to-guides.md", failures[0])
+
+    def test_how_to_page_in_index_passes(self):
+        self._write_how_to(index="# How-To Guides\n\n- [Media](how-to-media-sync.md)\n")
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
+    def test_how_to_page_without_index_fails(self):
+        self._write_how_to()
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("how-to-media-sync.md", failures[0])
+        self.assertIn("how-to-guides.md", failures[0])
+
+    def test_how_to_page_with_screenshot_marker_fails(self):
+        self._write_how_to(index="# How-To Guides\n\n- [Media](how-to-media-sync.md)\n")
+        write(
+            self.root,
+            "docs/user/how-to-media-sync.md",
+            "# Set Up Media Sync\n\n"
+            "<!-- screenshot: images/how-to/media/01-start.png: start; iphone; fresh -->\n",
+        )
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("how-to-media-sync.md:3", failures[0])
+        self.assertIn("screenshot", failures[0])
+
+    def test_screenshot_marker_inside_a_code_fence_passes(self):
+        self._write_how_to(index="# How-To Guides\n\n- [Media](how-to-media-sync.md)\n")
+        write(
+            self.root,
+            "docs/user/how-to-media-sync.md",
+            "# Set Up Media Sync\n\n```\n<!-- screenshot: example -->\n```\n",
+        )
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
 
 class MainTests(unittest.TestCase):
     def test_default_root_is_the_repository(self):
