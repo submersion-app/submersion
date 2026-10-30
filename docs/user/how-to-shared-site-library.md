@@ -57,16 +57,16 @@ Repeat this for every member, giving each person their own token. A separate key
 
    Leave **Advanced** alone; Submersion sets it up for R2. Tap **Check connection**, wait for **Connection successful**, then tap **Save**.
 
-<!-- screenshot: images/how-to/shared-site-library/01-own-server.png: My own server with S3-compatible selected and the Endpoint URL, Bucket, Access Key ID and Secret Access Key fields filled with made-up values; mac; local test server -->
+![My own server with S3-compatible selected and the Endpoint URL, Bucket, Access Key ID and Secret Access Key fields filled with made-up values](images/how-to/shared-site-library/01-own-server.png)
 
 4. Back on **Connect a library**, type a name in **Folder (prefix)**, for example `club`. Your members type exactly the same name. Tap **Check location**.
 5. Submersion says **No library here yet.** Fill in **Library name** (what members see) and check **Your name in this library**, then tap **Create library**.
 
-<!-- screenshot: images/how-to/shared-site-library/02-create-library.png: Connect a library after Check location, showing No library here yet., Library name, Your name in this library and the Create library button; mac; local test server -->
+![Connect a library after Check location, showing No library here yet., Library name, Your name in this library and the Create library button](images/how-to/shared-site-library/02-create-library.png)
 
 6. **Keep this recovery code** appears. Tap **Copy** and store the code somewhere safe, away from the storage keys: whoever holds it can make themselves an owner of the library. Tap **I have stored it**.
 
-<!-- screenshot: images/how-to/shared-site-library/03-recovery-code.png: the Keep this recovery code dialog with a made-up code, Copy and I have stored it; mac; just after Create library -->
+![The Keep this recovery code dialog with a made-up code, Copy and I have stored it](images/how-to/shared-site-library/03-recovery-code.png)
 
 Your library opens. You are its first owner.
 
@@ -88,7 +88,7 @@ Send each person, through a private channel:
 3. Type the folder name into **Folder (prefix)**, exactly as you were given it, and tap **Check location**.
 4. Submersion finds the library. Check **Your name in this library**, then tap **Join** followed by the library's name.
 
-<!-- screenshot: images/how-to/shared-site-library/04-join.png: Connect a library showing the found library, Your name in this library and the Join button; iphone; local test server -->
+![Connect a library showing the found library, Your name in this library and the Join button](images/how-to/shared-site-library/04-join.png)
 
 > [!WARNING]
 > **Seeing "No library here yet."?** The folder name does not match. Check its spelling with your organizer. Do not tap **Create library**: that would start a second, empty library.
@@ -97,7 +97,7 @@ You can now browse every library site, but your changes count only once an owner
 
 5. On the library page, find **Your key** and its code under your name. Read that code out to your organizer, in person or on a call, so they can be sure the request is really yours.
 
-<!-- screenshot: images/how-to/shared-site-library/05-your-key.png: the library page for a member waiting for approval, with the Reader role and the Your key line; iphone; just joined -->
+![The library page for a member waiting for approval, with the Reader role and the Your key line](images/how-to/shared-site-library/05-your-key.png)
 
 ## For the organizer: approve members
 
@@ -105,7 +105,7 @@ You can now browse every library site, but your changes count only once an owner
 2. Under **Waiting for approval**, each new member shows a **Key** code. Check that it matches the code they read out to you.
 3. Tap **Approve**.
 
-<!-- screenshot: images/how-to/shared-site-library/06-approve.png: Members with a member under Waiting for approval, their Key code, and the Reject and Approve buttons; mac; after the member joined -->
+![Members with a member under Waiting for approval, their Key code, and the Reject and Approve buttons](images/how-to/shared-site-library/06-approve.png)
 
 Approved members start as **Reader**: they see every site and can suggest changes. To let someone add and edit sites directly, tap their role and choose **Editor**. **Owner** can also approve members, change roles and manage backups.
 
@@ -117,7 +117,7 @@ Library sites appear among your own sites, marked with a group icon. In your sit
 - **Suggest a change** (readers): open a library site and tap **Suggest changes**, edit the fields, and tap **Send**. An owner reviews it under **Suggestions**.
 - **Your notes and rating** on a library site are always private, even when you edit them on a library site.
 
-<!-- screenshot: images/how-to/shared-site-library/07-add-to-library.png: the Add to shared site library confirmation listing what every member will see and what stays yours; mac; editor adding a personal site -->
+![The Add to shared site library confirmation listing what every member will see and what stays yours](images/how-to/shared-site-library/07-add-to-library.png)
 
 ## When someone leaves
 
