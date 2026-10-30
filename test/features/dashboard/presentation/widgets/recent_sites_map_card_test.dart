@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_style_button.dart';
@@ -32,11 +33,16 @@ Future<NavSpy> pumpMapCard(
       GoRoute(
         path: '/',
         builder: (_, _) => Scaffold(
-          body: SingleChildScrollView(
+          body: CustomScrollView(
             controller: scroll,
-            child: const Column(
-              children: [RecentSitesMapCard(), SizedBox(height: 3000)],
-            ),
+            slivers: const [
+              DashboardGrid(
+                entries: [
+                  FullBlock(RecentSitesMapCard()),
+                  FullBlock(SizedBox(height: 3000)),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -74,6 +80,64 @@ Future<NavSpy> pumpMapCard(
 }
 
 void main() {
+  testWidgets('the card reserves the map height before the map mounts', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    final container = ProviderContainer(
+      overrides: [
+        ...base,
+        recentSitesProvider.overrideWith(
+          (ref) async => const [
+            RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
+          ],
+        ),
+      ].cast(),
+    );
+    addTearDown(container.dispose);
+    await container.read(recentSitesProvider.future);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => const Scaffold(
+                  body: SingleChildScrollView(child: RecentSitesMapCard()),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // First frame with data: the placeholder stands in at the map's size, so
+    // the swap moves nothing on the page.
+    expect(find.byType(FlutterMap), findsNothing);
+    final before = tester.getSize(find.byType(RecentSitesMapCard));
+    final placeholder = find.byKey(recentSitesMapPlaceholderKey);
+    expect(tester.getSize(placeholder).height, recentSitesMapHeight);
+    expect(tester.getSize(placeholder).width, greaterThan(0));
+    final placeholderColor = tester.widget<ColoredBox>(placeholder).color;
+
+    await tester.pump();
+
+    expect(find.byType(FlutterMap), findsOneWidget);
+    expect(find.byKey(recentSitesMapPlaceholderKey), findsNothing);
+    expect(tester.getSize(find.byType(RecentSitesMapCard)), before);
+    // Same tone as the map's bare background, so an unloaded tile does not
+    // flash the default light grey after the placeholder.
+    final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+    expect(map.options.backgroundColor, placeholderColor);
+  });
+
   testWidgets('hidden when no recent dive has a sited GPS fix', (tester) async {
     await pumpMapCard(tester, const []);
     expect(find.text('Recent sites'), findsNothing);

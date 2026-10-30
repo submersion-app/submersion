@@ -109,24 +109,30 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(activeEquipmentClocksProvider);
             ref.invalidate(activeCoursesProgressProvider);
           },
-          child: SingleChildScrollView(
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            // Keyed off chosenCards, not visibleCards: a strip forced back
-            // by a safety alert renders above the CTA rather than replacing
-            // it, so the diver keeps the route to re-enable their cards.
-            child: chosenCards.isEmpty
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (forceGaugeStrip) ...[
-                        const GaugeStrip(),
-                        const SizedBox(height: 16),
-                      ],
-                      const _AllCardsHiddenState(),
-                    ],
-                  )
-                : DashboardGrid(entries: entries),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                // Keyed off chosenCards, not visibleCards: a strip forced back
+                // by a safety alert renders above the CTA rather than replacing
+                // it, so the diver keeps the route to re-enable their cards.
+                sliver: chosenCards.isEmpty
+                    ? SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (forceGaugeStrip) ...[
+                              const GaugeStrip(),
+                              const SizedBox(height: 16),
+                            ],
+                            const _AllCardsHiddenState(),
+                          ],
+                        ),
+                      )
+                    : DashboardGrid(entries: entries),
+              ),
+            ],
           ),
         ),
       ),
