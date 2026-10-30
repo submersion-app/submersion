@@ -2455,6 +2455,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'חיפוש צלילות';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'חיפוש בכול';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'שאל על הצלילות שלך';
 
   @override
@@ -9674,6 +9677,35 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'חפשו בכול, או נסו depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'ניקוי החיפוש';
+
+  @override
+  String get globalSearch_prompt =>
+      'מצאו צלילות, אתרים, טיולים, ציוד, שותפים, מסמכים ועוד';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'אין תוצאות עבור \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'החיפוש נכשל. נסו שוב.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'מסלולי GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'מסלולים תת-ימיים';
 
   @override
   String diveLog_ask_row(String text) {
@@ -19839,6 +19871,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get nav_trips => 'טיולים';
+
+  @override
+  String get nav_search => 'חיפוש';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

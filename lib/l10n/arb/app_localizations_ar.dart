@@ -2551,6 +2551,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'البحث في الغوصات';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'البحث في كل شيء';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'اسأل عن غطساتك';
 
   @override
@@ -10041,6 +10044,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'ابحث في كل شيء، أو جرّب depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'مسح البحث';
+
+  @override
+  String get globalSearch_prompt =>
+      'ابحث عن الغطسات والمواقع والرحلات والمعدات والرفاق والمستندات وغيرها';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'لا توجد نتائج لـ \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'فشل البحث. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'مسارات GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'المسارات تحت الماء';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20580,6 +20612,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_trips => 'الرحلات';
+
+  @override
+  String get nav_search => 'بحث';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

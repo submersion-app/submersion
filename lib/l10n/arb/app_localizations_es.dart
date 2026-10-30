@@ -2491,6 +2491,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Buscar inmersiones';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Buscar en todo';
+
+  @override
   String get accessibility_shortcut_askQuestion =>
       'Preguntar sobre tus inmersiones';
 
@@ -9893,6 +9896,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Busca en todo o prueba depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Borrar búsqueda';
+
+  @override
+  String get globalSearch_prompt =>
+      'Encuentra inmersiones, sitios, viajes, equipo, compañeros, documentos y más';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Sin resultados para \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed =>
+      'La búsqueda ha fallado. Inténtalo de nuevo.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Ver los $count';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'Rutas GPS';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Rutas submarinas';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20279,6 +20312,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_trips => 'Viajes';
+
+  @override
+  String get nav_search => 'Buscar';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

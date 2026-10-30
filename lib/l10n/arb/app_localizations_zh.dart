@@ -2367,6 +2367,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_searchDives => '搜索潜水';
 
   @override
+  String get accessibility_shortcut_searchEverything => '搜索全部';
+
+  @override
   String get accessibility_shortcut_askQuestion => '询问你的潜水记录';
 
   @override
@@ -9388,6 +9391,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => '搜索全部内容，或试试 depth > 30m';
+
+  @override
+  String get globalSearch_clear => '清除搜索';
+
+  @override
+  String get globalSearch_prompt => '查找潜水、地点、旅行、装备、潜伴、文档等';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return '没有与“$query”相关的结果';
+  }
+
+  @override
+  String get globalSearch_failed => '搜索失败，请重试。';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return '查看全部 $count 项';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS 轨迹';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => '水下路线';
 
   @override
   String diveLog_ask_row(String text) {
@@ -19302,6 +19333,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_trips => '旅行';
+
+  @override
+  String get nav_search => '搜索';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

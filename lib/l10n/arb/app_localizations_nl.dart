@@ -2481,6 +2481,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Duiken zoeken';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Alles doorzoeken';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'Vraag over je duiken';
 
   @override
@@ -9830,6 +9833,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Doorzoek alles, of probeer depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Zoekopdracht wissen';
+
+  @override
+  String get globalSearch_prompt =>
+      'Vind duiken, duikstekken, reizen, uitrusting, buddy\'s, documenten en meer';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Geen resultaten voor \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'Zoeken mislukt. Probeer het opnieuw.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Alle $count bekijken';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS-tracks';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Onderwaterroutes';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20160,6 +20192,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_trips => 'Reizen';
+
+  @override
+  String get nav_search => 'Zoeken';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

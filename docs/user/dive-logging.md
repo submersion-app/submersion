@@ -470,6 +470,14 @@ saved searches are offered when you open it again. While you type, **Jump to div
 lists the newest dives that match across your whole log, ignoring other filters,
 and a question about your diving can **Open in Insights**.
 
+To search everything rather than just your dives, choose **Search** in the
+navigation (on a phone it starts under **More**, and you can move it to the
+bottom bar) or press Cmd/Ctrl+K. The field reads the same words and queries, and
+the results are grouped by type: dives, sites, trips, equipment and sets, buddies,
+dive centers, certifications, courses, species, documents, saved plans, GPS tracks
+and underwater routes. A query such as `depth > 30m` shows only the types it makes
+sense for. **See all** opens that type's list with the search applied.
+
 ### Selecting and bulk editing
 
 Open the list's overflow menu and choose **Select items** to enter selection

@@ -2466,6 +2466,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Search dives';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Search everything';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'Ask about your dives';
 
   @override
@@ -9738,6 +9741,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Search everything, or try depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Clear search';
+
+  @override
+  String get globalSearch_prompt =>
+      'Find dives, sites, trips, gear, buddies, documents and more';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'Search failed. Please try again.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'See all $count';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS tracks';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Underwater routes';
 
   @override
   String diveLog_ask_row(String text) {
@@ -19987,6 +20019,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_trips => 'Trips';
+
+  @override
+  String get nav_search => 'Search';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

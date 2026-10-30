@@ -3877,6 +3877,12 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get accessibility_shortcut_searchDives;
 
+  /// No description provided for @accessibility_shortcut_searchEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything'**
+  String get accessibility_shortcut_searchEverything;
+
   /// No description provided for @accessibility_shortcut_askQuestion.
   ///
   /// In en, this message translates to:
@@ -15636,6 +15642,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'#{number} · {title}'**
   String diveLog_search_jumpNumberTitle(int number, String title);
+
+  /// No description provided for @globalSearch_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything, or try depth > 30m'**
+  String get globalSearch_hint;
+
+  /// No description provided for @globalSearch_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get globalSearch_clear;
+
+  /// No description provided for @globalSearch_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Find dives, sites, trips, gear, buddies, documents and more'**
+  String get globalSearch_prompt;
+
+  /// No description provided for @globalSearch_noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String globalSearch_noResults(String query);
+
+  /// No description provided for @globalSearch_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Please try again.'**
+  String get globalSearch_failed;
+
+  /// No description provided for @globalSearch_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all {count}'**
+  String globalSearch_seeAll(int count);
+
+  /// No description provided for @globalSearch_section_gpsTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS tracks'**
+  String get globalSearch_section_gpsTracks;
+
+  /// No description provided for @globalSearch_section_underwaterRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater routes'**
+  String get globalSearch_section_underwaterRoutes;
 
   /// No description provided for @diveLog_ask_row.
   ///
@@ -32297,6 +32351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trips'**
   String get nav_trips;
+
+  /// No description provided for @nav_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get nav_search;
 
   /// No description provided for @plannerCanvas_bailout_available.
   ///

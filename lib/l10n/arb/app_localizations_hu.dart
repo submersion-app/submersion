@@ -2485,6 +2485,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Merülések keresése';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Keresés mindenben';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'Kérdezz a merüléseidről';
 
   @override
@@ -9868,6 +9871,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number. · $title';
   }
+
+  @override
+  String get globalSearch_hint =>
+      'Keressen mindenben, vagy próbálja: depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Keresés törlése';
+
+  @override
+  String get globalSearch_prompt =>
+      'Merülések, helyszínek, utak, felszerelés, társak, dokumentumok és egyebek keresése';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Nincs találat erre: „$query”';
+  }
+
+  @override
+  String get globalSearch_failed => 'A keresés nem sikerült. Próbálja újra.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Összes megtekintése ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS-nyomvonalak';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Víz alatti útvonalak';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20217,6 +20250,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_trips => 'Utak';
+
+  @override
+  String get nav_search => 'Keresés';
 
   @override
   String plannerCanvas_bailout_available(String liters) {

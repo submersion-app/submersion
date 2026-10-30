@@ -2491,6 +2491,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Tauchgänge suchen';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Alles durchsuchen';
+
+  @override
   String get accessibility_shortcut_askQuestion =>
       'Fragen zu Ihren Tauchgängen';
 
@@ -9891,6 +9894,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Alles durchsuchen oder z. B. depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Suche löschen';
+
+  @override
+  String get globalSearch_prompt =>
+      'Tauchgänge, Tauchplätze, Reisen, Ausrüstung, Buddys, Dokumente und mehr finden';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Keine Ergebnisse für „$query“';
+  }
+
+  @override
+  String get globalSearch_failed =>
+      'Suche fehlgeschlagen. Bitte versuchen Sie es erneut.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Alle $count anzeigen';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS-Tracks';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Unterwasserrouten';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20267,6 +20300,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_trips => 'Reisen';
+
+  @override
+  String get nav_search => 'Suche';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
