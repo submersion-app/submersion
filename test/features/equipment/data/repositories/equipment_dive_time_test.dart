@@ -186,6 +186,17 @@ void main() {
     expect(await repo.getDiveTimeForEquipment('item'), 1200);
   });
 
+  test('a length stored as a fraction still sums', () async {
+    await addDive('d1', runtime: 1800);
+    await addGearLink('d1');
+    // INTEGER affinity keeps a non-whole value REAL, so SUM returns a double.
+    await db.customStatement(
+      "UPDATE dives SET runtime = 1800.5 WHERE id = 'd1'",
+    );
+
+    expect(await repo.getDiveTimeForEquipment('item'), 1800);
+  });
+
   test('a dive excluded from statistics still counts', () async {
     await addDive('excluded', runtime: 2400, excludedFromStats: true);
     await addGearLink('excluded');

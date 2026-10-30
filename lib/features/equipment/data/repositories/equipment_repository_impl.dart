@@ -1316,7 +1316,8 @@ class EquipmentRepository {
           )
           .getSingle();
 
-      return result.data['seconds'] as int? ?? 0;
+      // A fractional stored length makes SUM a double.
+      return (result.data['seconds'] as num?)?.toInt() ?? 0;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive time for equipment: $equipmentId',
