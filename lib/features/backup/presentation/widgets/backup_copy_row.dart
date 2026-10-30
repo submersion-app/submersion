@@ -97,11 +97,7 @@ class BackupCopyRow extends ConsumerWidget {
     try {
       groups = await ref.read(accountGroupsProvider.future);
     } on Object {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.settings_connectedAccounts_loadError)),
-        );
-      }
+      if (context.mounted) showAccountsLoadFailed(context, ref);
       return;
     }
     if (!context.mounted) return;

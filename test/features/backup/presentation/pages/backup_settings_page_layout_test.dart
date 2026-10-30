@@ -337,8 +337,8 @@ void main() {
     );
 
     // Issue #3780: with the copy off nothing else holds the account groups.
-    // An instant override finishes first and hides it, so this runs the real
-    // provider, which reads on through its Ref after waiting for the roster.
+    // Overriding the groups hides it, however slowly: Riverpod still delivers
+    // a disposed build's result. This runs the real provider on a roster.
     testWidgets('Choose an account opens when the accounts load slowly', (
       tester,
     ) async {
@@ -372,6 +372,30 @@ void main() {
 
       expect(find.text('Your accounts'), findsNothing);
       expect(find.text('Could not load accounts'), findsOneWidget);
+    });
+
+    testWidgets('the tap after a failed read tries again', (tester) async {
+      var reads = 0;
+      await pumpPage(
+        tester,
+        rosterLoad: () async {
+          if (++reads == 1) throw StateError('keychain');
+          return [
+            (
+              _row('db-row', AccountKind.dropbox, 'Dropbox'),
+              AccountStatus.signedIn,
+            ),
+          ];
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pumpAndSettle();
+      expect(find.text('Could not load accounts'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pumpAndSettle();
+      expect(find.text('Your accounts'), findsOneWidget);
     });
 
     testWidgets('No copy turns the copy off', (tester) async {
