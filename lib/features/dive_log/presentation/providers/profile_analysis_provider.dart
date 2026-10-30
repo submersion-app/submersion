@@ -1620,7 +1620,7 @@ Future<double> _computeResidualCns(
     // last reading may be another computer's (#2545).
     final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
-      final previousSeries = await ref.read(
+      final previousSeries = await ref.container.awaitFuture(
         diveAnalysisSeriesProvider(previousDive.id).future,
       );
       // No series means overlapping computers with no one recording to
@@ -1638,10 +1638,12 @@ Future<double> _computeResidualCns(
       }
     }
 
-    // Read (not watch) the previous dive's full analysis to avoid cascading
+    // Await (not watch) the previous dive's full analysis to avoid cascading
     // Riverpod invalidations. Each profileAnalysisProvider independently
-    // watches settings, so ref.read is sufficient for one-shot lookback.
-    final previousAnalysis = await ref.read(
+    // watches settings, so a one-shot lookback is sufficient. Not ref.read:
+    // nothing else may be listening to it, and an invalidation mid-load would
+    // then strand this dive and every dive after it (#3807).
+    final previousAnalysis = await ref.container.awaitFuture(
       profileAnalysisProvider(previousDive.id).future,
     );
     if (previousAnalysis == null) return 0.0;
@@ -1663,7 +1665,9 @@ Future<double> _computeResidualCns(
 /// The highest last computer CNS reading among [diveId]'s data sources, each
 /// read from that source's own samples; null when none logged a CNS series.
 Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
-  final profiles = await ref.read(sourceProfilesProvider(diveId).future);
+  final profiles = await ref.container.awaitFuture(
+    sourceProfilesProvider(diveId).future,
+  );
   double? highest;
   for (final profile in profiles.values) {
     final cnsEnd = extractComputerCns(profile.points)?.cnsEnd;
@@ -1701,10 +1705,8 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
       return null;
     }
 
-    // Read (not watch) the previous dive's full analysis to avoid cascading
-    // Riverpod invalidations. Each profileAnalysisProvider independently
-    // watches settings, so ref.read is sufficient for one-shot lookback.
-    final previousAnalysis = await ref.read(
+    // One-shot await (not watch), as in [_computeResidualCns].
+    final previousAnalysis = await ref.container.awaitFuture(
       profileAnalysisProvider(previousDive.id).future,
     );
     if (previousAnalysis == null || previousAnalysis.decoStatuses.isEmpty) {
@@ -1778,8 +1780,9 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
       ),
       from: startOfDay,
       to: diveDate,
-      // Read (not watch) to avoid cascading Riverpod invalidations.
-      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+      // One-shot await (not watch), as in [_computeResidualCns].
+      analysisOf: (id) =>
+          ref.container.awaitFuture(profileAnalysisProvider(id).future),
     );
   } catch (e, stackTrace) {
     _log.error(
@@ -1889,10 +1892,9 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
       dives: counted,
       from: sevenDaysAgo,
       to: currentEnd.isAfter(endOfDay) ? currentEnd : endOfDay,
-      // Read (not watch) to avoid cascading Riverpod invalidations.
-      // Each profileAnalysisProvider independently watches settings,
-      // so ref.read is sufficient for aggregation.
-      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+      // One-shot await (not watch), as in [_computeResidualCns].
+      analysisOf: (id) =>
+          ref.container.awaitFuture(profileAnalysisProvider(id).future),
     );
   } catch (e, stackTrace) {
     _log.error(

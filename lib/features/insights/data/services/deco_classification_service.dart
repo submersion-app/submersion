@@ -1,5 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
@@ -48,6 +47,10 @@ class DecoClassificationService {
   /// classified. [revisions] maps dive id to that dive's `dives.updated_at`,
   /// as returned by `InsightsRepository.scanRecordedDecoSignals`.
   ///
+  /// A first pass over a large library runs for minutes on a phone, so
+  /// [onProgress] reports what is known so far: once after the cache read and
+  /// again after each dive analyzed, with how many dives are still to do.
+  ///
   /// Dives whose analysis yields nothing (no usable profile) are absent from
   /// the result and stay unclassified rather than defaulting to no-deco.
   ///
@@ -61,6 +64,7 @@ class DecoClassificationService {
     Ref ref,
     Map<String, int> revisions, {
     int chunkSize = 25,
+    void Function(Map<String, bool> classified, int pending)? onProgress,
   }) async {
     if (revisions.isEmpty) return const {};
 
@@ -111,13 +115,18 @@ class DecoClassificationService {
         ..addAll(revisions.keys);
     }
 
+    var pending = misses.length;
+    onProgress?.call(results, pending);
+
     for (var start = 0; start < misses.length; start += chunkSize) {
       final end = start + chunkSize < misses.length
           ? start + chunkSize
           : misses.length;
       for (final diveId in misses.sublist(start, end)) {
+        // A rebuild of the caller has started its own pass over these dives.
+        if (!ref.mounted) return results;
         try {
-          final analysis = await ref.read(
+          final analysis = await ref.container.awaitFuture(
             profileAnalysisProvider(diveId).future,
           );
           if (analysis == null || analysis.ndlCurve.isEmpty) continue;
@@ -147,12 +156,15 @@ class DecoClassificationService {
             stackTrace: stackTrace,
           );
         } finally {
-          ref.invalidate(profileAnalysisProvider(diveId));
-          ref.invalidate(diveAnalysisSeriesProvider(diveId));
-          ref.invalidate(analysisDiveProvider(diveId));
-          // A multi-source dive's analysis also read its per-source buckets.
-          ref.invalidate(sourceProfilesProvider(diveId));
-          ref.invalidate(diveDataSourcesProvider(diveId));
+          if (ref.mounted) {
+            ref.invalidate(profileAnalysisProvider(diveId));
+            ref.invalidate(diveAnalysisSeriesProvider(diveId));
+            ref.invalidate(analysisDiveProvider(diveId));
+            // A multi-source dive's analysis also read its per-source buckets.
+            ref.invalidate(sourceProfilesProvider(diveId));
+            ref.invalidate(diveDataSourcesProvider(diveId));
+            onProgress?.call(results, --pending);
+          }
         }
       }
     }

@@ -146,6 +146,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
   Future<void> _openInPlanner(UnitFormatter units) async {
     setState(() => _loading = true);
     final dive = widget.dive;
+    final container = ProviderScope.containerOf(context, listen: false);
 
     final profile = await ref.read(diveProfileProvider(dive.id).future);
     final gasSwitchesWithTank = await ref.read(
@@ -161,7 +162,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
         _precedingDiveWithin24hProvider(dive.id).future,
       );
       if (preceding != null) {
-        final analysis = await ref.read(
+        final analysis = await container.awaitFuture(
           profileAnalysisProvider(preceding.id).future,
         );
         if (analysis != null && analysis.decoStatuses.isNotEmpty) {
