@@ -7,7 +7,6 @@ import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -47,13 +46,7 @@ Future<void> signInAgain(
 
     if (!await _signIn(context, ref, group) || !context.mounted) return;
 
-    if (syncGroup?.key == group.key) {
-      // A failure on record is another account's if sync uses another one.
-      await ref
-          .read(syncFailureProvider.notifier)
-          .clearFor(ref.read(cloudStorageProviderProvider)?.providerId);
-      if (context.mounted) await runSyncNow(context, ref);
-    }
+    if (syncGroup?.key == group.key) await runSyncNow(context, ref);
     if (copyMissing && copyGroup?.key == group.key && context.mounted) {
       await ref.read(backupOperationProvider.notifier).performBackup();
     }

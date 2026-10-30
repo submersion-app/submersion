@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
@@ -107,10 +108,26 @@ Future<bool> signInToGroup(
   }
   if (ok) {
     _refresh(container);
-    // Sync's own idea of being signed in, which Data health reads.
-    await container.read(syncStateProvider.notifier).refreshState();
+    await _refreshSyncAfterSignIn(container, group);
   }
   return ok;
+}
+
+/// What sync knows about signing in, which Data health reads: the failure on
+/// record, when it is this account's (sync's provider holds only one), and
+/// whether it is signed in. Left alone during a sync, whose status a refresh
+/// would overwrite.
+Future<void> _refreshSyncAfterSignIn(
+  ProviderContainer container,
+  AccountGroup group,
+) async {
+  if (group.usages.any((u) => u.kind == AccountUsageKind.databaseSync)) {
+    await container
+        .read(syncFailureProvider.notifier)
+        .clearFor(container.read(cloudStorageProviderProvider)?.providerId);
+  }
+  if (container.read(isSyncingProvider)) return;
+  await container.read(syncStateProvider.notifier).refreshState();
 }
 
 /// Adds an account of [offer]'s kind (the account sheet's "Add an account"):

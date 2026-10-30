@@ -475,6 +475,57 @@ void main() {
     expect(sync.refreshStateCalls, 1);
   });
 
+  testWidgets('a sign-in during a sync leaves its status alone', (
+    tester,
+  ) async {
+    sync = _FakeSyncNotifier(const SyncState(status: SyncStatus.syncing));
+    final group = _group();
+    final host = await pumpHost(tester, group: group);
+
+    final done = signInToGroup(host.$1, host.$2, group);
+    await tester.pumpAndSettle();
+    await done;
+
+    expect(sync.refreshStateCalls, 0);
+  });
+
+  group('a sign-in from anywhere', () {
+    Future<WidgetRef> signInWithFailureOnRecord(
+      WidgetTester tester,
+      AccountGroup group,
+    ) async {
+      final host = await pumpHost(tester, group: group);
+      await host.$2
+          .read(syncFailureProvider.notifier)
+          .record(
+            SyncFailureRecord(
+              providerId: 'googledrive',
+              at: DateTime(2026, 10, 1),
+              kind: SyncFailureKind.auth,
+              message: 'refused',
+            ),
+          );
+      final done = signInToGroup(host.$1, host.$2, group);
+      await tester.pumpAndSettle();
+      await done;
+      return host.$2;
+    }
+
+    testWidgets('clears the sign-in failure of the sync account', (
+      tester,
+    ) async {
+      final ref = await signInWithFailureOnRecord(tester, _group());
+
+      expect(ref.read(syncFailureProvider), isNull);
+    });
+
+    testWidgets('leaves one that belongs to another account', (tester) async {
+      final ref = await signInWithFailureOnRecord(tester, _group(syncs: false));
+
+      expect(ref.read(syncFailureProvider), isNotNull);
+    });
+  });
+
   testWidgets('a second tap while one runs starts no second sign-in', (
     tester,
   ) async {
