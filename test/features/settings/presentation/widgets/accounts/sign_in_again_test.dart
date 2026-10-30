@@ -203,8 +203,10 @@ void main() {
   late _FakeSyncNotifier sync;
   late _FakeBackupOp backup;
   late SharedPreferences prefs;
+  var copyReads = 0;
 
   setUp(() async {
+    copyReads = 0;
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -237,7 +239,10 @@ void main() {
           if (dropbox != null)
             dropboxStorageProviderInstanceProvider.overrideWithValue(dropbox),
           accountGroupsProvider.overrideWith((ref) async => [account]),
-          backupCopyTargetProvider.overrideWith((ref) async => copy),
+          backupCopyTargetProvider.overrideWith((ref) async {
+            copyReads++;
+            return copy;
+          }),
           syncStateProvider.overrideWith((ref) => sync),
           backupOperationProvider.overrideWith((ref) => backup),
           accountCredentialsStoreProvider.overrideWithValue(
@@ -619,6 +624,21 @@ void main() {
         ),
         isFalse,
       );
+    });
+
+    testWidgets('with no flag set it probes nothing', (tester) async {
+      final group = _group();
+      final host = await pumpHost(
+        tester,
+        group: group,
+        copy: CopyFollowsSync(group),
+      );
+
+      final done = signInToGroup(host.$1, host.$2, group);
+      await tester.pumpAndSettle();
+      await done;
+
+      expect(copyReads, 0);
     });
 
     testWidgets('leaves it when the copy goes to another account', (

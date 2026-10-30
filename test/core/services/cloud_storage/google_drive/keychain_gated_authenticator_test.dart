@@ -25,6 +25,8 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   @override
   bool lastSilentAuthThrew = false;
 
+  Object? silentAuthError;
+
   @override
   http.Client? get authClient => exposeClient ? client : null;
 
@@ -39,6 +41,8 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   @override
   Future<bool> attemptSilentAuth() async {
     silentAuthCalls++;
+    final error = silentAuthError;
+    if (error != null) throw error;
     return silentAuthResult;
   }
 
@@ -80,6 +84,18 @@ void main() {
 
       expect(loopback.authenticateCalls, 1);
       expect(googleSignIn.authenticateCalls, 0);
+    });
+
+    test('a silent sign-in that could not run reports that it threw', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+      loopback.silentAuthError = Exception('could not resolve');
+
+      expect(await gate.attemptSilentAuth(), isFalse);
+      expect(gate.lastSilentAuthThrew, isTrue);
+
+      loopback.silentAuthError = null;
+      await gate.attemptSilentAuth();
+      expect(gate.lastSilentAuthThrew, isFalse);
     });
 
     test('reports whether the flow it picked threw', () async {

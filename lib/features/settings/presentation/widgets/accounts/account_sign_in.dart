@@ -131,6 +131,10 @@ Future<void> _clearBackupSignInNeed(
   const copyUses = {AccountUsageKind.databaseSync, AccountUsageKind.backupCopy};
   if (!group.usages.any((u) => copyUses.contains(u.kind))) return;
   try {
+    // Before the target, which probes every account.
+    if (!container.read(backupSettingsProvider).lastCloudCopyNeedsSignIn) {
+      return;
+    }
     final target = await container.read(backupCopyTargetProvider.future);
     if (backupCopyGroupOf(target)?.key != group.key) return;
     await container

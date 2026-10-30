@@ -137,9 +137,11 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
 
   @override
   Future<bool> attemptSilentAuth() async {
+    _silentAuthThrew = false;
     try {
       return await (await _resolve()).attemptSilentAuth();
     } catch (e, stackTrace) {
+      _silentAuthThrew = true;
       // The seam contract forbids throwing here; a failed resolution must
       // read as "not signed in", not as a crash on a cold launch.
       _log.warning(
@@ -152,7 +154,10 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
   }
 
   @override
-  bool get lastSilentAuthThrew => _delegate?.lastSilentAuthThrew ?? false;
+  bool get lastSilentAuthThrew =>
+      _silentAuthThrew || (_delegate?.lastSilentAuthThrew ?? false);
+
+  bool _silentAuthThrew = false;
 
   @override
   Future<String?> get userEmail async => (await _resolve()).userEmail;
