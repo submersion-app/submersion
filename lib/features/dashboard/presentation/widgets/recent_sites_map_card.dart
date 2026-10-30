@@ -81,6 +81,10 @@ class RecentSitesMapCard extends ConsumerWidget {
                   ),
                   child: LockedMapScrollPassthrough(
                     child: FlutterMap(
+                      // The camera fit runs once per mount, so new pins need a
+                      // new map or they land outside the old framing. Keyed by
+                      // value: a refresh with the same pins keeps this one.
+                      key: ValueKey(Object.hashAll(points)),
                       options: MapOptions(
                         initialCenter: points.first,
                         initialZoom: 11,

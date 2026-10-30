@@ -115,7 +115,6 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(activeCoursesProgressProvider);
           },
           child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.all(16),

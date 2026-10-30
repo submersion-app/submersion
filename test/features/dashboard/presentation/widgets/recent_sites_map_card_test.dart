@@ -138,6 +138,78 @@ void main() {
     expect(map.options.backgroundColor, placeholderColor);
   });
 
+  group('when the pins change', () {
+    const greece = [
+      RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
+      RecentSitePin(siteName: 'Site B', latitude: 35.0, longitude: 24.0),
+    ];
+    const mexico = [
+      RecentSitePin(siteName: 'Site C', latitude: 20.5, longitude: -87.0),
+      RecentSitePin(siteName: 'Site D', latitude: 20.0, longitude: -87.5),
+    ];
+
+    Future<ProviderContainer> pumpLive(
+      WidgetTester tester,
+      List<RecentSitePin> Function() pins,
+    ) async {
+      final base = await getBaseOverrides();
+      final container = ProviderContainer(
+        overrides: [
+          ...base,
+          recentSitesProvider.overrideWith((ref) async => pins()),
+        ].cast(),
+      );
+      addTearDown(container.dispose);
+      await container.read(recentSitesProvider.future);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: RecentSitesMapCard()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      return container;
+    }
+
+    Future<void> refresh(WidgetTester tester, ProviderContainer c) async {
+      c.invalidate(recentSitesProvider);
+      await c.read(recentSitesProvider.future);
+      for (var i = 0; i < 3; i++) {
+        await tester.pump();
+      }
+    }
+
+    testWidgets('the map reframes on the new sites', (tester) async {
+      var pins = greece;
+      final container = await pumpLive(tester, () => pins);
+
+      pins = mexico;
+      await refresh(tester, container);
+
+      // The camera fit runs once per mount, so a map left mounted would keep
+      // framing the old sites, with the new pins out of view.
+      final camera = MapCamera.of(tester.element(find.byType(MarkerLayer)));
+      expect(camera.center.longitude, lessThan(-80));
+    });
+
+    testWidgets('a refresh with the same pins keeps the map', (tester) async {
+      final container = await pumpLive(tester, () => greece);
+      final state = tester.state(find.byType(FlutterMap));
+
+      await refresh(tester, container);
+
+      expect(tester.state(find.byType(FlutterMap)), same(state));
+    });
+  });
+
   testWidgets('hidden when no recent dive has a sited GPS fix', (tester) async {
     await pumpMapCard(tester, const []);
     expect(find.text('Recent sites'), findsNothing);
