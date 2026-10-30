@@ -22,6 +22,10 @@ Future<List<DivePickerRow>> divePickerRows(
   DiveSummaryCursor? cursor,
   int limit = kDivePickerPageSize,
 }) async {
+  // SQLite reads a negative LIMIT as no limit, which is the unbounded read
+  // this query exists to avoid.
+  if (limit <= 0) return const [];
+
   final where = <String>[];
   final args = <Variable<Object>>[];
 

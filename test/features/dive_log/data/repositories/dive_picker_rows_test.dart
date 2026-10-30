@@ -136,6 +136,14 @@ void main() {
       expect(page.map((r) => r.id), ['d4', 'd3']);
     });
 
+    test('a limit of zero or below reads nothing', () async {
+      await log('d1');
+
+      // SQLite reads a negative LIMIT as no limit at all.
+      expect(await repository.getDivePickerRows(limit: 0), isEmpty);
+      expect(await repository.getDivePickerRows(limit: -1), isEmpty);
+    });
+
     test('walking the cursor visits every dive once, in order', () async {
       // Ties on the timestamp, and on the number too, so the cursor has to
       // use every part of its key to neither skip nor repeat a row.
