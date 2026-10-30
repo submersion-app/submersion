@@ -100,9 +100,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Fill procedure'), findsOneWidget);
-    // The procedure table's Mix column spaces the '/' so it wraps better on
-    // a narrow screen (issue #1876 follow-up); other mix labels stay compact.
-    expect(find.textContaining('Tx 18 / 45'), findsWidgets);
+    // The procedure table's Mix header says "O₂/He", so its values carry no
+    // "Tx" (issue #3796); other mix labels keep it.
+    expect(
+      find.descendant(
+        of: find.byType(BlenderProcedureCard),
+        matching: find.text('18/45'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('only the procedure table renames Added to Top up', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    Finder inProcedure(String text) => find.descendant(
+      of: find.byType(BlenderProcedureCard),
+      matching: find.text(text),
+    );
+
+    expect(inProcedure('Top up\n(bar)'), findsOneWidget);
+    expect(inProcedure('Added (bar)'), findsNothing);
+    expect(find.text('Added (bar)'), findsOneWidget);
   });
 
   testWidgets('the default fill order tops off with air, not helium', (
@@ -212,8 +233,8 @@ void main() {
     ref.read(blenderTargetPressureProvider.notifier).state = 220;
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Tx 8.3 / 73.4'), findsWidgets);
-    expect(find.textContaining('Tx 8 / 73'), findsNothing);
+    expect(find.textContaining('8.3/73.4'), findsWidgets);
+    expect(find.textContaining('8/73'), findsNothing);
   });
 
   testWidgets('a narrow surface does not overflow', (tester) async {

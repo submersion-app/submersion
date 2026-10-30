@@ -17438,6 +17438,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'נוסף';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'השלמה';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'לחץ';
 
   @override

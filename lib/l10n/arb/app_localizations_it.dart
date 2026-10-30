@@ -17826,6 +17826,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'Aggiunto';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Rabbocco';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'Pressione';
 
   @override

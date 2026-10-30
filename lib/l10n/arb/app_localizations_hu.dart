@@ -17761,6 +17761,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'Hozzáadva';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Feltöltés';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'Nyomás';
 
   @override

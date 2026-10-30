@@ -16074,6 +16074,7 @@
   "gasCalculators_mod_semanticsLabel": "最大操作深度：{depth} {unit}，ppO2 为 {ppo2} 巴，氧气 {o2}%",
   "gasCalculators_blender_stepColumnAction": "操作",
   "gasCalculators_blender_stepColumnAdded": "已添加",
+  "gasCalculators_blender_stepColumnTopUp": "补充",
   "gasCalculators_blender_stepColumnPressure": "压力",
   "gasCalculators_blender_stepColumnMix": "混合气",
   "gasCalculators_blender_flushFeeColumnGas": "气体",

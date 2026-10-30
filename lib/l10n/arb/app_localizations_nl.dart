@@ -17706,6 +17706,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'Toegevoegd';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Aanvullen';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'Druk';
 
   @override

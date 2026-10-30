@@ -16074,6 +16074,7 @@
   "gasCalculators_mod_semanticsLabel": "Maximale werkdiepte: {depth} {unit} bij {ppo2} bar ppO2 met {o2}% zuurstof",
   "gasCalculators_blender_stepColumnAction": "Actie",
   "gasCalculators_blender_stepColumnAdded": "Toegevoegd",
+  "gasCalculators_blender_stepColumnTopUp": "Aanvullen",
   "gasCalculators_blender_stepColumnPressure": "Druk",
   "gasCalculators_blender_stepColumnMix": "Mix",
   "gasCalculators_blender_flushFeeColumnGas": "Gas",

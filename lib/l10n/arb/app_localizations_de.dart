@@ -17800,6 +17800,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'Hinzufügen';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Topup';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'Druck';
 
   @override
