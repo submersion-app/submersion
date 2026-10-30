@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// What one [ensureDeviceGearLinks] pass changed.
@@ -43,7 +44,7 @@ Future<String> liveGearId(
   String deviceKey, {
   required String type,
 }) async {
-  final hasLog = (await _columnsOf(db, 'deletion_log')).isNotEmpty;
+  final hasLog = (await tableColumnNames(db, 'deletion_log')).isNotEmpty;
   var id = firstId;
   for (var step = 0; step < 64; step++) {
     final tombstoned = hasLog && await isEquipmentTombstoned(db, id);
@@ -95,7 +96,7 @@ Future<bool> _heldByOtherType(
 Future<DeviceGearHealResult> ensureDeviceGearLinks(
   DatabaseConnectionUser db,
 ) async {
-  final equipmentCols = await _columnsOf(db, 'equipment');
+  final equipmentCols = await tableColumnNames(db, 'equipment');
   if (!equipmentCols.containsAll(_mintColumns)) {
     return (
       computersLinked: 0,
@@ -133,7 +134,7 @@ const _mintColumns = {
 Future<({int linked, int minted})> _healComputers(
   DatabaseConnectionUser db,
 ) async {
-  final cols = await _columnsOf(db, 'dive_computers');
+  final cols = await tableColumnNames(db, 'dive_computers');
   if (!cols.containsAll({
     'id',
     'diver_id',
@@ -293,16 +294,16 @@ Future<void> _linkComputerDives(
   String computerId,
   String itemId,
 ) async {
-  final junction = await _columnsOf(db, 'dive_equipment');
+  final junction = await tableColumnNames(db, 'dive_equipment');
   if (!junction.containsAll({'dive_id', 'equipment_id'})) return;
-  if ((await _columnsOf(db, 'dives')).contains('computer_id')) {
+  if ((await tableColumnNames(db, 'dives')).contains('computer_id')) {
     await db.customStatement(
       'INSERT OR IGNORE INTO dive_equipment (dive_id, equipment_id) '
       'SELECT id, ? FROM dives WHERE computer_id = ?',
       [itemId, computerId],
     );
   }
-  if ((await _columnsOf(
+  if ((await tableColumnNames(
     db,
     'dive_data_sources',
   )).containsAll({'dive_id', 'computer_id'})) {
@@ -317,7 +318,7 @@ Future<void> _linkComputerDives(
 Future<({int linked, int minted})> _healTransmitters(
   DatabaseConnectionUser db,
 ) async {
-  final cols = await _columnsOf(db, 'transmitters');
+  final cols = await tableColumnNames(db, 'transmitters');
   if (!cols.containsAll({
     'id',
     'diver_id',
@@ -419,13 +420,13 @@ Future<void> _linkTransmitterDives(
   String? diverId,
   String itemId,
 ) async {
-  final junction = await _columnsOf(db, 'dive_equipment');
+  final junction = await tableColumnNames(db, 'dive_equipment');
   if (!junction.containsAll({'dive_id', 'equipment_id'}) ||
-      !(await _columnsOf(
+      !(await tableColumnNames(
         db,
         'dive_tanks',
       )).containsAll({'dive_id', 'transmitter_serial'}) ||
-      !(await _columnsOf(db, 'dives')).containsAll({'id', 'diver_id'})) {
+      !(await tableColumnNames(db, 'dives')).containsAll({'id', 'diver_id'})) {
     return;
   }
   await db.customStatement(
@@ -538,9 +539,4 @@ Future<String?> _existingId(DatabaseConnectionUser db, String id) async {
 /// publishes the row; empty on a pre-HLC fixture or mid-ladder database
 /// whose table has no clock column yet.
 Future<String> clearHlcSql(DatabaseConnectionUser db, String table) async =>
-    (await _columnsOf(db, table)).contains('hlc') ? ', hlc = NULL' : '';
-
-Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
-  final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-  return rows.map((c) => c.read<String>('name')).toSet();
-}
+    (await tableColumnNames(db, table)).contains('hlc') ? ', hlc = NULL' : '';
