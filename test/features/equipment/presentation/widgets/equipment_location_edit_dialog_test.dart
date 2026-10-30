@@ -201,6 +201,25 @@ void main() {
     expect(repository.updated!.diveCenterId, 'reef');
   });
 
+  testWidgets('a pick discarded by changing the kind back is not saved', (
+    tester,
+  ) async {
+    final repository = await pumpDialog(
+      tester,
+      existing: linked(
+        centerId: null,
+      ).copyWith(kind: EquipmentLocationKind.storage),
+    );
+
+    await chooseKind(tester, 'Dive center');
+    await pickReef(tester);
+    await chooseKind(tester, 'Storage');
+    await save(tester);
+
+    expect(repository.updated!.kind, EquipmentLocationKind.storage);
+    expect(repository.updated!.diveCenterId, isNull);
+  });
+
   testWidgets('a Dive center place saves with no center', (tester) async {
     final repository = await pumpDialog(tester);
     await tester.enterText(nameField, 'Island Divers');

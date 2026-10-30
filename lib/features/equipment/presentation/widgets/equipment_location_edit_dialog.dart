@@ -144,11 +144,14 @@ class _EquipmentLocationEditDialogState
     final failed = context.l10n.common_error_tryAgain;
     try {
       final existing = widget.existing;
-      // Only a change of kind drops the link: an older device can retype a
-      // linked place to Other, and editing its notes here must not unlink it.
-      final centerId =
-          _kind == EquipmentLocationKind.diveCenter || _kind == existing?.kind
+      // Only a Dive center place takes the picked center. Any other kind
+      // keeps the link it loaded with while its kind is unchanged: an older
+      // device can retype a linked place to Other, and editing its notes here
+      // must not unlink it.
+      final centerId = _kind == EquipmentLocationKind.diveCenter
           ? _centerId
+          : _kind == existing?.kind
+          ? existing?.diveCenterId
           : null;
       final EquipmentLocation saved;
       if (existing == null) {
