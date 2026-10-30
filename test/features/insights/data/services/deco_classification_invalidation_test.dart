@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
@@ -80,5 +81,54 @@ void main() {
       reason: 'the invalidated analysis ran again rather than stranding it',
     );
     expect(builds, 2);
+  });
+
+  test('a superseded pass stops at the next dive', () async {
+    final profile = rapidAscentProfile();
+    final analysis = analyzeFixture(
+      depths: profile.depths,
+      timestamps: profile.timestamps,
+    );
+    final gate = Completer<void>();
+    Future<ProfileAnalysis> stamped(Ref ref) async {
+      await gate.future;
+      return analysis.copyWith(
+        inputsFingerprint: ref.read(diverAnalysisSettingsProvider).fingerprint,
+      );
+    }
+
+    final passes = <Future<Map<String, bool>>>[];
+    final classification = FutureProvider<Map<String, bool>>((ref) {
+      final pass = const DecoClassificationService().classify(ref, {
+        diveId: updatedAt,
+        'd2': updatedAt,
+      });
+      passes.add(pass);
+      return pass;
+    });
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(const AppSettings()),
+        ),
+        profileAnalysisProvider(diveId).overrideWith(stamped),
+        profileAnalysisProvider('d2').overrideWith(stamped),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(classification, (_, _) {});
+    addTearDown(sub.close);
+
+    await pumpEventQueue();
+    container.invalidate(classification);
+    await pumpEventQueue();
+    expect(passes, hasLength(2), reason: 'the rebuild started a second pass');
+    gate.complete();
+
+    final superseded = await passes.first.timeout(const Duration(seconds: 5));
+    final current = await passes.last.timeout(const Duration(seconds: 5));
+
+    expect(superseded.keys, [diveId], reason: 'it never reached the next dive');
+    expect(current.keys, unorderedEquals([diveId, 'd2']));
   });
 }
