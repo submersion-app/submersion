@@ -160,6 +160,85 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
+  testWidgets('a clear followed by a new message offers no Dismiss all', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    messenger().showSnackBar(const SnackBar(content: Text('one')));
+    await settleEntrance(tester);
+
+    messenger()
+      ..clearSnackBars()
+      ..showSnackBar(const SnackBar(content: Text('two')));
+    await tester.pump();
+
+    expect(find.text('one'), findsOneWidget, reason: 'still sliding out');
+    expect(dismissAll, findsNothing);
+  });
+
+  testWidgets('a screen reader user keeps a message with an action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(accessibleNavigation: true),
+          child: child!,
+        ),
+        home: AppScaffoldMessenger(
+          key: messengerKey,
+          child: const Scaffold(body: SizedBox.expand()),
+        ),
+      ),
+    );
+
+    messenger().showSnackBar(
+      SnackBar(
+        content: const Text('one'),
+        action: SnackBarAction(label: 'Undo', onPressed: () {}),
+        persist: false,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+    await settleEntrance(tester);
+
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+
+    expect(find.text('one'), findsOneWidget);
+  });
+
+  testWidgets('a screen reader user still has plain messages time out', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(accessibleNavigation: true),
+          child: child!,
+        ),
+        home: AppScaffoldMessenger(
+          key: messengerKey,
+          child: const Scaffold(body: SizedBox.expand()),
+        ),
+      ),
+    );
+
+    messenger().showSnackBar(
+      const SnackBar(content: Text('one'), duration: Duration(seconds: 5)),
+    );
+    await settleEntrance(tester);
+
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
   testWidgets('the shown snack bar keeps everything the caller set', (
     tester,
   ) async {

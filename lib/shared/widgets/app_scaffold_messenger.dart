@@ -51,8 +51,10 @@ class _AppScaffoldMessengerState extends ScaffoldMessengerState {
   void clearSnackBars() {
     super.clearSnackBars();
     // The framework forgets the waiting messages without closing them, so
-    // their `closed` never tells us they went.
-    if (_open.length > 1) _open.removeRange(1, _open.length);
+    // their `closed` never tells us they went. The one on show is on its way
+    // out too, and a message raised straight after this is not waiting for
+    // anyone the user could dismiss.
+    _open.clear();
     _updateOthersWaiting();
   }
 
@@ -72,6 +74,13 @@ class _AppScaffoldMessengerState extends ScaffoldMessengerState {
       removeCurrentSnackBar(reason: SnackBarClosedReason.dismiss);
     }
   }
+
+  /// Whether [snackBar] must wait for the user despite asking to time out.
+  ///
+  /// Someone on a screen reader has to move focus to an action to use it,
+  /// which can take longer than the message lasts.
+  bool _needsScreenReaderTime(SnackBar snackBar) =>
+      snackBar.action != null && MediaQuery.accessibleNavigationOf(context);
 
   /// Copies [snackBar] field by field, as the framework's own
   /// [SnackBar.withAnimation] does, since it has no `copyWith`.
@@ -95,7 +104,7 @@ class _AppScaffoldMessengerState extends ScaffoldMessengerState {
     showCloseIcon: snackBar.showCloseIcon,
     closeIconColor: snackBar.closeIconColor,
     duration: snackBar.duration,
-    persist: snackBar.persist,
+    persist: snackBar.persist || _needsScreenReaderTime(snackBar),
     animation: snackBar.animation,
     onVisible: snackBar.onVisible,
     dismissDirection: snackBar.dismissDirection,
