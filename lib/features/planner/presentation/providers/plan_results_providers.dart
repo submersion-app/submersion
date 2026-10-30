@@ -184,11 +184,11 @@ final planChartBailoutProvider =
       final picture = view.value;
       return switch (view.status) {
         PlanResultStatus.current => (picture: picture, status: null),
-        PlanResultStatus.updating when picture != null => (
+        PlanResultStatus.updating => (
           picture: picture,
           status: PlanResultStatus.updating,
         ),
-        PlanResultStatus.updating || PlanResultStatus.calculating => (
+        PlanResultStatus.calculating => (
           picture: null,
           status: PlanResultStatus.calculating,
         ),

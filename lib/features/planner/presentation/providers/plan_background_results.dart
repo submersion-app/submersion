@@ -64,7 +64,7 @@ PlanResultView<T> planResultView<T>(
   if (result.isLoading) {
     return PlanResultView(
       value: value,
-      status: isForThisPlan
+      status: value != null
           ? PlanResultStatus.updating
           : PlanResultStatus.calculating,
     );

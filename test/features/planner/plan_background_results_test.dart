@@ -118,6 +118,27 @@ void main() {
       );
     });
 
+    test('a pending run over a null value has nothing to show', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final trigger = StateProvider<int>((ref) => 0);
+      var next = Completer<PlanBackgroundResult<int?>>();
+      final result = FutureProvider<PlanBackgroundResult<int?>>((ref) {
+        ref.watch(trigger);
+        return next.future;
+      });
+      container.listen(result, (_, _) {});
+      next.complete(const PlanBackgroundResult(planId: 'p', value: null));
+      await container.read(result.future);
+
+      next = Completer<PlanBackgroundResult<int?>>();
+      container.read(trigger.notifier).state++;
+      final view = planResultView(container.read(result), 'p');
+
+      expect(view.value, isNull);
+      expect(view.status, PlanResultStatus.calculating);
+    });
+
     test('a failure with nothing to show says so', () async {
       final harness = _Harness();
       await harness.landError();
