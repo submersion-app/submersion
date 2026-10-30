@@ -56,7 +56,8 @@ class ConnectionsReader {
     required String? diverId,
     required DiveFilterState filter,
     int minShared = 1,
-  }) {
+  }) async {
+    if (ids.length < 2) return const [];
     final q = buildSameKindEdgeSql(
       kind: kind,
       ids: ids,

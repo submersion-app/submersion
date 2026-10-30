@@ -98,9 +98,9 @@ class AroundLoader {
     }
 
     // A focus with no dive in scope has no place among the counts: it leads.
-    final nodes = focusRows.isEmpty
-        ? [focusNode, ...reached..sort(_byKindThenBusiest)]
-        : ([focusNode, ...reached]..sort(_byKindThenBusiest));
+    final ranked = [if (focusRows.isNotEmpty) focusNode, ...reached]
+      ..sort(_byKindThenBusiest);
+    final nodes = [if (focusRows.isEmpty) focusNode, ...ranked];
 
     // Cut to the budget before the chord pass (see nodesWithinBudget), so
     // chord work is bounded by the budget, not by the size of the log.

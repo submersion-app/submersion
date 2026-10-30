@@ -95,9 +95,9 @@ class NeighboursOf {
 /// Rows come by dive count, then label. With [byRank] they come by dive
 /// count, then id: the order the node budget ranks in (see
 /// nodesWithinBudget), so a [limit] cuts exactly the rows the budget would.
-/// That limit runs before the label table is joined, because SQLite's sorter
-/// carries every selected column and a buddy's photo would be read just to
-/// be cut.
+/// Unless [labelLike] has to filter first, that limit runs before the label
+/// table is joined, because SQLite's sorter carries every selected column
+/// and a buddy's photo would be read just to be cut.
 ({String sql, List<Object?> params}) buildNodeSql({
   required ConnectionKind kind,
   required String? diverId,
