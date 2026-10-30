@@ -596,6 +596,50 @@ void main() {
       expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
     });
 
+    test('a dropped manifest read wipes nothing from the cloud', () async {
+      // Past its grace window, an epoch with no readable library gets every
+      // sync file deleted and rebuilt from this device. A read that failed is
+      // not evidence of that.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final manifest = ChangesetLogLayout.manifestName('peer-1');
+      cloud.failDownloadsWhere = (id) => id.endsWith(manifest);
+
+      final interrupted = await service.performSync();
+
+      expect(interrupted.isSuccess, isFalse);
+      expect([
+        for (final f in await cloud.listFiles()) f.name,
+      ], contains(manifest));
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+
+      cloud.failDownloadsWhere = null;
+      final retried = await service.performSync();
+
+      expect(retried.status, SyncResultStatus.awaitingAdoption);
+    });
+
+    test('a corrupt manifest still counts as no readable library', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 1),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      await cloud.uploadFile(
+        Uint8List.fromList(utf8.encode('not json')),
+        ChangesetLogLayout.manifestName('peer-1'),
+      );
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(await SyncRepository().getLastAcceptedEpochId(), 'e1');
+    });
+
     test('a device that cannot be fetched aborts the whole refill', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),

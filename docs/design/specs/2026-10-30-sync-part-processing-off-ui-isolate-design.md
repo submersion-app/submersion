@@ -252,6 +252,12 @@ can reach that today.
   else: `BasePartHasherException`, and any other error from `downloadPart`. It
   carries the cause.
 
+Epoch recovery reads manifests the same way. `_epochHasReadableLibrary` answers
+whether a library exists, and a "no" past the grace window ends in
+`_reestablishEpochFromLocalLibrary`, which deletes every sync file. So it shares
+one rule with `_collectEpochBaseSources`: a manifest that could not be fetched
+propagates, and one the cloud holds but this device cannot use is skipped.
+
 The callers then behave like this:
 
 - **`ChangesetReader`:** catches `BaseFetchInterrupted` around `_fetchBaseToFile`

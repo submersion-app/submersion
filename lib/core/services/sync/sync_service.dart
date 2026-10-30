@@ -1318,14 +1318,37 @@ class SyncService {
     );
     for (final f in files) {
       if (!ChangesetLogLayout.isManifest(f.name)) continue;
-      try {
-        final m = SyncManifest.fromBytes(await provider.downloadFile(f.id));
-        if (m.epochId == epochId && m.baseSeq != null) return true;
-      } catch (_) {
-        continue;
-      }
+      final m = await _usableManifest(provider, f.id);
+      if (m != null && m.epochId == epochId && m.baseSeq != null) return true;
     }
     return false;
+  }
+
+  /// The manifest in [fileId], or null when the cloud holds one this device
+  /// cannot use.
+  ///
+  /// A manifest that could not be fetched says nothing about the cloud, so that
+  /// failure propagates. Both callers count what is readable to decide whether
+  /// a library exists, and a "no" ends in a delete-all refill or in
+  /// [_reestablishEpochFromLocalLibrary] wiping every sync file: a dropped
+  /// connection must not be able to answer that.
+  Future<SyncManifest?> _usableManifest(
+    CloudStorageProvider provider,
+    String fileId,
+  ) async {
+    final Uint8List bytes;
+    try {
+      bytes = await provider.downloadFile(fileId);
+    } on EnvelopeCorruptException {
+      return null;
+    } on SyncEncryptionRequired {
+      return null;
+    }
+    try {
+      return SyncManifest.fromBytes(bytes);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Twin-identity split: if this device's own cloud manifest carries an
@@ -5718,23 +5741,8 @@ class SyncService {
         if (excludeDeviceIds.contains(deviceId)) continue;
         final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
         if (manifestFile == null) continue;
-        // A manifest the cloud holds but this device cannot use skips the
-        // device. One that could not be fetched says nothing about it, so,
-        // like a base, it aborts the collection below.
-        final Uint8List manifestBytes;
-        try {
-          manifestBytes = await provider.downloadFile(manifestFile.id);
-        } on EnvelopeCorruptException {
-          continue;
-        } on SyncEncryptionRequired {
-          continue;
-        }
-        SyncManifest manifest;
-        try {
-          manifest = SyncManifest.fromBytes(manifestBytes);
-        } catch (_) {
-          continue;
-        }
+        final manifest = await _usableManifest(provider, manifestFile.id);
+        if (manifest == null) continue;
         // Recorded unconditionally: the manifest parsed, so a missing name is
         // the peer's current state and clears any name it published before.
         //
