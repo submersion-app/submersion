@@ -118,7 +118,7 @@ defined in the [Glossary](glossary.md).
 ### Computer figures vs. calculated figures
 
 For the decompression figures, the toggle includes a small **DC** / **Calc**
-switch. Many dive computers record their own ceiling, NDL, TTS,
+switch. Many dive computers record their own stop depth, NDL, TTS,
 and CNS values sample by sample during the dive; Submersion stores those
 alongside the figures it calculates itself from the depth samples. The switch
 lets you compare the two:
