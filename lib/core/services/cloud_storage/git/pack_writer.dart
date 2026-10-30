@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 
 /// One object to write into a pack, from memory or streamed from a file.
 final class PackEntrySource {
@@ -83,6 +84,46 @@ Stream<List<int>> writePack(List<PackEntrySource> entries) async* {
   }
   hasher.close();
   yield digest.value!.bytes;
+}
+
+/// The pack for [entries], ready to send.
+///
+/// [writePack] deflates and hashes as it is read, on the isolate that reads it,
+/// and a base part is one 8 MiB chunk to that loop. So when every entry is in
+/// memory anyway and the total is large, the whole pack is built on another
+/// isolate, which costs one compressed part of memory. A file-backed entry
+/// streams as ever, however large: it arrives in small chunks, and it may be
+/// too big to hold.
+Future<Stream<List<int>>> preparePack(
+  List<PackEntrySource> entries, {
+  int minBytes = kOffIsolateMinBytes,
+  OffIsolateRunner runner = isolateRun,
+}) async {
+  final total = entries.fold(0, (sum, entry) => sum + entry.size);
+  if (entries.any((entry) => entry._file != null) || total < minBytes) {
+    return writePack(entries);
+  }
+  return Stream.value(await _packOffIsolate(entries, total, minBytes, runner));
+}
+
+Future<Uint8List> _packOffIsolate(
+  List<PackEntrySource> entries,
+  int total,
+  int minBytes,
+  OffIsolateRunner runner,
+) => runOffIsolate(
+  () => _collectPack(entries),
+  bytes: total,
+  minBytes: minBytes,
+  runner: runner,
+);
+
+Future<Uint8List> _collectPack(List<PackEntrySource> entries) async {
+  final out = BytesBuilder(copy: false);
+  await for (final chunk in writePack(entries)) {
+    out.add(chunk);
+  }
+  return out.takeBytes();
 }
 
 /// The blob id of [file]'s contents, read as a stream.

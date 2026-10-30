@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 
+import 'package:submersion/core/utils/off_isolate.dart';
+
 /// The four Git object kinds, with their packfile type codes.
 enum GitObjectType {
   commit(1),
@@ -96,6 +98,18 @@ GitObjectId hashGitObject(GitObjectType type, List<int> body) {
     ..close();
   return GitObjectId(Uint8List.fromList(digest.value!.bytes));
 }
+
+/// [hashGitObject] for a body that may be large: a base part is megabytes, so
+/// it hashes on another isolate rather than stall the one that called sync.
+Future<GitObjectId> hashGitObjectOffIsolate(
+  GitObjectType type,
+  Uint8List body, {
+  OffIsolateRunner runner = isolateRun,
+}) => runOffIsolate(
+  () => hashGitObject(type, body),
+  bytes: body.length,
+  runner: runner,
+);
 
 /// The id of an object of [type] and [size] whose body arrives in pieces, so
 /// a body too large to hold is hashed without ever being whole.
