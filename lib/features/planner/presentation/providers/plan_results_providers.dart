@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
@@ -196,14 +197,20 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   return ref.watch(planLiveCanvasSeriesProvider);
 });
 
-/// Everything background a slate prints. Awaited, never read as it stands, so
-/// a slate cannot carry figures for an older revision. A failure throws:
-/// no slate is better than one with a section silently missing.
+/// Everything computed that a slate prints, all for one revision of the plan.
+/// Awaited, never read as it stands, so a slate cannot carry figures for an
+/// older revision. A failure throws: no slate is better than one with a
+/// section silently missing.
 ///
 /// Awaited in turn, and each future taken only when its turn comes, so that a
 /// later result failing first is not an error nobody is listening to.
+///
+/// [read] must outlive the widget that asked: the diver can leave the canvas
+/// during the wait, so it comes from the container, not a `WidgetRef`.
 Future<
   ({
+    DivePlanState state,
+    PlanOutcome outcome,
     List<DeviationOutcome> deviations,
     List<LostGasOutcome> lostGas,
     RangeTable? rangeTable,
@@ -211,14 +218,23 @@ Future<
   })
 >
 planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
-  final deviations = await read(planDeviationsProvider.future);
-  final lostGas = await read(planLostGasProvider.future);
-  final rangeTable = await read(planRangeTableProvider.future);
-  final bailout = await read(planBailoutProvider.future);
-  return (
-    deviations: deviations.value,
-    lostGas: lostGas.value,
-    rangeTable: rangeTable.value,
-    bailout: bailout.value,
-  );
+  // An edit during the wait can land after some of these resolved, so go
+  // round again until all of them are for the plan as it stands.
+  while (true) {
+    final asked = _engineInputs(read(divePlanNotifierProvider));
+    final deviations = await read(planDeviationsProvider.future);
+    final lostGas = await read(planLostGasProvider.future);
+    final rangeTable = await read(planRangeTableProvider.future);
+    final bailout = await read(planBailoutProvider.future);
+    final state = read(divePlanNotifierProvider);
+    if (_engineInputs(state) != asked) continue;
+    return (
+      state: state,
+      outcome: read(planOutcomeProvider),
+      deviations: deviations.value,
+      lostGas: lostGas.value,
+      rangeTable: rangeTable.value,
+      bailout: bailout.value,
+    );
+  }
 }

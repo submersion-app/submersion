@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/planner_results.dart';
@@ -188,6 +189,53 @@ void main() {
     await exportFromOverflow(tester, 'Export slate (PDF)');
 
     expect(sharePlatform.calls.single.sharePositionOrigin, overflowRect);
+  });
+
+  testWidgets('leaving the canvas while the slate waits still delivers it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final runner = HeldPlanResultRunner();
+    final showCanvas = ValueNotifier(true);
+    addTearDown(showCanvas.dispose);
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          planResultsSettleDelayProvider.overrideWithValue(Duration.zero),
+          planResultRunnerProvider.overrideWithValue(runner),
+        ],
+        locale: const Locale('en'),
+        child: ValueListenableBuilder(
+          valueListenable: showCanvas,
+          builder: (context, show, _) =>
+              show ? const PlanCanvasPage() : const SizedBox(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await exportFromOverflow(tester, 'Export slate (PDF)');
+    expect(sharePlatform.calls, isEmpty);
+
+    // The slate is held on a background result; the diver leaves meanwhile.
+    showCanvas.value = false;
+    await tester.pump();
+    for (var i = 0; i < 8; i++) {
+      for (final run in [...runner.held]) {
+        runner.held.remove(run);
+        run.finish();
+      }
+      await tester.pump();
+    }
+    await settleRealIo(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(sharePlatform.calls, hasLength(1));
   });
 
   testWidgets('both exports ask Save to File or Share before delivering', (

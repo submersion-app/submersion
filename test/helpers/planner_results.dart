@@ -24,8 +24,10 @@ class InlinePlanResultRunner implements PlanResultRunner {
 
 /// One run held by [HeldPlanResultRunner].
 class HeldPlanRun {
-  HeldPlanRun(this.plan, this.finish, this.fail);
+  HeldPlanRun(this.computation, this.plan, this.finish, this.fail);
 
+  /// Which calculation this is, to pick one out of several held together.
+  final Object computation;
   final domain.DivePlan plan;
 
   /// Computes the result and delivers it.
@@ -40,6 +42,10 @@ class HeldPlanRun {
 class HeldPlanResultRunner implements PlanResultRunner {
   final held = <HeldPlanRun>[];
 
+  /// The latest run of [computation].
+  HeldPlanRun latest(Object computation) =>
+      held.lastWhere((run) => run.computation == computation);
+
   @override
   Future<T> run<T>(
     PlanComputation<T> computation,
@@ -50,6 +56,7 @@ class HeldPlanResultRunner implements PlanResultRunner {
     final completer = Completer<T>();
     held.add(
       HeldPlanRun(
+        computation,
         plan,
         () => completer.complete(computation(plan, startState, config)),
         completer.completeError,

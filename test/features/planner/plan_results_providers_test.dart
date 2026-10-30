@@ -615,6 +615,51 @@ void main() {
       );
     });
 
+    test('an edit during the wait carries through every figure', () async {
+      final runner = HeldPlanResultRunner();
+      final container = makeContainer(runner: runner);
+      load(container, _ccrWithBailout());
+      container.read(contingenciesExpandedProvider.notifier).state = true;
+      listenToAll(container);
+      await wait(Duration.zero);
+
+      var finished = false;
+      final slate = planSlateResults(
+        container.read,
+      ).whenComplete(() => finished = true);
+      // The first figure lands, then the plan changes under the others.
+      final first = runner.latest(computeDeviations);
+      runner.held.remove(first);
+      first.finish();
+      await wait(Duration.zero);
+      editBottomTime(container, 2400);
+      listenToAll(container);
+      await wait(Duration.zero);
+
+      for (var i = 0; i < 20 && !finished; i++) {
+        for (final run in [...runner.held]) {
+          runner.held.remove(run);
+          run.finish();
+        }
+        await wait(Duration.zero);
+      }
+      final results = await slate;
+
+      final state = container.read(divePlanNotifierProvider);
+      final config = container.read(planEngineConfigProvider);
+      final plan = planForEngine(state);
+      final direct = computeDeviations(plan, null, config);
+      expect(
+        results.deviations.first.outcome.runtimeSeconds,
+        direct.first.outcome.runtimeSeconds,
+      );
+      expect(results.state.segments, state.segments);
+      expect(
+        results.outcome.runtimeSeconds,
+        computeOutcomeForState(state, config: config).runtimeSeconds,
+      );
+    });
+
     test('a failed result fails the slate', () async {
       final runner = HeldPlanResultRunner();
       final container = makeContainer(runner: runner);

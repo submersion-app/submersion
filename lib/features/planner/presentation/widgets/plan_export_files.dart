@@ -56,19 +56,21 @@ Future<PlanExportFile> planSlateExport(
   required PlanSlateLabels labels,
   required PdfLocalization localization,
 }) async {
-  final state = ref.read(divePlanNotifierProvider);
+  // The diver can leave the canvas while the results land, which ends [ref].
+  final read = ProviderScope.containerOf(ref.context, listen: false).read;
+  final results = await planSlateResults(read);
+  final state = results.state;
   // The plan's own values, else the diver's Settings defaults (#3552).
-  final resolved = ref.read(resolvedPlanEngineConfigProvider);
-  final results = await planSlateResults(ref.read);
+  final resolved = read(resolvedPlanEngineConfigProvider);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
-    outcome: ref.read(planOutcomeProvider),
+    outcome: results.outcome,
     localization: localization,
     deviations: results.deviations,
     lostGas: results.lostGas,
     rangeTable: results.rangeTable,
     bailout: results.bailout,
-    units: UnitFormatter(ref.read(settingsProvider)),
+    units: UnitFormatter(read(settingsProvider)),
     labels: labels,
     deviationDepthDelta: resolved.deviationDepthDelta,
     deviationTimeMinutes: resolved.deviationTimeMinutes,
