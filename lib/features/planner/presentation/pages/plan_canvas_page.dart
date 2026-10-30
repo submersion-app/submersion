@@ -236,6 +236,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'slate',
                   Icons.picture_as_pdf,
                   context.l10n.plannerCanvas_slate_menu,
+                  // The slate prints the computed schedule, and a plan with
+                  // no segments has none: it would be a header over empty
+                  // tables (#3795).
+                  enabled: planState.segments.isNotEmpty,
                 ),
                 _menuItem(
                   'share',
@@ -270,9 +274,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     domain.PlanMode.pscr => domain.PlanMode.oc,
   };
 
-  PopupMenuItem<String> _menuItem(String value, IconData icon, String label) {
+  PopupMenuItem<String> _menuItem(
+    String value,
+    IconData icon,
+    String label, {
+    bool enabled = true,
+  }) {
     return PopupMenuItem(
       value: value,
+      enabled: enabled,
       child: ListTile(
         leading: Icon(icon),
         title: Text(label),

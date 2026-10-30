@@ -9,6 +9,7 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -96,6 +97,17 @@ void main() {
     child: const PlanCanvasPage(),
   );
 
+  /// A slate needs a schedule to print, and a new plan has none, so anything
+  /// that gets as far as exporting one adds a dive first.
+  DivePlanNotifier plannerOf(WidgetTester tester) => ProviderScope.containerOf(
+    tester.element(find.byType(PlanCanvasPage)),
+  ).read(divePlanNotifierProvider.notifier);
+
+  Future<void> seedPlan(WidgetTester tester) async {
+    plannerOf(tester).addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+  }
+
   /// Sharing writes with real dart:io, which parks under the FakeAsync zone
   /// testWidgets runs in. runAsync turns the real event loop so the write
   /// lands; the pump after it drains the continuation FakeAsync then queues.
@@ -178,6 +190,7 @@ void main() {
 
     await tester.pumpWidget(harness());
     await tester.pumpAndSettle();
+    await seedPlan(tester);
 
     final overflowRect = tester.getRect(find.byType(PopupMenuButton<String>));
 
@@ -198,6 +211,7 @@ void main() {
 
     await tester.pumpWidget(harness());
     await tester.pumpAndSettle();
+    await seedPlan(tester);
 
     for (final label in ['Export slate (PDF)', 'Export plan file']) {
       await tester.tap(find.byType(PopupMenuButton<String>));
@@ -226,6 +240,7 @@ void main() {
 
     await tester.pumpWidget(harness());
     await tester.pumpAndSettle();
+    await seedPlan(tester);
 
     await exportFromOverflow(
       tester,
@@ -239,6 +254,92 @@ void main() {
     expect(String.fromCharCodes(picker.lastSavedBytes!.take(4)), '%PDF');
     expect(sharePlatform.calls, isEmpty);
     expect(find.text('Slate saved'), findsOneWidget);
+  });
+
+  group('a plan with nothing to print (#3795)', () {
+    Future<void> openOverflow(WidgetTester tester) async {
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+    }
+
+    bool slateEnabled(WidgetTester tester) => tester
+        .widget<PopupMenuItem<String>>(
+          find.ancestor(
+            of: find.text('Export slate (PDF)'),
+            matching: find.byType(PopupMenuItem<String>),
+          ),
+        )
+        .enabled;
+
+    testWidgets('a new plan offers no slate to export', (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      await openOverflow(tester);
+
+      expect(slateEnabled(tester), isFalse);
+
+      // The item stays in the menu, so the diver can see it exists, but
+      // picking it opens no destination sheet and so writes no PDF.
+      await tester.tap(find.text('Export slate (PDF)'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save to File'), findsNothing);
+      expect(sharePlatform.calls, isEmpty);
+    });
+
+    testWidgets('the slate comes back with the first segment', (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      await seedPlan(tester);
+      await openOverflow(tester);
+
+      expect(slateEnabled(tester), isTrue);
+    });
+
+    testWidgets('resetting the plan takes the slate away again', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      await seedPlan(tester);
+      plannerOf(tester).newPlan();
+      await tester.pumpAndSettle();
+      await openOverflow(tester);
+
+      expect(slateEnabled(tester), isFalse);
+    });
+
+    testWidgets('the plan file can still be exported', (tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+      await openOverflow(tester);
+
+      // A .subplan still carries the tanks and settings a slate cannot show.
+      await tester.tap(find.text('Export plan file').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save to File'), findsOneWidget);
+    });
   });
 
   testWidgets('saving the plan file writes the .subplan through the dialog', (
