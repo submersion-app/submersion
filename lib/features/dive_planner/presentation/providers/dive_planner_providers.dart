@@ -1146,17 +1146,20 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     // diver can pick another during the save's async gap and that newer choice
     // wins. The references are independent, so one can go while another stays.
     final siteWentAway = stored.siteId == null && state.siteId == plan.siteId;
+    // Only a dive the plan named can go away: a followed plan has no source
+    // dive, and what it carries belongs to the series.
     final sourceDiveWentAway =
-        stored.sourceDiveId == null && state.sourceDiveId == plan.sourceDiveId;
+        plan.sourceDiveId != null &&
+        stored.sourceDiveId == null &&
+        state.sourceDiveId == plan.sourceDiveId;
     final linkedDiveWentAway =
         stored.linkedDiveId == null && state.linkedDiveId == plan.linkedDiveId;
     // A dropped source dive takes the context it seeded with it, carried CNS
     // and OTU included. The tissues are never stored, so leaving them would
     // keep seeding deco for a plan that no longer has that dive, and the
     // schedule would change silently on the next reload. The repository drops
-    // the surface
-    // interval with the dive. Each keeps the same guard: tissues or an
-    // interval the diver set during the async gap are a newer choice.
+    // the surface interval with the dive. Each keeps the same guard: tissues
+    // or an interval the diver set during the async gap are a newer choice.
     final tissuesWentAway =
         sourceDiveWentAway &&
         identical(state.initialTissueState, submitted.initialTissueState);

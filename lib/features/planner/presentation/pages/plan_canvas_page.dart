@@ -102,7 +102,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final notifier = _notifier;
     super.dispose();
     if (_isReplan && notifier != null) {
-      Future.microtask(notifier.newPlan);
+      Future.microtask(() {
+        if (notifier.mounted) notifier.newPlan();
+      });
     }
   }
 
@@ -116,7 +118,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
-    _isReplan = planState.sourceDiveId != null;
+    _isReplan = ref.watch(planSeriesNotifierProvider.select(isReplan));
     final units = UnitFormatter(ref.watch(settingsProvider));
     // A series of dives cannot be saved, or logged, until series
     // persistence lands (issue #3565).

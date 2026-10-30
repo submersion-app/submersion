@@ -122,6 +122,23 @@ void main() {
     });
   });
 
+  group('the follow entities', () {
+    test('copyWith replaces only what it is given', () {
+      final dive = seriesLoggedDive('logged', followedEnd, otu: 40, number: 7);
+      expect(dive.copyWith(otu: 12).otu, 12);
+      expect(dive.copyWith(otu: 12).diveNumber, 7);
+
+      final follow = SeriesFollow(
+        loggedDives: [dive],
+        endTissues: endTissues,
+        endCns: 20,
+      );
+      expect(follow.copyWith(endCns: 5).endCns, 5);
+      expect(follow.copyWith(endCns: 5).endTissues, endTissues);
+      expect(follow.copyWith(clearEndTissues: true).endTissues, isNull);
+    });
+  });
+
   group('following and unfollowing', () {
     test('the first dive takes the followed dive tanks and breathes them', () {
       final first = followed(

@@ -78,6 +78,29 @@ void main() {
     ),
   ];
 
+  test('save keeps what a plan with no source dive carries in', () async {
+    // A followed plan: the follow belongs to the series, so no source dive
+    // ever went away.
+    final planner = notifier();
+    addTearDown(planner.dispose);
+    planner.loadPlan(
+      planner.state.copyWith(
+        initialTissueState: tissues,
+        initialCns: 20,
+        initialOtu: 40,
+        surfaceInterval: const Duration(hours: 1),
+        isDirty: true,
+      ),
+    );
+
+    await planner.save();
+
+    expect(planner.state.initialTissueState, tissues);
+    expect(planner.state.initialCns, 20);
+    expect(planner.state.initialOtu, 40);
+    expect(planner.state.surfaceInterval, const Duration(hours: 1));
+  });
+
   test('save succeeds and clears the source dive when it was deleted '
       'meanwhile', () async {
     await seedDive('dive-1');

@@ -23,6 +23,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -814,6 +815,34 @@ void main() {
         tester.getTopLeft(find.text('Plan repetitive dive')).dy,
         greaterThan(tester.getTopLeft(find.text('Replan this dive')).dy),
       );
+    });
+
+    testWidgets('Plan repetitive dive asks before replacing unsaved work', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, makeDiveWithTanksAndProfile());
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      final editor = container.read(divePlanNotifierProvider.notifier);
+      editor.loadPlan(
+        container.read(divePlanNotifierProvider).copyWith(isDirty: true),
+      );
+      final plan = container.read(divePlanNotifierProvider);
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Plan repetitive dive'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Are you sure you want to reset the plan?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(divePlanNotifierProvider).id, plan.id);
     });
 
     testWidgets('a planned dive offers no repetitive dive to plan', (

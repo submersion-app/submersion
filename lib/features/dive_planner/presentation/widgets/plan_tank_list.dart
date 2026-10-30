@@ -231,7 +231,9 @@ class PlanTankList extends ConsumerWidget {
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.local_gas_station_outlined),
               tooltip: context.l10n.plannerSeries_fill(
-                tank.name ?? tank.gasMix.name,
+                (tank.name?.isNotEmpty ?? false)
+                    ? tank.name!
+                    : tank.gasMix.name,
               ),
               onPressed: () => ref
                   .read(planSeriesNotifierProvider.notifier)

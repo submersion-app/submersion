@@ -7,9 +7,12 @@ String formatHoursMinutes(Duration duration) {
 }
 
 /// Parses h:mm text into a duration: `1:30`, `0:05`, `:45`, or bare hours
-/// such as `2`. Null for anything else, including minutes past 59.
+/// such as `2`, up to 9999 hours. Null for anything else, including minutes
+/// past 59.
 Duration? parseHoursMinutes(String text) {
-  final match = RegExp(r'^\s*(\d*)\s*(?::\s*(\d{1,2}))?\s*$').firstMatch(text);
+  final match = RegExp(
+    r'^\s*(\d{0,4})\s*(?::\s*(\d{1,2}))?\s*$',
+  ).firstMatch(text);
   if (match == null) return null;
   final hoursText = match.group(1)!;
   final minutesText = match.group(2);

@@ -219,7 +219,11 @@ PlanSeries followDive(
         tank.id: ?(kept[tank.id] ?? tank.startPressure),
     };
     dives[0] = first.copyWith(
-      state: first.state.copyWith(surfaceInterval: surfaceInterval),
+      state: first.state.copyWith(
+        surfaceInterval: surfaceInterval,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
       sourceTankIds: const {},
     );
     return series.copyWith(
@@ -264,6 +268,8 @@ PlanSeries followDive(
       surfaceInterval: surfaceInterval,
       tanks: tanks,
       segments: segments,
+      isDirty: true,
+      updatedAt: DateTime.now(),
     ),
     sourceTankIds: {
       for (var i = 0; i < tanks.length; i++) tanks[i].id: logged[i].id,
@@ -314,6 +320,8 @@ PlanSeries unfollow(PlanSeries series) {
       clearSurfaceInterval: true,
       clearInitialTissueState: true,
       clearInitialExposure: true,
+      isDirty: true,
+      updatedAt: DateTime.now(),
     ),
     sourceTankIds: const {},
   );
@@ -345,7 +353,11 @@ PlanSeries _fill(PlanSeries series, int index, Set<String> tankIds) {
     series,
     index,
     dive.copyWith(
-      state: dive.state.copyWith(tanks: tanks),
+      state: dive.state.copyWith(
+        tanks: tanks,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
       pinnedTankIds: {...dive.pinnedTankIds, ...tankIds},
     ),
   );

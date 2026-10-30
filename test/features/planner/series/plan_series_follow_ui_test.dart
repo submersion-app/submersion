@@ -38,6 +38,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setPpO2MaxWorking(double value) async =>
+      state = state.copyWith(ppO2MaxWorking: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -53,23 +57,27 @@ void main() {
     DatabaseService.instance.resetForTesting();
   });
 
+  List<dynamic> followOverrides(
+    List<Dive> dives,
+    Future<ProfileAnalysis?> Function(Ref ref, String id) analysis, {
+    _TestSettingsNotifier? settings,
+  }) => [
+    settingsProvider.overrideWith((ref) => settings ?? _TestSettingsNotifier()),
+    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
+    divesProvider.overrideWith((ref) async => dives),
+    diveProvider.overrideWith(
+      (ref, id) async => dives.where((d) => d.id == id).firstOrNull,
+    ),
+    profileAnalysisProvider.overrideWith(analysis),
+  ];
+
   Widget harness(
     List<Dive> dives, {
     Future<ProfileAnalysis?> Function(Ref ref, String id)? analysis,
   }) => testApp(
-    overrides: [
-      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-      currentDiverIdProvider.overrideWith(
-        (ref) => MockCurrentDiverIdNotifier(),
-      ),
-      divesProvider.overrideWith((ref) async => dives),
-      diveProvider.overrideWith(
-        (ref, id) async => dives.where((d) => d.id == id).firstOrNull,
-      ),
-      // No profiles: the follow carries no tissues, and the logged view
-      // shows its placeholder rather than the full chart.
-      profileAnalysisProvider.overrideWith(analysis ?? (ref, id) async => null),
-    ],
+    // No profiles by default: the follow carries no tissues, and the logged
+    // view shows its placeholder rather than the full chart.
+    overrides: followOverrides(dives, analysis ?? (ref, id) async => null),
     locale: const Locale('en'),
     child: const PlanCanvasPage(),
   );
@@ -311,6 +319,149 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('following analyses only the dives whose OTU can still count', (
+    tester,
+  ) async {
+    final analysed = <String>[];
+    final last = DateTime.utc(2026, 10, 25, 12);
+    await pumpPlan(
+      tester,
+      [
+        loggedDive('old', last.subtract(const Duration(hours: 30)), number: 1),
+        loggedDive('near', last.subtract(const Duration(hours: 6)), number: 2),
+        loggedDive('last', last, number: 3),
+      ],
+      analysis: (ref, id) async {
+        analysed.add(id);
+        return null;
+      },
+    );
+
+    final follow = await containerOf(
+      tester,
+    ).read(seriesFollowProvider('last').future);
+
+    expect(follow!.loggedDives.map((d) => d.id), ['old', 'near', 'last']);
+    expect(analysed, ['near', 'last']);
+  });
+
+  testWidgets('a follow still lands when its caller has gone', (tester) async {
+    final analysis = Completer<ProfileAnalysis?>();
+    final showCaller = ValueNotifier(true);
+    addTearDown(showCaller.dispose);
+    late WidgetRef callerRef;
+    await tester.pumpWidget(
+      testApp(
+        overrides: followOverrides(dayDives, (ref, id) => analysis.future),
+        locale: const Locale('en'),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: showCaller,
+          builder: (_, show, _) => show
+              ? Consumer(
+                  builder: (_, ref, _) {
+                    callerRef = ref;
+                    return const SizedBox.shrink();
+                  },
+                )
+              : const SizedBox.shrink(),
+        ),
+      ),
+    );
+
+    final done = followLoggedDive(callerRef, 'd41');
+    showCaller.value = false;
+    await tester.pump();
+    analysis.complete(null);
+
+    expect(await done, isNotNull);
+  });
+
+  testWidgets('a settings change while the planner is away is picked up on '
+      'its return', (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final showPlanner = ValueNotifier(true);
+    addTearDown(showPlanner.dispose);
+    final settings = _TestSettingsNotifier();
+    await tester.pumpWidget(
+      testApp(
+        overrides: followOverrides(
+          dayDives,
+          (ref, id) async => null,
+          settings: settings,
+        ),
+        locale: const Locale('en'),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: showPlanner,
+          builder: (_, show, _) =>
+              show ? const PlanCanvasPage() : const SizedBox.shrink(),
+        ),
+      ),
+    );
+    final container = containerOf(tester);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+    container.read(planSeriesNotifierProvider.notifier).addDive();
+    await tester.pumpAndSettle();
+
+    showPlanner.value = false;
+    await tester.pumpAndSettle();
+    await settings.setPpO2MaxWorking(1.3);
+    await tester.pump();
+    showPlanner.value = true;
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(container.read(planSeriesNotifierProvider).dives, hasLength(2));
+  });
+
+  group('the surface interval field', () {
+    Finder field() => find.byKey(const Key('surfaceIntervalField'));
+
+    Future<void> pumpTwoFollowing(WidgetTester tester) async {
+      await pumpPlan(tester, dayDives);
+      await follow(tester, 'd42');
+      containerOf(tester).read(planSeriesNotifierProvider.notifier).addDive();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('text not committed stays with the dive it was typed for', (
+      tester,
+    ) async {
+      await pumpTwoFollowing(tester);
+      await tester.enterText(field(), '2:30');
+      await tester.pump();
+
+      containerOf(tester).read(planSeriesNotifierProvider.notifier).select(0);
+      await tester.pumpAndSettle();
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final series = containerOf(tester).read(planSeriesNotifierProvider);
+      expect(series.dives[0].state.surfaceInterval, const Duration(hours: 1));
+      expect(series.dives[1].state.surfaceInterval, const Duration(hours: 1));
+      expect(tester.widget<TextField>(field()).controller?.text, '1:00');
+    });
+
+    testWidgets('a stepper starts from what was typed', (tester) async {
+      await pumpTwoFollowing(tester);
+      await tester.enterText(field(), '2:00');
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('15 minutes more'));
+      await tester.pumpAndSettle();
+
+      expect(
+        containerOf(tester).read(divePlanNotifierProvider).surfaceInterval,
+        const Duration(hours: 2, minutes: 15),
+      );
+    });
+  });
+
   testWidgets('Stop following drops the logged dives', (tester) async {
     await pumpPlan(tester, dayDives);
     await follow(tester, 'd42');
@@ -390,6 +541,31 @@ void main() {
       await pumpPlan(tester, dayDives);
 
       expect(find.textContaining('ended'), findsNothing);
+    });
+
+    testWidgets('is not offered on a later dive of a replan', (tester) async {
+      await pumpPlan(tester, recent());
+      final container = containerOf(tester);
+      final editor = container.read(divePlanNotifierProvider.notifier);
+      editor.loadPlan(
+        container
+            .read(divePlanNotifierProvider)
+            .copyWith(sourceDiveId: 'replanned'),
+      );
+      container.read(planSeriesNotifierProvider.notifier).addDive();
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('ended'), findsNothing);
+    });
+
+    testWidgets('skips a dive stamped in the future', (tester) async {
+      final now = NoFlyService.wallClockNowUtc();
+      await pumpPlan(tester, [
+        ...recent(),
+        loggedDive('d43', now.add(const Duration(days: 2)), number: 43),
+      ]);
+
+      expect(find.textContaining('Dive #42 ended'), findsOneWidget);
     });
   });
 }

@@ -131,7 +131,7 @@ class PlanLoggedDiveView extends ConsumerWidget {
           _Placeholder(message: l10n.dashboard_recentDives_profileLoadError),
     );
     final tanks = [
-      for (final tank in dive.valueOrNull?.tanks ?? const <DiveTank>[])
+      for (final tank in dive.value?.tanks ?? const <DiveTank>[])
         if (tank.endPressure != null) tank,
     ];
 

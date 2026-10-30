@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -108,21 +109,27 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
             )
           : null,
       enabled: _loadingDiveId == null,
-      onTap: () => _follow(dive),
+      onTap: () =>
+          logFailure(_follow(dive), _FollowDiveSheetState, 'follow a dive'),
     );
   }
 
   Future<void> _follow(Dive dive) async {
     setState(() => _loadingDiveId = dive.id);
-    final follow = await followLoggedDive(ref, dive.id);
-    if (!mounted) return;
+    try {
+      final follow = await followLoggedDive(ref, dive.id);
+      if (!mounted) return;
 
-    final messenger = ScaffoldMessenger.of(context);
-    if (follow != null && follow.endTissues == null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(context.l10n.plannerCanvas_follow_noTissues)),
-      );
+      final messenger = ScaffoldMessenger.of(context);
+      if (follow != null && follow.endTissues == null) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(context.l10n.plannerCanvas_follow_noTissues)),
+        );
+      }
+      Navigator.of(context).pop();
+    } finally {
+      // The sheet is still open only when the load failed.
+      if (mounted) setState(() => _loadingDiveId = null);
     }
-    Navigator.of(context).pop();
   }
 }

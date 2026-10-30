@@ -30,6 +30,8 @@ void main() {
       expect(parseHoursMinutes('-1:00'), isNull);
       expect(parseHoursMinutes('1h'), isNull);
       expect(parseHoursMinutes('1:2:3'), isNull);
+      expect(parseHoursMinutes('99999999999999999999999'), isNull);
+      expect(parseHoursMinutes('10000:00'), isNull);
     });
   });
 }

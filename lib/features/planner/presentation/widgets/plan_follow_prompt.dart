@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
@@ -29,11 +29,14 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
     setState(() => _following = true);
     final messenger = ScaffoldMessenger.of(context);
     final noTissues = context.l10n.plannerCanvas_follow_noTissues;
-    final follow = await followLoggedDive(ref, dive.id);
-    if (!mounted) return;
-    setState(() => _following = false);
-    if (follow != null && follow.endTissues == null) {
-      messenger.showSnackBar(SnackBar(content: Text(noTissues)));
+    try {
+      final follow = await followLoggedDive(ref, dive.id);
+      if (!mounted) return;
+      if (follow != null && follow.endTissues == null) {
+        messenger.showSnackBar(SnackBar(content: Text(noTissues)));
+      }
+    } finally {
+      if (mounted) setState(() => _following = false);
     }
   }
 
@@ -42,12 +45,10 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
     final follows = ref.watch(
       planSeriesNotifierProvider.select((s) => s.follow != null),
     );
-    final replan = ref.watch(
-      divePlanNotifierProvider.select((s) => s.sourceDiveId != null),
-    );
+    final allowed = ref.watch(followAllowedProvider);
     final dive = ref.watch(followSuggestionProvider).valueOrNull;
     final dismissed = ref.watch(dismissedFollowSuggestionsProvider);
-    if (follows || replan || dive == null || dismissed.contains(dive.id)) {
+    if (follows || !allowed || dive == null || dismissed.contains(dive.id)) {
       return const SizedBox.shrink();
     }
 
@@ -60,7 +61,7 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
         ? dive.name!
         : number != null
         ? l10n.plannerSeries_loggedDiveNumber(number)
-        : units.formatDate(diveStart(dive));
+        : units.formatDate(dive.effectiveEntryTime);
     final ago = formatHoursMinutes(
       NoFlyService.wallClockNowUtc().difference(diveEnd(dive)),
     );
@@ -86,7 +87,13 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
             ),
           ),
           TextButton(
-            onPressed: _following ? null : () => _follow(dive),
+            onPressed: _following
+                ? null
+                : () => logFailure(
+                    _follow(dive),
+                    _PlanFollowPromptState,
+                    'follow a logged dive',
+                  ),
             child: Text(l10n.plannerSeries_follow),
           ),
           IconButton(

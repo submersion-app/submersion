@@ -11,7 +11,8 @@ class SeriesLoggedDive extends Equatable {
   final DateTime start;
   final DateTime end;
 
-  /// The OTU of this dive alone, for the rolling daily total.
+  /// The OTU of this dive alone, for the rolling daily total: 0 for a dive
+  /// that ended too long before the followed one to count.
   final double otu;
 
   const SeriesLoggedDive({
@@ -22,6 +23,24 @@ class SeriesLoggedDive extends Equatable {
     required this.end,
     this.otu = 0,
   });
+
+  SeriesLoggedDive copyWith({
+    String? id,
+    int? diveNumber,
+    String? name,
+    DateTime? start,
+    DateTime? end,
+    double? otu,
+  }) {
+    return SeriesLoggedDive(
+      id: id ?? this.id,
+      diveNumber: diveNumber ?? this.diveNumber,
+      name: name ?? this.name,
+      start: start ?? this.start,
+      end: end ?? this.end,
+      otu: otu ?? this.otu,
+    );
+  }
 
   @override
   List<Object?> get props => [id, diveNumber, name, start, end, otu];
@@ -64,12 +83,19 @@ class SeriesFollow extends Equatable {
 
   SeriesLoggedDive get followed => loggedDives.last;
 
-  SeriesFollow copyWith({Map<String, double>? ownStartPressures}) {
+  SeriesFollow copyWith({
+    List<SeriesLoggedDive>? loggedDives,
+    List<TissueCompartment>? endTissues,
+    bool clearEndTissues = false,
+    double? endCns,
+    List<DiveTank>? endTanks,
+    Map<String, double>? ownStartPressures,
+  }) {
     return SeriesFollow(
-      loggedDives: loggedDives,
-      endTissues: endTissues,
-      endCns: endCns,
-      endTanks: endTanks,
+      loggedDives: loggedDives ?? this.loggedDives,
+      endTissues: clearEndTissues ? null : (endTissues ?? this.endTissues),
+      endCns: endCns ?? this.endCns,
+      endTanks: endTanks ?? this.endTanks,
       ownStartPressures: ownStartPressures ?? this.ownStartPressures,
     );
   }

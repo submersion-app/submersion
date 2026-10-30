@@ -2,15 +2,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
-/// When [dive] started: its entry time, else its logged date and time.
-DateTime diveStart(Dive dive) => dive.entryTime ?? dive.dateTime;
-
 /// When [dive] ended: its recorded exit time, else its start plus its
 /// runtime. The same order as `DiveTimes.effectiveExitTime`, so an import
 /// whose runtime and exit disagree ends where the rest of the app says.
 DateTime diveEnd(Dive dive) =>
     dive.exitTime ??
-    diveStart(dive).add(dive.effectiveRuntime ?? Duration.zero);
+    dive.effectiveEntryTime.add(dive.effectiveRuntime ?? Duration.zero);
 
 /// The logged dives a plan following [followedId] shows (issue #3565),
 /// oldest first: the followed dive and the dives before it, back to the
@@ -31,13 +28,13 @@ List<Dive> loggedDiveChain(
     for (final dive in dives)
       if (dive.id != followedId &&
           !dive.isPlanned &&
-          !diveStart(dive).isAfter(diveStart(followed)))
+          !dive.effectiveEntryTime.isAfter(followed.effectiveEntryTime))
         dive,
-  ]..sort((a, b) => diveStart(b).compareTo(diveStart(a)));
+  ]..sort((a, b) => b.effectiveEntryTime.compareTo(a.effectiveEntryTime));
 
   final chain = [followed];
   for (final dive in earlier) {
-    final gap = diveStart(chain.last).difference(diveEnd(dive));
+    final gap = chain.last.effectiveEntryTime.difference(diveEnd(dive));
     if (gap >= lookback) break;
     chain.add(dive);
   }

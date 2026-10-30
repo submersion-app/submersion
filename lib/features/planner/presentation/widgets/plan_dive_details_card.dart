@@ -64,6 +64,9 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
       divePlanNotifierProvider.select((s) => s.initialTissueState != null),
     );
     final hasInterval = index > 0 || followsDive || seeded;
+    final diveId = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.selected.state.id),
+    );
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -116,7 +119,12 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
                   .renameSelected,
             ),
             const SizedBox(height: 16),
-            PlanSurfaceIntervalField(enabled: hasInterval),
+            // Keyed by dive: text not yet committed belongs to the dive it
+            // was typed for, and must not land on the next one.
+            PlanSurfaceIntervalField(
+              key: ValueKey(diveId),
+              enabled: hasInterval,
+            ),
           ],
         ),
       ),

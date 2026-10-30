@@ -363,7 +363,7 @@ class _MoreOptionsButton extends ConsumerWidget {
     final buttonSize = renderBox.size;
     // The dialog builds above any ProviderScope around this chart; it acts
     // on the same legend the chart shows, scoped or not.
-    final container = ProviderScope.containerOf(context);
+    final container = ProviderScope.containerOf(context, listen: false);
 
     showDialog<void>(
       context: context,

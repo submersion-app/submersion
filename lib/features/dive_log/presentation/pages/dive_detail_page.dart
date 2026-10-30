@@ -37,6 +37,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -86,6 +87,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -1315,7 +1317,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     showWhatIfSheet(context, dive);
                     break;
                   case 'planRepetitive':
-                    _planRepetitiveDive(dive);
+                    logFailure(
+                      _planRepetitiveDive(dive),
+                      _DiveDetailPageState,
+                      'plan a repetitive dive',
+                    );
                     break;
                   case 'delete':
                     _showDeleteConfirmation(context, ref);
@@ -1592,7 +1598,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         showWhatIfSheet(context, dive);
                         break;
                       case 'planRepetitive':
-                        _planRepetitiveDive(dive);
+                        logFailure(
+                          _planRepetitiveDive(dive),
+                          _DiveDetailPageState,
+                          'plan a repetitive dive',
+                        );
                         break;
                       case 'delete':
                         _showDeleteConfirmation(context, ref);
@@ -1767,11 +1777,44 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Open a new plan that follows this dive (issue #3565): a series whose
   /// first dive starts from where this one left off.
+  ///
+  /// The dive is read before the plan being edited is replaced, so a failed
+  /// load, or leaving the page during it, leaves that plan alone.
   Future<void> _planRepetitiveDive(Dive dive) async {
+    if (!await _confirmReplacingPlan()) return;
+    await ref.read(seriesFollowProvider(dive.id).future);
+    if (!mounted) return;
     ref.read(divePlanNotifierProvider.notifier).newPlan();
     await followLoggedDive(ref, dive.id);
     if (!mounted) return;
     openDivePlanner(context);
+  }
+
+  /// Whether the plan being edited may go, asking as Reset does when it holds
+  /// unsaved work. A series always does: it cannot be saved yet.
+  Future<bool> _confirmReplacingPlan() async {
+    final unsaved =
+        ref.read(divePlanNotifierProvider).isDirty ||
+        ref.read(planSeriesNotifierProvider).isSeries;
+    if (!unsaved) return true;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_resetPlan),
+        content: Text(context.l10n.divePlanner_message_resetConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.divePlanner_action_reset),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true && mounted;
   }
 
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
