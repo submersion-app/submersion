@@ -67,8 +67,9 @@ List<ActiveLegendEntry> activeLegendEntries(
     bool present,
     bool active,
     String label,
-    Color color,
-  ) {
+    Color color, {
+    String Function(LegendOverlaySource overlay)? overlayLabel,
+  }) {
     if (!active) return;
     if (present) {
       final name = config.activeSourceName;
@@ -84,7 +85,7 @@ List<ActiveLegendEntry> activeLegendEntries(
       if (!overlay.metrics.contains(metric)) continue;
       entries.add(
         ActiveLegendEntry(
-          label: '$label · ${overlay.name}',
+          label: '${overlayLabel?.call(overlay) ?? label} · ${overlay.name}',
           color: overlay.tintByMetric ? overlayTint(color, i) : overlay.color,
         ),
       );
@@ -223,12 +224,16 @@ List<ActiveLegendEntry> activeLegendEntries(
     l10n.diveLog_legend_label_decoStops,
     ProfileMetricColors.decoStops,
   );
+  String ceilingLabel(bool calculated) => calculated
+      ? l10n.diveLog_legend_label_ceilingCalculated
+      : l10n.diveLog_legend_label_ceiling;
   addPerSource(
     LegendMetric.ceiling,
     config.hasCeilingCurve,
     state.showCeiling,
-    l10n.diveLog_legend_label_ceiling,
+    ceilingLabel(config.labelCeilingAsCalculated),
     palette.colorOf(ProfileMetric.ceiling),
+    overlayLabel: (overlay) => ceilingLabel(overlay.labelCeilingAsCalculated),
   );
   addPerSource(
     LegendMetric.ndl,

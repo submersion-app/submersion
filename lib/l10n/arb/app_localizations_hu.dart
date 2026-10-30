@@ -8803,6 +8803,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafon';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafon (szám.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Dekó megállók';
 
   @override

@@ -86,6 +86,7 @@ Widget _harness({
   bool tooltipBelow = true,
   void Function(List<TooltipRow>? rows)? onTooltipData,
   double width = 400,
+  ProfileAnalysis? overlayAnalysis,
 }) {
   return ProviderScope(
     child: MaterialApp(
@@ -105,7 +106,7 @@ Widget _harness({
                 color: Colors.purple,
                 computerId: 'comp-b',
                 points: _profile(),
-                analysis: _fullOverlayAnalysis(),
+                analysis: overlayAnalysis ?? _fullOverlayAnalysis(),
               ),
             ],
             tooltipPresentation: tooltipBelow
@@ -143,6 +144,40 @@ void _enableAllOverlayMetrics(ProfileLegend notifier) {
 
 void main() {
   group('DiveProfileChart overlay metrics - external tooltip', () {
+    testWidgets('an overlay with its computer\'s stops marks its own ceiling '
+        'as calculated, in the legend and the tooltip (#2552)', (tester) async {
+      List<TooltipRow>? rows;
+      await tester.pumpWidget(
+        _harness(
+          width: 1800,
+          onTooltipData: (r) => rows = r,
+          overlayAnalysis: _fullOverlayAnalysis().copyWith(
+            computerStopsWithCalculatedCeiling: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ceiling (calc) · Overlay'), findsOneWidget);
+
+      final data = tester.widget<LineChart>(find.byType(LineChart).first).data;
+      final depthBar = data.lineBarsData.first;
+      data.lineTouchData.touchCallback!(
+        FlPanDownEvent(DragDownDetails()),
+        LineTouchResponse(
+          touchLocation: Offset.zero,
+          touchChartCoordinate: Offset.zero,
+          lineBarSpots: <TouchLineBarSpot>[
+            TouchLineBarSpot(depthBar, 0, depthBar.spots[5], 5),
+          ],
+        ),
+      );
+
+      final labels = rows!.map((r) => r.label);
+      expect(labels, contains('Ceiling (calc) · Overlay'));
+      expect(labels, isNot(contains('Ceiling · Overlay')));
+    });
+
     testWidgets(
       'every toggled metric emits an overlay row labelled "<metric> · '
       '<overlay name>"',

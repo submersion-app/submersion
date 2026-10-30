@@ -665,6 +665,7 @@ List<double> _overlayComputerCns(
     o2SensorCurves: o2SensorCurves,
     o2CellMvCurves: o2CellMvCurves,
     ppO2FromSensorAverage: resolvedPpO2 != null ? ppO2FromSensorAverage : null,
+    computerStopsWithCalculatedCeiling: useDecoStop && !useCeiling,
   );
 
   return (overlaid, sourceInfo);

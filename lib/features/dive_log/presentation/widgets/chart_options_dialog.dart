@@ -394,7 +394,9 @@ class ChartOptionsDialog extends StatelessWidget {
         // stops above.
         buildToggleItem(
           context,
-          label: context.l10n.diveLog_legend_label_ceiling,
+          label: config.labelCeilingAsCalculated
+              ? context.l10n.diveLog_legend_label_ceilingCalculated
+              : context.l10n.diveLog_legend_label_ceiling,
           color: palette.colorOf(ProfileMetric.ceiling),
           isEnabled: legendState.showCeiling,
           onTap: legendNotifier.toggleCeiling,

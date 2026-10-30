@@ -2762,6 +2762,7 @@
   "diveLog_legend_label_ascentRate": "קצב עלייה",
   "diveLog_legend_label_ascentRateLine": "קו קצב עלייה",
   "diveLog_legend_label_ceiling": "תקרה",
+  "diveLog_legend_label_ceilingCalculated": "תקרה (מחושב)",
   "diveLog_legend_label_decoStops": "עצירות דקו",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "עומק",

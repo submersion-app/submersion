@@ -2762,6 +2762,7 @@
   "diveLog_legend_label_ascentRate": "Velocità di risalita",
   "diveLog_legend_label_ascentRateLine": "Linea velocità di risalita",
   "diveLog_legend_label_ceiling": "Ceiling",
+  "diveLog_legend_label_ceilingCalculated": "Ceiling (calc.)",
   "diveLog_legend_label_decoStops": "Soste deco",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profondità",

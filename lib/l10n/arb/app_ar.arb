@@ -2863,6 +2863,7 @@
   "diveLog_legend_label_ascentRate": "معدل الصعود",
   "diveLog_legend_label_ascentRateLine": "خط معدل الصعود",
   "diveLog_legend_label_ceiling": "السقف",
+  "diveLog_legend_label_ceilingCalculated": "السقف (محسوب)",
   "diveLog_legend_label_decoStops": "توقفات تخفيف الضغط",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "العمق",

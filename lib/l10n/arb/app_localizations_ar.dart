@@ -8947,6 +8947,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'السقف';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'السقف (محسوب)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'توقفات تخفيف الضغط';
 
   @override

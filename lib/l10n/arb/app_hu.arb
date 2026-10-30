@@ -2762,6 +2762,7 @@
   "diveLog_legend_label_ascentRate": "Felszállási sebesség",
   "diveLog_legend_label_ascentRateLine": "Felszállási sebesség vonal",
   "diveLog_legend_label_ceiling": "Plafon",
+  "diveLog_legend_label_ceilingCalculated": "Plafon (szám.)",
   "diveLog_legend_label_decoStops": "Dekó megállók",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Mélység",

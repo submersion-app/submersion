@@ -2863,6 +2863,7 @@
   "diveLog_legend_label_ascentRate": "Velocidad de ascenso",
   "diveLog_legend_label_ascentRateLine": "Línea de velocidad de ascenso",
   "diveLog_legend_label_ceiling": "Techo",
+  "diveLog_legend_label_ceilingCalculated": "Techo (calc.)",
   "diveLog_legend_label_decoStops": "Paradas de descompresión",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profundidad",

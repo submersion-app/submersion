@@ -242,6 +242,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// band from the stop depth up to the surface.
   final List<double>? decoStopCurve;
 
+  /// True when [decoStopCurve] is the computer's while [ceilingCurve] is
+  /// calculated, used to label the ceiling "Ceiling (calc)" (issue #2552).
+  final bool labelCeilingAsCalculated;
+
   /// Ascent rate data for each profile point
   final List<AscentRatePoint>? ascentRates;
 
@@ -707,6 +711,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.onTimeSelected,
     this.ceilingCurve,
     this.decoStopCurve,
+    this.labelCeilingAsCalculated = false,
     this.ascentRates,
     this.events,
     this.ndlCurve,
@@ -1986,7 +1991,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final ceiling = _curveValueAt(widget.ceilingCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
-          label: l10n.diveLog_tooltip_ceiling,
+          label: widget.labelCeilingAsCalculated
+              ? l10n.diveLog_legend_label_ceilingCalculated
+              : l10n.diveLog_tooltip_ceiling,
           value: ceiling != null && ceiling > 0
               ? units.formatDepth(ceiling)
               : '-',
@@ -2001,9 +2008,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final curve = overlay.analysis?.ceilingCurve;
         if (idx == null || curve == null || idx >= curve.length) continue;
         final ceiling = curve[idx];
+        final label =
+            overlay.analysis?.computerStopsWithCalculatedCeiling ?? false
+            ? l10n.diveLog_legend_label_ceilingCalculated
+            : l10n.diveLog_tooltip_ceiling;
         rows.add(
           TooltipRow(
-            label: '${l10n.diveLog_tooltip_ceiling} · ${overlay.name}',
+            label: '$label · ${overlay.name}',
             value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
             bulletColor: _overlayColor(
               overlay,
@@ -2931,6 +2942,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasHeartRateData: hasHeartRateData,
       hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
       hasCeilingCurve: widget.ceilingCurve != null,
+      labelCeilingAsCalculated: widget.labelCeilingAsCalculated,
       hasDecoStopCurve:
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
@@ -5262,6 +5274,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             tintByMetric: overlay.tintByMetric,
             color: overlay.color,
             metrics: _overlayMetrics(overlay),
+            labelCeilingAsCalculated:
+                overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
           ),
     ];
   }

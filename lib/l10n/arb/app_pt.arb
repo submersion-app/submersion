@@ -2863,6 +2863,7 @@
   "diveLog_legend_label_ascentRate": "Taxa de Subida",
   "diveLog_legend_label_ascentRateLine": "Linha da Taxa de Subida",
   "diveLog_legend_label_ceiling": "Teto",
+  "diveLog_legend_label_ceilingCalculated": "Teto (calc.)",
   "diveLog_legend_label_decoStops": "Paradas Deco",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Profundidade",

@@ -2976,6 +2976,7 @@
   "diveLog_legend_label_ascentRate": "上升速率",
   "diveLog_legend_label_ascentRateLine": "上升速率曲线",
   "diveLog_legend_label_ceiling": "上升限制",
+  "diveLog_legend_label_ceilingCalculated": "上升限制（计算）",
   "diveLog_legend_label_decoStops": "减压停留",
   "diveLog_legend_label_cns": "中枢神经系统%",
   "diveLog_legend_label_depth": "深度",

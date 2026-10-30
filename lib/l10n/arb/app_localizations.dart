@@ -13921,6 +13921,12 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_legend_label_ceiling;
 
+  /// No description provided for @diveLog_legend_label_ceilingCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling (calc)'**
+  String get diveLog_legend_label_ceilingCalculated;
+
   /// No description provided for @diveLog_legend_label_decoStops.
   ///
   /// In en, this message translates to:

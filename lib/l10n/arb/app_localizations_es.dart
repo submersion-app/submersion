@@ -8827,6 +8827,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Techo';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Techo (calc.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Paradas de descompresión';
 
   @override
