@@ -752,7 +752,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // stale, so drop it rather than attach the wrong one.
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final outcome = ref.read(planOutcomeProvider);
-    final series = ref.read(planCanvasSeriesProvider);
+    final series = ref.read(planLiveCanvasSeriesProvider);
     final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
         ? visibleSite
         : null;

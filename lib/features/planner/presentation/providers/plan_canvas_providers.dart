@@ -232,21 +232,28 @@ final chartDisplayModeProvider = StateProvider<ChartDisplayMode>((ref) {
   return ChartDisplayMode.ccr;
 });
 
-/// Chart series for the current plan: user segments plus the computed
-/// ascent tail (travel legs + stops), ceiling approximation, and markers --
-/// or, in [ChartDisplayMode.bailout], the worst-case bailout picture.
-final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
+/// Chart series for the live plan whatever the chart is showing: user
+/// segments plus the computed ascent tail (travel legs + stops), ceiling
+/// approximation, and markers. Converting to a dive logs this, because the
+/// dive is the plan, never the bailout picture beside it.
+final planLiveCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final outcome = ref.watch(planOutcomeProvider);
-  if (ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout) {
-    final bailout = ref.watch(planBailoutProvider);
-    if (bailout != null) return buildBailoutCanvasSeries(bailout);
-  }
   return buildCanvasSeries(
     plan: divePlanFromState(state),
     outcome: outcome,
     config: ref.watch(planEngineConfigProvider),
   );
+});
+
+/// What the chart draws: [planLiveCanvasSeriesProvider], or in
+/// [ChartDisplayMode.bailout] the worst-case bailout picture.
+final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
+  if (ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout) {
+    final bailout = ref.watch(planBailoutProvider);
+    if (bailout != null) return buildBailoutCanvasSeries(bailout);
+  }
+  return ref.watch(planLiveCanvasSeriesProvider);
 });
 
 /// The worst-case bailout picture as chart series: CCR up to the worst-case
