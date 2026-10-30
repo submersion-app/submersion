@@ -67,6 +67,9 @@ class SetUpSyncActions {
     if (ref.read(selectedCloudProviderTypeProvider) == null) {
       return SetUpConnect.failed;
     }
+    // A new selection only starts the write of the sync account id: usages
+    // read before it settles name no account, and a first connect fails.
+    await ref.read(selectedSyncAccountProvider.future);
     // Read again: the switch changes which account carries sync. The usages
     // too, not only the groups: they refresh on the sync event bus, which
     // may not have delivered the switch yet.

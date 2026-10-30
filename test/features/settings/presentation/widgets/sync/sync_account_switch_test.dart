@@ -2,6 +2,7 @@
 // "Switch sync backend?" explanation shows inside the sheet, and choosing the
 // account sync already uses changes nothing.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -419,6 +420,52 @@ void main() {
         ref,
         before.singleWhere((g) => g.kind == AccountKind.googledrive),
       );
+
+      expect(connected, SetUpConnect.connected);
+    });
+
+    testWidgets('waits for the sync account write a first selection starts, '
+        'rather than reading no account yet', (tester) async {
+      String? syncId;
+      final write = Completer<void>();
+      final (context, ref) = await pumpHost(
+        tester,
+        extra: [
+          connectedAccountsWithStatusProvider.overrideWith(
+            (ref) async => [(drive.rows.single, AccountStatus.signedIn)],
+          ),
+          connectedAccountUsageProvider.overrideWith(
+            (ref) async => AccountUsageSnapshot(syncAccountId: syncId),
+          ),
+          // The real provider persists the id only after its async derivation;
+          // selecting the provider starts that, and does not wait for it.
+          selectedSyncAccountProvider.overrideWith((ref) async {
+            if (ref.watch(selectedCloudProviderTypeProvider) == null) {
+              return null;
+            }
+            await write.future;
+            syncId = 'gd';
+            return drive.rows.single;
+          }),
+        ],
+      );
+      // cloudStorageProviderProvider, faked here, keeps this alive in the app.
+      ref.listenManual(selectedSyncAccountProvider, (_, _) {});
+      ref.listenManual(accountGroupsProvider, (_, _) {});
+      final before = await ref.read(accountGroupsProvider.future);
+
+      SetUpConnect? connected;
+      unawaited(
+        const SetUpSyncActions()
+            .connect(context, ref, before.single)
+            .then((c) => connected = c),
+      );
+      await tester.pump();
+
+      expect(connected, isNull, reason: 'the account id is not written yet');
+
+      write.complete();
+      await tester.pump();
 
       expect(connected, SetUpConnect.connected);
     });
