@@ -73,7 +73,7 @@ class DiveDetailSectionList extends ConsumerWidget {
   final Dive dive;
 
   /// Built by the page and reused from one build to the next, so a rebuild of
-  /// this list leaves the chart alone. See [DiveDetailProfileSection].
+  /// this list leaves the chart alone. See `DiveDetailProfileSection`.
   final Widget profileSection;
 
   /// Lets the page scroll to the safety review from a chart callout.

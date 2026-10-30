@@ -330,12 +330,8 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     }
   }
 
-  Future<void> _onSetPrimaryDataSource(
-    BuildContext context,
-    WidgetRef ref, {
-    required String diveId,
-    required String readingId,
-  }) async {
+  Future<void> _setPrimarySource(String readingId) async {
+    final diveId = this.diveId;
     final repository = ref.read(diveRepositoryProvider);
     await repository.setPrimaryDataSource(
       diveId: diveId,

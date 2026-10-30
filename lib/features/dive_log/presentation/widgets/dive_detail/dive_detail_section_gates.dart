@@ -103,7 +103,7 @@ bool _hasLoggedEnvironmentData(Dive dive) {
 
 /// Whether the dive has tide data to show, stored or modelled.
 ///
-/// Mirrors what [DiveTideSection] renders, read down to that one answer: a
+/// Mirrors what `DiveTideSection` renders, read down to that one answer: a
 /// stored record, else the model's result; nothing while either is loading or
 /// failed. Freshwater dives have no tides, and a site without coordinates has
 /// no clock to show them in.

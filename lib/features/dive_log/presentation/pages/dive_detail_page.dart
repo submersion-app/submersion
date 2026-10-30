@@ -179,13 +179,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     );
   }
 
-  void _setPrimarySource(String readingId) => _onSetPrimaryDataSource(
-    context,
-    ref,
-    diveId: diveId,
-    readingId: readingId,
-  );
-
   /// Navigate to an adjacent dive. Embedded (master-detail) swaps the selected
   /// query param; the DetailScrollRetainer then keeps the scroll offset, so
   /// the same section stays in view. Standalone replaces the route so stepping

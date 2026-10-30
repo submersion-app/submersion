@@ -50,6 +50,7 @@ void main() {
   late Duration? surfaceInterval;
   late Signature? signature;
   late MockSettingsNotifier settings;
+  var failDive = false;
 
   Dive testDive() => createTestDiveWithBottomTime().copyWith(
     notes: 'First note',
@@ -87,6 +88,7 @@ void main() {
     AppSettings? initialSettings,
   }) async {
     current = testDive();
+    failDive = false;
     buddies = const [];
     sightings = const [];
     surfaceInterval = null;
@@ -107,7 +109,10 @@ void main() {
           ...base,
           // Read from the variable, so an invalidate is the same refresh the
           // detail change tick causes.
-          diveProvider(id).overrideWith((ref) async => current),
+          diveProvider(id).overrideWith((ref) async {
+            if (failDive) throw StateError('the read failed');
+            return current;
+          }),
           profileAnalysisProvider(
             id,
           ).overrideWith((ref) async => ProfileAnalysis.empty()),
@@ -312,6 +317,19 @@ void main() {
       fieldsReadIn(section + host).difference(fieldsReadIn(inputs)),
       isEmpty,
     );
+  });
+
+  testWidgets('a refresh that fails still reaches the error screen', (
+    tester,
+  ) async {
+    final container = await pumpDetail(tester);
+
+    failDive = true;
+    container.invalidate(diveProvider(current.id));
+    await settle(tester);
+
+    expect(find.textContaining('the read failed'), findsOneWidget);
+    expect(find.byType(DiveProfileChart), findsNothing);
   });
 
   testWidgets('folding the profile card keeps the overlaid sources', (
