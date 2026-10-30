@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 
@@ -467,6 +468,12 @@ class CourseRequirementRepository {
                     WHERE dc.dive_id = d.id AND dc.course_id = ?1
                   )''';
       final completionDate = course.completionDate;
+      // Course dates are local timestamps (Mark as Completed stores now), and
+      // dive times are wall-clock UTC, so compare whole wall-clock days.
+      final courseStart = _wallClockDayStart(course.startDate);
+      final courseEnd = completionDate == null
+          ? null
+          : _wallClockDayStart(completionDate) + Duration.millisecondsPerDay;
 
       return await _selectCandidates(
         course,
@@ -486,15 +493,7 @@ class CourseRequirementRepository {
               d.dive_date_time DESC
             LIMIT 10
             ''',
-        variables: [
-          Variable.withInt(course.startDate),
-          // The date picker stores midnight: count all of the last day.
-          Variable<int>(
-            completionDate == null
-                ? null
-                : completionDate + Duration.millisecondsPerDay,
-          ),
-        ],
+        variables: [Variable.withInt(courseStart), Variable<int>(courseEnd)],
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -590,6 +589,11 @@ class CourseRequirementRepository {
         ),
     ];
   }
+
+  /// The wall-clock-UTC start of the day a stored course date falls on.
+  int _wallClockDayStart(int courseDateMillis) => wallClockUtcDayStart(
+    DateTime.fromMillisecondsSinceEpoch(courseDateMillis),
+  ).millisecondsSinceEpoch;
 
   /// Bump the parent requirement's updatedAt and mark it sync-pending so
   /// its hlc advances -- junction delta export is gated on the parent hlc.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
@@ -201,7 +202,11 @@ class _DiveRequirementTile extends ConsumerWidget {
                 TextButton.icon(
                   icon: const Icon(Icons.search, size: 18),
                   label: Text(context.l10n.courses_action_chooseDive),
-                  onPressed: () => _chooseDive(context, ref),
+                  onPressed: () => logFailure(
+                    _chooseDive(context, ref),
+                    _DiveRequirementTile,
+                    'credit the chosen dive',
+                  ),
                 ),
               ],
             ),

@@ -26,9 +26,10 @@ final courseProgressProvider = FutureProvider.family<CourseProgress, String>((
   return repository.getCourseProgress(courseId);
 });
 
-/// Candidate dives to credit toward requirements of a course. Watches both
-/// the requirement tables (links consume suggestions) and the dives table
-/// (new logged dives appear as candidates -- issue #217 lesson).
+/// Candidate dives to credit toward requirements of a course. Watches the
+/// requirement tables (links consume suggestions), the dives table (new logged
+/// dives appear as candidates -- issue #217 lesson), and the courses table
+/// (the course dates decide which dives qualify and in what order).
 final suggestedDivesProvider =
     FutureProvider.family<List<RequirementDiveSummary>, String>((
       ref,
@@ -39,12 +40,15 @@ final suggestedDivesProvider =
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDivesChanges(),
       );
+      ref.invalidateSelfWhen(
+        ref.watch(courseRepositoryProvider).watchCoursesChanges(),
+      );
       return repository.getSuggestedDives(courseId);
     });
 
 /// Every dive the diver could still credit to this course, for the dive
-/// picker. Same subscriptions as [suggestedDivesProvider]; disposed with the
-/// picker, because nothing else reads the whole logbook this way.
+/// picker. Disposed with the picker, because nothing else reads the whole
+/// logbook this way.
 final creditableDivesProvider = FutureProvider.autoDispose
     .family<List<RequirementDiveSummary>, String>((ref, courseId) async {
       final repository = ref.watch(courseRequirementRepositoryProvider);

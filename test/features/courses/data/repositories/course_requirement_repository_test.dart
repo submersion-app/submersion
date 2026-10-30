@@ -8,8 +8,13 @@ import 'package:submersion/features/courses/domain/entities/course_requirement.d
 
 import '../../../../helpers/test_database.dart';
 
-/// One day in the epoch milliseconds course and dive dates are stored in.
-const _day = Duration.millisecondsPerDay;
+/// A course date as the app stores it: a local timestamp.
+int _courseDate(int day, [int hour = 0]) =>
+    DateTime(2020, 1, day, hour).millisecondsSinceEpoch;
+
+/// A dive time as the app stores it: wall-clock digits flagged as UTC.
+int _diveTime(int day, [int hour = 0]) =>
+    DateTime.utc(2020, 1, day, hour).millisecondsSinceEpoch;
 
 Future<void> _seedDiverAndCourse({
   int startDate = 5000,
@@ -371,7 +376,7 @@ void main() {
   group('getSuggestedDives', () {
     test('suggests course-assigned and post-start dives, excludes linked '
         'and other-diver dives, newest first, capped at 10', () async {
-      await _seedDiverAndCourse(startDate: 5000);
+      await _seedDiverAndCourse(startDate: _courseDate(50));
 
       final db = DatabaseService.instance.database;
       await db.customStatement(
@@ -379,11 +384,19 @@ void main() {
         "VALUES ('diver-2', 'Other', 1000, 1000)",
       );
 
-      await _seedDive('before-start', dateTime: 4000);
-      await _seedDive('after-start', dateTime: 6000);
-      await _seedDive('assigned-old', dateTime: 3000, courseId: 'course-1');
-      await _seedDive('other-diver', dateTime: 7000, diverId: 'diver-2');
-      await _seedDive('linked', dateTime: 8000);
+      await _seedDive('before-start', dateTime: _diveTime(49));
+      await _seedDive('after-start', dateTime: _diveTime(51));
+      await _seedDive(
+        'assigned-old',
+        dateTime: _diveTime(48),
+        courseId: 'course-1',
+      );
+      await _seedDive(
+        'other-diver',
+        dateTime: _diveTime(52),
+        diverId: 'diver-2',
+      );
+      await _seedDive('linked', dateTime: _diveTime(53));
 
       final req = await repository.createRequirement(
         courseId: 'course-1',
@@ -406,15 +419,15 @@ void main() {
     test('a completed course ranks dives by distance from its dates, '
         'before and after', () async {
       await _seedDiverAndCourse(
-        startDate: 50 * _day,
-        completionDate: 52 * _day,
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
       );
 
-      await _seedDive('in-course', dateTime: 51 * _day);
-      await _seedDive('just-after', dateTime: 54 * _day);
-      await _seedDive('just-before', dateTime: 48 * _day);
-      await _seedDive('months-before', dateTime: 10 * _day);
-      await _seedDive('years-after', dateTime: 900 * _day);
+      await _seedDive('in-course', dateTime: _diveTime(51));
+      await _seedDive('just-after', dateTime: _diveTime(54));
+      await _seedDive('just-before', dateTime: _diveTime(48));
+      await _seedDive('months-before', dateTime: _diveTime(10));
+      await _seedDive('years-after', dateTime: _diveTime(900));
 
       final suggested = await repository.getSuggestedDives('course-1');
 
@@ -429,13 +442,13 @@ void main() {
 
     test('a completed course is not crowded out by later dives', () async {
       await _seedDiverAndCourse(
-        startDate: 50 * _day,
-        completionDate: 52 * _day,
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
       );
 
-      await _seedDive('in-course', dateTime: 51 * _day);
+      await _seedDive('in-course', dateTime: _diveTime(51));
       for (var i = 0; i < 12; i++) {
-        await _seedDive('later-$i', dateTime: (500 + i) * _day);
+        await _seedDive('later-$i', dateTime: _diveTime(500 + i));
       }
 
       final suggested = await repository.getSuggestedDives('course-1');
@@ -444,35 +457,68 @@ void main() {
       expect(suggested.first.diveId, 'in-course');
     });
 
-    // The date picker stores midnight, so without counting the whole day an
-    // afternoon dive on the last day would rank as outside the course.
-    test('a dive on the completion day counts as inside the course', () async {
+    // Every comparison is by whole wall-clock day: a course date is a local
+    // timestamp, and Mark as Completed records the moment it was tapped.
+    test('the whole completion day counts as inside the course', () async {
       await _seedDiverAndCourse(
-        startDate: 50 * _day,
-        completionDate: 52 * _day,
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
       );
 
-      await _seedDive('last-day-afternoon', dateTime: 52 * _day + 15 * 3600000);
-      await _seedDive('hour-before-start', dateTime: 50 * _day - 3600000);
+      await _seedDive('last-day-evening', dateTime: _diveTime(52, 23));
+      await _seedDive('hour-before-start', dateTime: _diveTime(49, 23));
 
       final suggested = await repository.getSuggestedDives('course-1');
 
       expect(suggested.map((s) => s.diveId).toList(), [
-        'last-day-afternoon',
+        'last-day-evening',
         'hour-before-start',
       ]);
     });
 
-    test('a completed course lists dives assigned to it first', () async {
+    test('a course completed late in the day ends with that day', () async {
       await _seedDiverAndCourse(
-        startDate: 50 * _day,
-        completionDate: 52 * _day,
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52, 17),
       );
 
-      await _seedDive('near', dateTime: 53 * _day + 1);
+      await _seedDive('morning-after', dateTime: _diveTime(53, 8));
+      await _seedDive('last-day', dateTime: _diveTime(52, 9));
+      await _seedDive('first-day', dateTime: _diveTime(50, 9));
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'last-day',
+        'first-day',
+        'morning-after',
+      ]);
+    });
+
+    test(
+      'a course in progress suggests a dive early on its start day',
+      () async {
+        await _seedDiverAndCourse(startDate: _courseDate(50, 17));
+
+        await _seedDive('start-morning', dateTime: _diveTime(50, 1));
+        await _seedDive('day-before', dateTime: _diveTime(49, 22));
+
+        final suggested = await repository.getSuggestedDives('course-1');
+
+        expect(suggested.map((s) => s.diveId).toList(), ['start-morning']);
+      },
+    );
+
+    test('a completed course lists dives assigned to it first', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
+      );
+
+      await _seedDive('near', dateTime: _diveTime(53));
       await _seedDive(
         'assigned-far',
-        dateTime: 900 * _day,
+        dateTime: _diveTime(900),
         courseId: 'course-1',
       );
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
-import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/credit_dive_picker_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -37,33 +36,12 @@ void main() {
     );
   }
 
-  CourseProgress progressCrediting(List<String> diveIds) {
-    final now = DateTime(2019);
-    return CourseProgress(
-      courseId: 'course-1',
-      requirements: [
-        CourseRequirementProgress(
-          requirement: CourseRequirement(
-            id: 'req-1',
-            courseId: 'course-1',
-            name: 'Deep adventure dive',
-            kind: RequirementKind.dive,
-            createdAt: now,
-            updatedAt: now,
-          ),
-          linkedDives: [for (final id in diveIds) candidate(id)],
-        ),
-      ],
-    );
-  }
-
   /// Opens the picker from a host button and records what it returned, so a
   /// test can assert on the value handed back rather than on picker internals.
   Future<List<String?>> pumpPicker(
     WidgetTester tester, {
     List<RequirementDiveSummary> suggested = const [],
     List<RequirementDiveSummary> creditable = const [],
-    List<String> credited = const [],
     Map<String, List<DiveSummary>> searchResults = const {},
   }) async {
     final returned = <String?>[];
@@ -72,9 +50,6 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
-          courseProgressProvider.overrideWith(
-            (ref, courseId) async => progressCrediting(credited),
-          ),
           suggestedDivesProvider.overrideWith(
             (ref, courseId) async => suggested,
           ),
@@ -212,7 +187,10 @@ void main() {
   testWidgets('typing replaces the list with search results', (tester) async {
     await pumpPicker(
       tester,
-      creditable: [candidate('near', number: 12, site: 'Blue Hole')],
+      creditable: [
+        candidate('near', number: 12, site: 'Blue Hole'),
+        candidate('hit', number: 300, site: 'Ginnie Springs'),
+      ],
       searchResults: {
         'ginnie': [searchHit('hit', number: 300, site: 'Ginnie Springs')],
       },
@@ -225,12 +203,12 @@ void main() {
     expect(find.text('All dives'), findsNothing);
   });
 
-  testWidgets('a search hit already credited in this course is not offered', (
+  testWidgets('a search hit the course cannot take is not offered', (
     tester,
   ) async {
     await pumpPicker(
       tester,
-      credited: ['taken'],
+      creditable: [candidate('free', number: 2, site: 'Free Reef')],
       searchResults: {
         'reef': [
           searchHit('taken', number: 1, site: 'Taken Reef'),
@@ -245,12 +223,12 @@ void main() {
     expect(find.text('#1 · Taken Reef'), findsNothing);
   });
 
-  testWidgets('a search with only credited hits reads as no results', (
+  testWidgets('a search with only uncreditable hits reads as no results', (
     tester,
   ) async {
     await pumpPicker(
       tester,
-      credited: ['taken'],
+      creditable: [candidate('free', number: 2)],
       searchResults: {
         'reef': [searchHit('taken', number: 1, site: 'Taken Reef')],
       },
@@ -259,6 +237,18 @@ void main() {
     await search(tester, 'reef');
 
     expect(find.text('No dives match "reef"'), findsOneWidget);
+  });
+
+  testWidgets('a suggestion credited meanwhile is not offered', (tester) async {
+    await pumpPicker(
+      tester,
+      suggested: [candidate('credited', number: 1, site: 'Stale Reef')],
+      creditable: [candidate('free', number: 2, site: 'Free Reef')],
+    );
+
+    expect(find.text('#1 · Stale Reef'), findsNothing);
+    expect(find.text('Suggested dives'), findsNothing);
+    expect(find.text('#2 · Free Reef'), findsOneWidget);
   });
 
   testWidgets('whitespace keeps the list rather than searching', (

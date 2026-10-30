@@ -58,13 +58,6 @@ class CourseProgress extends Equatable {
 
   bool get isComplete => totalCount > 0 && satisfiedCount == totalCount;
 
-  /// Every dive credited to any requirement of this course. A dive credits
-  /// one requirement per course, so these cannot be credited again.
-  Set<String> get creditedDiveIds => {
-    for (final requirement in requirements)
-      for (final dive in requirement.linkedDives) dive.diveId,
-  };
-
   @override
   List<Object?> get props => [courseId, requirements];
 }

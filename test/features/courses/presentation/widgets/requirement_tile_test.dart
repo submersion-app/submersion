@@ -64,10 +64,6 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           courseRequirementRepositoryProvider.overrideWithValue(repository),
-          courseProgressProvider.overrideWith(
-            (ref, courseId) async =>
-                CourseProgress(courseId: courseId, requirements: [progress]),
-          ),
           suggestedDivesProvider.overrideWith(
             (ref, courseId) async => suggestions,
           ),

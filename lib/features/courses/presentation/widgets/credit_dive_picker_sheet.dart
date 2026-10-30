@@ -44,9 +44,7 @@ class _CreditDivePickerSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final query = _query.trim();
-    // A dive credits one requirement per course, so linkDive ignores a dive
-    // credited elsewhere: offering it would be a tap that does nothing.
-    final progressAsync = ref.watch(courseProgressProvider(widget.courseId));
+    final creditableAsync = ref.watch(creditableDivesProvider(widget.courseId));
 
     return SafeArea(
       child: Padding(
@@ -81,22 +79,22 @@ class _CreditDivePickerSheetState
                 ),
               ),
               Expanded(
-                child: progressAsync.when(
-                  // Gated rather than defaulted to an empty set: an unresolved
-                  // exclusion list would briefly offer credited dives.
+                child: creditableAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(child: Text(error.toString())),
-                  data: (progress) => DebouncedSearchResults<DiveSummary>(
+                  data: (creditable) => DebouncedSearchResults<DiveSummary>(
                     query: query,
                     watchProvider: (ref, query) =>
                         ref.watch(diveSearchProvider(query)),
-                    emptyQueryBuilder: (context) =>
-                        _Candidates(courseId: widget.courseId),
-                    // A search whose every hit is already credited is, to the
+                    emptyQueryBuilder: (context) => _Candidates(
+                      courseId: widget.courseId,
+                      creditable: creditable,
+                    ),
+                    // A search whose every hit is uncreditable is, to the
                     // diver, a search with no results.
                     dataBuilder: (context, dives) {
-                      final offerable = _offerable(dives, progress);
+                      final offerable = _offerable(dives, creditable);
                       return offerable.isEmpty
                           ? _noMatches(context, query)
                           : CustomScrollView(
@@ -117,21 +115,15 @@ class _CreditDivePickerSheetState
   }
 }
 
+/// Search knows nothing of courses, so a hit counts only if the course can
+/// take it: linkDive ignores a dive already credited, and the search follows
+/// the current diver rather than the course's.
 List<RequirementDiveSummary> _offerable(
-  List<DiveSummary> dives,
-  CourseProgress progress,
+  List<DiveSummary> hits,
+  List<RequirementDiveSummary> creditable,
 ) {
-  final credited = progress.creditedDiveIds;
-  return [
-    for (final dive in dives)
-      if (!credited.contains(dive.id))
-        RequirementDiveSummary(
-          diveId: dive.id,
-          diveNumber: dive.diveNumber,
-          dateTime: dive.dateTime,
-          siteName: dive.siteName,
-        ),
-  ];
+  final creditableById = {for (final dive in creditable) dive.diveId: dive};
+  return [for (final hit in hits) ?creditableById[hit.id]];
 }
 
 Widget _noMatches(BuildContext context, String query) => Center(
@@ -143,42 +135,44 @@ Widget _noMatches(BuildContext context, String query) => Center(
 
 /// The default list, shown until the diver types.
 class _Candidates extends ConsumerWidget {
-  const _Candidates({required this.courseId});
+  const _Candidates({required this.courseId, required this.creditable});
 
   final String courseId;
+  final List<RequirementDiveSummary> creditable;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final creditable = ref.watch(creditableDivesProvider(courseId));
+    if (creditable.isEmpty) {
+      return Center(child: Text(l10n.courses_requirement_noDives));
+    }
+
     final suggested =
         ref.watch(suggestedDivesProvider(courseId)).value ?? const [];
+    final creditableIds = {for (final dive in creditable) dive.diveId};
+    // Checked against the list: the two providers refresh separately, and a
+    // suggestion credited meanwhile would be a tap that does nothing.
+    final nearby = [
+      for (final dive in suggested)
+        if (creditableIds.contains(dive.diveId)) dive,
+    ];
+    final nearbyIds = {for (final dive in nearby) dive.diveId};
+    final others = [
+      for (final dive in creditable)
+        if (!nearbyIds.contains(dive.diveId)) dive,
+    ];
 
-    return creditable.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text(error.toString())),
-      data: (dives) {
-        if (dives.isEmpty) {
-          return Center(child: Text(l10n.courses_requirement_noDives));
-        }
-        final suggestedIds = {for (final dive in suggested) dive.diveId};
-        final others = [
-          for (final dive in dives)
-            if (!suggestedIds.contains(dive.diveId)) dive,
-        ];
-        return CustomScrollView(
-          slivers: [
-            if (suggested.isNotEmpty) ...[
-              _SectionHeader(title: l10n.courses_requirement_suggestions),
-              _DiveSliver(dives: suggested),
-            ],
-            if (others.isNotEmpty) ...[
-              _SectionHeader(title: l10n.courses_requirement_allDives),
-              _DiveSliver(dives: others),
-            ],
-          ],
-        );
-      },
+    return CustomScrollView(
+      slivers: [
+        if (nearby.isNotEmpty) ...[
+          _SectionHeader(title: l10n.courses_requirement_suggestions),
+          _DiveSliver(dives: nearby),
+        ],
+        if (others.isNotEmpty) ...[
+          _SectionHeader(title: l10n.courses_requirement_allDives),
+          _DiveSliver(dives: others),
+        ],
+      ],
     );
   }
 }
