@@ -146,10 +146,12 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
   Future<void> _openInPlanner(UnitFormatter units) async {
     setState(() => _loading = true);
     final dive = widget.dive;
-    final container = ProviderScope.containerOf(context, listen: false);
+    final container = ref.container;
 
-    final profile = await ref.read(diveProfileProvider(dive.id).future);
-    final gasSwitchesWithTank = await ref.read(
+    final profile = await container.awaitFuture(
+      diveProfileProvider(dive.id).future,
+    );
+    final gasSwitchesWithTank = await container.awaitFuture(
       gasSwitchesProvider(dive.id).future,
     );
 
@@ -158,7 +160,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
     // Replay this dive as it started. Seeding from THIS dive's end tissues
     // plus "now" would plan a repetitive after it and inflate TTS.
     if (_seedTissues) {
-      final preceding = await ref.read(
+      final preceding = await container.awaitFuture(
         _precedingDiveWithin24hProvider(dive.id).future,
       );
       if (preceding != null) {

@@ -738,6 +738,17 @@ final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
 
+  void publish(DecoClassificationProgress? progress) {
+    if (ref.mounted) {
+      ref.read(decoClassificationProgressProvider.notifier).state = progress;
+    }
+  }
+
+  // A pass this build replaced cannot clear its own progress, and on a diver
+  // or filter change the card would show those counts as this pass's. In a
+  // microtask because a provider may not write another while it builds.
+  scheduleMicrotask(() => publish(null));
+
   final scan = await repository.scanRecordedDecoSignals(
     diverId: currentDiverId,
     filter: filter,
@@ -755,12 +766,6 @@ final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
           classified.length -
           pending,
     );
-  }
-
-  void publish(DecoClassificationProgress? progress) {
-    if (ref.mounted) {
-      ref.read(decoClassificationProgressProvider.notifier).state = progress;
-    }
   }
 
   try {

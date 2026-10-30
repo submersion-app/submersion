@@ -440,6 +440,25 @@ void main() {
       expect(steps.last.analyzed, 1);
     });
 
+    test('a new pass clears what a replaced pass left behind', () async {
+      await insertDive('deep');
+      await insertBareProfile('deep', 40, 25);
+      final container = await makeContainer();
+      container.read(decoClassificationProgressProvider.notifier).state = (
+        stats: (decoCount: 7, noDecoCount: 0, unknownCount: 0),
+        analyzed: 7,
+        total: 99,
+      );
+
+      final seen = await runPass(container);
+
+      expect(
+        seen.first,
+        isNull,
+        reason: 'the card must not show the previous pass as this one',
+      );
+    });
+
     test('nothing is published when there is nothing to analyze', () async {
       await insertDive('manual');
 
