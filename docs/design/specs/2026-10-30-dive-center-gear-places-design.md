@@ -80,11 +80,12 @@ center's name, with a way to clear it.
 - Tapping it opens `DiveCenterPickerSheet` in a draggable bottom sheet, as
   `trip_cylinder_fill_sheet.dart` does. The list comes from
   `allDiveCentersProvider`, so only the current diver's centers appear.
-- Picking a center fills Name only when Name is blank *(call)*. After that the
-  name belongs to the diver: renaming the center never changes it, so "Blue Reef
-  locker" stays as typed.
+- Picking a center fills Name when Name is blank, or still holds the name the
+  last pick filled in *(call)*. A name the diver typed belongs to them: renaming
+  the center never changes it, so "Blue Reef locker" stays as typed.
 - Changing Type away from Dive center hides the field and clears the link on
-  save *(call)*.
+  save *(call)*. Only a change of type does: a place an older device retyped to
+  Other keeps its link when edited here.
 - Saving a Dive center place with no center is allowed.
 - The picker does not create centers from here, matching the fill sheet's
   precedent: a diver with no saved center can type a name now and link later.

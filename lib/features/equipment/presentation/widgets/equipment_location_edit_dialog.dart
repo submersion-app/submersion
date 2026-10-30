@@ -101,7 +101,10 @@ class _EquipmentLocationEditDialogState
           Navigator.of(sheetContext).pop();
           setState(() {
             _centerId = center.id;
-            if (_name.text.trim().isEmpty) _name.text = center.name;
+            // A name the last pick filled in follows the new pick; one the
+            // diver typed stays.
+            final name = _name.text.trim();
+            if (name.isEmpty || name == current?.name) _name.text = center.name;
           });
         },
       ),
@@ -141,7 +144,10 @@ class _EquipmentLocationEditDialogState
     final failed = context.l10n.common_error_tryAgain;
     try {
       final existing = widget.existing;
-      final centerId = _kind == EquipmentLocationKind.diveCenter
+      // Only a change of kind drops the link: an older device can retype a
+      // linked place to Other, and editing its notes here must not unlink it.
+      final centerId =
+          _kind == EquipmentLocationKind.diveCenter || _kind == existing?.kind
           ? _centerId
           : null;
       final EquipmentLocation saved;

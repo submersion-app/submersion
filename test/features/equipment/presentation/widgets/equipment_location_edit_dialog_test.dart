@@ -56,6 +56,14 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
+  final bay = DiveCenter(
+    id: 'bay',
+    name: 'Coral Bay',
+    notes: '',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
   EquipmentLocation linked({String? centerId = 'reef'}) => EquipmentLocation(
     id: 'p',
     name: 'Reef locker',
@@ -88,8 +96,9 @@ void main() {
           equipmentLocationsProvider.overrideWith(
             (ref) async => const <EquipmentLocation>[],
           ),
-          allDiveCentersProvider.overrideWith((ref) async => [reef]),
+          allDiveCentersProvider.overrideWith((ref) async => [reef, bay]),
           diveCenterByIdProvider('reef').overrideWith((ref) async => reef),
+          diveCenterByIdProvider('bay').overrideWith((ref) async => bay),
           diveCenterByIdProvider('gone').overrideWith((ref) async => null),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
@@ -160,6 +169,36 @@ void main() {
 
     expect(repository.createdName, 'Reef locker');
     expect(repository.createdCenterId, 'reef');
+  });
+
+  testWidgets('re-picking replaces a name the last pick filled in', (
+    tester,
+  ) async {
+    final repository = await pumpDialog(tester);
+    await chooseKind(tester, 'Dive center');
+    await pickReef(tester);
+    await tester.tap(centerField);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Coral Bay').last);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(repository.createdName, 'Coral Bay');
+    expect(repository.createdCenterId, 'bay');
+  });
+
+  testWidgets('saving a place of another kind keeps a link it already had', (
+    tester,
+  ) async {
+    final repository = await pumpDialog(
+      tester,
+      existing: linked().copyWith(kind: EquipmentLocationKind.other),
+    );
+
+    await save(tester);
+
+    expect(repository.updated!.kind, EquipmentLocationKind.other);
+    expect(repository.updated!.diveCenterId, 'reef');
   });
 
   testWidgets('a Dive center place saves with no center', (tester) async {

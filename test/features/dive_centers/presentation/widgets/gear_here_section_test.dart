@@ -51,8 +51,8 @@ void main() {
           currentEquipmentLocationsProvider.overrideWith(
             (ref) async => current,
           ),
-          allEquipmentLocationsByIdProvider.overrideWith(
-            (ref) async => {for (final p in places ?? current.values) p.id: p},
+          equipmentLocationsProvider.overrideWith(
+            (ref) async => places ?? current.values.toList(),
           ),
         ],
         child: MaterialApp.router(

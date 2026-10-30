@@ -29,10 +29,10 @@ class GearHereSection extends ConsumerWidget {
     if (rows.isEmpty) return const SizedBox.shrink();
 
     final places =
-        ref.watch(allEquipmentLocationsByIdProvider).value ??
-        const <String, EquipmentLocation>{};
+        ref.watch(equipmentLocationsProvider).value ??
+        const <EquipmentLocation>[];
     final namePlaces =
-        places.values.where((p) => p.diveCenterId == centerId).length > 1;
+        places.where((p) => p.diveCenterId == centerId).length > 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
