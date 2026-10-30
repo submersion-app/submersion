@@ -94,6 +94,7 @@ class GoogleDriveStorageProvider
   Future<void> authenticate() async {
     await _authenticator.authenticate();
     _driveApi = null; // rebuilt lazily from the fresh auth client
+    _syncFolderId = null; // this sign-in may be another account's
     if (_api == null) {
       throw const CloudStorageException(
         'Google Sign-In did not produce an authorized client',

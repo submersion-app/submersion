@@ -306,6 +306,20 @@ void main() {
     expect(folderQueries, hasLength(1));
   });
 
+  test('a new sign-in looks the sync folder up again', () async {
+    // The recovery from a refused grant drops it without a signOut, and the
+    // diver may then pick another account, whose appDataFolder does not hold
+    // the folder this one cached.
+    expect(await provider.getOrCreateSyncFolder(), 'folder-7');
+    drive_.listResponses[_folderQueryKey] = [
+      {'id': 'folder-8', 'name': 'Submersion Sync'},
+    ];
+
+    await provider.authenticate();
+
+    expect(await provider.getOrCreateSyncFolder(), 'folder-8');
+  });
+
   test('download returns the file bytes', () async {
     final bytes = await provider.downloadFile('file-1');
     expect(bytes, Uint8List.fromList([1, 2, 3]));
