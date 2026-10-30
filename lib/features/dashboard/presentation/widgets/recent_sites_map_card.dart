@@ -22,9 +22,9 @@ const Key recentSitesMapPlaceholderKey = Key('recent-sites-map-placeholder');
 
 /// Mini map with pins for the sites of the most recent dives.
 ///
-/// The map is the most expensive thing on the home screen, so the card shows a
-/// flat panel until it is on screen. That panel is usually up for a single
-/// frame, which is why it is not worth caching anything to draw on it.
+/// A map is costly to mount and starts fetching tiles at once, so the card
+/// shows a flat panel until it is on screen. That panel is usually up for a
+/// single frame, which is why it is not worth caching anything to draw on it.
 class RecentSitesMapCard extends ConsumerWidget {
   const RecentSitesMapCard({super.key});
 
@@ -89,10 +89,10 @@ class RecentSitesMapCard extends ConsumerWidget {
                         // flutter_map's default light grey before tiles arrive.
                         backgroundColor: mapBackground,
                         // Never interactive: a live map here would fight the
-                        // parent scroll view for the gesture arena on every drag.
-                        // The passthrough hands trackpad scrolls to the page,
-                        // which the locked map would otherwise swallow. The
-                        // expand icon above opens the full map.
+                        // parent scroll view for the gesture arena on every
+                        // drag. The passthrough hands trackpad scrolls to the
+                        // page, which the locked map would otherwise swallow.
+                        // The expand icon above opens the full map.
                         interactionOptions: const InteractionOptions(
                           flags: InteractiveFlag.none,
                         ),

@@ -31,12 +31,9 @@ class DeferUntilPainted extends StatefulWidget {
 }
 
 class _DeferUntilPaintedState extends State<DeferUntilPainted> {
-  bool _revealScheduled = false;
   bool _revealed = false;
 
   void _handlePainted() {
-    if (_revealScheduled) return;
-    _revealScheduled = true;
     // Paint comes too late in the frame to dirty a widget.
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _revealed = true);
@@ -57,20 +54,12 @@ class _PaintListener extends SingleChildRenderObjectWidget {
   @override
   RenderObject createRenderObject(BuildContext context) =>
       _RenderPaintListener(onPainted);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderPaintListener renderObject,
-  ) {
-    renderObject.onPainted = onPainted;
-  }
 }
 
 class _RenderPaintListener extends RenderProxyBox {
   _RenderPaintListener(this.onPainted);
 
-  VoidCallback onPainted;
+  final VoidCallback onPainted;
 
   @override
   void paint(PaintingContext context, Offset offset) {
