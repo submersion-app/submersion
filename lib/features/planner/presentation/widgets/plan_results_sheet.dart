@@ -12,11 +12,15 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_results_section.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -157,7 +161,14 @@ class PlanResultsSheet extends ConsumerWidget {
       return tank.name ?? tank.gasMix.name;
     }
 
-    final bailout = ref.watch(planBailoutProvider);
+    // Each of these holds its section's place from a check that takes no
+    // calculating, so the sheet does not jump as results land.
+    final bailout = ref.watch(planMayHaveBailoutProvider)
+        ? planResultView(ref.watch(planBailoutProvider), state.id)
+        : null;
+    final rangeTable = state.segments.isEmpty
+        ? null
+        : planResultView(ref.watch(planRangeTableProvider), state.id);
     final resolvedRoles = const TankRoleResolver().rolesFor(
       divePlanFromState(state),
     );
@@ -193,13 +204,17 @@ class PlanResultsSheet extends ConsumerWidget {
           PlanSectionHeader(context.l10n.plannerMission_results_title),
           const MissionResultsSection(),
         ],
-        if (bailout != null) ...[
+        if (bailout != null && !bailout.isFinishedEmpty) ...[
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
-          _BailoutSection(outcome: bailout, units: units),
+          PlanResultSection<BailoutOutcome>(
+            view: bailout,
+            builder: (outcome) =>
+                _BailoutSection(outcome: outcome, units: units),
+          ),
         ],
         ...?_contingencySections(context, ref, units),
-        if (ref.watch(planRangeTableProvider) != null) ...[
+        if (rangeTable != null && !rangeTable.isFinishedEmpty) ...[
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.plannerCanvas_range_title),
           const RangeTableSection(),
@@ -237,8 +252,11 @@ class PlanResultsSheet extends ConsumerWidget {
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return null;
     final expanded = ref.watch(contingenciesExpandedProvider);
-    final deviations = ref.watch(planDeviationsProvider);
-    final lostGas = ref.watch(planLostGasProvider);
+    final deviations = planResultView(
+      ref.watch(planDeviationsProvider),
+      state.id,
+    );
+    final lostGas = planResultView(ref.watch(planLostGasProvider), state.id);
     final selectedDeviation = ref.watch(selectedDeviationProvider);
     final selectedLostGasTankId = ref.watch(selectedLostGasTankIdProvider);
     final collapsedKeys = ref.watch(collapsedContingencyKeysProvider);
@@ -326,6 +344,28 @@ class PlanResultsSheet extends ConsumerWidget {
       );
     }
 
+    final rows = [
+      for (final deviation in deviations.value ?? const <DeviationOutcome>[])
+        row(
+          key: deviation.key,
+          label: deviationLabel(deviation.key),
+          selected: selectedDeviation == deviation.key,
+          onSelect: () => toggleDeviation(deviation.key),
+          outcome: deviation.outcome,
+        ),
+      for (final lost in lostGas.value ?? const <LostGasOutcome>[])
+        row(
+          key: lost.tank.id,
+          label: context.l10n.plannerCanvas_contingency_lostGas(
+            lost.tank.gasMix.name,
+          ),
+          selected: selectedLostGasTankId == lost.tank.id,
+          onSelect: () => toggleLostGas(lost.tank.id),
+          outcome: lost.outcome,
+        ),
+    ];
+    final status = combinePlanResultStatus(deviations.status, lostGas.status);
+
     return [
       const SizedBox(height: 20),
       InkWell(
@@ -343,26 +383,21 @@ class PlanResultsSheet extends ConsumerWidget {
           ],
         ),
       ),
-      if (expanded) ...[
-        for (final deviation in deviations)
-          row(
-            key: deviation.key,
-            label: deviationLabel(deviation.key),
-            selected: selectedDeviation == deviation.key,
-            onSelect: () => toggleDeviation(deviation.key),
-            outcome: deviation.outcome,
+      if (expanded)
+        PlanResultSection<List<Widget>>(
+          // Opening the section reloads from the collapsed empty list, which
+          // is a first result for the diver, not an update to one.
+          view: PlanResultView(
+            value: rows.isEmpty ? null : rows,
+            status: rows.isEmpty && status == PlanResultStatus.updating
+                ? PlanResultStatus.calculating
+                : status,
           ),
-        for (final lost in lostGas)
-          row(
-            key: lost.tank.id,
-            label: context.l10n.plannerCanvas_contingency_lostGas(
-              lost.tank.gasMix.name,
-            ),
-            selected: selectedLostGasTankId == lost.tank.id,
-            onSelect: () => toggleLostGas(lost.tank.id),
-            outcome: lost.outcome,
+          builder: (rows) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: rows,
           ),
-      ],
+        ),
     ];
   }
 

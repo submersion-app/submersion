@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -17,6 +19,43 @@ class InlinePlanResultRunner implements PlanResultRunner {
     PlanEngineConfig config,
   ) async {
     return computation(plan, startState, config);
+  }
+}
+
+/// One run held by [HeldPlanResultRunner].
+class HeldPlanRun {
+  HeldPlanRun(this.plan, this.finish, this.fail);
+
+  final domain.DivePlan plan;
+
+  /// Computes the result and delivers it.
+  final void Function() finish;
+
+  /// Delivers [error] in place of a result.
+  final void Function(Object error) fail;
+}
+
+/// Holds every run until the test finishes or fails it, to freeze a result
+/// mid-flight.
+class HeldPlanResultRunner implements PlanResultRunner {
+  final held = <HeldPlanRun>[];
+
+  @override
+  Future<T> run<T>(
+    PlanComputation<T> computation,
+    domain.DivePlan plan,
+    TissueState? startState,
+    PlanEngineConfig config,
+  ) {
+    final completer = Completer<T>();
+    held.add(
+      HeldPlanRun(
+        plan,
+        () => completer.complete(computation(plan, startState, config)),
+        completer.completeError,
+      ),
+    );
+    return completer.future;
   }
 }
 

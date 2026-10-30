@@ -42,6 +42,10 @@ class PlanResultView<T> {
 
   /// Whether what is on screen must say it is not the current answer.
   bool get isMarked => status != PlanResultStatus.current;
+
+  /// Whether the answer is in and there is nothing to show for it.
+  bool get isFinishedEmpty =>
+      status == PlanResultStatus.current && value == null;
 }
 
 /// Reads [result] for the plan [planId] that is open now. A value computed

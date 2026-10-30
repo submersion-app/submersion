@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_setup_accord
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -27,6 +28,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   final overrides = [
+    ...plannerResultsInline(),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
   ];
 

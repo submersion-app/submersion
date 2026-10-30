@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/fake_path_provider.dart';
 import '../../helpers/mock_file_picker_platform.dart';
 import '../../helpers/test_app.dart';
@@ -90,6 +91,7 @@ void main() {
 
   Widget harness() => testApp(
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     locale: const Locale('en'),

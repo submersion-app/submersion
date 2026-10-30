@@ -9,10 +9,13 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'chart_fixtures.dart';
+
+import '../../../helpers/planner_results.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -30,6 +33,7 @@ void main() {
   Widget harness(PlanCanvasSeries series, {required Brightness brightness}) {
     return ProviderScope(
       overrides: [
+        ...plannerResultsInline(),
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         planCanvasSeriesProvider.overrideWith((ref) => series),
       ],

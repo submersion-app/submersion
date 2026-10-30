@@ -10,9 +10,10 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_c
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -33,6 +34,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 void main() {
   Widget harness() => testApp(
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: const SizedBox(width: 500, height: 400, child: PlanProfileChart()),

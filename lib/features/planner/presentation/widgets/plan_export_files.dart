@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/data/services/plan_slate_pdf_service
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -58,14 +59,21 @@ Future<PlanExportFile> planSlateExport(
   final state = ref.read(divePlanNotifierProvider);
   // The plan's own values, else the diver's Settings defaults (#3552).
   final resolved = ref.read(resolvedPlanEngineConfigProvider);
+  // Awaited, not read: a slate never carries figures for an older revision.
+  // All four come in before building, so a failure stops the export rather
+  // than leaving a section silently missing.
+  final deviations = ref.read(planDeviationsProvider.future);
+  final lostGas = ref.read(planLostGasProvider.future);
+  final rangeTable = ref.read(planRangeTableProvider.future);
+  final bailout = ref.read(planBailoutProvider.future);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
     localization: localization,
-    deviations: ref.read(planDeviationsProvider),
-    lostGas: ref.read(planLostGasProvider),
-    rangeTable: ref.read(planRangeTableProvider),
-    bailout: ref.read(planBailoutProvider),
+    deviations: (await deviations).value,
+    lostGas: (await lostGas).value,
+    rangeTable: (await rangeTable).value,
+    bailout: (await bailout).value,
     units: UnitFormatter(ref.read(settingsProvider)),
     labels: labels,
     deviationDepthDelta: resolved.deviationDepthDelta,

@@ -14,6 +14,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_results_sh
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -29,7 +30,10 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 Widget _harness(Widget child) => testApp(
-  overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
+  overrides: [
+    ...plannerResultsInline(),
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+  ],
   child: SizedBox(width: 500, height: 600, child: child),
 );
 
@@ -86,6 +90,7 @@ PlanOutcome _noDecoOutcome({
 
 Widget _outcomeHarness(PlanOutcome outcome) => testApp(
   overrides: [
+    ...plannerResultsInline(),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     activePlanOutcomeProvider.overrideWithValue(outcome),
   ],

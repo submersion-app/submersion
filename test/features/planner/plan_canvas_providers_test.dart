@@ -12,7 +12,10 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../helpers/planner_results.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -63,6 +66,7 @@ ProviderContainer _container({
 }) {
   final container = ProviderContainer(
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith(
         (ref) => _TestSettingsNotifier(
           gfLow: gfLow,
@@ -123,6 +127,7 @@ PlanOutcome _withIssues(PlanOutcome outcome, List<PlanIssue> issues) {
 ProviderContainer _containerWithEngineIssues(List<PlanIssue> issues) {
   final container = ProviderContainer(
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       planOutcomeProvider.overrideWith((ref) {
         final real = computeOutcomeForState(

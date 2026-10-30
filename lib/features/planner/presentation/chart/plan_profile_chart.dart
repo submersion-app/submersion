@@ -17,6 +17,8 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_palett
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -601,6 +603,14 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                     ),
                                   ),
                                 ),
+                              ),
+                              // Top centre: on a phone the corners hold the
+                              // readouts and the bottom edge holds the chips.
+                              const Positioned(
+                                top: 12,
+                                left: 0,
+                                right: 0,
+                                child: Center(child: PlanChartBailoutStatus()),
                               ),
                               if (scrubTime != null)
                                 Positioned(

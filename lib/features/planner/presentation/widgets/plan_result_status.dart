@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What a background plan result is doing, in words. Always text, so it
@@ -35,14 +37,14 @@ class PlanResultStatusText extends StatelessWidget {
 
 /// A section built from a background plan result: its status above it, and
 /// its figures dimmed while they are not the current answer.
-class PlanResultSection<T> extends StatelessWidget {
+class PlanResultSection<T extends Object> extends StatelessWidget {
   const PlanResultSection({
     super.key,
     required this.view,
     required this.builder,
   });
 
-  final PlanResultView<T> view;
+  final PlanResultView<T?> view;
   final Widget Function(T value) builder;
 
   @override
@@ -61,6 +63,29 @@ class PlanResultSection<T> extends StatelessWidget {
               ? Opacity(opacity: 0.5, child: builder(value))
               : builder(value),
       ],
+    );
+  }
+}
+
+/// Says on the chart itself when its bailout picture is not current. It is
+/// here, not on the mode toggle, because the fullscreen chart has no toggle
+/// and a phone can scroll the toggle out of its strip.
+class PlanChartBailoutStatus extends ConsumerWidget {
+  const PlanChartBailoutStatus({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(planChartBailoutProvider.select((c) => c.status));
+    if (status == null) return const SizedBox.shrink();
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: PlanResultStatusText(status),
+      ),
     );
   }
 }

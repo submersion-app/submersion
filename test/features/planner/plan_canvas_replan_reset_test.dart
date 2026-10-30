@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
@@ -24,7 +25,10 @@ void main() {
   /// Keeps one ProviderScope alive while the planner page comes and goes, so
   /// the notifier can be inspected after the page is disposed.
   Widget harness(ValueNotifier<bool> showPlanner) => testApp(
-    overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
+    overrides: [
+      ...plannerResultsInline(),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    ],
     locale: const Locale('en'),
     child: KeyedSubtree(
       key: hostKey,

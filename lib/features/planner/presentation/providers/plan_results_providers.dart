@@ -13,8 +13,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
-    show contingenciesExpandedProvider, planEngineConfigProvider;
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
 /// The classic slate range table for [plan]; null when there is nothing to
 /// vary. Runs on a background isolate, so it reads nothing but its arguments.
@@ -149,3 +148,49 @@ final planLostGasProvider =
       final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
       return PlanBackgroundResult(planId: planId, value: const []);
     }, retry: (_, _) => null);
+
+/// What the chart does about the bailout picture: [picture] to draw in place
+/// of the live plan, if any, and [status] to say on the chart, if any. Both
+/// are null outside [ChartDisplayMode.bailout].
+///
+/// A pending result keeps the last picture, because it clears in moments. A
+/// failed one does not: nothing replaces it until the next edit, and a full
+/// bailout curve reads as current in a way dimmed text does not. The gate is
+/// read first, so removing the last bailout tank drops the picture that frame.
+final planChartBailoutProvider =
+    Provider<({BailoutOutcome? picture, PlanResultStatus? status})>((ref) {
+      const nothing = (picture: null, status: null);
+      if (ref.watch(chartDisplayModeProvider) != ChartDisplayMode.bailout) {
+        return nothing;
+      }
+      if (!ref.watch(planMayHaveBailoutProvider)) return nothing;
+      final view = planResultView(
+        ref.watch(planBailoutProvider),
+        ref.watch(divePlanNotifierProvider.select((s) => s.id)),
+      );
+      final picture = view.value;
+      return switch (view.status) {
+        PlanResultStatus.current => (picture: picture, status: null),
+        PlanResultStatus.updating when picture != null => (
+          picture: picture,
+          status: PlanResultStatus.updating,
+        ),
+        PlanResultStatus.updating || PlanResultStatus.calculating => (
+          picture: null,
+          status: PlanResultStatus.calculating,
+        ),
+        PlanResultStatus.failed => (
+          picture: null,
+          status: PlanResultStatus.failed,
+        ),
+      };
+    });
+
+/// What the chart draws: [planLiveCanvasSeriesProvider], or in
+/// [ChartDisplayMode.bailout] the worst-case bailout picture while there is
+/// one to draw.
+final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
+  final picture = ref.watch(planChartBailoutProvider).picture;
+  if (picture != null) return buildBailoutCanvasSeries(picture);
+  return ref.watch(planLiveCanvasSeriesProvider);
+});

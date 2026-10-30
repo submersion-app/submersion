@@ -27,6 +27,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -35,6 +36,7 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
@@ -64,6 +66,7 @@ void main() {
   // reads the current diver; the real provider needs SharedPreferences.
   Widget harness({String? diverId, List<dynamic> extra = const []}) => testApp(
     overrides: [
+      ...plannerResultsInline(),
       ...extra,
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       currentDiverIdProvider.overrideWith((ref) {
@@ -654,6 +657,7 @@ void main() {
       testAppRouter(
         router: router,
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         ],
         locale: const Locale('en'),

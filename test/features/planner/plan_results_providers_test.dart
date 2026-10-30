@@ -17,7 +17,11 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
-    show contingenciesExpandedProvider, planEngineConfigProvider;
+    show
+        ChartDisplayMode,
+        chartDisplayModeProvider,
+        contingenciesExpandedProvider,
+        planEngineConfigProvider;
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -156,37 +160,6 @@ class _CountingRunner extends InlinePlanResultRunner {
   ) {
     runs.add(computation);
     return super.run(computation, plan, startState, config);
-  }
-}
-
-class _HeldRun {
-  _HeldRun(this.plan, this.finish, this.fail);
-
-  final domain.DivePlan plan;
-  final void Function() finish;
-  final void Function(Object error) fail;
-}
-
-/// Holds every run until the test finishes or fails it.
-class _HeldRunner implements PlanResultRunner {
-  final held = <_HeldRun>[];
-
-  @override
-  Future<T> run<T>(
-    PlanComputation<T> computation,
-    domain.DivePlan plan,
-    TissueState? startState,
-    PlanEngineConfig config,
-  ) {
-    final completer = Completer<T>();
-    held.add(
-      _HeldRun(
-        plan,
-        () => completer.complete(computation(plan, startState, config)),
-        completer.completeError,
-      ),
-    );
-    return completer.future;
   }
 }
 
@@ -366,7 +339,7 @@ void main() {
   });
 
   test('a superseded run never delivers', () async {
-    final runner = _HeldRunner();
+    final runner = HeldPlanResultRunner();
     final container = makeContainer(runner: runner);
     load(container, _ordinaryOc());
     container.listen(planRangeTableProvider, (_, _) {});
@@ -404,7 +377,7 @@ void main() {
   });
 
   test('a failed run recovers on the next edit', () async {
-    final runner = _HeldRunner();
+    final runner = HeldPlanResultRunner();
     final container = makeContainer(runner: runner);
     load(container, _ordinaryOc());
     container.listen(planRangeTableProvider, (_, _) {});
@@ -448,7 +421,7 @@ void main() {
   });
 
   test('another plan never shows the previous plan\'s value', () async {
-    final runner = _HeldRunner();
+    final runner = HeldPlanResultRunner();
     final container = makeContainer(runner: runner);
     load(container, _ordinaryOc());
     container.listen(planRangeTableProvider, (_, _) {});
@@ -480,6 +453,133 @@ void main() {
     expect(deviations.value, isEmpty);
     expect(lostGas.value, isEmpty);
     expect(runner.runs, isEmpty);
+  });
+
+  group('planChartBailoutProvider', () {
+    late HeldPlanResultRunner runner;
+    late ProviderContainer container;
+
+    /// A CCR plan in Bailout view, with the chart's provider being listened
+    /// to as a mounted chart does. One run is held, for the first result.
+    Future<void> openInBailoutView() async {
+      runner = HeldPlanResultRunner();
+      container = makeContainer(runner: runner);
+      load(container, _ccrWithBailout());
+      container.read(chartDisplayModeProvider.notifier).state =
+          ChartDisplayMode.bailout;
+      container.listen(planChartBailoutProvider, (_, _) {});
+      await wait(Duration.zero);
+    }
+
+    Future<void> landFirstResult() async {
+      runner.held.single.finish();
+      await wait(Duration.zero);
+    }
+
+    test('nothing outside Bailout view', () async {
+      await openInBailoutView();
+      container.read(chartDisplayModeProvider.notifier).state =
+          ChartDisplayMode.ccr;
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, isNull);
+    });
+
+    test('a current result draws with no status', () async {
+      await openInBailoutView();
+      await landFirstResult();
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNotNull);
+      expect(chart.status, isNull);
+    });
+
+    test('a newer result pending keeps the last picture', () async {
+      await openInBailoutView();
+      await landFirstResult();
+      final picture = container.read(planChartBailoutProvider).picture;
+
+      editBottomTime(container, 1800);
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, same(picture));
+      expect(chart.status, PlanResultStatus.updating);
+    });
+
+    test('a first result pending draws the live plan', () async {
+      await openInBailoutView();
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, PlanResultStatus.calculating);
+    });
+
+    test('a failure with no older value draws the live plan', () async {
+      await openInBailoutView();
+      runner.held.single.fail(StateError('engine'));
+      await wait(Duration.zero);
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, PlanResultStatus.failed);
+    });
+
+    test('a failure drops an older picture too', () async {
+      await openInBailoutView();
+      await landFirstResult();
+      editBottomTime(container, 1800);
+      container.read(planChartBailoutProvider);
+      await wait(Duration.zero);
+      runner.held.last.fail(StateError('engine'));
+      await wait(Duration.zero);
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, PlanResultStatus.failed);
+    });
+
+    test('a finished null result draws the live plan, unlabelled', () async {
+      await openInBailoutView();
+      load(
+        container,
+        _ccrWithBailout().copyWith(
+          id: 'surface',
+          segments: [
+            PlanSegment.hold(
+              id: 'bottom',
+              depth: 0,
+              durationMinutes: 10,
+              tankId: 'dil',
+              gasMix: _trimix,
+              order: 0,
+            ),
+          ],
+        ),
+      );
+      container.read(chartDisplayModeProvider.notifier).state =
+          ChartDisplayMode.bailout;
+      container.read(planChartBailoutProvider);
+      await wait(Duration.zero);
+      runner.held.last.finish();
+      await wait(Duration.zero);
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, isNull);
+    });
+
+    test('removing the last bailout tank drops the picture at once', () async {
+      await openInBailoutView();
+      await landFirstResult();
+      expect(container.read(planChartBailoutProvider).picture, isNotNull);
+
+      container.read(divePlanNotifierProvider.notifier).removeTank('bo');
+
+      final chart = container.read(planChartBailoutProvider);
+      expect(chart.picture, isNull);
+      expect(chart.status, isNull);
+    });
   });
 
   test('planMayHaveBailoutProvider follows the plan', () {
