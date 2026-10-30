@@ -19,6 +19,7 @@ void main() {
     double? lineHeightOverride,
     double? letterSpacingOverride,
     double? wordSpacingOverride,
+    bool boldText = false,
   }) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -35,6 +36,7 @@ void main() {
               lineHeightScaleFactorOverride: lineHeightOverride,
               letterSpacingOverride: letterSpacingOverride,
               wordSpacingOverride: wordSpacingOverride,
+              boldText: boldText,
             ),
             child: Align(
               alignment: Alignment.topLeft,
@@ -120,6 +122,11 @@ void main() {
           spec,
           direction: TextDirection.rtl,
         );
+        expect(measured, drawn);
+      });
+
+      testWidgets('with bold text', (tester) async {
+        final (drawn, measured) = await compare(tester, spec, boldText: true);
         expect(measured, drawn);
       });
 

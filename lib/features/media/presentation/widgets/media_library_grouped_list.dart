@@ -71,57 +71,55 @@ class _MediaLibraryGroupedListState
   MediaGroupedGridTable? _table;
   List<MediaGridSection> _sections = const [];
 
-  /// Whether a wheel zoom has already put the offset where it belongs for the
-  /// layout on its way.
-  bool _zoomPlacedOffset = false;
-
-  @override
-  void didUpdateWidget(MediaLibraryGroupedList oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.columns == widget.columns) return;
-    // A wheel zoom: move the offset now, before the new layout, so the
-    // thumbnail under the cursor is drawn on the same line (issue #3297).
-    final anchor = MediaThumbnailZoomAnchorScope.takeFrom(context);
+  /// Moves the offset as [next] replaces [previous], before the new layout, so
+  /// the first frame at it is already in place. An exact table has no estimates
+  /// to absorb a change in height above the viewport, so with the offset left
+  /// alone, entering selection or resizing the pane would throw the view
+  /// somewhere else.
+  void _keepPlace(MediaGroupedGridTable? previous, MediaGroupedGridTable next) {
+    if (previous == null) return;
+    final anchor = previous.columns == next.columns
+        ? null
+        : MediaThumbnailZoomAnchorScope.takeFrom(context);
     final position = _position;
-    if (anchor == null || position == null || !position.hasPixels) return;
+    if (position == null || !position.hasPixels) return;
+    if (anchor != null) {
+      position.correctPixels(
+        _offsetKeeping(anchor, position.pixels, previous.columns, next.columns),
+      );
+    } else if (previous.hasSameCellsAs(next)) {
+      position.correctPixels(next.offsetOf(previous.placeAt(position.pixels)));
+    }
+  }
+
+  /// A wheel zoom's offset, which keeps the thumbnail under the cursor on the
+  /// same line (issue #3297) rather than the cell at the top edge.
+  double _offsetKeeping(
+    MediaThumbnailZoomAnchor anchor,
+    double pixels,
+    int oldColumns,
+    int newColumns,
+  ) {
     final newExtent = mediaThumbnailExtentAfter(
       anchor.tileExtent,
-      oldColumns: oldWidget.columns,
-      newColumns: widget.columns,
+      oldColumns: oldColumns,
+      newColumns: newColumns,
     );
     // Every group above the anchor's changes height with the size and pushes
     // it down, or pulls it up, by the difference.
     var heightChangeAbove = 0.0;
-    for (final group in oldWidget.groups.take(anchor.slot.row)) {
-      final count = group.entries.length;
+    for (final section in _sections.take(anchor.slot.row)) {
+      final count = section.tileCount;
       heightChangeAbove +=
-          mediaThumbnailGridHeight(count, widget.columns, newExtent) -
-          mediaThumbnailGridHeight(count, oldWidget.columns, anchor.tileExtent);
+          mediaThumbnailGridHeight(count, newColumns, newExtent) -
+          mediaThumbnailGridHeight(count, oldColumns, anchor.tileExtent);
     }
-    position.correctPixels(
-      anchor.scrollOffsetFor(
-        pixels: position.pixels,
-        oldColumns: oldWidget.columns,
-        newColumns: widget.columns,
-        heightChangeAbove: heightChangeAbove,
-      ),
+    return anchor.scrollOffsetFor(
+      pixels: pixels,
+      oldColumns: oldColumns,
+      newColumns: newColumns,
+      heightChangeAbove: heightChangeAbove,
     );
-    _zoomPlacedOffset = true;
-  }
-
-  /// Holds the cell at the top edge there as [next] replaces [previous]. An
-  /// exact table has no estimates to absorb a change in height above the
-  /// viewport, so with the offset left alone, entering selection or resizing
-  /// the pane would throw the view somewhere else. Run from the layout builder,
-  /// so the first frame at the new layout is already in place.
-  void _keepPlace(MediaGroupedGridTable? previous, MediaGroupedGridTable next) {
-    final zoomed = _zoomPlacedOffset;
-    _zoomPlacedOffset = false;
-    final position = _position;
-    if (zoomed || previous == null) return;
-    if (position == null || !position.hasPixels) return;
-    if (!previous.hasSameCellsAs(next)) return;
-    position.correctPixels(next.offsetOf(previous.placeAt(position.pixels)));
   }
 
   String _diveHeaderLabel(
@@ -157,21 +155,24 @@ class _MediaLibraryGroupedListState
     UnitFormatter units,
   ) {
     DateTime? lastMonth;
-    return [
-      for (final group in widget.groups)
-        switch (group.header) {
-          DateGroupHeader(:final monthStart, :final dayStart) => [
+    final headers = <List<MediaGroupHeaderSpec>>[];
+    for (final group in widget.groups) {
+      switch (group.header) {
+        case DateGroupHeader(:final monthStart, :final dayStart):
+          headers.add([
             if (lastMonth != monthStart)
               MediaGroupHeaderSpec(
                 kind: MediaGroupHeaderKind.month,
-                label: units.formatMonthYear(lastMonth = monthStart),
+                label: units.formatMonthYear(monthStart),
               ),
             MediaGroupHeaderSpec(
               kind: MediaGroupHeaderKind.day,
               label: units.formatWeekdayMonthDay(dayStart),
             ),
-          ],
-          final DiveGroupHeader header => [
+          ]);
+          lastMonth = monthStart;
+        case final DiveGroupHeader header:
+          headers.add([
             MediaGroupHeaderSpec(
               kind: MediaGroupHeaderKind.dive,
               label: _diveHeaderLabel(context, units, header),
@@ -180,9 +181,10 @@ class _MediaLibraryGroupedListState
               // away from a half-built selection.
               diveId: widget.isSelectionMode ? null : header.diveId,
             ),
-          ],
-        },
-    ];
+          ]);
+      }
+    }
+    return headers;
   }
 
   /// The table for this build, kept when nothing about the layout changed, so

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -23,7 +26,7 @@ MediaLibraryEntry _entry(String id) => MediaLibraryEntry(
     id: id,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.localFile,
-    filePath: '/tmp/$id.jpg',
+    filePath: p.join(Directory.systemTemp.path, '$id.jpg'),
     takenAt: DateTime.utc(2026, 6, 12),
     createdAt: DateTime.utc(2026, 6, 12),
     updatedAt: DateTime.utc(2026, 6, 12),
