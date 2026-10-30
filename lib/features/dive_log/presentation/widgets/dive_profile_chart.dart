@@ -2819,6 +2819,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     _metricRanges.clear();
+    _metricHasData.clear();
     final settings = ref.watch(settingsProvider);
     _palette = ProfileMetricPalette(
       overrides: settings.profileMetricColors,
@@ -7344,12 +7345,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// Memo for [_hasDataForMetric], cleared with [_metricRanges]. A metric with
+  /// no data never stops its scan early, and the right axis's fallback chain
+  /// asks about each one several times a frame.
+  final Map<ProfileRightAxisMetric, bool> _metricHasData = {};
+
   /// Check if a specific metric has data available in this dive profile
-  bool _hasDataForMetric(ProfileRightAxisMetric metric) => hasDataForMetric(
-    metric,
-    widget,
-    hasMultiTankPressure: _hasMultiTankPressure,
-  );
+  bool _hasDataForMetric(ProfileRightAxisMetric metric) =>
+      _metricHasData.putIfAbsent(
+        metric,
+        () => hasDataForMetric(
+          metric,
+          widget,
+          hasMultiTankPressure: _hasMultiTankPressure,
+        ),
+      );
 
   /// Get the effective right axis metric using the fallback chain
   ProfileRightAxisMetric? _getEffectiveRightAxisMetric(

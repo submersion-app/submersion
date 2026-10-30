@@ -137,6 +137,36 @@ Future<void> _wheelZoom(
   }
 }
 
+Future<void> _expectPanFramesSkipTheProfile(
+  WidgetTester tester,
+  List<DiveProfilePoint> points,
+) async {
+  final profile = _CountingProfile(points);
+  await tester.pumpWidget(_buildChart(profile: profile));
+  await tester.pumpAndSettle();
+  await _wheelZoom(tester, clicks: 10);
+
+  final drag = await tester.createGesture(kind: PointerDeviceKind.touch);
+  await drag.down(_chartCenter(tester));
+  await tester.pump();
+  for (var i = 0; i < 6; i++) {
+    await drag.moveBy(const Offset(-8, 0));
+    await tester.pump();
+  }
+
+  // Past the slop the pan is claimed, and these frames stay inside one
+  // decimation bucket: nothing is left that needs every sample.
+  profile.reads = 0;
+  for (var i = 0; i < 6; i++) {
+    await drag.moveBy(const Offset(-1, 0));
+    await tester.pump();
+  }
+  await drag.up();
+  await tester.pump();
+
+  expect(profile.reads, lessThan(profile.length));
+}
+
 void main() {
   group('a pointer frame rebuilds only the plot', () {
     testWidgets('mouse drag pan', (tester) async {
@@ -221,30 +251,17 @@ void main() {
     });
 
     testWidgets('a pan frame does not rescan the profile', (tester) async {
-      final profile = _CountingProfile(_profile());
-      await tester.pumpWidget(_buildChart(profile: profile));
-      await tester.pumpAndSettle();
-      await _wheelZoom(tester, clicks: 10);
+      await _expectPanFramesSkipTheProfile(tester, _profile());
+    });
 
-      final drag = await tester.createGesture(kind: PointerDeviceKind.touch);
-      await drag.down(_chartCenter(tester));
-      await tester.pump();
-      for (var i = 0; i < 6; i++) {
-        await drag.moveBy(const Offset(-8, 0));
-        await tester.pump();
-      }
-
-      // Past the slop the pan is claimed, and these frames stay inside one
-      // decimation bucket: nothing is left that needs every sample.
-      profile.reads = 0;
-      for (var i = 0; i < 6; i++) {
-        await drag.moveBy(const Offset(-1, 0));
-        await tester.pump();
-      }
-      await drag.up();
-      await tester.pump();
-
-      expect(profile.reads, lessThan(profile.length));
+    testWidgets('nor does it when the right axis has to fall back', (
+      tester,
+    ) async {
+      // No temperature or heart rate: nothing stops those scans early.
+      await _expectPanFramesSkipTheProfile(tester, [
+        for (final point in _profile())
+          DiveProfilePoint(timestamp: point.timestamp, depth: point.depth),
+      ]);
     });
 
     testWidgets('a pan held against the edge does not rebuild it', (
