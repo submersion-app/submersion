@@ -1398,8 +1398,9 @@ class EquipmentRepository {
   }
 
   /// [item]'s exposure, wired one way for every surface that reads it: the
-  /// service clocks, the reminder scheduler, the condition engine and the
-  /// item page's exposure card and trend. Samples come from the item's own
+  /// item page's clocks, exposure card and trend, and the condition engine.
+  /// [getItemExposures] is the same wiring for the surfaces that read many
+  /// items at once. Samples come from the item's own
   /// dives plus, for a part, its parent's dives from its install date; a
   /// part no longer fitted stops at the install date of the next part of
   /// its type in the same slot, so a replaced cell's history does not keep

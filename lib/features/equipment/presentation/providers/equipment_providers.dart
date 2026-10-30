@@ -967,9 +967,9 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
       ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
     );
   }
-  // The repository's one wiring, shared with the exposure card, the
-  // reminders and the condition engine: fitted parts only, and a replaced
-  // part's dives stop at its successor.
+  // The repository's one wiring, shared with the exposure card and the
+  // condition engine: fitted parts only, and a replaced part's dives stop at
+  // its successor.
   final exposure = await ref
       .watch(equipmentRepositoryProvider)
       .getItemExposure(item);
