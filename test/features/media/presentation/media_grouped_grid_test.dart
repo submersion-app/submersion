@@ -193,7 +193,7 @@ void main() {
     test('keep a cell and how far down it across a new layout', () {
       final before = _table(_twoSections);
       final after = _table(_twoSections, columns: 2);
-      final cell = 7;
+      const cell = 7;
       final top = before.geometryOf(cell, reverseCrossAxis: false).scrollOffset;
 
       final place = before.placeAt(top + 10);
@@ -261,7 +261,7 @@ void main() {
   test('MediaGridSection compares by value', () {
     expect(
       const MediaGridSection(headerExtents: [40.0], tileCount: 2),
-      MediaGridSection(headerExtents: [20.0 + 20.0], tileCount: 2),
+      const MediaGridSection(headerExtents: [20.0 + 20.0], tileCount: 2),
     );
     expect(
       const MediaGridSection(headerExtents: [40.0], tileCount: 2),
