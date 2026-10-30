@@ -22,8 +22,10 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_sparkline_summaries.dart';
+import 'package:submersion/features/dive_log/data/repositories/source_profile_grouping.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
@@ -50,7 +52,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
-import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
@@ -673,7 +674,7 @@ class DiveRepository {
         final row = await query.getSingleOrNull();
         if (row == null) return null;
 
-        return _mapRowToDive(row);
+        return _mapRowToDive(row, offUiIsolate: true);
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -1216,9 +1217,8 @@ class DiveRepository {
         // demoted ones that were being inflated and decoded only to be
         // thrown away on the next line. This runs on the dive-detail tick
         // and on the dashboard's first frame.
-        final List<ProfileSeries> series = await _profileSeries
-            .getSeriesForDive(diveId, primaryOnly: true);
-        return mergeSeriesPoints(series);
+        final rows = await _profileSeries.getPrimaryRowsForDives([diveId]);
+        return await _reduceRows(rows, mergeSeriesPoints, offUiIsolate: true);
       } catch (e, stackTrace) {
         _log.error(
           'Failed to get profile for dive: $diveId',
@@ -1455,81 +1455,25 @@ class DiveRepository {
     String diveId,
   ) async {
     try {
-      final series = await _profileSeries.getSeriesForDive(diveId);
+      final rows = await _profileSeries.getRowsForDives([diveId]);
       final allRows = await _sourceRowsInShownOrder(diveId);
       // A series owned by a row that collapsed into another's chip belongs
       // to the row that speaks for that strand (issue #3654), not to the
       // primary, which may be a different computer.
       final shownIdByRow = _shownIdByRow(allRows);
-      final sourceRows = [
-        for (final row in allRows)
-          if (shownIdByRow[row.id] == row.id) row,
-      ];
-      if (sourceRows.isEmpty) {
-        // Dives with series but no dive_data_sources row (older imports
-        // predate that table): synthesize the primary source.
-        final primary = [
-          for (final s in series)
-            if (s.isPrimary) s,
-        ];
-        if (primary.isEmpty) return {};
-        final syntheticSourceId = legacyDataSourceId(diveId);
-        return {
-          syntheticSourceId: domain.SourceProfile(
-            sourceId: syntheticSourceId,
-            computerId: primary.first.computerId,
-            isEdited: series.any((s) => !s.isPrimary),
-            points: mergeSeriesPoints(primary),
-          ),
-        };
-      }
-
-      final primary = sourceRows.first;
-      final sourceIdByComputer = <String, String>{
-        for (final s in sourceRows)
-          if (s.computerId != null) s.computerId!: s.id,
-      };
-      // The FK is authoritative; a series without one follows the pre-v154
-      // computer convention (issue #1149).
-      bool isPrimaryFamily(ProfileSeries s) =>
-          shownIdByRow.containsKey(s.sourceId)
-          ? shownIdByRow[s.sourceId] == primary.id
-          : s.computerId == null || s.computerId == primary.computerId;
-      final family = series.where(isPrimaryFamily);
-      final hasEditedProfile =
-          family.any((s) => s.isPrimary) && family.any((s) => !s.isPrimary);
-
-      final grouped = <String, List<ProfileSeries>>{
-        for (final s in sourceRows) s.id: [],
-      };
-      var primaryIsEdited = false;
-      for (final s in series) {
-        final owner = shownIdByRow.containsKey(s.sourceId)
-            ? shownIdByRow[s.sourceId]!
-            : s.computerId == null
-            ? primary.id
-            : (sourceIdByComputer[s.computerId!] ?? primary.id);
-        if (hasEditedProfile && isPrimaryFamily(s)) {
-          if (!s.isPrimary) continue;
-          primaryIsEdited = true;
-        }
-        grouped[owner]!.add(s);
-      }
-      return {
-        for (final s in sourceRows)
-          s.id: domain.SourceProfile(
-            sourceId: s.id,
-            computerId: s.computerId,
-            isEdited: s.id == primary.id && primaryIsEdited,
-            // The primary's superseded originals were already dropped above;
-            // another source may still own an edit and its original.
-            points: mergeSeriesPoints(
-              s.id == primary.id
-                  ? grouped[s.id]!
-                  : liveSeriesOf(grouped[s.id]!),
-            ),
-          ),
-      };
+      return await _reduceRows(
+        rows,
+        sourceProfilesReduction(
+          diveId: diveId,
+          shownSources: [
+            for (final row in allRows)
+              if (shownIdByRow[row.id] == row.id)
+                (id: row.id, computerId: row.computerId),
+          ],
+          shownIdByRow: shownIdByRow,
+        ),
+        offUiIsolate: true,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get profiles by data source for dive: $diveId',
@@ -4623,7 +4567,10 @@ class DiveRepository {
   }
 
   /// Legacy method that loads all related data for a single dive (used for detail views)
-  Future<domain.Dive> _mapRowToDive(Dive row) async {
+  Future<domain.Dive> _mapRowToDive(
+    Dive row, {
+    bool offUiIsolate = false,
+  }) async {
     // Get tanks for this dive
     final tanksQuery = _db.select(_db.diveTanks)
       ..where((t) => t.diveId.equals(row.id))
@@ -4656,7 +4603,10 @@ class DiveRepository {
 
     // Get profile for this dive from [_mergedSeriesPoints].
     // [getMergedProfile] mirrors this read and the two must stay in step.
-    final seriesProfile = await _mergedSeriesPoints(row.id);
+    final seriesProfile = await _mergedSeriesPoints(
+      row.id,
+      offUiIsolate: offUiIsolate,
+    );
 
     // Get equipment for this dive. See [_mapRowsWithPreloadedData] for why
     // this is ordered.
@@ -6157,7 +6107,7 @@ class DiveRepository {
   /// semantics must be made in both places together rather than diverging
   /// here.
   Future<List<domain.DiveProfilePoint>> getMergedProfile(String diveId) async {
-    return _mergedSeriesPoints(diveId);
+    return _mergedSeriesPoints(diveId, offUiIsolate: true);
   }
 
   /// Merged profiles for many dives, keyed by dive id.
@@ -6169,7 +6119,7 @@ class DiveRepository {
   /// Deliberately not the `primaryOnly` read. That keeps only `is_primary`
   /// series, and per #623 a file-imported dive can end up with no primary
   /// series at all, which would render a blank chart for exactly the dives
-  /// imported from another logbook. Sharing [_pointsForSeries] with
+  /// imported from another logbook. Sharing [mergedPointsReduction] with
   /// [getMergedProfile] is what keeps the export and the on-screen chart on
   /// the same samples: every source, minus the originals a saved edit
   /// superseded.
@@ -6200,7 +6150,7 @@ class DiveRepository {
     // per dive.
     final primaries = await _primarySourceComputers([
       for (final entry in byDive.entries)
-        if (_needsPrimarySource(entry.value)) entry.key,
+        if (_needsPrimarySource(entry.value.map((s) => s.isPrimary))) entry.key,
     ]);
 
     final result = <String, List<domain.DiveProfilePoint>>{};
@@ -6213,14 +6163,14 @@ class DiveRepository {
       // Absent for a dive that never needed the lookup, which resolves the
       // same way the single-dive path does when it skips the query.
       final primary = primaries[entry.key];
-      final points = _mergePoints(
-        [
-          for (final s in entry.value)
-            if (!hiddenRevisionIds.contains(s.id)) s,
-        ],
-        hasSources: primary?.hasSources ?? true,
-        primaryComputerId: primary?.computerId,
-      );
+      final points =
+          mergedPointsReduction(
+            hasSources: primary?.hasSources ?? true,
+            primaryComputerId: primary?.computerId,
+          )([
+            for (final s in entry.value)
+              if (!hiddenRevisionIds.contains(s.id)) s,
+          ]);
       if (points.isNotEmpty) result[entry.key] = points;
     }
     return result;
@@ -6235,13 +6185,20 @@ class DiveRepository {
   /// except the demoted originals a saved edit superseded
   /// ([dropSupersededSeries]). [profileSpanSecondsSql] drops the same series,
   /// hidden revisions too, so a change here goes there as well.
+  ///
+  /// [offUiIsolate] is for a read of one dive; see [_reduceRows].
+  ///
+  /// The extra [_primarySourceComputer] query is skipped unless the series set
+  /// mixes promoted and demoted rows, which is the only state where
+  /// supersession may need the primary computer to decide family membership.
   Future<List<domain.DiveProfilePoint>> _mergedSeriesPoints(
-    String diveId,
-  ) async {
-    final series = await _profileSeries.getSeriesForDive(diveId);
+    String diveId, {
+    bool offUiIsolate = false,
+  }) async {
+    final rows = await _profileSeries.getRowsForDives([diveId]);
     // History metadata is only needed to identify inactive child revisions,
     // which are always represented as demoted rows.
-    final revisions = series.any((s) => !s.isPrimary)
+    final revisions = rows.any((r) => !r.isPrimary)
         ? await _profileSeries.getRevisionsForDive(diveId)
         : const <ProfileSeriesRevision>[];
     final hiddenRevisionIds = {
@@ -6249,40 +6206,53 @@ class DiveRepository {
         if (revision.parentSeriesId != null && !revision.isActive)
           revision.seriesId,
     };
-    return _pointsForSeries(diveId, [
-      for (final s in series)
-        if (!hiddenRevisionIds.contains(s.id)) s,
-    ]);
-  }
-
-  /// [series] reduced to the points a reader should see: the superseded
-  /// originals of a saved edit dropped, then every remaining source's samples
-  /// interleaved by timestamp.
-  ///
-  /// Takes the series rather than reading them so [getMergedProfilesForDives]
-  /// can batch the read and still land on the same points as the single-dive
-  /// path. The extra [_primarySourceComputer] query is skipped unless the
-  /// series set mixes promoted and demoted rows, which is the only state where
-  /// supersession may need the primary computer to decide family membership.
-  Future<List<domain.DiveProfilePoint>> _pointsForSeries(
-    String diveId,
-    List<ProfileSeries> series,
-  ) async {
+    final shown = [
+      for (final r in rows)
+        if (!hiddenRevisionIds.contains(r.id)) r,
+    ];
     var hasSources = true;
     String? primaryComputerId;
-    if (_needsPrimarySource(series)) {
+    if (_needsPrimarySource(shown.map((r) => r.isPrimary))) {
       final primary = await _primarySourceComputer(diveId);
       hasSources = primary.hasSources;
       primaryComputerId = primary.computerId;
     }
-    return _mergePoints(
-      series,
-      hasSources: hasSources,
-      primaryComputerId: primaryComputerId,
+    return _reduceRows(
+      shown,
+      mergedPointsReduction(
+        hasSources: hasSources,
+        primaryComputerId: primaryComputerId,
+      ),
+      offUiIsolate: offUiIsolate,
     );
   }
 
-  /// Whether [series] needs the primary `dive_data_sources` row to resolve.
+  /// Runs [reduce] over the series in [rows], logging each blob that did not
+  /// decode.
+  ///
+  /// [offUiIsolate] hands the decoding and [reduce] to a background isolate
+  /// (see [reduceSeriesRowsInBackground]) and suits a read of one dive, which
+  /// is what the dive detail page does several times as it opens (#3820). A
+  /// bulk read leaves it off: [_mapRowToDive] runs once per row under
+  /// `Future.wait`, which would start an isolate per dive at the same time.
+  ///
+  /// [reduce] must come from a top-level function; see [SeriesReduce].
+  Future<R> _reduceRows<R>(
+    List<DiveProfileSeriesRow> rows,
+    SeriesReduce<R> reduce, {
+    required bool offUiIsolate,
+  }) async {
+    final reduction = offUiIsolate
+        ? await reduceSeriesRowsInBackground(rows, reduce)
+        : reduceSeriesRows(rows, reduce);
+    for (final id in reduction.unreadableSeriesIds) {
+      _log.warning('Skipping unreadable diveProfileSeries $id');
+    }
+    return reduction.result;
+  }
+
+  /// Whether series with these primary flags need the primary
+  /// `dive_data_sources` row to resolve.
   ///
   /// Supersession runs only when promoted and demoted rows coexist. In that
   /// state, a demoted edited row often has no computer id while the active
@@ -6290,22 +6260,8 @@ class DiveRepository {
   /// place both in one family and drop the demoted edit from merged reads.
   /// Shared by the single-dive and batched paths so the condition cannot
   /// drift.
-  bool _needsPrimarySource(List<ProfileSeries> series) =>
-      series.any((s) => s.isPrimary) && series.any((s) => !s.isPrimary);
-
-  /// [series] reduced to displayable points. Pure: every read it depends on
-  /// has already happened.
-  List<domain.DiveProfilePoint> _mergePoints(
-    List<ProfileSeries> series, {
-    required bool hasSources,
-    required String? primaryComputerId,
-  }) => mergeSeriesPointsCollapsingDuplicates(
-    dropSupersededSeries(
-      series,
-      hasSources: hasSources,
-      primaryComputerId: primaryComputerId,
-    ),
-  );
+  bool _needsPrimarySource(Iterable<bool> isPrimary) =>
+      isPrimary.contains(true) && isPrimary.contains(false);
 
   /// The computer owning [diveId]'s primary data source, and whether the dive
   /// has any `dive_data_sources` rows to read that from.
@@ -6321,8 +6277,8 @@ class DiveRepository {
 
   /// [_primarySourceComputer] for many dives in one statement.
   ///
-  /// The per-dive read is the only SQL [_pointsForSeries] performs, so
-  /// hoisting it out of [getMergedProfilesForDives] turns that loop into pure
+  /// The per-dive read is the only SQL a merge performs, so hoisting it out
+  /// of [getMergedProfilesForDives] turns that loop into pure
   /// computation instead of one round trip per dive.
   ///
   /// Every requested id gets an entry: a dive with no `dive_data_sources` rows
