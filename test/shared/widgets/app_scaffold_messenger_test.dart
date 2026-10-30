@@ -100,6 +100,34 @@ void main() {
     ]);
   });
 
+  testWidgets('Dismiss all works while the message on show is sliding out', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+
+    final closed = [
+      for (final text in ['one', 'two', 'three'])
+        messenger()
+            .showSnackBar(SnackBar(content: Text(text), showCloseIcon: true))
+            .closed,
+    ];
+    await settleEntrance(tester);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(dismissAll);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
+    expect(await Future.wait(closed), [
+      SnackBarClosedReason.dismiss,
+      SnackBarClosedReason.dismiss,
+      SnackBarClosedReason.dismiss,
+    ]);
+  });
+
   testWidgets('the button goes once only one message is left', (tester) async {
     await pumpApp(tester);
 
