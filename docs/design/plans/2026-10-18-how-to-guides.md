@@ -181,6 +181,8 @@ Every guide task follows these steps; each task below lists only its files, sour
 
 ## Phase 2: screenshots (after demo mode merges)
 
+As run, demo mode sealed sync, backups, imports and downloads, so capture used the sample logbook as an ordinary logbook, and a local stand-in for Google Drive for the setup guide. The spec's Screenshots section records this; where it differs, it replaces Tasks 12 and 13 below.
+
 ### Task 12: Prepare capture and re-check the flows
 
 - [ ] **Step 1:** Ask the maintainer to confirm demo mode keeps its logbook apart from `~/Documents/Submersion` and allows sync, backups, photo copies, a shared library, file imports and a dive computer download. If not, stop and revisit the capture plan with them.

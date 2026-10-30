@@ -308,9 +308,13 @@ All screenshots are captured and inserted by the builder (maintainer's request).
 - **Devices:** the macOS app window for most guides; the iOS Simulator for the
   GPS guide (playing back a pre-recorded boat route as the simulated location)
   and for the member side of the shared-library guide.
-- **Sign-ins:** the builder never signs in to anyone's account. The maintainer
-  signs in to Google (Drive) at capture time for the setup guide; a throwaway
-  account is fine. The cloud migration imports stop before sign-in.
+- **Sign-ins:** the builder never signs in to anyone's account. The setup
+  guide's Google Drive screens were captured from a throwaway local build (never
+  committed) with a stand-in for the Drive provider and photo store backed by a
+  local folder, so no Google account was involved. The screens, wording and flow
+  are the real ones, and the two devices really synced through that folder;
+  Google's own sign-in sheet is not shown in any image. The cloud migration
+  imports stop before sign-in.
 - **Dive computer:** the maintainer has a real computer on hand at capture time
   for the scan, pairing and download screens. Screens showing downloaded dives
   are not captured.
@@ -322,11 +326,12 @@ All screenshots are captured and inserted by the builder (maintainer's request).
   wizard, so it is captured from a fresh, empty data folder (never
   `~/Documents/Submersion`). Its second-device part, where a device already has
   dives, uses the demo logbook.
-- **Demo mode must allow it:** phase 2 assumes demo mode keeps its logbook apart
-  from `~/Documents/Submersion` while still allowing sync, backups, photo copies,
-  a shared library, file imports and a dive computer download to write into it.
-  This is confirmed with the maintainer before capture starts; if it does not
-  hold, the capture plan is revisited with them.
+- **Demo mode does not allow it (as built):** phase 2 assumed demo mode would
+  keep its logbook apart while still allowing sync, backups, photo copies, a
+  shared library, file imports and a dive computer download. As merged, demo
+  mode seals all of those. Capture instead opened the published sample logbook
+  (release `demo-data`) as an ordinary logbook through `SUBMERSION_DB_PATH` on
+  macOS, and copied into the app container on the iOS Simulator.
 - **Migration imports:** Submersion's import wizard run on sample files for each
   format. Where the demo data does not include one, the builder uses a fixture
   file from `test/` or builds a small sample, never the maintainer's own export.
