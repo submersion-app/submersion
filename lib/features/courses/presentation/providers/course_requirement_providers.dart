@@ -28,8 +28,9 @@ final courseProgressProvider = FutureProvider.family<CourseProgress, String>((
 
 /// Candidate dives to credit toward requirements of a course. Watches the
 /// requirement tables (links consume suggestions), the dives table (new logged
-/// dives appear as candidates -- issue #217 lesson), and the courses table
-/// (the course dates decide which dives qualify and in what order).
+/// dives appear as candidates -- issue #217 lesson), the courses table (the
+/// course dates decide which dives qualify and in what order), and the
+/// dive-to-course links (a dive assigned to the course leads the list).
 final suggestedDivesProvider =
     FutureProvider.family<List<RequirementDiveSummary>, String>((
       ref,
@@ -40,9 +41,9 @@ final suggestedDivesProvider =
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDivesChanges(),
       );
-      ref.invalidateSelfWhen(
-        ref.watch(courseRepositoryProvider).watchCoursesChanges(),
-      );
+      final courseRepository = ref.watch(courseRepositoryProvider);
+      ref.invalidateSelfWhen(courseRepository.watchCoursesChanges());
+      ref.invalidateSelfWhen(courseRepository.watchCourseLinkChanges());
       return repository.getSuggestedDives(courseId);
     });
 

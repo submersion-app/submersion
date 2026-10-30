@@ -64,6 +64,39 @@ void main() {
     expect(completed.map((s) => s.diveId), ['before', 'after']);
   });
 
+  test('assigning a dive to the course refreshes its suggestions', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final subscription = container.listen(
+      suggestedDivesProvider('course-1'),
+      (_, _) {},
+    );
+    addTearDown(subscription.close);
+
+    final unassigned = await container.read(
+      suggestedDivesProvider('course-1').future,
+    );
+    expect(unassigned.map((s) => s.diveId), ['after']);
+
+    // Only the link table: a dive write would refresh the provider anyway.
+    await db
+        .into(db.diveCourses)
+        .insert(
+          DiveCoursesCompanion.insert(
+            id: 'link-1',
+            diveId: 'before',
+            courseId: 'course-1',
+            createdAt: 1000,
+          ),
+        );
+    await pumpEventQueue();
+
+    final assigned = await container.read(
+      suggestedDivesProvider('course-1').future,
+    );
+    expect(assigned.map((s) => s.diveId), ['after', 'before']);
+  });
+
   // A sync pull can credit a dive while the picker is open, and a stale row
   // here is a tap that does nothing.
   test('crediting a dive removes it from the creditable list', () async {
