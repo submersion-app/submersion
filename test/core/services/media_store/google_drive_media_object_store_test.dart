@@ -450,25 +450,29 @@ void main() {
   // www-authenticate. Google sends that header on these rejections, so the
   // store never sees their status.
   group('a rejection raised by the real auth client', () {
-    http.Client rejecting(int status, String challenge) =>
-        gauth.authenticatedClient(
-          MockClient(
-            (_) async => http.Response(
-              '',
-              status,
-              headers: {'www-authenticate': challenge},
-            ),
-          ),
-          gauth.AccessCredentials(
-            gauth.AccessToken(
-              'Bearer',
-              'token',
-              DateTime.now().toUtc().add(const Duration(hours: 1)),
-            ),
-            null,
-            const [],
-          ),
+    http.Client rejecting(
+      int status,
+      String challenge, {
+      void Function()? onSend,
+    }) => gauth.authenticatedClient(
+      MockClient((_) async {
+        onSend?.call();
+        return http.Response(
+          '',
+          status,
+          headers: {'www-authenticate': challenge},
         );
+      }),
+      gauth.AccessCredentials(
+        gauth.AccessToken(
+          'Bearer',
+          'token',
+          DateTime.now().toUtc().add(const Duration(hours: 1)),
+        ),
+        null,
+        const [],
+      ),
+    );
 
     final expired = rejecting(401, 'Bearer error="invalid_token"');
     final noDriveScope = rejecting(403, 'Bearer error="insufficient_scope"');
@@ -509,16 +513,21 @@ void main() {
 
     final asksForTheDriveBox = isA<MediaStoreException>()
         .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
-        .having((e) => e.message, 'message', contains('Google Drive box'));
+        .having((e) => e.message, 'message', contains('Google Drive box'))
+        // The queue stores toString, which adds the cause, and the Transfers
+        // page shows it, so a cause here puts the raw header on screen.
+        .having((e) => e.toString(), 'toString', isNot(contains('www-auth')));
 
     test('drops a grant without Drive access and does not retry', () async {
       final rejectedClients = <http.Client>[];
-      var supplied = 0;
+      var sent = 0;
+      final refused = rejecting(
+        403,
+        'Bearer error="insufficient_scope"',
+        onSend: () => sent++,
+      );
       final store = GoogleDriveMediaObjectStore(
-        clientSupplier: () async {
-          supplied++;
-          return noDriveScope;
-        },
+        clientSupplier: () async => refused,
         onAuthRejected: (rejected) async {
           rejectedClients.add(rejected);
           return true;
@@ -530,8 +539,8 @@ void main() {
         store.head('smv1/objects/aa/x.jpg'),
         throwsA(asksForTheDriveBox),
       );
-      expect(rejectedClients, [same(noDriveScope)]);
-      expect(supplied, 1);
+      expect(rejectedClients, [same(refused)]);
+      expect(sent, 1);
     });
 
     test('still asks for Drive access if dropping the grant fails', () async {

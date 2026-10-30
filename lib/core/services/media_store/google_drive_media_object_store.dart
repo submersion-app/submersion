@@ -472,10 +472,11 @@ class GoogleDriveMediaObjectStore
       // to reach Drive it was retried forever and never refreshed.
       if (isMissingDriveScope(e)) {
         await _dropRefusedGrant(client);
-        throw MediaStoreException(
+        // No cause: the queue stores toString, which appends it, and it is
+        // the raw challenge header.
+        throw const MediaStoreException(
           googleDriveAccessNotAllowed,
           kind: MediaStoreErrorKind.auth,
-          cause: e,
         );
       }
       return http.Response('', 401);
