@@ -38,6 +38,9 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
   /// Null until the first page of [_query] has arrived. The rows of the
   /// previous search stay here until then, so typing does not blank the list.
   List<DivePickerRow>? _rows;
+
+  /// The search [_rows] answers, which trails [_query] while a search runs.
+  String _rowsQuery = '';
   String _query = '';
   bool _hasMore = false;
   bool _loadingMore = false;
@@ -85,10 +88,12 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
   Future<void> _loadFirstPage() async {
     final searchId = ++_searchId;
     try {
-      final rows = await _fetch(_query);
+      final query = _query;
+      final rows = await _fetch(query);
       if (!mounted || searchId != _searchId) return;
       setState(() {
         _rows = rows;
+        _rowsQuery = query;
         _hasMore = rows.length >= kDivePickerPageSize;
       });
     } catch (_) {
@@ -223,10 +228,14 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
     }
     if (rows.isEmpty) {
       return Center(
-        child: Text(
-          _query.isEmpty
-              ? context.l10n.preDive_link_noDives
-              : context.l10n.preDive_link_noDivesMatch(_query),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            _rowsQuery.isEmpty
+                ? context.l10n.preDive_link_noDives
+                : context.l10n.preDive_link_noDivesMatch(_rowsQuery),
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -234,8 +243,8 @@ class _DivePickerSheetState extends ConsumerState<_DivePickerSheet> {
     return NotificationListener<ScrollNotification>(
       onNotification: _onScroll,
       child: ListView.builder(
-        // A new search starts at the top, not at the old scroll offset.
-        key: ValueKey(_query),
+        // A search's rows start at the top, not at the old scroll offset.
+        key: ValueKey(_rowsQuery),
         itemCount: rows.length + (hasFooter ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == rows.length) {
@@ -267,15 +276,18 @@ class _LoadFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(context.l10n.common_error_tryAgain),
-        TextButton(
-          onPressed: onRetry,
-          child: Text(context.l10n.diveLog_error_retry),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(context.l10n.common_error_tryAgain, textAlign: TextAlign.center),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(context.l10n.diveLog_error_retry),
+          ),
+        ],
+      ),
     );
   }
 }

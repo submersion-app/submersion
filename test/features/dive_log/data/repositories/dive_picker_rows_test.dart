@@ -95,6 +95,21 @@ void main() {
       expect(row.dateTime, DateTime.utc(2026, 5, 2, 9, 30));
     });
 
+    test('shows the dive date, not the entry time it sorts by', () async {
+      await log(
+        'd1',
+        when: DateTime.utc(2026, 5, 2),
+        entry: DateTime.utc(2026, 5, 3, 10),
+      );
+
+      final row = (await repository.getDivePickerRows()).single;
+      expect(row.dateTime, DateTime.utc(2026, 5, 2));
+      expect(
+        row.sortTimestamp,
+        DateTime.utc(2026, 5, 3, 10).millisecondsSinceEpoch,
+      );
+    });
+
     test('a dive with no number, name or site still lists', () async {
       await log('bare');
 

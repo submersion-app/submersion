@@ -347,7 +347,8 @@ void main() {
       await search(tester, 'night');
       expect(find.textContaining('#2'), findsOneWidget);
 
-      // 'dive' would answer with the same row, so tell them apart by count.
+      // Clearing the logbook makes the stale answer empty, so taking it
+      // would drop the row the newer search found.
       repo.rows.clear();
       slow.complete();
       await tester.pumpAndSettle();
@@ -372,6 +373,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ListTile), findsOneWidget);
+    });
+
+    testWidgets('old rows keep their scroll position until the answer', (
+      tester,
+    ) async {
+      final repo = _FakeDiveRepo(_logbook(120));
+      final answer = Completer<void>();
+      repo.held['Dive 1'] = answer;
+      await open(tester, repo);
+      await tester.drag(find.byType(ListView), const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Dive 1');
+      await tester.pump(kDiveSearchDebounce);
+      await tester.pump();
+
+      expect(find.text('#120 Dive 120'), findsNothing);
+
+      answer.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('#120 Dive 120'), findsOneWidget);
     });
 
     testWidgets('a new search starts from the top of the list', (tester) async {
@@ -408,6 +430,26 @@ void main() {
     testWidgets('an empty logbook says so', (tester) async {
       await open(tester, _FakeDiveRepo(const []));
       expect(find.text('No dives to link to'), findsOneWidget);
+    });
+
+    testWidgets('clearing a search with no matches never claims no dives', (
+      tester,
+    ) async {
+      final repo = _FakeDiveRepo();
+      await open(tester, repo);
+      await search(tester, 'zzz');
+
+      final answer = Completer<void>();
+      repo.held[''] = answer;
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump(kDiveSearchDebounce);
+      await tester.pump();
+
+      expect(find.text('No dives to link to'), findsNothing);
+
+      answer.complete();
+      await tester.pumpAndSettle();
+      expect(find.textContaining('#2'), findsOneWidget);
     });
 
     testWidgets('a search with no matches names the term', (tester) async {
