@@ -91,6 +91,10 @@ void main() {
         repository.getDivesByIds(['test-id']),
         throwsA(anything),
       );
+      await expectLater(
+        repository.getDivesByIdsWithoutSamples(['test-id']),
+        throwsA(anything),
+      );
       await expectLater(repository.getDiveSummaries(), throwsA(anything));
       await expectLater(
         repository.toggleFavorite('test-id'),
