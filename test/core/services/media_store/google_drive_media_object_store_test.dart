@@ -557,6 +557,23 @@ void main() {
     });
   });
 
+  test('a client from a new sign-in looks the media folder up again', () async {
+    // A dropped grant leaves this store in place, and the diver may then pick
+    // another account, whose appDataFolder does not hold the cached folder.
+    final otherAccount = FakeDriveServer();
+    http.Client current = server.client;
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => current,
+      apiBase: 'https://fake.googleapis.test',
+    );
+
+    await store.head('smv1/objects/aa/x.jpg');
+    current = otherAccount.client;
+    await store.head('smv1/objects/aa/x.jpg');
+
+    expect(otherAccount.foldersByName.keys, ['submersion-media']);
+  });
+
   group('an expired access token', () {
     // The google_sign_in client carries a token that dies after about an
     // hour. Without a refresh, every media transfer after that failed as an

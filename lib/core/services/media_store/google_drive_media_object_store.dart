@@ -68,6 +68,12 @@ class GoogleDriveMediaObjectStore
 
   String? _folderId;
 
+  /// The client [_folderId] was found through, compared by identity. This
+  /// store outlives a sign-in, and a new client can be another account's,
+  /// whose appDataFolder does not hold that folder. The cost is one lookup
+  /// after each token refresh.
+  http.Client? _folderClient;
+
   @override
   Future<StoreObjectInfo?> head(String key) async {
     final found = await _findByKey(key);
@@ -340,16 +346,21 @@ class GoogleDriveMediaObjectStore
   }
 
   Future<String> _ensureFolder() async {
+    final client = await _resolveClient();
     final cached = _folderId;
-    if (cached != null) return cached;
+    if (cached != null && identical(client, _folderClient)) return cached;
+    final folderId = await _lookUpOrCreateFolder();
+    _folderClient = client;
+    return _folderId = folderId;
+  }
+
+  Future<String> _lookUpOrCreateFolder() async {
     final query =
         "name = '$folderName' "
         "and mimeType = 'application/vnd.google-apps.folder' "
         "and 'appDataFolder' in parents and trashed = false";
     final found = await _query(query);
-    if (found.isNotEmpty) {
-      return _folderId = found.first.id;
-    }
+    if (found.isNotEmpty) return found.first.id;
     final response = await _send(
       http.Request('POST', Uri.parse('$_apiBase/drive/v3/files'))
         ..headers['Content-Type'] = 'application/json; charset=utf-8'
@@ -363,7 +374,7 @@ class GoogleDriveMediaObjectStore
       throw _forStatus('create folder for', folderName, response);
     }
     final decoded = jsonDecode(response.body) as Map<String, Object?>;
-    return _folderId = decoded['id'] as String;
+    return decoded['id'] as String;
   }
 
   Future<_DriveFile?> _findByKey(String key) async {
