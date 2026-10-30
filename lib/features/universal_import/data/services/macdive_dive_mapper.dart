@@ -1000,16 +1000,17 @@ class MacDiveDiveMapper {
       }
     }
 
-    // Buddies - emit names under `unmatchedBuddyNames` (M2 convention)
-    // so the importer can resolve them against the inline buddy entities
-    // or create on demand.
+    // Buddies - emit `buddyRefs` matching the `uddfId` values produced by
+    // `_buildBuddyMaps`, so the importer links only the buddies the user
+    // selected. `unmatchedBuddyNames` would create them regardless and
+    // count them a second time (issue #3871).
     final buddyPks = logbook.diveToBuddyPks[d.pk] ?? const <int>[];
-    final buddyNames = <String>[
+    final buddyRefs = <String>[
       for (final bpk in buddyPks)
         if ((logbook.buddiesByPk[bpk]?.name ?? '').isNotEmpty)
           logbook.buddiesByPk[bpk]!.name!,
     ];
-    if (buddyNames.isNotEmpty) map['unmatchedBuddyNames'] = buddyNames;
+    if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
 
     // Per-dive gear linkage via `equipmentRefs`. UddfEntityImporter
     // resolves each ref through `equipmentIdMapping[uddfId]` to find
