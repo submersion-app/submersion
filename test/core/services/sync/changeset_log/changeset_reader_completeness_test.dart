@@ -122,6 +122,25 @@ void main() {
     expect(result.incompletePeerDeviceIds, {peerId});
   });
 
+  test('a dropped base download marks the peer incomplete', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+    provider.failDownloadsWhere = (id) => id.contains('.base.');
+
+    final result = await pullAs('reader-x');
+
+    expect(result.incompletePeerDeviceIds, {peerId});
+    expect(result.readFailedPeerDeviceIds, isEmpty);
+    expect(
+      await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get(peerId, provider.providerId),
+      isNull,
+    );
+  });
+
   test('a device with files but no manifest is reported unpublished', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),

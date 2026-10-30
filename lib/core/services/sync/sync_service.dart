@@ -5665,7 +5665,9 @@ class SyncService {
   /// which verifies per-part and whole-file checksums as bytes land), its base
   /// export time, and its post-base changesets decoded in memory (small
   /// deltas). Skips a device whose base parts are not all present or whose base
-  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// fails its checksum (a publish still in flight -> retry next adopt). A
+  /// fetch that was interrupted is not that: it says nothing about the cloud,
+  /// so [BaseFetchInterrupted] propagates and the caller aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.
@@ -5767,18 +5769,29 @@ class SyncService {
       if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
       final partCount = manifest.basePartCount ?? 0;
       if (partCount <= 0) continue;
-      final path = await _baseSink.assemble(
-        name: 'ssv1_adopt_${deviceId}_$baseSeq',
-        partCount: partCount,
-        wholeChecksum: manifest.baseChecksum,
-        partChecksums: manifest.basePartChecksums,
-        downloadPart: (i) async {
-          final pf =
-              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-          if (pf == null) return null;
-          return provider.downloadFile(pf.id);
-        },
-      );
+      final String? path;
+      try {
+        path = await _baseSink.assemble(
+          name: 'ssv1_adopt_${deviceId}_$baseSeq',
+          partCount: partCount,
+          wholeChecksum: manifest.baseChecksum,
+          partChecksums: manifest.basePartChecksums,
+          downloadPart: (i) async {
+            final pf =
+                byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+            if (pf == null) return null;
+            return provider.downloadFile(pf.id);
+          },
+        );
+      } on BaseFetchInterrupted {
+        // Nothing here says this device's base is unusable, and both callers
+        // are delete-all-refill: going on without it would drop its rows, and
+        // an empty set would read as "no library". Abort; the next sync retries.
+        for (final assembled in baseFilePaths) {
+          await _baseSink.deleteQuietly(assembled);
+        }
+        rethrow;
+      }
       if (path == null) continue; // base incomplete/corrupt -> skip this device
       baseFilePaths.add(path);
       baseExportedAt.add(await _readBaseExportedAt(path));

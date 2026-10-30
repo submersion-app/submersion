@@ -235,8 +235,9 @@ its digest is ignored, as today.
 `assemble` currently turns every failure into null. Its callers read null
 differently. Pull is additive, so it skips the peer and retries. Adopt, the fence
 and replace-join are delete-all-refill, so `_collectEpochBaseSources` skips the
-device, and if no device is left the fence deletes the epoch marker and
-republishes from local. A dropped connection can reach that today.
+device, and if no device is left the fence drops this device's retirement marker
+and republishes from local, as if the cloud held no library. A dropped connection
+can reach that today.
 
 `assemble` splits the outcomes:
 
@@ -254,7 +255,7 @@ The callers then behave like this:
   reported `incompletePeerDeviceIds` do not change.
 - **`_collectEpochBaseSources`:** deletes the temp files it has already
   assembled, then lets the exception propagate. Adopt and the fence end as a sync
-  error, the marker and local state are untouched, and the next sync retries.
+  error, the markers and local state are untouched, and the next sync retries.
 - **Replace-join:** `prepareReplaceJoin` must turn it into a failed attempt that
   changes nothing, not an uncaught error. Its existing handling of a failed
   attempt is the model.
@@ -361,8 +362,8 @@ reruns inline.
 **Callers of a failed fetch:**
 
 - Pull treats `BaseFetchInterrupted` as it treats null today.
-- The fence with one device and an interrupted fetch keeps the epoch marker,
-  publish state and cursors, and ends in an error.
+- The fence with an interrupted fetch keeps the retirement marker, republishes
+  nothing, keeps local rows, ends in an error, and rejoins on the next sync.
 - Adopt with an interrupted fetch ends in an error and does not attempt recovery.
 - With two devices, an interrupted fetch on the second deletes the first's temp
   file and aborts, rather than refilling with a device missing.

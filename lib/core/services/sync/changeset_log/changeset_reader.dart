@@ -443,25 +443,37 @@ class ChangesetReader {
     SyncManifest manifest,
     Map<String, CloudFileInfo> byName, {
     void Function(int downloaded, int total)? onPartDownloaded,
-  }) {
+  }) async {
     final baseSeq = manifest.baseSeq!;
     final partCount = manifest.basePartCount ?? 0;
     // A manifest that names a base (baseSeq set) but no parts is malformed --
     // a real base always has at least one part. Treat it as a transient gap
     // (publish in flight / truncated manifest) so we don't assemble an empty
     // file and advance the cursor past a base we never applied.
-    if (partCount <= 0) return Future<String?>.value(null);
-    return _baseSink.assemble(
-      name: 'ssv1_${peerId}_$baseSeq',
-      partCount: partCount,
-      wholeChecksum: manifest.baseChecksum,
-      partChecksums: manifest.basePartChecksums,
-      downloadPart: (i) async {
-        final pf = byName[ChangesetLogLayout.basePartName(peerId, baseSeq, i)];
-        if (pf == null) return null;
-        return provider.downloadFile(pf.id);
-      },
-      onPartDownloaded: onPartDownloaded,
-    );
+    if (partCount <= 0) return null;
+    try {
+      return await _baseSink.assemble(
+        name: 'ssv1_${peerId}_$baseSeq',
+        partCount: partCount,
+        wholeChecksum: manifest.baseChecksum,
+        partChecksums: manifest.basePartChecksums,
+        downloadPart: (i) async {
+          final pf =
+              byName[ChangesetLogLayout.basePartName(peerId, baseSeq, i)];
+          if (pf == null) return null;
+          return provider.downloadFile(pf.id);
+        },
+        onPartDownloaded: onPartDownloaded,
+      );
+    } on BaseFetchInterrupted catch (e, stackTrace) {
+      // Pull only ever adds, so this peer can simply wait for the next sync,
+      // as it does for a base the cloud lacks.
+      _log.warning(
+        'Base fetch from peer $peerId was interrupted',
+        error: e.cause,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 }

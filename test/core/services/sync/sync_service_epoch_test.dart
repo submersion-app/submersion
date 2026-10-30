@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
@@ -551,6 +553,96 @@ void main() {
         expect(cursor.baseSeqApplied, 1);
       },
     );
+
+    test('a dropped connection reports failure and recovers nothing', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 2),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      cloud.failDownloadsWhere = (id) => id.contains('.base.');
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+      expect(await service.readLibraryEpochMarker(cloud), isNotNull);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'mine-1'),
+        isNotNull,
+      );
+    });
+
+    test('a device that cannot be fetched aborts the whole refill', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'fetch-peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await seedPeerLog(cloud, 'fetch-peer-2', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 3),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      // Whichever device comes second, so the first has a temp file by then.
+      final fetched = <String?>{};
+      cloud.failDownloadsWhere = (id) {
+        if (!id.contains('.base.')) return false;
+        fetched.add(ChangesetLogLayout.deviceIdOf(p.basename(id)));
+        return fetched.length > 1;
+      };
+      final tempDir = await resolveSyncTempDir();
+      List<String> leftovers() => [
+        for (final f in tempDir.listSync())
+          if (p.basename(f.path).startsWith('ssv1_adopt_fetch-peer-')) f.path,
+      ];
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(fetched, hasLength(2));
+      expect(leftovers(), isEmpty);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'mine-1'),
+        isNotNull,
+      );
+      expect(await SyncDataSerializer().fetchRecord('dives', 'lib-1'), isNull);
+    });
+
+    test('a base gone from the cloud still skips only that device', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'whole-peer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await seedPeerLog(cloud, 'gone-peer', epochId: 'e1');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      for (final f in await cloud.listFiles(
+        namePattern: ChangesetLogLayout.prefix,
+      )) {
+        if (f.name.contains('gone-peer') && f.name.contains('.base.')) {
+          await cloud.deleteFile(f.id);
+        }
+      }
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isTrue);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'lib-1'),
+        isNotNull,
+      );
+    });
 
     test('the sync after adoption does not re-apply the adopted base', () async {
       await DiveRepository().createDive(
