@@ -606,11 +606,15 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                               ),
                               // Top centre: on a phone the corners hold the
                               // readouts and the bottom edge holds the chips.
-                              const Positioned(
-                                top: 12,
+                              // Below the scrub readout while it shows, which
+                              // reaches past the centre on a narrow chart.
+                              Positioned(
+                                top: scrubTime == null ? 12 : 44,
                                 left: 0,
                                 right: 0,
-                                child: Center(child: PlanChartBailoutStatus()),
+                                child: const Center(
+                                  child: PlanChartBailoutStatus(),
+                                ),
                               ),
                               if (scrubTime != null)
                                 Positioned(

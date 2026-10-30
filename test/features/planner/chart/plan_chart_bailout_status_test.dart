@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/presentation/pages/plan_chart_fullsc
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/chart_mode_toggle.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/planner_results.dart';
@@ -153,6 +154,28 @@ void main() {
       });
     });
   }
+
+  testWidgets('on a phone the label stays clear of the scrub readout', (
+    tester,
+  ) async {
+    final container = await mount(
+      tester,
+      const SizedBox(width: 370, height: 220, child: PlanProfileChart()),
+    );
+    expect(find.text(_calculating), findsOneWidget);
+
+    container.read(scrubTimeProvider.notifier).state = 600;
+    await tester.pump();
+
+    final readout = find.byWidgetPredicate(
+      (widget) => widget.runtimeType.toString() == '_ScrubReadout',
+    );
+    expect(readout, findsOneWidget);
+    final overlap = tester
+        .getRect(readout)
+        .intersect(tester.getRect(find.byType(PlanChartBailoutStatus)));
+    expect(overlap.width <= 0 || overlap.height <= 0, isTrue);
+  });
 
   testWidgets('the toggle does not flicker through an edit', (tester) async {
     final container = await mount(
