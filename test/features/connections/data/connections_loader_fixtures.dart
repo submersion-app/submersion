@@ -204,6 +204,27 @@ Future<void> seedTwoRings(db.AppDatabase d, int n) async {
   );
 }
 
+/// Buddy `f` dives once with each of `b01` to `b20`, and every one of them
+/// dives twice in all: one tie class on hop and dive count. `b03` and `b04`
+/// share their second dive, as do `b19` and `b20`, so those pairs have the
+/// most weighted degree; the rest dive it alone.
+Future<void> seedTiedStar(db.AppDatabase d) async {
+  await _diver(d);
+  String id(int i) => 'b${i.toString().padLeft(2, '0')}';
+  const paired = {3, 4, 19, 20};
+  await _buddiesAndDives(
+    d,
+    ['f', for (var i = 1; i <= 20; i++) id(i)],
+    [
+      for (var i = 1; i <= 20; i++) ['f', id(i)],
+      for (var i = 1; i <= 20; i++)
+        if (!paired.contains(i)) [id(i)],
+      [id(3), id(4)],
+      [id(19), id(20)],
+    ],
+  );
+}
+
 /// A chain f, c1, c2, c3: each consecutive pair shares one dive, so `c<k>` is
 /// exactly k hops from f.
 Future<void> seedChain(db.AppDatabase d) async {

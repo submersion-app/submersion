@@ -193,6 +193,35 @@ void main() {
     }, timeout: const Timeout(Duration(minutes: 2)));
   }
 
+  test('degree breaks a tie only among the nodes the tie cap kept', () async {
+    final d = DatabaseService.instance.database;
+    await seedTiedStar(d);
+    final reader = ConnectionsReader(d);
+    const focus = NodeRef(ConnectionKind.buddy, 'f');
+    final bounded = await AroundLoader(reader).load(
+      focus: focus,
+      kinds: {ConnectionKind.buddy},
+      hops: 1,
+      diverId: 'me',
+      filter: const DiveFilterState(),
+      nodeBudget: 3,
+    );
+    final unbounded = await _unboundedAround(
+      reader,
+      focus: focus,
+      kinds: {ConnectionKind.buddy},
+      hops: 1,
+      diverId: 'me',
+      filter: const DiveFilterState(),
+      nodeBudget: 3,
+    );
+    expect(bounded, unbounded);
+    // b03 and b04 win on degree. b19 and b20 have the same degree, but sit
+    // past twice the budget in id order, so neither read ever kept them.
+    expect(bounded.nodes.map((n) => n.ref.id), ['f', 'b03', 'b04']);
+    expect(bounded.hiddenNodeCount, 18);
+  });
+
   test('pairs among one kind match the self-join', () async {
     final d = DatabaseService.instance.database;
     await seedMixedLog(d, 3);
