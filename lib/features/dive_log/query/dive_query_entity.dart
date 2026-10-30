@@ -111,6 +111,19 @@ QueryField _enum(String key, String column, List<String> values) => QueryField(
   enumValues: values,
 );
 
+/// An enum read through [sql], a dive's value with its site as the fallback,
+/// so the query re-ticks when a site changes.
+QueryField _effectiveEnum(String key, String sql, List<String> values) =>
+    QueryField(
+      key: key,
+      type: FieldType.enumName,
+      sql: sql,
+      emptySql: '$sql IS NULL',
+      labelKey: _label(key),
+      enumValues: values,
+      tables: const ['dive_sites'],
+    );
+
 QueryField _bool(String key, String column) => QueryField(
   key: key,
   type: FieldType.bool,
@@ -481,23 +494,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'current_strength',
       _names(CurrentStrength.values),
     ),
-    QueryField(
-      key: 'waterType',
-      type: FieldType.enumName,
-      sql: _effectiveWaterType,
-      emptySql: '$_effectiveWaterType IS NULL',
-      labelKey: _label('waterType'),
-      enumValues: _names(WaterType.values),
-      tables: const ['dive_sites'],
-    ),
-    QueryField(
-      key: 'entryMethod',
-      type: FieldType.enumName,
-      sql: _effectiveEntryMethod,
-      emptySql: '$_effectiveEntryMethod IS NULL',
-      labelKey: _label('entryMethod'),
-      enumValues: _names(EntryMethod.values),
-      tables: const ['dive_sites'],
+    _effectiveEnum('waterType', _effectiveWaterType, _names(WaterType.values)),
+    _effectiveEnum(
+      'entryMethod',
+      _effectiveEntryMethod,
+      _names(EntryMethod.values),
     ),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),
     _enum('diveMode', 'dive_mode', _names(DiveMode.values)),

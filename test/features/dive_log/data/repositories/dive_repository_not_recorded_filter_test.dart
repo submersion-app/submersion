@@ -109,26 +109,32 @@ void main() {
   });
 
   group('entry method', () {
-    test('a dive with no entry method matches by its single-method site', () {
-      expect(
-        matching(DiveFilterState(query: entryIs('shore'))),
-        completion({'shoreSite'}),
-      );
+    test(
+      'a dive with no entry method matches by its single-method site',
+      () async {
+        expect(await matching(DiveFilterState(query: entryIs('shore'))), {
+          'shoreSite',
+        });
+      },
+    );
+
+    test('the dive own entry method wins over the site one', () async {
+      expect(await matching(DiveFilterState(query: entryIs('boat'))), {
+        'own',
+        'override',
+      });
     });
 
-    test('the dive own entry method wins over the site one', () {
-      expect(
-        matching(DiveFilterState(query: entryIs('boat'))),
-        completion({'own', 'override'}),
-      );
-    });
-
-    test('finds dives with none, counting a many-method site as none', () {
-      expect(
-        matching(const DiveFilterState(noEntryMethodOnly: true)),
-        completion({'saltSite', 'eitherSite', 'unknown'}),
-      );
-    });
+    test(
+      'finds dives with none, counting a many-method site as none',
+      () async {
+        expect(await matching(const DiveFilterState(noEntryMethodOnly: true)), {
+          'saltSite',
+          'eitherSite',
+          'unknown',
+        });
+      },
+    );
 
     test('matches the chart Not recorded slice', () async {
       final chart = await InsightsRepository().getEntryMethodDistribution();
