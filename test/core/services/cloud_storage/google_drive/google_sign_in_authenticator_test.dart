@@ -110,8 +110,15 @@ class _FakePlatform extends GoogleSignInPlatform
     ServerAuthorizationTokensForScopesParameters params,
   ) async => null;
 
+  /// When set, signOut throws this after counting the call.
+  Object? signOutError;
+
   @override
-  Future<void> signOut(SignOutParams params) async => signOutCalls++;
+  Future<void> signOut(SignOutParams params) async {
+    signOutCalls++;
+    final error = signOutError;
+    if (error != null) throw error;
+  }
 
   @override
   Future<void> disconnect(DisconnectParams params) async {}
@@ -219,6 +226,72 @@ void main() {
       final failing = GoogleSignInAuthenticator();
 
       expect(await failing.attemptSilentAuth(), isFalse);
+    });
+  });
+
+  group('a sign-in expected to be a particular account (#3811)', () {
+    setUp(() {
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'other@example.com',
+      );
+    });
+
+    test('another account is refused, not reported as a failure', () async {
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(
+          isA<CloudAccountMismatchException>().having(
+            (e) => e.signedInAs,
+            'signedInAs',
+            'other@example.com',
+          ),
+        ),
+      );
+      expect(auth.authClient, isNull);
+      expect(platform.authorizationCalls, 0);
+    });
+
+    test('the SDK forgets it, so a cold launch cannot return it', () async {
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+      expect(platform.signOutCalls, 1);
+    });
+
+    test('a failed SDK sign-out does not change the outcome', () async {
+      platform.signOutError = Exception('plugin down');
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+    });
+
+    test('the session already here survives', () async {
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'diver@example.com',
+      );
+      await auth.authenticate();
+      final client = auth.authClient;
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'other@example.com',
+      );
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+
+      expect(identical(auth.authClient, client), isTrue);
+      expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('the same account signs in', () async {
+      await auth.authenticate(expectedAccount: 'Other@Example.com');
+
+      expect(auth.authClient, isNotNull);
+      expect(platform.signOutCalls, 0);
     });
   });
 

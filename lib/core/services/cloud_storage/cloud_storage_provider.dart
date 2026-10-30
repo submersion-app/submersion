@@ -84,6 +84,26 @@ class CloudAccessRefusedException extends CloudStorageException {
   bool get accessRefused => true;
 }
 
+/// A sign-in that came back as an account other than the one expected. Raised
+/// before anything of that account is kept (issue #3811): a device holds one
+/// Google and one Dropbox account, and the provider id does not say which, so
+/// syncing on would write this library into someone's other Drive.
+class CloudAccountMismatchException extends CloudStorageException {
+  const CloudAccountMismatchException(this.signedInAs)
+    : super('Signed in to a different account');
+
+  final String signedInAs;
+}
+
+/// Whether [actual] is the account [expected] names. With nothing to compare
+/// on either side, it is taken to be: a row from before identities were
+/// recorded, or a grant that names no account.
+bool isSameAccount(String? expected, String? actual) {
+  final wanted = expected?.trim().toLowerCase() ?? '';
+  final got = actual?.trim().toLowerCase() ?? '';
+  return wanted.isEmpty || got.isEmpty || wanted == got;
+}
+
 /// Abstract interface for cloud storage providers (iCloud, Google Drive, etc.)
 ///
 /// This interface defines the contract that all cloud storage implementations

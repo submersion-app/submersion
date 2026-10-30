@@ -154,7 +154,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   Future<String?> get userEmail async => _email;
 
   @override
-  Future<void> authenticate() async {
+  Future<void> authenticate({String? expectedAccount}) async {
     final base = _baseClientFactory();
     try {
       final credentials = await _obtainConsent(_clientId, scopes, base, (url) {
@@ -175,6 +175,11 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
           'Google Drive access was not allowed. Sign in again and tick the '
           "Google Drive box on Google's consent page.",
         );
+      }
+      final email = _emailFromIdToken(credentials.idToken);
+      if (!isSameAccount(expectedAccount, email)) {
+        _log.warning('Google consent returned a different account');
+        throw CloudAccountMismatchException(email!);
       }
       await _tokenStore.save(credentials);
       _installClient(credentials);

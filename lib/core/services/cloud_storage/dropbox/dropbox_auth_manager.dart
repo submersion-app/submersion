@@ -93,7 +93,13 @@ class DropboxAuthManager {
   /// Exchanges the pasted [code] for tokens, fetches the account labels,
   /// and persists the connection. Requires a preceding [beginAuthorization]
   /// in this session (the PKCE verifier is memory-only by design).
-  Future<DropboxAuthData> completeAuthorization(String code) async {
+  ///
+  /// With [expectedAccount], another account throws
+  /// [CloudAccountMismatchException] before anything is persisted.
+  Future<DropboxAuthData> completeAuthorization(
+    String code, {
+    String? expectedAccount,
+  }) async {
     final verifier = _pendingVerifier;
     if (verifier == null) {
       throw const CloudStorageException(
@@ -124,6 +130,12 @@ class DropboxAuthManager {
       // Account labels are cosmetic; the connection itself succeeded, so
       // no account-fetch failure of any kind may abort the connect.
       _log.warning('Could not fetch Dropbox account info: $e');
+    }
+
+    final signedInAs = email ?? displayName;
+    if (!isSameAccount(expectedAccount, signedInAs)) {
+      _pendingVerifier = null;
+      throw CloudAccountMismatchException(signedInAs!);
     }
 
     final auth = DropboxAuthData(

@@ -41,7 +41,12 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   set authClient(http.Client? client) => _client = client;
 
   @override
-  Future<void> authenticate() async => authenticateCalls++;
+  Future<void> authenticate({String? expectedAccount}) async {
+    authenticateCalls++;
+    this.expectedAccount = expectedAccount;
+  }
+
+  String? expectedAccount;
 
   @override
   Future<bool> attemptSilentAuth() async {
@@ -182,6 +187,20 @@ void main() {
         ? GoogleDriveClientConfig.hasDesktopClient
         : true;
     expect(await provider.isAvailable(), expected);
+  });
+
+  test('authenticateAs hands the expected account to the sign-in', () async {
+    final auth = _FakeAuthenticator(null);
+    final provider = GoogleDriveStorageProvider(authenticator: auth);
+
+    // No client comes back from the fake, which is the provider's own error;
+    // what this pins is what the authenticator was asked for.
+    await expectLater(
+      provider.authenticateAs('diver@example.com'),
+      throwsA(isA<CloudStorageException>()),
+    );
+
+    expect(auth.expectedAccount, 'diver@example.com');
   });
 
   test('isAuthenticated delegates to silent auth when no client yet', () async {

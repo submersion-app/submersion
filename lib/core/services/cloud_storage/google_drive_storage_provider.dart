@@ -90,8 +90,13 @@ class GoogleDriveStorageProvider
   }
 
   @override
-  Future<void> authenticate() async {
-    await _authenticator.authenticate();
+  Future<void> authenticate() => authenticateAs(null);
+
+  /// [authenticate], refusing an account other than [expectedAccount] with
+  /// [CloudAccountMismatchException]. Not on [CloudStorageProvider]: only
+  /// Google and Dropbox let a diver pick another account at sign-in.
+  Future<void> authenticateAs(String? expectedAccount) async {
+    await _authenticator.authenticate(expectedAccount: expectedAccount);
     _driveApi = null; // rebuilt lazily from the fresh auth client
     if (_api == null) {
       throw const CloudStorageException(

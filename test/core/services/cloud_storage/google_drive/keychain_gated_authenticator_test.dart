@@ -26,7 +26,12 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   http.Client? get authClient => exposeClient ? client : null;
 
   @override
-  Future<void> authenticate() async => authenticateCalls++;
+  Future<void> authenticate({String? expectedAccount}) async {
+    authenticateCalls++;
+    this.expectedAccount = expectedAccount;
+  }
+
+  String? expectedAccount;
 
   @override
   Future<bool> attemptSilentAuth() async {
@@ -72,6 +77,14 @@ void main() {
 
       expect(loopback.authenticateCalls, 1);
       expect(googleSignIn.authenticateCalls, 0);
+    });
+
+    test('hands the expected account to whichever flow it picked', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+
+      await gate.authenticate(expectedAccount: 'diver@example.com');
+
+      expect(loopback.expectedAccount, 'diver@example.com');
     });
 
     test('uses google_sign_in when the data-protection keychain works '

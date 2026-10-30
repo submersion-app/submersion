@@ -306,6 +306,66 @@ void main() {
     expect(await auth.userEmail, 'new@example.com');
   });
 
+  group('a sign-in expected to be a particular account (#3811)', () {
+    final other = creds(
+      refreshToken: 'rt-other',
+      idToken: idTokenWithEmail('other@example.com'),
+    );
+
+    test('another account is refused before anything is kept', () async {
+      final auth = authenticator(consentResult: other);
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(
+          isA<CloudAccountMismatchException>().having(
+            (e) => e.signedInAs,
+            'signedInAs',
+            'other@example.com',
+          ),
+        ),
+      );
+      expect(store.stored, isNull);
+      expect(auth.authClient, isNull);
+    });
+
+    test('the session already here survives', () async {
+      final stored = creds(
+        refreshToken: 'rt-1',
+        idToken: idTokenWithEmail('diver@example.com'),
+      );
+      await store.save(stored);
+      final auth = authenticator(consentResult: other);
+      await auth.attemptSilentAuth();
+      final client = auth.authClient;
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+
+      expect(store.stored?.refreshToken, 'rt-1');
+      expect(identical(auth.authClient, client), isTrue);
+      expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('the same account signs in, whatever its case', () async {
+      final auth = authenticator(consentResult: other);
+
+      await auth.authenticate(expectedAccount: 'OTHER@example.com');
+
+      expect(store.stored?.refreshToken, 'rt-other');
+    });
+
+    test('a grant that names no account signs in', () async {
+      final auth = authenticator(consentResult: creds(refreshToken: 'rt-9'));
+
+      await auth.authenticate(expectedAccount: 'diver@example.com');
+
+      expect(store.stored?.refreshToken, 'rt-9');
+    });
+  });
+
   group('Drive access left unticked on the consent screen (#3742)', () {
     // Google's granular consent gives the Drive scope its own checkbox. Left
     // unticked, the token exchange still succeeds with sign-in scopes only,

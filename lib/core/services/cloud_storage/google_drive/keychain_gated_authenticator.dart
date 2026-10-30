@@ -132,7 +132,8 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
   http.Client? get authClient => _delegate?.authClient;
 
   @override
-  Future<void> authenticate() async => (await _resolve()).authenticate();
+  Future<void> authenticate({String? expectedAccount}) async =>
+      (await _resolve()).authenticate(expectedAccount: expectedAccount);
 
   @override
   Future<bool> attemptSilentAuth() async {
@@ -181,7 +182,7 @@ class _UnconfiguredDesktopAuthenticator implements GoogleDriveAuthenticator {
   http.Client? get authClient => null;
 
   @override
-  Future<void> authenticate() async =>
+  Future<void> authenticate({String? expectedAccount}) async =>
       throw const CloudStorageException(_message);
 
   /// False, never throwing: the seam contract forbids it, and a cold launch

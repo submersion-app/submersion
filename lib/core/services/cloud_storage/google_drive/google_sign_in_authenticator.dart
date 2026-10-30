@@ -105,10 +105,14 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
   }
 
   @override
-  Future<void> authenticate() async {
+  Future<void> authenticate({String? expectedAccount}) async {
     try {
       await _ensureInitialized();
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
+      if (!isSameAccount(expectedAccount, account.email)) {
+        await _forgetRefusedAccount();
+        throw CloudAccountMismatchException(account.email);
+      }
       final authorization = await account.authorizationClient.authorizeScopes(
         _scopes,
       );
@@ -155,9 +159,26 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
         e.description ?? e.code.name,
         stackTrace,
       );
+    } on CloudStorageException {
+      rethrow;
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException('Google Sign-In failed', e, stackTrace);
+    }
+  }
+
+  /// The SDK switched its current user as soon as the account was picked, so
+  /// the next cold launch's lightweight sign-in could return it. Nothing of
+  /// this app's session changes: the refused account was never authorized.
+  Future<void> _forgetRefusedAccount() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not sign the refused Google account out of the SDK',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
