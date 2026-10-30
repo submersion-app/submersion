@@ -230,8 +230,7 @@ class BuddyRepository {
     String? notes,
     String? diverId,
   }) async {
-    final resolved = await resolveByName(name, notes: notes, diverId: diverId);
-    return resolved.buddy;
+    return (await resolveByName(name, notes: notes, diverId: diverId)).buddy;
   }
 
   /// [findOrCreateByName], also saying whether the person is new, so an

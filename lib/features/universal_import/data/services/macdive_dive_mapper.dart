@@ -805,9 +805,12 @@ class MacDiveDiveMapper {
 
   static List<Map<String, dynamic>> _buildBuddyMaps(MacDiveRawLogbook logbook) {
     final out = <Map<String, dynamic>>[];
+    // A dive references a buddy by name, so rows sharing a name are one
+    // person: a second entity could never be linked to a dive.
+    final seen = <String>{};
     for (final b in logbook.buddiesByPk.values) {
       final name = b.name;
-      if (name == null || name.isEmpty) continue;
+      if (name == null || name.isEmpty || !seen.add(name)) continue;
       out.add({
         'name': name,
         'uddfId': name,
@@ -1005,12 +1008,12 @@ class MacDiveDiveMapper {
     // selected. `unmatchedBuddyNames` would create them regardless and
     // count them a second time (issue #3871).
     final buddyPks = logbook.diveToBuddyPks[d.pk] ?? const <int>[];
-    final buddyRefs = <String>[
+    final buddyRefs = <String>{
       for (final bpk in buddyPks)
         if ((logbook.buddiesByPk[bpk]?.name ?? '').isNotEmpty)
           logbook.buddiesByPk[bpk]!.name!,
-    ];
-    if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
+    };
+    if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs.toList();
 
     // Per-dive gear linkage via `equipmentRefs`. UddfEntityImporter
     // resolves each ref through `equipmentIdMapping[uddfId]` to find
