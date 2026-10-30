@@ -1394,6 +1394,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_dismiss => 'Elvetés';
 
   @override
+  String get common_action_dismissAll => 'Összes elvetése';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Alapértelmezett készlet';
 
   @override

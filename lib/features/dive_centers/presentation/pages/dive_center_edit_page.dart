@@ -945,6 +945,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     ? context.l10n.diveCenters_error_locationPermission
                     : context.l10n.diveCenters_error_locationUnavailable,
               ),
+              persist: false,
               action: isMobile
                   ? SnackBarAction(
                       label: context.l10n.diveCenters_action_settings,

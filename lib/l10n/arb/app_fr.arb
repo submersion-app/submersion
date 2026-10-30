@@ -222,6 +222,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Appliquer l'ensemble \"{setName}\" ?",
   "diveLog_edit_geofenceSuggestion_apply": "Appliquer",
   "common_action_dismiss": "Ignorer",
+  "common_action_dismissAll": "Tout ignorer",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Ajouter un composant",
   "equipment_components_containsSection": "Contient",

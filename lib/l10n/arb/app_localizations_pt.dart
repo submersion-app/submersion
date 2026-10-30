@@ -1393,6 +1393,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_dismiss => 'Dispensar';
 
   @override
+  String get common_action_dismissAll => 'Dispensar tudo';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Conjunto padrão';
 
   @override

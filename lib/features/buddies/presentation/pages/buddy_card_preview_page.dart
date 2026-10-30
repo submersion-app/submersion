@@ -281,6 +281,7 @@ class _BuddyCardPreviewPageState extends ConsumerState<BuddyCardPreviewPage> {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
             content: Text(message),
+            persist: false,
             action: SnackBarAction(
               label: l10n.buddyCard_saved_view,
               onPressed: () => router.push('/buddies/${buddy.id}'),

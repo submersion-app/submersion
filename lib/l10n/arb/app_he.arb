@@ -222,6 +222,7 @@
   "diveLog_edit_geofenceSuggestion_body": "להחיל את הסט \"{setName}\"?",
   "diveLog_edit_geofenceSuggestion_apply": "החל",
   "common_action_dismiss": "התעלם",
+  "common_action_dismissAll": "התעלם מהכל",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "הוספת רכיב",
   "equipment_components_containsSection": "מכיל",

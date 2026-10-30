@@ -101,6 +101,7 @@ Future<bool> ensureContactAccessOrExplain(
         // Only offered when the system will not ask again. After a first
         // refusal the next tap re-prompts, so a settings trip would send the
         // user somewhere they do not need to go.
+        persist: false,
         action: outcome == ContactAccessOutcome.permanentlyDenied
             ? SnackBarAction(
                 label: context.l10n.common_action_openSettings,

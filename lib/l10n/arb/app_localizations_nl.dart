@@ -1387,6 +1387,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_dismiss => 'Sluiten';
 
   @override
+  String get common_action_dismissAll => 'Alles sluiten';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Standaardset';
 
   @override

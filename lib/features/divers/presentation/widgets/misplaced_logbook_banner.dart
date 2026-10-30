@@ -186,6 +186,8 @@ class _MisplacedLogbookBannerState
         content: Text(
           l10n.divers_misplacedLogbook_mergedSnack(found.target.name),
         ),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: SnackBarAction(
           label: l10n.divers_misplacedLogbook_undo,
           onPressed: () async {

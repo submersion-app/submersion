@@ -1374,6 +1374,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_dismiss => 'התעלם';
 
   @override
+  String get common_action_dismissAll => 'התעלם מהכל';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'סט ברירת מחדל';
 
   @override

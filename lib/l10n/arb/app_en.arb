@@ -778,6 +778,8 @@
   },
   "diveLog_edit_geofenceSuggestion_apply": "Apply",
   "common_action_dismiss": "Dismiss",
+  "common_action_dismissAll": "Dismiss all",
+  "@common_action_dismissAll": {"description": "Button on a status message that closes it and every message waiting behind it"},
   "equipment_setEdit_defaultSwitch_title": "Default set",
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
   "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",

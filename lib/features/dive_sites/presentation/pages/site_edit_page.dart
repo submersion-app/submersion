@@ -1758,6 +1758,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
                           .l10n
                           .diveSites_edit_snackbar_locationUnavailableDesktop,
               ),
+              persist: false,
               action: isMobile
                   ? SnackBarAction(
                       label:

@@ -142,6 +142,8 @@ class _ManifestModePanelState extends ConsumerState<ManifestModePanel> {
         content: Text(
           'Imported ${ids.length} entr${ids.length == 1 ? 'y' : 'ies'}',
         ),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: SnackBarAction(
           // TODO(media): l10n
           label: 'Undo',

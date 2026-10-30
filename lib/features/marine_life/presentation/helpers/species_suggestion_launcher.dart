@@ -33,6 +33,7 @@ Future<void> launchSpeciesSuggestion(
   messenger.showSnackBar(
     SnackBar(
       content: Text(l10n.marineLife_suggest_couldNotOpen),
+      persist: false,
       action: SnackBarAction(
         label: l10n.marineLife_suggest_copyLink,
         onPressed: () => Clipboard.setData(ClipboardData(text: uri.toString())),

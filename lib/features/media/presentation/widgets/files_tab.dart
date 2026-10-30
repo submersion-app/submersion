@@ -270,6 +270,8 @@ class FilesTab extends ConsumerWidget {
               ? l10n.media_photoPicker_files_attachedToSiteCount(created.length)
               : l10n.media_photoPicker_files_linkedCount(created.length),
         ),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: SnackBarAction(
           label: l10n.media_photoPicker_files_undo,
           onPressed: () => notifier.undoCommit(created),

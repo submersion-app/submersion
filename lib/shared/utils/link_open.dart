@@ -31,6 +31,7 @@ Future<void> openLinkOrOfferCopy(
   messenger.showSnackBar(
     SnackBar(
       content: Text(l10n.common_link_couldNotOpen),
+      persist: false,
       action: SnackBarAction(
         label: l10n.common_action_copyLink,
         onPressed: () => Clipboard.setData(ClipboardData(text: uri.toString())),

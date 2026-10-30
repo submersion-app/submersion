@@ -222,6 +222,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Alkalmazza a(z) \"{setName}\" készletet?",
   "diveLog_edit_geofenceSuggestion_apply": "Alkalmaz",
   "common_action_dismiss": "Elvetés",
+  "common_action_dismissAll": "Összes elvetése",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Alkatrész hozzáadása",
   "equipment_components_containsSection": "Részei",

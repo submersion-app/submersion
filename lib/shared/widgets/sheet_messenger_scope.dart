@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:submersion/shared/widgets/app_scaffold_messenger.dart';
+
 /// Gives a modal sheet its own snackbar host (#2365). A snackbar raised from
 /// inside a modal bottom sheet otherwise goes to the page's
 /// ScaffoldMessenger, which renders it underneath the sheet where the diver
@@ -41,7 +43,7 @@ class _SheetMessengerScopeState extends State<SheetMessengerScope> {
   @override
   Widget build(BuildContext context) {
     if (!widget.shrinkWrap) {
-      return ScaffoldMessenger(
+      return AppScaffoldMessenger(
         child: Scaffold(
           backgroundColor: Colors.transparent,
           resizeToAvoidBottomInset: false,
@@ -49,7 +51,7 @@ class _SheetMessengerScopeState extends State<SheetMessengerScope> {
         ),
       );
     }
-    return ScaffoldMessenger(
+    return AppScaffoldMessenger(
       child: _SizeToBody(
         bodyHeight: _bodyHeight,
         child: Scaffold(

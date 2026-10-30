@@ -197,6 +197,8 @@ mixin _SyncBanners on ConsumerState<CloudSyncPage> {
               group.displayName,
             ),
           ),
+          duration: const Duration(seconds: 5),
+          persist: false,
           action: SnackBarAction(
             label: l10n.settings_cloudSync_duplicateDivers_undo,
             onPressed: () => _undoMerge(ref, repo, snapshots),

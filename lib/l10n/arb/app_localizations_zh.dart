@@ -1337,6 +1337,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_dismiss => '忽略';
 
   @override
+  String get common_action_dismissAll => '全部忽略';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => '默认套装';
 
   @override

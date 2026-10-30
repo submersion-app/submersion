@@ -233,6 +233,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Set \"{setName}\" übernehmen?",
   "diveLog_edit_geofenceSuggestion_apply": "Übernehmen",
   "common_action_dismiss": "Verwerfen",
+  "common_action_dismissAll": "Alle verwerfen",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Komponente hinzufügen",
   "equipment_components_containsSection": "Enthält",

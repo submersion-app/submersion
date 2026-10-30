@@ -1382,6 +1382,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_dismiss => 'Dismiss';
 
   @override
+  String get common_action_dismissAll => 'Dismiss all';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Default set';
 
   @override

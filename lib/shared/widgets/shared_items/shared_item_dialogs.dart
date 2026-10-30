@@ -298,6 +298,8 @@ Future<void> removeSharedItemFromProfile(
   void offerUndo(String message) => messenger.showSnackBar(
     SnackBar(
       content: Text(message),
+      duration: const Duration(seconds: 5),
+      persist: false,
       action: SnackBarAction(
         label: l10n.sharedItems_undo,
         onPressed: () async {

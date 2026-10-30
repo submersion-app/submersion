@@ -157,6 +157,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                   ? [l10n.dataQuality_repair_applied, ?extra].join(' ')
                   : l10n.dataQuality_repair_noChange,
             ),
+            persist: false,
             action: undo == null
                 ? null
                 : SnackBarAction(

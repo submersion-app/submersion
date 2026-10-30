@@ -142,6 +142,8 @@ Future<bool> runRulesOnDemand(
               ? l.rules_run_doneDives(result.changedTargetCount)
               : l.rules_run_doneSites(result.changedTargetCount),
         ),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: SnackBarAction(
           label: l.rules_action_undo,
           onPressed: () => undoRuleRun(undoService, messenger, l, runId),
@@ -242,6 +244,7 @@ Future<void> _runAfterCreate(
             ...notes,
           ].join('\n'),
         ),
+        persist: false,
         action: router == null
             ? null
             : SnackBarAction(

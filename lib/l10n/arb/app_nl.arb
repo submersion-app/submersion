@@ -222,6 +222,7 @@
   "diveLog_edit_geofenceSuggestion_body": "Set \"{setName}\" toepassen?",
   "diveLog_edit_geofenceSuggestion_apply": "Toepassen",
   "common_action_dismiss": "Sluiten",
+  "common_action_dismissAll": "Alles sluiten",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "Onderdeel toevoegen",
   "equipment_components_containsSection": "Bevat",

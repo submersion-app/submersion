@@ -65,6 +65,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             content: Text(
               context.l10n.diveSites_import_snackbar_imported(site.name),
             ),
+            persist: false,
             action: SnackBarAction(
               label: context.l10n.diveSites_import_snackbar_viewAction,
               onPressed: () {

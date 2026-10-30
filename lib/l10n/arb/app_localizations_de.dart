@@ -1395,6 +1395,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_dismiss => 'Verwerfen';
 
   @override
+  String get common_action_dismissAll => 'Alle verwerfen';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Standard-Set';
 
   @override

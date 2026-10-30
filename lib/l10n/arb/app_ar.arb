@@ -222,6 +222,7 @@
   "diveLog_edit_geofenceSuggestion_body": "تطبيق مجموعة \"{setName}\"؟",
   "diveLog_edit_geofenceSuggestion_apply": "تطبيق",
   "common_action_dismiss": "تجاهل",
+  "common_action_dismissAll": "تجاهل الكل",
   "equipment_assemblyChip_label": "{name} (+{count})",
   "equipment_components_add": "إضافة مكوّن",
   "equipment_components_containsSection": "يحتوي على",

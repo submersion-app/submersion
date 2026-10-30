@@ -1396,6 +1396,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(hidden),
+              persist: false,
               action: SnackBarAction(
                 label: show,
                 onPressed: () {

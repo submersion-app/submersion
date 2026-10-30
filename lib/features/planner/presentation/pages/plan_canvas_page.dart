@@ -795,6 +795,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.plannerCanvas_convert_success),
+        persist: false,
         action: SnackBarAction(
           label: context.l10n.plannerCanvas_convert_view,
           // push, not go: `go` into the `/dives` child route would rebuild

@@ -1434,6 +1434,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_dismiss => 'تجاهل';
 
   @override
+  String get common_action_dismissAll => 'تجاهل الكل';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'المجموعة الافتراضية';
 
   @override

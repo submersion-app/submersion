@@ -1393,6 +1393,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_dismiss => 'Descartar';
 
   @override
+  String get common_action_dismissAll => 'Descartar todo';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Conjunto predeterminado';
 
   @override

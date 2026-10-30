@@ -321,6 +321,7 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
           ),
           duration: const Duration(seconds: 5),
           showCloseIcon: true,
+          persist: false,
           action: SnackBarAction(
             label: context.l10n.buddies_list_merge_undo,
             onPressed: () async {

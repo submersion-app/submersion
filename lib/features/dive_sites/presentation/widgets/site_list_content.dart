@@ -477,6 +477,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           ),
           duration: const Duration(seconds: 5),
           showCloseIcon: true,
+          persist: false,
           action: SnackBarAction(
             label: context.l10n.diveSites_list_merge_undo,
             onPressed: () async {
@@ -665,6 +666,8 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text(l10n.common_error_tryAgain),
+              duration: const Duration(seconds: 5),
+              persist: false,
               action: SnackBarAction(
                 label: l10n.diveSites_list_bulkDelete_undo,
                 onPressed: undo,
@@ -690,6 +693,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             content: Text(summary.join(' · ')),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
+            persist: false,
             action: SnackBarAction(
               label: l10n.diveSites_list_bulkDelete_undo,
               onPressed: undo,

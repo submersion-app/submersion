@@ -29,6 +29,8 @@ void closeDiveSearch(
     ..showSnackBar(
       SnackBar(
         content: Text(l10n.diveLog_search_cleared),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: SnackBarAction(
           label: l10n.diveLog_search_undo,
           onPressed: () {

@@ -90,6 +90,7 @@ Future<void> launchReportIssue(BuildContext context) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.settings_about_reportIssue_snackbar),
+        persist: false,
         action: SnackBarAction(
           label: context.l10n.settings_about_reportIssue_copy,
           onPressed: () =>

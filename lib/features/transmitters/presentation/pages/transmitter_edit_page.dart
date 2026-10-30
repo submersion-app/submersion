@@ -375,6 +375,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.transmitters_saved),
+        persist: false,
         action: !offerApply
             ? null
             : SnackBarAction(

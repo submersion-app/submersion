@@ -1395,6 +1395,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_dismiss => 'Ignorer';
 
   @override
+  String get common_action_dismissAll => 'Tout ignorer';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Ensemble par défaut';
 
   @override

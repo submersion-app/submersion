@@ -2150,6 +2150,12 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get common_action_dismiss;
 
+  /// Button on a status message that closes it and every message waiting behind it
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get common_action_dismissAll;
+
   /// No description provided for @equipment_setEdit_defaultSwitch_title.
   ///
   /// In en, this message translates to:
