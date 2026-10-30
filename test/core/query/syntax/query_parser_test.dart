@@ -588,6 +588,19 @@ void main() {
       expect(ok(metric(), 'site is'), isA<AndNode>());
     });
 
+    test('text that ends before a phrase does parses as it did', () {
+      expect(ok(metric(), 'depth'), TextNode(const ['depth']));
+      expect(ok(metric(), 'empty'), TextNode(const ['empty']));
+      expect(
+        ok(metric(), 'site is'),
+        AndNode([
+          TextNode(const ['site']),
+          TextNode(const ['is']),
+        ]),
+      );
+      expect(bad(metric(), 'site is not').error, isNotNull);
+    });
+
     test('a quoted sentence stays a phrase search', () {
       expect(
         ok(metric(), '"site is blank"'),
