@@ -24874,6 +24874,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Facteur de consommation de gaz';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Mode du scénario';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'Consommation de gaz sous stress';
 

@@ -7253,6 +7253,7 @@
   "settings_conflict_field_sacBottom": "Gázfogyasztás a fenékidő alatt",
   "settings_conflict_field_sacDeco": "Gázfogyasztás dekó alatt",
   "settings_conflict_field_sacFactor": "Gázfogyasztási szorzó",
+  "settings_conflict_field_scenarioMode": "Forgatókönyv módja",
   "settings_conflict_field_sacStressed": "Gázfogyasztás stresszhelyzetben",
   "settings_conflict_field_safetyReviewDisabledRules": "Kikapcsolt biztonsági ellenőrzések",
   "settings_conflict_field_safetyReviewEnabled": "Biztonsági ellenőrzés",

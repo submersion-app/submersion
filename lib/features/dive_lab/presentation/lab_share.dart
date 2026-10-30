@@ -9,6 +9,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
 import 'package:submersion/features/dive_lab/domain/entities/branch_state.dart';
@@ -38,6 +40,7 @@ class LabShareActions {
 
   /// Picks a file and returns its text, or null when the diver cancels.
   Future<String?> pickScenarioFile() async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.fileImport);
     final result = await FilePicker.pickFile(type: FileType.any);
     final path = result?.path;
     if (path == null) return null;

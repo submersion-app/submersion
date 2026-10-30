@@ -66,7 +66,8 @@ void main() {
       outcome: outcome,
       startTimestamp: 1500,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
     );
     expect(r.timestamps.first, 1500);
     expect(r.depths.first, 45);
@@ -104,7 +105,8 @@ void main() {
       outcome: outcome,
       startTimestamp: 0,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
     );
     expect(r.gasSegments.first.startTimestamp, 0);
     expect(r.gasSegments.first.fN2, airN2Fraction);
@@ -125,14 +127,16 @@ void main() {
       outcome: outcome,
       startTimestamp: 0,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
     );
     final longer = synthesizeRemainder(
       plan: plan,
       outcome: outcome,
       startTimestamp: 0,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
       extraLastStopSeconds: 120,
     );
     expect(longer.timestamps.last - base.timestamps.last, 120);
@@ -149,7 +153,8 @@ void main() {
       outcome: outcome,
       startTimestamp: 0,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
       loop: const LoopSetpoints(
         low: 0.7,
         high: 1.3,
@@ -207,7 +212,8 @@ void main() {
       outcome: engine.compute(plan),
       startTimestamp: 0,
       startDepth: 20,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
       loop: const LoopSetpoints(
         low: 0.7,
         high: 1.3,
@@ -277,7 +283,8 @@ void main() {
       outcome: engine.compute(plan),
       startTimestamp: 0,
       startDepth: 30,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
     );
     final toB = r.tankSwitches.where((s) => s.tankId == 'b');
     expect(toB, hasLength(1));
@@ -293,7 +300,8 @@ void main() {
       outcome: outcome,
       startTimestamp: 20,
       startDepth: 45,
-      ascentPlan: engine.ascentPlanFor(plan.tanks),
+      ascentPlan: engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
     );
     final s = spliceCounterfactual(
       actualTimestamps: const [0, 10, 20, 30, 40],

@@ -23434,6 +23434,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sacFactor => '耗气系数';
 
   @override
+  String get settings_conflict_field_scenarioMode => '情形模式';
+
+  @override
   String get settings_conflict_field_sacStressed => '紧张时耗气量';
 
   @override

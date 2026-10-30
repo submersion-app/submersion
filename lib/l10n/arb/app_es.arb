@@ -7354,6 +7354,7 @@
   "settings_conflict_field_sacBottom": "Consumo de gas en el fondo",
   "settings_conflict_field_sacDeco": "Consumo de gas en descompresión",
   "settings_conflict_field_sacFactor": "Factor de consumo de gas",
+  "settings_conflict_field_scenarioMode": "Modo del escenario",
   "settings_conflict_field_sacStressed": "Consumo de gas con estrés",
   "settings_conflict_field_safetyReviewDisabledRules": "Comprobaciones de seguridad desactivadas",
   "settings_conflict_field_safetyReviewEnabled": "Revisión de seguridad",

@@ -7354,6 +7354,7 @@
   "settings_conflict_field_sacBottom": "استهلاك الغاز في القاع",
   "settings_conflict_field_sacDeco": "استهلاك الغاز أثناء تخفيف الضغط",
   "settings_conflict_field_sacFactor": "معامل استهلاك الغاز",
+  "settings_conflict_field_scenarioMode": "وضع السيناريو",
   "settings_conflict_field_sacStressed": "استهلاك الغاز تحت الضغط النفسي",
   "settings_conflict_field_safetyReviewDisabledRules": "فحوصات السلامة المعطلة",
   "settings_conflict_field_safetyReviewEnabled": "مراجعة السلامة",

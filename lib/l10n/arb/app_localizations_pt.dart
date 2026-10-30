@@ -24793,6 +24793,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'Fator de consumo de gás';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Modo do cenário';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'Consumo de gás sob estresse';
 

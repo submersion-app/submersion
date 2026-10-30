@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_importer.dart';
@@ -53,6 +55,7 @@ class _LabSavedScenariosSheetState
   String get diveId => widget.diveId;
 
   Future<void> _import() async {
+    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final actions = ref.read(labShareActionsProvider);
@@ -92,6 +95,7 @@ class _LabSavedScenariosSheetState
   }
 
   Future<void> _shareSelectedPdf(List<DiveScenario> scenarios) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final units = UnitFormatter(ref.read(settingsProvider));
@@ -146,6 +150,7 @@ class _LabSavedScenariosSheetState
   }
 
   Future<void> _shareFile(DiveScenario scenario) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final actions = ref.read(labShareActionsProvider);

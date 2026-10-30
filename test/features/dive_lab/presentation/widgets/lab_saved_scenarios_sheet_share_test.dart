@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
@@ -33,6 +35,7 @@ class _Recorder extends LabShareActions {
   final String? fileToPick;
   final pdfs = <List<int>>[];
   final files = <String>[];
+  var picks = 0;
   @override
   Future<void> sharePdf(List<int> bytes, String fileName) async =>
       pdfs.add(bytes);
@@ -42,7 +45,10 @@ class _Recorder extends LabShareActions {
   @override
   Future<void> shareImage(List<int> pngBytes, String fileName) async {}
   @override
-  Future<String?> pickScenarioFile() async => fileToPick;
+  Future<String?> pickScenarioFile() async {
+    picks++;
+    return fileToPick;
+  }
 }
 
 LabRequestInputs _inputs(Dive dive) {
@@ -84,6 +90,41 @@ void main() {
 
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
+
+  testWidgets('demo mode explains the seal instead of opening the picker', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(600, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    final dive = await DiveRepository().createDive(
+      Dive(id: 'dive-1', diveNumber: 7, dateTime: DateTime(2026, 8, 1)),
+    );
+    final recorder = _Recorder(null);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          labRequestInputsProvider(
+            dive.id,
+          ).overrideWith((ref) async => _inputs(dive)),
+          labShareActionsProvider.overrideWithValue(recorder),
+        ],
+        locale: const Locale('en'),
+        child: _Host(dive.id),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    await tester.tap(find.byIcon(Icons.file_open_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Not available in demo mode'), findsOneWidget);
+    expect(recorder.picks, 0);
+  });
 
   testWidgets('import, select + share PDF, and share file', (tester) async {
     tester.view.physicalSize = const Size(600, 1200);

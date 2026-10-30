@@ -25040,6 +25040,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'معامل استهلاك الغاز';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'وضع السيناريو';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'استهلاك الغاز تحت الضغط النفسي';
 

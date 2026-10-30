@@ -11,7 +11,6 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
-import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Loop setpoints for a rebreather remainder: high below [switchDepth], low
 /// above, inert gas from [diluent].
@@ -167,6 +166,7 @@ SynthesizedRemainder synthesizeRemainder({
   required int startTimestamp,
   required double startDepth,
   required AscentGasPlan ascentPlan,
+  required SchedulePolicy policy,
   LoopSetpoints? loop,
   Scr? scr,
   int stepSeconds = 10,
@@ -204,11 +204,10 @@ SynthesizedRemainder synthesizeRemainder({
   }
   final bottomEnd = b.now;
 
-  // Legs are timed through the plan's schedule policy, phase by phase, so
+  // Legs are timed through the engine's schedule policy, phase by phase, so
   // the synthesised ascent takes exactly as long as the engine's: the rate
   // to the first stop, the intermediate and shallow rates between stops,
   // and the final rate from the last stop.
-  final policy = const PlanEngine().policyFor(plan);
   var depth = b.depths.last;
   final stops = outcome.stops;
   for (var k = 0; k < stops.length; k++) {

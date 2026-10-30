@@ -24690,6 +24690,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'Gázfogyasztási szorzó';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Forgatókönyv módja';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'Gázfogyasztás stresszhelyzetben';
 

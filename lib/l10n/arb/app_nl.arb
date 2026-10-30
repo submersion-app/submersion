@@ -7354,6 +7354,7 @@
   "settings_conflict_field_sacBottom": "Gasverbruik op de bodem",
   "settings_conflict_field_sacDeco": "Gasverbruik tijdens deco",
   "settings_conflict_field_sacFactor": "Factor voor gasverbruik",
+  "settings_conflict_field_scenarioMode": "Scenariomodus",
   "settings_conflict_field_sacStressed": "Gasverbruik onder stress",
   "settings_conflict_field_safetyReviewDisabledRules": "Uitgeschakelde veiligheidscontroles",
   "settings_conflict_field_safetyReviewEnabled": "Veiligheidscontrole",

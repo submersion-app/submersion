@@ -7486,6 +7486,7 @@
   "settings_conflict_field_sacBottom": "Gasverbrauch am Grund",
   "settings_conflict_field_sacDeco": "Gasverbrauch bei der Deko",
   "settings_conflict_field_sacFactor": "Gasverbrauchsfaktor",
+  "settings_conflict_field_scenarioMode": "Szenario-Modus",
   "settings_conflict_field_sacStressed": "Gasverbrauch unter Stress",
   "settings_conflict_field_safetyReviewDisabledRules": "Ausgeschaltete Sicherheitsprüfungen",
   "settings_conflict_field_safetyReviewEnabled": "Sicherheitsprüfung",

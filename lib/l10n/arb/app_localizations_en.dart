@@ -24391,6 +24391,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'Gas consumption factor';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Scenario mode';
+
+  @override
   String get settings_conflict_field_sacStressed => 'Stressed gas consumption';
 
   @override

@@ -24186,6 +24186,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'מקדם צריכת גז';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'מצב התרחיש';
+
+  @override
   String get settings_conflict_field_sacStressed => 'צריכת גז במצב לחץ';
 
   @override

@@ -39585,6 +39585,12 @@ abstract class AppLocalizations {
   /// **'Gas consumption factor'**
   String get settings_conflict_field_sacFactor;
 
+  /// No description provided for @settings_conflict_field_scenarioMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario mode'**
+  String get settings_conflict_field_scenarioMode;
+
   /// No description provided for @settings_conflict_field_sacStressed.
   ///
   /// In en, this message translates to:

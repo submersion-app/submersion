@@ -7358,6 +7358,7 @@
   "settings_conflict_field_sacBottom": "צריכת גז בקרקעית",
   "settings_conflict_field_sacDeco": "צריכת גז בדקו",
   "settings_conflict_field_sacFactor": "מקדם צריכת גז",
+  "settings_conflict_field_scenarioMode": "מצב התרחיש",
   "settings_conflict_field_sacStressed": "צריכת גז במצב לחץ",
   "settings_conflict_field_safetyReviewDisabledRules": "בדיקות בטיחות מושבתות",
   "settings_conflict_field_safetyReviewEnabled": "סקירת בטיחות",

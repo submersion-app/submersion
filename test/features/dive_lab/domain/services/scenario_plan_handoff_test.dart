@@ -307,13 +307,11 @@ void main() {
         interventions: const [ShareGasIntervention()],
       ),
     );
-    expect(shared.plan.sacRate, greaterThan(plain.plan.sacRate));
+    final plainSac = plain.plan.sacRate!;
+    expect(shared.plan.sacRate, greaterThan(plainSac));
     expect(
       shared.plan.sacRate,
-      closeTo(
-        plain.plan.sacRate * 2.5 * const ScenarioSettings().buddyFactor,
-        1e-6,
-      ),
+      closeTo(plainSac * 2.5 * const ScenarioSettings().buddyFactor, 1e-6),
     );
   });
 

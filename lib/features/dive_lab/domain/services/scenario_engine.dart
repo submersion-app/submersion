@@ -396,7 +396,8 @@ class ScenarioEngine {
       startDepth: branch.depthMeters,
       ascentPlan: plan.mode == domain.PlanMode.scr
           ? engine.scrAscentPlanFor(plan.segments.last.gasMix)
-          : engine.ascentPlanFor(plan.tanks),
+          : engine.ocAscentPlanFor(plan),
+      policy: engine.schedulePolicyFor(plan),
       loop: plan.mode == domain.PlanMode.ccr
           ? LoopSetpoints(
               low: engine.config.setpointLowFor(plan),
@@ -472,7 +473,7 @@ class ScenarioEngine {
       timestamps: spliced.timestamps,
       gas: spliced.gasSegments,
       ascent: plan.mode == domain.PlanMode.oc
-          ? engine.ascentPlanFor(plan.tanks)
+          ? engine.ocAscentPlanFor(plan)
           : null,
       rebreatherPpO2Curve: cfPpO2,
     );
@@ -497,7 +498,7 @@ class ScenarioEngine {
       schedule: cfSchedule,
       startPressures: cfStart,
       sacLpmAt: (i) => spliced.timestamps[i] <= remainder.bottomEndTimestamp
-          ? plan.sacBottom
+          ? plan.sacBottomEffective
           : plan.sacDecoEffective,
       environment: settings.environment,
       gasModel: settings.gasModel,

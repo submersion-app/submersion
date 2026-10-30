@@ -179,16 +179,18 @@ CompiledScenario compileScenarioPlan({
   );
   // A slower ascent rate slows every tier of the ascent (the engine ascends
   // at a rate per phase since #1479); a faster one never speeds up a tier
-  // that is already slower than it.
+  // that is already slower than it. The plan leaves its tiers unset, so the
+  // rates to compare are the ones the engine will resolve them to.
+  final rates = settings.engineConfig.resolvedFor(plan);
   final tiered = ascentRate == settings.ascentRate
       ? plan
       : plan.copyWith(
           intermediateAscentRate: math.min(
-            plan.intermediateAscentRate,
+            rates.intermediateAscentRate,
             ascentRate,
           ),
-          shallowAscentRate: math.min(plan.shallowAscentRate, ascentRate),
-          finalAscentRate: math.min(plan.finalAscentRate, ascentRate),
+          shallowAscentRate: math.min(rates.shallowAscentRate, ascentRate),
+          finalAscentRate: math.min(rates.finalAscentRate, ascentRate),
         );
   return CompiledScenario(
     plan: tiered,

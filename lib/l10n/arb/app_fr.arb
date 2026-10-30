@@ -7253,6 +7253,7 @@
   "settings_conflict_field_sacBottom": "Consommation de gaz au fond",
   "settings_conflict_field_sacDeco": "Consommation de gaz en déco",
   "settings_conflict_field_sacFactor": "Facteur de consommation de gaz",
+  "settings_conflict_field_scenarioMode": "Mode du scénario",
   "settings_conflict_field_sacStressed": "Consommation de gaz sous stress",
   "settings_conflict_field_safetyReviewDisabledRules": "Contrôles de sécurité désactivés",
   "settings_conflict_field_safetyReviewEnabled": "Analyse de sécurité",

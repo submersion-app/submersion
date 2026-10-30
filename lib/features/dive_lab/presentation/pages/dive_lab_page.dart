@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
@@ -76,6 +78,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
   final GlobalKey _chartKey = GlobalKey();
 
   Future<void> _share(String what, LabRequestInputs inputs) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final units = UnitFormatter(ref.read(settingsProvider));

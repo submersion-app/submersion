@@ -7506,6 +7506,7 @@
   "settings_conflict_field_sacBottom": "水底耗气量",
   "settings_conflict_field_sacDeco": "减压耗气量",
   "settings_conflict_field_sacFactor": "耗气系数",
+  "settings_conflict_field_scenarioMode": "情形模式",
   "settings_conflict_field_sacStressed": "紧张时耗气量",
   "settings_conflict_field_safetyReviewDisabledRules": "已关闭的安全检查",
   "settings_conflict_field_safetyReviewEnabled": "安全审查",
