@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -158,6 +159,9 @@ void main() {
   DiveProfileChart chart(WidgetTester tester) =>
       tester.widget<DiveProfileChart>(find.byType(DiveProfileChart));
 
+  DiveProfileChartHost host(WidgetTester tester) =>
+      tester.widget<DiveProfileChartHost>(find.byType(DiveProfileChartHost));
+
   MarkdownNotesView notes(WidgetTester tester) =>
       tester.widget<MarkdownNotesView>(find.byType(MarkdownNotesView));
 
@@ -238,6 +242,19 @@ void main() {
       await settle(tester);
 
       expect(identical(chart(tester), before), isTrue);
+    });
+
+    testWidgets('the card around it rebuilding for a source refresh', (
+      tester,
+    ) async {
+      final container = await pumpDetail(tester);
+      final before = host(tester);
+
+      container.invalidate(sourceProfilesProvider(current.id));
+      container.invalidate(diveDataSourcesProvider(current.id));
+      await settle(tester);
+
+      expect(identical(host(tester), before), isTrue);
     });
 
     testWidgets('folding the Equipment card', (tester) async {

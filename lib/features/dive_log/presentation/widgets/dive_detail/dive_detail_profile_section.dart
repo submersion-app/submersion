@@ -83,59 +83,9 @@ class DiveDetailProfileSection extends ConsumerWidget {
         ?.dive;
     if (dive == null) return const SizedBox.shrink();
 
-    // Every async chart input below is read through the built-in
-    // AsyncValue.value, which keeps the previous value while a provider
-    // reloads. The valueOrNull polyfill returns null during a reload, and
-    // these providers reload behind any detail change tick (the first-view
-    // safety review write included): the chart would drop its overlays and
-    // estimated pressure series for a frame, then draw them again.
-
-    // Get range selection state
-    final rangeState = ref.watch(rangeSelectionProvider(dive.id));
-
-    // Profiles grouped by owning data source, plus the active-source and
-    // overlay view state driving the whole page.
-    final sourceProfiles =
-        ref.watch(sourceProfilesProvider(dive.id)).value ??
-        const <String, SourceProfile>{};
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).value ?? const [];
-    final labels = sourceNameLabelsFor(context);
-    // Per-source rendering exists because two computers recording one dive
-    // disagree sample by sample (#543); the halves of a split dive a Combine
-    // stitched together are not that, and drawing one of those would hide the
-    // rest of the dive (#1451). Profiles that have not loaded yet carry no
-    // spans, so this stays true on the first build, exactly as it does today.
-    final isMultiSource = usesPerSourceRendering(
-      dataSources,
-      sourceProfiles.values,
-    );
-
-    final activeSourceId = ref.watch(activeDiveSourceProvider(dive.id));
-    final overlayIds = ref.watch(overlaySourcesProvider(dive.id));
-
-    final primarySource =
-        dataSources.where((s) => s.isPrimary).firstOrNull ??
-        dataSources.firstOrNull;
-    final activeSource = activeSourceId == null
-        ? primarySource
-        : dataSources.where((s) => s.id == activeSourceId).firstOrNull ??
-              primarySource;
-
-    // Stable color per source, assigned by data-source order (never changes
-    // as overlays toggle).
-    final sourceColorById = <String, Color>{
-      for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
-    };
-
-    // The series the chart draws, resolved by the same one rule the chart
-    // itself uses (#543): the active source's own points on a multi-source
-    // dive, dive.profile otherwise. The point count, the playback stats and
-    // the range panel below all index it, so they must read the same series
-    // the curve was drawn from.
-    final chartProfile =
-        ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
-
+    // What follows a provider around the chart watches it in a widget of its
+    // own. A watch here would hand the chart a new host each time it fired,
+    // whatever the host's own narrowed reads decided.
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -152,31 +102,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 ),
                 Row(
                   children: [
-                    // A toggle, so it reads as one of the row's icons with
-                    // an on state rather than a pill that shoulders them
-                    // aside. The label it used to carry is the tooltip.
-                    IconButton(
-                      icon: const Icon(Icons.straighten),
-                      tooltip: context.l10n.diveLog_detail_button_rangeAnalysis,
-                      visualDensity: VisualDensity.compact,
-                      isSelected: rangeState.isEnabled,
-                      style: IconButton.styleFrom(
-                        backgroundColor: rangeState.isEnabled
-                            ? Theme.of(context).colorScheme.secondaryContainer
-                            : null,
-                        foregroundColor: rangeState.isEnabled
-                            ? Theme.of(context).colorScheme.onSecondaryContainer
-                            : null,
-                      ),
-                      onPressed: () {
-                        final notifier = ref.read(
-                          rangeSelectionProvider(dive.id).notifier,
-                        );
-                        rangeState.isEnabled
-                            ? notifier.disableRangeMode()
-                            : notifier.enableRangeMode();
-                      },
-                    ),
+                    _RangeToggle(diveId: dive.id),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
@@ -222,75 +148,12 @@ class DiveDetailProfileSection extends ConsumerWidget {
               // growth approximation still did not land in the same place.
               tooltipPresentation: TooltipPresentation.nativeBubble,
             ),
-            // Profile point count (bottom-right, inline with x-axis)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                context.l10n.diveLog_detail_profilePoints(chartProfile.length),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
+            _ProfilePointCount(dive: dive),
+            _ProfileSourceBar(
+              diveId: dive.id,
+              onSetPrimarySource: onSetPrimarySource,
             ),
-            // Sources bar: tap a chip to make that source drive the whole
-            // page; the eye overlays a source on the chart for comparison.
-            // Both of those are per-source RENDERING, which is why the bar
-            // follows usesPerSourceRendering rather than the source count:
-            // on a dive whose sources are consecutive halves there is no
-            // "other source" to switch to or overlay, only the rest of the
-            // same dive. Set primary does not disappear with it: the Data
-            // Sources section carries its own copy, gated on the source
-            // count alone. Split lives only there (data_sources_section.dart).
-            if (isMultiSource)
-              SourceBar(
-                sources: [
-                  for (final s in dataSources)
-                    SourceBarItem(
-                      sourceId: s.id,
-                      label: resolveSourceName(
-                        s,
-                        labels,
-                        edited: sourceProfiles[s.id]?.isEdited ?? false,
-                      ),
-                      color: sourceColorById[s.id] ?? sourceColorAt(0),
-                      isActive: s.id == activeSource?.id,
-                      isPrimary: s.isPrimary,
-                      isOverlaid: overlayIds.contains(s.id),
-                      hasProfile:
-                          sourceProfiles[s.id]?.points.isNotEmpty ?? false,
-                    ),
-                ],
-                onActivate: (id) {
-                  ref.read(activeDiveSourceProvider(dive.id).notifier).state =
-                      id;
-                  final current = ref.read(overlaySourcesProvider(dive.id));
-                  if (current.contains(id)) {
-                    ref.read(overlaySourcesProvider(dive.id).notifier).state = {
-                      ...current,
-                    }..remove(id);
-                  }
-                },
-                onToggleOverlay: (id, overlaid) {
-                  final current = ref.read(overlaySourcesProvider(dive.id));
-                  ref.read(overlaySourcesProvider(dive.id).notifier).state =
-                      overlaid ? {...current, id} : ({...current}..remove(id));
-                },
-                onSetPrimary: onSetPrimarySource,
-              ),
-            // Range stats panel (when range mode is active)
-            if (rangeState.isEnabled && rangeState.hasSelection) ...[
-              const SizedBox(height: 16),
-              Consumer(
-                builder: (context, ref, _) => RangeStatsPanel(
-                  diveId: dive.id,
-                  profile: chartProfile,
-                  units: UnitFormatter(ref.watch(settingsProvider)),
-                  tanks: dive.tanks,
-                  isRebreather: dive.isRebreather,
-                ),
-              ),
-            ],
+            _ProfileRangeStats(dive: dive),
           ],
         ),
       ),
@@ -305,6 +168,194 @@ class DiveDetailProfileSection extends ConsumerWidget {
       MaterialPageRoute(
         builder: (context) => FullscreenProfilePage(diveId: dive.id),
       ),
+    );
+  }
+}
+
+/// The toolbar's range analysis toggle.
+class _RangeToggle extends ConsumerWidget {
+  const _RangeToggle({required this.diveId});
+
+  final String diveId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rangeState = ref.watch(rangeSelectionProvider(diveId));
+    // A toggle, so it reads as one of the row's icons with an on state rather
+    // than a pill that shoulders them aside. The label it used to carry is the
+    // tooltip.
+    return IconButton(
+      icon: const Icon(Icons.straighten),
+      tooltip: context.l10n.diveLog_detail_button_rangeAnalysis,
+      visualDensity: VisualDensity.compact,
+      isSelected: rangeState.isEnabled,
+      style: IconButton.styleFrom(
+        backgroundColor: rangeState.isEnabled
+            ? Theme.of(context).colorScheme.secondaryContainer
+            : null,
+        foregroundColor: rangeState.isEnabled
+            ? Theme.of(context).colorScheme.onSecondaryContainer
+            : null,
+      ),
+      onPressed: () {
+        final notifier = ref.read(rangeSelectionProvider(diveId).notifier);
+        rangeState.isEnabled
+            ? notifier.disableRangeMode()
+            : notifier.enableRangeMode();
+      },
+    );
+  }
+}
+
+/// The series the chart draws, resolved by the same one rule the chart itself
+/// uses (#543): the active source's own points on a multi-source dive,
+/// dive.profile otherwise. The point count and the range panel index it, so
+/// they must read the same series the curve was drawn from.
+List<DiveProfilePoint> _watchChartProfile(WidgetRef ref, Dive dive) =>
+    ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
+
+/// Profile point count (bottom-right, inline with x-axis)
+class _ProfilePointCount extends ConsumerWidget {
+  const _ProfilePointCount({required this.dive});
+
+  final Dive dive;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chartProfile = _watchChartProfile(ref, dive);
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Text(
+        context.l10n.diveLog_detail_profilePoints(chartProfile.length),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// Sources bar: tap a chip to make that source drive the whole page; the eye
+/// overlays a source on the chart for comparison. Both of those are per-source
+/// RENDERING, which is why the bar follows usesPerSourceRendering rather than
+/// the source count: on a dive whose sources are consecutive halves there is
+/// no "other source" to switch to or overlay, only the rest of the same dive.
+/// Set primary does not disappear with it: the Data Sources section carries
+/// its own copy, gated on the source count alone. Split lives only there
+/// (data_sources_section.dart).
+class _ProfileSourceBar extends ConsumerWidget {
+  const _ProfileSourceBar({
+    required this.diveId,
+    required this.onSetPrimarySource,
+  });
+
+  final String diveId;
+  final void Function(String readingId) onSetPrimarySource;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Read through the built-in AsyncValue.value, which keeps the previous
+    // value while a provider reloads. The valueOrNull polyfill returns null
+    // during a reload, and these providers reload behind any detail change
+    // tick (the first-view safety review write included): the bar would drop
+    // out for a frame, then come back (#1468).
+    final sourceProfiles =
+        ref.watch(sourceProfilesProvider(diveId).select((a) => a.value)) ??
+        const <String, SourceProfile>{};
+    final dataSources =
+        ref.watch(diveDataSourcesProvider(diveId).select((a) => a.value)) ??
+        const [];
+    final labels = sourceNameLabelsFor(context);
+    // Per-source rendering exists because two computers recording one dive
+    // disagree sample by sample (#543); the halves of a split dive a Combine
+    // stitched together are not that, and drawing one of those would hide the
+    // rest of the dive (#1451). Profiles that have not loaded yet carry no
+    // spans, so this stays true on the first build, exactly as it does today.
+    final isMultiSource = usesPerSourceRendering(
+      dataSources,
+      sourceProfiles.values,
+    );
+    if (!isMultiSource) return const SizedBox.shrink();
+
+    final activeSourceId = ref.watch(activeDiveSourceProvider(diveId));
+    final overlayIds = ref.watch(overlaySourcesProvider(diveId));
+
+    final primarySource =
+        dataSources.where((s) => s.isPrimary).firstOrNull ??
+        dataSources.firstOrNull;
+    final activeSource = activeSourceId == null
+        ? primarySource
+        : dataSources.where((s) => s.id == activeSourceId).firstOrNull ??
+              primarySource;
+
+    // Stable color per source, assigned by data-source order (never changes
+    // as overlays toggle).
+    final sourceColorById = <String, Color>{
+      for (final (index, s) in dataSources.indexed) s.id: sourceColorAt(index),
+    };
+
+    return SourceBar(
+      sources: [
+        for (final s in dataSources)
+          SourceBarItem(
+            sourceId: s.id,
+            label: resolveSourceName(
+              s,
+              labels,
+              edited: sourceProfiles[s.id]?.isEdited ?? false,
+            ),
+            color: sourceColorById[s.id] ?? sourceColorAt(0),
+            isActive: s.id == activeSource?.id,
+            isPrimary: s.isPrimary,
+            isOverlaid: overlayIds.contains(s.id),
+            hasProfile: sourceProfiles[s.id]?.points.isNotEmpty ?? false,
+          ),
+      ],
+      onActivate: (id) {
+        ref.read(activeDiveSourceProvider(diveId).notifier).state = id;
+        final current = ref.read(overlaySourcesProvider(diveId));
+        if (current.contains(id)) {
+          ref.read(overlaySourcesProvider(diveId).notifier).state = {...current}
+            ..remove(id);
+        }
+      },
+      onToggleOverlay: (id, overlaid) {
+        final current = ref.read(overlaySourcesProvider(diveId));
+        ref.read(overlaySourcesProvider(diveId).notifier).state = overlaid
+            ? {...current, id}
+            : ({...current}..remove(id));
+      },
+      onSetPrimary: onSetPrimarySource,
+    );
+  }
+}
+
+/// Range stats panel (when range mode is active)
+class _ProfileRangeStats extends ConsumerWidget {
+  const _ProfileRangeStats({required this.dive});
+
+  final Dive dive;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rangeState = ref.watch(rangeSelectionProvider(dive.id));
+    if (!rangeState.isEnabled || !rangeState.hasSelection) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 16),
+        RangeStatsPanel(
+          diveId: dive.id,
+          profile: _watchChartProfile(ref, dive),
+          units: UnitFormatter(ref.watch(settingsProvider)),
+          tanks: dive.tanks,
+          isRebreather: dive.isRebreather,
+        ),
+      ],
     );
   }
 }

@@ -167,12 +167,12 @@ bool watchHasSacSegments(
 
 /// Whether the Buoyancy card has a modelled result to show.
 ///
-/// [BuoyancySection] renders nothing while loading, on error, or for an
-/// unmodelable dive; this reads the provider the same way, narrowed to
-/// that answer.
+/// `BuoyancySection` renders nothing until it has an outcome, or for an
+/// unmodelable dive, and keeps its last outcome through a reload; this reads
+/// the provider the same way, narrowed to that answer.
 bool watchHasBuoyancy(WidgetRef ref, Dive dive) {
   if (dive.tanks.isEmpty && !diveHasExposureSuit(dive)) return false;
   return ref.watch(
-    buoyancyTwinProvider(dive.id).select((a) => a.valueOrNull != null),
+    buoyancyTwinProvider(dive.id).select((a) => a.value != null),
   );
 }
