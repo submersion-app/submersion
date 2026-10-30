@@ -233,6 +233,10 @@ Expected: the no-key tests FAIL, showing the link overwritten with null.
 
 - [ ] **Step 3: Implement the companion helper**
 
+> Dropped during the build. `_withLocalForOmitted` (#2553) already keeps the local
+> value for an omitted key on both upsert paths, so only the parent reference
+> below was needed. The tests above pin the behaviour.
+
 ```dart
 /// An incoming place as a companion. A build before v328 sends no
 /// `diveCenterId` key at all, which must not read as an unlink: an absent
