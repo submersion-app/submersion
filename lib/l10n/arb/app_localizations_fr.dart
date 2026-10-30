@@ -20592,7 +20592,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_range_title => 'Table de variations';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calcul en cours';
+
+  @override
+  String get plannerCanvas_results_failed => 'Calcul impossible';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Aucune décompression requise';
+
+  @override
+  String get plannerCanvas_results_updating => 'Mise à jour';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

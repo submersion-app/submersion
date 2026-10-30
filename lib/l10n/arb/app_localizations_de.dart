@@ -20512,7 +20512,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_range_title => 'Bereichstabelle';
 
   @override
+  String get plannerCanvas_results_calculating => 'Wird berechnet';
+
+  @override
+  String get plannerCanvas_results_failed => 'Konnte nicht berechnet werden';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Keine Dekompression erforderlich';
+
+  @override
+  String get plannerCanvas_results_updating => 'Wird aktualisiert';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

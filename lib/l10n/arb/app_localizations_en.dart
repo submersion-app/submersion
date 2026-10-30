@@ -20232,7 +20232,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_range_title => 'Range table';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calculating';
+
+  @override
+  String get plannerCanvas_results_failed => 'Could not be calculated';
+
+  @override
   String get plannerCanvas_results_noDeco => 'No decompression required';
+
+  @override
+  String get plannerCanvas_results_updating => 'Updating';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

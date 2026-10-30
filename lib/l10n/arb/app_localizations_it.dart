@@ -20535,8 +20535,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_range_title => 'Tabella di variazione';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calcolo in corso';
+
+  @override
+  String get plannerCanvas_results_failed => 'Impossibile calcolare';
+
+  @override
   String get plannerCanvas_results_noDeco =>
       'Nessuna decompressione necessaria';
+
+  @override
+  String get plannerCanvas_results_updating => 'Aggiornamento';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

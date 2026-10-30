@@ -20082,7 +20082,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_range_title => 'טבלת טווחים';
 
   @override
+  String get plannerCanvas_results_calculating => 'מחשב';
+
+  @override
+  String get plannerCanvas_results_failed => 'לא ניתן לחשב';
+
+  @override
   String get plannerCanvas_results_noDeco => 'לא נדרשת דקומפרסיה';
+
+  @override
+  String get plannerCanvas_results_updating => 'מעדכן';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

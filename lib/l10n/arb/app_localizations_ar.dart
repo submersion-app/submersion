@@ -20827,7 +20827,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_range_title => 'جدول النطاقات';
 
   @override
+  String get plannerCanvas_results_calculating => 'جارٍ الحساب';
+
+  @override
+  String get plannerCanvas_results_failed => 'تعذّر الحساب';
+
+  @override
   String get plannerCanvas_results_noDeco => 'لا يلزم تخفيف الضغط';
+
+  @override
+  String get plannerCanvas_results_updating => 'جارٍ التحديث';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

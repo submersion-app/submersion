@@ -20462,7 +20462,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_range_title => 'Tartománytáblázat';
 
   @override
+  String get plannerCanvas_results_calculating => 'Számítás';
+
+  @override
+  String get plannerCanvas_results_failed => 'Nem sikerült kiszámítani';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Nincs szükség dekompresszióra';
+
+  @override
+  String get plannerCanvas_results_updating => 'Frissítés';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

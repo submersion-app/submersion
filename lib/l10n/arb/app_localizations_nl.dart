@@ -20405,7 +20405,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_range_title => 'Bereiktabel';
 
   @override
+  String get plannerCanvas_results_calculating => 'Berekenen';
+
+  @override
+  String get plannerCanvas_results_failed => 'Kon niet worden berekend';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Geen decompressie vereist';
+
+  @override
+  String get plannerCanvas_results_updating => 'Bijwerken';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

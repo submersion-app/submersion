@@ -32658,11 +32658,29 @@ abstract class AppLocalizations {
   /// **'Range table'**
   String get plannerCanvas_range_title;
 
+  /// No description provided for @plannerCanvas_results_calculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating'**
+  String get plannerCanvas_results_calculating;
+
+  /// No description provided for @plannerCanvas_results_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not be calculated'**
+  String get plannerCanvas_results_failed;
+
   /// No description provided for @plannerCanvas_results_noDeco.
   ///
   /// In en, this message translates to:
   /// **'No decompression required'**
   String get plannerCanvas_results_noDeco;
+
+  /// No description provided for @plannerCanvas_results_updating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating'**
+  String get plannerCanvas_results_updating;
 
   /// No description provided for @plannerCanvas_sac_useLogged.
   ///
