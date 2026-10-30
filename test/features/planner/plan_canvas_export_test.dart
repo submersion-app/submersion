@@ -97,12 +97,12 @@ void main() {
     child: const PlanCanvasPage(),
   );
 
-  /// A slate needs a schedule to print, and a new plan has none, so anything
-  /// that gets as far as exporting one adds a dive first.
   DivePlanNotifier plannerOf(WidgetTester tester) => ProviderScope.containerOf(
     tester.element(find.byType(PlanCanvasPage)),
   ).read(divePlanNotifierProvider.notifier);
 
+  /// A slate needs a schedule to print, and a new plan has none, so anything
+  /// that gets as far as exporting one adds a dive first.
   Future<void> seedPlan(WidgetTester tester) async {
     plannerOf(tester).addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
     await tester.pumpAndSettle();
@@ -257,6 +257,16 @@ void main() {
   });
 
   group('a plan with nothing to print (#3795)', () {
+    Future<void> pumpPlanner(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(harness());
+      await tester.pumpAndSettle();
+    }
+
     Future<void> openOverflow(WidgetTester tester) async {
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
@@ -272,13 +282,7 @@ void main() {
         .enabled;
 
     testWidgets('a new plan offers no slate to export', (tester) async {
-      tester.view.physicalSize = const Size(1400, 1000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(harness());
-      await tester.pumpAndSettle();
+      await pumpPlanner(tester);
       await openOverflow(tester);
 
       expect(slateEnabled(tester), isFalse);
@@ -293,13 +297,7 @@ void main() {
     });
 
     testWidgets('the slate comes back with the first segment', (tester) async {
-      tester.view.physicalSize = const Size(1400, 1000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(harness());
-      await tester.pumpAndSettle();
+      await pumpPlanner(tester);
       await seedPlan(tester);
       await openOverflow(tester);
 
@@ -309,13 +307,7 @@ void main() {
     testWidgets('resetting the plan takes the slate away again', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(1400, 1000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(harness());
-      await tester.pumpAndSettle();
+      await pumpPlanner(tester);
       await seedPlan(tester);
       plannerOf(tester).newPlan();
       await tester.pumpAndSettle();
@@ -325,13 +317,7 @@ void main() {
     });
 
     testWidgets('the plan file can still be exported', (tester) async {
-      tester.view.physicalSize = const Size(1400, 1000);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(harness());
-      await tester.pumpAndSettle();
+      await pumpPlanner(tester);
       await openOverflow(tester);
 
       // A .subplan still carries the tanks and settings a slate cannot show.
