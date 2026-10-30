@@ -343,7 +343,14 @@ void main() {
       tester,
     ) async {
       final roster = Completer<List<(ConnectedAccount, AccountStatus)>>();
-      await pumpPage(tester, rosterLoad: () => roster.future);
+      var reads = 0;
+      await pumpPage(
+        tester,
+        rosterLoad: () {
+          reads++;
+          return roster.future;
+        },
+      );
 
       await tester.tap(find.byKey(const Key('backup-copy-change')));
       await tester.pump();
@@ -357,6 +364,8 @@ void main() {
 
       expect(find.text('Your accounts'), findsOneWidget);
       expect(inSheet('Dropbox'), findsOneWidget);
+      // The row holds the one read, and the sheet shares it.
+      expect(reads, 1);
     });
 
     testWidgets('accounts that cannot be read say so instead of nothing', (
