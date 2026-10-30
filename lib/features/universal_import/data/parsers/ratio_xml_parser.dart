@@ -216,6 +216,7 @@ class RatioXmlParser implements ImportParser {
     int? prevHe;
     double? minTemp;
     int? lastRuntimeS;
+    int? firstCns;
     int? lastCns;
     int? lastOtu;
     int? firstGfLow;
@@ -271,6 +272,7 @@ class RatioXmlParser implements ImportParser {
 
       // CNS
       final cns = _intElement(sample, 'CNS');
+      firstCns ??= cns;
       if (cns != null && cns > 0) {
         point['cns'] = cns.toDouble();
         lastCns = cns;
@@ -360,6 +362,11 @@ class RatioXmlParser implements ImportParser {
       diveData['waterTemp'] = minTemp;
     }
 
+    // CNS at start of dive: what earlier dives left, zero included.
+    if (firstCns != null) {
+      diveData['cnsStart'] = firstCns.toDouble();
+    }
+
     // CNS at end of dive
     if (lastCns != null && lastCns > 0) {
       diveData['cnsEnd'] = lastCns.toDouble();
@@ -387,10 +394,10 @@ class RatioXmlParser implements ImportParser {
     }
 
     // Tissue state the computer reported: first sample as the dive start,
-    // last sample as the dive end.
+    // last sample as the dive end. Its CNS and the deco model are the keys
+    // above, not the snapshot's (issue #2555).
     if (firstTissue != null && lastTissue != null) {
       diveData['computerTissue'] = ComputerTissueSnapshot(
-        algorithm: diveData['decoAlgorithm'] as String?,
         start: firstTissue.toState(),
         end: lastTissue.toState(),
       );
@@ -526,12 +533,11 @@ class RatioXmlParser implements ImportParser {
 }
 
 /// One sample's per-compartment tissue loading, as `<tissueGroupNPercent>`
-/// elements numbered from 1, with the CNS the same sample reported.
+/// elements numbered from 1.
 class _TissueReading {
-  const _TissueReading({required this.loadPercent, this.cnsPercent});
+  const _TissueReading({required this.loadPercent});
 
   final List<double> loadPercent;
-  final double? cnsPercent;
 
   /// Reads groups 1, 2, ... until the first missing or non-numeric one.
   /// Null when group 1 is absent or unreadable.
@@ -544,16 +550,11 @@ class _TissueReading {
       values.add(value);
     }
     if (values.isEmpty) return null;
-
-    final cns = RatioXmlParser._intElement(sample, 'CNS');
-    return _TissueReading(
-      loadPercent: List.unmodifiable(values),
-      cnsPercent: cns?.toDouble(),
-    );
+    return _TissueReading(loadPercent: List.unmodifiable(values));
   }
 
   ComputerTissueState toState() =>
-      ComputerTissueState(loadPercent: loadPercent, cnsPercent: cnsPercent);
+      ComputerTissueState(loadPercent: loadPercent);
 }
 
 /// Internal helper to track tank pressure readings across samples.

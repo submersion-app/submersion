@@ -3,6 +3,8 @@ import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
@@ -802,6 +804,10 @@ Future<List<AssetInfo>?> showPhotoPicker({
   MediaAttachTarget? target,
   List<String>? initialFilePaths,
 }) {
+  // Nothing comes in while demo mode is on (#3708): the note, not a picker.
+  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+    return Future<List<AssetInfo>?>.value();
+  }
   final startTime = diveStartTime.subtract(buffer);
   final endTime = diveEndTime.add(buffer);
 

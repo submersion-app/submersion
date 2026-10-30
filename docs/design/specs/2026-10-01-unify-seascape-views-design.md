@@ -2,6 +2,23 @@
 
 Issue: #2694
 
+## Revisions (post-implementation)
+
+- **Decision 4 reversed (issue #3571): the dive/route variant no longer
+  draws every other dive's path.** The merge step below was built to
+  combine the site's full scene -- every dive at the site, as static lines
+  -- with the one active dive's/route's path on top. That turned out to be
+  the wrong default: opening one dive or one route showed the diver every
+  OTHER dive recorded at that site too, with no way to tell which path was
+  the one they opened besides the scrub bar. `siteSeascapeProvider` now
+  takes an `isolatePaths` flag (`SiteSeascapeRequest`); `SiteTerrainPane`
+  sets it whenever `playbackContext != null`, which skips reconstructing
+  every other dive's path entirely rather than building and then hiding
+  them. The two pure site views (`SiteSeascapeSection`, `SiteScapeView`)
+  are untouched: they never set `playbackContext`, so they keep showing
+  every dive, which is still the correct behavior there. See
+  `site_seascape_providers.dart`'s `SiteSeascapeRequest` doc comment.
+
 ## Problem
 
 Three separate presentation-layer implementations all render "the terrain
@@ -76,6 +93,10 @@ terrain via a free-floating anchor point (`route.anchor`, see
    new low-level structure (`ScrubPath` already exists and the pane already
    rebuilds `Scene3d` instances for the LOD patch layer, see `displayScene` in
    `site_terrain_pane.dart`), but a real, previously unnamed step.
+   **Reversed by issue #3571** (see "Revisions" above): `site.layers`/
+   `site.markers` no longer carry every other dive by the time this merge
+   runs, because the site scene itself is fetched with `isolatePaths: true`
+   for this variant.
 5. **`SiteTerrainPane` needs a second terrain-loading path, gated on
    `NavTrack.siteId`, not on "is this a nav-track."** `NavTrack` already has
    an optional `siteId` field that `navTrackSceneProvider` currently ignores

@@ -102,6 +102,8 @@ void main() {
       'tank_slung': SubmersionIcons.tankSlung,
       'tank_pony': SubmersionIcons.tankPony,
       'tank_rebreather': SubmersionIcons.tankRebreather,
+      'first_stage': SubmersionIcons.firstStage,
+      'second_stage': SubmersionIcons.secondStage,
     };
     final cmap = cmaps[SubmersionIcons.fontFamily]!;
     for (final entry in drawn.entries) {

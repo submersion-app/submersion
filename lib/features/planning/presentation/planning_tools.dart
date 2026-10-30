@@ -85,6 +85,13 @@ const String kDivePlannerToolId = 'dive-planner';
 /// Id of the gas calculators hub, which owns a second level of tools.
 const String kGasCalculatorsToolId = 'gas-calculators';
 
+/// Id of the full planned-dives list.
+///
+/// Like the planner, it is a full-page push: it carries its own sort and
+/// grouping controls over a potentially long list, which does not fit
+/// usefully beside a 440px master pane.
+const String kPlannedDivesToolId = 'planned-dives';
+
 /// The calculators and readouts listed under the planner, in display order.
 /// Each of these opens in the detail pane on desktop unless it declares
 /// another [PlanningTool.presentation].

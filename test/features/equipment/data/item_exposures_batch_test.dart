@@ -14,7 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 /// [EquipmentRepository.getItemExposures] is [getItemExposure] for many
 /// items at once. It must agree with the single-item lookup on every join
-/// path, because the service clocks read one and the reminders the other.
+/// path, because an item's page reads one and every list-wide surface the other.
 void main() {
   late AppDatabase db;
   late EquipmentRepository repo;
@@ -62,6 +62,7 @@ void main() {
     String role = 'backGas',
     String? equipmentId,
     String? regulatorId,
+    String? extraRegulators,
     String? serial,
   }) => db
       .into(db.diveTanks)
@@ -71,6 +72,7 @@ void main() {
           tankRole: Value(role),
           equipmentId: Value(equipmentId),
           regulatorEquipmentId: Value(regulatorId),
+          extraRegulatorIds: Value(extraRegulators),
           transmitterSerial: Value(serial),
         ),
       );
@@ -330,4 +332,44 @@ void main() {
   test('an empty list reads nothing', () async {
     expect(await repo.getItemExposures(const []), isEmpty);
   });
+
+  test(
+    'an extra regulator and its part agree with the single lookup (#3375)',
+    () async {
+      await insertDive('d1', t1);
+      final first = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'A', type: EquipmentType.regulator),
+      );
+      final extra = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'B', type: EquipmentType.regulator),
+      );
+      await tank(
+        'k1',
+        'd1',
+        o2: 32,
+        regulatorId: first.id,
+        extraRegulators: '["${extra.id}"]',
+      );
+      final stage = await part(
+        'First stage',
+        EquipmentType.firstStage,
+        extra.id,
+        installed: DateTime.utc(2025, 1, 1),
+      );
+      final items = [first, extra, stage];
+      final batched = await repo.getItemExposures(items);
+      for (final item in items) {
+        expect(
+          [for (final s in batched[item.id]!.samples) s.diveId],
+          ['d1'],
+          reason: item.name,
+        );
+        expect(
+          shape(batched[item.id]!),
+          shape(await repo.getItemExposure(item)),
+          reason: item.name,
+        );
+      }
+    },
+  );
 }

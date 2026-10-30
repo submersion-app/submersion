@@ -7,9 +7,11 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 /// A repository whose [getDeviceId] always throws, to exercise the launch-safe
@@ -52,6 +54,19 @@ void main() {
   });
 
   group('reconcileDeviceIdentity', () {
+    test(
+      'stands down in demo mode: no anchors seeded, nothing rotated (#3708)',
+      () async {
+        DemoModeGate.instance.debugActive = true;
+        addTearDown(applyGlobalTestDefaults);
+
+        final status = await initializer.reconcileDeviceIdentity();
+
+        expect(status, DeviceIdentityStatus.demoMode);
+        expect(prefs.getKeys(), isEmpty);
+      },
+    );
+
     test(
       'seeds the sentinel on first run without touching the baseline',
       () async {

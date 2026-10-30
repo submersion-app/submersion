@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/mock_providers.dart';
 
 DiveSite _site({
@@ -37,6 +39,7 @@ Future<void> _pump(
   ValueListenable<String?>? selection,
   AppSettings? settings,
   BathymetryGrid? grid,
+  ThemeData? theme,
 }) async {
   final base = await getBaseOverrides(
     settingsNotifier: settings == null ? null : MockSettingsNotifier(settings),
@@ -57,6 +60,7 @@ Future<void> _pump(
         ),
       ],
       child: MaterialApp(
+        theme: theme,
         // Pinned: the morph test finds the terrain button by its English
         // tooltip.
         locale: const Locale('en'),
@@ -140,6 +144,23 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
     expect(find.text('Blue Hole'), findsOneWidget);
+  });
+
+  // A selected marker fills with primary, which dark themes make a light
+  // tone; the diver glyph stayed white on it (about 1.5:1).
+  testWidgets('selected marker glyph reads on its fill in dark mode', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sites: [SiteWithDiveCount(site: _site(), diveCount: 3)],
+      selectedId: 'site-1',
+      theme: submersionDark,
+    );
+
+    final glyph = find.byIcon(Icons.scuba_diving);
+    expect(glyph, findsOneWidget);
+    expect(glyphOnFillContrast(tester, glyph), greaterThanOrEqualTo(4.5));
   });
 
   testWidgets('depth overlay drapes the selected site when toggled on', (

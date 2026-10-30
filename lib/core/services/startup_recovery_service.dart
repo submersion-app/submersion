@@ -145,6 +145,9 @@ class StartupRecoveryService {
   /// location is touched: the file that would not open stays exactly where it
   /// is, which is the whole reason this is safe to offer on a failure screen.
   Future<void> adopt(AdoptableDiveLog found) async {
+    // Another dive log opens next: the storage cleanup must not judge the
+    // cloud media store by sync knowledge about the one it replaces.
+    await _locationService.markDatabaseSwitched();
     await _locationService.saveStorageConfig(
       StorageConfig(
         mode: StorageLocationMode.customFolder,
@@ -184,6 +187,7 @@ class StartupRecoveryService {
   /// deleted, so choosing that folder again later picks the dive log back up.
   Future<void> useDefaultLocation() async {
     final left = (await _locationService.getStorageConfig()).customFolderPath;
+    await _locationService.markDatabaseSwitched();
     await _locationService.resetToDefault();
     _log.info(
       'Returned to the default storage location at the diver\'s request; '

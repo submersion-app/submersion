@@ -361,6 +361,8 @@ class DiveReimportService {
         diveMode: diveMode != null
             ? Value(diveMode.code)
             : const Value.absent(),
+        // NOT NULL: a parse without a start CNS puts back the default.
+        cnsStart: Value(_asDouble(diveData['cnsStart']) ?? 0),
         cnsEnd: Value(_asDouble(diveData['cnsEnd'])),
         otu: Value(_asDouble(diveData['otu'])),
         decoAlgorithm: Value(decoAlgorithm),

@@ -1,7 +1,7 @@
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart'
-    show AppDatabase, TripCylindersCompanion;
+    show AppDatabase, DivesCompanion, TripCylindersCompanion;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -247,6 +247,28 @@ void main() {
 
       expect(await linkOf('t1'), isNull);
       expect(await pendingTank('t1'), 1);
+    });
+
+    test('a bulk field write that moves the trip drops old links', () async {
+      // Bulk edit's Trip row and a logbook rule's "set trip" both write the
+      // trip through bulkUpdateFields.
+      await linkedDive();
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repo.bulkUpdateFields(['d1'], DivesCompanion(tripId: Value(tripB)));
+
+      expect(await linkOf('t1'), isNull);
+      expect(await pendingTank('t1'), 1);
+    });
+
+    test('a bulk field write leaving the trip alone keeps the link', () async {
+      await linkedDive();
+      await repo.bulkUpdateFields([
+        'd1',
+      ], const DivesCompanion(notes: Value('Calm')));
+      expect(await linkOf('t1'), 'slot-a');
+      await repo.bulkUpdateFields(['d1'], DivesCompanion(tripId: Value(tripA)));
+      expect(await linkOf('t1'), 'slot-a');
     });
 
     test('a bulk trip change to the same trip keeps the link', () async {

@@ -74,6 +74,17 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertEquipmentDefaultStatusesColumn();
     // v290 backstop: dive_plan_segments.split_at_configured_rate.
     await _assertSegmentSplitAtRateColumn();
+    // v296 backstop: media.color_adjustment, diver_settings.auto_color_correction.
+    await _assertColorCorrectionColumns();
+    // v304 backstop: diver_settings planner Setup-accordion global defaults.
+    await _assertPlannerDefaultColumns();
+    // v305 backstop: dive_plans Setup-accordion columns made nullable.
+    await _assertDivePlanSetupFieldsNullable();
+    // v306 backstop: dive_plan_missions battery_reserve_fraction/
+    // walk_speed_mps made nullable.
+    await _assertDivePlanMissionFieldsNullable();
+    // v307 onward (before_open_settings_columns.dart).
+    await _assertSettingsColumnsFromV307();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do
@@ -112,6 +123,8 @@ extension BeforeOpenBackstops on AppDatabase {
 
     // v136 backstop: re-assert media_stores.last_sweep_at.
     await _assertMediaStoresLastSweepColumn();
+    await _assertMediaStoresAccountColumn(); // v302
+    await _assertMediaRemoteStoreColumn(); // v303
 
     // v137 backstop: re-assert dives.weather_code.
     await _assertWeatherCodeColumn();
@@ -205,6 +218,18 @@ extension BeforeOpenBackstops on AppDatabase {
     // v128 backstop: re-assert the pre-dive checklist tables and their
     // built-in templates (same rationale as the dive-types re-seed).
     await _assertPreDiveChecklistSchema();
+
+    // v299 backstop: pre_dive_checklist_template_sections,
+    // pre_dive_checklist_template_items.section_id and the section
+    // backfill+drop (idempotent; issue #3360). Must run after
+    // _assertPreDiveChecklistSchema and before _seedBuiltInPreDiveTemplates:
+    // the schema assert above can recreate pre_dive_checklist_template_items
+    // from scratch using the current table definition (section_id's foreign
+    // key included), so the table that key points to must exist before
+    // anything -- including the seed's own DELETE in
+    // kRetireLegacyGueEdgeItemsSql -- touches pre_dive_checklist_template_items.
+    await _assertAndBackfillPreDiveTemplateSections();
+
     await _seedBuiltInPreDiveTemplates();
 
     // v129 backstop: re-assert quality_findings schema.
@@ -220,6 +245,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // database stranded at any lower version by a parallel-branch
     // version collision self-heals here.
     await _assertCylinderConfigSchema();
+    await _assertCylinderConfigItemModColumn(); // v314
 
     // v142 backstop: re-assert trips.return_flight_at.
     await _assertTripReturnFlightColumn();
@@ -762,6 +788,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // #1288 pass, so a computer it just registered gets its file
     // connections too. Local-only, deterministic ids, no HLC bump.
     await _seedDiveComputerConnections();
+    await _healDeviceGear();
 
     // Issue #3343: the v62 view_configs unique index, which a fresh install
     // never got (before_open_view_configs.dart).

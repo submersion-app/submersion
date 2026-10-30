@@ -169,6 +169,9 @@ void main() {
     );
 
     expect(result.consolidatedCount, equals(1));
+    // The target is an existing dive the GPS track sweep must reach.
+    expect(result.updatedExistingDiveIds, ['target-dive']);
+    expect(result.importedDiveIds, isEmpty);
 
     // 4. Full fidelity: the target dive now carries the secondary's
     // distinct-gas tank AND its gas-change event -- neither of which the

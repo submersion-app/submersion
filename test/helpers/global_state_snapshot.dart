@@ -12,6 +12,7 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -56,6 +57,7 @@ class GlobalStateSnapshot {
       'SensorSummaryScheduler.enabled': SensorSummaryScheduler.enabled,
       'GoogleFonts.config.allowRuntimeFetching':
           GoogleFonts.config.allowRuntimeFetching,
+      'DemoModeGate.instance.isActive': DemoModeGate.instance.isActive,
       'canShareFiles': canShareFiles,
       'debugPrint': debugPrint,
       'FlutterError.onError': FlutterError.onError,

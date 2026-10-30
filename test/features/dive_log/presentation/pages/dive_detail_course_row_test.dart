@@ -164,6 +164,22 @@ void main() {
     expect(find.text('COURSE_STUB_PAGE course-2'), findsOneWidget);
   });
 
+  testWidgets('later course rows line up under the first (#3678)', (
+    tester,
+  ) async {
+    await pumpDetail(tester, diveWith(courseIds: [course.id, second.id]));
+
+    final rows = find.byType(DiveCourseRows);
+    double leftOf(String name) => tester
+        .getTopLeft(find.descendant(of: rows, matching: find.text(name)))
+        .dx;
+    expect(leftOf('Rescue Diver'), leftOf('Advanced Open Water'));
+    expect(
+      leftOf('Advanced Open Water'),
+      tester.getTopRight(find.text('Training Courses')).dx + 16,
+    );
+  });
+
   testWidgets('the signature header shows a chip per course (#2515)', (
     tester,
   ) async {

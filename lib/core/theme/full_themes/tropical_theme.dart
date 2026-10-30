@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/derived_neutrals.dart';
 import 'package:submersion/core/theme/tinted_containers.dart';
 
 // ---------------------------------------------------------------------------
@@ -67,18 +68,20 @@ final ThemeData tropicalLight = ThemeData(
     FeatureAccentColors.light,
     StatusColors.light,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.light,
-      primary: _primaryLight,
-      onPrimary: Color(0xFFFFFFFF),
-      secondary: _secondaryLight,
-      onSecondary: Color(0xFFFFFFFF),
-      error: _errorColor,
-      onError: _onErrorColor,
-      surface: _surfaceLight,
-      onSurface: Color(0xFF1A2A26),
-      surfaceContainerLow: _cardLight,
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.light,
+        primary: _primaryLight,
+        onPrimary: Color(0xFFFFFFFF),
+        secondary: _secondaryLight,
+        onSecondary: Color(0xFFFFFFFF),
+        error: _errorColor,
+        onError: _onErrorColor,
+        surface: _surfaceLight,
+        onSurface: Color(0xFF1A2A26),
+        surfaceContainerLow: _cardLight,
+      ),
     ),
   ),
   textTheme: _buildTextTheme(Brightness.light),
@@ -121,18 +124,20 @@ final ThemeData tropicalDark = ThemeData(
     FeatureAccentColors.dark,
     StatusColors.dark,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.dark,
-      primary: _primaryDark,
-      onPrimary: Color(0xFF0A1A18),
-      secondary: _secondaryDark,
-      onSecondary: Color(0xFF1A0A06),
-      error: _errorDark,
-      onError: _onErrorDark,
-      surface: _surfaceDark,
-      onSurface: Color(0xFFE0F0EC),
-      surfaceContainerLow: _cardDark,
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.dark,
+        primary: _primaryDark,
+        onPrimary: Color(0xFF0A1A18),
+        secondary: _secondaryDark,
+        onSecondary: Color(0xFF1A0A06),
+        error: _errorDark,
+        onError: _onErrorDark,
+        surface: _surfaceDark,
+        onSurface: Color(0xFFE0F0EC),
+        surfaceContainerLow: _cardDark,
+      ),
     ),
   ),
   textTheme: _buildTextTheme(Brightness.dark),

@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Creates a place (no [existing]) or edits one. Returns the saved place, or
 /// null when cancelled. [initialName] prefills a new place's name, as the
@@ -165,7 +166,7 @@ class _EquipmentLocationEditDialogState
                 onChanged: (k) => setState(() => _kind = k ?? _kind),
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              MarkdownNotesField(
                 key: const ValueKey('equipment_location_notes'),
                 controller: _notes,
                 maxLines: 2,

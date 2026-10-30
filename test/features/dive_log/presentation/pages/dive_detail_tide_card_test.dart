@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 // The dive's stored tide record carries wall-clock-as-UTC instants: the digits
 // the diver saw, flagged UTC. The tide card must print them verbatim -- a
@@ -231,6 +232,31 @@ void main() {
     );
 
     expect(find.textContaining('at 14:20'), findsNothing);
+  });
+
+  testWidgets('the State icon sits in the label column (#3678)', (
+    tester,
+  ) async {
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+    );
+
+    final column = detailValueLeft(tester, 'State');
+    expect(detailValueLeft(tester, 'Height'), column);
+    expect(detailValueLeft(tester, 'Rate of Change'), column);
+    // The state icon leads the State label inside the label cell.
+    final icon = find.descendant(
+      of: detailRowFor('State'),
+      matching: find.byType(Icon),
+    );
+    expect(
+      tester.getTopLeft(icon).dx,
+      lessThan(tester.getTopLeft(find.text('State')).dx),
+    );
   });
 
   testWidgets('rate of change uses the shared tide-rate format (#3028)', (

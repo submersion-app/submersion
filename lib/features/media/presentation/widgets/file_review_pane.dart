@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/dive_group_header_text.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/capture_time_offset_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -19,8 +24,8 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// parent, and the pane's own actions -- the Unmatched group's bulk
 /// "add all to this dive", plus each [FileReviewCard]'s assign and remove --
 /// are dispatched to [filesTabNotifierProvider], which owns every mutation.
-/// It is a [ConsumerWidget] rather than a [StatelessWidget] only to reach
-/// that notifier.
+/// It is a [ConsumerWidget] to reach that notifier, and to read the dive list
+/// and the diver's settings that each dive group's header is built from.
 class FileReviewPane extends ConsumerWidget {
   final FilesTabState state;
 
@@ -56,6 +61,23 @@ class FileReviewPane extends ConsumerWidget {
       state.match.unmatched.length,
     );
 
+    // The same list the matcher routed these files with (diveBoundsProvider),
+    // so it is normally already loaded. Until it is, a group's header falls
+    // back to a plain "Dive" rather than the id.
+    final dives = {
+      for (final d in ref.watch(divesProvider).value ?? const <Dive>[]) d.id: d,
+    };
+    final units = UnitFormatter(ref.watch(settingsProvider));
+    final headers = {
+      for (final entry in state.match.matched.entries)
+        entry.key: diveGroupHeaderText(
+          dive: dives[entry.key],
+          fileCount: entry.value.length,
+          l10n: context.l10n,
+          units: units,
+        ),
+    };
+
     final unmatchedCount = Text(
       context.l10n.media_photoPicker_files_groupCount(
         state.match.unmatched.length,
@@ -80,16 +102,8 @@ class FileReviewPane extends ConsumerWidget {
             children: [
               for (final entry in state.match.matched.entries)
                 ExpansionTile(
-                  title: Text(
-                    context.l10n.media_photoPicker_files_diveGroupTitle(
-                      entry.key,
-                    ),
-                  ),
-                  subtitle: Text(
-                    context.l10n.media_photoPicker_files_groupCount(
-                      entry.value.length,
-                    ),
-                  ),
+                  title: Text(headers[entry.key]!.title),
+                  subtitle: Text(headers[entry.key]!.subtitle),
                   initiallyExpanded: true,
                   children: [
                     for (final f in entry.value)

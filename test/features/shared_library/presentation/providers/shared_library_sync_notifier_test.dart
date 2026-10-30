@@ -18,6 +18,7 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/shared_library_test_keys.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 void main() {
   tearDown(SyncCoordinator.reset);
@@ -324,6 +325,7 @@ class _RecordingBackups extends LibraryBackupService {
     : super(
         store: SharedLibraryStore(),
         memberships: SharedLibraryMembershipService(
+          accountById: anyTestAccount,
           store: SharedLibraryStore(),
           transportFor: ({required account, required prefix}) =>
               throw UnimplementedError(),

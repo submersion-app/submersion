@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 
 /// Turns template items into session-item snapshots at session start.
@@ -25,8 +26,13 @@ class SessionItemComposer {
 
   static const _uuid = Uuid();
 
-  static List<PreDiveSessionItem> compose({
+  static ({
+    List<PreDiveSessionItem> items,
+    List<PreDiveSessionSection> sections,
+  })
+  compose({
     required List<PreDiveChecklistTemplateItem> templateItems,
+    List<PreDiveChecklistTemplateSection> templateSections = const [],
     EquipmentSet? equipmentSet,
     List<EquipmentItem> equipmentItems = const [],
     // Per-item equipment choice for 'equipment'-typed items, keyed by
@@ -55,6 +61,28 @@ class SessionItemComposer {
     };
     final templateItemById = {for (final t in sorted) t.id: t};
 
+    // Same mint-up-front pattern as sessionIdByTemplateId, one level up:
+    // a session section is a frozen copy of the template section (issue
+    // #3360), never a reference to it, so a later template edit or
+    // deletion cannot alter a past session's shape.
+    final sessionIdByTemplateSectionId = <String, String>{
+      for (final s in templateSections) s.id: _uuid.v4(),
+    };
+    final sections = [
+      for (final s in templateSections)
+        PreDiveSessionSection(
+          id: sessionIdByTemplateSectionId[s.id]!,
+          sessionId: '',
+          title: s.title,
+          sortOrder: s.sortOrder,
+          createdAt: now,
+          updatedAt: now,
+        ),
+    ];
+    String? remapSection(String? templateSectionId) => templateSectionId == null
+        ? null
+        : sessionIdByTemplateSectionId[templateSectionId];
+
     final out = <PreDiveSessionItem>[];
     var order = 0;
 
@@ -66,7 +94,7 @@ class SessionItemComposer {
           PreDiveSessionItem(
             id: sessionIdByTemplateId[t.id]!,
             sessionId: '',
-            section: t.section,
+            sectionId: remapSection(t.sectionId),
             title: t.title,
             notes: t.notes,
             sortOrder: order++,
@@ -87,7 +115,7 @@ class SessionItemComposer {
             PreDiveSessionItem(
               id: _uuid.v4(),
               sessionId: '',
-              section: t.section,
+              sectionId: remapSection(t.sectionId),
               title: gear.name,
               sortOrder: order++,
               itemType: PreDiveItemType.check,
@@ -132,7 +160,7 @@ class SessionItemComposer {
         PreDiveSessionItem(
           id: sessionIdByTemplateId[t.id]!,
           sessionId: '',
-          section: t.section,
+          sectionId: remapSection(t.sectionId),
           title: t.title,
           notes: t.notes,
           sortOrder: order++,
@@ -152,6 +180,6 @@ class SessionItemComposer {
         ),
       );
     }
-    return out;
+    return (items: out, sections: sections);
   }
 }

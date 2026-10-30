@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_item_edit_sheet.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/checklists/presentation/widgets/checklist_it
 import 'package:submersion/features/checklists/presentation/widgets/save_as_template_dialog.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Full checklist UI for a trip: items grouped by category, add-item
 /// affordance, and an overflow menu with apply-template, save-as-template
@@ -22,15 +25,20 @@ class TripChecklistSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(tripChecklistProvider(trip.id));
+    final sectionsAsync = ref.watch(tripChecklistSectionsProvider(trip.id));
 
     // Render from AsyncValue.value so reloads do not flash a spinner
     // (established pattern - see project memory on AsyncValue flicker).
     final items = itemsAsync.value;
-    if (items == null) {
-      if (itemsAsync.hasError) {
+    final sections = sectionsAsync.value;
+    if (items == null || sections == null) {
+      if (itemsAsync.hasError || sectionsAsync.hasError) {
+        final error = itemsAsync.hasError
+            ? itemsAsync.error
+            : sectionsAsync.error;
         return Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(itemsAsync.error.toString()),
+          child: Text(error.toString()),
         );
       }
       return const Center(
@@ -41,16 +49,27 @@ class TripChecklistSection extends ConsumerWidget {
       );
     }
 
-    final categorySuggestions = _distinctCategories(items);
+    // Folded case-insensitively so two differently-cased section titles
+    // don't both show up in the add/edit sheet's suggestions.
+    final seenSectionTitles = <String>{};
+    final sectionTitles = [
+      for (final s in sections)
+        if (seenSectionTitles.add(s.title.toLowerCase())) s.title,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeader(context, ref, items),
-        if (items.isEmpty)
-          _buildEmptyState(context)
-        else
-          ..._buildGroupedItems(context, ref, items, categorySuggestions),
+        // A diver may lay out empty sections before adding any items (the
+        // whole point of issue #3360's "create a section empty" case), so
+        // the planning invitation is shown alongside the section editor,
+        // not instead of it -- otherwise a brand new trip with neither
+        // items nor sections would have no way to create that first
+        // section at all, since the only "+ Add section" affordance lives
+        // inside the editor this would otherwise hide.
+        if (items.isEmpty && sections.isEmpty) _buildEmptyState(context),
+        _buildGroupedItems(context, ref, items, sections, sectionTitles),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
@@ -59,7 +78,7 @@ class TripChecklistSection extends ConsumerWidget {
             onPressed: () => showChecklistItemEditSheet(
               context: context,
               tripId: trip.id,
-              categorySuggestions: categorySuggestions,
+              categorySuggestions: sectionTitles,
             ),
           ),
         ),
@@ -166,7 +185,7 @@ class TripChecklistSection extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    await repository.deleteByTripId(trip.id);
+    await repository.clearItems(trip.id);
     // The wipe stands either way, being the user's confirmed intent, but its
     // confirmation belongs to a page that may be gone: the route can be
     // popped while the dialog is open or while the delete is in flight.
@@ -194,71 +213,81 @@ class TripChecklistSection extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildGroupedItems(
+  Widget _buildGroupedItems(
     BuildContext context,
     WidgetRef ref,
     List<TripChecklistItem> items,
-    List<String> categorySuggestions,
+    List<domain.TripChecklistSection> sections,
+    List<String> sectionTitles,
   ) {
-    final theme = Theme.of(context);
     final repository = ref.read(tripChecklistRepositoryProvider);
-    // Group by category preserving first-seen order; null category last.
-    // Keyed case-insensitively so 'diving' and 'Diving' are one group,
-    // labelled with the casing that appeared first.
-    final labels = <String, String>{};
-    final grouped = <String?, List<TripChecklistItem>>{};
-    for (final item in items.where((i) => i.category != null)) {
-      final key = item.category!.toLowerCase();
-      final label = labels.putIfAbsent(key, () => item.category!);
-      grouped.putIfAbsent(label, () => []).add(item);
+    final itemsBySection = <String, List<TripChecklistItem>>{
+      for (final s in sections) s.id: [],
+    };
+    final unsectioned = <TripChecklistItem>[];
+    for (final item in items) {
+      final bucket = item.sectionId == null
+          ? null
+          : itemsBySection[item.sectionId];
+      if (bucket == null) {
+        unsectioned.add(item);
+      } else {
+        bucket.add(item);
+      }
     }
-    final uncategorized = items.where((i) => i.category == null).toList();
-    if (uncategorized.isNotEmpty) grouped[null] = uncategorized;
 
-    final widgets = <Widget>[];
-    grouped.forEach((category, groupItems) {
-      if (category != null) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 2),
-            child: Text(
-              category,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-        );
-      }
-      for (final item in groupItems) {
-        widgets.add(
-          ChecklistItemTile(
-            item: item,
-            showOverdue: trip.isUpcoming,
-            onToggle: (value) => repository.toggleDone(item.id, isDone: value),
-            onEdit: () => showChecklistItemEditSheet(
-              context: context,
-              tripId: trip.id,
-              item: item,
-              categorySuggestions: categorySuggestions,
-            ),
-            onDelete: () => repository.deleteItem(item.id),
-          ),
-        );
-      }
-    });
-    return widgets;
-  }
-}
+    final sectionById = {for (final s in sections) s.id: s};
 
-/// Distinct categories in first-seen order, folding entries that differ only
-/// in case so the suggestion list offers 'Diving' once rather than once per
-/// casing a diver has typed.
-List<String> _distinctCategories(List<TripChecklistItem> items) {
-  final seen = <String>{};
-  final categories = <String>[];
-  for (final category in items.map((i) => i.category).whereType<String>()) {
-    if (seen.add(category.toLowerCase())) categories.add(category);
+    Widget buildItem(BuildContext context, TripChecklistItem item) {
+      // sectionId is a cross-table reference with no guaranteed arrival
+      // order under sync (a section's delete can apply before this item's
+      // own update does), so a dangling id must degrade to "no section"
+      // rather than throw.
+      final sectionTitle = item.sectionId == null
+          ? null
+          : sectionById[item.sectionId]?.title;
+      return ChecklistItemTile(
+        item: item,
+        showOverdue: trip.isUpcoming,
+        onToggle: (value) => repository.toggleDone(item.id, isDone: value),
+        onEdit: () => showChecklistItemEditSheet(
+          context: context,
+          tripId: trip.id,
+          item: item,
+          categorySuggestions: sectionTitles,
+          currentSectionTitle: sectionTitle,
+        ),
+      );
+    }
+
+    return SectionListEditor<TripChecklistItem>(
+      sections: [
+        for (final s in sections)
+          SectionGroup(id: s.id, title: s.title, items: itemsBySection[s.id]!),
+      ],
+      unsectionedItems: unsectioned,
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: context.l10n.sectionEditor_addSection,
+      newSectionTitle: context.l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: context.l10n.sectionEditor_noSection,
+      onAddSection: (title) async {
+        await repository.createSection(tripId: trip.id, title: title);
+      },
+      onRenameSection: (id, title) => repository.renameSection(id, title),
+      onReorderSections: (orderedIds) =>
+          repository.reorderSections(trip.id, orderedIds),
+      onDeleteSection: (id, {moveItemsToSectionId}) => repository.deleteSection(
+        id,
+        moveItemsToSectionId: moveItemsToSectionId,
+      ),
+      onMoveItem: (itemId, targetSectionId, orderedIds) => repository.moveItem(
+        tripId: trip.id,
+        itemId: itemId,
+        targetSectionId: targetSectionId,
+        orderedIds: orderedIds,
+      ),
+      onDeleteItem: (item) => repository.deleteItem(item.id),
+    );
   }
-  return categories;
 }

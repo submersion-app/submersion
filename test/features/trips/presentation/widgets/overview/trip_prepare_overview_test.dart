@@ -13,6 +13,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_equipment_
 import 'package:submersion/features/trips/presentation/widgets/overview/trip_prepare_overview.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 
@@ -84,6 +85,12 @@ void main() {
   testWidgets('shows the notes when the trip has them', (tester) async {
     await pump(tester, trip(notes: 'Truck rental booked.'));
     expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('Truck rental booked.'), findsOneWidget);
+  });
+
+  testWidgets('draws the notes as Markdown (#3683)', (tester) async {
+    await pump(tester, trip(notes: '**Truck** rental booked.'));
+    expect(find.byType(MarkdownNotesView), findsOneWidget);
     expect(find.text('Truck rental booked.'), findsOneWidget);
   });
 

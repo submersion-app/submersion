@@ -681,6 +681,14 @@ class UddfImportParsers {
     tag['appliesToEquipment'] = _parseBool(
       getElementText(tagElement, 'appliestoequipment'),
     );
+    // Media and document scopes (issue #1970). The links do not travel in
+    // UDDF, but a tag's scopes survive a round trip.
+    tag['appliesToMedia'] = _parseBool(
+      getElementText(tagElement, 'appliestomedia'),
+    );
+    tag['appliesToDocuments'] = _parseBool(
+      getElementText(tagElement, 'appliestodocuments'),
+    );
 
     return tag;
   }

@@ -212,6 +212,16 @@ void main() {
       );
     });
 
+    test('returns Markdown notes as plain words', () {
+      final entity = TripWithStats(
+        trip: testTrip.copyWith(notes: '# Plan\n**Bring torch**'),
+      );
+      expect(
+        adapter.extractValue(TripField.notes, entity),
+        'Plan\nBring torch',
+      );
+    });
+
     test('returns notes', () {
       expect(
         adapter.extractValue(TripField.notes, testEntity),

@@ -9,6 +9,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Full-screen in-app viewer for PDF document attachments.
 ///
@@ -117,6 +119,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   }
 
   Future<void> _share(BuildContext context) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) {
+      return;
+    }
     final l10n = context.l10n;
     // Resolved before the awaits below: the button is guaranteed mounted now.
     final anchor = shareAnchorFrom(context);

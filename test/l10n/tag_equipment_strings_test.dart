@@ -29,20 +29,8 @@ void main() {
     l.tags_manage_equipmentCount(5),
     l.tags_manage_narrowDialog_equipment(5),
     l.tags_manage_deleteMessage_equipment('X', 5),
-    l.tags_manage_deleteMessage_divesAndEquipment('X', 2, 5),
-    l.tags_manage_deleteMessage_sitesAndEquipment('X', 2, 5),
-    l.tags_manage_deleteMessage_all('X', 2, 3, 5),
-    l.tags_manage_deleteMessage_unused('X'),
     l.tags_manage_bulkDeleteMessage_equipment(5),
-    l.tags_manage_bulkDeleteMessage_divesAndEquipment(2, 5),
-    l.tags_manage_bulkDeleteMessage_sitesAndEquipment(2, 5),
-    l.tags_manage_bulkDeleteMessage_all(2, 3, 5),
-    l.tags_manage_bulkDeleteMessage_unused,
     l.tags_manage_mergeAffected_equipment(5),
-    l.tags_manage_mergeAffected_divesAndEquipment(2, 5),
-    l.tags_manage_mergeAffected_sitesAndEquipment(2, 5),
-    l.tags_manage_mergeAffected_all(2, 3, 5),
-    l.tags_manage_mergeAffected_unused,
   ];
 
   for (final MapEntry(key: code, value: word) in equipmentWord.entries) {

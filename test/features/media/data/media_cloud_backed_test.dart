@@ -30,11 +30,12 @@ void main() {
     updatedAt: DateTime(2026, 6, 1),
   );
 
-  Future<void> stampUploaded(String id) async {
+  Future<void> stampUploaded(String id, {String? store}) async {
     await repo.stampContentIdentity(id, contentHash: 'hash-$id', sizeBytes: 9);
     await db.customStatement(
-      'UPDATE media SET remote_uploaded_at = 123 WHERE id = ?',
-      [id],
+      'UPDATE media SET remote_uploaded_at = 123, remote_store_id = ? '
+      'WHERE id = ?',
+      [store, id],
     );
   }
 
@@ -42,7 +43,11 @@ void main() {
     await repo.createMedia(item('m1'));
     await stampUploaded('m1');
 
-    await repo.convertToCloudBacked(['m1']);
+    final converted = await repo.convertToCloudBacked([
+      'm1',
+    ], storeId: 'store-b');
+
+    expect(converted, {'m1'});
 
     final m = await repo.getMediaById('m1');
     expect(m!.sourceType, MediaSourceType.mediaStore);
@@ -56,7 +61,11 @@ void main() {
   test('skips rows without the stamp pair', () async {
     await repo.createMedia(item('unstamped'));
 
-    await repo.convertToCloudBacked(['unstamped']);
+    final converted = await repo.convertToCloudBacked([
+      'unstamped',
+    ], storeId: 'store-b');
+
+    expect(converted, isEmpty);
 
     final m = await repo.getMediaById('unstamped');
     expect(m!.sourceType, MediaSourceType.localFile);
@@ -65,6 +74,61 @@ void main() {
   });
 
   test('empty id list is a no-op', () async {
-    await repo.convertToCloudBacked(const []);
+    expect(
+      await repo.convertToCloudBacked(const [], storeId: 'store-b'),
+      isEmpty,
+    );
+  });
+
+  group('the stamp must belong to the attached store (issue #3482)', () {
+    test('refuses a row whose only copy is in another store', () async {
+      await repo.createMedia(item('p'));
+      await stampUploaded('p', store: 'store-a');
+
+      final converted = await repo.convertToCloudBacked([
+        'p',
+      ], storeId: 'store-b');
+
+      expect(converted, isEmpty);
+      final m = await repo.getMediaById('p');
+      expect(m!.sourceType, MediaSourceType.localFile);
+      expect(m.localPath, '/tmp/p');
+      expect(m.bookmarkRef, 'bookmark-p');
+      expect(m.isOrphaned, isTrue);
+    });
+
+    test('converts a row stamped for the attached store', () async {
+      await repo.createMedia(item('p'));
+      await stampUploaded('p', store: 'store-b');
+
+      final converted = await repo.convertToCloudBacked([
+        'p',
+      ], storeId: 'store-b');
+
+      expect(converted, {'p'});
+      final m = await repo.getMediaById('p');
+      expect(m!.sourceType, MediaSourceType.mediaStore);
+    });
+
+    test('converts only the qualifying rows of a mixed batch', () async {
+      await repo.createMedia(item('a'));
+      await repo.createMedia(item('b'));
+      await repo.createMedia(item('n'));
+      await stampUploaded('a', store: 'store-a');
+      await stampUploaded('b', store: 'store-b');
+      await stampUploaded('n');
+
+      final converted = await repo.convertToCloudBacked([
+        'a',
+        'b',
+        'n',
+      ], storeId: 'store-b');
+
+      expect(converted, {'b', 'n'});
+      expect(
+        (await repo.getMediaById('a'))!.sourceType,
+        MediaSourceType.localFile,
+      );
+    });
   });
 }

@@ -6,14 +6,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// The Manage Tags scope editor shows `tags_manage_scopeRequired` when every
 /// scope checkbox is cleared (issue #1942). The message must name every scope
-/// the editor offers, in the words its checkboxes use, so adding equipment as
-/// a third scope cannot leave a message that still says "dives, sites, or
-/// both".
+/// the editor offers, in the words its checkboxes use, so adding a scope
+/// (equipment in #1942, media and documents in #1970) cannot leave a message
+/// that still lists the old ones.
 void main() {
   const scopeLabelKeys = [
     'tags_manage_scope_dives',
     'tags_manage_scope_sites',
     'tags_manage_scope_equipment',
+    'tags_manage_scope_media',
+    'tags_manage_scope_documents',
   ];
 
   final arbFiles = Directory(

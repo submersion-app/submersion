@@ -68,16 +68,22 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
     QualitySeverity.critical => scheme.error,
   };
 
+  /// A signed whole-hour shift, or an ellipsis when the diver picks it.
+  static String _offsetLabel(Duration offset) => offset == Duration.zero
+      ? '...'
+      : '${offset.isNegative ? '' : '+'}${offset.inHours} h';
+
   String _repairLabel(BuildContext context, QualityRepairAction action) {
     final l10n = context.l10n;
     return switch (action) {
       TimeShiftRepair(:final suggestedOffset) =>
-        suggestedOffset == Duration.zero
-            ? l10n.dataQuality_repairLabel_shiftTime('...')
-            : l10n.dataQuality_repairLabel_shiftTime(
-                '${suggestedOffset.isNegative ? '' : '+'}'
-                '${suggestedOffset.inHours} h',
-              ),
+        l10n.dataQuality_repairLabel_shiftLogbookTime(
+          _offsetLabel(suggestedOffset),
+        ),
+      SourceClockShiftRepair(:final suggestedOffset) =>
+        l10n.dataQuality_repairLabel_fixSourceClock(
+          _offsetLabel(suggestedOffset),
+        ),
       ConsolidateDuplicateRepair() => l10n.dataQuality_repairLabel_consolidate,
       DeleteDuplicateRepair() => l10n.dataQuality_repairLabel_deleteDuplicate,
       CombineSplitRepair() => l10n.dataQuality_repairLabel_combine,
@@ -100,7 +106,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         l10n.dataQuality_repairLabel_reassignSeries,
       CompareSourcesRepair() => l10n.dataQuality_repairLabel_compare,
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
-      AssignTransmitterRepair() =>
+      SetUpTransmitterRepair() =>
         l10n.dataQuality_repairLabel_assignTransmitter,
       UseAsBailoutRepair() => l10n.dataQuality_repairLabel_useAsBailout,
       RemoveGearFromDiveRepair(:final diverName) =>

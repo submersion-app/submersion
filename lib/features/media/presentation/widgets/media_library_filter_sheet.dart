@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -12,6 +15,8 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -30,8 +35,8 @@ Future<void> showMediaLibraryFilterSheet(BuildContext context) {
 /// SiteFilterSheet pattern: local state previews the change and nothing
 /// reaches the provider until Apply.
 ///
-/// Owns five facets: media type, site, trip, date range, and the missing
-/// files health facet. It deliberately does NOT own sourceType, which the
+/// Owns the media type, site, trip, species, tag (issue #1970) and date
+/// range facets, and the missing files health facet. It deliberately does NOT own sourceType, which the
 /// Sources section sets programmatically and which Apply preserves.
 class MediaLibraryFilterSheet extends ConsumerStatefulWidget {
   const MediaLibraryFilterSheet({super.key});
@@ -50,6 +55,9 @@ class _MediaLibraryFilterSheetState
   DateTime? _fromDate;
   DateTime? _toDate;
   bool _missingOnly = false;
+  Set<String> _tagIds = const {};
+  Set<String> _buddyIds = const {};
+  bool _includeMe = false;
 
   @override
   void initState() {
@@ -62,6 +70,9 @@ class _MediaLibraryFilterSheetState
     _fromDate = filter.fromDate;
     _toDate = filter.toDate;
     _missingOnly = filter.health == MediaHealthFilter.missing;
+    _tagIds = filter.tagIds;
+    _buddyIds = filter.buddyIds;
+    _includeMe = filter.includeMe;
   }
 
   void _clearAll() {
@@ -73,6 +84,9 @@ class _MediaLibraryFilterSheetState
       _fromDate = null;
       _toDate = null;
       _missingOnly = false;
+      _tagIds = const {};
+      _buddyIds = const {};
+      _includeMe = false;
     });
   }
 
@@ -90,6 +104,9 @@ class _MediaLibraryFilterSheetState
       fromDate: _fromDate,
       toDate: _toDate,
       health: _missingOnly ? MediaHealthFilter.missing : null,
+      tagIds: _tagIds,
+      buddyIds: _buddyIds,
+      includeMe: _includeMe,
     );
     Navigator.of(context).pop();
   }
@@ -149,6 +166,126 @@ class _MediaLibraryFilterSheetState
     });
   }
 
+  /// Media tags (issue #1970), any-of. Offers every media tag plus any tag
+  /// already selected, so a filter on a tag that has since lost its media
+  /// scope is still clearable from here.
+  Widget _buildTagSection() {
+    final tags = (ref.watch(tagsProvider).value ?? const <Tag>[])
+        .where((t) => t.appliesTo(TagScope.media) || _tagIds.contains(t.id))
+        .toList();
+    if (tags.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.media_library_filter_tags,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final tag in tags)
+                FilterChip(
+                  key: ValueKey('media_filter_tag_${tag.id}'),
+                  avatar: CircleAvatar(backgroundColor: tag.color, radius: 6),
+                  label: Text(tag.name),
+                  selected: _tagIds.contains(tag.id),
+                  onSelected: (selected) => setState(() {
+                    _tagIds = selected
+                        ? {..._tagIds, tag.id}
+                        : _tagIds.where((id) => id != tag.id).toSet();
+                  }),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// People tagged on media (issue #1745), any-of: Me first, then by name
+  /// the diver's buddies tagged somewhere (an untagged one would only match
+  /// nothing) and any already selected. A selected buddy no longer listed
+  /// (deleted since an album was saved) still shows, so it can be cleared.
+  Widget _buildPeopleSection() {
+    final l10n = context.l10n;
+    final all = ref.watch(allBuddiesProvider).value;
+    final tagged = ref.watch(taggedBuddyIdsProvider).value ?? const <String>{};
+    final buddies = [
+      for (final b in all ?? const <Buddy>[])
+        if (tagged.contains(b.id) || _buddyIds.contains(b.id)) b,
+    ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final listed = {for (final b in buddies) b.id};
+    // Only once the buddy list has loaded: before that every selected id
+    // is unlisted, and would be drawn as a removed buddy.
+    final gone = all == null
+        ? const <String>[]
+        : _buddyIds.where((id) => !listed.contains(id)).toList();
+
+    Widget person(
+      String key,
+      String label,
+      bool selected,
+      ValueChanged<bool> onSelected,
+    ) => FilterChip(
+      key: ValueKey('media_filter_person_$key'),
+      label: Text(label),
+      selected: selected,
+      onSelected: (value) => setState(() => onSelected(value)),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.media_people_filterSection,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              person(
+                'me',
+                l10n.media_people_me,
+                _includeMe,
+                (v) => _includeMe = v,
+              ),
+              for (final b in buddies)
+                person(
+                  b.id,
+                  b.name,
+                  _buddyIds.contains(b.id),
+                  (v) => _toggleBuddy(b.id, v),
+                ),
+              for (final id in gone)
+                person(
+                  id,
+                  l10n.media_people_removedBuddy,
+                  true,
+                  (v) => _toggleBuddy(id, v),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleBuddy(String id, bool selected) {
+    _buddyIds = selected
+        ? {..._buddyIds, id}
+        : _buddyIds.where((b) => b != id).toSet();
+  }
+
   Future<void> _loadAlbum() async {
     final albums = ref.read(mediaSmartAlbumsProvider).value ?? const [];
     if (albums.isEmpty) return;
@@ -180,6 +317,9 @@ class _MediaLibraryFilterSheetState
                     _toDate = album.filter.toDate;
                     _missingOnly =
                         album.filter.health == MediaHealthFilter.missing;
+                    _tagIds = album.filter.tagIds;
+                    _buddyIds = album.filter.buddyIds;
+                    _includeMe = album.filter.includeMe;
                   });
                 },
               ),
@@ -351,6 +491,8 @@ class _MediaLibraryFilterSheetState
                           anyLabel: anyLabel,
                         ),
                       ),
+                      _buildTagSection(),
+                      _buildPeopleSection(),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.media_library_filter_dates),

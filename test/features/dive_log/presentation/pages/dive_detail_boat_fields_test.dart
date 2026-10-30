@@ -12,6 +12,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 /// Issue #3229: the detail page shows the operator, boat and captain in
 /// Details, and surface conditions under Environment > Dive conditions.
@@ -76,6 +78,58 @@ void main() {
     expect(row('Operator', 'Buddy Dive'), findsOneWidget);
     expect(row('Boat', 'Bonaire Breeze'), findsOneWidget);
     expect(row('Captain', 'Rik'), findsOneWidget);
+  });
+
+  testWidgets('Details values share one column beside the labels (#3678)', (
+    tester,
+  ) async {
+    await pumpWith(
+      tester,
+      createTestDiveWithBottomTime().copyWith(
+        diveOperator: 'Buddy Dive',
+        boatName: 'Bonaire Breeze',
+        boatCaptain: 'Rik',
+        diveCenter: DiveCenter(
+          id: 'centre-1',
+          name: 'Dive Friends',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ),
+    );
+
+    final column = detailValueLeft(tester, 'Operator');
+    expect(detailValueLeft(tester, 'Boat'), column);
+    expect(detailValueLeft(tester, 'Captain'), column);
+    expect(detailValueLeft(tester, 'Dive Center'), column);
+  });
+
+  testWidgets('a long dive centre name stays inside its row (#3678)', (
+    tester,
+  ) async {
+    const name =
+        'The Very Long Named Dive Centre and Watersports Academy of Kralendijk';
+    await pumpWith(
+      tester,
+      createTestDiveWithBottomTime().copyWith(
+        diveCenter: DiveCenter(
+          id: 'centre-1',
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getTopRight(find.text(name)).dx,
+      lessThanOrEqualTo(tester.getTopRight(detailRowFor('Dive Center')).dx),
+    );
+    // One ellipsized line, as tall as the label, rather than word-wrapping.
+    expect(
+      tester.getSize(find.text(name)).height,
+      tester.getSize(find.text('Dive Center')).height,
+    );
   });
 
   testWidgets('no rows for empty or blank values', (tester) async {

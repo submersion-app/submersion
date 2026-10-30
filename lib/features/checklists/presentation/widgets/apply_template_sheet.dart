@@ -33,16 +33,50 @@ class _ApplyTemplateSheet extends ConsumerWidget {
     final repository = ref.read(tripChecklistRepositoryProvider);
 
     // Confirm the append when the trip already has items, showing add/skip
-    // counts computed with the same title+category key the repository uses.
+    // counts computed the same way TripChecklistRepository.applyTemplate
+    // resolves them: by title plus the trip section a template item's own
+    // section title would resolve to (an existing trip section matched
+    // case-insensitively, or -- for the count only, nothing is created here
+    // -- a placeholder that cannot collide with any existing item's section,
+    // mirroring "applyTemplate would create a new section here").
     final existing = await repository.getByTripId(trip.id);
     if (!context.mounted) return;
     if (existing.isNotEmpty) {
       final templateItems = await ref.read(
         checklistTemplateItemsProvider(templateId).future,
       );
-      final existingKeys = existing.map((i) => (i.title, i.category)).toSet();
+      final templateSections = await ref.read(
+        checklistTemplateSectionsProvider(templateId).future,
+      );
+      final templateSectionTitleById = {
+        for (final s in templateSections) s.id: s.title,
+      };
+      final sections = await repository.getSectionsForTrip(trip.id);
+      // First match wins, as TripChecklistRepository.matchSectionByTitle
+      // resolves it, so two same-titled sections count the way the apply
+      // itself will.
+      final sectionIdByTitle = <String, String>{};
+      for (final s in sections) {
+        sectionIdByTitle.putIfAbsent(s.title.toLowerCase(), () => s.id);
+      }
+      Object? resolveSectionKey(String? sectionId) {
+        final title = sectionId == null
+            ? null
+            : templateSectionTitleById[sectionId];
+        final trimmed = title?.trim();
+        if (trimmed == null || trimmed.isEmpty) return null;
+        final lower = trimmed.toLowerCase();
+        return sectionIdByTitle[lower] ?? '__new_section__:$lower';
+      }
+
+      final existingKeys = existing.map((i) => (i.title, i.sectionId)).toSet();
       final skipped = templateItems
-          .where((i) => existingKeys.contains((i.title, i.category)))
+          .where(
+            (i) => existingKeys.contains((
+              i.title,
+              resolveSectionKey(i.sectionId),
+            )),
+          )
           .length;
       final added = templateItems.length - skipped;
       if (!context.mounted) return;

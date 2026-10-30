@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
@@ -322,6 +323,73 @@ void main() {
       expect(await other.listSites(), isEmpty);
     },
   );
+  group('removal records (issue #3481)', () {
+    final record = MemberRemoval(
+      memberId: 'x',
+      displayName: 'Xan',
+      removedAt: DateTime.utc(2026, 10, 18),
+      removedBy: 'm1',
+      signature: 'sig',
+    );
+
+    test('round-trip and are not member cards', () async {
+      await t.writeRemoval(record);
+      expect(await t.listRemovals(), [record]);
+      expect(await t.listMembers(), isEmpty);
+      expect(
+        (await cloud.listFiles(namePattern: 'removed-x')).single.name,
+        endsWith(SharedLibraryTransport.removalFileName('x')),
+      );
+    });
+
+    test('a member card is not a removal record', () async {
+      await t.writeMember(
+        SharedLibraryMember(
+          memberId: 'x',
+          displayName: 'Xan',
+          joinedAt: DateTime.utc(2026),
+        ),
+        appVersion: '1.8.3',
+      );
+      expect(await t.listRemovals(), isEmpty);
+    });
+
+    test('deleteRemoval removes it', () async {
+      await t.writeRemoval(record);
+      await t.deleteRemoval('x');
+      expect(await t.listRemovals(), isEmpty);
+    });
+
+    test('a malformed record is skipped', () async {
+      await t.writeOpened(
+        '${SharedLibraryLayout.membersDir}/'
+        '${SharedLibraryTransport.removalFileName('x')}',
+        Uint8List.fromList('not json'.codeUnits),
+      );
+      expect(await t.listRemovals(), isEmpty);
+    });
+
+    test('sealableFiles lists removal records', () async {
+      await t.writeRemoval(record);
+      expect(
+        (await t.sealableFiles()).keys,
+        contains(
+          '${SharedLibraryLayout.membersDir}/'
+          '${SharedLibraryTransport.removalFileName('x')}',
+        ),
+      );
+    });
+
+    test('an encrypted library seals and reads them back', () async {
+      t
+        ..cipher = await LibraryCipher.generate()
+        ..encrypting = true;
+      await t.writeRemoval(record);
+      final f = (await cloud.listFiles(namePattern: 'removed-x')).single;
+      expect(LibraryCipher.isSealed(await cloud.downloadFile(f.id)), isTrue);
+      expect(await t.listRemovals(), [record]);
+    });
+  });
 }
 
 /// Another member's upload lands between this upload and its read-back.

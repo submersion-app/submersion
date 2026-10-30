@@ -52,7 +52,7 @@ void main() {
     bodyOfWater: 'Lake Lucerne',
     rating: 4,
     hazards: 'Boat traffic',
-    entryMethod: EntryMethod.shore,
+    entryMethods: [EntryMethod.shore],
     isShared: true,
   );
 
@@ -69,7 +69,7 @@ void main() {
     expect(stored.city, 'Weggis');
     expect(stored.bodyOfWater, 'Lake Lucerne');
     expect(stored.hazards, 'Boat traffic');
-    expect(stored.entryMethod, EntryMethod.shore);
+    expect(stored.entryMethods, [EntryMethod.shore]);
     expect(stored.isShared, isTrue);
     expect(stored.location, const GeoPoint(47.027631, 8.400640));
   });

@@ -209,6 +209,37 @@ void main() {
     expect(state.clocks.keys, contains('name'));
   });
 
+  test("a reader's duplicate copies no features onto a library site "
+      '(issue #3575)', () async {
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        roles: SharedLibraryRoles(owners: {'o'}),
+      ),
+    );
+    await SiteRepository().createSite(const DiveSite(id: 'p', name: 'P'));
+    final features = SiteFeatureRepository();
+    await features.addFeature(
+      siteId: 'p',
+      typeName: 'mooring',
+      latitude: 1,
+      longitude: 2,
+    );
+
+    await expectLater(
+      features.copyFeatures(
+        fromSiteId: 'p',
+        toSiteId: 's',
+        actingDiverId: 'd1',
+      ),
+      throwsStateError,
+    );
+    expect(await features.getFeaturesForSite('s'), isEmpty);
+  });
+
   test("a reader changes none of a library site's lists", () async {
     await SharedLibraryStore().upsertLibrary(
       const SharedLibrary(

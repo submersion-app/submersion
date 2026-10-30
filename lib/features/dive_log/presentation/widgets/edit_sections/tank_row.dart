@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
@@ -29,6 +30,7 @@ class TankRow extends StatefulWidget {
     this.takenTripCylinderIds = const {},
     this.suggested = false,
     this.diveId,
+    this.diveMode = DiveMode.oc,
   });
 
   final DiveTank tank;
@@ -57,6 +59,9 @@ class TankRow extends StatefulWidget {
 
   /// Forwarded to [TankEditor.diveId].
   final String? diveId;
+
+  /// Forwarded to [TankEditor.diveMode].
+  final DiveMode diveMode;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -137,6 +142,7 @@ class _TankRowState extends State<TankRow> {
               takenTripCylinderIds: widget.takenTripCylinderIds,
               suggested: widget.suggested,
               diveId: widget.diveId,
+              diveMode: widget.diveMode,
             ),
             Align(
               alignment: Alignment.centerRight,

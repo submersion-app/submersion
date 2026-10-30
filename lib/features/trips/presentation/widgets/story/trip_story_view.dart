@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// The assembled trip story, one plain scroll (#2845): hero, stat strip, the
 /// cylinders line while under way, and one chapter per day, each with its
@@ -145,16 +146,6 @@ class TripStoryView extends ConsumerWidget {
       SliverToBoxAdapter(
         child: TripStatStrip(stats: stats, siteCount: _siteCount),
       ),
-      // Right under the stats: below the day chapters a long trip's papers
-      // were out of reach (issue #3333).
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        sliver: SliverToBoxAdapter(
-          child: DocumentsSection(
-            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
-          ),
-        ),
-      ),
     ];
     // The cards that matter while the trip is under way: what is left in the
     // cylinders, and how long until the no-fly window before the flight home.
@@ -181,7 +172,7 @@ class TripStoryView extends ConsumerWidget {
     final trailing = <Widget>[
       if (trip.notes.isNotEmpty)
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           sliver: SliverToBoxAdapter(
             child: Card(
               child: Padding(
@@ -196,13 +187,24 @@ class TripStoryView extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(trip.notes),
+                    MarkdownNotesView(trip.notes),
                   ],
                 ),
               ),
             ),
           ),
         ),
+      // Last on the page, under the notes, as on the Overview before
+      // departure (issue #3711). Its top inset and the 8px under the notes
+      // or the last day card keep the gap above it the same either way.
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        sliver: SliverToBoxAdapter(
+          child: DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+          ),
+        ),
+      ),
       const SliverToBoxAdapter(child: SizedBox(height: 32)),
     ];
     final dayCount = story.days.length;

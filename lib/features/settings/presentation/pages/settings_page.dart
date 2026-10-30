@@ -7,16 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
-import 'package:submersion/features/settings/presentation/widgets/equipment_default_view_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
+import 'package:submersion/features/settings/presentation/pages/manage_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/data_settings_pane.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_hub_page.dart';
@@ -47,7 +45,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
-import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/settings/presentation/settings_legacy_links.dart';
@@ -68,6 +66,8 @@ import 'package:submersion/features/settings/presentation/format_enum_display.da
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 
 /// The URL for the GitHub issues page, used by [launchReportIssue].
 const reportIssueUrl = 'https://github.com/submersion-app/submersion/issues';
@@ -90,6 +90,7 @@ Future<void> launchReportIssue(BuildContext context) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.settings_about_reportIssue_snackbar),
+        persist: false,
         action: SnackBarAction(
           label: context.l10n.settings_about_reportIssue_copy,
           onPressed: () =>
@@ -186,7 +187,7 @@ class SettingsPage extends ConsumerWidget {
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
-        return const _ManageSectionContent();
+        return const ManageSectionContent();
       case 'data':
         return const DataSettingsPane();
       case 'dataSources':
@@ -248,7 +249,7 @@ class SettingsMobileContent extends ConsumerWidget {
         separatorBuilder: (context, index) =>
             index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (context, index) {
-          if (index == 0) return const PendingSetupCard();
+          if (index == 0) return const SettingsRootSetUpCard.phone();
           final section = sections[index - 1];
           return _MobileSettingsTile(section: section);
         },
@@ -356,7 +357,7 @@ class SettingsSectionDetailPage extends ConsumerWidget {
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
-        return const _ManageSectionContent();
+        return const ManageSectionContent();
       case 'data':
         return const DataSectionContent();
       case 'dataSources':
@@ -438,7 +439,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'network' => context.l10n.settings_section_network_subtitle,
       'notifications' => context.l10n.settings_section_notifications_subtitle,
       'manage' => context.l10n.settings_section_manage_subtitle,
-      'data' => context.l10n.settings_section_data_subtitle,
+      'data' => context.l10n.settings_section_data_tagline,
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,
@@ -1590,266 +1591,39 @@ class _NotificationsSectionContent extends ConsumerWidget {
   }
 }
 
-/// Manage section content
-class _ManageSectionContent extends StatelessWidget {
-  const _ManageSectionContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_manage_header_manageData,
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.label),
-                  title: Text(context.l10n.settings_manage_diveTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_diveTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-types'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.category),
-                  title: Text(context.l10n.settings_manage_siteTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_siteTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/site-types'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.groups),
-                  title: Text(context.l10n.settings_manage_diveRoles),
-                  subtitle: Text(
-                    context.l10n.settings_manage_diveRoles_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/dive-roles'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.workspace_premium_outlined),
-                  title: Text(
-                    context.l10n.settings_manage_certificationAgencies,
-                  ),
-                  subtitle: Text(
-                    context.l10n.settings_manage_certificationAgencies_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/certification-agencies'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.divingScubaTank),
-                  title: Text(context.l10n.settings_manage_tankPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_tankPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tank-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sensors),
-                  title: Text(context.l10n.settings_manage_transmitters),
-                  subtitle: Text(
-                    context.l10n.settings_manage_transmitters_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/transmitters'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fitness_center),
-                  title: Text(context.l10n.settings_manage_weightPresets),
-                  subtitle: Text(
-                    context.l10n.settings_manage_weightPresets_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/weight-presets'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.gas_meter),
-                  title: Text(context.l10n.settings_section_trimixMixer_title),
-                  subtitle: Text(
-                    context.l10n.settings_section_trimixMixer_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(kTrimixMixerSettingsRoute),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.build_circle_outlined),
-                  title: Text(context.l10n.settings_manage_serviceTypes),
-                  subtitle: Text(
-                    context.l10n.settings_manage_serviceTypes_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/service-types'),
-                ),
-                const Divider(height: 1),
-                // Refresher and renewal rules (issue #2267)
-                ListTile(
-                  leading: const Icon(Icons.event_repeat_outlined),
-                  title: Text(context.l10n.settings_manage_currencyRules),
-                  subtitle: Text(
-                    context.l10n.settings_manage_currencyRules_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/currency-rules'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  key: const ValueKey('settings_manage_locations'),
-                  leading: const Icon(Icons.place_outlined),
-                  title: Text(context.l10n.settings_manage_locations),
-                  subtitle: Text(
-                    context.l10n.settings_manage_locations_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/equipment/locations'),
-                ),
-                const Divider(height: 1),
-                const EquipmentDefaultViewTile(),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.auto_fix_high),
-                  title: Text(context.l10n.settings_manage_setupAssistant),
-                  subtitle: Text(
-                    context.l10n.settings_manage_setupAssistant_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/setup-assistant'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.checklist),
-                  title: Text(context.l10n.settings_manage_checklistTemplates),
-                  subtitle: Text(
-                    context.l10n.settings_manage_checklistTemplates_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/checklist-templates'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.fact_check),
-                  title: Text(context.l10n.settings_manage_preDiveChecklists),
-                  subtitle: Text(
-                    context.l10n.settings_manage_preDiveChecklists_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/pre-dive-checklists'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(MdiIcons.fish),
-                  title: Text(context.l10n.settings_manage_species),
-                  subtitle: Text(context.l10n.settings_manage_species_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/species/manage'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.sell),
-                  title: Text(context.l10n.settings_manage_tags),
-                  subtitle: Text(context.l10n.settings_manage_tags_subtitle),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/tags'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.bookmarks_outlined),
-                  title: Text(context.l10n.settings_manage_savedQueries),
-                  subtitle: Text(
-                    context.l10n.settings_manage_savedQueries_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/saved-queries'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ============================================================================
 // SHARED DATA SECTION
 // ============================================================================
 
-/// Confirms and bulk-shares all private sites for the current diver.
+/// Shares every site the active profile owns with the profiles it picks
+/// (issue #2151): Everyone, or chosen profiles. Adds only: a site already
+/// shared keeps its sharing, and one site's sharing is changed on its page.
 Future<void> _confirmAndBulkShareSites(
   BuildContext context,
   WidgetRef ref,
 ) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return;
+  if (diverId == null || !context.mounted) return;
+  final owned = [
+    for (final site
+        in await ref.read(siteRepositoryProvider).getAllSites(diverId: diverId))
+      if (site.diverId == diverId && !site.isLibrarySite) site.id,
+  ];
   if (!context.mounted) return;
-
-  final siteRepo = ref.read(siteRepositoryProvider);
-  final allSites = await siteRepo.getAllSites(diverId: diverId);
-  final privateCount = allSites.where((s) => !s.isShared).length;
-
-  if (privateCount == 0) {
-    if (!context.mounted) return;
+  if (owned.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
     );
     return;
   }
-
-  if (!context.mounted) return;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      content: Text(context.l10n.settings_shareAllSites_confirm(privateCount)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(context.l10n.common_action_share),
-        ),
-      ],
-    ),
+  await shareItemsWithProfiles(
+    context,
+    ref,
+    kind: SharedItemKind.site,
+    ids: owned,
+    activeDiverId: diverId,
+    body: context.l10n.settings_shareAllSites_confirm(owned.length),
   );
-  if (confirmed != true) return;
-
-  try {
-    final count = await siteRepo.shareAllForDiver(diverId);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.settings_shareAllSites_snackbar(count)),
-      ),
-    );
-  } catch (_) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.common_error_tryAgain),
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
-      ),
-    );
-  }
 }
 
 /// Shares every item the active diver owns with the profiles picked in
@@ -1910,63 +1684,35 @@ Future<void> _confirmAndBulkShareEquipment(
   }
 }
 
-/// Confirms and bulk-shares all private trips for the current diver.
+/// Shares every trip the active profile owns with the profiles it picks
+/// (issue #2151): Everyone, or chosen profiles. Adds only: a trip already
+/// shared keeps its sharing, and one trip's sharing is changed on its page.
 Future<void> _confirmAndBulkShareTrips(
   BuildContext context,
   WidgetRef ref,
 ) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return;
+  if (diverId == null || !context.mounted) return;
+  final owned = [
+    for (final trip
+        in await ref.read(tripRepositoryProvider).getAllTrips(diverId: diverId))
+      if (trip.diverId == diverId) trip.id,
+  ];
   if (!context.mounted) return;
-
-  final tripRepo = ref.read(tripRepositoryProvider);
-  final allTrips = await tripRepo.getAllTrips(diverId: diverId);
-  final privateCount = allTrips.where((t) => !t.isShared).length;
-
-  if (privateCount == 0) {
-    if (!context.mounted) return;
+  if (owned.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.settings_shareAll_noneToShare)),
     );
     return;
   }
-
-  if (!context.mounted) return;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      content: Text(context.l10n.settings_shareAllTrips_confirm(privateCount)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text(context.l10n.common_action_share),
-        ),
-      ],
-    ),
+  await shareItemsWithProfiles(
+    context,
+    ref,
+    kind: SharedItemKind.trip,
+    ids: owned,
+    activeDiverId: diverId,
+    body: context.l10n.settings_shareAllTrips_confirm(owned.length),
   );
-  if (confirmed != true) return;
-
-  try {
-    final count = await tripRepo.shareAllForDiver(diverId);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.settings_shareAllTrips_snackbar(count)),
-      ),
-    );
-  } catch (_) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.common_error_tryAgain),
-        backgroundColor: Theme.of(context).colorScheme.errorContainer,
-      ),
-    );
-  }
 }
 
 /// Shared data section content: default-sharing toggle and bulk-share actions.

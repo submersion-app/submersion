@@ -25,6 +25,8 @@ import 'package:submersion/features/query/presentation/widgets/query_chips_frame
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
+
 import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -142,6 +144,62 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // Tapping the row already highlighted sets no new highlight, but the
+  // diver has opened the record again: its pane is no longer one they
+  // emptied (#3301).
+  testWidgets('tapping a table row forgets an emptied pane on that course', (
+    tester,
+  ) async {
+    final overrides = [
+      ...await _buildOverrides(
+        courses: [_makeCourse(id: 'co1', name: 'Open Water Diver')],
+      ),
+      highlightedCourseIdProvider.overrideWith((ref) => 'co1'),
+    ];
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const CourseListContent(showAppBar: true),
+      ),
+    );
+    await tester.pump();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CourseListContent)),
+    );
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'courses': 'co1',
+    };
+
+    await tester.tap(find.text('Open Water Diver'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(container.read(closedPaneRecordProvider), isEmpty);
+  });
+
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted course when built', (tester) async {
+    final overrides = await _buildPhoneOverrides(
+      courses: [
+        for (var i = 0; i < 60; i++)
+          _makeCourse(
+            id: 'r$i',
+            name: 'Course ${i.toString().padLeft(2, '0')}',
+          ),
+      ],
+      highlightedCourseId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const CourseListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Course 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {

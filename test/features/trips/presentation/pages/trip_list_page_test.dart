@@ -109,7 +109,11 @@ void main() {
     }) {
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The view mode is read from the diver's saved settings (#3748).
+        settingsProvider.overrideWith(
+          (ref) =>
+              MockSettingsNotifier(AppSettings(tripListViewMode: viewMode)),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
@@ -117,7 +121,6 @@ void main() {
         sortedFilteredTripsProvider.overrideWith(
           (ref) => AsyncValue.data(trips),
         ),
-        tripListViewModeProvider.overrideWith((ref) => viewMode),
         tripTableConfigProvider.overrideWith(
           (ref) => _TestTripTableConfigNotifier(),
         ),
@@ -467,11 +470,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(TripListPage)),
         );
-        container.read(tripListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setTripListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(tripListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setTripListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

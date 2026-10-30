@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../helpers/fake_buddy_list_notifier.dart';
@@ -291,6 +292,43 @@ void main() {
       // Should show bottomTime formatted as minutes in dive history
       expect(find.text('45min'), findsOneWidget);
     });
+  });
+
+  testWidgets('notes draw as Markdown (#3683)', (tester) async {
+    final buddy = Buddy(
+      id: 'buddy-notes',
+      name: 'Jane Doe',
+      notes: '**Great** on air',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final overrides = await getBaseOverrides();
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(390, 2000);
+    addTearDown(tester.view.reset);
+    _ignoreOverflowErrors();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+          buddyStatsProvider(
+            buddy.id,
+          ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+          diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(MarkdownNotesView), findsOneWidget);
+    expect(find.text('Great on air'), findsOneWidget);
   });
 
   // Issue #982: the shared-dives list formatted dates with DateFormat.MMMd(),

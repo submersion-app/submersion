@@ -57,6 +57,19 @@ void main() {
     );
   });
 
+  // A claim names the store a stamp was made in: nothing new to find the
+  // photo by, so peers keep their cached searches.
+  test('a store named on an existing stamp is nothing', () {
+    expect(
+      mediaResolutionHintFor(
+        local: {'id': 'm1', 'remoteUploadedAt': 123, 'remoteStoreId': null},
+        applied: {'id': 'm1', 'remoteUploadedAt': 123, 'remoteStoreId': 'A'},
+        rowFromRemote: false,
+      ),
+      isNull,
+    );
+  });
+
   // A group can win on the row clock alone (no fact clock on either side)
   // while carrying the very values this device already has.
   test('upload facts that did not change are nothing', () {

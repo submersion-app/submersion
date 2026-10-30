@@ -46,7 +46,7 @@ class MediaMapMarker extends StatelessWidget {
               border: Border.all(color: scheme.surface, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
+                  color: scheme.shadow.withValues(alpha: 0.35),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

@@ -101,19 +101,34 @@ class TankPresetRepository {
     }
   }
 
-  /// Get a preset by name (case-insensitive, checks custom then built-in)
-  Future<TankPresetEntity?> getPresetByName(String name) async {
+  /// Get a preset by name (case-insensitive): [diverId]'s custom presets
+  /// first, then built-in. Without a diver only built-ins match, as in
+  /// [getCustomPresets].
+  ///
+  /// A custom preset belongs to one diver, so another diver's preset of the
+  /// same name never matches: two profiles holding a copy of one preset
+  /// would otherwise hand one diver the other's cylinder (issue #3343).
+  Future<TankPresetEntity?> getPresetByName(
+    String name, {
+    required String? diverId,
+  }) async {
     try {
-      // Check custom presets first. No index keeps names unique, so two
-      // can fold equal; the lowest id wins rather than a "too many
-      // elements" throw.
-      final query = _db.select(_db.tankPresets)
-        ..where((t) => t.name.unicodeLower().equals(name.toLowerCase()))
-        ..orderBy([(t) => OrderingTerm.asc(t.id)])
-        ..limit(1);
-      final row = await query.getSingleOrNull();
-      if (row != null) {
-        return _mapRowToEntity(row);
+      // Check the diver's custom presets first. No index keeps names
+      // unique, so two can fold equal; the lowest id wins rather than a
+      // "too many elements" throw.
+      if (diverId != null) {
+        final query = _db.select(_db.tankPresets)
+          ..where(
+            (t) =>
+                t.diverId.equals(diverId) &
+                t.name.unicodeLower().equals(name.toLowerCase()),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.id)])
+          ..limit(1);
+        final row = await query.getSingleOrNull();
+        if (row != null) {
+          return _mapRowToEntity(row);
+        }
       }
 
       // Check built-in presets

@@ -302,6 +302,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
   }) async {
     // Whatever the diver picks for the duplicate, the saved dive's time is
     // wrong, so it is corrected either way.
+    final correctedDiveIds = _timeCorrections.keys.toList();
     final timesCorrected = await _applyTimeCorrections();
 
     final baseSelections = Set<int>.from(
@@ -404,6 +405,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
       timesCorrectedCount: timesCorrected,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
+      // A corrected time can move a dive into a recorded track.
+      updatedExistingDiveIds: correctedDiveIds,
       notices: [?numberConflict],
     );
   }

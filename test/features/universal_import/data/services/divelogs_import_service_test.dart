@@ -19,8 +19,11 @@ void main() {
     int id, {
     String date = '2022-09-03',
     String time = '14:42:00',
+    List<Object>? pictures,
   }) => {
     'id': id,
+    // divelogs.de always sends the key, as null for a dive without pictures.
+    'pictures': pictures,
     'date': date,
     'time': time,
     'duration': 2808,
@@ -37,23 +40,14 @@ void main() {
     Object certifications = const [],
     int gearStatus = 200,
     int certStatus = 200,
-    Map<String, Object> picturesByDive = const {},
-    Set<String> failingPictureDives = const {},
-    bool forbidPictures = false,
+    List<String>? requested,
   }) => DivelogsImportService(
     api: DivelogsApiClient(
       getBearerToken: () async => 't',
       onTokenRejected: () {},
       httpClient: MockClient((req) async {
         final path = req.url.path;
-        if (path.startsWith('/api/pictures/')) {
-          if (forbidPictures) fail('pictures requested: ${req.url}');
-          final id = path.split('/').last;
-          if (failingPictureDives.contains(id)) {
-            return http.Response('boom', 500);
-          }
-          return http.Response(jsonEncode(picturesByDive[id] ?? []), 200);
-        }
+        requested?.add(path);
         switch (path) {
           case '/api/dives':
             return http.Response(jsonEncode(dives), 200);
@@ -232,51 +226,103 @@ void main() {
   });
 
   group('photo listing', () {
-    test('lists photos per dive keyed by source id when asked', () async {
-      final progress = <(int, int)>[];
-      final result =
-          await service(
-            [diveJson(1), diveJson(2, time: '16:00:00')],
-            picturesByDive: {
-              '1': [
-                {'id': 10, 'url': 'https://divelogs.de/pics/u/1/reef.jpg'},
-                {'id': 11, 'url': 'https://divelogs.de/pics/get?id=11'},
-              ],
-            },
-          ).fetchLogbook(
-            includePhotos: true,
-            onPhotoListingProgress: (c, t) => progress.add((c, t)),
-          );
+    test('lists the pictures /dives carries, keyed by source id', () async {
+      final requested = <String>[];
+      final result = await service([
+        diveJson(
+          1,
+          pictures: [
+            {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+            {'id': 11, 'path': 'https://divelogs.de/pics/get?id=11'},
+          ],
+        ),
+        diveJson(2, time: '16:00:00'),
+      ], requested: requested).fetchLogbook(includePhotos: true);
       final photos = result.photosBySourceUuid['divelogs-1']!;
-      expect(photos.map((p) => p.fileName), ['reef.jpg', 'divelogs-1-2.jpg']);
+      expect(photos.map((p) => p.fileName), ['1-1.jpg', 'divelogs-1-2.jpg']);
       expect(
         photos.first.url,
-        Uri.parse('https://divelogs.de/pics/u/1/reef.jpg'),
+        Uri.parse('https://divelogs.de/pictures/u/1-1.jpg'),
       );
       expect(result.photosBySourceUuid.containsKey('divelogs-2'), isFalse);
       expect(result.photoCount, 2);
-      expect(progress.last, (2, 2));
+      expect(result.photoListingFailures, 0);
+      expect(result.photosWithoutLink, 0);
+      // No request per dive: the pictures came with /dives.
+      expect(requested.where((p) => p.startsWith('/api/pictures')), isEmpty);
     });
 
-    test('a picture row without a usable url is counted, not hidden', () async {
-      final result = await service(
-        [diveJson(1)],
-        picturesByDive: {
-          '1': [
-            {'id': 10, 'url': 'reef.jpg'},
-            {'id': 11, 'url': 'https://divelogs.de/pics/ok.jpg'},
+    test(
+      'a site-relative picture path resolves against the API host',
+      () async {
+        final result = await service([
+          diveJson(
+            1,
+            pictures: [
+              {'id': 10, 'path': '/pictures/u/1-1.jpg'},
+            ],
+          ),
+        ]).fetchLogbook(includePhotos: true);
+        expect(
+          result.photosBySourceUuid['divelogs-1']!.single.url,
+          Uri.parse('https://divelogs.de/pictures/u/1-1.jpg'),
+        );
+      },
+    );
+
+    test('counts each picture without a usable link, not each dive', () async {
+      final result = await service([
+        diveJson(
+          1,
+          pictures: [
+            {'id': 10, 'path': 'reef.jpg'},
+            {'id': 11, 'path': 'https://divelogs.de/pictures/u/ok.jpg'},
+            {'id': 12, 'path': 'https:/pictures/u/no-host.jpg'},
           ],
-        },
-      ).fetchLogbook(includePhotos: true);
+        ),
+        diveJson(
+          2,
+          time: '16:00:00',
+          pictures: [
+            {'id': 13},
+          ],
+        ),
+      ]).fetchLogbook(includePhotos: true);
       expect(result.photoCount, 1);
-      expect(result.photoListingFailures, 1);
+      expect(result.photosWithoutLink, 3);
+      expect(result.photoListingFailures, 0);
+      final warning = result.payload.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.photosWithoutLink,
+      );
+      expect(warning.count, 3);
+      expect(
+        result.payload.warnings.map((w) => w.code),
+        isNot(contains(ImportWarningCode.photoListingsUnavailable)),
+      );
     });
 
-    test('listing failures are counted into one coded warning', () async {
-      final result = await service(
-        [diveJson(1), diveJson(2, time: '16:00:00')],
-        failingPictureDives: {'1', '2'},
-      ).fetchLogbook(includePhotos: true);
+    test('counts the pictures of a dive without an id', () async {
+      final dive = diveJson(
+        1,
+        pictures: [
+          {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+          {'id': 11, 'path': 'https://divelogs.de/pictures/u/1-2.jpg'},
+        ],
+      )..remove('id');
+      final result = await service([dive]).fetchLogbook(includePhotos: true);
+      expect(result.photoCount, 0);
+      expect(result.photosWithoutLink, 2);
+    });
+
+    test('a dive whose pictures /dives did not list is reported', () async {
+      final noKey = diveJson(1)..remove('pictures');
+      final unreadable = diveJson(2, time: '16:00:00')
+        ..['pictures'] = 'not a list';
+      final result = await service([
+        noKey,
+        unreadable,
+        diveJson(3, time: '18:00:00'),
+      ]).fetchLogbook(includePhotos: true);
       expect(result.photoListingFailures, 2);
       final warning = result.payload.warnings.singleWhere(
         (w) => w.code == ImportWarningCode.photoListingsUnavailable,
@@ -284,12 +330,32 @@ void main() {
       expect(warning.count, 2);
     });
 
-    test('photos are not requested when not asked', () async {
+    test('reads pictures PHP sent as a JSON object', () async {
       final result = await service([
-        diveJson(1),
-      ], forbidPictures: true).fetchLogbook(includePhotos: false);
+        diveJson(1)
+          ..['pictures'] = {
+            '3': {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+          },
+      ]).fetchLogbook(includePhotos: true);
+      expect(result.photoCount, 1);
+      expect(result.photoListingFailures, 0);
+    });
+
+    test('photos are not listed when not asked', () async {
+      final requested = <String>[];
+      final result = await service([
+        diveJson(
+          1,
+          pictures: [
+            {'id': 10, 'path': 'https://divelogs.de/pictures/u/1-1.jpg'},
+          ],
+        ),
+        diveJson(2, time: '16:00:00')..remove('pictures'),
+      ], requested: requested).fetchLogbook(includePhotos: false);
       expect(result.photoCount, 0);
       expect(result.photoListingFailures, 0);
+      expect(result.photosWithoutLink, 0);
+      expect(requested.where((p) => p.startsWith('/api/pictures')), isEmpty);
     });
   });
 

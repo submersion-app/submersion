@@ -82,7 +82,7 @@ class DenseSiteListTile extends StatelessWidget {
                   const SizedBox(width: 6),
                   Tooltip(
                     message:
-                        context.l10n.accessibility_label_sharedWithAllProfiles,
+                        context.l10n.accessibility_label_sharedWithProfiles,
                     child: Icon(
                       Icons.people_outline,
                       size: 16,

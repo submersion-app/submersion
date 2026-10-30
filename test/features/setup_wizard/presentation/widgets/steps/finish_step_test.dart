@@ -176,10 +176,10 @@ void main() {
     expect(find.byIcon(Icons.query_stats), findsNothing);
   });
 
-  testWidgets('apply failure surfaces an error and re-enables the button', (
-    tester,
-  ) async {
+  testWidgets('with no diver and no name, Finish asks for the profile '
+      'instead of failing', (tester) async {
     var seeded = false;
+    var asked = 0;
     await tester.pumpWidget(
       testApp(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -188,16 +188,19 @@ void main() {
             ref.watch(setupWizardProvider(SetupWizardMode.firstRun));
             if (!seeded) {
               seeded = true;
-              // Fresh path but no name -> applyFirstRun throws ArgumentError.
+              // The existing-data path never asks for a name.
               Future.microtask(
                 () => ref
                     .read(
                       setupWizardProvider(SetupWizardMode.firstRun).notifier,
                     )
-                    .choosePath(SetupPath.fresh),
+                    .choosePath(SetupPath.existingData),
               );
             }
-            return const FinishStep(mode: SetupWizardMode.firstRun);
+            return FinishStep(
+              mode: SetupWizardMode.firstRun,
+              onNeedsName: () => asked++,
+            );
           },
         ),
       ),
@@ -205,10 +208,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Get started'));
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Could not complete setup'), findsOneWidget);
-    // Button re-enabled so the user can retry.
+    expect(asked, 1);
+    expect(find.textContaining('Could not complete setup'), findsNothing);
     final button = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Get started'),
     );

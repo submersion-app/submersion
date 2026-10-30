@@ -12,6 +12,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_ask_providers.dart';
@@ -56,10 +57,20 @@ const kDiveSearchSaveKey = ValueKey('dive-search-save');
 /// sits under every layout's app bar, outside the list's loading and empty
 /// states, and shows while opened or while anything is filtered.
 class DiveSearchHeader extends ConsumerStatefulWidget {
-  const DiveSearchHeader({super.key, required this.onOpenDive, this.onEscape});
+  const DiveSearchHeader({
+    super.key,
+    required this.onOpenDive,
+    this.onJumpToDive,
+    this.onEscape,
+  });
 
   /// Opens one dive, the way tapping its list row does.
   final ValueChanged<DiveSummary> onOpenDive;
+
+  /// Takes the list to a dive found by its typed number, once the search
+  /// has cleared so the whole list shows (#3744): the list lands on the
+  /// dive and opens it. [onOpenDive] when unset.
+  final ValueChanged<DiveSummary>? onJumpToDive;
 
   /// Replaces Escape's close-and-clear while set; the list passes its
   /// selection exit, so Esc leaves selection mode first, as it does there.
@@ -280,6 +291,42 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
     }
   }
 
+  /// Enter: remembers the search and, when the field holds only a dive
+  /// number that a dive has, jumps to the newest such dive (#3455). It asks
+  /// for the field's text as it is now, not the rows on screen, which may
+  /// still answer text from before the debounce.
+  Future<void> _onSubmitted() async {
+    final node = _local;
+    unawaited(_recordTyped());
+    final number = bareDiveNumber(node);
+    if (node == null || number == null || !_fieldValid) return;
+    final provider = diveJumpResultsProvider(node);
+    // Held open while it loads: the rows' own listener may be gone.
+    final sub = ref.listenManual(provider, (_, _) {});
+    final List<DiveSummary> rows;
+    try {
+      rows = await ref.read(provider.future);
+    } catch (e, stackTrace) {
+      _log.warning('No dive to jump to', error: e, stackTrace: stackTrace);
+      return;
+    } finally {
+      sub.close();
+    }
+    if (!mounted || _local != node) return;
+    final dive = rows.where((d) => d.diveNumber == number).firstOrNull;
+    if (dive == null) return;
+    _jumpTo(dive);
+  }
+
+  /// A dive found by its number: the search clears, as Close would, so the
+  /// list shows every dive and can land on this one in its place, instead
+  /// of leaving the list filtered by the number as text (#3744).
+  void _jumpTo(DiveSummary dive) {
+    _focus.unfocus();
+    closeDiveSearch(context, ref);
+    (widget.onJumpToDive ?? widget.onOpenDive)(dive);
+  }
+
   /// A saved search is the whole search (spec 5.4): the axes clear.
   void _applySaved(SavedQueryLoad load) {
     _debounce?.cancel();
@@ -448,7 +495,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
                   focusNode: _focus,
                   onValidityChanged: _onValidityChanged,
                   onTextChanged: _onTextChanged,
-                  onSubmitted: _recordTyped,
+                  onSubmitted: _onSubmitted,
                   textOverride: _textOverride,
                   shortcuts: {
                     if (ref.watch(exploreEnabledProvider))
@@ -506,6 +553,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
               _focus.unfocus();
               widget.onOpenDive(dive);
             },
+            onJump: _jumpTo,
           ),
         if (panelAxes > 0) const DiveSearchScopeToggle(),
         if (filter.hasActiveFilters || saveable != null)

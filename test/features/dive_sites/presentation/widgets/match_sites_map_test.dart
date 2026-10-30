@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/match_sites_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
@@ -80,5 +82,45 @@ void main() {
 
     expect(find.byIcon(Icons.my_location), findsOneWidget);
     expect(find.byIcon(Icons.place), findsNothing);
+  });
+
+  // The selected pin fills with secondary, which dark themes make a light
+  // tone; its place glyph stayed white on it.
+  testWidgets('selected pin glyph reads on its fill in dark mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          theme: submersionDark,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MatchSitesMap(
+              divePoint: const GeoPoint(0, 0),
+              candidates: const [
+                MatchCandidateView(
+                  id: 's1',
+                  name: 'Blue Hole',
+                  isExisting: true,
+                  distanceMeters: 40,
+                  location: GeoPoint(0, 0.0003),
+                ),
+              ],
+              selectedCandidateId: 's1',
+              onSelectCandidate: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final glyph = find.byIcon(Icons.place);
+    expect(glyphOnFillContrast(tester, glyph), greaterThanOrEqualTo(4.5));
   });
 }

@@ -13,6 +13,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -27,8 +28,10 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_search_de
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_list_count_provider.dart';
+import 'package:submersion/features/buddies/presentation/widgets/swap/swap_with_buddy_button.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class BuddyListPage extends ConsumerStatefulWidget {
   const BuddyListPage({super.key});
@@ -68,6 +71,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'buddies',
+          rememberedSelectedId: ref.watch(rememberedBuddyIdProvider),
           appBarTitle: context.l10n.nav_buddies,
           appBarSubtitle: buddyListCountLabel(context, ref),
           tableContent: BuddyListContent(
@@ -110,6 +114,7 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
             ),
           ),
           appBarActions: [
+            const SwapWithBuddyButton(iconSize: 20),
             IconButton(
               icon: const Icon(Icons.search, size: 20),
               tooltip: context.l10n.buddies_action_search,
@@ -141,10 +146,11 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(buddySortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setBuddySort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -156,7 +162,9 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(buddyListViewModeProvider.notifier).state = mode;
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setBuddyListViewMode(mode);
                 }
               },
               itemBuilder: (context) {
@@ -185,7 +193,8 @@ class _BuddyListPageState extends ConsumerState<BuddyListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
-          sectionId: 'buddies',
+          sectionId: RecordListSection.buddies,
+          rememberedSelectedId: ref.watch(rememberedBuddyIdProvider),
           masterBuilder: (context, onItemSelected, selectedId) =>
               BuddyListContent(
                 onItemSelected: onItemSelected,

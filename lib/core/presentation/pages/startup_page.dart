@@ -7,7 +7,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:url_launcher/url_launcher.dart';
@@ -15,8 +14,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/app.dart' show resolveAppLocale;
 import 'package:submersion/app.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/storage/local_cache_sweep.dart';
-import 'package:submersion/core/services/storage/scratch_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/local_only_tombstone_gc.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
@@ -47,6 +44,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/dive_log_availability.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/services/security/biometric_service.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
@@ -61,6 +59,9 @@ import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
+import 'package:submersion/features/demo_mode/data/demo_startup.dart';
+import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/data/services/downgrade_restore_candidates.dart';
 import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
@@ -76,6 +77,7 @@ import 'package:submersion/features/media/data/services/scanned_logs_migration.d
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_orphan_backlog_sweep.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/settings/data/set_up_card_prefs.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/main.dart' show SubmersionRestart;
@@ -227,6 +229,15 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final DiveLogAvailabilityService? availabilityServiceOverride;
 
+  /// Where demo mode keeps its state (issue #3708). Null (tests that do not
+  /// exercise demo mode) means demo mode is never resumed.
+  final DemoPaths? demoPaths;
+
+  /// Optional override for demo mode's launch decision. See
+  /// [DemoStartup.resolve].
+  @visibleForTesting
+  final Future<DemoStartupDecision> Function()? demoStartupOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -246,6 +257,8 @@ class StartupWrapper extends StatefulWidget {
     this.fileReachedOverride,
     this.closeDatabaseOverride,
     this.availabilityServiceOverride,
+    this.demoPaths,
+    this.demoStartupOverride,
   });
 
   @override
@@ -277,6 +290,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// It opens read-write, which can roll back a hot journal, so after it the
   /// file may have changed however unreachable its folder looks later.
   bool _schemaProbeReachedFile = false;
+
+  /// The sample logbook this launch opens instead of the user's database,
+  /// when demo mode is on (issue #3708). Null opens the user's database.
+  String? _demoDatabasePath;
 
   /// The diver's custom folder, when the failure screen found it unreachable
   /// (#2178). Null at the default location and whenever the folder is fine.
@@ -376,6 +393,10 @@ class _StartupWrapperState extends State<StartupWrapper>
       // without sqlcipher.dll and the app reported a failed upgrade).
       (widget.enginePreflightOverride ?? assertDatabaseEngineAvailable)();
 
+      // Demo mode first (issue #3708): finishing an exit a killed app left
+      // half done restores the preferences everything below reads.
+      _demoDatabasePath = (await _resolveDemoStartup()).demoDatabasePath;
+
       // Determine if migration is needed before opening the database
       final dbPath = await widget.locationService.getDatabasePath();
       final journal = _restoreJournal(dbPath);
@@ -417,22 +438,31 @@ class _StartupWrapperState extends State<StartupWrapper>
         return;
       }
 
+      // Everything above judged the user's own database: whether it is on
+      // this device, the app lock and its encryption key, an unsettled
+      // restore. In demo mode the file opened below is the plaintext sample
+      // logbook instead, so it is opened without the key, and it needs no
+      // pre-upgrade backup (it is discarded on exit).
+      final demoPath = _demoDatabasePath;
+      final openPath = demoPath ?? dbPath;
+      if (demoPath != null) DatabaseService.instance.databaseKeyHex = null;
+
       final int? storedVersion;
       final bool needsMigration;
       final int totalSteps;
 
       // Sync stat on purpose, like _loadRecoveryOptions: a dart:io future
       // started in the widget-test zone never completes.
-      _schemaProbeReachedFile = File(dbPath).existsSync();
+      _schemaProbeReachedFile = File(openPath).existsSync();
       if (widget.schemaVersionProbeOverride != null) {
-        final probe = widget.schemaVersionProbeOverride!(dbPath);
+        final probe = widget.schemaVersionProbeOverride!(openPath);
         needsMigration = probe.needsMigration;
         totalSteps = probe.totalSteps;
         storedVersion =
             null; // probe path doesn't expose storedVersion; backup uses 0 default
       } else {
         storedVersion = DatabaseService.getStoredSchemaVersion(
-          dbPath,
+          openPath,
           keyHex: DatabaseService.instance.databaseKeyHex,
         );
         final sv = storedVersion;
@@ -441,7 +471,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         totalSteps = needsMigration ? AppDatabase.migrationStepCount(sv) : 0;
       }
 
-      if (needsMigration) {
+      if (needsMigration && demoPath == null) {
         if (mounted) {
           setState(() => _state = _StartupState.backingUp);
         }
@@ -926,6 +956,23 @@ class _StartupWrapperState extends State<StartupWrapper>
     _phase = StartupPhase.opening;
   }
 
+  Future<DemoStartupDecision> _resolveDemoStartup() async {
+    final override = widget.demoStartupOverride;
+    if (override != null) return override();
+    final paths = widget.demoPaths;
+    if (paths == null) return const DemoStartupDecision(null);
+    try {
+      return await DemoStartup.resolve(
+        store: DemoStateStore(paths),
+        prefs: widget.prefs,
+      );
+    } catch (e) {
+      // Never block a launch on demo mode: the user's logbook opens.
+      debugPrint('[startup] demo mode state could not be read: $e');
+      return const DemoStartupDecision(null);
+    }
+  }
+
   Future<void> _initializeServices() async {
     void onProgress(int currentStep, int totalSteps) {
       // reportProgress() in the migration ladder increments BEFORE it calls
@@ -978,6 +1025,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         onCompacting: () {
           if (mounted) setState(() => _state = _StartupState.compacting);
         },
+        pathOverride: _demoDatabasePath,
       ),
     );
 
@@ -996,6 +1044,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       // deterministic ids and the pass finds nothing to do on a fresh
       // install. Both swallow their own errors: neither can block startup.
       await AccountDeduplicator(prefs: prefs).run();
+      await runSetUpCardSeed(prefs);
     });
     await timeStartupStep(
       'notifications',
@@ -1096,65 +1145,11 @@ class _StartupWrapperState extends State<StartupWrapper>
       }
     }());
 
-    // Scratch-file sweep, at most once a day. Unlike the media sweep above,
-    // whose probe is one indexed SELECT, this walks the filesystem, so it
-    // carries a stamp rather than running unguarded on every launch. Same
-    // fire-and-forget shape: housekeeping must never delay first frame, and
-    // a failure is a whole launch away from its retry.
-    unawaited(() async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final stampMs = prefs.getInt(kScratchSweepStampKey);
-        final lastSweptAt = stampMs == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(stampMs);
-        final now = DateTime.now();
-        if (!shouldSweepScratch(lastSweptAt: lastSweptAt, now: now)) return;
-
-        await StorageScratchSweep(
-          temporaryDirectory: getTemporaryDirectory,
-          supportDirectory: getApplicationSupportDirectory,
-        ).run(now: now);
-
-        // Stamped after the pass, so a sweep that throws part way retries
-        // tomorrow rather than being recorded as done.
-        await prefs.setInt(kScratchSweepStampKey, now.millisecondsSinceEpoch);
-      } catch (e, stackTrace) {
-        debugPrint('Scratch sweep failed (will retry): $e\n$stackTrace');
-      }
-    }());
-
-    // Local cache database sweep (issue #1929), at most once a week. Deletes
-    // superseded bathymetry grids and cache rows whose dive, media item or
-    // track is gone, then VACUUMs when that freed enough to matter. Same
-    // stamp-and-swallow shape as the scratch sweep above.
-    unawaited(() async {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final stampMs = prefs.getInt(kLocalCacheSweepStampKey);
-        final lastSweptAt = stampMs == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(stampMs);
-        final now = DateTime.now();
-        if (!shouldSweepLocalCache(lastSweptAt: lastSweptAt, now: now)) {
-          return;
-        }
-
-        await LocalCacheSweep(
-          localCache: LocalCacheDatabaseService.instance.database,
-          library: DatabaseService.instance.database,
-        ).run(now: now);
-
-        // Stamped after the pass, so a sweep that throws part way retries
-        // on the next launch rather than being recorded as done.
-        await prefs.setInt(
-          kLocalCacheSweepStampKey,
-          now.millisecondsSinceEpoch,
-        );
-      } catch (e, stackTrace) {
-        debugPrint('Local cache sweep failed (will retry): $e\n$stackTrace');
-      }
-    }());
+    // The scratch-file and local cache sweeps run from the storage cleanup
+    // coordinator (storageGcCoordinatorProvider, issue #3396), which the app
+    // kicks once the first frame is up. The two jobs above stay here: the sync
+    // temp sweep must run before the database opens, and the unlinked-media
+    // sweep deletes rows, not files.
     // coverage:ignore-end
   }
 
@@ -1515,6 +1510,11 @@ class _StartupWrapperState extends State<StartupWrapper>
 
     try {
       await before?.call();
+      // Recorded before the swap, as BackupService does: the marker holds the
+      // storage cleanup's cloud deletes back until a sync after the restore,
+      // and the restored database must not judge what in the media store is
+      // orphaned before then. A marker that cannot be recorded stops here.
+      await StorageGcStore.markRestored(widget.prefs, DateTime.now());
       if (widget.restoreOverride != null) {
         await widget.restoreOverride!(path, onProgress);
       } else {
@@ -1948,17 +1948,13 @@ class _StartupWrapperState extends State<StartupWrapper>
       MediaQuery.platformBrightnessOf(context),
     );
     final isDark = brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
-    // The splash paints its plain text from the palette above, but every
-    // themed descendant (the restore Card, the buttons, the progress
-    // indicators, the escape-hatch dialogs) reads Theme.of instead. A
-    // MaterialApp with no theme gets Flutter's default, which is always
-    // LIGHT: in dark mode that put a near-white card surface under white
-    // text and made the restore offer unreadable. The theme therefore has to
-    // follow the same brightness the palette does.
+    // Every themed descendant (the restore Card, the buttons, the progress
+    // indicators, the escape-hatch dialogs) reads Theme.of. A MaterialApp
+    // with no theme gets Flutter's default, which is always LIGHT: in dark
+    // mode that put a near-white card surface under white text and made the
+    // restore offer unreadable. The theme therefore has to follow the
+    // diver's brightness.
     //
     // The preset comes from the same pre-database mirror the brightness does,
     // so a diver on Console or Deep is not handed an ocean-blue error screen.
@@ -1966,6 +1962,12 @@ class _StartupWrapperState extends State<StartupWrapper>
       resolveStartupThemePreset(widget.prefs),
       brightness,
     );
+
+    // The error and recovery screens paint their plain text from the same
+    // theme, so it agrees with the restore card beneath it on every preset.
+    final backgroundColor = splashTheme.colorScheme.surface;
+    final textColor = splashTheme.colorScheme.onSurface;
+    final subtitleColor = splashTheme.colorScheme.onSurfaceVariant;
 
     final isReady = _state == _StartupState.ready;
 

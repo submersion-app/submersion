@@ -18,6 +18,8 @@ import 'package:submersion/features/nav_track/presentation/nav_track_parse_error
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 const _log = LoggerService('TracksImport');
 
@@ -36,6 +38,9 @@ bool isSeacraftEncFile(String fileName, Uint8List bytes) {
 /// The Tracks page's Import action: picks one file and sends it to the
 /// review page for its kind (spec 2026-10-02, "Import").
 Future<void> importTrackFile(BuildContext context, WidgetRef ref) async {
+  if (!demoSealGuard(context, DemoSealedFeature.fileImport)) {
+    return;
+  }
   final file = await FilePicker.pickFile(
     type: FileType.custom,
     allowedExtensions: const ['gpx', 'kml', 'csv', 'fit'],

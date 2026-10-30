@@ -194,10 +194,9 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(CcrSettingsSection)),
     );
-    final fields = find.byType(TextFormField);
+    final fields = find.byType(TextField);
     expect(fields, findsNWidgets(3));
 
-    // Distinct from the pre-filled defaults (0.7 / 1.3 / 10) so onChanged fires.
     await tester.enterText(fields.at(0), '0.8');
     await tester.enterText(fields.at(1), '1.5');
     await tester.enterText(fields.at(2), '15');
@@ -212,101 +211,142 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointSwitchDepth, 0.0);
 
-    // A zero setpoint is still rejected, leaving the prior value untouched.
+    // Out of range (below the practical minimum) is not committed until
+    // focus leaves the field, which this test never triggers, so the prior
+    // value stays untouched.
     await tester.enterText(fields.at(0), '0');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
   });
 
-  testWidgets('CCR settings pre-fill an unset setpoint from the diver\'s '
-      'Settings, not the spec 0.7 / 1.3 (issue #2801)', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          settingsProvider.overrideWith(
-            (ref) => _TestSettingsNotifier(
-              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+  testWidgets(
+    'an empty setpoint field follows the diver\'s Settings as a greyed '
+    'hint, not the spec 0.7 / 1.3 (issues #2801, #3552)',
+    (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(
+                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+              ),
             ),
-          ),
-        ],
-        child: const SizedBox(width: 500, child: CcrSettingsSection()),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(CcrSettingsSection)),
-    );
-    // A plan that reached CCR without the mode switch's seed (an imported
-    // file, or one saved before the seed existed) carries no setpoints.
-    expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
-    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+          ],
+          child: const SizedBox(width: 500, child: CcrSettingsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CcrSettingsSection)),
+      );
+      // A plan that reached CCR without the mode switch's seed (an imported
+      // file, or one saved before the seed existed) carries no setpoints.
+      expect(container.read(divePlanNotifierProvider).setpointLow, isNull);
+      expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
 
-    final fields = find.byType(TextFormField);
-    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
-    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.2');
-  });
+      final fields = find.byType(TextField);
+      // Empty text, with the Settings value shown only as the hint - the
+      // same visible distinction every other overridable Setup field uses.
+      expect(tester.widget<TextField>(fields.at(0)).controller!.text, '');
+      expect(
+        tester.widget<TextField>(fields.at(0)).decoration?.hintText,
+        '0.6',
+      );
+      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
+      expect(
+        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
+        '1.2',
+      );
+    },
+  );
 
-  testWidgets('an unset setpoint field follows a Settings change; a set one '
-      'keeps its own value (issue #2801)', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          settingsProvider.overrideWith(
-            (ref) => _TestSettingsNotifier(
-              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+  testWidgets(
+    'an unset setpoint field\'s hint follows a Settings change; a set one '
+    'keeps its own value (issues #2801, #3552)',
+    (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(
+                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+              ),
             ),
-          ),
-        ],
-        child: const SizedBox(width: 500, child: CcrSettingsSection()),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(CcrSettingsSection)),
-    );
-    container.read(divePlanNotifierProvider.notifier).updateSetpoints(low: 0.9);
+          ],
+          child: const SizedBox(width: 500, child: CcrSettingsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CcrSettingsSection)),
+      );
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateSetpoints(low: 0.9);
 
-    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
-        .replace(const AppSettings(ccrSetpointLow: 0.5, ccrSetpointHigh: 1.4));
-    await tester.pumpAndSettle();
+      (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+          .replace(
+            const AppSettings(ccrSetpointLow: 0.5, ccrSetpointHigh: 1.4),
+          );
+      await tester.pumpAndSettle();
 
-    final fields = find.byType(TextFormField);
-    // The low field was seeded before the plan's own 0.9 was set, and a
-    // plan value is never overwritten by Settings.
-    expect(tester.widget<TextFormField>(fields.at(0)).controller!.text, '0.6');
-    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '1.4');
-  });
+      final fields = find.byType(TextField);
+      // The low field now carries the plan's own override text; a plan
+      // value is never overwritten by a Settings change.
+      expect(tester.widget<TextField>(fields.at(0)).controller!.text, '0.9');
+      // The high field is still unset, so its hint follows the new Settings
+      // value.
+      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
+      expect(
+        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
+        '1.4',
+      );
+    },
+  );
 
-  testWidgets('a Settings change leaves a field the diver blanked alone '
-      '(issue #2801)', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          settingsProvider.overrideWith(
-            (ref) => _TestSettingsNotifier(
-              const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+  testWidgets(
+    'clearing an override leaves the field empty, following Settings again '
+    '(issues #2801, #3552)',
+    (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(
+                const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
+              ),
             ),
-          ),
-        ],
-        child: const SizedBox(width: 500, child: CcrSettingsSection()),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(CcrSettingsSection)),
-    );
-    final fields = find.byType(TextFormField);
-    // Blank text leaves the plan's setpoint unset, so only the field's own
-    // text says the diver is editing it.
-    await tester.enterText(fields.at(1), '');
-    expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
+          ],
+          child: const SizedBox(width: 500, child: CcrSettingsSection()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CcrSettingsSection)),
+      );
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(1), '1.5');
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).setpointHigh, 1.5);
 
-    (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
-        .replace(const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.4));
-    await tester.pumpAndSettle();
+      // Blank text clears the override back to "follow Settings".
+      await tester.enterText(fields.at(1), '');
+      await tester.pumpAndSettle();
+      expect(container.read(divePlanNotifierProvider).setpointHigh, isNull);
 
-    expect(tester.widget<TextFormField>(fields.at(1)).controller!.text, '');
-  });
+      (container.read(settingsProvider.notifier) as _TestSettingsNotifier)
+          .replace(
+            const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.4),
+          );
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(fields.at(1)).controller!.text, '');
+      expect(
+        tester.widget<TextField>(fields.at(1)).decoration?.hintText,
+        '1.4',
+      );
+    },
+  );
 
   testWidgets('CCR settings fields stay in a row when there is room, and stack '
       'vertically when there is not (#3130)', (tester) async {
@@ -317,7 +357,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final wideFields = find.byType(TextFormField);
+    final wideFields = find.byType(TextField);
     expect(wideFields, findsNWidgets(3));
     // Side by side: all three share the same top edge.
     final wideTops = [
@@ -333,7 +373,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final narrowFields = find.byType(TextFormField);
+    final narrowFields = find.byType(TextField);
     expect(narrowFields, findsNWidgets(3));
     // Stacked: each field starts strictly below the one before it, so
     // every label keeps the field's full width instead of being

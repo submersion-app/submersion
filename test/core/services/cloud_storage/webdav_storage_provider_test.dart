@@ -107,6 +107,15 @@ void main() {
     expect(server.collections, contains('/dav/Submersion/Backups'));
   });
 
+  test('findFolder finds a folder without creating a missing one', () async {
+    await provider.saveConfig(config);
+    await provider.createFolder('Backups');
+
+    expect(await provider.findFolder('Backups'), 'Submersion/Backups');
+    expect(await provider.findFolder('Missing'), isNull);
+    expect(server.collections, isNot(contains('/dav/Submersion/Missing')));
+  });
+
   test('uploadFileFromPath and downloadToFile stream through disk', () async {
     await provider.saveConfig(config);
     final src = File(p.join(tmp.path, 'backup.db'));

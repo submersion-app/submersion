@@ -32,6 +32,8 @@ from tenacity import (
 )
 from tqdm import tqdm
 
+from curated_sites import load_curated, merge_curated
+
 # Path configuration - resolve relative to project root
 SCRIPT_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -832,6 +834,9 @@ class DiveSiteHarvester:
             s for s in dive_sites
             if not s["name"].startswith("Dive Site ")
         ]
+        # Curated sites fill OpenStreetMap's gaps, and survive every harvest.
+        harvested_count = len(named_sites)
+        named_sites = merge_curated(named_sites, load_curated())
 
         # Transform dive centers
         dive_centers = [
@@ -850,6 +855,7 @@ class DiveSiteHarvester:
                 "generated_at": utc_timestamp(),
                 "source": "OpenStreetMap via Overpass API",
                 "total_count": len(named_sites),
+                "curated_count": len(named_sites) - harvested_count,
                 "query_tags": ["sport=scuba_diving"],
             },
         }

@@ -9,9 +9,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -40,12 +42,38 @@ import 'package:submersion/features/media/presentation/widgets/mini_dive_profile
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/media/domain/entities/media_person_tag.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/face_box_layer.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/media_people_chips_row.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
+import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+
+const _log = LoggerService('MediaViewerPage', category: LogCategory.media);
+
+/// Releases [controller] without waiting on it, logging a failure rather
+/// than leaving it unhandled. Never awaited: a controller whose platform
+/// create() threw (no player on this platform, #3548) never finishes
+/// creating, and its dispose() waits on that forever.
+void _releaseController(VideoPlayerController controller, String mediaId) {
+  unawaited(
+    controller.dispose().catchError((Object e) {
+      _log.warning('Video $mediaId release failed', error: e);
+    }),
+  );
+}
 
 /// Full-screen media viewer with pinch-to-zoom and swipe navigation over an
 /// arbitrary media list (a dive's media, a trip's flat list, or a library
@@ -78,7 +106,10 @@ class MediaViewerPage extends ConsumerStatefulWidget {
 }
 
 class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
-    with MediaFullscreenMixin<MediaViewerPage> {
+    with
+        MediaFullscreenMixin<MediaViewerPage>,
+        ColorAdjustViewerMixin<MediaViewerPage>,
+        PeopleTagViewerMixin<MediaViewerPage> {
   /// The pageable subset of [MediaViewerPage.mediaList].
   ///
   /// Documents (PDF, docx, ...) resolve to raw bytes the Image widgets cannot
@@ -99,6 +130,57 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  /// "Pick white" answered by a tap at [at] on the page: the photo's pixels
+  /// (with its correction off for a frame), or a paused video's frame drawn
+  /// contain-fit in [box].
+  Future<void> _pickWhiteAt(MediaItem item, Offset at, Size box) {
+    if (!item.isVideo) return pickWhiteOnPhoto(item, at);
+    final controller = _videoControllers[item.id];
+    return pickWhiteWith(
+      item,
+      () async => controller == null
+          ? null
+          : sampleWhiteFromVideo(
+              ref,
+              item,
+              controller.value.position,
+              at,
+              box,
+              // The file the player has open (it plays from a file).
+              playing: controller.dataSourceType == DataSourceType.file
+                  ? Uri.parse(controller.dataSource).toFilePath()
+                  : null,
+            ),
+    );
+  }
+
+  /// Enters "Pick white"; a video is paused first so the tap reads the
+  /// frame on screen.
+  void _startPickingWhite(MediaItem item) {
+    // One tap-capturing mode at a time: Pick white leaves people tag mode
+    // (issue #1745). The toolbar is hidden while Pick white waits, so tag
+    // mode cannot be entered the other way round.
+    if (!pickingWhite && taggingPeople) togglePeopleTagging();
+    // Tapping Pick white again cancels it.
+    if (!pickingWhite && item.isVideo) {
+      unawaited(_videoControllers[item.id]?.pause());
+    }
+    togglePickWhite();
+  }
+
+  /// A video face tag's chip was tapped (issue #1745): pause on its frame,
+  /// where the video item draws the tag's box. A video that cannot play
+  /// here (no controller, or one that failed) has no frame to show, so the
+  /// tap does nothing.
+  void _showMoment(MediaItem item, MediaPersonTag tag) {
+    final at = tag.videoPosition;
+    final controller = _videoControllers[item.id];
+    if (at == null || controller == null) return;
+    final value = controller.value;
+    if (!value.isInitialized || value.hasError) return;
+    unawaited(controller.pause().then((_) => controller.seekTo(at)));
+  }
 
   /// Dives whose enrichment backfill has already been attempted this session,
   /// so a swipe through several un-enriched items of one dive runs it once.
@@ -289,6 +371,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       return KeyEventResult.handled;
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
+      // Escape backs out one step at a time: people tag mode first.
+      if (taggingPeople) {
+        togglePeopleTagging();
+        return KeyEventResult.handled;
+      }
       if (isFullscreen) {
         exitFullscreen();
       } else {
@@ -458,6 +545,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
             final perdixToggleAvailable =
                 perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
 
+            // People tag mode (issue #1745), shared with every gallery page.
+            final peopleSession = buildPeopleSession(
+              pauseVideo: (id) => unawaited(_videoControllers[id]?.pause()),
+            );
+
             final viewer = GestureDetector(
               // Swipe down to close (common pattern for fullscreen viewers)
               onVerticalDragEnd: (details) {
@@ -469,31 +561,36 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
               child: Stack(
                 children: [
                   // Photo/video gallery
-                  _PhotoGallery(
-                    mediaList: mediaList,
-                    pageController: _pageController,
-                    onPageChanged: (index) {
-                      // Swipes and settles both land here, which is what
-                      // re-syncs the nav target after a gesture.
-                      setState(() {
-                        _currentIndex = index;
-                        _navTargetIndex = index;
-                      });
-                      // Controls left up on a paused video have no timer; the
-                      // next page restarts the 3-second hide so they do not
-                      // linger over a photo nobody tapped.
-                      if (isFullscreen && fullscreenControlsVisible) {
-                        revealFullscreenControls(autoHide: true);
-                      }
-                    },
-                    showOverlay: isFullscreen
-                        ? fullscreenControlsVisible
-                        : _showOverlay,
-                    fullscreen: isFullscreen,
-                    onFullscreenTap: toggleFullscreenControls,
-                    onSetOverlay: _onSetOverlay,
-                    onVideoControllerChanged: _onVideoControllerChanged,
-                    currentIndex: currentIndex,
+                  RepaintBoundary(
+                    key: galleryBoundaryKey,
+                    child: _PhotoGallery(
+                      mediaList: mediaList,
+                      pageController: _pageController,
+                      onPageChanged: (index) {
+                        // Swipes and settles both land here, which is what
+                        // re-syncs the nav target after a gesture.
+                        setState(() {
+                          _currentIndex = index;
+                          _navTargetIndex = index;
+                          selectedPeopleTagId = null;
+                        });
+                        // Controls left up on a paused video have no timer; the
+                        // next page restarts the 3-second hide so they do not
+                        // linger over a photo nobody tapped.
+                        if (isFullscreen && fullscreenControlsVisible) {
+                          revealFullscreenControls(autoHide: true);
+                        }
+                      },
+                      showOverlay: isFullscreen
+                          ? fullscreenControlsVisible
+                          : _showOverlay,
+                      fullscreen: isFullscreen,
+                      onFullscreenTap: toggleFullscreenControls,
+                      onSetOverlay: _onSetOverlay,
+                      onVideoControllerChanged: _onVideoControllerChanged,
+                      currentIndex: currentIndex,
+                      people: peopleSession,
+                    ),
                   ),
 
                   // Transparent tap target to toggle overlays (photos only)
@@ -505,18 +602,44 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             context.l10n.media_photoViewer_toggleOverlayLabel,
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          onTap: isFullscreen
+                          onTap: pickingWhite || taggingPeople
+                              ? null
+                              : isFullscreen
                               ? toggleFullscreenControls
                               : () => setState(
                                   () => _showOverlay = !_showOverlay,
                                 ),
+                          onTapUp: pickingWhite
+                              ? (details) => _pickWhiteAt(
+                                  currentItem,
+                                  details.localPosition,
+                                  context.size ?? Size.zero,
+                                )
+                              : null,
                           child: const SizedBox.expand(),
                         ),
                       ),
                     ),
 
+                  // "Pick white" on a paused video: the player owns ordinary
+                  // taps, so the pick gets its own catcher above it.
+                  if (pickingWhite && currentItem.isVideo)
+                    Positioned.fill(
+                      child: LayoutBuilder(
+                        builder: (context, box) => GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapUp: (details) => _pickWhiteAt(
+                            currentItem,
+                            details.localPosition,
+                            box.biggest,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (pickingWhite) const PickWhiteHint(),
+
                   // Overlay controls (app bar and metadata)
-                  if (_showOverlay && !isFullscreen) ...[
+                  if (_showOverlay && !isFullscreen && !pickingWhite) ...[
                     // Top app bar
                     MediaViewerToolbar(
                       item: currentItem,
@@ -535,6 +658,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       onWriteMetadata: () => _writeMetadataToPhoto(currentItem),
                       onTagSpecies: () =>
                           showMediaSpeciesSheet(context, currentItem),
+                      onTagPeople: () => togglePeopleTagging(
+                        pauseVideo: _videoControllers[currentItem.id]?.pause,
+                      ),
+                      peopleTaggingActive: taggingPeople,
+                      onAdjustColor: () => openColorPanel(),
                       // The viewer is deliberately NOT popped first: leaving it
                       // on the stack is what lets Back return the user to the
                       // photo they launched from, with its page index, zoom and
@@ -563,46 +691,70 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             ),
                     ),
 
-                    // Previous / next controls. Mounted with the rest of the
-                    // chrome, so the tap-to-hide gesture takes them away too.
-                    MediaNavArrows(
-                      currentIndex: currentIndex,
-                      totalCount: mediaList.length,
-                      onPrevious: () => _stepPage(-1),
-                      onNext: () => _stepPage(1),
+                    // What colour correction the item is drawn with.
+                    Positioned(
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          kMediaViewerToolbarHeight +
+                          4,
+                      left: 12,
+                      child: ColorCorrectionLabel(item: currentItem),
                     ),
 
-                    // Mini dive profile overlay (lower right)
-                    if (diveProfile != null &&
-                        diveProfile.isNotEmpty &&
-                        positioned)
-                      PositionedMiniProfileOverlay(
-                        profile: diveProfile,
-                        photoElapsedSeconds: enrichment.elapsedSeconds!,
-                        photoDepthMeters: enrichment.depthMeters,
+                    // Tag mode keeps the photo clear below the toolbar.
+                    if (!taggingPeople) ...[
+                      // Previous / next controls. Mounted with the rest of the
+                      // chrome, so the tap-to-hide gesture takes them away too.
+                      MediaNavArrows(
+                        currentIndex: currentIndex,
+                        totalCount: mediaList.length,
+                        onPrevious: () => _stepPage(-1),
+                        onNext: () => _stepPage(1),
+                      ),
+
+                      // Mini dive profile overlay (lower right)
+                      if (diveProfile != null &&
+                          diveProfile.isNotEmpty &&
+                          positioned)
+                        PositionedMiniProfileOverlay(
+                          profile: diveProfile,
+                          photoElapsedSeconds: enrichment.elapsedSeconds!,
+                          photoDepthMeters: enrichment.depthMeters,
+                          settings: settings,
+                          visible: _showOverlay,
+                        ),
+
+                      // Bottom metadata
+                      _BottomMetadataOverlay(
+                        item: currentItem,
                         settings: settings,
-                        visible: _showOverlay,
+                        onMomentTap: (tag) => _showMoment(currentItem, tag),
+                        profileLengthSeconds: profileLength,
+                        // Pinning needs a profile to pin against; a dive with
+                        // none has no moments to choose from.
+                        onSetTime: diveProfile == null || diveProfile.isEmpty
+                            ? null
+                            : () => _setTimeInDive(
+                                currentItem,
+                                diveProfile,
+                                settings,
+                              ),
+                        siteName: diveAsync.whenOrNull(
+                          data: (dive) => dive?.site?.name,
+                        ),
                       ),
-
-                    // Bottom metadata
-                    _BottomMetadataOverlay(
-                      item: currentItem,
-                      settings: settings,
-                      profileLengthSeconds: profileLength,
-                      // Pinning needs a profile to pin against; a dive with
-                      // none has no moments to choose from.
-                      onSetTime: diveProfile == null || diveProfile.isEmpty
-                          ? null
-                          : () => _setTimeInDive(
-                              currentItem,
-                              diveProfile,
-                              settings,
-                            ),
-                      siteName: diveAsync.whenOrNull(
-                        data: (dive) => dive?.site?.name,
-                      ),
-                    ),
+                    ],
                   ],
+
+                  // People tag mode's hint and actions (issue #1745).
+                  if (taggingPeople)
+                    peopleTagHint(
+                      currentItem,
+                      video: currentItem.isVideo
+                          ? _videoControllers[currentItem.id]?.value
+                          : null,
+                      onShowMoment: (tag) => _showMoment(currentItem, tag),
+                    ),
 
                   // Perdix dive computer overlay. Deliberately independent of
                   // the _showOverlay chrome, which auto-hides during video
@@ -678,7 +830,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
             return Focus(
               autofocus: true,
               onKeyEvent: _handleKeyEvent,
-              child: viewer,
+              // Adjust color (issue #3520).
+              child: colorAdjustLayout(
+                item: currentItem,
+                fullscreen: isFullscreen,
+                pickWhiteAvailable:
+                    !currentItem.isVideo ||
+                    _videoControllers[currentItem.id] != null,
+                onPickWhite: () => _startPickingWhite(currentItem),
+                child: viewer,
+              ),
             );
           },
         ),
@@ -865,6 +1026,9 @@ class _PhotoGallery extends ConsumerWidget {
   onVideoControllerChanged;
   final int currentIndex;
 
+  /// The viewer's people tag mode (issue #1745).
+  final PeopleTagSession people;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -875,12 +1039,16 @@ class _PhotoGallery extends ConsumerWidget {
     required this.onSetOverlay,
     required this.onVideoControllerChanged,
     required this.currentIndex,
+    required this.people,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PhotoViewGallery.builder(
-      scrollPhysics: const BouncingScrollPhysics(),
+      // Tag mode holds the page still, so dragging a box never swipes.
+      scrollPhysics: people.active
+          ? const NeverScrollableScrollPhysics()
+          : const BouncingScrollPhysics(),
       pageController: pageController,
       // Build the page either side of the current one, so the next photo has
       // resolved and decoded before a swipe or arrow press brings it in.
@@ -922,6 +1090,7 @@ class _PhotoGallery extends ConsumerWidget {
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
               onControllerChanged: onVideoControllerChanged,
+              people: people,
             ),
           );
         }
@@ -929,7 +1098,10 @@ class _PhotoGallery extends ConsumerWidget {
         return PhotoViewGalleryPageOptions.customChild(
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
-          child: _PhotoItem(item: item),
+          // Tag mode owns the gestures; a zoom already set stays, and the
+          // editor inside the child maps taps through it.
+          disableGestures: people.active,
+          child: _PhotoItem(item: item, showBoxes: showOverlay, people: people),
         );
       },
       loadingBuilder: (context, event) =>
@@ -939,17 +1111,66 @@ class _PhotoGallery extends ConsumerWidget {
 }
 
 /// Individual photo item that loads full-resolution image.
-class _PhotoItem extends StatelessWidget {
+/// [item], from the list the viewer opened with, drawn with the live row's
+/// colour adjustment and profile match (issue #3520): one saved since (the
+/// panel, Apply to this dive) shows on every page, not only the current
+/// one. Only those two: MediaItemView does not resolve the image again for
+/// them, so a caption or time pin arriving while the page is open does not
+/// reload the photo.
+MediaItem _withLiveColor(WidgetRef ref, MediaItem item) {
+  final live = ref.watch(mediaByIdProvider(item.id)).value;
+  if (live == null) return item;
+  return item.copyWith(
+    colorAdjustment: live.colorAdjustment,
+    enrichment: live.enrichment ?? item.enrichment,
+  );
+}
+
+class _PhotoItem extends ConsumerWidget {
   final MediaItem item;
 
-  const _PhotoItem({required this.item});
+  /// Whether the face boxes show: they follow the viewer's controls.
+  final bool showBoxes;
+  final PeopleTagSession people;
+
+  const _PhotoItem({
+    required this.item,
+    required this.showBoxes,
+    required this.people,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return MediaItemView(
-      item: item,
-      fit: BoxFit.contain,
-      showAccessActions: true,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final imageSize = people.imageSizeOf(item);
+    // Inside the PhotoView child, so the boxes zoom with the photo and a
+    // tag-mode tap lands in the photo's own coordinates.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        MediaItemView(
+          item: _withLiveColor(ref, item),
+          fit: BoxFit.contain,
+          showAccessActions: true,
+          onImageSize: (size) => people.onImageSize(item.id, size),
+        ),
+        if (people.active && imageSize != null)
+          PeopleTagEditor(
+            mediaId: item.id,
+            imageSize: imageSize,
+            selectedTagId: people.selectedTagId,
+            pendingBox: people.pendingBoxFor(item.id),
+            canPlace: people.canPlace(item),
+            onPlace: (box) => people.onPlace(item, box, null),
+            onSelect: people.onSelect,
+            onMove: people.onMove,
+          )
+        else if (!people.active)
+          FaceBoxLayer(
+            mediaId: item.id,
+            imageSize: imageSize,
+            visible: showBoxes,
+          ),
+      ],
     );
   }
 }
@@ -1026,7 +1247,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          MediaItemView(item: item, fit: BoxFit.contain),
+          MediaItemView(item: _withLiveColor(ref, item), fit: BoxFit.contain),
           if (!fullscreen)
             badge
           else if (showControls)
@@ -1058,6 +1279,9 @@ class _VideoItem extends ConsumerStatefulWidget {
   final void Function(String mediaId, VideoPlayerController? controller)
   onControllerChanged;
 
+  /// The viewer's people tag mode (issue #1745).
+  final PeopleTagSession people;
+
   const _VideoItem({
     required this.item,
     required this.isCurrent,
@@ -1065,6 +1289,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     this.fullscreen = false,
     required this.onSetOverlay,
     required this.onControllerChanged,
+    required this.people,
   });
 
   @override
@@ -1073,6 +1298,12 @@ class _VideoItem extends ConsumerStatefulWidget {
 
 class _VideoItemState extends ConsumerState<_VideoItem> {
   VideoPlayerController? _controller;
+
+  /// The file [_controller] plays, for the colour track's frames.
+  String? _playbackPath;
+
+  /// Whether this page has taken keyboard focus since it became current.
+  bool _focusTaken = false;
   bool _isInitialized = false;
   bool _isLoading = true;
   String? _error;
@@ -1117,12 +1348,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _error = null;
     if (controller == null) return;
     widget.onControllerChanged(widget.item.id, null);
-    unawaited(controller.dispose());
+    _releaseController(controller, widget.item.id);
   }
 
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.space) {
+    // In people tag mode the video stays on the frame its boxes are drawn
+    // on (issue #1745), so Space does not play it.
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.space &&
+        !widget.people.active) {
       _togglePlayPause();
       return KeyEventResult.handled;
     }
@@ -1142,6 +1377,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       final path = await ref.read(resolvedFilePathProvider(widget.item).future);
 
       if (stale()) return;
+      _playbackPath = path;
       if (path == null) {
         setState(() {
           _error = 'videoFileNotFound';
@@ -1155,7 +1391,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       await controller.initialize();
 
       if (stale()) {
-        controller.dispose();
+        _releaseController(controller, widget.item.id);
         return;
       }
 
@@ -1167,25 +1403,33 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       // Ownership has moved to _controller; dispose() owns it from here.
       pending = null;
       widget.onControllerChanged(widget.item.id, controller);
-    } catch (e) {
-      await pending?.dispose();
+    } catch (e, stackTrace) {
+      final mediaId = widget.item.id;
+      _log.warning(
+        'Video $mediaId failed to load',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!stale()) {
         setState(() {
           _error = 'failedToLoadVideo';
           _isLoading = false;
         });
       }
+      // Only after the error is on screen: see _releaseController.
+      if (pending != null) _releaseController(pending, mediaId);
     }
   }
 
   @override
   void dispose() {
-    if (_controller != null) {
+    final controller = _controller;
+    if (controller != null) {
       // Unregister before disposing so the page never holds a dead
       // controller; guarded by mounted on the page side.
       widget.onControllerChanged(widget.item.id, null);
+      _releaseController(controller, widget.item.id);
     }
-    _controller?.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -1263,7 +1507,15 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
     // Request focus when video is ready to enable keyboard controls. Only on
     // screen: a neighbour built ahead would otherwise take the space bar.
-    if (widget.isCurrent) _focusNode.requestFocus();
+    // Once per arrival on screen, not on every rebuild: a save from the
+    // Adjust color panel rebuilds this page, and taking focus back then
+    // would leave the slider's next arrow key turning the page (#3520).
+    if (!widget.isCurrent) {
+      _focusTaken = false;
+    } else if (!_focusTaken) {
+      _focusTaken = true;
+      _focusNode.requestFocus();
+    }
 
     return Focus(
       focusNode: _focusNode,
@@ -1281,10 +1533,26 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: Center(
                 child: AspectRatio(
                   aspectRatio: controller.value.aspectRatio,
-                  child: VideoPlayer(controller),
+                  child: VideoColorFilter(
+                    // The live row, so a saved adjustment shows (#3520).
+                    item:
+                        ref.watch(mediaByIdProvider(widget.item.id)).value ??
+                        widget.item,
+                    player: controller,
+                    path: _playbackPath,
+                    child: VideoPlayer(controller),
+                  ),
                 ),
               ),
             ),
+          ),
+
+          // People tags (issue #1745).
+          VideoPeopleLayer(
+            controller: controller,
+            item: widget.item,
+            people: widget.people,
+            showOverlay: widget.showOverlay,
           ),
 
           // Play/pause button overlay (center) - visual indicator only when paused
@@ -1306,8 +1574,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               ),
             ),
 
-          // Video controls overlay (bottom)
-          if (widget.showOverlay)
+          // Video controls overlay (bottom). Not in tag mode: the video stays
+          // on the frame its boxes are drawn on.
+          if (widget.showOverlay && !widget.people.active)
             Positioned(
               left: 0,
               right: 0,
@@ -1316,7 +1585,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               bottom: widget.fullscreen
                   ? MediaQuery.paddingOf(context).bottom + 24
                   : 160,
-              child: _VideoControlsOverlay(controller: controller),
+              child: _VideoControlsOverlay(
+                controller: controller,
+                mediaId: widget.item.id,
+              ),
             ),
         ],
       ),
@@ -1331,7 +1603,13 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 class _VideoControlsOverlay extends StatefulWidget {
   final VideoPlayerController controller;
 
-  const _VideoControlsOverlay({required this.controller});
+  /// The video, whose tagged moments are marked on the bar (issue #1745).
+  final String mediaId;
+
+  const _VideoControlsOverlay({
+    required this.controller,
+    required this.mediaId,
+  });
 
   @override
   State<_VideoControlsOverlay> createState() => _VideoControlsOverlayState();
@@ -1436,6 +1714,12 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
                                 ),
                               ),
                             ),
+                            // Tagged moments (issue #1745)
+                            VideoTagMarks(
+                              mediaId: widget.mediaId,
+                              duration: duration,
+                              width: constraints.maxWidth,
+                            ),
                             // Thumb indicator
                             Positioned(
                               left: (constraints.maxWidth * progress) - 8,
@@ -1490,12 +1774,16 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// to pin against, which also hides the affordance.
   final VoidCallback? onSetTime;
 
+  /// A video face tag's chip was tapped (issue #1745).
+  final ValueChanged<MediaPersonTag>? onMomentTap;
+
   const _BottomMetadataOverlay({
     required this.item,
     required this.settings,
     required this.profileLengthSeconds,
     this.onSetTime,
     this.siteName,
+    this.onMomentTap,
   });
 
   @override
@@ -1556,6 +1844,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
+                MediaPeopleChipsRow(mediaId: item.id, onMomentTap: onMomentTap),
                 MediaSpeciesChipsRow(mediaId: item.id),
                 // Metadata row
                 Row(

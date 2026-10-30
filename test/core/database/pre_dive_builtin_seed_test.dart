@@ -164,7 +164,7 @@ void main() {
   test('the CCR template seeds three linked cell linearity rows', () async {
     await rows('SELECT 1');
     final linearity = await rows(
-      'SELECT id, section, sort_order, source_item_id, value_min, '
+      'SELECT id, section_id, sort_order, source_item_id, value_min, '
       'value_unit, value_label, is_required FROM '
       'pre_dive_checklist_template_items '
       "WHERE template_id = 'builtin-predive-ccr-build' "
@@ -189,7 +189,7 @@ void main() {
       'Cell 3',
     ]);
     for (final row in linearity) {
-      expect(row['section'], 'Cells');
+      expect(row['section_id'], 'builtin-predive-ccr-build-cells');
       expect(row['value_min'], 95);
       expect(row['value_unit'], 'mV');
       expect(row['is_required'], 1);

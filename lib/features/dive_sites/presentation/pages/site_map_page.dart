@@ -4,6 +4,8 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
 import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle_button.dart';
@@ -512,7 +514,7 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
         child: Icon(
           Icons.scuba_diving,
           size: isSelected ? 24 : 20,
-          color: Colors.white,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
         ),
       ),
     );
@@ -592,14 +594,22 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
   }
 
   Future<void> _addBuiltInSite(ExternalDiveSite site) async {
+    // Read now: adding a built-in site is creating a site by hand (#3513),
+    // and it gets its rules even if the diver leaves meanwhile.
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
+    final String addedId;
     try {
-      await ref
-          .read(siteListNotifierProvider.notifier)
-          .addSite(
-            site.toDiveSite(),
-            // Its bundled features as site types (issue #1765).
-            classification: SiteClassification(typeIds: site.siteTypeIds),
-          );
+      addedId =
+          (await ref
+                  .read(siteListNotifierProvider.notifier)
+                  .addSite(
+                    site.toDiveSite(),
+                    // Its bundled features as site types (issue #1765).
+                    classification: SiteClassification(
+                      typeIds: site.siteTypeIds,
+                    ),
+                  ))
+              .id;
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -612,12 +622,14 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     }
     // addSite reloads the notifier but not the map's FutureProvider; invalidate
     // so the new site appears and the built-in duplicate is deduped out.
-    ref.invalidate(sitesWithCountsProvider);
-    if (!mounted) return;
-    setState(() => _selectedBuiltInId = null);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
-    );
+    if (mounted) {
+      ref.invalidate(sitesWithCountsProvider);
+      setState(() => _selectedBuiltInId = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
+      );
+    }
+    await rulesAfterCreate(subject: RuleSubject.sites, ids: [addedId]);
   }
 
   /// Where [sites] sit on the map, skipping any without coordinates.

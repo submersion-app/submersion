@@ -65,15 +65,17 @@ void main() {
     );
     final repairs = repairOptionsFor(det.detect(ctx).single);
 
-    expect(repairs.first, isA<AssignTransmitterRepair>());
-    expect((repairs.first as AssignTransmitterRepair).serial, '180777');
+    expect(repairs.first, isA<SetUpTransmitterRepair>());
+    expect((repairs.first as SetUpTransmitterRepair).serial, '180777');
     expect(repairs.last, isA<GoToDiveRepair>());
   });
 
-  // Version 2 shows the inbox's new-checks banner, prompting the library
-  // scan that brings back the findings earlier library scans retired by
-  // never running this check (#2870).
-  test('is past the version earlier library scans skipped', () {
-    expect(const UnknownTransmitterDetector().version, 2);
+  // Each bump shows the inbox's new-checks banner, prompting the library
+  // scan that brings the findings back: version 2 after library scans
+  // retired them by never running this check (#2870), version 3 when "set
+  // up" replaced "registered" (#3676).
+  test('is past the version that only asked about unregistered serials '
+      '(#3676)', () {
+    expect(const UnknownTransmitterDetector().version, 3);
   });
 }

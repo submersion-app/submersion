@@ -56,6 +56,7 @@ class ExperienceSection extends StatelessWidget {
           controller: notesController,
           placeholder: notesPlaceholder,
           maxLines: 5,
+          markdown: true,
         ),
         tagsChild,
       ],

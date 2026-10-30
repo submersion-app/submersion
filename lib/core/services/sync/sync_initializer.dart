@@ -7,10 +7,12 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart'
     show syncLastProviderPrefsKey;
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The cloud provider the foreground app last selected, as recorded in
@@ -42,6 +44,11 @@ class SyncInitializer {
   /// the database was replaced by a restore. See [reconcileDeviceIdentity].
   static const _deviceIdSentinelKey = 'sync_device_id_sentinel';
 
+  /// The provider the stored peer names were learned on. Kept apart from the
+  /// selection, which turning sync off removes, so off and back on to the
+  /// same backend keeps the names that media provenance labels read.
+  static const _peerNamesProviderKey = 'sync_peer_names_provider';
+
   /// Mirrors the database instance token outside the database. The token is
   /// rotated each launch, so a restored backup carries a stale token that no
   /// longer matches this copy -- the primary restore signal, and the one that
@@ -64,6 +71,10 @@ class SyncInitializer {
   final SyncRepository _syncRepository;
   final SharedPreferences _prefs;
 
+  /// Peer names learned on the current backend, forgotten when the backend
+  /// changes. Optional so the headless isolate and unit tests need none.
+  final PeerDeviceNameStore? _peerNames;
+
   /// Resolves localizations for the [SyncCheckResult] messages. Injected by
   /// `syncInitializerProvider`; defaults to English so an un-wired caller (a
   /// unit test, the headless isolate) stays deterministic.
@@ -77,15 +88,28 @@ class SyncInitializer {
     required SyncRepository syncRepository,
     required SharedPreferences prefs,
     AppLocalizations Function()? localizations,
+    PeerDeviceNameStore? peerNames,
   }) : _syncRepository = syncRepository,
        _prefs = prefs,
+       _peerNames = peerNames,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Get the last used cloud provider type
   CloudProviderType? getLastProvider() => lastCloudProviderFromPrefs(_prefs);
 
-  /// Save the selected cloud provider
+  /// Save the selected cloud provider. A different provider is a different
+  /// set of devices, so the peer names learned on the old one are dropped;
+  /// the next pull records the new ones.
   Future<void> saveProvider(CloudProviderType? provider) async {
+    final names = _peerNames;
+    if (provider != null && names != null) {
+      final learnedOn =
+          _prefs.getString(_peerNamesProviderKey) ?? getLastProvider()?.name;
+      if (learnedOn != null && learnedOn != provider.name) {
+        await names.clear();
+      }
+      await _prefs.setString(_peerNamesProviderKey, provider.name);
+    }
     if (provider == null) {
       await _prefs.remove(_lastProviderKey);
     } else {
@@ -121,6 +145,9 @@ class SyncInitializer {
   ///
   /// Never throws: a reconcile failure must not block app launch.
   Future<DeviceIdentityStatus> reconcileDeviceIdentity() async {
+    // The open database is the sample logbook, not the one the anchors
+    // describe; comparing them would read as a restore (issue #3708).
+    if (DemoModeGate.instance.isActive) return DeviceIdentityStatus.demoMode;
     try {
       final deviceId = await _syncRepository.getDeviceId();
       final dbToken = await _syncRepository.getInstanceToken();
@@ -580,6 +607,10 @@ enum DeviceIdentityStatus {
   /// or a changed device id: a restore replaced the database. Sync was
   /// re-baselined and the live identity restored.
   rebaselined,
+
+  /// Demo mode is on, so the open database is the sample logbook and nothing
+  /// was compared, seeded or rotated (issue #3708).
+  demoMode,
 
   /// The anchors named a previous install, but the on-disk database has no
   /// sync history at all: a fresh install on a machine whose preferences

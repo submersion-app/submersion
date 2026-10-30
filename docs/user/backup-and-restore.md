@@ -1,11 +1,11 @@
-# Backup and Restore
+# Backups
 
 A backup is a point-in-time snapshot of your whole dive logbook in a single
 file. Keep the file wherever you like, share it, or use it to roll back to an
 earlier state of your data.
 
 > [!NOTE]
-> **Where to find it:** **Settings > Data > Backup & Restore**.
+> **Where to find it:** **Settings > Data > Backups**.
 
 <!-- screenshot: images/backup-and-restore/backup.png: backup and restore page -->
 
@@ -17,25 +17,50 @@ stores in its log. Device settings such as cloud-sync credentials are not stored
 in the database and are not included.
 
 A plain backup is a `.db` file named with the date, such as `submersion_backup_YYYY-MM-DD.db` for an exported one (automatic backups add the time); an encrypted one
-ends in `.sbe` (see [Backup encryption](#backup-encryption)).
+ends in `.sbe` (see [Password protection](#password-protection)).
 
-## Creating a backup
+## The Backups page
 
-Tap **Export Backup**. A sheet offers two options:
+The page opens with one line saying what is true now: when the last backup ran
+and where its copy is (for example, "Backed up 3 hours ago, copy in Google
+Drive"), "Not backed up yet", or when the last automatic backup failed. Below
+it, in order:
 
-- **Save to File:** choose where to save the backup, such as a folder, a cloud
-  drive, or a connected disk.
-- **Share:** send the file through the system share sheet (AirDrop, email, other
-  apps). Not available on Windows and Linux, which have no share sheet.
+- **Back up automatically**, with how often in its subtitle. Tap the
+  frequency (**Daily**, **Weekly** or **Monthly**) to change it.
+- **Copy to {account}**: where the copy off this device goes (see
+  [The copy off this device](#the-copy-off-this-device)).
+- **Back up now** makes a backup straight away. It asks for an optional note
+  first.
+- **Restore from a file** (see below).
+- **History**, then **Advanced**.
 
-When the export finishes, a message confirms it with the file's size.
+## The copy off this device
 
-**Backup Now**, in the **Automatic Backups** section, makes a backup straight
-away into your backup location.
+Each backup is written on this device. Submersion can also keep a copy in one
+of your accounts, so a lost or broken device does not take your backups with
+it. The **Copy to** row says where that copy goes:
+
+- **Copy to {account}**, **Same account as sync**: the copy goes to whichever
+  account [Multi-Device Sync](multi-device-sync.md) uses, and follows it if
+  you switch sync to another account. This is how every device starts.
+- **Copy to {account}** with no such line: you chose that account for the
+  copy, whatever sync uses. It can be an account sync does not use at all.
+- **No copy off this device**: backups stay on this device only.
+
+Tap **Change** (or **Choose an account**) to pick an account from the account
+list, add one, or choose **No copy off this device**. Copies go to the
+`Submersion Backups` folder in the account's sync folder, the same place
+earlier versions put them.
+
+The copy only turns off when you choose that, or when you sign out of or
+remove the account it goes to (the confirmation says so first). **Stop syncing
+on this device** keeps a copy that follows sync going to the account sync was
+using.
 
 ## Restoring from a backup
 
-Tap **Restore from File** and pick a backup (`.db`, `.sqlite` or `.sbe`).
+Tap **Restore from a file** and pick a backup (`.db`, `.sqlite` or `.sbe`).
 Submersion checks that the file is a Submersion database before going any
 further. An encrypted backup asks you to **Unlock encrypted backup** with its
 password or recovery code.
@@ -69,23 +94,25 @@ Without sync, the backup is simply restored and the choice is not shown.
 **History** lists your backups, each with its date, dive and site counts, and
 size. From the list you can restore or delete a backup, and **Pin backup** keeps
 one from being removed automatically. Unpinned backups are cleaned up according
-to your **Keep backups** setting.
+to **Keep the last {n} backups**.
 
-## Automatic Backups
+A backup whose only copy is in an account the copy no longer goes to stays in
+the list. Deleting it leaves that copy where it is, and restoring it asks you
+to choose that account for the copy first.
 
-Turn on **Automatic backups** under **Automatic Backups**:
+## Advanced
 
-| Setting | Choices | Default |
-|---------|---------|---------|
-| **Frequency** | **Daily**, **Weekly** or **Monthly** | Weekly |
-| **Keep backups** | 5, 10, 15, 20 or 30 | 10 |
-| **Backup Location** | **Default location**, or a folder you choose with **Change** | Default location |
-| **Cloud backup** | Upload backups to your cloud sync storage instead of a local folder (when sync is set up) | Off |
+| Setting | What it does | Default |
+|---------|--------------|---------|
+| **Keep the last {n} backups** | 5, 10, 15, 20 or 30; older unpinned backups are removed. Shows how much space your backups use. | 10 |
+| **Backup folder on this device** | **Default location**, or a folder you choose with **Change**; **Use default** goes back. Choosing a folder never turns the copy off, and both can be on. | Default location |
+| **Save a backup file** | A sheet with an optional note, **Save to a folder** (a folder, a cloud drive or a connected disk) and **Share** (the system share sheet; not on Windows and Linux). | |
+| **Password protection** | Encrypts backup files (see below). | Off |
+| **Set-aside databases** | Database copies a restore set aside, when there are any. | |
 
-Automatic backups are off until you turn them on. The page shows how much space
-your backups use.
+Automatic backups are off until you turn them on.
 
-## Backup encryption
+## Password protection
 
 **Encrypt backups** protects every backup with a password of at least 8
 characters. You also get a recovery code: keep it safe, because it is the only
@@ -132,7 +159,7 @@ When the reset completes, the app starts again from a clean state.
 | | Backup | [Multi-Device Sync](multi-device-sync.md) |
 |--|--------|---------------------------------------|
 | **What it is** | A snapshot file, on demand or on a schedule | A continuously shared library across devices |
-| **Storage** | Any location you choose, or your cloud sync storage | A cloud backend you set up: iCloud, Google Drive, Dropbox or S3-compatible storage |
+| **Storage** | This device or a folder you choose, plus a copy in an account you choose | A cloud backend you set up: iCloud, Google Drive, Dropbox or S3-compatible storage |
 | **Trigger** | Manual, or automatic on a schedule | Automatic when data changes, at launch, or on demand |
 | **Purpose** | Point-in-time recovery | Keeping devices in step |
 

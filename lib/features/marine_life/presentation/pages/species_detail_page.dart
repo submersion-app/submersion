@@ -23,6 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class SpeciesDetailPage extends ConsumerWidget {
   final String speciesId;
@@ -215,7 +216,7 @@ class SpeciesDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(description),
+            MarkdownNotesView(description),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
@@ -6,6 +7,14 @@ import 'package:submersion/features/media_store/domain/media_upload_quality.dart
 import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 class _FakeEngine implements TranscodeEngine {
+  @override
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
+    bool exact = false,
+  }) async => List.filled(times.length, null);
+
   bool available = true;
   VideoProbe? probeResult = const VideoProbe(
     width: 3840,

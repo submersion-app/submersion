@@ -2,22 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart'
+    as domain;
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_editable_item.dart';
+import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_item_dialog.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
-import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
-
-/// A bound once the form has validated: blank is "no bound", and unreadable
-/// text cannot reach here.
-double? _validatedNumber(TextEditingController controller) =>
-    switch (readNumber(controller.text)) {
-      NumberValue(:final value) => value,
-      NumberBlank() => null,
-      NumberInvalid() => null, // unreachable: validate() ran first
-    };
+import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// Create/edit page for a pre-dive checklist template and its items.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
@@ -39,7 +33,8 @@ class _PreDiveTemplateEditPageState
   final _descriptionController = TextEditingController();
   final _categoryController = TextEditingController();
   bool _strictOrder = false;
-  List<PreDiveChecklistTemplateItem> _items = [];
+  List<EditablePreDiveItem> _items = [];
+  List<EditablePreDiveSection> _sections = [];
   PreDiveChecklistTemplate? _existing;
   bool _loading = false;
 
@@ -74,6 +69,9 @@ class _PreDiveTemplateEditPageState
     final repository = ref.read(preDiveTemplateRepositoryProvider);
     final template = await repository.getTemplateById(widget.templateId!);
     final items = await repository.getItemsForTemplate(widget.templateId!);
+    final sections = await repository.getSectionsForTemplate(
+      widget.templateId!,
+    );
     if (!mounted) return;
     setState(() {
       _existing = template;
@@ -81,7 +79,30 @@ class _PreDiveTemplateEditPageState
       _descriptionController.text = template?.description ?? '';
       _categoryController.text = template?.category ?? '';
       _strictOrder = template?.strictOrder ?? false;
-      _items = items;
+      _sections = [
+        for (final section in sections)
+          EditablePreDiveSection(id: section.id, title: section.title),
+      ];
+      _items = [
+        for (final item in items)
+          EditablePreDiveItem(
+            id: item.id,
+            sectionId: item.sectionId,
+            title: item.title,
+            notes: item.notes,
+            sortOrder: item.sortOrder,
+            itemType: item.itemType,
+            valueLabel: item.valueLabel,
+            valueUnit: item.valueUnit,
+            valueMin: item.valueMin,
+            valueMax: item.valueMax,
+            isRequired: item.isRequired,
+            equipmentId: item.equipmentId,
+            sourceItemId: item.sourceItemId,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          ),
+      ];
       _loading = false;
     });
   }
@@ -94,14 +115,14 @@ class _PreDiveTemplateEditPageState
     super.dispose();
   }
 
-  Future<void> _addOrEditItem({PreDiveChecklistTemplateItem? item}) async {
-    final result = await showDialog<PreDiveChecklistTemplateItem>(
+  Future<void> _addOrEditItem({EditablePreDiveItem? item}) async {
+    final result = await showDialog<EditablePreDiveItem>(
       context: context,
-      builder: (context) => _PreDiveItemDialog(
+      builder: (context) => PreDiveItemDialog(
         item: item,
-        templateId: widget.templateId ?? '',
         defaultSortOrder: _items.length,
         siblings: _items,
+        sections: _sections,
       ),
     );
     if (result == null) return;
@@ -117,8 +138,8 @@ class _PreDiveTemplateEditPageState
     });
   }
 
-  /// Whether the item at [index] is a linearity item whose source sorts
-  /// after it.
+  /// Whether [item] is a linearity item whose source sorts after it in
+  /// [_items], the same list order [_save] passes to the repository.
   ///
   /// Deliberately not gated on strict order. Strict order makes the trap
   /// unavoidable, because the runner will not let the diver reach the air
@@ -127,38 +148,59 @@ class _PreDiveTemplateEditPageState
   /// the oxygen value anyway, and ends up with an item that can only be
   /// completed properly by resetting it. The warning is worth showing in
   /// both modes, and its wording claims nothing about gating.
-  bool _readsLaterValue(int index) {
-    final item = _items[index];
+  bool _readsLaterValue(EditablePreDiveItem item) {
     // Guarded on the type as well as on the link, so malformed data (a
     // sourceItemId arriving on some other type via sync) cannot raise a
     // warning that talks about a reading this item never makes.
     if (item.itemType != PreDiveItemType.cellLinearity) return false;
     final sourceId = item.sourceItemId;
     if (sourceId == null) return false;
-    final sourceIndex = _items.indexWhere((i) => i.id == sourceId);
+    final ordered = _itemsInDisplayOrder();
+    final index = ordered.indexOf(item);
+    final sourceIndex = ordered.indexWhere((i) => i.id == sourceId);
     return sourceIndex >= 0 && sourceIndex > index;
   }
 
-  /// Removes the item at [index], clearing the link on any item that sourced
-  /// it and naming each one in a snackbar.
+  /// [_items] in the order the editor shows them: each section's items in
+  /// section order, then the unsectioned ones (a dangling sectionId counts
+  /// as unsectioned, as it does on screen). [_save] assigns sortOrder from
+  /// this order, so a strict-order session enforces the order the diver
+  /// saw rather than the order items happened to be added in.
+  List<EditablePreDiveItem> _itemsInDisplayOrder() {
+    final sectionIds = {for (final s in _sections) s.id};
+    return [
+      for (final s in _sections) ..._items.where((i) => i.sectionId == s.id),
+      ..._items.where(
+        (i) => i.sectionId == null || !sectionIds.contains(i.sectionId),
+      ),
+    ];
+  }
+
+  /// Removes [removed], clearing the link on any item that sourced it and
+  /// naming each one in a snackbar.
   ///
   /// The link is cleared rather than the deletion blocked: the diver may be
   /// mid-restructure and about to add a replacement, and a modal refusal in
   /// the middle of reordering a checklist would be worse than a broken link
   /// the composer already degrades gracefully.
-  void _removeItem(int index) {
-    final removed = _items[index];
+  void _removeItem(EditablePreDiveItem removed) => _removeItems({removed.id});
+
+  /// [_removeItem] for several items at once (a section deleted together
+  /// with its items). An item that sourced one of the removed items but is
+  /// itself kept has its link cleared and is named in a snackbar.
+  void _removeItems(Set<String> removedIds) {
     final dependants = [
       for (final i in _items)
-        if (i.sourceItemId == removed.id) i,
+        if (!removedIds.contains(i.id) && removedIds.contains(i.sourceItemId))
+          i,
     ];
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     setState(() {
       _items = [
         for (final i in _items)
-          if (i.id != removed.id)
-            if (i.sourceItemId == removed.id)
+          if (!removedIds.contains(i.id))
+            if (removedIds.contains(i.sourceItemId))
               i.copyWith(sourceItemId: null)
             else
               i,
@@ -203,10 +245,42 @@ class _PreDiveTemplateEditPageState
       );
       templateId = _existing!.id;
     }
+
+    // Sections must exist before the items referencing them are (re)inserted
+    // -- saveItems satisfies a foreign key, not a dangling draft id.
+    await repository.saveSections(templateId, [
+      for (final section in _sections)
+        domain.PreDiveChecklistTemplateSection(
+          id: section.id,
+          templateId: templateId,
+          title: section.title,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+    ]);
+
     // sortOrder reassigned from list position at save time.
+    final ordered = _itemsInDisplayOrder();
     await repository.saveItems(templateId, [
-      for (var i = 0; i < _items.length; i++)
-        _items[i].copyWith(templateId: templateId, sortOrder: i),
+      for (var i = 0; i < ordered.length; i++)
+        PreDiveChecklistTemplateItem(
+          id: ordered[i].id,
+          templateId: templateId,
+          sectionId: ordered[i].sectionId,
+          title: ordered[i].title,
+          notes: ordered[i].notes,
+          sortOrder: i,
+          itemType: ordered[i].itemType,
+          valueLabel: ordered[i].valueLabel,
+          valueUnit: ordered[i].valueUnit,
+          valueMin: ordered[i].valueMin,
+          valueMax: ordered[i].valueMax,
+          isRequired: ordered[i].isRequired,
+          equipmentId: ordered[i].equipmentId,
+          sourceItemId: ordered[i].sourceItemId,
+          createdAt: ordered[i].createdAt,
+          updatedAt: ordered[i].updatedAt,
+        ),
     ]);
     if (mounted) navigator.pop();
   }
@@ -298,77 +372,7 @@ class _PreDiveTemplateEditPageState
                     l10n.checklists_template_itemsHeader,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  ReorderableListView(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    buildDefaultDragHandles: !_readOnly,
-                    onReorderItem: (oldIndex, newIndex) {
-                      setState(() {
-                        final items = [..._items];
-                        final item = items.removeAt(oldIndex);
-                        items.insert(newIndex, item);
-                        _items = items;
-                      });
-                    },
-                    children: [
-                      for (var i = 0; i < _items.length; i++)
-                        ListTile(
-                          key: ValueKey(
-                            _items[i].id.isEmpty ? 'new-$i' : _items[i].id,
-                          ),
-                          title: Text(_items[i].title),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                [
-                                  if (_items[i].section != null)
-                                    _items[i].section!,
-                                  _typeLabel(context, _items[i].itemType),
-                                  if (_items[i].isRequired)
-                                    l10n.preDive_item_required,
-                                ].join(' - '),
-                              ),
-                              // A linearity row that sorts above its
-                              // source is worth flagging in either mode:
-                              // strict order makes it unavoidable, and
-                              // without it a diver working top to bottom
-                              // still meets the row before the air reading
-                              // exists. See _readsLaterValue. Warn, never
-                              // block.
-                              if (_readsLaterValue(i))
-                                Text(
-                                  l10n.preDive_item_sourceBelow,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                ),
-                            ],
-                          ),
-                          // No leading column at all in read-only mode. An
-                          // empty checkbox was standing in as a spacer, but
-                          // that glyph reads as "tap to toggle" on a row
-                          // whose onTap is null, and these template items
-                          // have no state to toggle. Nothing here needs
-                          // aligning either: every row in this mode lacks the
-                          // delete button, so reserving its column would hold
-                          // space for a control that never appears.
-                          leading: _readOnly
-                              ? null
-                              : IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _removeItem(i),
-                                ),
-                          onTap: _readOnly
-                              ? null
-                              : () => _addOrEditItem(item: _items[i]),
-                        ),
-                    ],
-                  ),
+                  _buildSectionEditor(context),
                   if (!_readOnly)
                     TextButton.icon(
                       icon: const Icon(Icons.add),
@@ -380,285 +384,122 @@ class _PreDiveTemplateEditPageState
             ),
     );
   }
-}
 
-/// Add/edit dialog for a single template item.
-///
-/// Owns its ephemeral [TextEditingController]s and disposes them in its own
-/// [State.dispose]. Disposing them from `showDialog(...).whenComplete(...)`
-/// instead frees the controllers the instant the route is popped, while the
-/// dialog's exit transition is still rebuilding these fields — which throws
-/// "TextEditingController used after being disposed" (and, on release builds,
-/// trips the InheritedElement `_dependents` assertion) mid-animation.
-class _PreDiveItemDialog extends StatefulWidget {
-  final PreDiveChecklistTemplateItem? item;
-  final String templateId;
-  final int defaultSortOrder;
-
-  /// The other items in this template, so a cell linearity item can name one
-  /// of them as the source of its air reading (issue #986).
-  final List<PreDiveChecklistTemplateItem> siblings;
-
-  const _PreDiveItemDialog({
-    required this.item,
-    required this.templateId,
-    required this.defaultSortOrder,
-    this.siblings = const [],
-  });
-
-  @override
-  State<_PreDiveItemDialog> createState() => _PreDiveItemDialogState();
-}
-
-class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _titleController;
-  late final TextEditingController _sectionController;
-  late final TextEditingController _notesController;
-  late final TextEditingController _valueLabelController;
-  late final TextEditingController _valueUnitController;
-  late final TextEditingController _valueMinController;
-  late final TextEditingController _valueMaxController;
-  late PreDiveItemType _itemType;
-  String? _sourceItemId;
-
-  /// The selection the dropdown may show: [_sourceItemId] only when it still
-  /// names a candidate.
-  ///
-  /// A dangling link is reachable without sync: retype the air item as a
-  /// check and it drops out of the candidate list while the linearity item
-  /// still points at it. DropdownButtonFormField asserts when its value is
-  /// absent from a non-empty item list, which would take the editor down
-  /// rather than let the diver fix the link. Falling back to null leaves the
-  /// field empty and lets the validator ask for a new source.
-  String? get _selectedSourceId =>
-      _sourceCandidates.any((c) => c.id == _sourceItemId)
-      ? _sourceItemId
-      : null;
-
-  /// Items this one may take its air reading from: the plain value items in
-  /// the same template, minus itself (nothing may source itself).
-  List<PreDiveChecklistTemplateItem> get _sourceCandidates => [
-    for (final sibling in widget.siblings)
-      if (sibling.itemType == PreDiveItemType.value &&
-          sibling.id != widget.item?.id)
-        sibling,
-  ];
-  late bool _isRequired;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.item?.title ?? '');
-    _sectionController = TextEditingController(
-      text: widget.item?.section ?? '',
-    );
-    _notesController = TextEditingController(text: widget.item?.notes ?? '');
-    _valueLabelController = TextEditingController(
-      text: widget.item?.valueLabel ?? '',
-    );
-    _valueUnitController = TextEditingController(
-      text: widget.item?.valueUnit ?? '',
-    );
-    final valueMin = widget.item?.valueMin;
-    final valueMax = widget.item?.valueMax;
-    _valueMinController = TextEditingController(
-      text: valueMin == null ? '' : formatDecimalForInput(valueMin),
-    );
-    _valueMaxController = TextEditingController(
-      text: valueMax == null ? '' : formatDecimalForInput(valueMax),
-    );
-    _itemType = widget.item?.itemType ?? PreDiveItemType.check;
-    _sourceItemId = widget.item?.sourceItemId;
-    _isRequired = widget.item?.isRequired ?? false;
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _sectionController.dispose();
-    _notesController.dispose();
-    _valueLabelController.dispose();
-    _valueUnitController.dispose();
-    _valueMinController.dispose();
-    _valueMaxController.dispose();
-    super.dispose();
-  }
-
-  String _typeLabel(BuildContext context, PreDiveItemType type) {
-    return switch (type) {
-      PreDiveItemType.check => context.l10n.preDive_item_type_check,
-      PreDiveItemType.value => context.l10n.preDive_item_type_value,
-      PreDiveItemType.equipmentSet =>
-        context.l10n.preDive_item_type_equipmentSet,
-      PreDiveItemType.equipment => context.l10n.preDive_item_type_equipment,
-      PreDiveItemType.cellLinearity =>
-        context.l10n.preDive_item_type_cellLinearity,
-    };
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    final section = _sectionController.text.trim();
-    final valueLabel = _valueLabelController.text.trim();
-    final valueUnit = _valueUnitController.text.trim();
-    // A cell linearity item records a number exactly as a value item does,
-    // so it carries the same label, unit and threshold fields. Those
-    // thresholds mean a percentage there rather than a unit of measure.
-    final isValue =
-        _itemType == PreDiveItemType.value ||
-        _itemType == PreDiveItemType.cellLinearity;
-    Navigator.of(context).pop(
-      PreDiveChecklistTemplateItem(
-        id: widget.item?.id ?? const Uuid().v4(),
-        templateId: widget.templateId,
-        section: section.isEmpty ? null : section,
-        title: _titleController.text.trim(),
-        notes: _notesController.text.trim(),
-        sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
-        itemType: _itemType,
-        valueLabel: isValue && valueLabel.isNotEmpty ? valueLabel : null,
-        valueUnit: isValue && valueUnit.isNotEmpty ? valueUnit : null,
-        valueMin: isValue ? _validatedNumber(_valueMinController) : null,
-        valueMax: isValue ? _validatedNumber(_valueMaxController) : null,
-        isRequired: _isRequired,
-        sourceItemId: _itemType == PreDiveItemType.cellLinearity
-            ? _selectedSourceId
-            : null,
-        createdAt: widget.item?.createdAt ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSectionEditor(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.preDive_edit_addItem),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
+
+    Widget buildItem(BuildContext context, EditablePreDiveItem item) =>
+        ListTile(
+          title: Text(item.title),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
-                controller: _titleController,
-                autofocus: true,
-                decoration: InputDecoration(labelText: l10n.preDive_item_title),
-                validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.checklists_item_titleRequired
-                    : null,
+              Text(
+                [
+                  _typeLabel(context, item.itemType),
+                  if (item.isRequired) l10n.preDive_item_required,
+                ].join(' - '),
               ),
-              TextFormField(
-                controller: _sectionController,
-                decoration: InputDecoration(
-                  labelText: l10n.preDive_item_section,
-                ),
-              ),
-              TextFormField(
-                controller: _notesController,
-                decoration: InputDecoration(labelText: l10n.preDive_item_notes),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<PreDiveItemType>(
-                initialValue: _itemType,
-                items: [
-                  for (final type in PreDiveItemType.values)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(_typeLabel(context, type)),
-                    ),
-                ],
-                onChanged: (value) =>
-                    setState(() => _itemType = value ?? PreDiveItemType.check),
-              ),
-              if (_itemType == PreDiveItemType.cellLinearity)
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedSourceId,
-                  decoration: InputDecoration(
-                    labelText: l10n.preDive_item_sourceItem,
-                  ),
-                  items: [
-                    for (final candidate in _sourceCandidates)
-                      DropdownMenuItem(
-                        value: candidate.id,
-                        child: Text(
-                          candidate.valueLabel == null
-                              ? candidate.title
-                              : '${candidate.title} (${candidate.valueLabel})',
-                        ),
-                      ),
-                  ],
-                  onChanged: (value) => setState(() => _sourceItemId = value),
-                  // Required in the editor. Degradation exists for rows that
-                  // arrive from a clone, from sync, or from a since-deleted
-                  // source, not as a state the editor may author.
-                  // Reads the resolved selection rather than the raw
-                  // field, so a dangling link is rejected as firmly as an
-                  // empty one instead of being saved back unchanged.
-                  validator: (_) => _selectedSourceId == null
-                      ? l10n.preDive_item_sourceItemRequired
-                      : null,
-                ),
-              if (_itemType == PreDiveItemType.value ||
-                  _itemType == PreDiveItemType.cellLinearity) ...[
-                TextFormField(
-                  controller: _valueLabelController,
-                  decoration: InputDecoration(
-                    labelText: l10n.preDive_item_valueLabel,
+              // A linearity row that sorts above its source is worth
+              // flagging in either mode: strict order makes it unavoidable,
+              // and without it a diver working top to bottom still meets
+              // the row before the air reading exists. See
+              // _readsLaterValue. Warn, never block.
+              if (_readsLaterValue(item))
+                Text(
+                  l10n.preDive_item_sourceBelow,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
-                TextFormField(
-                  controller: _valueUnitController,
-                  decoration: InputDecoration(
-                    labelText: l10n.preDive_item_valueUnit,
-                  ),
-                ),
-                TextFormField(
-                  controller: _valueMinController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  // An unreadable bound used to save as no bound (#1900).
-                  validator: numberValidator(context),
-                  decoration: InputDecoration(
-                    labelText: _itemType == PreDiveItemType.cellLinearity
-                        ? l10n.preDive_item_linearityMin
-                        : l10n.preDive_item_valueMin,
-                  ),
-                ),
-                TextFormField(
-                  controller: _valueMaxController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  // An unreadable bound used to save as no bound (#1900).
-                  validator: numberValidator(context),
-                  decoration: InputDecoration(
-                    labelText: _itemType == PreDiveItemType.cellLinearity
-                        ? l10n.preDive_item_linearityMax
-                        : l10n.preDive_item_valueMax,
-                  ),
-                ),
-              ],
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.preDive_item_required),
-                value: _isRequired,
-                onChanged: (value) => setState(() => _isRequired = value),
-              ),
             ],
           ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.common_action_cancel),
-        ),
-        FilledButton(onPressed: _submit, child: Text(l10n.common_action_ok)),
+          onTap: _readOnly ? null : () => _addOrEditItem(item: item),
+        );
+
+    // An item whose sectionId matches no section in the current draft (a
+    // dangling id, e.g. from sync or a since-deleted section) degrades to
+    // unsectioned rather than silently vanishing from the list.
+    final validSectionIds = {for (final s in _sections) s.id};
+    final unsectioned = _items
+        .where(
+          (i) => i.sectionId == null || !validSectionIds.contains(i.sectionId),
+        )
+        .toList();
+
+    return SectionListEditor<EditablePreDiveItem>(
+      sections: [
+        for (final section in _sections)
+          SectionGroup(
+            id: section.id,
+            title: section.title,
+            items: _items.where((i) => i.sectionId == section.id).toList(),
+          ),
       ],
+      unsectionedItems: unsectioned,
+      itemId: (item) => item.id,
+      itemBuilder: buildItem,
+      addSectionLabel: l10n.sectionEditor_addSection,
+      newSectionTitle: l10n.sectionEditor_newSectionTitle,
+      noSectionLabel: l10n.sectionEditor_noSection,
+      readOnly: _readOnly,
+      onAddSection: (title) async {
+        setState(() {
+          _sections = [
+            ..._sections,
+            EditablePreDiveSection(id: const Uuid().v4(), title: title),
+          ];
+        });
+      },
+      onRenameSection: (id, title) async {
+        setState(() {
+          _sections = [
+            for (final s in _sections)
+              if (s.id == id) s.copyWith(title: title) else s,
+          ];
+        });
+      },
+      onReorderSections: (orderedIds) async {
+        setState(() {
+          final byId = {for (final s in _sections) s.id: s};
+          _sections = [for (final id in orderedIds) byId[id]!];
+        });
+      },
+      onDeleteSection: (id, {moveItemsToSectionId}) async {
+        setState(() {
+          if (moveItemsToSectionId != null) {
+            _items = [
+              for (final i in _items)
+                if (i.sectionId == id)
+                  i.copyWith(sectionId: moveItemsToSectionId)
+                else
+                  i,
+            ];
+          }
+          _sections = _sections.where((s) => s.id != id).toList();
+        });
+        // Through _removeItems so a linearity item kept in another section
+        // loses its link to a deleted source, as a single-item delete does.
+        if (moveItemsToSectionId == null) {
+          _removeItems({
+            for (final i in _items)
+              if (i.sectionId == id) i.id,
+          });
+        }
+      },
+      onMoveItem: (itemId, targetSectionId, orderedIds) async {
+        setState(() {
+          final byId = {for (final i in _items) i.id: i};
+          _items = [
+            for (final id in orderedIds)
+              id == itemId
+                  ? byId[id]!.copyWith(sectionId: targetSectionId)
+                  : byId[id]!,
+          ];
+        });
+      },
+      onDeleteItem: (item) async => _removeItem(item),
     );
   }
 }

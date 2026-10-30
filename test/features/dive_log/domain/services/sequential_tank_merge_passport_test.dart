@@ -36,4 +36,41 @@ void main() {
     expect(merged.tanks, hasLength(1));
     expect(merged.tanks.single.passportId, 'p-1');
   });
+
+  group('regulators across two halves (#3375)', () {
+    DiveTank cylinder(String id, double start, double end) => DiveTank(
+      id: id,
+      gasMix: const GasMix(o2: 32),
+      startPressure: start,
+      endPressure: end,
+    );
+
+    test('the earlier half\'s regulators win', () {
+      final merged = mergeSequentialTanks([
+        half(
+          'd1',
+          cylinder('a', 200, 120).withRegulators(const ['r1', 'r2']),
+          DateTime.utc(2026, 1, 1, 10),
+        ),
+        half(
+          'd2',
+          cylinder('b', 120, 60).withRegulators(const ['r3']),
+          DateTime.utc(2026, 1, 1, 11),
+        ),
+      ], idGenerator: id);
+      expect(merged.tanks.single.regulatorIds, ['r1', 'r2']);
+    });
+
+    test('an earlier half with none takes the later half\'s list', () {
+      final merged = mergeSequentialTanks([
+        half('d1', cylinder('a', 200, 120), DateTime.utc(2026, 1, 1, 10)),
+        half(
+          'd2',
+          cylinder('b', 120, 60).withRegulators(const ['r3', 'r4']),
+          DateTime.utc(2026, 1, 1, 11),
+        ),
+      ], idGenerator: id);
+      expect(merged.tanks.single.regulatorIds, ['r3', 'r4']);
+    });
+  });
 }

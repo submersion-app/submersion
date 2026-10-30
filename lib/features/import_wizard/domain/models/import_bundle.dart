@@ -3,6 +3,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_target_choice.dart';
 
 export 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
 
@@ -33,7 +34,19 @@ enum ImportSourceType {
   garminCloud,
 
   /// A divelogs.de logbook import.
-  divelogs,
+  divelogs;
+
+  /// Whether a dive from this source can arrive with gear of its own (a
+  /// file's equipment links), so a set tagged on it may be the diver's own
+  /// choice rather than one the app applied. Downloads bring none.
+  bool get mayBringGear => switch (this) {
+    uddf || fit || universal || divelogs => true,
+    healthKit ||
+    diveComputer ||
+    suuntoCloud ||
+    suuntoFile ||
+    garminCloud => false,
+  };
 }
 
 /// The kind of entity represented by an [EntityGroup].
@@ -231,11 +244,26 @@ class ImportBundle {
   /// (issue #1893). Empty for an import into the active profile alone.
   final Map<String, int> nextDiveNumberByTarget;
 
+  /// Which profile a dive computer download goes to, set only when the
+  /// computer belongs to a profile other than the active one (issue #2050).
+  final ImportTargetChoice? targetChoice;
+
   const ImportBundle({
     required this.source,
     required this.groups,
     this.nextDiveNumberByTarget = const {},
+    this.targetChoice,
   });
+
+  /// A copy with the given fields replaced. Rewrites of a bundle go through
+  /// this so a field added later, such as [targetChoice], is never dropped.
+  ImportBundle copyWith({Map<ImportEntityType, EntityGroup>? groups}) =>
+      ImportBundle(
+        source: source,
+        groups: groups ?? this.groups,
+        nextDiveNumberByTarget: nextDiveNumberByTarget,
+        targetChoice: targetChoice,
+      );
 
   /// Returns the [ImportEntityType]s that have at least one group in this bundle.
   List<ImportEntityType> get availableTypes => List.unmodifiable(groups.keys);

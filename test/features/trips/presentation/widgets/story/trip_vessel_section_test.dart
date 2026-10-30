@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
+import '../../../../../helpers/detail_row_finders.dart';
 
 Future<void> pumpVessel(WidgetTester tester, LiveaboardDetails? details) async {
   final overrides = await getBaseOverrides();
@@ -54,6 +55,30 @@ void main() {
     expect(find.text('Twin ensuite'), findsOneWidget);
     expect(find.text('22'), findsOneWidget);
     expect(find.text('Sorong'), findsNWidgets(2)); // embark + disembark
+  });
+
+  testWidgets('vessel values share one column beside the labels (#3678)', (
+    tester,
+  ) async {
+    final details = LiveaboardDetails(
+      id: 'lad-1',
+      tripId: 'trip-1',
+      vesselName: 'MV Explorer',
+      operatorName: 'Blue Water Divers',
+      vesselType: 'Motor yacht',
+      cabinType: 'Twin ensuite',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    await pumpVessel(tester, details);
+
+    final column = detailValueLeft(tester, 'Operator');
+    expect(detailValueLeft(tester, 'Type'), column);
+    expect(detailValueLeft(tester, 'Cabin'), column);
+    expect(
+      tester.getTopLeft(find.text('Motor yacht')).dx,
+      lessThan(tester.getTopRight(detailRowFor('Type')).dx / 2),
+    );
   });
 
   testWidgets('shows the vessel name even with no optional fields', (

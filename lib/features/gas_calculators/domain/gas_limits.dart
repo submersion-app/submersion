@@ -86,6 +86,10 @@ class GasLimitsInputs {
   /// Water type of the Tec modes. Rec always uses the flat model.
   final WaterType waterType;
 
+  /// Gas temperature the density check assumes. Ignored in Rec, which has no
+  /// density check.
+  final GasDensityTemperature temperature;
+
   const GasLimitsInputs({
     required this.mode,
     required this.o2Percent,
@@ -99,6 +103,7 @@ class GasLimitsInputs {
     required this.o2Narcotic,
     required this.targetDepthMeters,
     required this.waterType,
+    required this.temperature,
   });
 
   /// [clearTargetDepth] drops the target, which a null argument cannot.
@@ -116,6 +121,7 @@ class GasLimitsInputs {
     double? targetDepthMeters,
     bool clearTargetDepth = false,
     WaterType? waterType,
+    GasDensityTemperature? temperature,
   }) => GasLimitsInputs(
     mode: mode ?? this.mode,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -131,6 +137,7 @@ class GasLimitsInputs {
         ? null
         : targetDepthMeters ?? this.targetDepthMeters,
     waterType: waterType ?? this.waterType,
+    temperature: temperature ?? this.temperature,
   );
 }
 
@@ -152,7 +159,8 @@ class DepthAssessment {
 
   final bool exceedsEndLimit;
 
-  /// Gas density at 0 C and its level; Tec modes only.
+  /// Gas density at [GasLimitsInputs.temperature] and its level; Tec modes
+  /// only.
   final double? densityGPerL;
   final GasDensityLevel? densityLevel;
 
@@ -188,6 +196,9 @@ class GasLimitsResult {
   /// The mix actually computed, after the mode's clamping.
   final double o2Percent;
   final double hePercent;
+
+  /// The gas temperature every [DepthAssessment.densityGPerL] assumes.
+  final GasDensityTemperature densityTemperature;
 
   /// The ppO2 the headline MOD is computed for.
   final double modPpO2;
@@ -225,6 +236,7 @@ class GasLimitsResult {
     required this.mode,
     required this.o2Percent,
     required this.hePercent,
+    required this.densityTemperature,
     required this.modPpO2,
     required this.modMeters,
     required this.secondaryModMeters,
@@ -308,6 +320,7 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     mode: inputs.mode,
     o2Percent: o2,
     hePercent: he,
+    densityTemperature: inputs.temperature,
     modPpO2: modPpO2,
     modMeters: mod,
     secondaryModMeters: secondaryMod,
@@ -370,7 +383,7 @@ DepthAssessment _assess({
         hePercent: he,
         depthMeters: depth,
         setpointBar: onLoop ? inputs.setpointBar : null,
-        temperature: GasDensityTemperature.zeroC,
+        temperature: inputs.temperature,
         waterType: inputs.waterType,
       ),
     );

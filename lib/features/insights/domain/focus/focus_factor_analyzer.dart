@@ -37,14 +37,6 @@ abstract final class FocusFactorAnalyzer {
     );
   }
 
-  /// The Time patterns page's buckets, on the stored wall clock.
-  static String timeOfDayKey(DateTime wallClock) => switch (wallClock.hour) {
-    < 6 => 'Night',
-    < 12 => 'Morning',
-    < 18 => 'Afternoon',
-    _ => 'Evening',
-  };
-
   static FocusFactorId? _selfFactor(FocusMetric metric) => switch (metric) {
     FocusMetric.maxDepth => FocusFactorId.maxDepth,
     FocusMetric.avgDepth => FocusFactorId.avgDepth,
@@ -80,7 +72,8 @@ abstract final class FocusFactorAnalyzer {
     FocusFactorId.waterType => r.waterType,
     FocusFactorId.entryMethod => r.entryMethod,
     FocusFactorId.month => '${r.dateTime.month}',
-    FocusFactorId.timeOfDay => timeOfDayKey(r.entryTime ?? r.dateTime),
+    // The Time patterns page's buckets, from the same classifier.
+    FocusFactorId.timeOfDay => r.timeOfDay.key,
     FocusFactorId.site => r.siteId,
     FocusFactorId.gas => r.gasClass,
     FocusFactorId.suit => r.suitKey,

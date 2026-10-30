@@ -118,4 +118,67 @@ void main() {
 
     expect(find.byType(FlutterMap), findsOneWidget);
   });
+
+  group('at the end of the map\'s own zoom range the map stays put', () {
+    // The wrapper keeps its default, wider range, as most maps leave it:
+    // a zoom past the map's own limit must not pivot the centre toward a
+    // zoom the map then refuses, which slid the map sideways (#3664).
+    Future<MapController> pumpLimitedMap(
+      WidgetTester tester, {
+      required double zoom,
+    }) async {
+      final controller = MapController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TrackpadZoomMap(
+              controller: controller,
+              child: FlutterMap(
+                mapController: controller,
+                options: MapOptions(
+                  initialCenter: const LatLng(20, -87),
+                  initialZoom: zoom,
+                  minZoom: 2,
+                  maxZoom: 18,
+                ),
+                children: const [],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return controller;
+    }
+
+    Future<void> scrollOffCentre(WidgetTester tester, double dy) async {
+      final cursor =
+          tester.getTopLeft(find.byType(FlutterMap)) + const Offset(100, 100);
+      final gesture = await tester.createGesture(
+        kind: PointerDeviceKind.trackpad,
+      );
+      await gesture.panZoomStart(cursor);
+      await tester.pump();
+      await gesture.panZoomUpdate(cursor, pan: Offset(0, dy));
+      await tester.pump();
+      await gesture.panZoomEnd();
+      await tester.pump();
+    }
+
+    testWidgets('zooming out at the minimum', (tester) async {
+      final controller = await pumpLimitedMap(tester, zoom: 2);
+      final before = controller.camera.center;
+      await scrollOffCentre(tester, -100);
+      expect(controller.camera.zoom, 2);
+      expect(controller.camera.center, before);
+    });
+
+    testWidgets('zooming in at the maximum', (tester) async {
+      final controller = await pumpLimitedMap(tester, zoom: 18);
+      final before = controller.camera.center;
+      await scrollOffCentre(tester, 100);
+      expect(controller.camera.zoom, 18);
+      expect(controller.camera.center, before);
+    });
+  });
 }

@@ -6,6 +6,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Enumeration of every displayable field for the certification table view.
 enum CertificationField implements EntityField {
@@ -212,7 +213,7 @@ class CertificationFieldAdapter
       CertificationField.instructorName => entity.instructorName,
       CertificationField.instructorNumber => entity.instructorNumber,
       CertificationField.expiryStatus => entity.expiryStatus,
-      CertificationField.notes => entity.notes,
+      CertificationField.notes => markdownToPlainText(entity.notes),
     };
   }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/adapters/google_drive_account_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -23,6 +24,10 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   http.Client? client;
   bool silentAuthResult = true;
 
+  /// When set, a silent re-auth publishes this client, as a token refresh
+  /// does after handleAuthFailure dropped the old one.
+  http.Client? refreshedClient;
+
   @override
   http.Client? get authClient => client;
 
@@ -30,10 +35,13 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   Future<void> authenticate() async {}
 
   @override
-  Future<bool> attemptSilentAuth() async => silentAuthResult;
+  Future<bool> attemptSilentAuth() async {
+    client ??= refreshedClient;
+    return silentAuthResult;
+  }
 
   @override
-  Future<void> handleAuthFailure() async {}
+  Future<void> handleAuthFailure() async => client = null;
 
   @override
   Future<void> signOut() async => client = null;
@@ -102,5 +110,19 @@ void main() {
         'smv1/objects/aa/after.jpg',
       ]),
     );
+  });
+
+  test('the store it returns refreshes an expired token', () async {
+    // The access token expires after about an hour. The store must hand
+    // the 401 back to the provider for a refresh rather than fail every
+    // transfer as an auth error (#3602).
+    authenticator
+      ..client = MockClient(
+        (_) async => http.Response('{"error":{"code":401}}', 401),
+      )
+      ..refreshedClient = RevocableClient(server.client);
+    final store = (await adapter.mediaObjectStore(account))!;
+
+    expect(await store.head('smv1/objects/aa/x.jpg'), isNull);
   });
 }

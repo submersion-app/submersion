@@ -5,6 +5,7 @@ import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/trips/domain/services/scrubber_margin_service.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 /// The two history reads behind the scrubber margin estimates. Both take
 /// [before] so a past trip reads the history the diver had at its start.
@@ -40,8 +41,9 @@ class TripHistoryRepository {
             COUNT(d.id) AS dives,
             COUNT(DISTINCT date(d.dive_date_time / 1000, 'unixepoch')) AS days
           FROM trips t
-          JOIN dives d ON d.trip_id = t.id
+          ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
           WHERE t.end_date < ? AND d.is_planned = 0 $diverFilter
+            AND $topLevelTripSql
           GROUP BY t.id
           ORDER BY t.end_date DESC
           LIMIT ?

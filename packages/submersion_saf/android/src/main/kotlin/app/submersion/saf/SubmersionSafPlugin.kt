@@ -136,11 +136,16 @@ class SubmersionSafPlugin :
         val treeUri = call.argument<String>("treeUri")!!
         val fileName = call.argument<String>("fileName")!!
         val sourcePath = call.argument<String>("sourcePath")!!
+        val replaceExisting = call.argument<Boolean>("replaceExisting") ?: true
         try {
             val tree = DocumentFile.fromTreeUri(context, Uri.parse(treeUri))
                 ?: return result.error("NO_TREE", "Tree URI did not resolve", null)
             // Replace an existing same-name file so retries don't accumulate "(1)" copies.
-            tree.findFile(fileName)?.delete()
+            // A copy the diver saves never replaces: the folder they pick may hold the
+            // very backup being copied, and deleting it would orphan its history row.
+            if (replaceExisting) {
+                tree.findFile(fileName)?.delete()
+            }
             val doc = tree.createFile("application/octet-stream", fileName)
                 ?: return result.error("CREATE_FAILED", "createFile returned null", null)
             context.contentResolver.openOutputStream(doc.uri).use { out ->

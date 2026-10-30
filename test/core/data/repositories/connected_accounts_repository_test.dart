@@ -223,4 +223,30 @@ void main() {
     expect(media.id, isNot(sync.id));
     expect((await repo.getAll()).length, 2);
   });
+
+  // Issue #3563: a row put back at an id this device deleted must not keep
+  // exporting the old delete beside the live row.
+  test('ensure clears the tombstone of an id it writes again', () async {
+    final account = await repo.ensure(
+      kind: AccountKind.s3,
+      naturalKey: 'host|bucket|submersion-sites/reef-team/',
+      label: 'bucket @ host',
+    );
+    await repo.delete(account.id);
+    expect(
+      (await db.select(db.deletionLog).get()).map((d) => d.recordId),
+      contains(account.id),
+    );
+
+    await repo.ensure(
+      kind: AccountKind.s3,
+      naturalKey: 'host|bucket|submersion-sites/reef-team/',
+      label: 'bucket @ host',
+    );
+
+    expect(
+      (await db.select(db.deletionLog).get()).map((d) => d.recordId),
+      isNot(contains(account.id)),
+    );
+  });
 }

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// The Details card's training-course rows (#1219, #2515): one tappable row
 /// per course, the group label on the first row only. Renders nothing until
@@ -45,34 +46,26 @@ class _CourseRow extends StatelessWidget {
       label: context.l10n.diveLog_detail_semantics_viewCourse(course.name),
       child: InkWell(
         onTap: () => context.push('/courses/${course.id}'),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // Only the first row carries the label; the rest leave the label
+        // cell empty so every course name lines up under the first.
+        child: DetailRow(
+          label: showLabel
+              ? context.l10n.diveLog_edit_section_trainingCourses
+              : '',
+          value: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                showLabel
-                    ? context.l10n.diveLog_edit_section_trainingCourses
-                    : '',
-                style: theme.textTheme.bodyMedium?.copyWith(color: muted),
-              ),
               Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        course.name,
-                        style: theme.textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    ExcludeSemantics(
-                      child: Icon(Icons.chevron_right, size: 16, color: muted),
-                    ),
-                  ],
+                child: Text(
+                  course.name,
+                  style: theme.textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              const SizedBox(width: 4),
+              ExcludeSemantics(
+                child: Icon(Icons.chevron_right, size: 16, color: muted),
               ),
             ],
           ),

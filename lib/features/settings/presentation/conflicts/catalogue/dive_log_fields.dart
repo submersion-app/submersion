@@ -255,6 +255,12 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_exitTime,
     FieldKind.wallClock,
   ),
+  // A JSON list of equipment ids (#3375): the dialog names each one through
+  // ConflictReferenceResolver, so the value itself only reads "Changed".
+  'extraRegulatorIds': ConflictField(
+    (l) => l.settings_conflict_field_extraRegulatorIds,
+    FieldKind.opaque,
+  ),
   'fieldKey': ConflictField(
     (l) => l.settings_conflict_field_fieldKey,
     FieldKind.shortText,
@@ -615,6 +621,12 @@ final Map<String, ConflictField> diveLogFields = {
   'timestamp': ConflictField(
     (l) => l.settings_conflict_field_timestamp,
     FieldKind.durationSeconds,
+  ),
+  // transmitters.is_configured (v316, issue #3676): whether the diver set
+  // the transmitter up, or the app created it from a download.
+  'isConfigured': ConflictField(
+    (l) => l.transmitters_section_setUp,
+    FieldKind.boolean,
   ),
   'transmitterSerial': ConflictField(
     (l) => l.settings_conflict_field_transmitterSerial,

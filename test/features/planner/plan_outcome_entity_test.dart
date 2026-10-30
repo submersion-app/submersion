@@ -104,7 +104,9 @@ void main() {
       expect(usage.totalLiters, isNull);
       expect(usage.startPressure, isNull);
       expect(usage.usedPressure, isNull);
-      expect(usage.props, hasLength(9));
+      expect(usage.turnPressureGap, isNull);
+      expect(usage.minGasGap, isNull);
+      expect(usage.props, hasLength(11));
     });
 
     test('usedPressure is start minus remaining, clamped to the fill', () {

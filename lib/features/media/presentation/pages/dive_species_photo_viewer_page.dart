@@ -28,6 +28,9 @@ class DiveSpeciesPhotoViewerPage extends ConsumerWidget {
       mediaForDiveSpeciesProvider((diveId: diveId, speciesId: speciesId)),
     );
     return mediaAsync.when(
+      // A reload (any media write, a colour save in the viewer among them)
+      // keeps the viewer up rather than disposing it mid-edit (#3520).
+      skipLoadingOnReload: true,
       data: (mediaList) {
         if (mediaList.isEmpty) {
           // The chip only shows for a positive count, so this is the tag

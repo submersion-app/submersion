@@ -5,7 +5,8 @@ part of '../app_database_migrations.dart';
 /// columns added before v289 shipped. Idempotent, so it serves as the rung
 /// and the beforeOpen backstop, which is how a database already past 289
 /// picks up the later columns. v291 runs it again for
-/// `shared_libraries.description` (issue #3389).
+/// `shared_libraries.description` (issue #3389), and v292 for
+/// `shared_libraries.removals_json` (issue #3481).
 extension SharedLibraryMigrations on AppDatabase {
   Future<void> _assertSharedLibrarySchema() async {
     final m = Migrator(this);
@@ -47,6 +48,7 @@ extension SharedLibraryMigrations on AppDatabase {
       'spare_key_id': 'TEXT',
       'spare_key': 'TEXT',
       'description': 'TEXT',
+      'removals_json': 'TEXT',
     });
   }
 

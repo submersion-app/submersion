@@ -9,7 +9,11 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 
+#include <atomic>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <string>
 
 #include "progress_dispatcher.h"
 
@@ -38,6 +42,20 @@ class SubmersionTranscoderPlugin : public flutter::Plugin {
       std::make_shared<ProgressDispatcher>();
 
  private:
+  // Colour encodes in flight (issue #3521), by progressId: the cancel flag
+  // cancelEncode sets, and the latest progress colorEncodeProgress answers
+  // (Dart asks for it, so it never depends on window messages reaching the
+  // platform thread). Shared with each worker so teardown is harmless.
+  struct EncodeState {
+    std::atomic<bool> cancelled{false};
+    std::atomic<double> fraction{0.0};
+  };
+  struct CancelFlags {
+    std::mutex mutex;
+    std::map<std::string, std::shared_ptr<EncodeState>> flags;
+  };
+  std::shared_ptr<CancelFlags> cancel_flags_ = std::make_shared<CancelFlags>();
+
   flutter::PluginRegistrarWindows* registrar_ = nullptr;
   int window_proc_delegate_id_ = 0;
 };

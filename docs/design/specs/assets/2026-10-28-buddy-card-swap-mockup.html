@@ -1,0 +1,170 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Buddy card swap mockup</title>
+<style>:root{--border:#d0d7de;--bg-primary:#fff;--bg-secondary:#f6f8fa;--text-secondary:#57606a;--accent:#0969da}
+body{font-family:system-ui;background:#fff;color:#1f2328;padding:24px;max-width:1100px;margin:auto}
+.subtitle{color:var(--text-secondary)}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.card{border:1px solid var(--border);border-radius:8px;overflow:hidden}.card-image{padding:14px;background:var(--bg-secondary)}.card-body{padding:10px 14px}.chosen{outline:3px solid #3a9a5a}
+</style></head><body>
+<p class="subtitle">Brainstorm mockups for issue #3728. Chosen options are outlined in green: layout B for the swap screen, and A (accept, then preview) for a nearby request.</p>
+<style>
+  .phone { width: 260px; margin: 0 auto; border: 2px solid var(--border, #888); border-radius: 22px; padding: 12px; font-size: 12px; background: var(--bg-secondary, #f6f6f6); }
+  .bar { display:flex; justify-content:space-between; align-items:center; font-weight:600; margin-bottom:10px; }
+  .qr { width: 130px; height: 130px; margin: 6px auto; background:
+        repeating-linear-gradient(90deg, #222 0 8px, transparent 8px 14px),
+        repeating-linear-gradient(0deg, #222 0 6px, transparent 6px 13px); opacity:.85; border:6px solid #fff; outline:1px solid #ccc; }
+  .chipline { color: var(--text-secondary, #666); text-align:center; margin: 4px 0 10px; }
+  .chipline a { color: var(--accent, #2b6cb0); }
+  .row { display:flex; align-items:center; gap:8px; padding:8px; border-radius:10px; background: var(--bg-primary, #fff); margin:6px 0; border:1px solid var(--border, #ddd); }
+  .dot { width:26px; height:26px; border-radius:50%; background:#9ab; flex:none; }
+  .btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+  .b { text-align:center; padding:8px 4px; border-radius:10px; border:1px solid var(--border, #ccc); background: var(--bg-primary, #fff); }
+  .b.p { background: var(--accent, #2b6cb0); color:#fff; border-color: transparent; }
+  .muted { color: var(--text-secondary, #777); font-size:11px; }
+  .tabs { display:flex; gap:4px; margin-bottom:8px; }
+  .tab { flex:1; text-align:center; padding:6px; border-radius:8px; border:1px solid var(--border,#ccc); }
+  .tab.on { background: var(--accent, #2b6cb0); color:#fff; border-color:transparent; }
+  .pulse { text-align:center; padding:10px; border:1px dashed var(--border,#aaa); border-radius:10px; margin:8px 0; }
+</style>
+
+<h2>Which swap screen feels right on the boat?</h2>
+<p class="subtitle">Opened from the Buddies list. All three include every method; they differ in what you see first. Your Android phone is "tappable" whenever this screen is open, in all three.</p>
+
+<div class="cards">
+  <div class="card" data-choice="qr-first">
+    <div class="card-image">
+      <div class="phone">
+        <div class="bar"><span>&larr; Swap with a buddy</span><span>?</span></div>
+        <div class="qr"></div>
+        <div class="chipline">Sharing: name, phone, AOW + Nitrox, 342 dives &middot; <a>Change</a></div>
+        <div class="b p">Scan their code</div>
+        <div class="btns">
+          <div class="b">Nearby</div>
+          <div class="b">Tap phones</div>
+          <div class="b">Send file</div>
+          <div class="b">NFC sticker</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Your code first</h3>
+      <p>Your QR fills the top; they can scan it the moment you open the screen. Every other way is a button below.</p>
+    </div>
+  </div>
+
+  <div class="card chosen" data-choice="nearby-first">
+    <div class="card-image">
+      <div class="phone">
+        <div class="bar"><span>&larr; Swap with a buddy</span><span>?</span></div>
+        <div class="muted">Divers nearby with Submersion open</div>
+        <div class="row"><div class="dot"></div><div><b>Sam Rivera</b><div class="muted">iPhone &middot; tap to swap</div></div></div>
+        <div class="row"><div class="dot"></div><div><b>Alex's Pixel</b><div class="muted">Android &middot; tap to swap</div></div></div>
+        <div class="pulse muted">Looking for more&hellip;</div>
+        <div class="chipline">Sharing: name, phone, AOW + Nitrox, 342 dives &middot; <a>Change</a></div>
+        <div class="btns">
+          <div class="b">Show my code</div>
+          <div class="b">Scan code</div>
+          <div class="b">Send file</div>
+          <div class="b">NFC sticker</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Nearby divers first</h3>
+      <p>The screen starts looking straight away and lists divers in range; one tap on a name swaps both cards. QR and the rest are fallbacks below.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="tabs">
+    <div class="card-image">
+      <div class="phone">
+        <div class="bar"><span>&larr; Swap with a buddy</span><span>?</span></div>
+        <div class="tabs"><div class="tab on">Give my card</div><div class="tab">Get their card</div></div>
+        <div class="qr"></div>
+        <div class="chipline">Sharing: name, phone, AOW + Nitrox, 342 dives &middot; <a>Change</a></div>
+        <div class="btns">
+          <div class="b">Send file</div>
+          <div class="b">Write NFC sticker</div>
+        </div>
+        <div class="muted" style="margin-top:8px">Get their card: Scan code, Nearby, Tap an Android phone, Open a file</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Give and get as two tabs</h3>
+      <p>Splits sending from receiving, so each tab is simple. Swapping both ways means switching tabs.</p>
+    </div>
+  </div>
+</div>
+
+<hr>
+<style>
+  .phone { width: 230px; margin: 0 auto; border: 2px solid var(--border, #888); border-radius: 22px; padding: 12px; font-size: 12px; background: var(--bg-secondary, #f6f6f6); }
+  .bar { font-weight:600; margin-bottom:10px; }
+  .sheet { background: var(--bg-primary, #fff); border:1px solid var(--border,#ddd); border-radius:14px; padding:12px; text-align:center; }
+  .avatar { width:44px; height:44px; border-radius:50%; background:#9ab; margin:0 auto 6px; }
+  .code { font-size:22px; letter-spacing:4px; font-weight:700; margin:8px 0; }
+  .muted { color: var(--text-secondary, #777); font-size:11px; }
+  .btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+  .b { text-align:center; padding:8px 4px; border-radius:10px; border:1px solid var(--border, #ccc); background: var(--bg-primary, #fff); }
+  .b.p { background: var(--accent, #2b6cb0); color:#fff; border-color: transparent; }
+  .step { font-size:11px; font-weight:600; text-transform:uppercase; color: var(--text-secondary,#777); margin:10px 0 4px; }
+  .line { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid var(--border,#eee); text-align:left; }
+</style>
+
+<h2>When Sam taps your name, what happens on your phone?</h2>
+<p class="subtitle">Either way, nothing is sent until you agree, and each of you sees a preview of the other's card before it is saved.</p>
+
+<div class="cards">
+  <div class="card chosen" data-choice="accept-only">
+    <div class="card-image">
+      <div class="phone">
+        <div class="bar">Swap with a buddy</div>
+        <div class="sheet">
+          <div class="avatar"></div>
+          <b>Sam Rivera wants to swap cards</b>
+          <div class="muted">You'll send: name, phone, AOW + Nitrox, 342 dives</div>
+          <div class="btns"><div class="b">Decline</div><div class="b p">Swap</div></div>
+        </div>
+        <div class="step">Then, on both phones</div>
+        <div class="sheet" style="text-align:left">
+          <b>Add Sam Rivera?</b>
+          <div class="line"><span>Phone</span><span>+1 555 0134</span></div>
+          <div class="line"><span>Cert</span><span>PADI Rescue</span></div>
+          <div class="line"><span>Dives</span><span>118</span></div>
+          <div class="btns"><div class="b">Discard</div><div class="b p">Add buddy</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Accept, then preview</h3>
+      <p>One tap to agree. Fastest on a rocking boat. Someone in Bluetooth range who meddles with the link could in theory swap in a fake card; the preview is where you'd spot it.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="code-check">
+    <div class="card-image">
+      <div class="phone">
+        <div class="bar">Swap with a buddy</div>
+        <div class="sheet">
+          <div class="avatar"></div>
+          <b>Sam Rivera wants to swap cards</b>
+          <div class="code">482 917</div>
+          <div class="muted">Check Sam's screen shows the same code</div>
+          <div class="btns"><div class="b">Different</div><div class="b p">Same, swap</div></div>
+        </div>
+        <div class="step">Then, on both phones</div>
+        <div class="sheet" style="text-align:left">
+          <b>Add Sam Rivera?</b>
+          <div class="line"><span>Phone</span><span>+1 555 0134</span></div>
+          <div class="line"><span>Cert</span><span>PADI Rescue</span></div>
+          <div class="line"><span>Dives</span><span>118</span></div>
+          <div class="btns"><div class="b">Discard</div><div class="b p">Add buddy</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Compare a code, then preview</h3>
+      <p>Same as pairing your own devices: both screens show six digits and you glance at each other's phone. Proves the card came from the phone in front of you, at the cost of a look and a tap.</p>
+    </div>
+  </div>
+</div>
+
+<hr>
+</body></html>

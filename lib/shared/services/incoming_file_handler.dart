@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -28,6 +29,11 @@ enum IncomingFileOutcome {
   /// import with the same [bytes]/[fileName] the caller already has.
   navigateToSuuntoFileImport,
 
+  /// A buddy card file (issue #3728). It is never a dive log, so it is
+  /// recognised by name before the import wizard is asked: open the buddy
+  /// card preview with the same bytes.
+  buddyCard,
+
   /// Nothing to do: the wizard was already busy, or the file is
   /// genuinely unsupported (both cases already surfaced a snackbar).
   none,
@@ -45,16 +51,29 @@ bool isImportWizardRoute(String path) =>
 /// Shared logic for handling an incoming file from drag-and-drop or
 /// share-sheet intents. Both [GlobalDropTarget] and [SubmersionApp]
 /// delegate to this function.
+///
+/// [isImportRunning] turns the file away too: an import that runs on after
+/// its wizard closed still reads the shared import state, which loading
+/// another file would replace (#3554). It is asked right before that state
+/// is written, not when the file arrived, so an import started meanwhile
+/// is seen.
 Future<IncomingFileOutcome> handleIncomingFile({
   required Uint8List bytes,
   required String fileName,
   required String currentPath,
   required UniversalImportNotifier notifier,
   required ScaffoldMessengerState? messenger,
+  bool Function() isImportRunning = _noImportRunning,
   String? wizardActiveMessage,
   String? unsupportedFileMessage,
 }) async {
-  if (isImportWizardRoute(currentPath)) {
+  // Not an import, so neither a running import nor an open wizard holds it
+  // back, and the import state is left alone.
+  if (BuddyCardCodec.isCardFileName(fileName) ||
+      BuddyCardCodec.looksLikeFullCard(bytes)) {
+    return IncomingFileOutcome.buddyCard;
+  }
+  if (isImportRunning() || isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -93,19 +112,38 @@ Future<IncomingFileOutcome> handleIncomingFile({
   return IncomingFileOutcome.navigateToWizard;
 }
 
+/// [paths] split into buddy card files (issue #3728), found by name, and
+/// everything else. Several files arriving together go to the import
+/// wizard as a batch; a card is not a dive log, so each opens its preview
+/// instead.
+({List<String> cards, List<String> others}) splitBuddyCardPaths(
+  List<String> paths,
+) => (
+  cards: [
+    for (final path in paths)
+      if (BuddyCardCodec.isCardFileName(path)) path,
+  ],
+  others: [
+    for (final path in paths)
+      if (!BuddyCardCodec.isCardFileName(path)) path,
+  ],
+);
+
 /// Multi-file counterpart of [handleIncomingFile], for a share-sheet intent
 /// carrying several files at once. The files enter the import wizard as one
 /// batch, the way several dropped files do in [GlobalDropTarget].
 ///
 /// Returns `true` when the caller should navigate to the import wizard.
+/// [isImportRunning] turns the files away, as for [handleIncomingFile].
 Future<bool> handleIncomingFiles({
   required List<String> paths,
   required String currentPath,
   required UniversalImportNotifier notifier,
   required ScaffoldMessengerState? messenger,
+  bool Function() isImportRunning = _noImportRunning,
   String? wizardActiveMessage,
 }) async {
-  if (isImportWizardRoute(currentPath)) {
+  if (isImportRunning() || isImportWizardRoute(currentPath)) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(wizardActiveMessage ?? 'Finish current import first'),
@@ -145,3 +183,5 @@ void reportIncomingFileError(
   }
   messenger?.showSnackBar(SnackBar(content: Text(message)));
 }
+
+bool _noImportRunning() => false;

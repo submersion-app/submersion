@@ -1,5 +1,10 @@
+export 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
+export 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
+
 import 'dart:async';
 import 'dart:io';
+
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -9,10 +14,16 @@ import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/post_restore_sync_store.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_destination.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
+import 'package:submersion/features/backup/data/services/backup_origin.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
@@ -27,6 +38,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion_saf/submersion_saf.dart';
 
 // =============================================================================
@@ -40,14 +52,21 @@ final backupPreferencesProvider = Provider<BackupPreferences>((ref) {
 
 /// Backup service with all dependencies injected
 final backupServiceProvider = Provider<BackupService>((ref) {
+  // Captured now, not read through ref inside the hook: a restore can run
+  // for minutes, and a rebuild of this provider meanwhile would leave the
+  // hook holding an unmounted Ref that throws, failing the restore.
+  final prefs = ref.watch(sharedPreferencesProvider);
   return BackupService(
     dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
     preferences: ref.watch(backupPreferencesProvider),
-    cloudProvider: ref.watch(cloudStorageProviderProvider),
+    cloudProvider: ref.watch(backupCopyProviderProvider),
+    copyAccountId: ref.watch(pinnedCopyAccountIdProvider),
+    syncRepository: ref.watch(syncRepositoryProvider),
     epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
     postRestoreSyncStore: PostRestoreSyncStore(
       ref.watch(sharedPreferencesProvider),
     ),
+    onRestoring: (at) => StorageGcStore.markRestored(prefs, at),
     encryptionKeyStore: ref.watch(encryptionKeyStoreProvider),
     syncPreferences: ref.watch(syncPreferencesProvider),
     backupEncryptionKeyStore: ref.watch(backupEncryptionKeyStoreProvider),
@@ -77,115 +96,6 @@ final backupEncryptionServiceProvider = Provider<BackupEncryptionService>((
 // Settings
 // =============================================================================
 
-/// Notifier for backup settings (enabled, frequency, retention, cloud)
-class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
-  final BackupPreferences _prefs;
-
-  BackupSettingsNotifier(this._prefs) : super(_prefs.getSettings());
-
-  Future<void> setEnabled(bool value) async {
-    await _prefs.setEnabled(value);
-    state = state.copyWith(enabled: value);
-  }
-
-  Future<void> setBackupEncryptionEnabled(bool value) async {
-    await _prefs.setBackupEncryptionEnabled(value);
-    state = state.copyWith(backupEncryptionEnabled: value);
-  }
-
-  Future<void> setFrequency(BackupFrequency frequency) async {
-    await _prefs.setFrequency(frequency);
-    state = state.copyWith(frequency: frequency);
-  }
-
-  Future<void> setRetentionCount(int count) async {
-    await _prefs.setRetentionCount(count);
-    state = state.copyWith(retentionCount: count);
-  }
-
-  /// Cloud backup and a custom backup location are mutually exclusive
-  /// destinations: enabling cloud backup reverts the location to the
-  /// default, and choosing a custom location turns cloud backup off.
-  ///
-  /// The two keys are persisted in separate awaited steps, so the conflicting
-  /// key is always cleared BEFORE the new one is set. That way a crash between
-  /// the writes can only leave a "both off" state, never the invalid "cloud
-  /// backup on + custom location set" combination.
-  Future<void> setCloudBackupEnabled(bool value) async {
-    if (value) await _prefs.setBackupLocation(null);
-    await _prefs.setCloudBackupEnabled(value);
-    state = _prefs.getSettings();
-  }
-
-  Future<void> setBackupLocation(String? path) async {
-    if (path != null) await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(path);
-    state = _prefs.getSettings();
-  }
-
-  /// Sets a custom backup location together with its security-scoped bookmark
-  /// (Apple platforms). The bookmark is what lets the location survive an app
-  /// restart; a null bookmark is fine on desktop, where bare paths persist.
-  ///
-  /// Like [setBackupLocation], choosing a custom location turns cloud backup
-  /// off -- the conflicting cloud key is cleared before the location is set.
-  Future<void> setBackupLocationWithBookmark(
-    String path,
-    List<int>? bookmark,
-  ) async {
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(path);
-    await _prefs.setBackupLocationBookmark(bookmark);
-    state = _prefs.getSettings();
-  }
-
-  /// Android SAF: persist a `content://` tree URI as the location plus its human
-  /// label for display. Turns cloud backup off, like any custom location.
-  Future<void> setSafBackupLocation(String uri, String label) async {
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(uri);
-    await _prefs.setBackupLocationLabel(label);
-    state = _prefs.getSettings();
-  }
-
-  /// Display label for a custom location (e.g. the SAF folder name), or null.
-  String? get locationLabel => _prefs.backupLocationLabel;
-
-  /// Sign-out hook: cloud sync is being disabled, so cloud backup loses its
-  /// destination. Resets the location to default only when cloud backup was
-  /// actually on -- an unrelated custom location is none of sync's business.
-  Future<void> disableCloudBackup() async {
-    if (!state.cloudBackupEnabled) return;
-    await _prefs.setCloudBackupEnabled(false);
-    await _prefs.setBackupLocation(null);
-    state = _prefs.getSettings();
-  }
-
-  /// Refresh state from SharedPreferences (e.g. after a backup updates lastBackupTime)
-  void refresh() {
-    state = _prefs.getSettings();
-  }
-
-  /// Like [refresh], but first re-reads what the WorkManager isolate may
-  /// have written since this isolate cached its preferences.
-  Future<void> reloadFromDisk() async {
-    await _prefs.reload();
-    if (!mounted) return;
-    refresh();
-  }
-
-  /// Records a failed scheduled backup for Settings > Data health.
-  Future<void> recordScheduledFailure(String message) async {
-    final at = DateTime.now();
-    await _prefs.setLastScheduledFailure(at, message);
-    if (!mounted) return;
-    state = state.copyWith(
-      lastScheduledFailureAt: at,
-      lastScheduledFailureMessage: message,
-    );
-  }
-}
-
 final backupSettingsProvider =
     StateNotifierProvider<BackupSettingsNotifier, BackupSettings>((ref) {
       return BackupSettingsNotifier(ref.watch(backupPreferencesProvider));
@@ -194,68 +104,6 @@ final backupSettingsProvider =
 // =============================================================================
 // Operation State
 // =============================================================================
-
-/// Status of a backup operation
-enum BackupOperationStatus { idle, inProgress, success, restoreComplete, error }
-
-/// Progress of the whole-library safety review sweep that runs at the end of a
-/// restore. Structured rather than a pre-formatted string so the restore
-/// barrier can render it in the user's language.
-class SafetyReviewSweepProgress {
-  final int done;
-  final int total;
-
-  const SafetyReviewSweepProgress({required this.done, required this.total});
-}
-
-/// State for backup/restore operations
-class BackupOperationState {
-  final BackupOperationStatus status;
-  final String? message;
-  final BackupRecord? lastRecord;
-
-  /// True only while a database *restore* is running (a subset of the
-  /// [BackupOperationStatus.inProgress] states). Restore briefly closes and
-  /// reopens the database, so the whole app must be blocked from interaction
-  /// until it finishes — but routine backups/exports/deletes, which also use
-  /// `inProgress`, must NOT block the app. The global restore barrier keys off
-  /// this flag, not `status`.
-  final bool isRestoring;
-
-  /// Non-null only while the post-restore safety sweep is running.
-  final SafetyReviewSweepProgress? sweepProgress;
-
-  const BackupOperationState({
-    this.status = BackupOperationStatus.idle,
-    this.message,
-    this.lastRecord,
-    this.isRestoring = false,
-    this.sweepProgress,
-  });
-
-  /// [clearSweepProgress] separates "leave the sweep progress alone" from
-  /// "clear it". Omitting [sweepProgress] means unchanged, matching every other
-  /// field, so an unrelated `copyWith` cannot silently blank an in-flight
-  /// sweep; pass `clearSweepProgress: true` to actually null it out.
-  BackupOperationState copyWith({
-    BackupOperationStatus? status,
-    String? message,
-    BackupRecord? lastRecord,
-    bool? isRestoring,
-    SafetyReviewSweepProgress? sweepProgress,
-    bool clearSweepProgress = false,
-  }) {
-    return BackupOperationState(
-      status: status ?? this.status,
-      message: message ?? this.message,
-      lastRecord: lastRecord ?? this.lastRecord,
-      isRestoring: isRestoring ?? this.isRestoring,
-      sweepProgress: clearSweepProgress
-          ? null
-          : (sweepProgress ?? this.sweepProgress),
-    );
-  }
-}
 
 /// Notifier managing backup/restore/delete operations with state transitions
 class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
@@ -430,6 +278,11 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         status: BackupOperationStatus.error,
         message: _l10n.backup_operation_restoreSourceMissing,
       );
+    } on BackupCopyInOtherAccountException {
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_restore_copyInOtherAccount,
+      );
     } catch (e) {
       state = BackupOperationState(
         status: BackupOperationStatus.error,
@@ -516,6 +369,99 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     }
   }
 
+  /// [record] from the history as a file for the share sheet (issue #3650),
+  /// downloading a cloud-only backup first. The file is not deleted here:
+  /// some receiving apps read it only when the diver finally presses Send,
+  /// so a temp copy is left for the day-old temp sweep. Null when busy or on
+  /// failure, which the state reports.
+  Future<File?> prepareBackupForSharing(BackupRecord record) async {
+    if (state.status == BackupOperationStatus.inProgress) return null;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_preparingShare,
+    );
+
+    try {
+      final prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.share,
+      );
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_shareReady,
+      );
+      return File(prepared.path);
+    } catch (e) {
+      _reportCopyOutFailure(e);
+      return null;
+    }
+  }
+
+  /// Copies [record] from the history into [directory], never overwriting a
+  /// file already there (issue #3650). Adds nothing to the history.
+  Future<void> saveBackupCopyToDirectory(
+    BackupRecord record,
+    String directory,
+  ) => _saveBackupCopy(record, (copy) async {
+    final dest = await uniqueDestinationPath(directory, copy.fileName);
+    await copyWithoutPartial(copy.path, dest);
+  });
+
+  /// The Android counterpart to [saveBackupCopyToDirectory]: streams the copy
+  /// into a SAF tree without replacing a same-name document, which may be
+  /// the very backup being copied.
+  Future<void> saveBackupCopyToSafTree(BackupRecord record, String treeUri) =>
+      _saveBackupCopy(
+        record,
+        (copy) => SubmersionSaf.writeBackup(
+          treeUri: treeUri,
+          fileName: copy.fileName,
+          sourcePath: copy.path,
+          replaceExisting: false,
+        ),
+      );
+
+  Future<void> _saveBackupCopy(
+    BackupRecord record,
+    Future<void> Function(PreparedBackupFile copy) write,
+  ) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_exporting,
+    );
+
+    PreparedBackupFile? prepared;
+    try {
+      prepared = await _service.prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.save,
+      );
+      await write(prepared);
+      state = BackupOperationState(
+        status: BackupOperationStatus.success,
+        message: _l10n.backup_operation_exported(record.formattedSize),
+      );
+    } catch (e) {
+      _reportCopyOutFailure(e);
+    } finally {
+      // A downloaded or streamed copy is a full library, plaintext when the
+      // backup is; it must not outlive the save.
+      await prepared?.discard();
+    }
+  }
+
+  void _reportCopyOutFailure(Object e) {
+    state = BackupOperationState(
+      status: BackupOperationStatus.error,
+      message: e is BackupCopyInOtherAccountException
+          ? _l10n.backup_restore_copyInOtherAccount
+          : _l10n.backup_operation_exportFailed('$e'),
+    );
+  }
+
   /// Export a backup into an Android SAF tree, streaming it in.
   ///
   /// The Android counterpart to [exportToPath]. Scoped storage gives no
@@ -587,8 +533,15 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     );
 
     try {
-      // Validate first
-      final validation = await _service.validateBackupFile(filePath);
+      // Validate first. A pre-update safety copy of a protected database is
+      // SQLCipher under the live key; the history row already restores it,
+      // and the same file saved or shared from there restores here too, on
+      // this install only (issue #3650). Any other encrypted-looking file
+      // still fails, now with a message that says why.
+      final validation = await _service.validateBackupFile(
+        filePath,
+        allowLiveDatabaseEncryption: true,
+      );
       if (!validation.isValid) {
         state = BackupOperationState(
           status: BackupOperationStatus.error,
@@ -714,6 +667,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
   }
 
   Future<void> _checkDesktopBackup() async {
+    if (DemoModeGate.instance.isActive) return;
     final settings = _ref.read(backupSettingsProvider);
     if (!settings.enabled || !settings.isBackupDue) return;
     if (state.status == BackupOperationStatus.inProgress) return;
@@ -766,8 +720,46 @@ final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
   // unawaited on that path cannot surface an unhandled error.
   final cloudFiles = service.getCloudBackups();
   final history = await service.getValidatedBackupHistory();
-  return mergeCloudBackups(history, await cloudFiles);
+  final listing = await cloudFiles;
+  final listedIds = {for (final f in listing) f.id};
+  return [
+    for (final r in markPinnedOnAnotherDevice(
+      mergeCloudBackups(
+        history,
+        listing,
+        accountId: await service.cloudCopyAccountId(),
+      ),
+      listing,
+      thisDeviceId: await service.thisDeviceIdOrNull(),
+    ))
+      listedIds.contains(r.cloudFileId) ? r.copyWith(cloudCopyListed: true) : r,
+  ];
 });
+
+/// This device's id as backup names record it, or null when it cannot be
+/// read.
+///
+/// Read again whenever the history reloads or the sync identity changes. The
+/// id lives in the database, and a restore reopens the database in place;
+/// Reset Sync State and some syncs mint a fresh id without touching the
+/// history, and SyncNotifier invalidates [conflictLocalDeviceProvider] after
+/// both. An id cached for the life of the Backups page would otherwise
+/// label this device's new backups as another device's.
+final backupDeviceIdProvider = FutureProvider.autoDispose<String?>((ref) {
+  ref.watch(backupHistoryProvider);
+  ref.watch(conflictLocalDeviceProvider);
+  return ref.watch(backupServiceProvider).thisDeviceIdOrNull();
+});
+
+/// Names the device behind each history row (issue #3651). Until the id
+/// and the peer names have loaded it knows no devices, so rows show none
+/// rather than a guess.
+final backupOriginResolverProvider = Provider.autoDispose<BackupOriginResolver>(
+  (ref) => BackupOriginResolver(
+    thisDeviceId: ref.watch(backupDeviceIdProvider).value,
+    peerDeviceNames: ref.watch(peerDeviceNamesProvider).value ?? const {},
+  ),
+);
 
 // =============================================================================
 // Convenience Providers

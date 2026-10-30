@@ -6,6 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/side_trip_tag.dart';
 
 /// The Dives tab: every dive on the trip in time order, each opening its
 /// dive (#2845 put it on every trip; it was the liveaboard layout's).
@@ -17,6 +19,12 @@ class TripDivesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final divesAsync = ref.watch(divesForTripProvider(tripId));
+    // A larger trip lists its side trips' dives too, each tagged with its
+    // side trip (issue #3658).
+    final sideTripNames = {
+      for (final t in ref.watch(sideTripsProvider(tripId)).value ?? const [])
+        t.id: t.name,
+    };
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final theme = Theme.of(context);
@@ -73,11 +81,17 @@ class TripDivesTab extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            units.formatMonthDay(dive.dateTime),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                units.formatMonthDay(dive.dateTime),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              if (sideTripNames[dive.tripId] case final name?)
+                                Flexible(child: SideTripTag(name: name)),
+                            ],
                           ),
                         ],
                       ),

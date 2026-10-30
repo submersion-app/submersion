@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
@@ -38,6 +39,42 @@ void main() {
     await container.read(syncStateProvider.notifier).refreshState();
     return container;
   }
+
+  // Issue #3482 review: refreshState scopes "last synced" to the active
+  // backend, so a switch to one never synced must clear the old time rather
+  // than keep it (the Set up card read it as "sync done").
+  test(
+    'a switch to a backend never synced clears the last sync time',
+    () async {
+      final prefs = await SharedPreferences.getInstance();
+      final s3 = FakeCloudStorageProvider(providerId: 's3', providerName: 'S3');
+      final icloud = FakeCloudStorageProvider(
+        providerId: 'icloud',
+        providerName: 'iCloud',
+      );
+      CloudStorageProvider active = s3;
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWith((ref) => active),
+        ],
+      );
+      addTearDown(container.dispose);
+      await SyncRepository().updateLastSyncTime(
+        DateTime(2026, 10, 1),
+        providerId: 's3',
+      );
+      final notifier = container.read(syncStateProvider.notifier);
+      await notifier.refreshState();
+      expect(container.read(syncStateProvider).lastSync, isNotNull);
+
+      active = icloud;
+      container.invalidate(cloudStorageProviderProvider);
+      await notifier.refreshState();
+
+      expect(container.read(syncStateProvider).lastSync, isNull);
+    },
+  );
 
   group('recordBackendDeparture', () {
     test('leaves a moved marker on the old backend and arms cleanup', () async {

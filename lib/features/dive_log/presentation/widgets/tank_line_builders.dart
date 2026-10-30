@@ -11,12 +11,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
     show SeriesGetsLeadIn, WithFlatSurfaceLeadIn;
 
 /// Build vertical markers for gas switch events on the profile.
+/// [ringColor] rings each dot to punch it out of the profile line; the
+/// chart passes the colour behind it.
 List<LineChartBarData> buildGasSwitchMarkers(
   UnitFormatter units,
   List<GasSwitchWithTank>? gasSwitches,
   Map<String, bool> showTankPressure,
-  double Function(int timestamp) findDepthAtTimestamp,
-) {
+  double Function(int timestamp) findDepthAtTimestamp, {
+  required Color ringColor,
+}) {
   if (gasSwitches == null || gasSwitches.isEmpty) {
     return [];
   }
@@ -47,7 +50,7 @@ List<LineChartBarData> buildGasSwitchMarkers(
             radius: 6,
             color: color,
             strokeWidth: 2,
-            strokeColor: Colors.white,
+            strokeColor: ringColor,
           );
         },
       ),

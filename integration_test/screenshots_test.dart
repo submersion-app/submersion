@@ -10,7 +10,8 @@
 /// ```
 ///
 /// Screenshots are saved to `screenshots/{device_name}/` directory.
-/// The output path, device name, and UDDF test data path are passed via --dart-define.
+/// The output path, device name, and demo logbook directory are passed via
+/// --dart-define.
 library;
 
 import 'dart:io';
@@ -26,32 +27,24 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
-import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
-import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
-import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:path/path.dart' as p;
 
 import 'helpers/screenshot_helper.dart';
 import 'helpers/screenshot_test_data.dart';
-import 'helpers/uddf_screenshot_helper.dart';
 
-/// Path to UDDF test data file, passed via --dart-define from capture script.
-const String _kUddfTestDataPath = String.fromEnvironment(
-  'UDDF_TEST_DATA_PATH',
+/// Directory holding the demo-mode sample logbook (`submersion_demo.db` and
+/// `photos/`), as scripts/demo_data/fetch_demo_db.py extracts it (issue
+/// #3708). Passed via --dart-define from the capture script; when empty the
+/// screenshots use the small in-code seeder.
+const String _kDemoPackageDir = String.fromEnvironment(
+  'DEMO_PACKAGE_DIR',
   defaultValue: '',
 );
 
@@ -75,6 +68,33 @@ Future<void> _settle(WidgetTester tester, {int frames = 10}) async {
   }
 }
 
+/// Opens a copy of the sample logbook in [dir] and prepares it the way demo
+/// mode does: dates moved up to this week, photos linked into `dir/photos`.
+///
+/// A set but unusable directory fails the run rather than falling back, so
+/// store screenshots are never captured from the wrong data by accident.
+Future<(AppDatabase, Directory)> _openDemoLogbook(String dir) async {
+  final source = File(p.join(dir, 'submersion_demo.db'));
+  if (!source.existsSync()) {
+    throw StateError(
+      'DEMO_PACKAGE_DIR has no submersion_demo.db: ${source.absolute.path}',
+    );
+  }
+  // ignore: avoid_print
+  print('Loading the demo logbook from ${source.absolute.path}');
+  final work = Directory.systemTemp.createTempSync('screenshots_demo_');
+  final copy = source.copySync(p.join(work.path, 'submersion_demo.db'));
+  final db = AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+  DatabaseService.instance.setTestDatabase(db);
+  await DemoDatabasePreparer().prepare(
+    db,
+    now: DateTime.now(),
+    photosDir: Directory(p.join(dir, 'photos')).absolute.path,
+    deviceId: null,
+  );
+  return (db, work);
+}
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -83,56 +103,23 @@ void main() {
   late SharedPreferences prefs;
   late LogFileService logFileService;
   late Directory tempLogDir;
+  Directory? demoWorkDir;
 
   setUpAll(() async {
     // Initialize SharedPreferences with empty values
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
 
-    // Create in-memory database for testing
-    testDb = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
-    DatabaseService.instance.setTestDatabase(testDb);
-
-    // Seed with test data - prefer UDDF import for consistent data
-    bool uddfImported = false;
-    if (_kUddfTestDataPath.isNotEmpty &&
-        File(_kUddfTestDataPath).existsSync()) {
-      // Use UDDF test data generated by Python script for consistent screenshots
+    if (_kDemoPackageDir.isNotEmpty) {
+      (testDb, demoWorkDir) = await _openDemoLogbook(_kDemoPackageDir);
+    } else {
       // ignore: avoid_print
-      print('Loading test data from UDDF: $_kUddfTestDataPath');
-
-      // Create repositories - they use DatabaseService.instance.database which
-      // is now our test database
-      final importer = UddfScreenshotImporter(
-        diverRepository: DiverRepository(),
-        diveRepository: DiveRepository(),
-        siteRepository: SiteRepository(),
-        buddyRepository: BuddyRepository(),
-        equipmentRepository: EquipmentRepository(),
-        equipmentSetRepository: EquipmentSetRepository(),
-        tripRepository: TripRepository(),
-        diveCenterRepository: DiveCenterRepository(),
-        certificationRepository: CertificationRepository(),
-        tagRepository: TagRepository(),
-        diveTypeRepository: DiveTypeRepository(),
-        tankPressureRepository: TankPressureRepository(),
+      print('DEMO_PACKAGE_DIR not set; using the in-code test data seeder');
+      testDb = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
       );
-      try {
-        await importer.importFromFile(_kUddfTestDataPath);
-        uddfImported = true;
-      } catch (e) {
-        // macOS sandbox may block file access even if existsSync() passes.
-        // Fall through to manual seeder below.
-        // ignore: avoid_print
-        print('UDDF import failed ($e), falling back to manual test data');
-      }
-    }
-    if (!uddfImported) {
-      // Fallback to manual seeder if UDDF file not available or import failed
-      // ignore: avoid_print
-      print('Using manual test data seeder');
-      final seeder = ScreenshotTestDataSeeder(testDb);
-      await seeder.seedAll();
+      DatabaseService.instance.setTestDatabase(testDb);
+      await ScreenshotTestDataSeeder(testDb).seedAll();
     }
 
     // Initialize screenshot helper
@@ -152,6 +139,9 @@ void main() {
     DatabaseService.instance.resetForTesting();
     if (tempLogDir.existsSync()) {
       tempLogDir.deleteSync(recursive: true);
+    }
+    if (demoWorkDir?.existsSync() ?? false) {
+      demoWorkDir!.deleteSync(recursive: true);
     }
   });
 

@@ -238,7 +238,7 @@ void main() {
         final dive = Dive(
           id: 'dive-fallback-entry',
           dateTime: now,
-          site: testSite.copyWith(entryMethod: EntryMethod.shore),
+          site: testSite.copyWith(entryMethods: [EntryMethod.shore]),
         );
         expect(DiveField.entryMethod.extractFromDive(dive), 'Shore Entry');
       },
@@ -499,6 +499,15 @@ void main() {
 
     test('notes returns notes text', () {
       expect(DiveField.notes.extractFromDive(testDive), 'Great visibility');
+    });
+
+    test('notes returns Markdown notes as plain words', () {
+      expect(
+        DiveField.notes.extractFromDive(
+          testDive.copyWith(notes: '# Plan\n**Bring torch**'),
+        ),
+        'Plan\nBring torch',
+      );
     });
 
     test('tags returns list of tag names', () {

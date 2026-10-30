@@ -44,6 +44,21 @@ DiscoveredDevice? sameModelFallbackDevice({
   return candidates.length == 1 ? candidates.single : null;
 }
 
+/// Whether a saved Bluetooth computer with no address on this device can be
+/// looked for by make and model instead (issue #3710).
+///
+/// The address is a per-device identifier that never syncs, so a computer
+/// saved on a Mac arrives on a phone with its Bluetooth connection and no
+/// address. [sameModelFallbackDevice] can only find it when the record names
+/// both its manufacturer and model. A Garmin is never downloaded directly,
+/// so it keeps its FIT-file guidance instead of a scan that cannot succeed.
+bool canFindByModel(DiveComputer computer) {
+  final manufacturer = _normalize(computer.manufacturer);
+  return manufacturer.isNotEmpty &&
+      manufacturer != 'garmin' &&
+      _normalize(computer.model).isNotEmpty;
+}
+
 bool _isBluetooth(DiscoveredDevice device) =>
     device.connectionType == DeviceConnectionType.ble ||
     device.connectionType == DeviceConnectionType.bluetoothClassic;

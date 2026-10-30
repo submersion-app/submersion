@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/database/database_engine_preflight.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/domain/entities/migration_progress.dart';
@@ -1142,6 +1143,53 @@ void main() {
       expect(find.byKey(const ValueKey('splash')), findsNothing);
     });
 
+    // The error and recovery screens painted a fixed 0xFF121212 / white
+    // palette while their restore card followed the diver's theme, so the two
+    // disagreed on every preset but the default.
+    testWidgets('the error screen paints in the diver theme', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        cachedThemeModeKey: 'dark',
+        cachedThemePresetKey: 'console',
+      });
+      prefs = await SharedPreferences.getInstance();
+
+      await tester.pumpWidget(
+        _buildStartupWrapper(
+          prefs: prefs,
+          logFileService: logFileService,
+          locationService: locationService,
+          schemaVersionProbeOverride: (_) =>
+              (needsMigration: false, totalSteps: 0),
+          initializerOverride: (_) async {
+            throw Exception('Test error');
+          },
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+
+      final scheme = AppThemeRegistry.resolveTheme(
+        AppThemeRegistry.findById('console'),
+        Brightness.dark,
+      ).colorScheme;
+      final error = tester.widget<Scaffold>(
+        find.byKey(const ValueKey('error')),
+      );
+      expect(error.backgroundColor, scheme.surface);
+      final texts = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byKey(const ValueKey('error')),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((t) => t.style?.color)
+          .whereType<Color>()
+          .toSet();
+      expect(texts, contains(scheme.onSurface));
+      expect(texts, isNot(contains(Colors.white)));
+    });
+
     testWidgets('generic error shows error message text', (tester) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -2228,6 +2276,10 @@ void main() {
       await tester.pump();
 
       expect(restoredFrom, backupFile.path);
+      // Recorded for the storage cleanup like any other restore: its cloud
+      // deletes wait for a sync after the restore.
+      expect(StorageGcStore(prefs).lastRestoreAt, isNotNull);
+      expect(StorageGcStore(prefs).postRestoreCloudPending, isTrue);
       expect(initializerCalls, 2, reason: 'startup must resume after restore');
       expect(find.text('Database upgrade failed'), findsNothing);
       expect(find.byKey(const ValueKey('splash')), findsOneWidget);

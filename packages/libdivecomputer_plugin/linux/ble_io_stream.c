@@ -1109,6 +1109,13 @@ static int ble_ioctl(void* userdata, unsigned int request,
             gsize n_bytes = 0;
             const guint8* bytes = g_variant_get_fixed_array(
                 bytes_var, &n_bytes, sizeof(guint8));
+            if (n_bytes < value_size) {
+                // libdivecomputer reports a short value only as "Failed to
+                // read the characteristic" (issue #422).
+                g_warning("BleIoStream: ReadValue %s returned %" G_GSIZE_FORMAT
+                          " bytes, expected %" G_GSIZE_FORMAT,
+                          uuid, n_bytes, (gsize)value_size);
+            }
             int status = libdc_ble_characteristic_read_fill(
                 data, size, bytes, n_bytes);
             if (status == LIBDC_STATUS_SUCCESS &&

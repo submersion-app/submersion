@@ -26,6 +26,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 const _fast = KdfParams(m: 1024, t: 1);
 
@@ -66,6 +67,7 @@ void main() {
     await diver('d1');
     cloud = _LandsThenFails();
     memberships = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),

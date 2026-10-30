@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Record type used as the adapter entity: pairs a [DiveCenter] with its
 /// associated dive count.
@@ -254,7 +255,7 @@ class DiveCenterFieldAdapter
       DiveCenterField.latitude => center.latitude,
       DiveCenterField.longitude => center.longitude,
       DiveCenterField.diveCount => entity.diveCount,
-      DiveCenterField.notes => center.notes,
+      DiveCenterField.notes => markdownToPlainText(center.notes),
     };
   }
 

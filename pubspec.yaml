@@ -1,7 +1,7 @@
 name: submersion
 description: An open-source dive logging application for scuba divers.
 publish_to: 'none'
-version: 1.8.3+131
+version: 1.8.4+132
 
 environment:
   sdk: ^3.10.0
@@ -60,6 +60,9 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   photo_view: ^0.15.0
   video_player: ^2.10.1
+  # video_player has no Windows player of its own; this federated
+  # implementation plays through Windows Media Foundation (#3548).
+  video_player_win: ^3.3.1
 
   # Networking
   http: ^1.2.2
@@ -160,6 +163,13 @@ dependencies:
   linked_scroll_controller: ^0.2.0
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
+  # Nearby sync between a diver's own devices over Bluetooth LE (issue
+  # #3731): the app's first Bluetooth package of its own (dive computers go
+  # through libdivecomputer's native scanner). Central on every platform,
+  # peripheral (advertising plus a GATT service) on all but Linux. Resolves
+  # to 3.1.0: 3.1.1 moved to bluez 0.9 (dbus 0.8), which geolocator_linux's
+  # dbus ^0.7.3 rules out.
+  universal_ble: ^3.1.0
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
   pdfrx: ^2.4.7
@@ -177,6 +187,7 @@ dependencies:
   nfc_manager_ndef: ^1.1.0
   ndef_record: ^1.4.2
   window_manager: ^0.5.2
+  markdown: ^7.3.1  # Markdown formatting in notes (#3683)
 
 dev_dependencies:
   flutter_test:

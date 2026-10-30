@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// A label/value row used throughout the dive detail page.
 ///
-/// The label sits at the leading edge and the value at the trailing edge. When
-/// the value is long it wraps onto additional lines rather than crowding the
-/// label or overflowing the right edge (issue #434).
+/// The value sits right beside the label, on the card's shared label column
+/// when the row is inside a `DetailRowGroup` (issue #3678). When the value
+/// is long it wraps onto additional lines rather than crowding the label or
+/// overflowing the edge (issue #434).
 class DiveDetailRow extends StatelessWidget {
   const DiveDetailRow({
     super.key,
@@ -18,7 +20,7 @@ class DiveDetailRow extends StatelessWidget {
   /// Leading, muted field name (e.g. "Dive Type").
   final String label;
 
-  /// Trailing value (e.g. a comma-joined list of dive types).
+  /// The value (e.g. a comma-joined list of dive types).
   final String value;
 
   /// When non-null, an attribution badge is shown after the value.
@@ -26,43 +28,18 @@ class DiveDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      // Top-align so a multi-line value keeps the label pinned to the first
-      // line rather than vertically centring against the wrapped block.
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return DetailRow(
+      label: label,
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+          Flexible(
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
           ),
-          // A guaranteed gap so the label and value never touch, even when the
-          // value grows wide enough to fill the rest of the row.
-          const SizedBox(width: 16),
-          // Expanded gives the value the remaining width as a bound, so a long
-          // value wraps (right-aligned) instead of overflowing the edge.
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Flexible(
-                  child: Text(
-                    value,
-                    style: theme.textTheme.bodyMedium,
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-                if (sourceName != null) ...[
-                  const SizedBox(width: 6),
-                  FieldAttributionBadge(sourceName: sourceName),
-                ],
-              ],
-            ),
-          ),
+          if (sourceName != null) ...[
+            const SizedBox(width: 6),
+            FieldAttributionBadge(sourceName: sourceName),
+          ],
         ],
       ),
     );

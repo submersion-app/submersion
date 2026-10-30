@@ -36,6 +36,7 @@ import '../../../../helpers/dive_participants.dart';
 import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 /// Records which delivery the single-dive export sheet chose.
 ///
@@ -95,6 +96,7 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) async {
     calls.add('generate:pdf');
     pdfDiver = diver;

@@ -2,6 +2,7 @@ import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -32,6 +33,7 @@ String conflictReferenceLabel(
     case 'diverRole':
       return l10n.settings_conflict_ref_yourRole;
     case 'regulatorEquipmentId':
+    case 'extraRegulatorIds':
       return l10n.settings_conflict_ref_regulator;
     case 'viaEquipmentId':
       return l10n.settings_conflict_ref_attachedThrough;
@@ -117,6 +119,14 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_checklistTemplate;
     case 'preDiveChecklistTemplates':
       return l10n.settings_conflict_ref_preDiveChecklistTemplate;
+    case 'tripChecklistSections':
+      return l10n.settings_conflict_ref_tripChecklistSection;
+    case 'checklistTemplateSections':
+      return l10n.settings_conflict_ref_checklistTemplateSection;
+    case 'preDiveChecklistTemplateSections':
+      return l10n.settings_conflict_ref_preDiveChecklistTemplateSection;
+    case 'preDiveSessionSections':
+      return l10n.settings_conflict_ref_preDiveSessionSection;
     default:
       return humanizeEntityType(reference.targetType);
   }
@@ -145,7 +155,8 @@ String conflictReferenceValue(
 /// The referenced record's name as the rest of the app shows it: a built-in
 /// row's stored English name is swapped for its translation (#3026), and
 /// anything else, a diver's own row or an id no helper knows, keeps the
-/// stored name.
+/// stored name. A built-in species the diver renamed keeps its stored name
+/// too (#3669).
 String? conflictReferenceName(
   AppLocalizations l10n,
   ConflictReference reference,
@@ -156,7 +167,10 @@ String? conflictReferenceName(
     'diveTypes' => builtInDiveTypeName(l10n, source.id),
     'diveRoles' => builtInDiveRoleName(l10n, source.id),
     'siteTypes' => builtInSiteTypeName(l10n, source.id),
-    'species' => builtInSpeciesName(l10n, source.id),
+    'species' => switch (reference.name) {
+      final name? => localizedSpeciesName(l10n, source.id, name),
+      null => builtInSpeciesName(l10n, source.id),
+    },
     _ => null,
   };
   return translated ?? reference.name;

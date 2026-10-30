@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class DiveCenterEditPage extends ConsumerStatefulWidget {
   final String? centerId;
@@ -58,6 +59,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
   List<String> _selectedAffiliations = [];
   int? _fillOpensAt;
   int? _fillClosesAt;
+  bool _isPermanentlyClosed = false;
 
   /// Set by a save the fill hours blocked, so their error shows from then.
   bool _fillHoursChecked = false;
@@ -213,6 +215,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _selectedAffiliations = List.from(center.affiliations);
     _fillOpensAt = center.fillOpensAt;
     _fillClosesAt = center.fillClosesAt;
+    _isPermanentlyClosed = center.isPermanentlyClosed;
   }
 
   Future<void> _save() async {
@@ -272,6 +275,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         notes: _notesController.text.trim(),
         fillOpensAt: _fillOpensAt,
         fillClosesAt: _fillClosesAt,
+        isPermanentlyClosed: _isPermanentlyClosed,
         createdAt: now,
         updatedAt: now,
       );
@@ -590,6 +594,20 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
           const SizedBox(height: 24),
 
+          // Out of business (#3379): kept for past dives, never nearby.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.diveCenters_label_permanentlyClosed),
+            subtitle: Text(context.l10n.diveCenters_hint_permanentlyClosed),
+            value: _isPermanentlyClosed,
+            onChanged: (value) => setState(() {
+              _isPermanentlyClosed = value;
+              _hasChanges = true;
+            }),
+          ),
+
+          const SizedBox(height: 24),
+
           // Fill hours (#2325): the trip fill forecast's deadline.
           DiveCenterFillHoursSection(
             opensAt: _fillOpensAt,
@@ -616,7 +634,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          MarkdownNotesField(
             controller: _notesController,
             decoration: InputDecoration(
               labelText: context.l10n.diveCenters_section_notes,
@@ -725,10 +743,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Text(context.l10n.common_action_save),
             ),
@@ -930,6 +945,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
                     ? context.l10n.diveCenters_error_locationPermission
                     : context.l10n.diveCenters_error_locationUnavailable,
               ),
+              persist: false,
               action: isMobile
                   ? SnackBarAction(
                       label: context.l10n.diveCenters_action_settings,

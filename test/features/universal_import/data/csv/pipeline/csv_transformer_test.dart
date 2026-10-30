@@ -1363,7 +1363,7 @@ void main() {
         headers: ['Date', 'Time'],
         rows: [
           ['2024-06-15', '09:00'],
-          ['15 Juin 2024', '10:00'],
+          ['Spring 2024', '10:00'],
         ],
       );
 
@@ -1460,7 +1460,7 @@ void main() {
       const csv = ParsedCsv(
         headers: ['Date'],
         rows: [
-          ['15 Juin 2024'],
+          ['Spring 2024'],
         ],
       );
 

@@ -9,6 +9,7 @@
 library;
 
 import 'package:drift/drift.dart';
+import 'package:submersion/core/database/table_columns.dart';
 
 /// Legacy rows still waiting to be packed, per legacy table.
 typedef LegacyPackResidue = ({int profiles, int tanks});
@@ -54,7 +55,7 @@ Future<int> _countUnpackedProfileRows(
   DatabaseConnectionUser db,
   String table,
 ) async {
-  final columns = await legacyColumnNames(db, table);
+  final columns = await tableColumnNames(db, table);
   if (columns.isEmpty) return 0;
   // A shape the packer cannot read, a missing series table, or a missing
   // `dives` table all mean nothing moved: every row is still only here.
@@ -93,7 +94,7 @@ Future<int> _countUnpackedTankRows(
   DatabaseConnectionUser db,
   String table,
 ) async {
-  final columns = await legacyColumnNames(db, table);
+  final columns = await tableColumnNames(db, table);
   if (columns.isEmpty) return 0;
   if (!columns.containsAll(const {
         'dive_id',
@@ -143,7 +144,7 @@ Future<List<String>> legacyCoverageIdentityColumns(
   required bool byTank,
   bool byGroupIdentity = false,
 }) async {
-  final columns = await legacyColumnNames(db, legacyTable);
+  final columns = await tableColumnNames(db, legacyTable);
   return [
     'dive_id',
     if (byTank) 'tank_id',
@@ -178,7 +179,7 @@ Future<String> legacyRowCoveredSql(
   required bool byTank,
   bool byGroupIdentity = false,
 }) async {
-  final columns = await legacyColumnNames(db, legacyTable);
+  final columns = await tableColumnNames(db, legacyTable);
   // A legacy row that names no computer matches a series whatever computer
   // the series carries, but ONLY on the identity-grained (staging) path.
   // This device stamps a computer onto its own series after packing
@@ -279,13 +280,4 @@ Future<bool> legacyTableExists(DatabaseConnectionUser db, String table) async {
       )
       .get();
   return rows.isNotEmpty;
-}
-
-/// The column names of [table], empty when the table does not exist.
-Future<Set<String>> legacyColumnNames(
-  DatabaseConnectionUser db,
-  String table,
-) async {
-  final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-  return {for (final row in rows) row.read<String>('name')};
 }

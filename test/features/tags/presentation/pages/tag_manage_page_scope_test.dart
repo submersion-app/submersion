@@ -70,8 +70,8 @@ void main() {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
 
-    expect(find.text('Dives · Sites'), findsOneWidget);
-    expect(find.text('0 dives, 1 site'), findsOneWidget);
+    expect(find.text('For: Dives · Sites'), findsOneWidget);
+    expect(find.text('Used on: 1 site'), findsOneWidget);
   });
 
   testWidgets('turning off sites confirms, then removes the site links', (
@@ -96,7 +96,7 @@ void main() {
       return db.select(db.siteTags).get();
     });
     expect(links, isEmpty);
-    expect(find.text('Dives'), findsOneWidget);
+    expect(find.text('For: Dives'), findsOneWidget);
   });
 
   testWidgets('cancelling the confirmation keeps the tag unchanged', (
@@ -143,7 +143,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Choose at least one: dives, sites, or equipment'),
+      find.text(
+        'Choose at least one: dives, sites, equipment, media, or documents',
+      ),
       findsOneWidget,
     );
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -151,7 +153,9 @@ void main() {
 
     // Still open, nothing written.
     expect(
-      find.text('Choose at least one: dives, sites, or equipment'),
+      find.text(
+        'Choose at least one: dives, sites, equipment, media, or documents',
+      ),
       findsOneWidget,
     );
   });

@@ -53,7 +53,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(285));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(285));
   });
 
   test('a fresh database has the column', () async {

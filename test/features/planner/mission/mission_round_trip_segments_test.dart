@@ -10,6 +10,8 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_memb
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 const _air = GasMix(o2: 21);
 
@@ -63,6 +65,37 @@ void main() {
     final segments = engine.roundTripSegments(plan: _plan(), mission: mission);
     expect(segments, isNotEmpty);
     expect(segments, engine.compute(plan: _plan(), mission: mission).segments);
+  });
+
+  test('unset rates and battery reserve follow the engine config', () {
+    // The plan and mission leave descent rate and battery reserve unset, so
+    // both must come from the diver's Settings (issue #3552), not the 18
+    // m/min and 1/3 spec constants.
+    const config = PlanEngineConfig(
+      descentRate: 10,
+      batteryReserveFraction: 0.9,
+    );
+    const configured = MissionEngine(
+      scenarios: MissionScenarioService(engine: PlanEngine(config: config)),
+    );
+    final mission = DpvMission(
+      legs: [_leg('L1', 0), _leg('L2', 1)],
+      team: [_member('a', 0)],
+    );
+
+    final segments = configured.roundTripSegments(
+      plan: _plan(),
+      mission: mission,
+    );
+    // 0 to 20 m at 10 m/min, not 67 s at 18 m/min.
+    expect(segments.first.durationSeconds, 120);
+
+    // 800 m at 0.5 m/s is about a fifth of the 2 h burn: inside a 1/3
+    // reserve, outside a 90% one.
+    MissionBindingFactor? factorWith(MissionEngine e) =>
+        e.compute(plan: _plan(), mission: mission).members.single.bindingFactor;
+    expect(factorWith(engine), isNot(MissionBindingFactor.battery));
+    expect(factorWith(configured), MissionBindingFactor.battery);
   });
 
   test('a route the current blocks keeps the legs before the block', () {

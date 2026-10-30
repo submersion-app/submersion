@@ -283,6 +283,46 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.tdiNonDivingSpecialtyInstructor,
   ];
 
+  /// IART's own Open Circuit depth/gas progression (issue #3357), from the
+  /// agency's own catalog at iart.de/kursfinder. Unlike TDI, IART has no
+  /// unambiguous terminal professional credential to anchor on the ladder,
+  /// so the professional track stays entirely in [_iartSpecialties].
+  static const List<CertificationLevel> _iartLadder = [
+    CertificationLevel.iartOpenWaterNitroxDiver,
+    CertificationLevel.iartAdvancedNitroxDiver,
+    CertificationLevel.iartRecreationalTrimix,
+    CertificationLevel.iartExtendedRangeNormoxicTrimix,
+  ];
+
+  /// IART's own specialties (issue #3357): the Open Circuit side courses,
+  /// Rebreather, Service, Overhead and the whole Professional track.
+  /// Replaces the shared [specialties] pool for IART the same way TDI and
+  /// DAN replace it with their own.
+  static const List<CertificationLevel> _iartSpecialties = [
+    CertificationLevel.iartSidemount,
+    CertificationLevel.iartDecompression,
+    CertificationLevel.iartDriftDiving,
+    CertificationLevel.iartNightDiving,
+    CertificationLevel.iartDrysuitDiving,
+    CertificationLevel.iartRebreatherLevel1,
+    CertificationLevel.iartRebreatherLevel2,
+    CertificationLevel.iartRebreatherLevel3,
+    CertificationLevel.iartRebreatherRescue,
+    CertificationLevel.iartCavern,
+    CertificationLevel.iartCaveIntroduce,
+    CertificationLevel.iartFullCave,
+    CertificationLevel.iartTechCave,
+    CertificationLevel.iartCaveDpv,
+    CertificationLevel.iartWreck,
+    CertificationLevel.iartDpvScooter,
+    CertificationLevel.iartGasBlender,
+    CertificationLevel.iartIoc,
+    CertificationLevel.iartItp,
+    CertificationLevel.iartIe,
+    CertificationLevel.iartIdc,
+    CertificationLevel.iartDiveGuide,
+  ];
+
   /// Core progression ladder for an agency, in rank order. A null agency
   /// (possible on buddies) behaves like [CertificationAgency.other].
   static List<CertificationLevel> ladderFor(CertificationAgency? agency) =>
@@ -300,6 +340,7 @@ abstract final class CertificationLevelCatalog {
         CertificationAgency.ffessm => _ffessmLadder,
         CertificationAgency.acuc => _acucLadder,
         CertificationAgency.dan => _danLadder,
+        CertificationAgency.iart => _iartLadder,
         CertificationAgency.other || null => _genericLadder,
       };
 
@@ -312,6 +353,7 @@ abstract final class CertificationLevelCatalog {
       CertificationAgency.ffessm => _ffessmSpecialties,
       CertificationAgency.dan => _danSpecialties,
       CertificationAgency.tdi => _tdiSpecialties,
+      CertificationAgency.iart => _iartSpecialties,
       _ => specialties,
     };
     return pool.where((s) => !ladder.contains(s)).toList();

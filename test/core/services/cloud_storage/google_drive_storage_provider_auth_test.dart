@@ -340,6 +340,84 @@ void main() {
     );
   });
 
+  test('a rejection with no client captured still refreshes', () async {
+    // The client was installed after the call looked (another caller's
+    // silent auth landed in between). Not knowing which client was refused
+    // must not count as "already replaced": that skipped the refresh and
+    // retried on the same dead token.
+    final lateAuth = _LateInstallAuthenticator(drive_.client());
+    drive_.failuresRemaining = 1;
+
+    await GoogleDriveStorageProvider(authenticator: lateAuth).deleteFile('f1');
+
+    expect(lateAuth.authFailures, 1);
+    expect(lateAuth.silentAuthCalls, 1);
+  });
+
+  test('concurrent 401s share one re-auth', () async {
+    // The token expires for every in-flight request at once. A re-auth per
+    // caller let the later one close the client the earlier had just
+    // installed, so the earlier retry died with "Client is already closed".
+    drive_.failuresRemaining = 2;
+    auth.silentAuthClient = drive_.client();
+
+    final results = await Future.wait([
+      provider.listFiles(namePattern: 'ssv1.'),
+      provider.listFiles(namePattern: 'ssv1.'),
+    ]);
+
+    expect(results, [isEmpty, isEmpty]);
+    expect(auth.authFailures, 1);
+    expect(auth.silentAuthCalls, 1);
+  });
+
+  group('mediaAuthRejected', () {
+    test('re-authorizes the rejected media client', () async {
+      final rejected = auth.authClient!;
+      final fresh = drive_.client();
+      auth.silentAuthClient = fresh;
+
+      expect(await provider.mediaAuthRejected(rejected), isTrue);
+      expect(auth.authFailures, 1);
+      expect(await provider.mediaHttpClient(), same(fresh));
+    });
+
+    test('leaves a client that was already replaced alone', () async {
+      // A sync call refreshed the token first; the media store's stale
+      // rejection must not tear the fresh client down again.
+      final stale = drive_.client();
+
+      expect(await provider.mediaAuthRejected(stale), isTrue);
+      expect(auth.authFailures, 0);
+      expect(auth.silentAuthCalls, 0);
+    });
+
+    test('reports a failed re-auth', () async {
+      auth.silentAuthResult = false;
+
+      expect(await provider.mediaAuthRejected(auth.authClient!), isFalse);
+    });
+  });
+
+  test('a 401 that survives re-auth asks to sign in again', () async {
+    // The retry's token was rejected as well. Surfacing the raw Drive error
+    // left the diver looking at "invalid credentials" with no hint that a
+    // sign-in would fix it (#3602). The client is dropped again so the next
+    // sync starts from a fresh authorization.
+    drive_.failuresRemaining = 2;
+    await expectLater(
+      provider.listFiles(namePattern: 'ssv1.'),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          contains('sign in'),
+        ),
+      ),
+    );
+    expect(auth.authFailures, 2);
+  });
+
   // The desktop loopback client refreshes its access token lazily, on the
   // first request, and a revoked or expired grant fails that refresh with an
   // OAuth invalid_grant rather than a Drive 401. It must still be treated as
@@ -596,4 +674,21 @@ void main() {
       );
     });
   });
+}
+
+/// Reports no client on its first read only, the way a provider sees the
+/// session when another caller's silent auth installs it a moment later.
+class _LateInstallAuthenticator extends _FakeAuthenticator {
+  _LateInstallAuthenticator(super.client);
+
+  bool _read = false;
+
+  @override
+  http.Client? get authClient {
+    if (!_read) {
+      _read = true;
+      return null;
+    }
+    return super.authClient;
+  }
 }

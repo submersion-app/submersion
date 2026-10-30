@@ -1,12 +1,13 @@
 // Issue #1092: the diver-facing control for reading cylinder end pressure at
-// the moment of surfacing. It lives in the Import group of Settings > Data,
-// next to the other import-interpretation preference (issue #2779).
+// the moment of surfacing. It lives with the other import-interpretation
+// preferences (issue #2779), on Settings > Data > Advanced > Import options
+// since issue #3482.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -14,11 +15,11 @@ import '../../../../helpers/mock_providers.dart';
 void main() {
   Widget buildDataSection(List<Override> overrides) {
     final router = GoRouter(
-      initialLocation: '/settings?selected=data',
+      initialLocation: '/settings/import-options',
       routes: [
         GoRoute(
-          path: '/settings',
-          builder: (context, state) => const SettingsPage(),
+          path: '/settings/import-options',
+          builder: (context, state) => const ImportOptionsPage(),
         ),
       ],
     );

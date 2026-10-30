@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
@@ -12,7 +13,8 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 /// cloud is an SBE1 envelope. Filenames, listing, folders, and auth pass
 /// through untouched; encryption is invisible to readers and writers above
 /// this seam (spec section 4.1).
-class EncryptingCloudStorageProvider implements CloudStorageProvider {
+class EncryptingCloudStorageProvider
+    implements CloudStorageProvider, DeferredWriteProvider, HistoryResettable {
   final CloudStorageProvider inner;
   final SecretKey _dataKey;
   final String _libraryKeyId;
@@ -199,4 +201,13 @@ class EncryptingCloudStorageProvider implements CloudStorageProvider {
       inner.createFolder(folderName, parentFolderId: parentFolderId);
   @override
   Future<String> getOrCreateSyncFolder() => inner.getOrCreateSyncFolder();
+
+  /// Forwarded, so deferred deletes and history resets reach a Git backend
+  /// through the encryption seam. A no-op over any other provider.
+  @override
+  Future<void> flush({Duration? timeout}) =>
+      flushDeferredWrites(inner, timeout: timeout);
+
+  @override
+  Future<void> resetHistoryNow() => resetHistoryNowIfSupported(inner);
 }

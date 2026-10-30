@@ -23,6 +23,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
@@ -173,6 +174,7 @@ Future<void> _bootstrap() async {
       prefs: prefs,
       logFileService: logFileService,
       locationService: locationService,
+      demoPaths: DemoPaths(appSupportDir.path),
     ),
   );
 }

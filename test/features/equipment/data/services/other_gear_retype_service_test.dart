@@ -28,7 +28,7 @@ class _FailingRepository extends EquipmentRepository {
 /// equipment row by then, so only a transaction can take it back.
 class _AttributesFail extends EquipmentRepository {
   @override
-  Future<void> saveAttributes(
+  Future<List<EquipmentAttribute>> saveAttributes(
     String equipmentId,
     List<EquipmentAttribute> desired, {
     bool preserveSystem = true,

@@ -7,9 +7,11 @@ import 'package:submersion/features/marine_life/data/services/species_seed_servi
 import 'package:submersion/features/marine_life/domain/entities/bundled_species_catalog.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
+import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 
 import '../../../../helpers/in_memory_seed_version_store.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../media/data/repositories/species_photo_fixtures.dart';
 
 domain.Species _row(String id, String name) => domain.Species(
   id: id,
@@ -123,8 +125,10 @@ void main() {
     expect((await read('sp_a')).commonName, 'Old');
   });
 
+  // A reset publishes the restored catalog text of every row the diver had
+  // edited, so other devices drop the edit too (issue #3669).
   test(
-    'resetBuiltInSpecies clears the hlc and pending record of a restored row',
+    'resetBuiltInSpecies publishes the restored text of an edited in-use row',
     () async {
       SpeciesSeedService.overrideCatalog(_catalog(1, [_row('sp_a', 'A')]));
       await repository.seedBuiltInSpecies(
@@ -151,19 +155,21 @@ void main() {
 
       final row = await read('sp_a');
       expect(row.commonName, 'A');
-      expect(row.hlc, isNull);
+      expect(row.description, 'A description');
+      expect(row.hlc, isNotNull, reason: 'the restored row must export');
       final pending = await db
           .customSelect(
             "SELECT record_id FROM sync_records "
-            "WHERE entity_type = 'species' AND record_id = 'sp_a'",
+            "WHERE entity_type = 'species' AND record_id = 'sp_a' "
+            "AND sync_status = 'pending'",
           )
           .get();
-      expect(pending, isEmpty);
+      expect(pending, hasLength(1));
     },
   );
 
   test(
-    'resetBuiltInSpecies drops the pending record of an unused edited row',
+    'resetBuiltInSpecies publishes an unused edited row and no untouched one',
     () async {
       SpeciesSeedService.overrideCatalog(
         _catalog(1, [_row('sp_a', 'A'), _row('sp_b', 'B')]),
@@ -178,13 +184,41 @@ void main() {
       await repository.resetBuiltInSpecies();
 
       expect((await read('sp_b')).commonName, 'B');
+      expect((await read('sp_b')).hlc, isNotNull);
+      expect((await read('sp_a')).hlc, isNull);
       final pending = await db
           .customSelect(
             "SELECT record_id FROM sync_records "
             "WHERE entity_type = 'species'",
           )
           .get();
-      expect(pending, isEmpty);
+      expect(pending.map((r) => r.data['record_id']), ['sp_b']);
+    },
+  );
+
+  // A built-in species tagged on a photo or listed as expected at a site is
+  // diver data too. The reset used to delete every built-in row without a
+  // sighting, and ON DELETE CASCADE took those rows with it.
+  test(
+    'resetBuiltInSpecies keeps photo tags and expected-species entries',
+    () async {
+      SpeciesSeedService.overrideCatalog(
+        _catalog(1, [_row('sp_a', 'A'), _row('sp_b', 'B')]),
+      );
+      await repository.seedBuiltInSpecies(
+        versionStore: InMemorySeedVersionStore(),
+      );
+      await insertTestSite('s1', 'Reef');
+      await insertTestMedia(id: 'm1', siteId: 's1');
+      await MediaSpeciesRepository().addTag(mediaId: 'm1', speciesId: 'sp_a');
+      await repository.addExpectedSpecies(siteId: 's1', speciesId: 'sp_b');
+
+      await repository.resetBuiltInSpecies();
+
+      final tags = await db.select(db.mediaSpecies).get();
+      expect(tags.map((t) => t.speciesId), ['sp_a']);
+      final expected = await db.select(db.siteSpecies).get();
+      expect(expected.map((e) => e.speciesId), ['sp_b']);
     },
   );
 }

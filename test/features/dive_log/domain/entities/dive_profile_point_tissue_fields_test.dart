@@ -33,7 +33,6 @@ void main() {
   group('Dive computerTissue', () {
     final now = DateTime(2026, 1, 1);
     const snapshot = ComputerTissueSnapshot(
-      algorithm: 'buhlmann',
       end: ComputerTissueState(gf99Percent: 33.0),
     );
 

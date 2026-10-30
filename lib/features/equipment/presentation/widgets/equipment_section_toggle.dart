@@ -31,6 +31,7 @@ class EquipmentSectionToggle extends StatelessWidget {
   static const double compactTabHeight = SectionTitleToggle.compactTabHeight;
   static const double indicatorWeight = SectionTitleToggle.indicatorWeight;
   static const double labelPadding = SectionTitleToggle.labelPadding;
+  static const double subtitleGap = SectionTitleToggle.subtitleGap;
 
   static double heightFor(double tabHeight) =>
       SectionTitleToggle.heightFor(tabHeight);

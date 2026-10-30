@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
@@ -142,3 +144,37 @@ class EquipmentArrangement {
       'typeOrderDescending: $typeOrderDescending, groupByType: $groupByType, '
       'itemSortField: $itemSortField, itemSortDirection: $itemSortDirection)';
 }
+
+/// Encodes [arrangement] as the JSON a diver's settings row stores (issue
+/// #3748), the same shape the app-wide key held.
+String encodeEquipmentArrangement(EquipmentArrangement arrangement) =>
+    jsonEncode(arrangement.toJson());
+
+/// Decodes a value written by [encodeEquipmentArrangement]: null for a
+/// missing value or anything that is not a JSON object, so the caller falls
+/// back rather than throwing. Each axis degrades on its own, as in
+/// [EquipmentArrangement.fromJson].
+EquipmentArrangement? decodeEquipmentArrangement(String? raw) {
+  if (raw == null) return null;
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(raw);
+  } on FormatException {
+    return null;
+  }
+  if (decoded is! Map<String, dynamic>) return null;
+  return EquipmentArrangement.fromJson(decoded);
+}
+
+/// The arrangement a diver sees (issue #3748): their own saved value, else
+/// the app-wide one older builds saved, else [EquipmentArrangement.defaults].
+///
+/// [legacy] is asked only when [saved] holds nothing usable, so a diver with
+/// their own arrangement never reads the app-wide value.
+EquipmentArrangement pickEquipmentArrangement(
+  String? saved,
+  EquipmentArrangement? Function() legacy,
+) =>
+    decodeEquipmentArrangement(saved) ??
+    legacy() ??
+    EquipmentArrangement.defaults;

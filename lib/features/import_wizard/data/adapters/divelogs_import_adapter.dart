@@ -10,6 +10,7 @@ import 'package:submersion/features/import_wizard/data/adapters/remote_photo_att
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/divelogs_import_steps.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -85,9 +86,9 @@ class DivelogsImportAdapter extends UniversalAdapter {
     _session = session;
     _lastUsername = session?.auth?.username ?? _lastUsername;
     _photos = const {};
-    widgetRef.read(divelogsFetchedProvider.notifier).state = false;
-    widgetRef.read(divelogsSessionGenerationProvider.notifier).state++;
-    widgetRef.read(universalImportNotifierProvider.notifier).reset();
+    readProvider(divelogsFetchedProvider.notifier).state = false;
+    readProvider(divelogsSessionGenerationProvider.notifier).state++;
+    readProvider(universalImportNotifierProvider.notifier).reset();
   }
 
   /// Listed photos per payload dive `sourceUuid`, set by the fetch step.
@@ -109,8 +110,8 @@ class DivelogsImportAdapter extends UniversalAdapter {
     _session = null;
     _lastUsername = null;
     _photos = const {};
-    widgetRef.invalidate(divelogsSignedInProvider);
-    widgetRef.invalidate(divelogsFetchedProvider);
+    container.invalidate(divelogsSignedInProvider);
+    container.invalidate(divelogsFetchedProvider);
   }
 
   @override
@@ -150,11 +151,12 @@ class DivelogsImportAdapter extends UniversalAdapter {
     required List<Map<String, dynamic>> dives,
     required String destinationDir,
     ImportCancellationToken? cancelToken,
+    ImportProgressCallback? onProgress,
   }) async {
     final client = this.client;
     if (client == null || _photos.isEmpty) return (attached: 0, failed: 0);
     final linker = ImportPhotoLinker(
-      widgetRef.read(localFileLinkServiceProvider),
+      readProvider(localFileLinkServiceProvider),
     );
     final outcome = await attachRemotePhotos(
       photosBySourceUuid: _photos,
@@ -171,6 +173,9 @@ class DivelogsImportAdapter extends UniversalAdapter {
       ),
       cancelToken: cancelToken,
       stopOn: _sessionLost,
+      onProgress: onProgress == null
+          ? null
+          : (current, total) => onProgress(ImportPhase.photos, current, total),
     );
     return (
       attached: outcome.attached - linker.alreadyLinked,
@@ -200,11 +205,13 @@ class DivelogsImportAdapter extends UniversalAdapter {
     required Map<int, String> photoDiveIds,
     required List<Map<String, dynamic>> dives,
     required String destinationDir,
+    ImportProgressCallback? onProgress,
   }) => attachAdditionalPhotos(
     photoDiveIds: photoDiveIds,
     removedDiveIds: const {},
     diveStartById: const {},
     dives: dives,
     destinationDir: destinationDir,
+    onProgress: onProgress,
   );
 }

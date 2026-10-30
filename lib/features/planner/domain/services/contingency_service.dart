@@ -169,11 +169,18 @@ class ContingencyService {
     );
   }
 
-  domain.DivePlan _deepened(domain.DivePlan plan) =>
-      deviatePlan(plan, depthDelta: plan.deviationDepthDelta);
+  // Resolved against [plan] (issue #3552): this service's own [config] is
+  // the app-wide one, not necessarily already resolvedFor this plan, unlike
+  // PlanEngine/BailoutSolver's internal copy.
+  domain.DivePlan _deepened(domain.DivePlan plan) => deviatePlan(
+    plan,
+    depthDelta: config.resolvedFor(plan).deviationDepthDelta,
+  );
 
-  domain.DivePlan _lengthened(domain.DivePlan plan) =>
-      deviatePlan(plan, timeDeltaMinutes: plan.deviationTimeMinutes);
+  domain.DivePlan _lengthened(domain.DivePlan plan) => deviatePlan(
+    plan,
+    timeDeltaMinutes: config.resolvedFor(plan).deviationTimeMinutes,
+  );
 }
 
 /// A [plan] variant deviated by [depthDelta] meters and/or

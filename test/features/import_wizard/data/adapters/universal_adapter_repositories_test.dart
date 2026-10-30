@@ -19,7 +19,9 @@ void main() {
       ProviderScope(
         child: Consumer(
           builder: (context, ref, _) {
-            repos = universalImportRepositories(ref);
+            repos = universalImportRepositories(
+              ProviderScope.containerOf(context, listen: false),
+            );
             return const SizedBox();
           },
         ),

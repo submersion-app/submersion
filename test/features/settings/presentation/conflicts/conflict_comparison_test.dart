@@ -193,6 +193,27 @@ void main() {
     expect(diff.remoteDisplay, 'Shark Point');
   });
 
+  test('a list of extra regulators shows every name, in order (#3375)', () {
+    ConflictReference reg(String id, String name) => ConflictReference(
+      field: 'extraRegulatorIds',
+      targetType: 'equipment',
+      recordId: id,
+      name: name,
+    );
+    final result = compare(
+      conflict(
+        {'extraRegulatorIds': '["reg-1","reg-2"]'},
+        {'extraRegulatorIds': '["reg-3","reg-2"]'},
+        entityType: 'diveTanks',
+        localRefs: [reg('reg-1', 'Apeks'), reg('reg-2', 'MK25')],
+        remoteRefs: [reg('reg-3', 'Poseidon'), reg('reg-2', 'MK25')],
+      ),
+    );
+    final diff = result.differences.single;
+    expect(diff.localDisplay, 'Apeks, MK25');
+    expect(diff.remoteDisplay, 'Poseidon, MK25');
+  });
+
   test('a foreign key set on one side only reads Not set on the other', () {
     const site = ConflictReference(
       field: 'siteId',

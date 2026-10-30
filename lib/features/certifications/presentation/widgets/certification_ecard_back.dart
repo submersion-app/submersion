@@ -34,7 +34,7 @@ class CertificationEcardBack extends StatelessWidget {
         color: const Color(0xFFE0E0E0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

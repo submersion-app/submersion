@@ -21,12 +21,13 @@ import 'package:submersion/features/dive_computer/domain/services/first_sync_cut
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -40,25 +41,110 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
   return DiveImportService(
     repository: repository,
     diveRepository: diveRepository,
-    gpsTrackMatchService: ref.watch(gpsTrackMatchServiceProvider),
     // Read at import time, not provider build time, so a toggle flipped in
     // Settings applies to the very next download (issue #386).
-    defaultTankPresetForImports: () => loadDefaultTankPresetForDownloads(ref),
-    transmitterMatcherForImports: () => loadTransmitterMatcher(ref),
+    defaultTankPresetForImports: (diverId) =>
+        loadDefaultTankPresetForDownloads(ref, diverId: diverId),
+    transmitterMatcherForImports: (diverId) =>
+        loadTransmitterMatcher(ref, diverId: diverId),
+    omitUnusedOcGasesForImports: (diverId) =>
+        loadOmitUnusedOcGasesForDownloads(ref, diverId: diverId),
   );
 });
+
+const _loaderLog = LoggerService('DefaultTankPresetForDownloads');
 
 /// The default tank preset to fill downloaded cylinders with, or null when
 /// the diver has not opted in ("Also apply to imported dives" off) or the
 /// configured preset no longer exists.
+///
+/// [diverId] names the diver the dives are imported for (issue #2050); null,
+/// empty or the active diver reads the live settings, and another diver reads
+/// their saved settings (the defaults when they have none, and no preset when
+/// they cannot be read: a download must not fail over a cylinder default).
+///
+/// [ignoreImportOptIn] resolves the preset whatever the opt-in says: a
+/// re-parse uses it to recognise a cylinder an earlier download filled from
+/// the preset (issue #3668).
 @visibleForTesting
-Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(Ref ref) async {
-  final settings = ref.read(settingsProvider);
-  if (!settings.applyDefaultTankToImports) return null;
+Future<TankPresetEntity?> loadDefaultTankPresetForDownloads(
+  Ref ref, {
+  String? diverId,
+  bool ignoreImportOptIn = false,
+}) async {
+  final otherDiver = _isOtherDiver(ref, diverId);
+  final settings = await _importSettingsFor(
+    ref,
+    diverId,
+    fallbackNote: 'importing without a default tank',
+  );
+  if (settings == null) return null;
+  if (!ignoreImportOptIn && !settings.applyDefaultTankToImports) return null;
   final resolver = DefaultTankPresetResolver(
     repository: ref.read(tankPresetRepositoryProvider),
   );
-  return resolver.resolve(settings.defaultTankPreset);
+  // The preset is looked up among the same diver's own presets as the
+  // settings that name it (#3593), so another diver's download gets their
+  // cylinder, not the active diver's preset of the same name (#2050).
+  return resolver.resolve(
+    settings.defaultTankPreset,
+    diverId: otherDiver
+        ? diverId
+        : await ref.read(validatedCurrentDiverIdProvider.future),
+  );
+}
+
+/// The active diver's default tank preset whatever the import opt-in says, for
+/// a re-parse to recognise a cylinder an earlier download filled from it
+/// (issue #3668).
+Future<TankPresetEntity?> loadDefaultTankPresetForCleanup(Ref ref) =>
+    loadDefaultTankPresetForDownloads(ref, ignoreImportOptIn: true);
+
+/// Whether a rebreather download leaves out unused open-circuit gases (issue
+/// #3668), from the settings of the diver the dives are imported for, read the
+/// same way as [loadDefaultTankPresetForDownloads]. Off when another diver's
+/// settings cannot be read: a download must not drop a cylinder on a guess.
+@visibleForTesting
+Future<bool> loadOmitUnusedOcGasesForDownloads(
+  Ref ref, {
+  String? diverId,
+}) async {
+  final settings = await _importSettingsFor(
+    ref,
+    diverId,
+    fallbackNote: 'importing every gas',
+  );
+  return settings?.omitUnusedOcGases ?? false;
+}
+
+/// Whether [diverId] names a diver other than the active one (issue #2050).
+bool _isOtherDiver(Ref ref, String? diverId) =>
+    diverId != null &&
+    diverId.isNotEmpty &&
+    diverId != ref.read(currentDiverIdProvider);
+
+/// The settings of the diver dives are imported for: the live settings for
+/// null, empty or the active diver, another diver's saved settings (the
+/// defaults when they have none), or null when those cannot be read.
+Future<AppSettings?> _importSettingsFor(
+  Ref ref,
+  String? diverId, {
+  required String fallbackNote,
+}) async {
+  if (!_isOtherDiver(ref, diverId)) return ref.read(settingsProvider);
+  try {
+    return await ref
+            .read(diverSettingsRepositoryProvider)
+            .getSettingsForDiver(diverId!) ??
+        const AppSettings();
+  } catch (e, stackTrace) {
+    _loaderLog.error(
+      'Could not read the settings of $diverId; $fallbackNote',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return null;
+  }
 }
 
 /// Stream provider for download events from the service.
@@ -238,6 +324,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     DiscoveredDevice device, {
     DiveComputer? computer,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
     _computer = computer;
     _device = device;
 
@@ -594,9 +681,10 @@ final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
   return repository.getDiveIdsForComputer(computerId);
 });
 
-/// Default first-sync cutoff: the newest dive in the active diver's log.
+/// Default first-sync cutoff: the newest dive in [diverId]'s log, the profile
+/// the download is expected to go to (issue #2050).
 ///
-/// Null when there is no active diver or the log is empty (no cutoff
+/// Null when there is no such diver or the log is empty (no cutoff
 /// prompt is shown then).
 ///
 /// `autoDispose`: this is only ever watched by `DcAdapterDownloadStep` while
@@ -614,11 +702,9 @@ final computerDiveIdsProvider = FutureProvider.family<List<String>, String>((
 // re-fetched every time the step mounts, so a stale value cannot render; a tick
 // would instead move the default under the user mid-download, since the
 // download itself writes the dives this reads.
-final firstSyncCutoffDefaultProvider = FutureProvider.autoDispose<DateTime?>((
-  ref,
-) async {
-  final diverId = ref.watch(currentDiverIdProvider);
-  if (diverId == null || diverId.isEmpty) return null;
-  final repository = ref.watch(diveRepositoryProvider);
-  return repository.getNewestDiveDateTime(diverId: diverId);
-});
+final firstSyncCutoffDefaultProvider = FutureProvider.autoDispose
+    .family<DateTime?, String?>((ref, diverId) async {
+      if (diverId == null || diverId.isEmpty) return null;
+      final repository = ref.watch(diveRepositoryProvider);
+      return repository.getNewestDiveDateTime(diverId: diverId);
+    });

@@ -63,6 +63,15 @@ class TwinTankInput {
       pressureSeries != null &&
       pressureSeries!.isNotEmpty &&
       !pressureSeriesIsEstimated;
+
+  /// Whether the model had to guess this tank's material (see
+  /// [BuoyancyPhysics.tankMaterialAssumed]).
+  bool get materialAssumed => BuoyancyPhysics.tankMaterialAssumed(
+    presetName: presetName,
+    volumeL: volumeL,
+    workingPressureBar: workingPressureBar,
+    material: material,
+  );
 }
 
 enum TwinSuitKind { none, wetsuit, drysuit }

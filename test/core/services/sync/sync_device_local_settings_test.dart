@@ -158,7 +158,8 @@ void main() {
       final repo = AppSettingsRepository();
       await repo.setNavPrimaryIds(['dives', 'sites']);
       await repo.setNavRailIds(['dives', 'equipment']);
-      await repo.setNavAlwaysHideLabels(true);
+      await repo.setNavAlwaysHideLabelsPhone(true);
+      await repo.setNavAlwaysHideLabelsDesktop(true);
       await repo.setRawSetting(
         MediaUploadQualityPolicy.photoQualityKey,
         'balanced',
@@ -174,7 +175,8 @@ void main() {
         exportedKeys.intersection({
           'nav_primary_ids',
           'nav_rail_ids',
-          'nav_always_hide_labels',
+          'nav_always_hide_labels_phone',
+          'nav_always_hide_labels_desktop',
         }),
         isEmpty,
       );
@@ -185,15 +187,15 @@ void main() {
       () async {
         final serializer = SyncDataSerializer();
         final repo = AppSettingsRepository();
-        await repo.setNavAlwaysHideLabels(true);
+        await repo.setNavAlwaysHideLabelsPhone(true);
         final peerRow = {
-          'key': 'nav_always_hide_labels',
+          'key': 'nav_always_hide_labels_phone',
           'value': 'false',
           'updatedAt': 9999999999999,
         };
         await serializer.upsertRecord('settings', peerRow);
         await serializer.upsertRecords('settings', [peerRow]);
-        expect(await repo.getNavAlwaysHideLabels(), isTrue);
+        expect(await repo.getNavAlwaysHideLabelsPhone(), isTrue);
       },
     );
 

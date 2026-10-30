@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_selecti
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:uuid/uuid.dart';
 
 class EquipmentSetEditPage extends ConsumerStatefulWidget {
@@ -197,7 +198,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
             const SizedBox(height: 16),
 
             // Description
-            TextFormField(
+            MarkdownNotesField(
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: context.l10n.equipment_setEdit_descriptionLabel,

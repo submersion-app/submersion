@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/two_digit_year.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/date_order.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/month_name_date.dart';
 
 /// Informal time tokens that indicate a time-of-day bucket rather than a
 /// specific time.
@@ -124,6 +125,9 @@ class TimeResolver {
   /// slash dates are read month first and dotted or dashed dates day first,
   /// as they always were.
   ///
+  /// A date with the month as a word (`29. Sep 2024`, `Sep 29, 2024`) is read
+  /// as written; see [matchMonthNameDate] for the languages it knows.
+  ///
   /// A two-digit year is placed in the latest century that does not put it in
   /// a future year: in 2026, `26` is 2026 and `91` is 1991.
   DateTime? parseDate(String? raw, {DateOrder? order}) {
@@ -141,6 +145,9 @@ class TimeResolver {
 
     final yearLast = matchYearLastDate(s);
     if (yearLast != null) return _parseYearLast(yearLast, order);
+
+    final named = matchMonthNameDate(s);
+    if (named != null && named.rest.isEmpty) return _validNamedDate(named);
 
     // ISO 8601 fallback.
     try {
@@ -293,6 +300,29 @@ class TimeResolver {
       }
     }
 
+    // A month-name date and a time ("29. Sep 2024 10:11" from
+    // my.divessi.com, #3629). The date has spaces of its own, so the split
+    // below would cut it in half. A date with no time is dated noon, as a
+    // date column without a time column is.
+    final named = matchMonthNameDate(s);
+    if (named != null) {
+      final date = _validNamedDate(named);
+      final time = named.rest.isEmpty
+          ? const ResolvedTime(12, 0, 0)
+          : parseTime(named.rest);
+      if (date == null || time == null) return null;
+      return _applyInterpretation(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+        time.second,
+        interpretation,
+        specificOffset,
+      );
+    }
+
     // A date and a time side by side ("15/04/1991 14:30", "1991-04-15
     // 2:00 PM"), each half read exactly as a separate column would be.
     final halves = _dateTimeSplit.firstMatch(s);
@@ -336,9 +366,7 @@ class TimeResolver {
   /// Reads a year-last date in [order], trying the other order only if the
   /// first reading is not a real date.
   DateTime? _parseYearLast(YearLastDate date, DateOrder? order) {
-    final year = date.year.length == 2
-        ? expandTwoDigitYear(int.parse(date.year), now: _clock())
-        : int.parse(date.year);
+    final year = _expandYear(date.year);
     final preferred =
         order ??
         (date.separator == '/' ? DateOrder.monthFirst : DateOrder.dayFirst);
@@ -354,6 +382,16 @@ class TimeResolver {
               : DateOrder.dayFirst,
         );
   }
+
+  /// A month-name date at UTC midnight, with a two-digit year expanded as a
+  /// numeric date's is, or null if the day is not in the month.
+  DateTime? _validNamedDate(MonthNameDate date) =>
+      _validDate(_expandYear(date.year), date.month, date.day);
+
+  /// A year as written, two digits placed by [expandTwoDigitYear].
+  int _expandYear(String year) => year.length == 2
+      ? expandTwoDigitYear(int.parse(year), now: _clock())
+      : int.parse(year);
 
   /// A UTC midnight for the given parts, or null if they are not a real date
   /// (month 13, 30 February and so on).

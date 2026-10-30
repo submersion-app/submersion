@@ -75,6 +75,26 @@ void main() {
       expect(mid.of('dives'), expected);
     });
 
+    test('buddies wears a calm sage green in both palettes', () {
+      // The old crimson pink read as an alert on every buddy card (#3584).
+      expect(FeatureAccentColors.light.of('buddies'), const Color(0xFF40674C));
+      expect(FeatureAccentColors.dark.of('buddies'), const Color(0xFFA5C8AE));
+    });
+
+    test('buddies stays green and quieter than the sites green', () {
+      // Sites sits two rows above Buddies in the nav; a lower saturation is
+      // what keeps the two greens apart at icon size.
+      for (final palette in [
+        FeatureAccentColors.light,
+        FeatureAccentColors.dark,
+      ]) {
+        final buddies = HSVColor.fromColor(palette.of('buddies')!);
+        final sites = HSVColor.fromColor(palette.of('sites')!);
+        expect(buddies.hue, inInclusiveRange(90, 170));
+        expect(buddies.saturation, lessThan(sites.saturation));
+      }
+    });
+
     test('copyWith replaces the map', () {
       final replaced = FeatureAccentColors.light.copyWith(
         colors: const {'x': Color(0xFF000000)},

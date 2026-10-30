@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/import_wizard/presentation/providers/import_
 import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/contrast_ratio.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -75,8 +78,10 @@ Widget _buildList({
   DiveReviewSortField? sortField,
   bool sortAscending = false,
   ValueChanged<DiveReviewSortField>? onSortFieldChanged,
+  ThemeData? theme,
 }) {
   return MaterialApp(
+    theme: theme,
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -551,6 +556,58 @@ void main() {
       expect(changedIndex, equals(0));
       expect(changedAction, equals(DuplicateAction.replaceSource));
     });
+
+    // The selected action fills with primary, error or a fixed green or
+    // blue. Its label was forced white, which dark themes' light primary and
+    // error tones leave at about 1.7:1.
+    for (final theme in [submersionLight, submersionDark]) {
+      for (final action in [
+        DuplicateAction.consolidate,
+        DuplicateAction.skip,
+        DuplicateAction.importAsNew,
+        DuplicateAction.replaceSource,
+      ]) {
+        testWidgets(
+          'selected ${action.name} label reads in ${theme.brightness.name} '
+          'mode',
+          (tester) async {
+            tester.view.physicalSize = const Size(800, 600);
+            tester.view.devicePixelRatio = 1.0;
+            addTearDown(tester.view.resetPhysicalSize);
+
+            await tester.pumpWidget(
+              _buildList(
+                theme: theme,
+                group: _buddyGroupWithMatch,
+                availableActions: {
+                  ..._nonDiveActions,
+                  DuplicateAction.replaceSource,
+                },
+                duplicateActions: {0: action},
+              ),
+            );
+            await tester.pump();
+            await expandCard(tester);
+
+            final button = find.byType(FilledButton);
+            final fill = tester
+                .widget<FilledButton>(button)
+                .style!
+                .backgroundColor!
+                .resolve({})!;
+            final title = tester
+                .widgetList<Text>(
+                  find.descendant(of: button, matching: find.byType(Text)),
+                )
+                .first;
+            expect(
+              contrastRatio(title.style!.color!, fill),
+              greaterThanOrEqualTo(4.5),
+            );
+          },
+        );
+      }
+    }
 
     testWidgets('replaceSource row shows the REPLACE badge', (tester) async {
       tester.view.physicalSize = const Size(800, 600);

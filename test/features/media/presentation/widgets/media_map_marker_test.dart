@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/theme_sentinels.dart';
 
 MediaItem _item({MediaType type = MediaType.photo}) => MediaItem(
   id: 'm1',
@@ -73,5 +74,23 @@ void main() {
     await _pump(tester, MediaMapMarker(item: _item(type: MediaType.video)));
 
     expect(find.byIcon(Icons.play_circle_fill), findsOneWidget);
+  });
+
+  testWidgets('the marker shadow follows the theme', (tester) async {
+    await _pump(
+      tester,
+      Theme(
+        data: sentinelTheme(),
+        child: MediaMapMarker(item: _item()),
+      ),
+    );
+
+    final shadows = boxShadowsUnder(tester, find.byType(MediaMapMarker));
+    expect(shadows, isNotEmpty);
+    expect(
+      shadows.every((s) => sameHue(s.color, sentinelShadow)),
+      isTrue,
+      reason: 'a shadow is fixed black instead of the theme shadow',
+    );
   });
 }

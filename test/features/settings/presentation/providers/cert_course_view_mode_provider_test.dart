@@ -36,20 +36,25 @@ void main() {
     expect(container.read(courseListViewModeProvider), ListViewMode.table);
   });
 
-  test('a session override survives an unrelated settings write', () async {
-    final notifier = MockSettingsNotifier();
-    final container = containerWith(notifier);
-    container.read(certificationListViewModeProvider.notifier).state =
-        ListViewMode.table;
-    container.read(courseListViewModeProvider.notifier).state =
-        ListViewMode.table;
+  test(
+    'the list choice is saved and survives an unrelated settings write',
+    () async {
+      // The list toggle saves the view mode for the diver (issue #3748); a
+      // change to another list's setting leaves it alone.
+      final notifier = MockSettingsNotifier();
+      final container = containerWith(notifier);
+      await notifier.setCertificationListViewMode(ListViewMode.table);
+      await notifier.setCourseListViewMode(ListViewMode.table);
 
-    await notifier.setTripListViewMode(ListViewMode.compact);
+      await notifier.setTripListViewMode(ListViewMode.compact);
 
-    expect(
-      container.read(certificationListViewModeProvider),
-      ListViewMode.table,
-    );
-    expect(container.read(courseListViewModeProvider), ListViewMode.table);
-  });
+      expect(
+        container.read(certificationListViewModeProvider),
+        ListViewMode.table,
+      );
+      expect(container.read(courseListViewModeProvider), ListViewMode.table);
+      expect(notifier.state.certificationListViewMode, ListViewMode.table);
+      expect(notifier.state.courseListViewMode, ListViewMode.table);
+    },
+  );
 }

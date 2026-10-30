@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show NearbyPeer;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -42,6 +47,107 @@ EquipmentClocks _clocks(
 ) => (item: item, statuses: statuses);
 
 void main() {
+  group('nearbyAttentionOf (issue #3731)', () {
+    NearbyPeer peer(String name, {String? error, int pairedAt = 0}) =>
+        NearbyPeer(
+          peerDeviceId: name,
+          displayName: name,
+          pairedAt: pairedAt,
+          lastError: error,
+        );
+
+    test('names the first lasting error and counts the rest', () {
+      expect(
+        nearbyAttentionOf([
+          peer('Mac'),
+          peer('Old iPad', error: 'newerApp'),
+          peer('Phone', error: 'differentLibrary'),
+          peer('Tablet', error: 'notPaired'),
+        ]),
+        (name: 'Old iPad', more: 2),
+      );
+    });
+
+    test('is null when every error is transient', () {
+      expect(
+        nearbyAttentionOf([
+          peer('Mac', error: 'bluetoothOff'),
+          peer('Phone', error: 'unreachable'),
+          peer('Tablet'),
+        ]),
+        isNull,
+      );
+    });
+
+    test('is null with no paired devices', () {
+      expect(nearbyAttentionOf(const []), isNull);
+    });
+
+    test('a peer row write that leaves the attention as it was does not '
+        'notify the dashboard', () async {
+      final rows = StreamController<List<NearbyPeer>>();
+      addTearDown(rows.close);
+      final container = ProviderContainer(
+        overrides: [nearbyPeersProvider.overrideWith((ref) => rows.stream)],
+      );
+      addTearDown(container.dispose);
+      final seen = <NearbyAttention?>[];
+      container.listen(
+        nearbyAttentionProvider,
+        (_, next) => seen.add(next),
+        fireImmediately: true,
+      );
+      final failing = peer('Old iPad', error: 'newerApp');
+      for (var part = 0; part < 5; part++) {
+        // A transfer writes the row once per part.
+        rows.add([peer('Mac', pairedAt: part), failing]);
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(seen, [null, (name: 'Old iPad', more: 0)]);
+    });
+
+    test('the chip stays while the paired devices reload for a changed '
+        'dependency', () async {
+      Future<void> settle() async {
+        for (var i = 0; i < 5; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+      }
+
+      final loads = <Completer<void>>[];
+      var store = 0;
+      final storeProvider = Provider<int>((ref) => store);
+      final container = ProviderContainer(
+        overrides: [
+          nearbyPeersProvider.overrideWith((ref) async* {
+            ref.watch(storeProvider);
+            final load = Completer<void>();
+            loads.add(load);
+            await load.future;
+            yield [peer('Old iPad', error: 'newerApp')];
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      final seen = <NearbyAttention?>[];
+      container.listen(
+        nearbyAttentionProvider,
+        (_, next) => seen.add(next),
+        fireImmediately: true,
+      );
+      await settle();
+      loads.last.complete();
+      await settle();
+      store++;
+      container.invalidate(storeProvider);
+      await settle();
+      expect(loads, hasLength(2), reason: 'reloading');
+      loads.last.complete();
+      await settle();
+      expect(seen, [null, (name: 'Old iPad', more: 0)]);
+    });
+  });
+
   group('gearSeverityGroups', () {
     test('empty input yields no groups', () {
       final result = gearSeverityGroups([]);

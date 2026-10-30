@@ -50,6 +50,9 @@ class FakeSocks5Server {
 
   Future<void> _serve(Socket client) async {
     _sockets.add(client);
+    // A client that hangs up while the fake is still replying makes later
+    // writes fail; those failures are expected in hang-up tests.
+    unawaited(client.done.catchError((Object _) {}));
     final buf = <int>[];
     final it = StreamIterator(client);
     Future<List<int>> need(int n) async {
@@ -111,10 +114,20 @@ class FakeSocks5Server {
       }
       final upstream = await Socket.connect(InternetAddress.loopbackIPv4, port);
       _sockets.add(upstream);
+      unawaited(upstream.done.catchError((Object _) {}));
       client.add([5, 0, 0, 1, 127, 0, 0, 1, 0, 0]);
       if (buf.isNotEmpty) upstream.add(buf);
       upstream.listen(
-        client.add,
+        (data) {
+          // A write to a client that already hung up fails on `done` (caught
+          // above); one after close throws StateError here instead.
+          try {
+            client.add(data);
+          } on StateError {
+            client.destroy();
+            upstream.destroy();
+          }
+        },
         onDone: client.destroy,
         onError: (Object _) => client.destroy(),
       );

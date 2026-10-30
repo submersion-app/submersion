@@ -56,6 +56,23 @@ extension TripMigrations on AppDatabase {
     }
   }
 
+  /// Idempotent DDL for the v325 side-trip link (issue #3658): the column and
+  /// its index. Called from the v325 rung and the beforeOpen backstop.
+  /// Self-guarding when the table is absent (minimal migration-test
+  /// fixtures).
+  Future<void> _assertTripParentColumn() async {
+    final cols = await customSelect("PRAGMA table_info('trips')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('parent_trip_id')) {
+      await customStatement('ALTER TABLE trips ADD COLUMN parent_trip_id TEXT');
+    }
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_trips_parent_trip_id '
+      'ON trips(parent_trip_id)',
+    );
+  }
+
   /// Idempotent creation of the v232 trip cylinder tables and the
   /// dive_tanks.trip_cylinder_id link (issue #2325). Called from the v232
   /// rung and the beforeOpen backstop.
@@ -113,6 +130,16 @@ extension TripMigrations on AppDatabase {
       if (!await _tableExists(parent)) return;
     }
     await Migrator(this).createTable(tripHides);
+  }
+
+  /// The trip_shares table (v311, issue #2151). Called from the v311 rung
+  /// and the beforeOpen backstop. Skipped on a partial migration-test
+  /// fixture that lacks a parent table.
+  Future<void> _assertTripSharesSchema() async {
+    for (final parent in const ['trips', 'divers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await Migrator(this).createTable(tripShares);
   }
 
   /// v249: the fill forecast's inputs (issue #2325, PR 4). Additive columns,

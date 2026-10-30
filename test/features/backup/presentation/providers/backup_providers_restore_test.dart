@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -9,6 +10,7 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
@@ -21,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -64,6 +67,9 @@ class _RecordingBackupService extends BackupService {
   /// (issue #1344).
   bool sourceMissing = false;
 
+  /// When true, restore throws [BackupCopyInOtherAccountException].
+  bool copyInOtherAccount = false;
+
   /// When set, restore awaits this before returning, so a test can observe the
   /// in-flight (mid-restore) state.
   Completer<void>? restoreGate;
@@ -85,6 +91,9 @@ class _RecordingBackupService extends BackupService {
     }
     if (sourceMissing) {
       throw const RestoreSourceMissingException('/gone.db');
+    }
+    if (copyInOtherAccount) {
+      throw const BackupCopyInOtherAccountException('acct-a');
     }
   }
 
@@ -334,6 +343,31 @@ void main() {
     expect(
       container.read(backupOperationProvider).status,
       BackupOperationStatus.restoreComplete,
+    );
+  });
+
+  test('a copy in another account says where the copy is', () async {
+    final container = makeContainer();
+    service.copyInOtherAccount = true;
+    final record = BackupRecord(
+      id: 'r1',
+      filename: 'b.db',
+      timestamp: DateTime(2026),
+      sizeBytes: 1,
+      location: BackupLocation.cloud,
+    );
+
+    await container
+        .read(backupOperationProvider.notifier)
+        .restoreFromBackup(record);
+
+    final state = container.read(backupOperationProvider);
+    expect(state.status, BackupOperationStatus.error);
+    expect(
+      state.message,
+      lookupAppLocalizations(
+        const Locale('en'),
+      ).backup_restore_copyInOtherAccount,
     );
   });
 

@@ -329,9 +329,8 @@ void main() {
       'the snapshot rides on the dive handed to the import service',
       () async {
         const snapshot = ComputerTissueSnapshot(
-          algorithm: 'Suunto Fused2 RGBM',
           start: ComputerTissueState(n2Bar: [0.79, 0.79]),
-          end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+          end: ComputerTissueState(n2Bar: [0.9, 1.1]),
         );
         adapter.setParsedDives([makeParsedDive(computerTissue: snapshot)]);
         final bundle = await adapter.buildBundle();

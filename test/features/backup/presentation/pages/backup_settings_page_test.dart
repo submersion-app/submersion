@@ -10,7 +10,6 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -466,7 +465,7 @@ void main() {
     /// fixed short window.
     Future<void> tapImportCard(WidgetTester tester) async {
       await tester.runAsync(() async {
-        await tester.tap(find.text('Restore from File'));
+        await tester.tap(find.text('Restore from a file'));
       });
       await pumpUntilRealAsync(
         tester,
@@ -493,7 +492,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Backup Now'));
+      await tester.tap(find.text('Back up now'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'Before the trip');
       await tester.tap(find.text('Back Up'));
@@ -510,7 +509,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Backup Now'));
+      await tester.tap(find.text('Back up now'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
@@ -527,14 +526,15 @@ void main() {
       // a test host; the SAF branch is coverage-ignored.
       mockPicker.directoryPathResult = tempDir.path;
 
+      useTallView(tester);
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Export Backup'));
+      await tester.tap(find.text('Save a backup file'));
       await tester.pumpAndSettle();
 
       await tester.runAsync(() async {
-        await tester.tap(find.text('Save to File'));
+        await tester.tap(find.text('Save to a folder'));
         await Future<void>.delayed(const Duration(milliseconds: 100));
       });
       await tester.pumpAndSettle();
@@ -557,15 +557,16 @@ void main() {
     testWidgets('save-to-file carries the typed note', (tester) async {
       mockPicker.directoryPathResult = tempDir.path;
 
+      useTallView(tester);
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Export Backup'));
+      await tester.tap(find.text('Save a backup file'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'For the dive shop');
 
       await tester.runAsync(() async {
-        await tester.tap(find.text('Save to File'));
+        await tester.tap(find.text('Save to a folder'));
         await Future<void>.delayed(const Duration(milliseconds: 100));
       });
       await tester.pumpAndSettle();
@@ -578,14 +579,15 @@ void main() {
     ) async {
       mockPicker.directoryPathResult = null;
 
+      useTallView(tester);
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Export Backup'));
+      await tester.tap(find.text('Save a backup file'));
       await tester.pumpAndSettle();
 
       await tester.runAsync(() async {
-        await tester.tap(find.text('Save to File'));
+        await tester.tap(find.text('Save to a folder'));
         await Future<void>.delayed(const Duration(milliseconds: 100));
       });
       await tester.pumpAndSettle();
@@ -600,6 +602,7 @@ void main() {
           FakePlatformFile(pickedPath, name: 'picked.db'),
         ];
 
+        useTallView(tester);
         await tester.pumpWidget(buildApp());
         await tester.pumpAndSettle();
 
@@ -631,6 +634,7 @@ void main() {
       stampBackupNote(noted, 'Before the Cozumel trip');
       mockPicker.pickFilesResult = [FakePlatformFile(noted, name: 'noted.db')];
 
+      useTallView(tester);
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
       await tapImportCard(tester);
@@ -646,6 +650,7 @@ void main() {
         FakePlatformFile(pickedPath, name: 'picked.db'),
       ];
 
+      useTallView(tester);
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
@@ -670,6 +675,7 @@ void main() {
           tester.view.resetPhysicalSize();
           tester.view.resetDevicePixelRatio();
         });
+        useTallView(tester);
         await tester.pumpWidget(buildApp());
         await tester.pumpAndSettle();
 
@@ -687,186 +693,6 @@ void main() {
         expect(service.lastMode, RestoreMode.merge);
       },
     );
-  });
-
-  // ---------------------------------------------------------------------------
-  // Backup destination coupling — cloud backup vs custom location
-  // ---------------------------------------------------------------------------
-  group('Backup destination coupling', () {
-    late SharedPreferences prefs;
-    late BackupPreferences backupPrefs;
-    late FilePickerPlatform originalPicker;
-    late MockFilePickerPlatform mockPicker;
-
-    setUp(() {
-      originalPicker = FilePickerPlatform.instance;
-      mockPicker = MockFilePickerPlatform();
-      FilePickerPlatform.instance = mockPicker;
-      // On Apple hosts the picker flow mints a security-scoped bookmark via
-      // this channel; mock it so the call resolves under controlled async.
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-            const MethodChannel('app.submersion/backup_bookmark'),
-            (call) async => call.method == 'createBookmark'
-                ? Uint8List.fromList([1, 2, 3])
-                : null,
-          );
-    });
-
-    tearDown(() {
-      FilePickerPlatform.instance = originalPicker;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-            const MethodChannel('app.submersion/backup_bookmark'),
-            null,
-          );
-    });
-
-    Future<void> pumpApp(
-      WidgetTester tester, {
-      Map<String, Object> initialPrefs = const {},
-      List<BackupRecord> history = const [],
-    }) async {
-      tester.view.physicalSize = const Size(1200, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-      SharedPreferences.setMockInitialValues(initialPrefs);
-      prefs = await SharedPreferences.getInstance();
-      backupPrefs = BackupPreferences(prefs);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            localeProvider.overrideWithValue('en'),
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            backupServiceProvider.overrideWithValue(
-              _RecordingRestoreService(
-                dbAdapter: _FakeBackupDatabaseAdapter(),
-                preferences: backupPrefs,
-              ),
-            ),
-            cloudStorageProviderProvider.overrideWithValue(
-              _FakeCloudProvider(),
-            ),
-            backupHistoryProvider.overrideWith((ref) async => history),
-            quarantinedDatabasesProvider.overrideWith((ref) async => const []),
-          ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: BackupSettingsPage(),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-    }
-
-    SwitchListTile cloudSwitch(WidgetTester tester) =>
-        tester.widget<SwitchListTile>(
-          find.ancestor(
-            of: find.text('Cloud backup'),
-            matching: find.byType(SwitchListTile),
-          ),
-        );
-
-    testWidgets('cloud backup is off by default', (tester) async {
-      await pumpApp(tester);
-      expect(cloudSwitch(tester).value, isFalse);
-      expect(find.text('Default location'), findsOneWidget);
-    });
-
-    testWidgets('cloud backup on shows the provider as the location', (
-      tester,
-    ) async {
-      await pumpApp(tester, initialPrefs: {'backup_cloud_enabled': true});
-      expect(cloudSwitch(tester).value, isTrue);
-      expect(find.text('Test Cloud'), findsOneWidget);
-      expect(find.text('Default location'), findsNothing);
-    });
-
-    testWidgets('choosing a custom directory turns cloud backup off', (
-      tester,
-    ) async {
-      await pumpApp(tester, initialPrefs: {'backup_cloud_enabled': true});
-      mockPicker.directoryPathResult = '/custom/dir';
-
-      await tester.tap(find.text('Change'));
-      await tester.pumpAndSettle();
-
-      expect(cloudSwitch(tester).value, isFalse);
-      expect(find.text('/custom/dir'), findsOneWidget);
-      expect(find.text('Test Cloud'), findsNothing);
-    });
-
-    testWidgets('location row sits between retention and cloud backup', (
-      tester,
-    ) async {
-      await pumpApp(tester, initialPrefs: {'backup_enabled': true});
-
-      final frequencyY = tester.getTopLeft(find.text('Frequency')).dy;
-      final retentionY = tester.getTopLeft(find.text('Keep backups')).dy;
-      final locationY = tester.getTopLeft(find.text('Backup Location')).dy;
-      final cloudY = tester.getTopLeft(find.text('Cloud backup')).dy;
-
-      expect(frequencyY, lessThan(retentionY));
-      expect(retentionY, lessThan(locationY));
-      expect(locationY, lessThan(cloudY));
-    });
-
-    testWidgets('retention shows what the retained backups cost', (
-      tester,
-    ) async {
-      // Every backup is a full copy of the database, so the count alone
-      // hides the cost of the choice (issue #1376).
-      BackupRecord record(String id, int sizeBytes) => BackupRecord(
-        id: id,
-        filename: '$id.db',
-        timestamp: _kNow,
-        sizeBytes: sizeBytes,
-        location: BackupLocation.local,
-      );
-      await pumpApp(
-        tester,
-        initialPrefs: {'backup_enabled': true},
-        history: [record('a', 1024 * 1024), record('b', 2 * 1024 * 1024)],
-      );
-
-      expect(
-        find.descendant(
-          of: find.widgetWithText(ListTile, 'Keep backups'),
-          matching: find.text('2 backups currently use 3.0 MB'),
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('retention shows no footprint while there are no backups', (
-      tester,
-    ) async {
-      await pumpApp(tester, initialPrefs: {'backup_enabled': true});
-
-      expect(find.text('Keep backups'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('backup_retention_footprint')),
-        findsNothing,
-      );
-    });
-
-    testWidgets('enabling cloud backup clears a custom location', (
-      tester,
-    ) async {
-      await pumpApp(tester, initialPrefs: {'backup_location': '/custom/dir'});
-      expect(find.text('/custom/dir'), findsOneWidget);
-
-      await tester.tap(find.text('Cloud backup'));
-      await tester.pumpAndSettle();
-
-      expect(cloudSwitch(tester).value, isTrue);
-      expect(find.text('Test Cloud'), findsOneWidget);
-      expect(find.text('/custom/dir'), findsNothing);
-    });
   });
 }
 
@@ -983,16 +809,6 @@ class _RecordingRestoreService extends BackupService {
       siteCount: 0,
     );
   }
-}
-
-/// Cloud provider stub: the page only reads [providerName] for the backup
-/// location display; everything else throws via noSuchMethod.
-class _FakeCloudProvider implements CloudStorageProvider {
-  @override
-  String get providerName => 'Test Cloud';
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// BackupService override that throws on pin/unpin to exercise the error path.

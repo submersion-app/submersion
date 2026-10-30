@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
@@ -8,7 +9,9 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -24,6 +27,10 @@ const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 const _year =
     "CAST(strftime('%Y', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
+const _month =
+    "CAST(strftime('%m', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
+const _day =
+    "CAST(strftime('%d', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 
 /// No weight entry at all: neither a `dive_weights` row nor the legacy
 /// scalar the edit form migrates into the table on load (#1392). ONE rule,
@@ -34,13 +41,15 @@ const kDiveNoWeightSql =
     '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
 
 /// The gear union the equipment axes have always used: items linked
-/// through `dive_equipment` plus cylinders the transmitter registry matched
-/// through `dive_tanks.equipment_id`.
-const kDiveGearJoinSql =
+/// through `dive_equipment`, cylinders the transmitter registry matched
+/// through `dive_tanks.equipment_id`, and the regulators on the dive's
+/// tanks, first and extra (issue #3375).
+final kDiveGearJoinSql =
     '{to}.id IN (SELECT de.equipment_id FROM dive_equipment de '
     'WHERE de.dive_id = {from}.id '
     'UNION SELECT dt.equipment_id FROM dive_tanks dt '
-    'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL)';
+    'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL '
+    'UNION ${tankRegulatorIdsOfDiveSql('{from}.id')})';
 
 /// A dive's effective water type: its own, else its site's (issue #3196).
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
@@ -49,6 +58,14 @@ const kDiveGearJoinSql =
 const _effectiveWaterType =
     "COALESCE(NULLIF({r}.water_type, ''), "
     "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
+    'WHERE s.id = {r}.site_id))';
+
+/// A dive's effective entry method: its own, else its site's when the site
+/// lists exactly one (issue #3806). The SQL twin of
+/// `Dive.effectiveEntryMethod`, matching the insights entry method chart.
+final _effectiveEntryMethod =
+    "COALESCE(NULLIF({r}.entry_method, ''), "
+    "(SELECT ${singleSiteEntryMethodSql('s.entry_method')} FROM dive_sites s "
     'WHERE s.id = {r}.site_id))';
 
 List<String> _names<T extends Enum>(List<T> values) => [
@@ -93,6 +110,19 @@ QueryField _enum(String key, String column, List<String> values) => QueryField(
   labelKey: _label(key),
   enumValues: values,
 );
+
+/// An enum read through [sql], a dive's value with its site as the fallback,
+/// so the query re-ticks when a site changes.
+QueryField _effectiveEnum(String key, String sql, List<String> values) =>
+    QueryField(
+      key: key,
+      type: FieldType.enumName,
+      sql: sql,
+      emptySql: '$sql IS NULL',
+      labelKey: _label(key),
+      enumValues: values,
+      tables: const ['dive_sites'],
+    );
 
 QueryField _bool(String key, String column) => QueryField(
   key: key,
@@ -163,7 +193,8 @@ String _derived(String column) =>
 /// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
 /// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
 /// normalised by the average depth, so a search and the chart agree. Empty
-/// with no back-gas drop, no runtime or no average depth.
+/// with no back-gas drop, no runtime or no average depth, and on a CCR or
+/// SCR dive (issue #3673).
 final String kDiveSacSql =
     '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
@@ -240,6 +271,22 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'year',
       _year,
       dimension: FieldDimension.count,
+      emptySql: '{r}.dive_date_time IS NULL',
+    ),
+    // The calendar date's month and day of the month (#3127), for the
+    // Insights calendar-days cells; wall clock, like year and weekday.
+    _num(
+      'month',
+      _month,
+      dimension: FieldDimension.count,
+      sanity: (min: 1, max: 12),
+      emptySql: '{r}.dive_date_time IS NULL',
+    ),
+    _num(
+      'day',
+      _day,
+      dimension: FieldDimension.count,
+      sanity: (min: 1, max: 31),
       emptySql: '{r}.dive_date_time IS NULL',
     ),
     QueryField(
@@ -339,7 +386,10 @@ final QueryEntity diveQueryEntity = QueryEntity(
       '(${diveSurfaceIntervalSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
       emptySql: '(${diveSurfaceIntervalSecondsSql('{r}')}) IS NULL',
-      tables: const ['dive_profile_series'],
+      // The profile span fallback also reads the series history, which is
+      // only written alongside a dive_profile_series row, so that tick
+      // covers it (issue #3537).
+      tables: const ['dive_profile_series', 'dive_data_sources'],
     ),
     _num(
       'cnsEnd',
@@ -420,6 +470,20 @@ final QueryEntity diveQueryEntity = QueryEntity(
     // The legacy free-text buddy column (#757): the dive editor writes only
     // dive_buddies, but old data still carries names here.
     _text('legacyBuddy', 'buddy'),
+    // The diver's own role (#3622), present or not. A null or blank
+    // diver_role is no role whatever dive_diver_roles holds, as
+    // DiveRoleSet.resolve reads it. Matching a named role would need that
+    // resolution in SQL and a name subject for custom roles, so only the
+    // presence operators are offered.
+    QueryField(
+      key: 'role',
+      aliases: const ['myRole'],
+      type: FieldType.text,
+      sql: '{r}.diver_role',
+      emptySql: "({r}.diver_role IS NULL OR {r}.diver_role = '')",
+      labelKey: _label('role'),
+      ops: const {QueryOp.isEmpty, QueryOp.isSet},
+    ),
     _text('diveMaster', 'dive_master'),
     _text('boatName', 'boat_name'),
     _text('boatCaptain', 'boat_captain'),
@@ -430,16 +494,12 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'current_strength',
       _names(CurrentStrength.values),
     ),
-    QueryField(
-      key: 'waterType',
-      type: FieldType.enumName,
-      sql: _effectiveWaterType,
-      emptySql: '$_effectiveWaterType IS NULL',
-      labelKey: _label('waterType'),
-      enumValues: _names(WaterType.values),
-      tables: const ['dive_sites'],
+    _effectiveEnum('waterType', _effectiveWaterType, _names(WaterType.values)),
+    _effectiveEnum(
+      'entryMethod',
+      _effectiveEntryMethod,
+      _names(EntryMethod.values),
     ),
-    _enum('entryMethod', 'entry_method', _names(EntryMethod.values)),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),
     _enum('diveMode', 'dive_mode', _names(DiveMode.values)),
     _bool('favorite', 'is_favorite'),

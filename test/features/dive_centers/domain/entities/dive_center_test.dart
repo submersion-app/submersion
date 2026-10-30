@@ -60,4 +60,21 @@ void main() {
     expect(center.copyWith(fillOpensAt: null).fillOpensAt, isNull);
     expect(center.copyWith(fillClosesAt: 1080), isNot(center));
   });
+
+  group('isPermanentlyClosed (#3379)', () {
+    test('defaults to open', () {
+      expect(buildCenter().isPermanentlyClosed, isFalse);
+    });
+
+    test('copyWith sets it and keeps it', () {
+      final closed = buildCenter().copyWith(isPermanentlyClosed: true);
+      expect(closed.isPermanentlyClosed, isTrue);
+      expect(closed.copyWith(name: 'x').isPermanentlyClosed, isTrue);
+    });
+
+    test('two centers differing only in it are not equal', () {
+      final open = buildCenter();
+      expect(open.copyWith(isPermanentlyClosed: true), isNot(open));
+    });
+  });
 }

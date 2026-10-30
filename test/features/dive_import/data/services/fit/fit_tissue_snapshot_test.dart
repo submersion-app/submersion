@@ -10,7 +10,7 @@ void main() {
       expect(fitTissueSnapshot(summary), isNull);
     });
 
-    test('builds start and end states from N2 and CNS', () {
+    test('builds start and end states from the N2 loading alone', () {
       final summary = FitSummary(
         startN2: 0,
         endN2: 86,
@@ -21,10 +21,10 @@ void main() {
 
       expect(
         fitTissueSnapshot(summary),
+        // CNS and the deco model are the dive's own columns (issue #2555).
         const ComputerTissueSnapshot(
-          algorithm: 'zhl_16c',
-          start: ComputerTissueState(n2LoadPercent: 0, cnsPercent: 1),
-          end: ComputerTissueState(n2LoadPercent: 86, cnsPercent: 23),
+          start: ComputerTissueState(n2LoadPercent: 0),
+          end: ComputerTissueState(n2LoadPercent: 86),
         ),
       );
     });
@@ -33,11 +33,7 @@ void main() {
       final onlyEnd = fitTissueSnapshot(FitSummary(endN2: 40, cnsEnd: 5));
       expect(onlyEnd, isNotNull);
       expect(onlyEnd!.start, isNull);
-      expect(
-        onlyEnd.end,
-        const ComputerTissueState(n2LoadPercent: 40, cnsPercent: 5),
-      );
-      expect(onlyEnd.algorithm, isNull);
+      expect(onlyEnd.end, const ComputerTissueState(n2LoadPercent: 40));
 
       final onlyStart = fitTissueSnapshot(FitSummary(startN2: 12));
       expect(onlyStart!.start, const ComputerTissueState(n2LoadPercent: 12));

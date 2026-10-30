@@ -86,6 +86,8 @@ extension SyncMigrations on AppDatabase {
       'site_site_types',
       'site_tags',
       'equipment_tags',
+      'media_tags',
+      'document_tags',
       'equipment_shares',
       'equipment_ownership_events',
       'equipment_location_moves',

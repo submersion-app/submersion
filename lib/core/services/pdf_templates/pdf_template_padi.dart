@@ -23,6 +23,7 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_notes_markdown.dart';
 
 /// PADI-style PDF template mimicking PADI logbook format.
 ///
@@ -407,7 +408,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                 // Notes (compact)
                 if (dive.notes.isNotEmpty) ...[
                   pw.SizedBox(height: 4),
-                  pw.Text(
+                  notesMarkdownPdfInline(
                     dive.notes,
                     style: const pw.TextStyle(
                       fontSize: 8,

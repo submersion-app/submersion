@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -168,6 +169,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     ColorScheme colorScheme,
     UnitFormatter units,
   ) {
+    // Read once here: fl_chart calls getDotPainter during paint, per frame.
+    final ring = backdropColorOf(context);
     return LineChartBarData(
       spots: widget.editedProfile
           .map(
@@ -203,7 +206,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
                 radius: 6,
                 color: Colors.blue,
                 strokeWidth: 2,
-                strokeColor: Colors.white,
+                strokeColor: ring,
               );
             }
           }

@@ -5,8 +5,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
@@ -19,12 +21,15 @@ import 'package:submersion/features/maps/presentation/providers/map_tile_provide
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/world_map_expectations.dart';
 
 /// Records calls instead of touching a real database, mirroring the
 /// alignment page test's `_RecordingNavTrackRepository`.
@@ -40,11 +45,25 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? setSiteId;
   GeoPoint? setSiteAnchor;
   bool? setSiteClearAnchor;
+  String? setEquipmentRouteId;
+  String? setEquipmentId;
+  String? setEquipmentDeviceName;
 
   @override
   Future<void> rename(String routeId, String? name) async {
     renamedId = routeId;
     newName = name;
+  }
+
+  @override
+  Future<void> setEquipment(
+    String routeId, {
+    String? equipmentId,
+    String? deviceName,
+  }) async {
+    setEquipmentRouteId = routeId;
+    setEquipmentId = equipmentId;
+    setEquipmentDeviceName = deviceName;
   }
 
   @override
@@ -119,8 +138,9 @@ Future<_RecordingNavTrackRepository> _pump(
   List<DiveSite>? allSites,
   Locale? locale,
   _RecordingNavTrackRepository? repository,
+  MockSettingsNotifier? settingsNotifier,
 }) async {
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final effectiveRepository = repository ?? _RecordingNavTrackRepository();
   final effectiveOverrides = [
     ...overrides,
@@ -165,6 +185,18 @@ Future<_RecordingNavTrackRepository> _pump(
 }
 
 void main() {
+  testWidgets('tapping the 3D-preview button opens NavTrack3dPage', (
+    tester,
+  ) async {
+    await _pump(tester, route: _route());
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-open-3d-preview')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byType(NavTrack3dPage), findsOneWidget);
+  });
+
   testWidgets('shows "No dive linked" for an unlinked route', (tester) async {
     await _pump(tester, route: _route());
 
@@ -315,29 +347,49 @@ void main() {
     expect(find.text('No correction applied yet.'), findsOneWidget);
   });
 
-  testWidgets('shows the linked equipment name when equipmentId is set', (
-    tester,
-  ) async {
-    const scooter = EquipmentItem(
-      id: 'eq1',
-      name: 'Test Scooter',
-      type: EquipmentType.dpv,
+  group('the equipment row', () {
+    testWidgets('shows the linked equipment name and "Change device" when '
+        'equipmentId is set', (tester) async {
+      const scooter = EquipmentItem(
+        id: 'eq1',
+        name: 'Test Scooter',
+        type: EquipmentType.dpv,
+      );
+      await _pump(
+        tester,
+        route: _route(equipmentId: 'eq1'),
+        equipment: scooter,
+      );
+
+      expect(
+        find.byKey(const ValueKey('nav-track-equipment-row')),
+        findsOneWidget,
+      );
+      expect(find.text('Test Scooter'), findsOneWidget);
+      expect(find.text('Change device'), findsOneWidget);
+    });
+
+    testWidgets(
+      'shows a "no device" placeholder and "Choose device" when unset',
+      (tester) async {
+        await _pump(tester, route: _route());
+
+        expect(find.text('No device'), findsOneWidget);
+        expect(find.text('Choose device'), findsOneWidget);
+      },
     );
-    await _pump(
-      tester,
-      route: _route(equipmentId: 'eq1'),
-      equipment: scooter,
+
+    testWidgets(
+      'no "Change device" entry left in the overflow menu (moved to its '
+      'own row)',
+      (tester) async {
+        await _pump(tester, route: _route());
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        expect(find.text('Change device'), findsNothing);
+      },
     );
-
-    expect(find.text('Equipment: Test Scooter'), findsOneWidget);
-  });
-
-  testWidgets('shows no equipment line when equipmentId is not set', (
-    tester,
-  ) async {
-    await _pump(tester, route: _route());
-
-    expect(find.textContaining('Equipment:'), findsNothing);
   });
 
   testWidgets(
@@ -358,9 +410,126 @@ void main() {
   );
 
   testWidgets(
+    'the inline map fits its camera to the whole route, not a fixed zoom '
+    'on the anchor alone (a long route was cut off at the map edge)',
+    (tester) async {
+      final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+        points: [
+          for (var i = 0; i < 5; i++)
+            NavTrackPoint(
+              timestamp: 1755856800 + i,
+              // A route spread far wider than a fixed zoom 15 would show,
+              // in metres east of the anchor.
+              north: 0,
+              east: i * 2000.0,
+              depth: 5,
+            ),
+        ],
+      );
+      await _pump(tester, route: route);
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(map.options.initialCameraFit, isNotNull);
+    },
+  );
+
+  testWidgets('a route crossing the antimeridian still fits without crashing '
+      '(Copilot review on PR #3637: a raw LatLngBounds.fromPoints asserts '
+      'east <= 180 and cannot express a wrapped route)', (tester) async {
+    // Anchor just west of the dateline; an 11 km east offset pushes the
+    // second point past 180 deg, where it wraps to a negative longitude.
+    final route = _route(anchorLatitude: 0, anchorLongitude: 179.95).copyWith(
+      points: [
+        for (final east in [0.0, 11000.0])
+          NavTrackPoint(
+            timestamp: 1755856800 + east.toInt(),
+            north: 0,
+            east: east,
+            depth: 5,
+          ),
+      ],
+    );
+    await _pump(tester, route: route);
+
+    final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+    // The wrap means no legal LatLngBounds exists, so TrackCamera falls
+    // back to its centre+zoom framing instead of initialCameraFit.
+    expect(map.options.initialCameraFit, isNull);
+    expect(
+      map.options.initialCenter.longitude,
+      inInclusiveRange(-180.0, 180.0),
+    );
+  });
+
+  testWidgets(
+    'falls back to the anchor-centered fixed zoom when there is nothing '
+    'to fit a camera to',
+    (tester) async {
+      await _pump(
+        tester,
+        route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
+      );
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(map.options.initialCameraFit, isNull);
+      expect(map.options.initialCenter, const LatLng(47.1, 8.3));
+    },
+  );
+
+  testWidgets(
+    'the inline map re-frames when the anchor moves, since initialCameraFit '
+    'only applies once (Change site can move the anchor to a new pin)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      var current = _route(anchorLatitude: 47.1, anchorLongitude: 8.3);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider('r1').overrideWith((ref) async => current),
+            navTrackRepositoryProvider.overrideWithValue(
+              _RecordingNavTrackRepository(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackDetailPage(trackId: 'r1'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final controller = tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!;
+      expect(controller.camera.center.latitude, closeTo(47.1, 0.01));
+
+      current = _route(anchorLatitude: 10.0, anchorLongitude: 20.0);
+      ProviderScope.containerOf(
+        tester.element(find.byType(NavTrackDetailPage)),
+      ).invalidate(navTrackByIdProvider('r1'));
+      await tester.pumpAndSettle();
+
+      expect(controller.camera.center.latitude, closeTo(10.0, 0.01));
+      expect(controller.camera.center.longitude, closeTo(20.0, 0.01));
+    },
+  );
+
+  testWidgets(
     'the inline map can rotate, so it carries a compass that resets it to '
     'north (#3386)',
     (tester) async {
+      // The new equipment row (#3635) pushed the map further down the
+      // ListView, past the default 800x600 test surface -- ensureVisible
+      // alone left the compass button's hit-test point just outside the
+      // viewport (off by a few dozen px), so this gives the page the room
+      // the earlier, shorter content didn't need.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -384,6 +553,105 @@ void main() {
       expect(controller.camera.rotation % 360, closeTo(0, 0.01));
     },
   );
+
+  group('speed stats respect the depth-unit setting', () {
+    NavTrack routeWithSpeed(double metersPerSecond) =>
+        _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+          points: [
+            NavTrackPoint(
+              timestamp: 1755856800,
+              north: 0,
+              east: 0,
+              depth: 0,
+              speed: metersPerSecond,
+            ),
+            NavTrackPoint(
+              timestamp: 1755856801,
+              north: 1,
+              east: 0,
+              depth: 0,
+              speed: metersPerSecond,
+            ),
+          ],
+        );
+
+    testWidgets('metric (default): m/min', (tester) async {
+      await _pump(tester, route: routeWithSpeed(2));
+
+      // 2 m/s = 120 m/min.
+      expect(find.textContaining('120.0 m/min'), findsWidgets);
+    });
+
+    testWidgets('imperial: ft/min, not m/min', (tester) async {
+      final settings = MockSettingsNotifier();
+      await settings.setDepthUnit(DepthUnit.feet);
+      await _pump(tester, route: routeWithSpeed(2), settingsNotifier: settings);
+
+      // 120 m/min x 3.28084 ft/m.
+      expect(find.textContaining('393.7 ft/min'), findsWidgets);
+      expect(find.textContaining('m/min'), findsNothing);
+    });
+  });
+
+  group('the battery row', () {
+    testWidgets(
+      'skips a leading 0.00V sample (sensor not settled yet) when picking '
+      'the start reading (018.DAT.csv: row 1 reads 0, row 2 reads the real '
+      '3.9)',
+      (tester) async {
+        final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3)
+            .copyWith(
+              points: const [
+                NavTrackPoint(
+                  timestamp: 1755856800,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 0,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755856801,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.9,
+                ),
+                NavTrackPoint(
+                  timestamp: 1755857000,
+                  north: 0,
+                  east: 0,
+                  depth: 0,
+                  batteryVolts: 3.78,
+                ),
+              ],
+            );
+        await _pump(tester, route: route);
+
+        expect(find.text('Battery: 3.90 V -> 3.78 V'), findsOneWidget);
+        expect(find.textContaining('0.00 V'), findsNothing);
+      },
+    );
+
+    testWidgets('no battery row when every sample is 0V or null', (
+      tester,
+    ) async {
+      final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
+        points: const [
+          NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+          NavTrackPoint(
+            timestamp: 1755856801,
+            north: 0,
+            east: 0,
+            depth: 0,
+            batteryVolts: 0,
+          ),
+        ],
+      );
+      await _pump(tester, route: route);
+
+      expect(find.textContaining('Battery:'), findsNothing);
+    });
+  });
 
   group('the site row (item 4)', () {
     testWidgets(
@@ -707,6 +975,78 @@ void main() {
       expect(repository.newName, 'Morning dive');
     });
 
+    testWidgets(
+      'change device opens the picker and persists the chosen equipment',
+      (tester) async {
+        const scooter = EquipmentItem(
+          id: 'eq1',
+          name: 'Test Scooter',
+          type: EquipmentType.dpv,
+        );
+        final overrides = await getBaseOverrides();
+        final repository = _RecordingNavTrackRepository();
+        final route = _route();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+              navTrackRepositoryProvider.overrideWithValue(repository),
+              activeEquipmentProvider.overrideWith((ref) async => [scooter]),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: NavTrackDetailPage(trackId: route.id),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-device')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Test Scooter'));
+        await tester.pumpAndSettle();
+
+        expect(repository.setEquipmentRouteId, 'r1');
+        expect(repository.setEquipmentId, 'eq1');
+        expect(repository.setEquipmentDeviceName, 'Test Scooter');
+      },
+    );
+
+    testWidgets('change device, choosing "no equipment", clears both fields', (
+      tester,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final repository = _RecordingNavTrackRepository();
+      final route = _route(equipmentId: 'eq1');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+            navTrackRepositoryProvider.overrideWithValue(repository),
+            activeEquipmentProvider.overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: NavTrackDetailPage(trackId: route.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-change-device')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-equipment-none')));
+      await tester.pumpAndSettle();
+
+      expect(repository.setEquipmentRouteId, 'r1');
+      expect(repository.setEquipmentId, isNull);
+      expect(repository.setEquipmentDeviceName, isNull);
+    });
+
     testWidgets('the unlink item only appears for a linked route, and calls '
         'unlink', (tester) async {
       final unlinkedRepository = await _pump(
@@ -873,6 +1213,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('nav-track-open-3d')),
+          matching: find.byIcon(Icons.terrain),
+        ),
+        findsOneWidget,
+        reason:
+            'should match the icon dive_detail_page.dart uses for its '
+            '"3D-Unterwasserwelt" button, not the AR-cube icon',
+      );
+
       await tester.tap(find.byKey(const ValueKey('nav-track-open-3d')));
       await tester.pumpAndSettle();
       expect(find.text('SEASCAPE_PAGE'), findsOneWidget);
@@ -958,4 +1309,13 @@ void main() {
       );
     },
   );
+
+  testWidgets('the inline map zooms and scrolls like the other maps '
+      '(#3664)', (tester) async {
+    await _pump(
+      tester,
+      route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
+    );
+    expectZoomsAndScrollsLikeOtherMaps(tester);
+  });
 }

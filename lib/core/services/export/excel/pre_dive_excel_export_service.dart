@@ -9,6 +9,8 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Exports pre-dive checklist runs to a spreadsheet.
 ///
@@ -35,16 +37,24 @@ class PreDiveExcelExportService {
     xl.Excel excel, {
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) {
     _buildRunsSheet(excel, sessions, itemsBySession, dateFormat);
-    _buildItemsSheet(excel, sessions, itemsBySession, dateFormat);
+    _buildItemsSheet(
+      excel,
+      sessions,
+      itemsBySession,
+      sectionsBySession,
+      dateFormat,
+    );
   }
 
   /// Builds a standalone checklist workbook.
   List<int> generateBytes({
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) {
     final excel = xl.Excel.createExcel();
@@ -52,6 +62,7 @@ class PreDiveExcelExportService {
       excel,
       sessions: sessions,
       itemsBySession: itemsBySession,
+      sectionsBySession: sectionsBySession,
       dateFormat: dateFormat,
     );
     // Deleted only after the real sheets exist: the excel package refuses to
@@ -66,11 +77,13 @@ class PreDiveExcelExportService {
   Future<String> exportToExcel({
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) {
     final bytes = generateBytes(
       sessions: sessions,
       itemsBySession: itemsBySession,
+      sectionsBySession: sectionsBySession,
       dateFormat: dateFormat,
     );
     return saveAndShareFileBytes(bytes, _fileName(), _mimeType);
@@ -81,13 +94,16 @@ class PreDiveExcelExportService {
   Future<String?> saveToFile({
     required List<PreDiveSession> sessions,
     required Map<String, List<PreDiveSessionItem>> itemsBySession,
+    required Map<String, List<PreDiveSessionSection>> sectionsBySession,
     required DateFormatPreference dateFormat,
   }) async {
     final bytes = generateBytes(
       sessions: sessions,
       itemsBySession: itemsBySession,
+      sectionsBySession: sectionsBySession,
       dateFormat: dateFormat,
     );
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save Checklist Export',
       fileName: _fileName(),
@@ -148,6 +164,7 @@ class PreDiveExcelExportService {
     xl.Excel excel,
     List<PreDiveSession> sessions,
     Map<String, List<PreDiveSessionItem>> itemsBySession,
+    Map<String, List<PreDiveSessionSection>> sectionsBySession,
     DateFormatPreference dateFormat,
   ) {
     final sheet = excel[itemsSheet];
@@ -173,11 +190,15 @@ class PreDiveExcelExportService {
     var row = 1;
     for (final session in sessions) {
       final items = itemsBySession[session.id] ?? const <PreDiveSessionItem>[];
+      final sectionTitleById = {
+        for (final s in sectionsBySession[session.id] ?? const [])
+          s.id: s.title,
+      };
       for (final item in items) {
         _writeRow(sheet, row++, [
           session.templateName,
           _dateTime(session.startedAt, dateFormat),
-          item.section ?? '',
+          sectionTitleById[item.sectionId] ?? '',
           item.title,
           _typeLabel(item.itemType),
           _stateLabel(item.state),

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/list_return_scope.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// What a pushed trip list puts back when it goes away: the trip filter and
 /// highlighted trip that were in place before it opened.
@@ -13,19 +14,38 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 /// the filter: it is global, and a table-mode list under the pushed one
 /// replays it into its own URL once uncovered (#3350).
 class TripListReturn implements ListReturn {
-  const TripListReturn({required this.filter, required this.highlightedTripId});
+  const TripListReturn({
+    required this.filter,
+    required this.highlightedTripId,
+    this.closedPaneTripId,
+  });
 
   final TripFilterState filter;
   final String? highlightedTripId;
+
+  /// The trip whose pane the tab had emptied, if any (see
+  /// [closedPaneRecordProvider]). Put back so what the diver opens or empties
+  /// in the pushed list does not decide whether the tab reopens its pane when
+  /// returned to (#3301).
+  final String? closedPaneTripId;
 
   @override
   VoidCallback bindRestore(WidgetRef ref) {
     final filterController = ref.read(tripFilterProvider.notifier);
     final highlightController = ref.read(highlightedTripIdProvider.notifier);
+    final closedPanesController = ref.read(closedPaneRecordProvider.notifier);
     return () {
       if (filterController.mounted) filterController.state = filter;
       if (highlightController.mounted) {
         highlightController.state = highlightedTripId;
+      }
+      if (closedPanesController.mounted) {
+        final closed = {...closedPanesController.state}
+          ..remove(RecordListSection.trips);
+        final id = closedPaneTripId;
+        closedPanesController.state = id == null
+            ? closed
+            : {...closed, RecordListSection.trips: id};
       }
     };
   }
@@ -51,6 +71,9 @@ void openTripList(BuildContext context, WidgetRef ref, TripFilterState filter) {
   final returnTo = TripListReturn(
     filter: ref.read(tripFilterProvider),
     highlightedTripId: ref.read(highlightedTripIdProvider),
+    closedPaneTripId: ref.read(
+      closedPaneRecordProvider,
+    )[RecordListSection.trips],
   );
   ref.read(tripFilterProvider.notifier).state = filter;
   context.push(location, extra: returnTo);

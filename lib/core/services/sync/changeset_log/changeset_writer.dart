@@ -105,6 +105,15 @@ class ChangesetWriter {
     // recovers the seq counter (knownHeadSeq) so the new base never reuses a
     // number.
     final watermark = ownManifest?.publishedHlcHigh ?? state?.publishedHlcHigh;
+    // A relay floor below the watermark (nearby sync applied a peer's older
+    // rows, issue #3731) widens this one export; the published clock still
+    // never moves down.
+    final relayFloor = state?.relayFloorHlc;
+    final relaying =
+        relayFloor != null &&
+        watermark != null &&
+        relayFloor.compareTo(watermark) < 0;
+    final exportFrom = relaying ? relayFloor : watermark;
     final baseInCloud = ownManifest?.baseSeq != null;
     final adoptedMarker =
         state != null && state.baseSeq == null && watermark != null;
@@ -121,7 +130,7 @@ class ChangesetWriter {
     final oversizedDelta =
         !forceBase &&
         (baseInCloud || adoptedMarker) &&
-        await _serializer.pendingSeriesBlobBytes(watermark) >
+        await _serializer.pendingSeriesBlobBytes(exportFrom) >
             maxChangesetSeriesBlobBytes;
     // A migration that added rows with no clock asked for a fresh base, so
     // a device joining later adopts them (see rebase_request.dart).
@@ -200,6 +209,7 @@ class ChangesetWriter {
           newSeq,
           epochId,
           uploadNonce,
+          exportedAt: now,
         );
       }
 
@@ -237,7 +247,10 @@ class ChangesetWriter {
           // manifest out of step with the base it describes.
           uploadNonce: publish.uploadNonce,
           appliedPeerHlc: appliedPeerHlc,
-          updatedAt: now,
+          // Peers read updatedAt as "everything this device had by then is
+          // published" (early media delete), so it is the time the content
+          // was read: a resumed export was read on an earlier attempt.
+          updatedAt: resumed == null ? now : publish.createdAt,
           schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
@@ -254,6 +267,7 @@ class ChangesetWriter {
             updatedAt: Value(now),
           ),
         );
+        await _clearRelayFloorRead(providerId, relayFloor);
         // A forced base SUPERSEDES an existing log rather than starting one, so
         // the old base parts and changesets are now dead weight -- potentially
         // a whole library's worth. Prune them exactly as compaction does (see
@@ -283,13 +297,17 @@ class ChangesetWriter {
     // the base path above is streamed (#358).
     final payload = await _serializer.exportChangeset(
       deviceId: deviceId,
-      hlcWatermark: watermark,
+      hlcWatermark: exportFrom,
       deletions: deletions,
       seq: newSeq,
       epochId: epochId,
       uploadNonce: uploadNonce,
+      // A relayed child edit (a tank on an older dive) is not pending here,
+      // and its parent sits below the floor: only its own clock finds it.
+      childrenByOwnClock: relaying,
     );
     if (_isEmpty(payload)) {
+      await _clearRelayFloorRead(providerId, relayFloor);
       // Nothing to publish -- but a manifest that goes stale reads as a dead
       // device to peers (retirement) and its acks stop advancing tombstone
       // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
@@ -333,7 +351,13 @@ class ChangesetWriter {
       ChangesetLogLayout.changesetName(deviceId, newSeq),
       folderId: folderId,
     );
-    final publishedHigh = payload.toHlc ?? watermark;
+    // The export started at the relay floor when one was set, so its toHlc
+    // can sit below what was already published.
+    final toHlc = payload.toHlc;
+    final publishedHigh =
+        toHlc != null && (watermark == null || toHlc.compareTo(watermark) > 0)
+        ? toHlc
+        : watermark;
     final manifest = SyncManifest(
       deviceId: deviceId,
       deviceName: deviceName,
@@ -367,6 +391,7 @@ class ChangesetWriter {
         updatedAt: Value(now),
       ),
     );
+    await _clearRelayFloorRead(providerId, relayFloor);
 
     final bytesSinceBase = (state?.changesetBytesSinceBase ?? 0) + bytes.length;
     final baseBytes = ownManifest?.baseBytes ?? 0;
@@ -439,6 +464,14 @@ class ChangesetWriter {
 
   int _max(int a, int b) => a > b ? a : b;
 
+  /// Clears the relay floor this publish read, and only that one: a floor a
+  /// nearby apply lowered while the publish ran covers rows the publish did
+  /// not export, so it stays for the next one.
+  Future<void> _clearRelayFloorRead(String providerId, String? read) async {
+    if (read == null) return;
+    await _publishState.clearRelayFloor(providerId, ifEquals: read);
+  }
+
   /// Rewrite a fresh full base at [afterSeq] + 1, repoint the manifest, reset
   /// publish state, and prune superseded files. Pruning is inline with no grace
   /// window: this intentionally diverges from the spec's 14-day grace, which
@@ -467,6 +500,10 @@ class ChangesetWriter {
     // #358), mirroring publish()'s base path. The base still carries the full
     // deletion log (see above).
     final compSeq = afterSeq + 1;
+    // Taken before the export, not after the upload: peers read updatedAt as
+    // "everything this device had by then is published" (early media
+    // delete), and a row added while the base uploads is not in it.
+    final now = DateTime.now().millisecondsSinceEpoch;
     final base = await _serializer.exportBaseToTempFile(
       deviceId: deviceId,
       deletions: deletions,
@@ -489,7 +526,6 @@ class ChangesetWriter {
         await File(base.path).delete();
       } catch (_) {}
     }
-    final now = DateTime.now().millisecondsSinceEpoch;
     final manifest = SyncManifest(
       deviceId: deviceId,
       deviceName: deviceName,
@@ -542,8 +578,9 @@ class ChangesetWriter {
     String deviceId,
     int seq,
     String? epochId,
-    String? uploadNonce,
-  ) async {
+    String? uploadNonce, {
+    required int exportedAt,
+  }) async {
     final dir = await _resumable.directory;
     final target = basePublishTargetPath(dir.path, base.path);
     final source = File(base.path);
@@ -561,7 +598,8 @@ class ChangesetWriter {
       seq: seq,
       dataPath: target,
       byteLength: base.byteLength,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
+      // When the export started: a resumed publish dates its manifest by it.
+      createdAt: exportedAt,
       epochId: epochId,
       uploadNonce: uploadNonce,
       toHlc: base.toHlc,

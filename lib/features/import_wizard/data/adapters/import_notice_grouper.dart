@@ -85,5 +85,6 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
     ImportNoticeKind.certificationsUnavailable,
   ImportWarningCode.photoListingsUnavailable =>
     ImportNoticeKind.photoListingsUnavailable,
+  ImportWarningCode.photosWithoutLink => ImportNoticeKind.photosWithoutLink,
   ImportWarningCode.diagnostic || null => null,
 };

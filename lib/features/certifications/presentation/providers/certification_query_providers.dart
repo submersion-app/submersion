@@ -5,6 +5,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/query/certification_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// The certification list's query (#2365); null lists every certification.
 final certificationQueryProvider = StateProvider<QueryNode?>((ref) => null);
@@ -40,3 +41,13 @@ final filteredCertificationsProvider =
         ],
       );
     });
+
+/// The certification a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedCertificationIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(filteredCertificationsProvider),
+    rememberedId: ref.watch(highlightedCertificationIdProvider),
+    idOf: (cert) => cert.id,
+  ),
+);

@@ -20,6 +20,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -295,10 +296,11 @@ void main() {
     /// and replaces an untouched first tank.
     Future<String> saveWithCustomDefault(
       WidgetTester tester,
-      DiveTank tank,
-    ) async {
+      DiveTank tank, {
+      String presetName = 'club15',
+    }) async {
       final settings = MockSettingsNotifier();
-      await settings.setDefaultTankPreset('club15');
+      await settings.setDefaultTankPreset(presetName);
       String? savedId;
       await pumpEditPage(
         tester,
@@ -306,7 +308,11 @@ void main() {
         onSaved: (id) => savedId = id,
         settingsNotifier: settings,
         extraOverrides: [
-          tankPresetRepositoryProvider.overrideWithValue(_Club15Presets()),
+          tankPresetRepositoryProvider.overrideWithValue(_DiverAPresets()),
+          // The presets belong to this diver alone (#3343).
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => 'diver-a',
+          ),
         ],
       );
       await tester.pump(const Duration(milliseconds: 400));
@@ -324,6 +330,18 @@ void main() {
       final dive = await tester.runAsync(() => repository.getDiveById(id));
       expect(dive!.tanks.first.volume, 15);
       expect(dive.tanks.first.presetName, 'club15');
+    });
+
+    testWidgets('the diver\'s own preset shadows a built-in default '
+        '(#3343)', (tester) async {
+      final id = await saveWithCustomDefault(
+        tester,
+        const DiveTank(id: ''),
+        presetName: 'al80',
+      );
+      final dive = await tester.runAsync(() => repository.getDiveById(id));
+      expect(dive!.tanks.first.volume, 12);
+      expect(dive.tanks.first.presetName, 'al80');
     });
 
     testWidgets('an identity-only tag keeps its id through a custom default '
@@ -540,21 +558,37 @@ void main() {
   });
 }
 
-class _Club15Presets extends TankPresetRepository {
+/// Custom presets owned by 'diver-a' only: `club15`, and an `al80` that
+/// shadows the built-in of that name with a 12 L steel cylinder.
+class _DiverAPresets extends TankPresetRepository {
+  static final _presets = {
+    'club15': TankPresetEntity(
+      id: 'custom-club15',
+      name: 'club15',
+      displayName: 'Club 15',
+      volumeLiters: 15,
+      workingPressureBar: 232,
+      material: TankMaterial.steel,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+    'al80': TankPresetEntity(
+      id: 'custom-al80',
+      name: 'al80',
+      displayName: 'AL80',
+      volumeLiters: 12,
+      workingPressureBar: 232,
+      material: TankMaterial.steel,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  };
+
   @override
-  Future<TankPresetEntity?> getPresetByName(String name) async =>
-      name == 'club15'
-      ? TankPresetEntity(
-          id: 'custom-club15',
-          name: 'club15',
-          displayName: 'Club 15',
-          volumeLiters: 15,
-          workingPressureBar: 232,
-          material: TankMaterial.steel,
-          createdAt: DateTime(2026),
-          updatedAt: DateTime(2026),
-        )
-      : null;
+  Future<TankPresetEntity?> getPresetByName(
+    String name, {
+    required String? diverId,
+  }) async => diverId == 'diver-a' ? _presets[name] : null;
 }
 
 /// Finds [equipmentId] for any tag, but only once [gate] opens.

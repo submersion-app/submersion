@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/certifications/presentation/certification_attention_navigation.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -415,12 +416,15 @@ class GaugeStrip extends ConsumerWidget {
           icon: Icons.cloud_upload_outlined,
           label: l10n.dashboard_gauges_uploadsPending(g.uploadsPending),
           tone: _Tone.warn,
-          onTap: () => context.push('/settings/media-storage/transfers'),
+          onTap: () => context.push('/settings/photos-media/uploads'),
         ),
       );
     }
 
-    if (_shown(hidden, HomeChipType.backup)) {
+    // Backups are sealed in demo mode (#3708), so the chip would only point
+    // at a page that cannot be used.
+    if (_shown(hidden, HomeChipType.backup) &&
+        !ref.watch(demoModeActiveProvider)) {
       final lastBackup = g.lastBackupTime;
       if (lastBackup == null) {
         chips.add(
@@ -486,6 +490,24 @@ class GaugeStrip extends ConsumerWidget {
               : () => runSyncNow(context, ref),
           // The settings page stays reachable from the chip that points at it.
           onLongPress: () => context.push('/settings/cloud-sync'),
+        ),
+      );
+    }
+
+    // A paired nearby device that cannot sync (issue #3731). Shown only when
+    // the diver has to act; a healthy or merely out-of-range device says
+    // nothing here.
+    final nearby = g.nearbyAttention;
+    if (_shown(hidden, HomeChipType.nearby) && nearby != null) {
+      chips.add(
+        _chip(
+          context,
+          icon: Icons.bluetooth_outlined,
+          label: nearby.more == 0
+              ? l10n.dashboard_gauges_nearby(nearby.name)
+              : l10n.dashboard_gauges_nearbyMore(nearby.name),
+          tone: _Tone.warn,
+          onTap: () => context.push('/settings/cloud-sync'),
         ),
       );
     }

@@ -427,6 +427,70 @@ void main() {
       },
     );
 
+    testWidgets('a typed MND puts its He in the He field and reports the tank '
+        '(issue #3660)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final builtInPresets = TankPresets.all
+          .map((p) => TankPresetEntity.fromBuiltIn(p))
+          .toList();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(builtInPresets),
+            ),
+            tankPresetsProvider.overrideWith(
+              (ref) => Future.value(builtInPresets),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: _RebuildingTankHost(
+                  initial: DiveTank(
+                    id: 'tank-mnd-he',
+                    volume: 11.1,
+                    workingPressure: 206.843,
+                    gasMix: GasMix(o2: 21, he: 35),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final mndField = find.ancestor(
+        of: find.text('MND'),
+        matching: find.byType(TextFormField),
+      );
+      await tester.ensureVisible(mndField);
+      // 40 m is 5 bar; the default 30 m END is 4 bar, so 20% He.
+      await tester.enterText(mndField, '40');
+      await tester.pumpAndSettle();
+
+      final heField = find.ancestor(
+        of: find.text('He'),
+        matching: find.byType(TextFormField),
+      );
+      expect(tester.widget<TextFormField>(heField).controller!.text, '20');
+      final host = tester.state<_RebuildingTankHostState>(
+        find.byType(_RebuildingTankHost),
+      );
+      expect(host.lastTank?.gasMix, const GasMix(o2: 21, he: 20));
+    });
+
     testWidgets(
       'an unreadable start pressure keeps the last typed value and shows '
       'the error (#1900)',

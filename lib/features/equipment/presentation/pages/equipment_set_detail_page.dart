@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/gear_figure.da
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   final String setId;
@@ -241,7 +242,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                           ),
                           if (set.description.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(
+                            MarkdownNotesView(
                               set.description,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(

@@ -81,13 +81,13 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 7 Logistics (operator, boat, captain, #3229)
+      // 8 Logistics (operator, boat, captain, #3229; site, #3657)
       // + 10 Conditions (surface conditions, #3229) + 6 Weather
       // + 6 Rebreather + 1 Buddies (my role, #1220) + 1 Notes
-      // + 2 statistics-exclusion gates (#526, #1272) = 33.
+      // + 2 statistics-exclusion gates (#526, #1272) = 34.
       // (dive type moved from a scalar gate to the collection lane, #414,
       // and so did course, #2515)
-      expect(find.byType(BulkFieldGate), findsNWidgets(33));
+      expect(find.byType(BulkFieldGate), findsNWidgets(34));
       // Courses moved to the membership editors (#2515).
       expect(find.text('Training Courses'), findsOneWidget);
       expect(find.text('Favorite'), findsOneWidget);

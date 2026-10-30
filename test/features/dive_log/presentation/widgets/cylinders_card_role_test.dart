@@ -145,7 +145,7 @@ void main() {
       );
     });
 
-    testWidgets('role and volume chips wrap on a narrow card', (tester) async {
+    testWidgets('role and size wrap on a narrow card', (tester) async {
       tester.view.physicalSize = const Size(260, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);

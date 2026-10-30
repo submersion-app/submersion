@@ -178,6 +178,11 @@ class Diver extends Equatable {
   final int? priorDiveTimeSeconds;
   final DateTime? divingSince;
 
+  /// Buddy card swap (issue #3728): a handle the diver may share on their
+  /// card, and their share choices as JSON (null means the defaults).
+  final String? socialHandle;
+  final String? buddyCardShare;
+
   const Diver({
     required this.id,
     required this.name,
@@ -200,6 +205,8 @@ class Diver extends Equatable {
     this.priorDiveCount,
     this.priorDiveTimeSeconds,
     this.divingSince,
+    this.socialHandle,
+    this.buddyCardShare,
   });
 
   /// Get initials for avatar display
@@ -285,6 +292,8 @@ class Diver extends Equatable {
     Object? priorDiveCount = _unset,
     Object? priorDiveTimeSeconds = _unset,
     Object? divingSince = _unset,
+    Object? socialHandle = _unset,
+    Object? buddyCardShare = _unset,
   }) {
     return Diver(
       id: id ?? this.id,
@@ -328,6 +337,16 @@ class Diver extends Equatable {
         this.divingSince,
         'divingSince',
       ),
+      socialHandle: _resolve<String?>(
+        socialHandle,
+        this.socialHandle,
+        'socialHandle',
+      ),
+      buddyCardShare: _resolve<String?>(
+        buddyCardShare,
+        this.buddyCardShare,
+        'buddyCardShare',
+      ),
     );
   }
 
@@ -354,5 +373,7 @@ class Diver extends Equatable {
     priorDiveCount,
     priorDiveTimeSeconds,
     divingSince,
+    socialHandle,
+    buddyCardShare,
   ];
 }

@@ -421,7 +421,7 @@ void main() {
           'Date,Time,Max Depth\n'
           '2024-01-15,10:00,20\n'
           '\n'
-          '15 Apr 2024,11:00,18\n';
+          'Spring 2024,11:00,18\n';
 
       final payload = await parser.parse(csvBytes(csv), options: options);
 

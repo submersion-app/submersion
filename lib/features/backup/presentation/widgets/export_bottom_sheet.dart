@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_note_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -27,7 +26,7 @@ class ExportBottomSheet extends StatefulWidget {
     required ValueChanged<String?> onSaveToFile,
     required ValueChanged<String?> onShare,
   }) {
-    final showShare = Platform.isIOS || Platform.isMacOS || Platform.isAndroid;
+    final showShare = platformHasShareSheet;
 
     showModalBottomSheet<void>(
       context: context,
@@ -92,7 +91,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  context.l10n.backup_export_bottomSheet_title,
+                  context.l10n.settings_backups_saveFile,
                   style: theme.textTheme.titleMedium,
                 ),
               ),
@@ -103,7 +102,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               ),
               ListTile(
                 leading: const Icon(Icons.save_alt),
-                title: Text(context.l10n.backup_export_saveToFile),
+                title: Text(context.l10n.settings_backups_saveToFolder),
                 subtitle: Text(context.l10n.backup_export_saveToFile_subtitle),
                 onTap: () => widget.onSaveToFile(_normalizedNote),
               ),

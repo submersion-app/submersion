@@ -267,8 +267,8 @@ void main() {
               DivePlansCompanion.insert(
                 id: 'plan-6',
                 name: 'Reef 18 m',
-                gfLow: 50,
-                gfHigh: 80,
+                gfLow: const Value(50),
+                gfHigh: const Value(80),
                 createdAt: 1000,
                 updatedAt: 1000,
               ),
@@ -347,8 +347,8 @@ void main() {
             DivePlansCompanion.insert(
               id: 'plan-1',
               name: 'Wreck 60 m',
-              gfLow: 50,
-              gfHigh: 80,
+              gfLow: const Value(50),
+              gfHigh: const Value(80),
               createdAt: 1000,
               updatedAt: 1000,
               hlc: const Value('0001-test-hlc'),

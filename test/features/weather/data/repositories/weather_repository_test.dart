@@ -113,6 +113,43 @@ void main() {
       expect(captured.airTemp, 30.0);
     });
 
+    test('writes onto the dive as it is after the fetch (#3513)', () async {
+      // While the request is out, the new dive's logbook rules tag it and
+      // append to its notes. The write must keep those, not put back the
+      // dive as it was read before the request.
+      final edited = testDive.copyWith(
+        notes: 'Rules ran',
+        diveTypeIds: const ['deep'],
+      );
+      var reads = 0;
+      when(
+        mockDiveRepository.getDiveById('dive-1'),
+      ).thenAnswer((_) async => reads++ == 0 ? testDive : edited);
+      when(
+        mockWeatherService.fetchWeather(
+          latitude: anyNamed('latitude'),
+          longitude: anyNamed('longitude'),
+          date: anyNamed('date'),
+          entryTime: anyNamed('entryTime'),
+        ),
+      ).thenAnswer((_) async => testWeatherData);
+      when(mockDiveRepository.updateDive(any)).thenAnswer((_) async {});
+
+      await weatherRepository.fetchAndSaveWeather(
+        diveId: 'dive-1',
+        latitude: 28.5,
+        longitude: -80.6,
+        dateTime: DateTime(2024, 6, 15, 10, 0),
+      );
+
+      final captured =
+          verify(mockDiveRepository.updateDive(captureAny)).captured.single
+              as Dive;
+      expect(captured.notes, 'Rules ran');
+      expect(captured.diveTypeIds, ['deep']);
+      expect(captured.windSpeed, 3.5);
+    });
+
     test('does not update dive when service returns null', () async {
       when(
         mockDiveRepository.getDiveById('dive-3'),

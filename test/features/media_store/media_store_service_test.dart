@@ -1,19 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
-import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
+
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/services/accounts/account_credentials_store.dart';
-import 'package:submersion/core/services/accounts/account_identity.dart';
+import 'package:submersion/core/database/database.dart' hide ConnectedAccount;
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_platform.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 
@@ -21,21 +26,8 @@ import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
 import '../../support/fake_keychain_storage.dart';
 
-/// Serves corrupted bytes on download: the probe write succeeds but the
-/// read-back does not match what was written.
-class _CorruptingStore extends InMemoryMediaObjectStore {
-  @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
-    await destination.writeAsBytes('garbage'.codeUnits, flush: true);
-  }
-}
-
 /// An iCloud container whose files never finish downloading (the native 12 s
-/// poll expires), as seen by the second device to connect while the first
+/// poll expires), as seen by the second device to attach while the first
 /// device's marker is still coming down from iCloud.
 class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
   _UndownloadablePlatform(super.root);
@@ -44,15 +36,34 @@ class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
   Future<bool> ensureDownloaded(String path) async => false;
 }
 
+/// Never serves the marker, however often it is asked.
+class _AlwaysTransientStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
+    throw const MediaStoreException(
+      'still downloading from iCloud: smv1/store.json',
+      kind: MediaStoreErrorKind.transient,
+    );
+  }
+}
+
+ConnectedAccount _row(String id, AccountKind kind) => ConnectedAccount(
+  id: id,
+  kind: kind,
+  label: kind == AccountKind.s3 ? 'dive-media @ minio' : kind.name,
+  createdAt: DateTime.utc(2026),
+  updatedAt: DateTime.utc(2026),
+);
+
 void main() {
-  late InMemoryMediaObjectStore fakeStore;
   late MediaStoreCredentialsStore credentials;
   late MediaStoreAttachState attachState;
   late MediaStoresRepository storesRepository;
-  late InMemoryKeychain accountKeychain;
-  late AccountCredentialsStore accountCredentials;
-  late ConnectedAccountsRepository accountsRepository;
-  late MediaStoreService service;
+  late AppDatabase db;
 
   final config = S3Config(
     endpoint: 'https://minio.example.com',
@@ -63,363 +74,219 @@ void main() {
   );
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
-    fakeStore = InMemoryMediaObjectStore();
     credentials = MediaStoreCredentialsStore(storage: InMemoryKeychain());
     attachState = MediaStoreAttachState(
       prefs: await SharedPreferences.getInstance(),
     );
     storesRepository = MediaStoresRepository();
-    accountKeychain = InMemoryKeychain();
-    accountCredentials = AccountCredentialsStore(storage: accountKeychain);
-    accountsRepository = ConnectedAccountsRepository();
-    service = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      storeFactory: (_) => fakeStore,
+  });
+
+  tearDown(tearDownTestDatabase);
+
+  MediaStoreService service({List<Duration> backoff = const []}) =>
+      MediaStoreService(
+        credentials: credentials,
+        attachState: attachState,
+        storesRepository: storesRepository,
+        mediaRepository: MediaRepository(),
+        markerRetryBackoff: backoff,
+      );
+
+  test('attaching creates the marker, attaches, and announces the store '
+      'with its account', () async {
+    final store = InMemoryMediaObjectStore();
+
+    final result = await service().attachToAccountRow(
+      _row('s3-media', AccountKind.s3),
+      store,
     );
-  });
 
-  tearDown(() async {
-    await tearDownTestDatabase();
-  });
-
-  test('connectS3 creates the marker, attaches, and writes the '
-      'descriptor', () async {
-    final result = await service.connectS3(config);
     expect(result.createdNewStore, isTrue);
-    expect(fakeStore.objects.containsKey('smv1/store.json'), isTrue);
+    expect(store.objects.containsKey('smv1/store.json'), isTrue);
     expect(await attachState.attachedStoreId(), result.storeId);
-    final active = await storesRepository.getActive();
-    expect(active!.providerType, 's3');
-    expect(active.displayHint, contains('dive-media'));
-    expect(await credentials.load(), isNotNull);
+    expect(await attachState.attachedAccountId(), 's3-media');
+    final active = (await storesRepository.getActive())!;
+    expect(active.providerType, 's3');
+    expect(active.displayHint, 'dive-media @ minio');
+    expect(active.accountId, 's3-media');
   });
 
-  test('connectS3 against an existing store adopts its storeId', () async {
-    final first = await service.connectS3(config);
-    await service.disconnect();
-    final second = await service.connectS3(config);
+  test('attaching to a store that already has a marker adopts it', () async {
+    final store = InMemoryMediaObjectStore();
+    final row = _row('db-row', AccountKind.dropbox);
+    final first = await service().attachToAccountRow(row, store);
+    await service().disconnect();
+
+    final second = await service().attachToAccountRow(row, store);
+
     expect(second.createdNewStore, isFalse);
     expect(second.storeId, first.storeId);
   });
 
-  test('connectS3 twice reuses one account row', () async {
-    await service.connectS3(config);
-    await service.connectS3(config);
-    final accounts = await accountsRepository.getAll();
-    expect(accounts.length, 1);
-    expect(accounts.single.kind, AccountKind.s3);
-  });
-
-  test('connectS3 uses the deterministic account id', () async {
-    await service.connectS3(config);
-    final accounts = await accountsRepository.getAll();
-    expect(
-      accounts.single.id,
-      accountIdFor(kind: AccountKind.s3, naturalKey: s3NaturalKey(config)),
-    );
-  });
-
-  test('connectS3 keeps two prefixes in one bucket separate', () async {
-    await service.connectS3(config);
-    final otherPrefix = S3Config(
-      endpoint: config.endpoint,
-      region: config.region,
-      bucket: config.bucket,
-      prefix: 'a-different-prefix/',
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    );
-    await service.connectS3(otherPrefix);
-    expect((await accountsRepository.getAll()).length, 2);
-  });
-
-  test('testConnection round-trips a probe object and cleans up', () async {
-    await service.testConnection(config);
-    expect(fakeStore.objects.keys.where((k) => k.contains('probe')), isEmpty);
-  });
-
-  test('testConnection fails when the read-back returns different '
-      'bytes', () async {
-    final corrupting = _CorruptingStore();
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      storeFactory: (_) => corrupting,
-    );
-    await expectLater(
-      svc.testConnection(config),
-      throwsA(
-        isA<MediaStoreException>().having(
-          (e) => e.message,
-          'message',
-          contains('read-back'),
+  test(
+    'an account with no usable store is refused, attaching nothing',
+    () async {
+      await expectLater(
+        service().attachToAccountRow(_row('db-row', AccountKind.dropbox), null),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.auth,
+          ),
         ),
-      ),
-    );
-    expect(
-      corrupting.objects.keys.where((k) => k.contains('probe')),
-      isEmpty,
-      reason: 'probe cleanup still runs on failure',
-    );
-  });
+      );
+      expect(await attachState.attachedStoreId(), isNull);
+    },
+  );
 
-  test('invalid config throws before touching the store', () async {
-    final bad = S3Config(
-      endpoint: 'https://minio.example.com',
-      bucket: '',
-      accessKeyId: 'AK',
-      secretAccessKey: 'SK',
+  test('detaching clears the legacy keys and the attachment, and keeps the '
+      'announcement', () async {
+    await credentials.save(config);
+    await service().attachToAccountRow(
+      _row('s3-media', AccountKind.s3),
+      InMemoryMediaObjectStore(),
     );
-    await expectLater(
-      service.connectS3(bad),
-      throwsA(isA<MediaStoreException>()),
-    );
-    expect(fakeStore.objects, isEmpty);
-  });
 
-  test('disconnect clears credentials and attach state', () async {
-    await service.connectS3(config);
-    await service.disconnect();
+    await service().disconnect();
+
     expect(await credentials.load(), isNull);
     expect(await attachState.attachedStoreId(), isNull);
+    expect(await storesRepository.getActive(), isNotNull);
   });
 
-  test('connectDropbox ensures the marker and records provider '
-      'type', () async {
-    final dropboxFake = InMemoryMediaObjectStore();
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      dropboxStoreFactory: () async => dropboxFake,
+  // A store announced before descriptors recorded their account: the
+  // attached device fills it in, so another device joins the right folder.
+  test(
+    'the attached account is recorded on a descriptor naming none',
+    () async {
+      final result = await service().attachToAccountRow(
+        _row('s3-media', AccountKind.s3),
+        InMemoryMediaObjectStore(),
+      );
+      await (db.update(db.mediaStores)
+            ..where((t) => t.id.equals(result.storeId)))
+          .write(const MediaStoresCompanion(accountId: Value(null)));
+      final before = (await storesRepository.getById(result.storeId))!;
+
+      await service().recordAttachedAccount();
+
+      final after = (await storesRepository.getById(result.storeId))!;
+      expect(before.accountId, isNull);
+      expect(after.accountId, 's3-media');
+    },
+  );
+
+  test('a recorded account is never overwritten', () async {
+    final result = await service().attachToAccountRow(
+      _row('s3-media', AccountKind.s3),
+      InMemoryMediaObjectStore(),
     );
-    final result = await svc.connectDropbox();
-    expect(result.createdNewStore, isTrue);
-    expect(dropboxFake.objects.containsKey('smv1/store.json'), isTrue);
-    expect(await attachState.attachedProviderType(), CloudProviderType.dropbox);
-    final active = await storesRepository.getActive();
-    expect(active!.providerType, 'dropbox');
+    await storesRepository.recordAccount(result.storeId, 'other');
+
     expect(
-      await credentials.load(),
-      isNull,
-      reason: 'managed providers never touch the S3 keychain entry',
+      (await storesRepository.getById(result.storeId))!.accountId,
+      's3-media',
     );
   });
 
-  test('connectICloud ensures the marker and records provider '
-      'type', () async {
-    final icloudFake = InMemoryMediaObjectStore();
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      icloudStoreFactory: () async => icloudFake,
-    );
-    final result = await svc.connectICloud();
-    expect(icloudFake.objects.containsKey('smv1/store.json'), isTrue);
-    expect(await attachState.attachedProviderType(), CloudProviderType.icloud);
-    expect((await storesRepository.getActive())!.displayHint, 'iCloud');
-    expect(result.storeId, isNotEmpty);
-  });
-
-  test('connect on an unavailable managed provider throws auth', () async {
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      googleDriveStoreFactory: () async => null,
-    );
-    await expectLater(
-      svc.connectGoogleDrive(),
-      throwsA(
-        isA<MediaStoreException>().having(
-          (e) => e.kind,
-          'kind',
-          MediaStoreErrorKind.auth,
+  // Issue #3482: stamps that name no store were made in the store the
+  // library announced. Moving to another store claims them for it first,
+  // or they would count as copies in the new one.
+  group('unclaimed stamps', () {
+    Future<String> stampedRow() async {
+      final media = MediaRepository();
+      final created = await media.createMedia(
+        MediaItem(
+          id: '',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          filePath: '/tmp/a.jpg',
+          takenAt: DateTime(2026),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
         ),
-      ),
-    );
-    expect(await attachState.attachedStoreId(), isNull);
-  });
-
-  test('buildMediaObjectStore returns an S3 store for a config and null '
-      'without one', () async {
-    final store = await buildMediaObjectStore(
-      CloudProviderType.s3,
-      s3Config: config,
-    );
-    expect(store, isNotNull);
-    expect(
-      await buildMediaObjectStore(CloudProviderType.s3),
-      isNull,
-      reason: 'no config means no S3 store',
-    );
-  });
-
-  test('buildMediaObjectStore yields null for managed providers that are '
-      'not authenticated in tests', () async {
-    // Dropbox/Drive/iCloud all lack live credentials in a unit test, so
-    // each arm resolves to an unusable (null) store rather than throwing.
-    for (final type in [
-      CloudProviderType.dropbox,
-      CloudProviderType.googledrive,
-      CloudProviderType.icloud,
-    ]) {
-      MediaObjectStore? store;
-      try {
-        store = await buildMediaObjectStore(type);
-      } catch (_) {
-        // A platform-channel absence is an acceptable "not available".
-        store = null;
-      }
-      expect(store, isNull, reason: '$type is unauthenticated here');
+      );
+      await media.stampRemoteUploaded(
+        created.id,
+        uploadedAt: DateTime.utc(2026),
+      );
+      return created.id;
     }
+
+    Future<String?> storeOf(String id) async =>
+        (await MediaRepository().getMediaById(id))!.remoteStoreId;
+
+    test(
+      'attaching to another store claims them for the one announced',
+      () async {
+        await storesRepository.upsertActive(
+          storeId: 'store-a',
+          providerType: 's3',
+          displayHint: 'old @ minio',
+        );
+        final id = await stampedRow();
+
+        final result = await service().attachToAccountRow(
+          _row('db-row', AccountKind.dropbox),
+          InMemoryMediaObjectStore(),
+        );
+
+        expect(result.storeId, isNot('store-a'));
+        expect(await storeOf(id), 'store-a');
+      },
+    );
+
+    test('rejoining the announced store claims nothing', () async {
+      final store = InMemoryMediaObjectStore();
+      final row = _row('db-row', AccountKind.dropbox);
+      await service().attachToAccountRow(row, store);
+      await service().disconnect();
+      final id = await stampedRow();
+
+      await service().attachToAccountRow(row, store);
+
+      expect(await storeOf(id), isNull);
+    });
+
+    test('a refused attach claims nothing', () async {
+      await storesRepository.upsertActive(
+        storeId: 'store-a',
+        providerType: 's3',
+        displayHint: 'old @ minio',
+      );
+      final id = await stampedRow();
+
+      await expectLater(
+        service().attachToAccountRow(_row('db-row', AccountKind.dropbox), null),
+        throwsA(isA<MediaStoreException>()),
+      );
+
+      expect(await storeOf(id), isNull);
+    });
   });
 
-  test('connectS3 creates a fresh S3 account with per-account and legacy '
-      'credentials', () async {
-    final result = await service.connectS3(config);
-    final account = await accountsRepository.getByKind(AccountKind.s3);
-    expect(account, isNotNull);
-    expect(account!.label, contains('dive-media'));
-    expect(
-      accountKeychain.values[AccountCredentialsStore.keyFor(account.id)],
-      isNotNull,
-      reason: 'config JSON goes to the per-account key',
-    );
-    expect(
-      await credentials.load(),
-      isNotNull,
-      reason: 'legacy blob still written for rollback',
-    );
-    expect(await attachState.attachedAccountId(), account.id);
-    expect(await attachState.attachedStoreId(), result.storeId);
-  });
-
-  test(
-    'connectDropbox creates the account and re-keys the sync auth blob',
-    () async {
-      accountKeychain.values['sync_dropbox_auth'] = '{"refreshToken":"rt"}';
-      final dropboxFake = InMemoryMediaObjectStore();
-      final svc = MediaStoreService(
-        credentials: credentials,
-        attachState: attachState,
-        storesRepository: storesRepository,
-        accountsRepository: accountsRepository,
-        accountCredentials: accountCredentials,
-        dropboxStoreFactory: () async => dropboxFake,
-      );
-      await svc.connectDropbox();
-      final account = await accountsRepository.getByKind(AccountKind.dropbox);
-      expect(account, isNotNull);
-      expect(
-        accountKeychain.values[AccountCredentialsStore.keyFor(account!.id)],
-        '{"refreshToken":"rt"}',
-      );
-      expect(await attachState.attachedAccountId(), account.id);
-    },
-  );
-
-  test('reconnecting Dropbox refreshes a stale per-account blob from the '
-      'rotated legacy key', () async {
-    // First connect stamps the per-account blob from the legacy key.
-    accountKeychain.values['sync_dropbox_auth'] = '{"refreshToken":"old"}';
-    final dropboxFake = InMemoryMediaObjectStore();
-    MediaStoreService svc() => MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      dropboxStoreFactory: () async => dropboxFake,
-    );
-    await svc().connectDropbox();
-    final account = (await accountsRepository.getByKind(AccountKind.dropbox))!;
-
-    // User re-links Dropbox in Cloud Sync: legacy blob rotates.
-    accountKeychain.values['sync_dropbox_auth'] = '{"refreshToken":"new"}';
-    await svc().connectDropbox();
-
-    expect(
-      accountKeychain.values[AccountCredentialsStore.keyFor(account.id)],
-      '{"refreshToken":"new"}',
-      reason: 'runtime reads only the per-account key; it must be refreshed',
-    );
-  });
-
-  test(
-    'disconnect detaches but keeps the account row and its credentials',
-    () async {
-      await service.connectS3(config);
-      final account = (await accountsRepository.getByKind(AccountKind.s3))!;
-      await service.disconnect();
-      expect(await attachState.attachedAccountId(), isNull);
-      expect(await accountsRepository.getById(account.id), isNotNull);
-      expect(
-        accountKeychain.values[AccountCredentialsStore.keyFor(account.id)],
-        isNotNull,
-        reason: 'the account may still drive sync',
-      );
-    },
-  );
-
-  test(
-    'connectS3 ignores a non-S3 accountId and creates a fresh account',
-    () async {
-      final wrongKind = await accountsRepository.create(
-        kind: AccountKind.dropbox,
-        label: 'DB',
-      );
-      await service.connectS3(config, accountId: wrongKind.id);
-
-      final s3Account = await accountsRepository.getByKind(AccountKind.s3);
-      expect(s3Account, isNotNull, reason: 'a fresh S3 account is created');
-      expect(await attachState.attachedAccountId(), s3Account!.id);
-      expect(
-        accountKeychain.values[AccountCredentialsStore.keyFor(wrongKind.id)],
-        isNull,
-        reason: 'S3 credentials never land under another kind key',
-      );
-    },
-  );
-
-  // Issue #1356: the phone connected while the Mac's store.json had not
+  // Issue #1356: the phone attached while the Mac's store.json had not
   // finished downloading, minted its own store id over it, and the Mac's
   // every preflight failed against a marker it did not recognise.
-  test('connectICloud does not mint a new store over a marker that is still '
+  test('iCloud does not mint a new store over a marker that is still '
       'downloading', () async {
-    final container = await Directory.systemTemp.createTemp('icloud_connect');
+    final container = await Directory.systemTemp.createTemp('icloud_attach');
     addTearDown(() => container.delete(recursive: true));
-    final marker = File('${container.path}/submersion-media/smv1/store.json')
-      ..createSync(recursive: true)
-      ..writeAsStringSync(
-        '{"storeId":"store-from-the-mac","formatVersion":1,"createdAt":""}',
-      );
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      icloudStoreFactory: () async =>
-          ICloudMediaObjectStore(platform: _UndownloadablePlatform(container)),
-    );
+    final marker =
+        File(p.join(container.path, 'submersion-media', 'smv1', 'store.json'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync(
+            '{"storeId":"store-from-the-mac","formatVersion":1,"createdAt":""}',
+          );
 
     await expectLater(
-      svc.connectICloud(),
+      service().attachToAccountRow(
+        _row('icloud-row', AccountKind.icloud),
+        ICloudMediaObjectStore(platform: _UndownloadablePlatform(container)),
+      ),
       throwsA(
         isA<MediaStoreException>().having(
           (e) => e.kind,
@@ -437,53 +304,32 @@ void main() {
     );
   });
 
-  // Connecting is a foreground action the user is watching, and on iCloud the
-  // container's copy of store.json may still be coming down when they tap
-  // Connect. Refusing on the first attempt would fail a connect that succeeds
-  // seconds later.
+  // Attaching is a foreground action the user is watching, and on iCloud the
+  // container's copy of store.json may still be coming down. Refusing on the
+  // first attempt would fail an attach that succeeds seconds later.
   test('a store that cannot serve the marker yet is retried, then '
-      'connects', () async {
-    final fake = InMemoryMediaObjectStore();
-    var attempts = 0;
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      markerRetryBackoff: const [Duration.zero, Duration.zero],
-      icloudStoreFactory: () async {
-        attempts++;
-        if (attempts == 1) {
-          fake.failNextWith = const MediaStoreException(
-            'still downloading from iCloud: smv1/store.json',
-            kind: MediaStoreErrorKind.transient,
-          );
-        }
-        return fake;
-      },
-    );
+      'attaches', () async {
+    final store = InMemoryMediaObjectStore()
+      ..failNextWith = const MediaStoreException(
+        'still downloading from iCloud: smv1/store.json',
+        kind: MediaStoreErrorKind.transient,
+      );
 
-    final result = await svc.connectICloud();
+    final result = await service(
+      backoff: const [Duration.zero, Duration.zero],
+    ).attachToAccountRow(_row('icloud-row', AccountKind.icloud), store);
 
     expect(result.storeId, isNotEmpty);
     expect(await attachState.attachedStoreId(), result.storeId);
   });
 
   test('a store that keeps refusing the marker gives up rather than '
-      'connecting', () async {
-    final svc = MediaStoreService(
-      credentials: credentials,
-      attachState: attachState,
-      storesRepository: storesRepository,
-      accountsRepository: accountsRepository,
-      accountCredentials: accountCredentials,
-      markerRetryBackoff: const [Duration.zero],
-      icloudStoreFactory: () async => _AlwaysTransientStore(),
-    );
-
+      'attaching', () async {
     await expectLater(
-      svc.connectICloud(),
+      service(backoff: const [Duration.zero]).attachToAccountRow(
+        _row('icloud-row', AccountKind.icloud),
+        _AlwaysTransientStore(),
+      ),
       throwsA(
         isA<MediaStoreException>().having(
           (e) => e.kind,
@@ -494,19 +340,35 @@ void main() {
     );
     expect(await attachState.attachedStoreId(), isNull);
   });
-}
 
-/// Never serves the marker, however often it is asked.
-class _AlwaysTransientStore extends InMemoryMediaObjectStore {
-  @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
-    throw const MediaStoreException(
-      'still downloading from iCloud: smv1/store.json',
-      kind: MediaStoreErrorKind.transient,
+  test('buildMediaObjectStore returns an S3 store for a config and null '
+      'without one', () async {
+    expect(
+      await buildMediaObjectStore(CloudProviderType.s3, s3Config: config),
+      isNotNull,
     );
-  }
+    expect(
+      await buildMediaObjectStore(CloudProviderType.s3),
+      isNull,
+      reason: 'no config means no S3 store',
+    );
+  });
+
+  test('buildMediaObjectStore yields null for managed providers that are '
+      'not authenticated in tests', () async {
+    for (final type in [
+      CloudProviderType.dropbox,
+      CloudProviderType.googledrive,
+      CloudProviderType.icloud,
+    ]) {
+      MediaObjectStore? store;
+      try {
+        store = await buildMediaObjectStore(type);
+      } catch (_) {
+        // A platform-channel absence is an acceptable "not available".
+        store = null;
+      }
+      expect(store, isNull, reason: '$type is unauthenticated here');
+    }
+  });
 }

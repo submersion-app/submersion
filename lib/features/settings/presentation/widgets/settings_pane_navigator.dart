@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
+import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
 
 /// Opening settings pages from a page that may sit in the desktop settings
 /// pane.
@@ -68,7 +71,15 @@ class SettingsPaneNavigator extends StatefulWidget {
   static Widget? pageAt(String location, Widget? Function(Uri) pageFor) {
     if (!location.startsWith(_root)) return null;
     final uri = Uri.tryParse(location);
-    return uri == null ? null : pageFor(uri);
+    if (uri == null) return null;
+    final page = pageFor(uri);
+    // Demo mode (issue #3708): pane pages skip the router's redirect, so a
+    // sealed page is swapped for its explanation here.
+    if (page != null && DemoModeGate.instance.isActive) {
+      final sealed = demoSealedFeatureFor(location);
+      if (sealed != null) return DemoUnavailablePage(feature: sealed);
+    }
+    return page;
   }
 
   /// The pages [uri] opens in a pane reading [queryParam], outermost first,

@@ -25,6 +25,11 @@ class TripPhotoViewerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaAsync = ref.watch(flatMediaListForTripProvider(tripId));
     return mediaAsync.when(
+      // A reload keeps the viewer: every media write (a colour save from its
+      // own Adjust color panel among them) reloads the trip's list, and the
+      // spinner would dispose the viewer, closing the panel and sending the
+      // diver back to the first photo (issue #3520).
+      skipLoadingOnReload: true,
       data: (mediaList) => MediaViewerPage(
         mediaList: mediaList,
         initialMediaId: initialMediaId,

@@ -44,7 +44,11 @@ final planComparisonProvider =
           ComparedPlan(
             plan: plan,
             outcome: outcome,
-            series: buildCanvasSeries(plan: plan, outcome: outcome),
+            series: buildCanvasSeries(
+              plan: plan,
+              outcome: outcome,
+              config: config,
+            ),
           ),
         );
       }

@@ -6,9 +6,19 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 
 /// A feature that depends on a connected account (issue #3388).
-enum AccountUsageKind { databaseSync, mediaStorage, sharedLibrary, lightroom }
+enum AccountUsageKind {
+  databaseSync,
+  mediaStorage,
+  sharedLibrary,
+  lightroom,
+
+  /// The account the backup copy is pinned to (spec section 8.2). A copy
+  /// that follows sync is covered by [databaseSync].
+  backupCopy,
+}
 
 /// One thing a connected account is used for on this device.
 class AccountUsage extends Equatable {
@@ -31,11 +41,15 @@ class AccountUsageSnapshot {
   const AccountUsageSnapshot({
     this.syncAccountId,
     this.mediaStoreAccountId,
+    this.backupCopyAccountId,
     this.libraryNamesByAccount = const {},
   });
 
   final String? syncAccountId;
   final String? mediaStoreAccountId;
+
+  /// The roster row the backup copy is pinned to while the copy is on.
+  final String? backupCopyAccountId;
 
   /// Library names per account id, each list sorted by name.
   final Map<String, List<String>> libraryNamesByAccount;
@@ -47,6 +61,8 @@ class AccountUsageSnapshot {
       const AccountUsage(AccountUsageKind.databaseSync),
     if (account.id == mediaStoreAccountId)
       const AccountUsage(AccountUsageKind.mediaStorage),
+    if (account.id == backupCopyAccountId)
+      const AccountUsage(AccountUsageKind.backupCopy),
     for (final name in libraryNamesByAccount[account.id] ?? const <String>[])
       AccountUsage(AccountUsageKind.sharedLibrary, libraryName: name),
     // The Lightroom account IS the connector: it exists only to drive it.
@@ -63,13 +79,16 @@ class AccountUsageService {
     required MediaStoreAttachState attachState,
     SyncRepository? syncRepository,
     SharedLibraryStore? libraries,
+    BackupPreferences? backupPreferences,
   }) : _attachState = attachState,
+       _backupPreferences = backupPreferences,
        _syncRepository = syncRepository ?? SyncRepository(),
        _libraries = libraries ?? SharedLibraryStore();
 
   final MediaStoreAttachState _attachState;
   final SyncRepository _syncRepository;
   final SharedLibraryStore _libraries;
+  final BackupPreferences? _backupPreferences;
 
   Future<AccountUsageSnapshot> load() async {
     // Independent reads: run them together.
@@ -92,8 +111,12 @@ class AccountUsageService {
         ifAbsent: () => [library.name],
       );
     }
+    final backup = _backupPreferences?.getSettings();
     return AccountUsageSnapshot(
       syncAccountId: syncAccountId,
+      backupCopyAccountId: (backup?.cloudBackupEnabled ?? false)
+          ? backup?.copyAccountId
+          : null,
       // Only account-layer attachments carry an id; the startup migration
       // gave every pre-account attachment one, so null means none attached.
       mediaStoreAccountId: attachedStoreId == null ? null : attachedAccountId,

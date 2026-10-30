@@ -65,14 +65,14 @@ void main() {
       const DiveSite(
         id: 'em-1',
         name: 'Boat Site',
-        entryMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
       ),
     );
     final site2 = await siteRepository.createSite(
       const DiveSite(
         id: 'em-2',
         name: 'Boat Site',
-        entryMethod: EntryMethod.shore,
+        entryMethods: [EntryMethod.shore],
       ),
     );
 
@@ -91,7 +91,7 @@ void main() {
     );
 
     // site1, the first non-empty candidate, wins initially.
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
 
     // Only entry method differs, so exactly one cycle button sits in the
     // Access & safety section.
@@ -101,8 +101,8 @@ void main() {
     await tester.tap(cycleButton);
     await tester.pumpAndSettle();
 
-    expect(find.text('Shore Entry'), findsOneWidget);
-    expect(find.text('Boat Entry'), findsNothing);
+    expect(find.text('Shore'), findsOneWidget);
+    expect(find.text('Boat'), findsNothing);
   });
 
   testWidgets('merge mode cycles exit method independently', (tester) async {
@@ -111,13 +111,17 @@ void main() {
     addTearDown(tester.view.reset);
 
     final site1 = await siteRepository.createSite(
-      const DiveSite(id: 'xm-1', name: 'Wall', exitMethod: EntryMethod.ladder),
+      const DiveSite(
+        id: 'xm-1',
+        name: 'Wall',
+        exitMethods: [EntryMethod.ladder],
+      ),
     );
     final site2 = await siteRepository.createSite(
       const DiveSite(
         id: 'xm-2',
         name: 'Wall',
-        exitMethod: EntryMethod.platform,
+        exitMethods: [EntryMethod.platform],
       ),
     );
 
@@ -152,10 +156,18 @@ void main() {
     addTearDown(tester.view.reset);
 
     final site1 = await siteRepository.createSite(
-      const DiveSite(id: 'ag-1', name: 'Pier', entryMethod: EntryMethod.jetty),
+      const DiveSite(
+        id: 'ag-1',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
     );
     final site2 = await siteRepository.createSite(
-      const DiveSite(id: 'ag-2', name: 'Pier', entryMethod: EntryMethod.jetty),
+      const DiveSite(
+        id: 'ag-2',
+        name: 'Pier',
+        entryMethods: [EntryMethod.jetty],
+      ),
     );
 
     await tester.pumpWidget(
@@ -173,6 +185,81 @@ void main() {
     );
 
     expect(find.text('Jetty/Dock'), findsOneWidget);
+    expect(cycleButtonFor('Entry Method'), findsNothing);
+  });
+
+  testWidgets('merge mode cycles whole entry lists (#2054)', (tester) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final site1 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-1',
+        name: 'Wall',
+        entryMethods: [EntryMethod.giantStride],
+      ),
+    );
+    final site2 = await siteRepository.createSite(
+      const DiveSite(
+        id: 'ml-2',
+        name: 'Wall',
+        entryMethods: [EntryMethod.backRoll, EntryMethod.giantStride],
+      ),
+    );
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: [site1.id, site2.id],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Giant Stride'), findsOneWidget);
+    await tester.tap(cycleButtonFor('Entry Method'));
+    await tester.pumpAndSettle();
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
+  });
+
+  testWidgets('equal lists give one candidate and no cycle button', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    for (final id in ['eq-1', 'eq-2']) {
+      await siteRepository.createSite(
+        DiveSite(
+          id: id,
+          name: 'Wall',
+          entryMethods: const [EntryMethod.backRoll, EntryMethod.giantStride],
+        ),
+      );
+    }
+
+    await tester.pumpWidget(
+      _buildMergePageHarness(
+        prefs: prefs,
+        siteRepository: siteRepository,
+        siteIds: const ['eq-1', 'eq-2'],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Entry Method'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Back Roll, Giant Stride'), findsOneWidget);
     expect(cycleButtonFor('Entry Method'), findsNothing);
   });
 }

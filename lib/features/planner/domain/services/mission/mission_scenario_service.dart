@@ -141,7 +141,11 @@ class MissionScenarioService {
       );
       if (!battery.withinReserve(
         burnFraction: fraction,
-        reserveFraction: mission.batteryReserveFraction,
+        // MissionEngine.compute resolves an unset reserve against the
+        // diver's Settings before calling here (issue #3552); the spec
+        // constant only covers a direct caller that skipped it.
+        reserveFraction:
+            mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
       )) {
         batteryShortfall.add(member.id);
       }
@@ -231,10 +235,13 @@ class MissionScenarioService {
       swimSpeed - (current?.speedMps ?? 0.0),
     );
     final shore = leg.shoreExit;
+    // Resolved against the diver's Settings by MissionEngine.compute (issue
+    // #3552); the spec constant only covers a direct caller that skipped it.
+    final walkSpeedMps = mission.walkSpeedMps ?? kDefaultWalkSpeedMps;
     final routes = <_SurfaceRoute>[
       (swimM: home.distanceHomeM, walkM: 0.0, viaShore: false, mps: homeMps),
       // A walk needs a walking speed; a shore right at the entry does not.
-      if (shore != null && (shore.walkM <= 0 || mission.walkSpeedMps > 0))
+      if (shore != null && (shore.walkM <= 0 || walkSpeedMps > 0))
         (
           swimM: shore.surfaceSwimM,
           walkM: shore.walkM,
@@ -259,7 +266,7 @@ class MissionScenarioService {
     }
     int seconds(_SurfaceRoute route) {
       final swim = route.swimM < kMinExitLegM ? 0.0 : route.swimM / route.mps;
-      final walk = route.walkM > 0 ? route.walkM / mission.walkSpeedMps : 0.0;
+      final walk = route.walkM > 0 ? route.walkM / walkSpeedMps : 0.0;
       return math.max(0, (swim + walk - 1e-6).ceil());
     }
 

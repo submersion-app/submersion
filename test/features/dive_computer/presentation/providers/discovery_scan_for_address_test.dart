@@ -171,4 +171,103 @@ void main() {
       },
     );
   });
+
+  // Issue #3710: a saved Bluetooth computer with no address on this device
+  // is looked for by make and model, which needs the whole window of devices
+  // a scan saw, not the first one.
+  group('DiscoveryNotifier.scanForWindow', () {
+    late _FakeHostApi hostApi;
+    late pigeon.DiveComputerService service;
+    late DiscoveryNotifier notifier;
+
+    setUp(() {
+      hostApi = _FakeHostApi();
+      service = pigeon.DiveComputerService(hostApi: hostApi);
+      notifier = DiscoveryNotifier(
+        service: service,
+        requiresRuntimePermissions: false,
+      );
+    });
+
+    tearDown(() {
+      notifier.dispose();
+    });
+
+    test('keeps scanning for the whole timeout, leaving every device seen '
+        'in the state', () async {
+      var done = false;
+      final pending = notifier
+          .scanForWindow(timeout: const Duration(milliseconds: 50))
+          .whenComplete(() => done = true);
+      await pumpEventQueue();
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      service.onDeviceDiscovered(_advert(_savedAddress));
+      await pumpEventQueue();
+      expect(done, isFalse, reason: 'a device seen does not end the window');
+      service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+
+      expect(await pending, isTrue, reason: 'the window ran its full length');
+      expect(notifier.state.discoveredDevices.map((d) => d.address), [
+        _savedAddress,
+        '11:22:33:44:55:66',
+      ]);
+      expect(hostApi.stopDiscoveryCalls, 1);
+      expect(notifier.state.isScanning, isFalse);
+    });
+
+    test('leaves the scan running when asked to', () async {
+      await notifier.scanForWindow(
+        timeout: const Duration(milliseconds: 20),
+        stopScanWhenDone: false,
+      );
+      expect(notifier.state.discoveredDevices, isEmpty);
+      expect(hostApi.stopDiscoveryCalls, 0);
+      expect(notifier.state.isScanning, isTrue);
+      await notifier.stopScan();
+    });
+
+    test('resolves without waiting when the scan cannot start', () async {
+      hostApi.startDiscoveryError = StateError('adapter unavailable');
+      final ranFull = await notifier
+          .scanForWindow(timeout: const Duration(minutes: 5))
+          .timeout(const Duration(seconds: 2));
+      expect(ranFull, isFalse);
+      expect(notifier.state.discoveredDevices, isEmpty);
+      expect(notifier.state.errorMessage, isNotNull);
+    });
+
+    test('reports a window that native discovery ended early', () async {
+      // iOS and macOS start discovery without error when Bluetooth is off or
+      // not allowed, then end it at once; Android does the same when the
+      // adapter has no BLE scanner. Only the early end says the search
+      // never really ran.
+      final pending = notifier.scanForWindow(
+        timeout: const Duration(minutes: 5),
+      );
+      await pumpEventQueue();
+      service.onDeviceDiscovered(_advert(_savedAddress));
+      service.onDiscoveryComplete();
+
+      expect(await pending.timeout(const Duration(seconds: 2)), isFalse);
+    });
+
+    test('a notifier disposed during the window finishes without '
+        'throwing', () async {
+      // The step that owns the scan can outlive the provider (issue #3369);
+      // the window must not read the disposed notifier's state.
+      final local = DiscoveryNotifier(
+        service: service,
+        requiresRuntimePermissions: false,
+      );
+      final pending = local.scanForWindow(
+        timeout: const Duration(milliseconds: 50),
+      );
+      await pumpEventQueue();
+      local.dispose();
+
+      await expectLater(pending, completes);
+      expect(hostApi.stopDiscoveryCalls, 1);
+    });
+  });
 }

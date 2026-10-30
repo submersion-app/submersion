@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -16,6 +17,9 @@ import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/core/services/notification_service.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 
 /// A document as the global list shows it.
 class DocumentListEntry {
@@ -58,8 +62,13 @@ class DocumentListEntry {
 
 typedef CardImages = ({Uint8List? front, Uint8List? back});
 
-/// A document and its pages, captured before an undoable delete.
-typedef DocumentSnapshotEntry = ({Document document, List<DocumentPage> pages});
+/// A document, its pages and its tag ids (issue #1970), captured before an
+/// undoable delete.
+typedef DocumentSnapshotEntry = ({
+  Document document,
+  List<DocumentPage> pages,
+  List<String> tagIds,
+});
 
 /// The documents store (issue #2613): documents, their pages, and the two
 /// read models other features build on (a diver's primary insurance and
@@ -94,6 +103,7 @@ class DocumentRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
+  final _tagLinks = TagLinkRepository(TagScope.documents);
   final _log = LoggerService.forClass(DocumentRepository);
 
   static const _docEntity = 'documents';
@@ -330,10 +340,12 @@ class DocumentRepository {
   /// Saves [document] and makes [pages] its exact page list, in order: new
   /// pages (empty id) are inserted, kept pages updated only when changed,
   /// missing ones deleted and tombstoned. A page with no bytes keeps its
-  /// stored content. One transaction.
+  /// stored content. [tagIds], when given, become the document's exact tag
+  /// set (issue #1970); null leaves its tags alone. One transaction.
   Future<Document> save(
     Document document,
     List<DocumentPage> pages, {
+    List<String>? tagIds,
     bool notify = true,
   }) async {
     final now = DateTime.now();
@@ -360,6 +372,9 @@ class DocumentRepository {
           localUpdatedAt: nowMs,
         );
         await _replacePages(id, pages, nowMs);
+        if (tagIds != null) {
+          await _tagLinks.replaceTags(id, tagIds, notify: false);
+        }
       });
       if (notify) SyncEventBus.notifyLocalChange();
       return doc;
@@ -515,6 +530,8 @@ class DocumentRepository {
       await (_db.delete(
         _db.documentPages,
       )..where((t) => t.documentId.isIn(chunk))).go();
+      // The cascade would remove the tag links too, but writes no tombstone.
+      await _tagLinks.deleteLinksFor(chunk);
       await (_db.delete(_db.documents)..where((t) => t.id.isIn(chunk))).go();
     }
     await _syncRepository.logDeletions(
@@ -606,17 +623,22 @@ class DocumentRepository {
     });
   }
 
-  /// The documents of [ownerIds] with their pages, for an undoable delete
-  /// to hand back to [restoreSnapshot].
+  /// The documents of [ownerIds] with their pages and tags, for an
+  /// undoable delete to hand back to [restoreSnapshot].
   Future<List<DocumentSnapshotEntry>> captureForOwners(
     DocumentOwnerKind kind,
     List<String> ownerIds,
   ) async {
-    final ids = (await _ownersOf(kind, ownerIds)).keys;
+    final ids = (await _ownersOf(kind, ownerIds)).keys.toList();
+    final tagIds = await _tagLinks.getTagIdsByItem(ids);
     return [
       for (final id in ids)
         if (await getById(id) case final doc?)
-          (document: doc, pages: await getPages(id)),
+          (
+            document: doc,
+            pages: await getPages(id),
+            tagIds: tagIds[id] ?? const <String>[],
+          ),
     ];
   }
 
@@ -627,9 +649,22 @@ class DocumentRepository {
   /// The delete's own tombstones are dropped from the local log, as a media
   /// restore does, so the next publish does not carry both a live row and
   /// its tombstone.
+  ///
+  /// Tags come back too, less any tag deleted since: a link to a missing tag
+  /// would fail the save.
   Future<void> restoreSnapshot(List<DocumentSnapshotEntry> snapshot) async {
+    final liveTags = await existingRowIds(_db, _db.tags, {
+      for (final entry in snapshot) ...entry.tagIds,
+    });
     for (final entry in snapshot) {
-      await save(entry.document, entry.pages);
+      await save(
+        entry.document,
+        entry.pages,
+        tagIds: [
+          for (final id in entry.tagIds)
+            if (liveTags.contains(id)) id,
+        ],
+      );
       await _syncRepository.removeDeletion(
         entityType: _docEntity,
         recordId: entry.document.id,

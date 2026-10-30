@@ -175,6 +175,7 @@ void main() {
         await PreDiveExcelExportService().saveToFile(
           sessions: const [],
           itemsBySession: const {},
+          sectionsBySession: const {},
           dateFormat: DateFormatPreference.yyyymmdd,
         ),
         target,
@@ -260,6 +261,7 @@ void main() {
         await PreDiveExcelExportService().saveToFile(
           sessions: const [],
           itemsBySession: const {},
+          sectionsBySession: const {},
           dateFormat: DateFormatPreference.yyyymmdd,
         ),
         isNull,

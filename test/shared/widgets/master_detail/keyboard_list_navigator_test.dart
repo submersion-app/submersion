@@ -579,4 +579,137 @@ void main() {
       findsOneWidget,
     );
   });
+
+  group('revealRow', () {
+    testWidgets('brings an unbuilt row to the top without moving the cursor', (
+      tester,
+    ) async {
+      final keys = [for (var i = 0; i < 300; i++) 'row$i'];
+      late BuildContext inside;
+      String? moved;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: KeyboardListNavigator(
+              keys: keys,
+              currentKey: null,
+              onMove: (key) => moved = key,
+              onActivate: (_) {},
+              child: Builder(
+                builder: (context) {
+                  inside = context;
+                  return ListView.builder(
+                    itemCount: keys.length,
+                    itemBuilder: (_, i) => KeyboardListItem(
+                      navigationKey: keys[i],
+                      child: SizedBox(
+                        height: 40 + (i % 3) * 10.0,
+                        child: Text(keys[i]),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      KeyboardListNavigator.revealRow(inside, 'row250');
+      await tester.pumpAndSettle();
+
+      expect(find.text('row250'), findsOneWidget);
+      final listTop = tester.getTopLeft(find.byType(ListView)).dy;
+      expect(tester.getTopLeft(find.text('row250')).dy, closeTo(listTop, 1));
+      expect(moved, isNull);
+    });
+  });
+
+  group('keepRowVisible', () {
+    final keys = [for (var i = 0; i < 300; i++) 'row$i'];
+    late BuildContext inside;
+    late ScrollController controller;
+    String? moved;
+
+    Future<void> pumpList(WidgetTester tester) async {
+      controller = ScrollController();
+      addTearDown(controller.dispose);
+      moved = null;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: KeyboardListNavigator(
+              keys: keys,
+              currentKey: null,
+              onMove: (key) => moved = key,
+              onActivate: (_) {},
+              child: Builder(
+                builder: (context) {
+                  inside = context;
+                  return ListView.builder(
+                    controller: controller,
+                    itemCount: keys.length,
+                    itemExtent: 50,
+                    itemBuilder: (_, i) => KeyboardListItem(
+                      navigationKey: keys[i],
+                      child: Text(keys[i]),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Rect list(WidgetTester tester) => tester.getRect(find.byType(ListView));
+    Rect row(WidgetTester tester, String key) => tester.getRect(
+      find.ancestor(
+        of: find.text(key),
+        matching: find.byType(KeyboardListItem),
+      ),
+    );
+
+    testWidgets('leaves a row in full view where it is', (tester) async {
+      await pumpList(tester);
+      controller.jumpTo(1000);
+      await tester.pump();
+
+      KeyboardListNavigator.keepRowVisible(inside, 'row25');
+      await tester.pumpAndSettle();
+
+      expect(controller.offset, 1000);
+      expect(moved, isNull);
+    });
+
+    testWidgets('scrolls a row cut off at the bottom just into view', (
+      tester,
+    ) async {
+      await pumpList(tester);
+      final rows = (list(tester).height / 50).floor();
+      controller.jumpTo(1025);
+      await tester.pump();
+      final key = 'row${20 + rows}';
+      expect(row(tester, key).bottom, greaterThan(list(tester).bottom));
+
+      KeyboardListNavigator.keepRowVisible(inside, key);
+      await tester.pumpAndSettle();
+
+      expect(row(tester, key).bottom, closeTo(list(tester).bottom, 0.5));
+      expect(moved, isNull);
+    });
+
+    testWidgets('builds an off-screen row and shows it whole', (tester) async {
+      await pumpList(tester);
+
+      KeyboardListNavigator.keepRowVisible(inside, 'row250');
+      await tester.pumpAndSettle();
+
+      final shown = row(tester, 'row250');
+      expect(shown.top, greaterThanOrEqualTo(list(tester).top - 0.5));
+      expect(shown.bottom, lessThanOrEqualTo(list(tester).bottom + 0.5));
+      expect(moved, isNull);
+    });
+  });
 }

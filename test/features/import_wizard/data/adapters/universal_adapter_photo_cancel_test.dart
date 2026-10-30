@@ -95,4 +95,40 @@ void main() {
       expect(count, 1);
     });
   });
+
+  group('photo progress (#3555)', () {
+    test('resolved photos count up to all of them, skipped ones too', () async {
+      final progress = <(int, int)>[];
+      await UniversalAdapter.attachResolvedPhotos(
+        media: [
+          for (var i = 0; i < 3; i++) {'filename': 'p$i.jpg', '_diveIndex': i},
+        ],
+        resolvedPathByIndex: const {0: 'p0.jpg', 1: 'p1.jpg', 2: 'p2.jpg'},
+        diveIdByIndex: const {0: 'dive-0', 1: 'dive-1', 2: 'dive-2'},
+        removedDiveIds: const {},
+        dives: const [{}, {}, {}],
+        selectedIndices: const {0, 2},
+        attach: (photo) async {},
+        onProgress: (current, total) => progress.add((current, total)),
+      );
+      expect(progress, [(0, 3), (1, 3), (2, 3), (3, 3)]);
+    });
+
+    test('bundled photos count up photo by photo', () async {
+      final progress = <(int, int)>[];
+      await UniversalAdapter.attachImportedPhotos(
+        photoPathsByBaseName: const {
+          'solo': ['a.jpg', 'b.jpg'],
+        },
+        diveIdByIndex: const {0: 'dive-solo'},
+        removedDiveIds: const {},
+        dives: const [{}],
+        files: const [],
+        singleFileName: 'solo.zxu',
+        attach: (file, diveId, diveStart) async {},
+        onProgress: (current, total) => progress.add((current, total)),
+      );
+      expect(progress, [(0, 2), (1, 2), (2, 2)]);
+    });
+  });
 }

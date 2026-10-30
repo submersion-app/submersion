@@ -22,6 +22,7 @@ import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart'
     show DeviceIdentityStatus;
@@ -33,10 +34,13 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 
 import 'helpers/fake_nfc.dart';
 import 'helpers/mock_providers.dart';
+import 'support/fake_nearby_link_manager.dart';
 
 /// A [SyncNotifier] stand-in whose state can be driven directly from a test,
 /// so the app-root `ref.listen` callback can be exercised through real state
@@ -123,6 +127,58 @@ class _DrivableSyncNotifier extends StateNotifier<SyncState>
     String recordId,
     ConflictResolution resolution,
   ) async {}
+}
+
+/// A sync whose every run waits until the test completes it.
+class _HeldSyncNotifier extends _DrivableSyncNotifier {
+  _HeldSyncNotifier() : super(const SyncState());
+
+  final runs = <Completer<void>>[];
+
+  @override
+  Future<void> performSync({bool auto = false}) {
+    final run = Completer<void>();
+    runs.add(run);
+    return run.future;
+  }
+}
+
+/// Shared libraries with nothing to sync.
+class _IdleLibrarySync extends SharedLibrarySyncNotifier {
+  _IdleLibrarySync(super.ref);
+
+  @override
+  Future<void> syncAll({bool auto = false}) async {}
+}
+
+/// Fixed sync behaviour settings, read once by the app root.
+class _FixedSyncBehavior extends StateNotifier<SyncBehaviorSettings>
+    implements SyncBehaviorNotifier {
+  _FixedSyncBehavior({required bool auto})
+    : super(
+        SyncBehaviorSettings(
+          autoSyncEnabled: auto,
+          syncOnLaunch: true,
+          syncOnResume: true,
+        ),
+      );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Records each storage cleanup pass the app root starts.
+class _RecordingCleanup implements StorageGcCoordinator {
+  final triggers = <StorageGcTrigger>[];
+
+  @override
+  Future<int> run(StorageGcTrigger trigger) async {
+    triggers.add(trigger);
+    return 0;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A [BackupOperationNotifier] stand-in so a test can drive the app-root
@@ -240,10 +296,12 @@ void main() {
     GoRouter? router,
     FakeNfcTagService? nfc,
     Key? scopeKey,
+    FakeNearbyLinkManager? nearby,
   }) async {
     final base = await getBaseOverrides(
       incomingLinks: links,
       nfcTagService: nfc,
+      nearbyLinkManager: nearby,
     );
     await tester.pumpWidget(
       ProviderScope(
@@ -878,6 +936,138 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pump();
     expect(await container.read(nfcSupportProvider.future), NfcSupport.enabled);
+  });
+
+  group('storage cleanup', () {
+    // An automatic cleanup that starts while a sync runs skips its cloud
+    // part, so started beside the launch or resume sync it never deleted.
+    List<Override> overrides(_RecordingCleanup cleanup, {required bool auto}) =>
+        [
+          storageGcCoordinatorProvider.overrideWithValue(cleanup),
+          syncBehaviorProvider.overrideWith(
+            (ref) => _FixedSyncBehavior(auto: auto),
+          ),
+          sharedLibrarySyncProvider.overrideWith(_IdleLibrarySync.new),
+        ];
+
+    testWidgets('waits for the launch sync to finish', (tester) async {
+      final sync = _HeldSyncNotifier();
+      final cleanup = _RecordingCleanup();
+      await pumpApp(
+        tester,
+        sync,
+        extraOverrides: overrides(cleanup, auto: true),
+      );
+      expect(sync.runs, hasLength(1));
+      expect(cleanup.triggers, isEmpty);
+
+      sync.runs.single.complete();
+      await tester.pump();
+
+      expect(cleanup.triggers, [StorageGcTrigger.launch]);
+    });
+
+    testWidgets('waits for the resume sync to finish', (tester) async {
+      final sync = _HeldSyncNotifier();
+      final cleanup = _RecordingCleanup();
+      await pumpApp(
+        tester,
+        sync,
+        extraOverrides: overrides(cleanup, auto: true),
+      );
+      sync.runs.single.complete();
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(sync.runs, hasLength(2));
+      expect(cleanup.triggers, [StorageGcTrigger.launch]);
+
+      sync.runs.last.complete();
+      await tester.pump();
+
+      expect(cleanup.triggers, [
+        StorageGcTrigger.launch,
+        StorageGcTrigger.resume,
+      ]);
+    });
+
+    testWidgets('runs at once when auto sync is off', (tester) async {
+      final sync = _HeldSyncNotifier();
+      final cleanup = _RecordingCleanup();
+      await pumpApp(
+        tester,
+        sync,
+        extraOverrides: overrides(cleanup, auto: false),
+      );
+
+      expect(sync.runs, isEmpty);
+      expect(cleanup.triggers, [StorageGcTrigger.launch]);
+    });
+  });
+
+  testWidgets('the nearby link follows the app into the background and back '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    expect(nearby.foreground, [true], reason: 'started at launch');
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    // Each backgrounding step may report; the link only has to end off.
+    expect(nearby.foreground.first, isTrue);
+    expect(nearby.foreground.skip(1), everyElement(isFalse));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(nearby.foreground.last, isTrue);
+  });
+
+  testWidgets('a window that only loses focus keeps the nearby link on '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    expect(nearby.foreground, [true]);
+
+    // Another app took the focus, or Control Center is pulled down: the
+    // window is still there, and a transfer must not end.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(nearby.foreground, everyElement(isTrue));
+  });
+
+  testWidgets('turning nearby sync off or on re-decides the radio '
+      '(issue #3731)', (tester) async {
+    final nearby = FakeNearbyLinkManager();
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      nearby: nearby,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    final before = nearby.refreshes;
+    await container
+        .read(syncBehaviorProvider.notifier)
+        .setNearbyAutoEnabled(false);
+    await tester.pump();
+    expect(nearby.refreshes, before + 1);
   });
 
   testWidgets('the iOS NFC sheet coming and going is not a return to the app', (

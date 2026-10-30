@@ -130,6 +130,16 @@ class _CylinderConfigEditPageState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // ReorderableListView draws a drag handle over each card's end edge on
+    // desktop; on mobile a long press drags and there is no handle.
+    final dragHandleShown = switch (Theme.of(context).platform) {
+      TargetPlatform.linux ||
+      TargetPlatform.macOS ||
+      TargetPlatform.windows => true,
+      TargetPlatform.android ||
+      TargetPlatform.iOS ||
+      TargetPlatform.fuchsia => false,
+    };
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     // Wishlist rebreathers (#2025) are not units a configuration can belong
     // to, except the one this configuration already names.
@@ -171,33 +181,40 @@ class _CylinderConfigEditPageState
                         ? l10n.cylinderConfigs_nameRequired
                         : null,
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String?>(
-                    // The equipment list loads asynchronously, so on the first
-                    // frame it is empty even when _equipmentId is set from the
-                    // route. A dropdown value with no matching item throws, so
-                    // fall back to the generic option until the unit appears
-                    // (also covers an owning unit that was deleted).
-                    initialValue:
-                        rebreathers.any((unit) => unit.id == _equipmentId)
-                        ? _equipmentId
-                        : null,
-                    decoration: InputDecoration(
-                      labelText: l10n.cylinderConfigs_forUnit,
-                    ),
-                    items: [
-                      DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(l10n.cylinderConfigs_noUnit),
+                  // Only a rebreather owner has a unit to tie a configuration
+                  // to (issue #3576). A configuration already tied to one
+                  // keeps the field even if that unit is gone, so it can be
+                  // made generic again.
+                  if (rebreathers.isNotEmpty || _equipmentId != null) ...[
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String?>(
+                      // The equipment list loads asynchronously, so on the first
+                      // frame it is empty even when _equipmentId is set from the
+                      // route. A dropdown value with no matching item throws, so
+                      // fall back to the generic option until the unit appears
+                      // (also covers an owning unit that was deleted).
+                      initialValue:
+                          rebreathers.any((unit) => unit.id == _equipmentId)
+                          ? _equipmentId
+                          : null,
+                      decoration: InputDecoration(
+                        labelText: l10n.cylinderConfigs_forUnit,
                       ),
-                      for (final EquipmentItem unit in rebreathers)
+                      items: [
                         DropdownMenuItem<String?>(
-                          value: unit.id,
-                          child: Text(unit.name),
+                          value: null,
+                          child: Text(l10n.cylinderConfigs_noUnit),
                         ),
-                    ],
-                    onChanged: (value) => setState(() => _equipmentId = value),
-                  ),
+                        for (final EquipmentItem unit in rebreathers)
+                          DropdownMenuItem<String?>(
+                            value: unit.id,
+                            child: Text(unit.name),
+                          ),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _equipmentId = value),
+                    ),
+                  ],
                   const Divider(height: 32),
                   ReorderableListView(
                     shrinkWrap: true,
@@ -213,10 +230,12 @@ class _CylinderConfigEditPageState
                       for (var i = 0; i < _items.length; i++)
                         Padding(
                           key: ValueKey(_items[i].id),
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: CylinderConfigItemEditor(
                             item: _items[i],
+                            number: i + 1,
                             units: units,
+                            reserveDragHandle: dragHandleShown,
                             onChanged: (updated) => setState(() {
                               final next = [..._items];
                               next[i] = updated;

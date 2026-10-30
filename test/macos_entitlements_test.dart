@@ -128,6 +128,21 @@ void main() {
         );
       });
 
+      test('$path lets nearby Apple devices connect in (issue #3728)', () {
+        // Multipeer Connectivity advertises the buddy card swap screen and
+        // accepts the other device's connection, which a sandboxed app may
+        // do only with network.server. Debug builds have always had it, so
+        // its loss would show only in signed release builds.
+        expect(
+          typesOf(path)['com.apple.security.network.server'],
+          'true',
+          reason:
+              'Without com.apple.security.network.server a sandboxed Mac '
+              'cannot be found for a buddy card swap over Multipeer '
+              '(issue #3728).',
+        );
+      });
+
       test('$path keeps the sandbox enabled', () {
         // Anchor for the assertion above: if a build ever turns the sandbox
         // off, the serial entitlement stops meaning what it claims to mean.

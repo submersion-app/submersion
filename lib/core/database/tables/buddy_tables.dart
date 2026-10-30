@@ -44,6 +44,22 @@ class Buddies extends Table {
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
 
+  /// v324 buddy card swap (issue #3728). [cardId] is the id of the person
+  /// whose card this buddy came from, so a later swap updates this buddy
+  /// rather than adding another. The `card*` figures are what that card
+  /// said, as of [cardReceivedAt]; only a card writes them.
+  TextColumn get cardId => text().nullable()();
+  TextColumn get socialHandle => text().nullable()();
+  IntColumn get cardDiveCount => integer().nullable()();
+
+  /// A year, like `divers.diving_since`.
+  IntColumn get cardDivingSince => integer().nullable()();
+
+  /// A calendar date: Unix ms of its midnight in wall-clock UTC, so every
+  /// time zone reads the same day back.
+  IntColumn get cardLastDive => integer().nullable()();
+  IntColumn get cardReceivedAt => integer().nullable()(); // Unix ms
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -113,6 +129,10 @@ class Certifications extends Table {
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
+
+  /// v324: the buddy card that created this row (issue #3728). Null for a
+  /// certification entered by hand, which a later card never touches.
+  TextColumn get cardId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

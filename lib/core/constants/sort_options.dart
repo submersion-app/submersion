@@ -41,6 +41,17 @@ enum SiteSortField {
   const SiteSortField(this.displayName, this.icon);
 }
 
+/// Sort fields for the full planned-dives list.
+enum DivePlanSortField {
+  date('Date', Icons.calendar_today),
+  depth('Max Depth', Icons.vertical_align_bottom),
+  name('Name', Icons.sort_by_alpha);
+
+  final String displayName;
+  final IconData icon;
+  const DivePlanSortField(this.displayName, this.icon);
+}
+
 /// Sort fields for Trips
 enum TripSortField {
   startDate('Start Date', Icons.flight_takeoff),

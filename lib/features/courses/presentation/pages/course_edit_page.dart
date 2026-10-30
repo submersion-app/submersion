@@ -16,6 +16,7 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class CourseEditPage extends ConsumerStatefulWidget {
   final String? courseId;
@@ -257,7 +258,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
           const SizedBox(height: 16),
 
           // Notes
-          TextFormField(
+          MarkdownNotesField(
             controller: _notesController,
             decoration: InputDecoration(
               labelText: context.l10n.courses_field_notes,

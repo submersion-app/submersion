@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -232,6 +233,28 @@ void main() {
       );
     },
   );
+
+  // Issue #3482: the sync account's row carries where it points, so a second
+  // device can sign in by typing only the secret.
+  test('an S3 sync account records its location', () async {
+    final s3Store = S3CredentialsStore(storage: InMemoryKeychain());
+    await s3Store.save(
+      S3Config(
+        endpoint: 'https://minio.home:9000',
+        bucket: 'dives',
+        accessKeyId: 'AKIA1',
+        secretAccessKey: 'shh',
+      ),
+    );
+    final account = await ensureAccountForProviderType(
+      CloudProviderType.s3,
+      repo,
+      s3Credentials: s3Store,
+    );
+    final location = (await repo.getById(account.id))!.location;
+    expect(location, isA<S3AccountLocation>());
+    expect((location! as S3AccountLocation).prefix, 'submersion-sync/');
+  });
 
   test('a persisted sync account of the same kind is preferred', () async {
     final s3Store = S3CredentialsStore(storage: InMemoryKeychain());

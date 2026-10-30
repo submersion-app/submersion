@@ -14,10 +14,12 @@ import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
 const kRefineBuddyFieldKey = ValueKey('refine-buddy-name');
 const kRefineSpeciesFieldKey = ValueKey('refine-species-search');
+const kRefineNoBuddySwitchKey = ValueKey('refine-no-buddy');
+const kRefineNoRoleSwitchKey = ValueKey('refine-no-role');
 
 /// The Refine panel's People and life group (#2773): buddy names (several,
-/// comma separated, with suggestions), dives with no buddy, and species
-/// sighted.
+/// comma separated, with suggestions), dives with no buddy, dives where the
+/// diver's own role is not set (#3622), and species sighted.
 class RefinePeopleGroup extends ConsumerStatefulWidget {
   const RefinePeopleGroup({
     super.key,
@@ -29,11 +31,17 @@ class RefinePeopleGroup extends ConsumerStatefulWidget {
   final ValueChanged<DiveFilterState> onChanged;
 
   /// The DiveFilterState fields this group edits (read by the axis guard).
-  static const fields = {'buddyNameFilter', 'noBuddyOnly', 'speciesIds'};
+  static const fields = {
+    'buddyNameFilter',
+    'noBuddyOnly',
+    'noRoleOnly',
+    'speciesIds',
+  };
 
   static int activeCount(DiveFilterState f) => [
     f.buddyNameFilter?.isNotEmpty ?? false,
     f.noBuddyOnly == true,
+    f.noRoleOnly == true,
     f.speciesIds.isNotEmpty,
   ].where((active) => active).length;
 
@@ -146,6 +154,7 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
               ),
         ),
         SwitchListTile(
+          key: kRefineNoBuddySwitchKey,
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.diveLog_filter_noBuddyOnly),
           subtitle: Text(l10n.diveLog_filter_showOnlyNoBuddy),
@@ -161,6 +170,17 @@ class _RefinePeopleGroupState extends ConsumerState<RefinePeopleGroup> {
               ),
             );
           },
+        ),
+        SwitchListTile(
+          key: kRefineNoRoleSwitchKey,
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.diveLog_filter_noRoleOnly),
+          subtitle: Text(l10n.diveLog_filter_showOnlyNoRole),
+          secondary: const Icon(Icons.badge_outlined),
+          value: d.noRoleOnly ?? false,
+          onChanged: (v) => widget.onChanged(
+            d.copyWith(noRoleOnly: v ? true : null, clearNoRoleOnly: !v),
+          ),
         ),
         RefineSubLabel(l10n.diveLog_filter_sectionSpecies),
         if (d.speciesIds.isNotEmpty)

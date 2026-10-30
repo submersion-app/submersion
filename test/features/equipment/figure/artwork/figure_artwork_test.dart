@@ -29,7 +29,12 @@ void main() {
     final bytes = <int>[];
     for (final file in files) {
       bytes.addAll(utf8.encode('${p.basename(file.path)}\n'));
-      bytes.addAll(file.readAsBytesSync());
+      // LF line endings, as the generator hashes them, so a CRLF checkout
+      // gets the same digest.
+      final text = file.readAsStringSync();
+      bytes.addAll(
+        utf8.encode(text.replaceAll('\r\n', '\n').replaceAll('\r', '\n')),
+      );
     }
     expect(
       figureArtworkDigest,

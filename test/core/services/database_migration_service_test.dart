@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_migration_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// Minimal location-service fake: the migration methods drive real temp
 /// files for everything except configuration/bookmark bookkeeping, which we
@@ -39,6 +41,11 @@ class _FakeLocation implements DatabaseLocationService {
 
   @override
   Future<void> resetToDefault() async {}
+
+  int switchMarks = 0;
+
+  @override
+  Future<void> markDatabaseSwitched() async => switchMarks++;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -74,11 +81,10 @@ void main() {
     }
   });
 
+  late _FakeLocation location;
+
   Future<DatabaseMigrationService> initServiceAt(String defaultDir) async {
-    final location = _FakeLocation(
-      currentPath: currentPath,
-      defaultDir: defaultDir,
-    );
+    location = _FakeLocation(currentPath: currentPath, defaultDir: defaultDir);
     await DatabaseService.instance.initialize(locationService: location);
     // Force the background executor to materialize the file so the pre-close
     // backup/copy have real bytes.
@@ -150,6 +156,31 @@ void main() {
     expect(one.read<int>('v'), 1);
   });
 
+  test('migrateToCustomFolder waits for a sync merging before it closes the '
+      'database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final service = await initServiceAt(p.join(root.path, 'default'));
+    final original = DatabaseService.instance.database;
+    final targetDir = p.join(root.path, 'target');
+    await Directory(targetDir).create(recursive: true);
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    var moved = false;
+    final moving = service
+        .migrateToCustomFolder(targetDir)
+        .then((_) => moved = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(moved, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+
+    merging.complete();
+    await sync;
+    await moving;
+    expect(DatabaseService.instance.databaseOrNull, isNot(same(original)));
+  });
+
   test('migrateToCustomFolder carries the security keyslot sidecar', () async {
     final service = await initServiceAt(p.join(root.path, 'default'));
     final targetDir = p.join(root.path, 'target');
@@ -200,6 +231,9 @@ void main() {
 
     expect(result.success, isTrue, reason: result.errorMessage);
     expect(DatabaseService.instance.currentPath, targetPath);
+    // Another dive log is open now: the storage cleanup must not trust what
+    // the last sync told it about the one it replaced.
+    expect(location.switchMarks, 1);
     final one = await DatabaseService.instance.database
         .customSelect('SELECT 1 AS v')
         .getSingle();

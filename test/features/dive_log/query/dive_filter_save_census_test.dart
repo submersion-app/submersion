@@ -50,6 +50,13 @@ void main() {
     'excludedFromStatsOnly': const DiveFilterState(excludedFromStatsOnly: true),
     'decoOnly': const DiveFilterState(decoOnly: false),
     'noBuddyOnly': const DiveFilterState(noBuddyOnly: true),
+    'noRoleOnly': const DiveFilterState(noRoleOnly: true),
+    'noEntryMethodOnly': const DiveFilterState(noEntryMethodOnly: true),
+    'noWaterType': const DiveFilterState(noWaterType: true),
+    'noWaterType with listed types': const DiveFilterState(
+      waterTypes: [WaterType.salt],
+      noWaterType: true,
+    ),
     'tagIds': const DiveFilterState(tagIds: ['g1', 'g2']),
     'weekdays': const DiveFilterState(weekdays: [1, 6]),
     'equipmentIds': const DiveFilterState(equipmentIds: ['e1']),

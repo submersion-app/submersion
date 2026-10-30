@@ -192,6 +192,51 @@ class ServiceScheduleRepository {
     }
   }
 
+  /// Sets each of [equipmentId]'s clocks named in [baselines] (service kind
+  /// id to date) to count from that date, as the clock's own dialog does
+  /// when the diver picks one (issue #3662), and clears the baseline of each
+  /// clock named in [cleared] that still holds the date given there. A kind
+  /// the item has no clock for is skipped. [notify] as for [createSchedule].
+  Future<void> applyBaselines(
+    String equipmentId,
+    Map<String, DateTime> baselines, {
+    Map<String, DateTime> cleared = const {},
+    bool notify = true,
+  }) async {
+    if (baselines.isEmpty && cleared.isEmpty) return;
+    final now = DateTime.now();
+    for (final schedule in await getSchedulesForEquipment(equipmentId)) {
+      final kindId = schedule.serviceKindId;
+      final updated = switch ((baselines[kindId], cleared[kindId])) {
+        (final DateTime date, _) => schedule.withBaseline(
+          date,
+          now: now,
+          picked: true,
+        ),
+        (null, final DateTime date) when schedule.anchorDate == date =>
+          schedule.withBaseline(null, now: now),
+        _ => null,
+      };
+      if (updated == null) continue;
+      await updateSchedule(updated, notify: notify);
+    }
+  }
+
+  /// Anchors every tank's VIP and hydro clock that has no baseline and no
+  /// service of its kind on the tank's inspection date: the v317 backfill
+  /// (issue #3662), for rows that reach the database without passing
+  /// through the equipment save, such as clocks restored from a backup
+  /// written before v317. Returns how many clocks it anchored.
+  Future<int> anchorFromInspectionDates() async {
+    final anchored = await _db.backfillTankInspectionBaselines();
+    if (anchored > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.serviceSchedules, kind: UpdateKind.update),
+      });
+    }
+    return anchored;
+  }
+
   /// The built-in service kinds [diverId] hid from the pickers (issue #401).
   /// Read straight from diver_settings, as [getDueSoonWindowDays] does, so
   /// equipment creation does not depend on the settings notifier.

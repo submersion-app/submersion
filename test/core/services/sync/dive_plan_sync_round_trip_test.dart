@@ -16,8 +16,8 @@ DivePlansCompanion _plan(String id) {
   return DivePlansCompanion.insert(
     id: id,
     name: 'Wreck 60 m',
-    gfLow: 50,
-    gfHigh: 80,
+    gfLow: const Value(50),
+    gfHigh: const Value(80),
     createdAt: now,
     updatedAt: now,
     mode: const Value('oc'),

@@ -11,7 +11,7 @@ import 'package:submersion/features/site_types/presentation/site_type_display.da
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/built_in_show_column.dart';
 
-/// Settings > Manage Data > Site Types (issue #1765): the built-in types,
+/// Settings > Manage > Dives > Site Types (issue #1765): the built-in types,
 /// read-only, and the diver's custom types with inline edit and delete. Uses
 /// the Manage-page shape shared with Dive Roles and Dive Types: a lower-right
 /// extended FAB to add, two icon actions per editable row.

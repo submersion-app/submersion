@@ -6,6 +6,8 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/features/shared_library/presentation/providers/library_connection_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// The library's description, which an owner edits with its name
 /// (issue #3389). Every member's device reads both at its next sync.
@@ -37,7 +39,7 @@ class LibraryAboutSection extends ConsumerWidget {
       subtitle: description == null
           ? null
           : Text(
-              description,
+              markdownToPlainText(description),
               maxLines: descriptionLines,
               overflow: TextOverflow.ellipsis,
             ),
@@ -134,7 +136,7 @@ class _DetailsDialogState extends State<_DetailsDialog> {
                     : null,
               ),
               const SizedBox(height: 8),
-              TextFormField(
+              MarkdownNotesField(
                 controller: _description,
                 minLines: 2,
                 maxLines: 5,

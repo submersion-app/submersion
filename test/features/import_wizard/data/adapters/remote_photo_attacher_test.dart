@@ -168,6 +168,7 @@ void main() {
 
   test('an error that stops the run fails every remaining photo', () async {
     var downloads = 0;
+    final progress = <(int, int)>[];
     final outcome = await attachRemotePhotos(
       photosBySourceUuid: {
         'divelogs-1': [_photo('a.jpg'), _photo('b.jpg')],
@@ -186,8 +187,77 @@ void main() {
       },
       attach: (file, diveId, diveStart) async {},
       stopOn: (error) => error is StateError,
+      onProgress: (current, total) => progress.add((current, total)),
     );
     expect(downloads, 1);
     expect(outcome, (attached: 0, failed: 3));
+    // The photos the stop gave up on count as done, so the count ends full.
+    expect(progress.last, (3, 3));
+  });
+
+  test('reports progress before the first and after every photo', () async {
+    final progress = <(int, int)>[];
+    await attachRemotePhotos(
+      photosBySourceUuid: {
+        'divelogs-1': [_photo('a.jpg'), _photo('bad.jpg')],
+        'divelogs-2': [_photo('c.jpg')],
+      },
+      diveIdByIndex: const {0: 'dive-1', 1: 'dive-2'},
+      removedDiveIds: const {},
+      dives: [
+        {'sourceUuid': 'divelogs-1'},
+        {'sourceUuid': 'divelogs-2'},
+      ],
+      diveStartById: const {},
+      download: (url) async {
+        if (url.path.endsWith('bad.jpg')) throw StateError('404');
+        return Uint8List.fromList([1]);
+      },
+      attach: (file, diveId, diveStart) async {},
+      onProgress: (current, total) => progress.add((current, total)),
+    );
+    // A failed photo still moves the count on.
+    expect(progress, [(0, 3), (1, 3), (2, 3), (3, 3)]);
+  });
+
+  test('reports no progress when there is nothing to download', () async {
+    final progress = <(int, int)>[];
+    await attachRemotePhotos(
+      photosBySourceUuid: {
+        'divelogs-1': [_photo('a.jpg')],
+      },
+      diveIdByIndex: const {0: 'dive-1'},
+      removedDiveIds: const {'dive-1'},
+      dives: [
+        {'sourceUuid': 'divelogs-1'},
+      ],
+      diveStartById: const {},
+      download: (url) async => fail('nothing to download'),
+      attach: (file, diveId, diveStart) async {},
+      onProgress: (current, total) => progress.add((current, total)),
+    );
+    expect(progress, isEmpty);
+  });
+
+  test('a temp folder that cannot be made costs only the photos', () async {
+    final progress = <(int, int)>[];
+    final outcome = await attachRemotePhotos(
+      photosBySourceUuid: {
+        'divelogs-1': [_photo('a.jpg'), _photo('b.jpg')],
+      },
+      diveIdByIndex: const {0: 'dive-1'},
+      removedDiveIds: const {},
+      dives: [
+        {'sourceUuid': 'divelogs-1'},
+      ],
+      diveStartById: const {},
+      download: (url) async => fail('nothing to stage it in'),
+      attach: (file, diveId, diveStart) async {},
+      onProgress: (current, total) => progress.add((current, total)),
+      createTempRoot: () async =>
+          throw const FileSystemException('No space left on device'),
+    );
+    expect(outcome, (attached: 0, failed: 2));
+    expect(progress.last, (2, 2));
   });
 }

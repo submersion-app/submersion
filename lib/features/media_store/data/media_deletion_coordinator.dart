@@ -206,7 +206,9 @@ class MediaDeletionCoordinator {
       mediaId: id,
       contentHash: hash,
       originalExt: StoreKeys.extensionFor(item.originalFilename),
-      renditionExt: item.mediaType == MediaType.video ? 'mp4' : 'jpg',
+      renditionExt: StoreKeys.renditionExtension(
+        isVideo: item.mediaType == MediaType.video,
+      ),
     );
     return true;
   }

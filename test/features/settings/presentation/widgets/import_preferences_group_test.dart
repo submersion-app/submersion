@@ -54,4 +54,65 @@ void main() {
       expect(notifier.state.autoTagImports, isFalse);
     });
   });
+  group('downloads follow the computer owner switch (issue #2050)', () {
+    Finder ownerSwitch() => find.widgetWithText(
+      SwitchListTile,
+      "Add downloads to the computer's owner",
+    );
+
+    testWidgets('is on by default', (tester) async {
+      await tester.pumpWidget(host(MockSettingsNotifier()));
+      await tester.pumpAndSettle();
+
+      expect(ownerSwitch(), findsOneWidget);
+      expect(tester.widget<SwitchListTile>(ownerSwitch()).value, isTrue);
+    });
+
+    testWidgets('toggling it records off', (tester) async {
+      final notifier = MockSettingsNotifier();
+      await tester.pumpWidget(host(notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(ownerSwitch());
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.downloadsFollowComputerOwner, isFalse);
+    });
+  });
+
+  group('skip unused bailout gases switch (issue #3668)', () {
+    Finder unusedGasSwitch() =>
+        find.widgetWithText(SwitchListTile, 'Skip unused bailout gases');
+
+    testWidgets('is off by default', (tester) async {
+      await tester.pumpWidget(host(MockSettingsNotifier()));
+      await tester.pumpAndSettle();
+
+      expect(unusedGasSwitch(), findsOneWidget);
+      expect(tester.widget<SwitchListTile>(unusedGasSwitch()).value, isFalse);
+    });
+
+    testWidgets('sits directly below tank pressure at surfacing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(MockSettingsNotifier()));
+      await tester.pumpAndSettle();
+
+      final surfacing = tester.getRect(
+        find.widgetWithText(SwitchListTile, 'Tank pressure at surfacing'),
+      );
+      expect(tester.getRect(unusedGasSwitch()).top, surfacing.bottom);
+    });
+
+    testWidgets('toggling it records on', (tester) async {
+      final notifier = MockSettingsNotifier();
+      await tester.pumpWidget(host(notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(unusedGasSwitch());
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.omitUnusedOcGases, isTrue);
+    });
+  });
 }

@@ -71,27 +71,37 @@ def runs_page(*runs):
     return json.dumps([{"workflow_runs": list(runs)}])
 
 
+def _view(texts):
+    return json.dumps(
+        {"body": texts[0] if texts else "", "comments": [{"body": t} for t in texts[1:]]}
+    )
+
+
 class FakeGh:
     """Records every gh invocation and answers from a scripted table.
 
     `responses` maps a command prefix (tuple of leading args) to the stdout
     string or an exception instance to raise. The longest prefix wins.
+    `issues` is the issue listing, open and closed alike; `issue_texts` is
+    the body then comments every `issue view` returns, and `issue_views`
+    overrides that per issue number.
     """
 
-    def __init__(self, runs=(), open_issues=(), issue_texts=(), responses=None):
+    def __init__(
+        self, runs=(), issues=(), issue_texts=(), issue_views=None, responses=None
+    ):
         self.calls = []
         self.responses = {
             ("api", "--paginate", "--slurp", f"repos/{REPO}/actions/workflows"):
                 json.dumps([WORKFLOWS]),
             ("api", "--paginate", "--slurp", f"repos/{REPO}/actions/workflows/234706444/runs"):
                 runs_page(*runs),
-            ("issue", "list"): json.dumps(list(open_issues)),
-            ("issue", "view"): json.dumps(
-                {"body": issue_texts[0] if issue_texts else "",
-                 "comments": [{"body": t} for t in issue_texts[1:]]}
-            ),
+            ("issue", "list"): list(issues),
+            ("issue", "view"): _view(issue_texts),
             ("issue", "create"): f"https://github.com/{REPO}/issues/2800\n",
         }
+        for number, texts in (issue_views or {}).items():
+            self.responses[("issue", "view", str(number))] = _view(texts)
         self.responses.update(responses or {})
 
     def __call__(self, args):
@@ -103,6 +113,20 @@ class FakeGh:
                 answer = self.responses[prefix]
                 if isinstance(answer, Exception):
                     raise answer
+                if isinstance(answer, list):
+                    # An issue listing answers with the issues in the state
+                    # it asks for, and updated since the date its search
+                    # names, as gh does.
+                    state = args[args.index("--state") + 1].upper()
+                    search = args[args.index("--search") + 1] if "--search" in args else ""
+                    since = search.removeprefix("updated:>=")
+                    answer = json.dumps(
+                        [
+                            i for i in answer
+                            if (state == "ALL" or i["state"] == state)
+                            and i["updatedAt"][:10] >= since
+                        ]
+                    )
                 return answer
         return ""
 
@@ -120,8 +144,26 @@ def _quiet(fn, *args, **kwargs):
     return result, out.getvalue()
 
 
-OPEN_ALERT = {"number": 2790, "body": f"{alert.MARKER}\nDependabot is failing."}
-UNRELATED = {"number": 2611, "body": "CI: a green pre-push hook can still redden main"}
+OPEN_ALERT = {
+    "number": 2790, "state": "OPEN", "updatedAt": "2026-10-16T13:17:00Z",
+    "body": f"{alert.MARKER}\nDependabot is failing.",
+}
+UNRELATED = {
+    "number": 2611, "state": "OPEN", "updatedAt": "2026-10-16T09:00:00Z",
+    "body": "CI: a green pre-push hook can still redden main",
+}
+# An earlier alert, closed (by hand or by a fix PR's "Closes") while the run
+# it reported was still inside the lookback (#3720).
+CLOSED_ALERT = {
+    "number": 2780, "state": "CLOSED", "updatedAt": "2026-10-14T14:54:00Z",
+    "body": f"{alert.MARKER}\n{alert.FAILED_RUN.format(BUNDLER_RED['id'])}",
+}
+# A closed alert last touched before the lookback cannot hold a record of any
+# run inside it, so it is never read.
+OLD_CLOSED_ALERT = {
+    "number": 2600, "state": "CLOSED", "updatedAt": "2026-08-01T13:17:00Z",
+    "body": f"{alert.MARKER}\nDependabot is failing.",
+}
 
 
 class StreamKeyTest(unittest.TestCase):
@@ -171,7 +213,7 @@ class FailingStreamsTest(unittest.TestCase):
 
 class RunTest(unittest.TestCase):
     def test_a_failure_with_no_open_alert_opens_one(self):
-        gh = FakeGh(runs=[BUNDLER_RED, PUB_GREEN], open_issues=[UNRELATED])
+        gh = FakeGh(runs=[BUNDLER_RED, PUB_GREEN], issues=[UNRELATED])
         code, out = _quiet(alert.run, CONTEXT, gh, NOW)
         self.assertEqual(code, 0)
         (create,) = gh.commands("issue", "create")
@@ -191,7 +233,7 @@ class RunTest(unittest.TestCase):
     def test_a_new_failure_comments_on_the_open_alert(self):
         gh = FakeGh(
             runs=[BUNDLER_RED, EXCON_RED],
-            open_issues=[OPEN_ALERT],
+            issues=[OPEN_ALERT],
             issue_texts=[OPEN_ALERT["body"] + "\n" + alert.FAILED_RUN.format(EXCON_RED["id"])],
         )
         _quiet(alert.run, CONTEXT, gh, NOW)
@@ -208,7 +250,7 @@ class RunTest(unittest.TestCase):
         # A daily check must not comment every day on the same red run.
         gh = FakeGh(
             runs=[BUNDLER_RED],
-            open_issues=[OPEN_ALERT],
+            issues=[OPEN_ALERT],
             issue_texts=[OPEN_ALERT["body"], alert.FAILED_RUN.format(BUNDLER_RED["id"])],
         )
         _, out = _quiet(alert.run, CONTEXT, gh, NOW)
@@ -217,15 +259,114 @@ class RunTest(unittest.TestCase):
         self.assertEqual(gh.commands("issue", "close"), [])
         self.assertIn("already reported", out)
 
+    def test_a_run_reported_on_a_closed_alert_does_not_reopen_it(self):
+        # #3705 closed #3495 while its runs were still red in the lookback,
+        # and the next daily check opened #3720 reporting the same runs.
+        gh = FakeGh(
+            runs=[BUNDLER_RED, PUB_GREEN],
+            issues=[CLOSED_ALERT, UNRELATED],
+            issue_views={CLOSED_ALERT["number"]: [CLOSED_ALERT["body"]]},
+        )
+        _, out = _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "create"), [])
+        self.assertEqual(gh.commands("issue", "comment"), [])
+        self.assertEqual(gh.commands("issue", "close"), [])
+        self.assertEqual(gh.commands("issue", "edit"), [])
+        self.assertIn("already reported", out)
+
+    def test_a_run_reported_in_a_closed_alerts_comment_counts(self):
+        gh = FakeGh(
+            runs=[EXCON_RED],
+            issues=[CLOSED_ALERT],
+            issue_views={
+                CLOSED_ALERT["number"]: [
+                    CLOSED_ALERT["body"], alert.FAILED_RUN.format(EXCON_RED["id"]),
+                ],
+            },
+        )
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "create"), [])
+
+    def test_a_new_failure_after_a_closed_alert_opens_one_with_only_it(self):
+        gh = FakeGh(
+            runs=[BUNDLER_RED, EXCON_RED],
+            issues=[CLOSED_ALERT],
+            issue_views={CLOSED_ALERT["number"]: [CLOSED_ALERT["body"]]},
+        )
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        (create,) = gh.commands("issue", "create")
+        body = _value(create, "--body")
+        self.assertIn(alert.FAILED_RUN.format(EXCON_RED["id"]), body)
+        self.assertNotIn(alert.FAILED_RUN.format(BUNDLER_RED["id"]), body)
+
+    def test_the_open_alert_skips_a_run_a_closed_alert_reported(self):
+        gh = FakeGh(
+            runs=[BUNDLER_RED, EXCON_RED],
+            issues=[OPEN_ALERT, CLOSED_ALERT],
+            issue_views={
+                OPEN_ALERT["number"]: [OPEN_ALERT["body"]],
+                CLOSED_ALERT["number"]: [CLOSED_ALERT["body"]],
+            },
+        )
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "create"), [])
+        (comment,) = gh.commands("issue", "comment")
+        self.assertEqual(comment[2], str(OPEN_ALERT["number"]))
+        body = _value(comment, "--body")
+        self.assertIn(alert.FAILED_RUN.format(EXCON_RED["id"]), body)
+        self.assertNotIn(alert.FAILED_RUN.format(BUNDLER_RED["id"]), body)
+
+    def test_the_open_alert_is_the_oldest_open_one_not_a_closed_one(self):
+        older_closed = dict(CLOSED_ALERT, number=2700)
+        gh = FakeGh(runs=[EXCON_RED], issues=[OPEN_ALERT, older_closed])
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "create"), [])
+        (comment,) = gh.commands("issue", "comment")
+        self.assertEqual(comment[2], str(OPEN_ALERT["number"]))
+
+    def test_open_and_recently_closed_alerts_are_listed_apart(self):
+        # One listing of every state would let old closed ci issues push the
+        # open alert past --limit, and a duplicate alert would open.
+        gh = FakeGh(runs=[BUNDLER_RED])
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        open_listing, closed_listing = gh.commands("issue", "list")
+        self.assertEqual(_value(open_listing, "--state"), "open")
+        self.assertNotIn("--search", open_listing)
+        self.assertEqual(_value(closed_listing, "--state"), "closed")
+        self.assertEqual(_value(closed_listing, "--search"), "updated:>=2026-09-12")
+
+    def test_a_closed_alert_older_than_the_lookback_is_not_read(self):
+        gh = FakeGh(runs=[BUNDLER_RED], issues=[OLD_CLOSED_ALERT])
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "view"), [])
+        self.assertEqual(len(gh.commands("issue", "create")), 1)
+
+    def test_an_unrelated_issue_is_never_read(self):
+        gh = FakeGh(runs=[BUNDLER_RED], issues=[UNRELATED])
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "view"), [])
+
+    def test_a_closed_alert_does_not_block_closing_the_open_one(self):
+        gh = FakeGh(runs=[BUNDLER_GREEN, PUB_GREEN], issues=[CLOSED_ALERT, OPEN_ALERT])
+        _quiet(alert.run, CONTEXT, gh, NOW)
+        (close,) = gh.commands("issue", "close")
+        self.assertEqual(close[2], str(OPEN_ALERT["number"]))
+
+    def test_all_green_with_only_a_closed_alert_closes_nothing(self):
+        gh = FakeGh(runs=[BUNDLER_GREEN, PUB_GREEN], issues=[CLOSED_ALERT])
+        _, out = _quiet(alert.run, CONTEXT, gh, NOW)
+        self.assertEqual(gh.commands("issue", "close"), [])
+        self.assertIn("no alert is open", out)
+
     def test_all_green_closes_the_open_alert(self):
-        gh = FakeGh(runs=[BUNDLER_GREEN, BUNDLER_RED, PUB_GREEN], open_issues=[OPEN_ALERT])
+        gh = FakeGh(runs=[BUNDLER_GREEN, BUNDLER_RED, PUB_GREEN], issues=[OPEN_ALERT])
         _quiet(alert.run, CONTEXT, gh, NOW)
         (close,) = gh.commands("issue", "close")
         self.assertEqual(close[2], "2790")
         self.assertIn("succeeded", _value(close, "--comment"))
 
     def test_all_green_with_no_alert_does_nothing(self):
-        gh = FakeGh(runs=[BUNDLER_GREEN, PUB_GREEN], open_issues=[UNRELATED])
+        gh = FakeGh(runs=[BUNDLER_GREEN, PUB_GREEN], issues=[UNRELATED])
         _, out = _quiet(alert.run, CONTEXT, gh, NOW)
         self.assertEqual(gh.commands("issue", "close"), [])
         self.assertEqual(gh.commands("issue", "create"), [])
@@ -240,7 +381,7 @@ class RunTest(unittest.TestCase):
 
     def test_no_runs_at_all_fails_rather_than_closing_the_alert(self):
         # Dependabot that stopped running is not "every stream green".
-        gh = FakeGh(runs=[], open_issues=[OPEN_ALERT])
+        gh = FakeGh(runs=[], issues=[OPEN_ALERT])
         with self.assertRaises(RuntimeError):
             _quiet(alert.run, CONTEXT, gh, NOW)
         self.assertEqual(gh.commands("issue", "close"), [])
@@ -259,7 +400,7 @@ class RunTest(unittest.TestCase):
         # A listing that cannot be read must fail the job, never close the alert.
         error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 502")
         gh = FakeGh(
-            open_issues=[OPEN_ALERT],
+            issues=[OPEN_ALERT],
             responses={
                 ("api", "--paginate", "--slurp",
                  f"repos/{REPO}/actions/workflows/234706444/runs"): error,

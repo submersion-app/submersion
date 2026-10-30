@@ -68,7 +68,7 @@ void main() {
         settingsProvider.overrideWith((ref) => MockSettingsNotifier(initial)),
         if (siteId != null)
           siteSeascapeProvider(
-            siteId,
+            siteSeascapeRequest(siteId),
           ).overrideWith((ref) async => const SiteSeascapeNoData()),
       ],
     );
@@ -82,7 +82,10 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SingleChildScrollView(
-              child: TerrainAppearanceSheet(siteId: siteId),
+              child: TerrainAppearanceSheet(
+                siteId: siteId,
+                isolatePaths: false,
+              ),
             ),
           ),
         ),
@@ -124,7 +127,8 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showTerrainAppearanceSheet(context),
+                onPressed: () =>
+                    showTerrainAppearanceSheet(context, isolatePaths: false),
                 child: const Text('open'),
               ),
             ),
@@ -770,7 +774,9 @@ void main() {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
             settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-            siteSeascapeProvider('site-1').overrideWith((ref) {
+            siteSeascapeProvider(siteSeascapeRequest('site-1')).overrideWith((
+              ref,
+            ) {
               callCount++;
               if (callCount == 1) return Future.value(ready);
               // A rebuild in flight (e.g. triggered by the override write
@@ -790,7 +796,10 @@ void main() {
               supportedLocales: AppLocalizations.supportedLocales,
               home: Scaffold(
                 body: SingleChildScrollView(
-                  child: TerrainAppearanceSheet(siteId: 'site-1'),
+                  child: TerrainAppearanceSheet(
+                    siteId: 'site-1',
+                    isolatePaths: false,
+                  ),
                 ),
               ),
             ),
@@ -806,9 +815,100 @@ void main() {
         // Force the provider to rebuild, landing on the never-resolving
         // second future above -- the slider must still read the last known
         // automatic value, not fall back to 1.0x.
-        container.invalidate(siteSeascapeProvider('site-1'));
+        container.invalidate(
+          siteSeascapeProvider(siteSeascapeRequest('site-1')),
+        );
         await tester.pump();
         expect(slider().value, closeTo(3.9, 0.01));
+      },
+    );
+
+    testWidgets(
+      'isolatePaths: true reads the SAME siteSeascapeProvider key its '
+      'opener used, not the plain (isolatePaths: false) one -- a mismatch '
+      'would reintroduce this section\'s own startup flicker by waiting on '
+      'a second, separately-cached, still-loading scene (issue #3571)',
+      (tester) async {
+        final grid = BathymetryGrid(
+          originLat: 0,
+          originLon: 0,
+          cellSizeLatDeg: 0.001,
+          cellSizeLonDeg: 0.001,
+          rows: 2,
+          cols: 2,
+          depthsMeters: const [10, 10, 10, 10],
+          sourceId: 'test',
+          resolutionMeters: 61,
+          fetchedAt: DateTime.utc(2026, 1, 1),
+        );
+        final box = BathymetryTerrainBuilder.enuBounds(
+          grid,
+          const GeoPoint(0, 0),
+        );
+        final ready = SiteSeascapeReady(
+          scene: const Scene3d(
+            layers: [],
+            markers: [],
+            bounds: SceneBounds(durationSeconds: 1, maxDepthMeters: 1),
+          ),
+          sourceId: 'test',
+          resolutionMeters: 61,
+          grid: grid,
+          axisInputs: (
+            minEast: box.minEast,
+            maxEast: box.maxEast,
+            minNorth: box.minNorth,
+            maxNorth: box.maxNorth,
+            maxDepth: 20,
+            verticalExaggeration: 5.5,
+          ),
+        );
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            // The matching (true) key resolves at once; the mismatched
+            // (false) key, which a wrong read would fall back to, never
+            // resolves at all -- if the section ever reads it, the slider
+            // is stuck loading/1.0x forever instead of showing 5.5x.
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: true,
+            )).overrideWith((ref) async => ready),
+            siteSeascapeProvider((
+              siteId: 'site-1',
+              isolatePaths: false,
+            )).overrideWith((ref) => Completer<SiteSeascapeState>().future),
+          ],
+        );
+        addTearDown(container.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TerrainAppearanceSheet(
+                    siteId: 'site-1',
+                    isolatePaths: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final slider = tester.widget<Slider>(
+          find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        );
+        expect(slider.value, closeTo(5.5, 0.01));
       },
     );
   });

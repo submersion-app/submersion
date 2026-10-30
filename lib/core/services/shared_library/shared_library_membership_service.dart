@@ -2,7 +2,6 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/database_service.dart';
@@ -11,8 +10,10 @@ import 'package:submersion/core/services/shared_library/crypto/library_cipher.da
 import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_errors.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -64,15 +65,10 @@ class SharedLibraryMembershipService with _MembershipOwnership {
 
   @override
   Future<SharedLibraryTransport> transportForLibrary(SharedLibrary lib) async {
-    final account =
-        await _accountById(lib.connectedAccountId) ??
-        domain.ConnectedAccount(
-          id: lib.connectedAccountId,
-          kind: AccountKind.s3,
-          label: '',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
+    // An account gone from this device says so (issue #3563), rather than
+    // reaching storage through an empty stand-in and failing there.
+    final account = await _accountById(lib.connectedAccountId);
+    if (account == null) throw LibraryAccountMissingError(lib.name);
     final t = await _transportFor(account: account, prefix: lib.prefix);
     await _keyFor(t, lib, lib.roles);
     return t;
@@ -713,6 +709,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
       roles: signed,
       rolesRejected: false,
     );
+    await _carryRemovals(library.id, t, trusted, signed, signer, signingKey);
     // As when a sync takes new roles: an approval makes held edits count,
     // a rejection makes them repair, so documents already read are read
     // again (the next sync finds these roles already trusted).
@@ -724,6 +721,7 @@ class SharedLibraryMembershipService with _MembershipOwnership {
 
   /// The signing key of the local profile that is [memberId] in
   /// [libraryId].
+  @override
   Future<LibrarySigningKey> _keyOfMember(
     String libraryId,
     String memberId,

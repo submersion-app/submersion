@@ -37,6 +37,7 @@ void main() {
     String initialLocation = '/test',
     String? initialHighlight,
     bool detailsPane = true,
+    AsyncValue<String?>? rememberedSelectedId,
   }) async {
     highlighted = ValueNotifier<String?>(initialHighlight);
     addTearDown(highlighted.dispose);
@@ -67,6 +68,7 @@ void main() {
                 detailBuilder: (_, id) => Text('Detail $id'),
                 summaryBuilder: (_) => const Text('Summary'),
                 selectedId: id,
+                rememberedSelectedId: rememberedSelectedId,
                 onEntitySelected: (id) => highlighted.value = id,
               ),
             ),
@@ -101,6 +103,18 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('returning to the table reopens its remembered record '
+      '(#3301)', (tester) async {
+    await pumpLayout(
+      tester,
+      initialHighlight: 'a',
+      rememberedSelectedId: const AsyncData('a'),
+    );
+
+    expect(find.text('Detail a'), findsOneWidget);
+    expect(location(), '/test?selected=a');
+  });
 
   testWidgets('a row selection opens in the detail pane on the next frame', (
     tester,

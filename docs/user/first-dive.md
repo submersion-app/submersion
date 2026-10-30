@@ -8,16 +8,18 @@ The first time you open Submersion, a short setup wizard starts with **Welcome t
 
 - **Set up a new profile**: create your diver profile and configure the app. Choose this for a new logbook.
 - **I have existing Submersion data**: restore a backup file, connect cloud sync, or open a folder that already holds a Submersion library. See [Backup and Restore](backup-and-restore.md) and [Multi-Device Sync](multi-device-sync.md).
-- **Skip setup**: skip the units and backup steps and keep their defaults. You still enter your name and confirm on the last screen.
+- **Skip setup**: skip the units, account, sync, backup and photo steps and keep their defaults. You still enter your name and confirm on the last screen.
 
 <!-- screenshot: images/first-dive/welcome.png: setup wizard welcome screen -->
 
-**Set up a new profile** takes you through four short steps. Use **Next** to move on, or **Skip** where you do not want to decide yet.
+**Set up a new profile** takes you through a few short steps. Use **Next** to move on, or **Skip** (on Units) and **Not now** (on the account, sync and backup steps) where you do not want to decide yet.
 
 1. **Profile:** enter your name in **Your Name**. This is the only thing the wizard needs; **Next** stays disabled until it is filled in.
 2. **Units:** choose **Metric** or **Imperial**. **Fine-tune units** lets you set depth, temperature, pressure, volume, weight and the rest one by one.
-3. **Backup:** turn on **Automatic backups** and choose how often, and decide whether to store backups in the cloud.
+3. **Account, sync, backups and photos:** the four steps of [Set Up This Device](set-up-this-device.md). Choose where your data is kept, turn on sync, turn on automatic backups and, if you like, keep photo copies. Each step takes effect when you press its button. **Not now** on the account step skips sync and goes straight to backups, which still work on this device alone.
 4. **Done:** tap **Get started** to open the Dashboard, or tap one of the "Submersion can also..." lines to go straight to that feature.
+
+If the account you choose already holds a Submersion library, the sync step offers **Download library**: your logbook arrives with its divers, and the name you typed is not used.
 
 > [!TIP]
 > You can add emergency contacts, medical notes and insurance details to your profile later. See [Diver Profile](diver-profile.md) for every field.

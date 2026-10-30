@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/parsed_track.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/track_import_service.dart';
@@ -14,6 +15,19 @@ Uint8List _bytes(String name) =>
     File('test/fixtures/gps_tracks/$name').readAsBytesSync();
 
 Uint8List _utf8Bytes(String s) => Uint8List.fromList(utf8.encode(s));
+
+/// A two-fix GPX whose times carry no zone, starting at [start].
+String _naiveGpx(String start) {
+  final second = DateTime.parse(
+    '${start}Z',
+  ).add(const Duration(minutes: 2)).toIso8601String().replaceAll('.000Z', '');
+  return '<?xml version="1.0" encoding="UTF-8"?>'
+      '<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">'
+      '<trk><trkseg>'
+      '<trkpt lat="20.5" lon="-87.25"><time>$start</time></trkpt>'
+      '<trkpt lat="20.51" lon="-87.26"><time>$second</time></trkpt>'
+      '</trkseg></trk></gpx>';
+}
 
 void main() {
   late TrackImportService service;
@@ -138,6 +152,8 @@ void main() {
       expect(candidate.sourceRef, 'sample.gpx');
     });
 
+    // The device zone's offset at the track's own date, not today's: in a
+    // daylight saving zone the two differ for half the year (issue #3656).
     test('defaults the offset to device-local when no dives overlap', () async {
       final candidate = await service.prepare(
         fileName: 'sample.gpx',
@@ -145,7 +161,44 @@ void main() {
       );
       expect(
         candidate.tzOffsetMinutes,
-        DateTime.now().timeZoneOffset.inMinutes,
+        DateTime.utc(2026, 5, 22, 13).toLocal().timeZoneOffset.inMinutes,
+      );
+    });
+
+    // A file with no zone carries the device's clock reading, not an
+    // instant, so the offset is the one at that reading. 02:30 on 1 November
+    // 2026 is after New York falls back: UTC-5, where the same components
+    // read as a UTC instant land the evening before, at UTC-4.
+    test('takes a wall-clock track\'s offset at its clock reading', () async {
+      final candidate = await service.prepare(
+        fileName: 'naive.gpx',
+        bytes: _utf8Bytes(_naiveGpx('2026-11-01T02:30:00')),
+      );
+      expect(candidate.parsed.timesAreWallClock, isTrue);
+      expect(
+        candidate.tzOffsetMinutes,
+        DateTime(2026, 11, 1, 2, 30).timeZoneOffset.inMinutes,
+      );
+    });
+
+    // A zone-less track is already on the dive's clock, so a dive inside it
+    // says nothing about the offset; reading the fixes as real UTC would pull
+    // the device offset toward zero.
+    test('a dive does not move a wall-clock track\'s offset', () async {
+      final entry = DateTime.utc(2026, 5, 22, 13, 1).millisecondsSinceEpoch;
+      await DatabaseService.instance.database.customStatement(
+        'INSERT INTO dives (id, dive_date_time, entry_time, created_at, '
+        'updated_at) VALUES (?, ?, ?, 0, 0)',
+        ['dive-1', entry, entry],
+      );
+
+      final candidate = await service.prepare(
+        fileName: 'naive.gpx',
+        bytes: _utf8Bytes(_naiveGpx('2026-05-22T13:00:00')),
+      );
+      expect(
+        candidate.tzOffsetMinutes,
+        DateTime(2026, 5, 22, 13).timeZoneOffset.inMinutes,
       );
     });
 
@@ -223,6 +276,18 @@ void main() {
         bytes: _bytes('sample.gpx'),
       );
       expect(second.duplicateOfTrackId, isNotNull);
+    });
+
+    // Commit stores a wall-clock track unshifted, so the duplicate check
+    // must not shift it either, or a re-import outside UTC is missed.
+    test('flags a re-import of a wall-clock file as a duplicate', () async {
+      final bytes = _utf8Bytes(_naiveGpx('2026-05-22T13:00:00'));
+      final id = await service.commit(
+        await service.prepare(fileName: 'naive.gpx', bytes: bytes),
+      );
+
+      final second = await service.prepare(fileName: 'naive.gpx', bytes: bytes);
+      expect(second.duplicateOfTrackId, id);
     });
 
     test(

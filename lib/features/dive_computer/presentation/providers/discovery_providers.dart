@@ -296,14 +296,60 @@ class DiscoveryNotifier extends StateNotifier<DiscoveryState> {
     String address, {
     required Duration timeout,
     bool stopScanWhenDone = true,
+  }) => _scanUntil(
+    (current) => current.discoveredDevices
+        .where((d) => bluetoothAddressesMatch(d.address, address))
+        .firstOrNull,
+    timeout: timeout,
+    stopScanWhenDone: stopScanWhenDone,
+  );
+
+  /// Scans for the whole of [timeout], or until native discovery ends,
+  /// leaving every device seen in [DiscoveryState.discoveredDevices].
+  /// [stopScanWhenDone] is as for [scanForAddress].
+  ///
+  /// Resolves with whether the scan was still running when the window
+  /// closed. False means the search never really ran: the scan could not
+  /// start, or native discovery ended on its own, which iOS and macOS do at
+  /// once when Bluetooth is off or not allowed, without an error, and
+  /// Android does when the adapter has no BLE scanner. The caller reads the
+  /// devices from the provider, which may by then hold a new notifier, since
+  /// this one can be disposed while the window runs (issue #3369).
+  ///
+  /// A saved Bluetooth computer with no address on this device (it was
+  /// saved on another one, issue #3710) is looked for by make and model,
+  /// and only a scan that ran its full length can say whether exactly one
+  /// device of that model is nearby.
+  Future<bool> scanForWindow({
+    required Duration timeout,
+    bool stopScanWhenDone = true,
+  }) async {
+    // The last state the window saw before it closed; a state change after
+    // the timeout no longer reaches the check.
+    var stillScanning = false;
+    await _scanUntil(
+      (current) {
+        stillScanning = current.isScanning;
+        return null;
+      },
+      timeout: timeout,
+      stopScanWhenDone: stopScanWhenDone,
+    );
+    return stillScanning;
+  }
+
+  /// Scans until [found] names a device, native discovery ends, or
+  /// [timeout] elapses, and resolves with that device or null.
+  Future<DiscoveredDevice?> _scanUntil(
+    DiscoveredDevice? Function(DiscoveryState current) found, {
+    required Duration timeout,
+    required bool stopScanWhenDone,
   }) async {
     final completer = Completer<DiscoveredDevice?>();
 
     void check(DiscoveryState current) {
       if (completer.isCompleted) return;
-      final match = current.discoveredDevices
-          .where((d) => bluetoothAddressesMatch(d.address, address))
-          .firstOrNull;
+      final match = found(current);
       if (match != null) {
         completer.complete(match);
       } else if (!current.isScanning) {

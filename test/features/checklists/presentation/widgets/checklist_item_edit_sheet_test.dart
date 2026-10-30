@@ -12,12 +12,14 @@ import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Pumps a host page with a button that opens the sheet for [tripId], seeded
-/// with an optional existing [item] and [categorySuggestions].
+/// with an optional existing [item], [categorySuggestions] (section titles)
+/// and the [item]'s [currentSectionTitle].
 Future<void> _openSheet(
   WidgetTester tester, {
   required String tripId,
   TripChecklistItem? item,
   List<String> categorySuggestions = const [],
+  String? currentSectionTitle,
 }) async {
   await tester.pumpWidget(
     testApp(
@@ -31,6 +33,7 @@ Future<void> _openSheet(
             tripId: tripId,
             item: item,
             categorySuggestions: categorySuggestions,
+            currentSectionTitle: currentSectionTitle,
           ),
           child: const Text('open'),
         ),
@@ -63,6 +66,15 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  /// The title of the section [item] is grouped under, resolving `null` for
+  /// an unsectioned item, mirroring what the real caller
+  /// (TripChecklistSection widget) passes as `currentSectionTitle`.
+  Future<String?> sectionTitleOf(TripChecklistItem item) async {
+    if (item.sectionId == null) return null;
+    final sections = await checklistRepository.getSectionsForTrip(trip.id);
+    return sections.firstWhere((s) => s.id == item.sectionId).title;
+  }
 
   testWidgets('creating a new item persists it via the repository', (
     tester,
@@ -98,12 +110,16 @@ void main() {
   });
 
   testWidgets('editing an existing item updates it in place', (tester) async {
+    final section = await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'Gear',
+    );
     final existing = await checklistRepository.createItem(
       TripChecklistItem(
         id: '',
         tripId: trip.id,
         title: 'Fins',
-        category: 'Gear',
+        sectionId: section.id,
         notes: 'old notes',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -115,6 +131,7 @@ void main() {
       tripId: trip.id,
       item: existing,
       categorySuggestions: const ['Gear', 'Bookings'],
+      currentSectionTitle: 'Gear',
     );
 
     // Prefilled fields.
@@ -133,6 +150,46 @@ void main() {
     expect(items, hasLength(1));
     expect(items.single.title, 'Split fins');
     expect(items.single.id, existing.id);
+  });
+
+  testWidgets('editing an item in the second of two same-titled sections '
+      'keeps it there', (tester) async {
+    await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'New section',
+    );
+    final second = await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'New section',
+    );
+    final existing = await checklistRepository.createItem(
+      TripChecklistItem(
+        id: '',
+        tripId: trip.id,
+        title: 'Fins',
+        sectionId: second.id,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    await _openSheet(
+      tester,
+      tripId: trip.id,
+      item: existing,
+      categorySuggestions: const ['New section'],
+      currentSectionTitle: 'New section',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Title'),
+      'Split fins',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    final items = await checklistRepository.getByTripId(trip.id);
+    expect(items.single.title, 'Split fins');
+    expect(items.single.sectionId, second.id);
   });
 
   testWidgets('clearing an existing due date removes it on save', (
@@ -204,7 +261,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final items = await checklistRepository.getByTripId(trip.id);
-      expect(items.single.category, 'Gear');
+      expect(await sectionTitleOf(items.single), 'Gear');
     },
   );
 
@@ -285,12 +342,16 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final items = await checklistRepository.getByTripId(trip.id);
-      expect(items.single.category, 'Galley');
+      expect(await sectionTitleOf(items.single), 'Galley');
     },
   );
 
   testWidgets('a category typed in a different case folds onto the existing '
       'one', (tester) async {
+    final diving = await checklistRepository.createSection(
+      tripId: trip.id,
+      title: 'Diving',
+    );
     await _openSheet(
       tester,
       tripId: trip.id,
@@ -310,7 +371,9 @@ void main() {
 
     expect(tester.takeException(), isNull);
     final items = await checklistRepository.getByTripId(trip.id);
-    expect(items.single.category, 'Diving');
+    // Folds onto the existing section rather than creating 'diving' anew.
+    expect(items.single.sectionId, diving.id);
+    expect(await checklistRepository.getSectionsForTrip(trip.id), hasLength(1));
   });
 
   testWidgets(
@@ -335,7 +398,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       final items = await checklistRepository.getByTripId(trip.id);
-      expect(items.single.category, 'paperwork');
+      expect(await sectionTitleOf(items.single), 'paperwork');
     },
   );
 }

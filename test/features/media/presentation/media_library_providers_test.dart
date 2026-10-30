@@ -85,6 +85,9 @@ class _FakeLibraryRepo implements MediaLibraryRepository {
   Stream<void> watchMediaChanges() => changes.stream;
 
   @override
+  Stream<void> watchLibraryChanges() => changes.stream;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

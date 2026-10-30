@@ -62,6 +62,7 @@ Future<ProviderContainer> _pump(
   ConnectionGraph? graph,
   List<Override> extra = const [],
   List<Species> species = const [],
+  Locale? locale,
 }) async {
   tester.view.physicalSize = const Size(400, 1800);
   tester.view.devicePixelRatio = 1;
@@ -88,6 +89,7 @@ Future<ProviderContainer> _pump(
         ...extra,
       ],
       child: MaterialApp(
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -193,10 +195,11 @@ void main() {
     const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
     final c = await _pump(
       tester,
+      locale: const Locale('de'),
       species: const [
         Species(
           id: 'sp_whale_shark',
-          commonName: 'WS',
+          commonName: 'Whale Shark',
           category: SpeciesCategory.shark,
           isBuiltIn: true,
         ),
@@ -204,7 +207,13 @@ void main() {
       extra: [
         connectionsNodesByWireProvider.overrideWith(
           (ref, wires) async => wires == shark.wire
-              ? [const ConnectionNode(ref: shark, label: 'WS', diveCount: 3)]
+              ? [
+                  const ConnectionNode(
+                    ref: shark,
+                    label: 'Whale Shark',
+                    diveCount: 3,
+                  ),
+                ]
               : const [],
         ),
       ],
@@ -215,7 +224,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('entity-search')),
-      'whale',
+      'walhai',
     );
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
@@ -223,7 +232,7 @@ void main() {
       find.byKey(const ValueKey('search-hit-species:sp_whale_shark')),
       findsOneWidget,
     );
-    expect(find.text('Whale Shark'), findsOneWidget);
+    expect(find.text('Walhai'), findsOneWidget);
     await tester.tap(
       find.byKey(const ValueKey('search-hit-species:sp_whale_shark')),
     );

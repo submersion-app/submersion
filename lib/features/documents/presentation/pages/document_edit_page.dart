@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/services/document_page_capture.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -16,10 +19,14 @@ import 'package:submersion/features/documents/presentation/widgets/document_owne
 import 'package:submersion/features/documents/presentation/widgets/document_owner_picker_sheet.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// Creates or edits one document and its pages (issue #2613).
 class DocumentEditPage extends ConsumerStatefulWidget {
@@ -71,6 +78,12 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   int _lead = Document.defaultReminderLeadDays;
   bool _isPrimary = false;
   List<DocumentPage> _pages = const [];
+  List<Tag> _tags = const [];
+
+  /// False while an existing document's tags are unread, or when reading
+  /// them failed: saving then leaves the stored tags alone rather than
+  /// replacing them with a set built without them (issue #1970).
+  bool _tagsLoaded = false;
   bool _loading = true;
   bool _saving = false;
   bool _hasChanges = false;
@@ -99,6 +112,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   Future<void> _load() async {
     final id = widget.documentId;
     if (id == null) {
+      _tagsLoaded = true;
       // A diver's first insurance is the one the emergency card and the
       // home chip use; a later one leaves the existing primary alone.
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
@@ -127,9 +141,26 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
         _lead = doc.effectiveReminderLeadDays;
         _isPrimary = doc.isPrimary;
         _pages = pages;
+        await _loadTags(id);
       }
     }
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadTags(String id) async {
+    try {
+      _tags = await ref
+          .read(tagLinkRepositoryProvider(TagScope.documents))
+          .getTagsFor(id);
+      _tagsLoaded = true;
+    } catch (e, stackTrace) {
+      // The field stays disabled and the save leaves the tags as stored.
+      LoggerService.forClass(DocumentEditPage).warning(
+        'Could not read the tags of document $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// A card document is made from its certification and stays a card: its
@@ -173,6 +204,9 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   /// Asks where the page comes from, captures it, and puts it in the slot
   /// [side] names (replacing what was there) or at the end.
   Future<void> _addPage(DocumentPageSide? side) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final canUseCamera = Platform.isAndroid || Platform.isIOS;
@@ -288,7 +322,13 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
         createdAt: _original?.createdAt ?? now,
         updatedAt: now,
       );
-      final saved = await ref.read(documentMutationsProvider).save(doc, _pages);
+      final saved = await ref
+          .read(documentMutationsProvider)
+          .save(
+            doc,
+            _pages,
+            tagIds: _tagsLoaded ? [for (final t in _tags) t.id] : null,
+          );
       if (!mounted) return;
       _hasChanges = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.documents_saved)));
@@ -385,13 +425,22 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
                   onAdd: _addPage,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                MarkdownNotesField(
                   controller: _controllers.notes,
                   minLines: 2,
                   maxLines: 6,
                   decoration: InputDecoration(
                     labelText: l10n.documents_field_notes,
                   ),
+                ),
+                const SizedBox(height: 16),
+                ScopedTagsField(
+                  scope: TagScope.documents,
+                  label: l10n.documents_field_tags,
+                  browseKey: const ValueKey('document_edit_tags_browse'),
+                  selectedTags: _tags,
+                  enabled: _tagsLoaded,
+                  onTagsChanged: (tags) => _change(() => _tags = tags),
                 ),
               ],
             ),

@@ -26,7 +26,10 @@ class CustomFieldInputRow extends StatelessWidget {
         children: [
           ReorderableDragStartListener(
             index: index,
-            child: const Icon(Icons.drag_handle, color: Colors.grey),
+            child: Icon(
+              Icons.drag_handle,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(

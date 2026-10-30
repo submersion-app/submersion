@@ -86,9 +86,18 @@ certifications and courses, and its own settings: units, date and time format,
 theme, language, decompression defaults and display preferences.
 
 Profiles can share with each other. A site or a trip can be shared with every
-profile (see [Dive Sites](dive-sites.md) and [Trips](trips.md)), and a piece of
-gear can be shared with chosen profiles or transferred to one (see
+profile or only with the profiles you choose (see
+[Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles)
+and [Dive Sites](dive-sites.md#sharing-a-site-with-other-profiles)), and a piece
+of gear can be shared with chosen profiles or transferred to one (see
 [Equipment](equipment.md)).
+
+For example, a parent logs the family's trips in their own profile and shares
+each one only with the children who came. A child then adds their own dives to
+the trip, and the trips they were not on never appear in their log. Deleting a
+shared trip from a child's profile is not possible: only the parent who created
+it can delete it. The child uses **Remove from my profile** instead, which hides
+it for that child alone.
 
 ### Adding a diver
 
@@ -113,7 +122,8 @@ With two or more profiles, the menu at the top of the Diver Profile page offers
 Deleting a diver permanently deletes their dive log, dive computers, equipment,
 certifications and sites. To confirm, you type "Delete" followed by the
 diver's name. Trips and sites they shared are handed to another profile rather
-than deleted, and gear that other profiles use is handed to them.
+than deleted (one shared with chosen profiles goes to the first of them it was
+shared with), and gear that other profiles use is handed to them.
 
 ## See also
 

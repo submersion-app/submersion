@@ -84,6 +84,47 @@ void main() {
       expect(result, IncomingFileOutcome.none);
     });
 
+    test('a .subbuddy file is a buddy card, never an import (#3728)', () async {
+      final result = await handleIncomingFile(
+        bytes: Uint8List.fromList('{"v":1,"i":"x","n":"Sam"}'.codeUnits),
+        fileName: 'Sam Rivera.subbuddy',
+        currentPath: '/transfer/import-wizard',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, IncomingFileOutcome.buddyCard);
+      expect(notifier.state.fileBytes, isNull);
+    });
+
+    test('a card file renamed by the sender is still a buddy card', () async {
+      final result = await handleIncomingFile(
+        bytes: Uint8List.fromList('{"v":1,"i":"x","n":"Sam"}'.codeUnits),
+        fileName: 'document.json',
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+      );
+
+      expect(result, IncomingFileOutcome.buddyCard);
+    });
+
+    test('turns a file away while an import runs on alone (#3554)', () async {
+      final result = await handleIncomingFile(
+        bytes: _uddfBytes,
+        fileName: 'dive.uddf',
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, IncomingFileOutcome.none);
+      // The running import still reads this state; nothing was loaded over it.
+      expect(notifier.state.fileBytes, isNull);
+    });
+
     test(
       'treats the Suunto file wizard as a busy import too (#1445)',
       () async {
@@ -269,6 +310,19 @@ void main() {
   // Plain tests, not testWidgets: loading reads the files through dart:io,
   // whose futures never complete under testWidgets' fake async zone.
   group('handleIncomingFiles', () {
+    test('turns files away while an import runs on alone (#3554)', () async {
+      final result = await handleIncomingFiles(
+        paths: [p.join(Directory.systemTemp.path, 'a.uddf')],
+        currentPath: '/dives',
+        notifier: notifier,
+        messenger: null,
+        isImportRunning: () => true,
+      );
+
+      expect(result, isFalse);
+      expect(notifier.state.files, isEmpty);
+    });
+
     late Directory tempDir;
 
     setUp(() async {

@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
@@ -25,9 +26,9 @@ import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_stor
 import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
-import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/git/git_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
@@ -39,6 +40,7 @@ import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
@@ -64,8 +66,10 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -241,21 +245,27 @@ class SyncBehaviorSettings {
   final bool syncOnLaunch;
   final bool syncOnResume;
 
+  /// Sync with paired devices nearby over Bluetooth (issue #3731).
+  final bool nearbyAutoEnabled;
+
   const SyncBehaviorSettings({
     required this.autoSyncEnabled,
     required this.syncOnLaunch,
     required this.syncOnResume,
+    this.nearbyAutoEnabled = true,
   });
 
   SyncBehaviorSettings copyWith({
     bool? autoSyncEnabled,
     bool? syncOnLaunch,
     bool? syncOnResume,
+    bool? nearbyAutoEnabled,
   }) {
     return SyncBehaviorSettings(
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
       syncOnLaunch: syncOnLaunch ?? this.syncOnLaunch,
       syncOnResume: syncOnResume ?? this.syncOnResume,
+      nearbyAutoEnabled: nearbyAutoEnabled ?? this.nearbyAutoEnabled,
     );
   }
 }
@@ -269,6 +279,7 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
           autoSyncEnabled: _prefs.autoSyncEnabled,
           syncOnLaunch: _prefs.syncOnLaunch,
           syncOnResume: _prefs.syncOnResume,
+          nearbyAutoEnabled: _prefs.nearbyAutoEnabled,
         ),
       );
 
@@ -285,6 +296,11 @@ class SyncBehaviorNotifier extends StateNotifier<SyncBehaviorSettings> {
   Future<void> setSyncOnResume(bool value) async {
     await _prefs.setSyncOnResume(value);
     state = state.copyWith(syncOnResume: value);
+  }
+
+  Future<void> setNearbyAutoEnabled(bool value) async {
+    await _prefs.setNearbyAutoEnabled(value);
+    state = state.copyWith(nearbyAutoEnabled: value);
   }
 }
 
@@ -353,26 +369,56 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   SyncRepository? syncRepository,
   S3CredentialsStore? s3Credentials,
   WebDavCredentialsStore? webdavCredentials,
+  GitCredentialsStore? gitCredentials,
 }) async {
   final kind = AccountKind.fromCloudProviderType(type);
-  // A WebDAV account is its endpoint: after a server or folder edit the
-  // persisted account names the old one, and reusing it would mirror the
-  // new settings under the old id (and over a media account sharing it).
+  // A WebDAV or Git account is its endpoint: after a server, folder,
+  // repository or branch edit the persisted account names the old one, and
+  // reusing it would mirror the new settings under the old id (and over a
+  // media account sharing it).
   final webdavConfig = kind == AccountKind.webdav
       ? await (webdavCredentials ?? WebDavCredentialsStore()).load()
+      : null;
+  final gitConfig = kind == AccountKind.git
+      ? await (gitCredentials ?? GitCredentialsStore()).load()
+      : null;
+  final endpointKey = webdavConfig != null
+      ? webdavNaturalKey(webdavConfig)
+      : gitConfig != null
+      ? gitNaturalKey(gitConfig)
       : null;
   final persistedId = await (syncRepository ?? SyncRepository())
       .getSyncAccountId();
   if (persistedId != null) {
     final persisted = await repo.getById(persistedId);
     final sameEndpoint =
-        webdavConfig == null ||
-        persisted?.id ==
-            accountIdFor(
-              kind: AccountKind.webdav,
-              naturalKey: webdavNaturalKey(webdavConfig),
-            );
+        endpointKey == null ||
+        persisted?.id == accountIdFor(kind: kind, naturalKey: endpointKey);
     if (persisted != null && persisted.kind == kind && sameEndpoint) {
+      // A row persisted before locations (v293) gets one from the settings
+      // this device holds, once, so other devices can place it and sign in
+      // with only the secret.
+      if (persisted.location == null) {
+        final AccountLocation? location = switch (kind) {
+          AccountKind.s3 =>
+            switch (await (s3Credentials ?? S3CredentialsStore()).load()) {
+              final c?
+                  when accountIdFor(
+                        kind: AccountKind.s3,
+                        naturalKey: s3NaturalKey(c),
+                      ) ==
+                      persisted.id =>
+                S3AccountLocation.fromConfig(c),
+              _ => null,
+            },
+          AccountKind.webdav => switch (webdavConfig) {
+            final c? => WebDavAccountLocation.fromConfig(c),
+            null => null,
+          },
+          _ => null,
+        };
+        if (location != null) await repo.setLocation(persisted.id, location);
+      }
       return persisted;
     }
   }
@@ -394,6 +440,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
       kind: kind,
       naturalKey: s3NaturalKey(config),
       label: '${config.bucket} @ ${config.displayHost}',
+      location: S3AccountLocation.fromConfig(config),
     );
   }
   if (kind == AccountKind.webdav) {
@@ -409,6 +456,22 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
     return repo.ensure(
       kind: kind,
       naturalKey: webdavNaturalKey(config),
+      label: config.displayLabel,
+      location: WebDavAccountLocation.fromConfig(config),
+    );
+  }
+  if (kind == AccountKind.git) {
+    // An instance kind like WebDAV: repository and branch identify it.
+    final config = gitConfig;
+    if (config == null) {
+      return repo.create(
+        kind: kind,
+        label: cloudProviderInstanceFor(type).providerName,
+      );
+    }
+    return repo.ensure(
+      kind: kind,
+      naturalKey: gitNaturalKey(config),
       label: config.displayLabel,
     );
   }
@@ -453,6 +516,7 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
       syncRepository: ref.read(syncRepositoryProvider),
       s3Credentials: ref.read(s3CredentialsStoreProvider),
       webdavCredentials: ref.read(webdavCredentialsStoreProvider),
+      gitCredentials: ref.read(gitCredentialsStoreProvider),
     );
     await ref
         .read(syncRepositoryProvider)
@@ -494,6 +558,7 @@ Future<void> _mirrorLegacyCredentials(
   final legacyKey = switch (account.kind) {
     AccountKind.s3 => S3CredentialsStore.storageKey,
     AccountKind.webdav => WebDavCredentialsStore.storageKey,
+    AccountKind.git => GitCredentialsStore.storageKey,
     AccountKind.dropbox => DropboxAuthStore.storageKey,
     // Session-managed / not a sync kind: no keychain blob to mirror.
     AccountKind.googledrive ||
@@ -555,18 +620,24 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
   } else {
     raw = cloudProviderInstanceFor(providerType);
   }
-  // End-to-end encryption: with an unlocked session, every byte through this
-  // provider is sealed/opened at the byte boundary (spec 4.1). No session
-  // (disabled, or enabled-but-locked) resolves to the raw provider; a locked
-  // library is detected downstream and halts with awaitingPassphrase.
-  final session = ref.watch(encryptionKeyNotifierProvider);
-  if (session == null) return raw;
-  return EncryptingCloudStorageProvider(
-    raw,
-    dataKey: session.dataKey,
-    libraryKeyId: session.key.libraryKeyId,
-  );
+  return wrapForLibrary(raw, ref.watch(encryptionKeyNotifierProvider));
 });
+
+/// End-to-end encryption: with an unlocked [session], every byte through
+/// [raw] is sealed/opened at the byte boundary (spec 4.1). No session
+/// (disabled, or enabled-but-locked) resolves to the raw provider; a locked
+/// library is detected downstream and halts with awaitingPassphrase. Shared
+/// by sync and the backup copy, so the two cannot seal differently.
+CloudStorageProvider wrapForLibrary(
+  CloudStorageProvider raw,
+  EncryptionSessionState? session,
+) => session == null
+    ? raw
+    : EncryptingCloudStorageProvider(
+        raw,
+        dataKey: session.dataKey,
+        libraryKeyId: session.key.libraryKeyId,
+      );
 
 /// Names peers published on their manifests, for labels that must not wait
 /// on a cloud listing.
@@ -627,6 +698,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
     peerNames: ref.watch(peerDeviceNameStoreProvider),
+    peerSnapshots: PeerSyncSnapshotStore(ref.watch(sharedPreferencesProvider)),
     // A synced cloud id or upload lifts a gallery search's backoff, and a
     // relink drops the old photo's mapping (spec 6.2).
     onMediaResolutionHints: (hints) =>
@@ -731,6 +803,9 @@ class SyncState {
     Object? message = _messageSentinel,
     double? progress,
     DateTime? lastSync,
+
+    /// Clears [lastSync] (a null [lastSync] keeps the current time).
+    bool clearLastSync = false,
     int? pendingChanges,
     int? conflicts,
     List<({String? name, String shortId})>? newerSchemaPeerLabels,
@@ -752,7 +827,7 @@ class SyncState {
           ? this.message
           : message as String?,
       progress: progress ?? this.progress,
-      lastSync: lastSync ?? this.lastSync,
+      lastSync: clearLastSync ? null : lastSync ?? this.lastSync,
       pendingChanges: pendingChanges ?? this.pendingChanges,
       conflicts: conflicts ?? this.conflicts,
       newerSchemaPeerLabels:
@@ -1030,6 +1105,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (!mounted) return;
       state = state.copyWith(
         lastSync: lastSync,
+        // A backend this device never synced with has no time of its own;
+        // keeping the old backend's would claim a sync that never happened.
+        clearLastSync: lastSync == null,
         pendingChanges: pendingCount,
         conflicts: conflictCount,
         isAuthenticated: isAvailable,
@@ -1327,8 +1405,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
     final store = _ref.read(libraryMovedStoreProvider);
     if (id != null) {
       try {
-        final type = CloudProviderType.values.firstWhere((t) => t.name == id);
-        await _syncService.cleanupOldBackend(cloudProviderInstanceFor(type));
+        final type = CloudProviderType.values
+            .where((t) => t.name == id)
+            .firstOrNull;
+        if (type == null) {
+          _log.warning('Old-backend cleanup skipped: unknown backend $id');
+        } else {
+          await _syncService.cleanupOldBackend(cloudProviderInstanceFor(type));
+        }
       } catch (e) {
         _log.warning('Old-backend cleanup failed for $id: $e');
       }
@@ -1390,6 +1474,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// An auto sync defers this device's FIRST library-combining contact to a
   /// manual, user-confirmed Sync Now instead of merging unannounced.
   Future<void> performSync({bool auto = false}) async {
+    if (DemoModeGate.instance.isActive) return;
     _log.debug('performSync() called');
     if (_syncInFlight) {
       // One sync at a time, but a request is never lost: the flight runs it
@@ -1751,14 +1836,15 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Sign out from the cloud provider
   ///
-  /// For S3 and WebDAV the credentials are hand-entered, so disconnecting only
-  /// deselects the provider; the stored configuration survives and the
+  /// For S3, WebDAV and Git the credentials are hand-entered, so disconnecting
+  /// only deselects the provider; the stored configuration survives and the
   /// S3 settings page offers the explicit, destructive
   /// "Remove Configuration" instead.
   Future<void> signOut() async {
     final selected = _ref.read(selectedCloudProviderTypeProvider);
     if (selected != CloudProviderType.s3 &&
-        selected != CloudProviderType.webdav) {
+        selected != CloudProviderType.webdav &&
+        selected != CloudProviderType.git) {
       await _syncService.signOut();
       // Account-first resolution means _syncService.signOut() cleared the
       // PER-ACCOUNT Dropbox blob (and revoked); also clear the legacy
@@ -1787,10 +1873,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
     _ref.read(selectedCloudProviderTypeProvider.notifier).state = null;
     // Clear the saved provider from SharedPreferences
     await _ref.read(syncInitializerProvider).saveProvider(null);
-    // The S3 tile watches this; a sign-out (or future config change) must
-    // not leave it showing stale state.
-    _ref.invalidate(s3ConfigProvider);
+    // The WebDAV media form reads this; a sign-out must not leave it stale.
     _ref.invalidate(webdavConfigProvider);
+    _ref.invalidate(gitConfigProvider);
     state = const SyncState();
   }
 
@@ -2030,6 +2115,7 @@ final syncInitializerProvider = Provider<SyncInitializer>((ref) {
     syncRepository: ref.watch(syncRepositoryProvider),
     prefs: prefs,
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
+    peerNames: ref.watch(peerDeviceNameStoreProvider),
   );
 });
 
@@ -2073,12 +2159,6 @@ final restoreLastProviderProvider = FutureProvider<void>((ref) async {
 final s3StorageProviderInstanceProvider = Provider<S3StorageProvider>(
   (ref) => s3ProviderInstance,
 );
-
-/// The stored S3 configuration, or null when S3 has not been set up.
-/// Invalidate after saving or removing the configuration.
-final s3ConfigProvider = FutureProvider<S3Config?>((ref) async {
-  return ref.watch(s3StorageProviderInstanceProvider).loadConfig();
-});
 
 /// Direct access to the Dropbox provider singleton for the connect UI
 /// (begin/complete authorization, account info).

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
@@ -85,8 +86,35 @@ void main() {
 
         final file = await writeShareTempFile(item, Uint8List.fromList([9]));
 
-        expect(file.path, '${missing.path}/dive_video.mp4');
+        expect(p.basename(file.path), 'dive_video.mp4');
       },
     );
+
+    test('items with the same name get separate files', () async {
+      MediaItem named(String id, String name) => MediaItem(
+        id: id,
+        diveId: 'dive-1',
+        mediaType: MediaType.photo,
+        originalFilename: name,
+        takenAt: now,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final a = await writeShareTempFile(
+        named('a', 'IMG_1.HEIC'),
+        Uint8List.fromList([1]),
+        filename: 'IMG_1.jpg',
+      );
+      final b = await writeShareTempFile(
+        named('b', 'IMG_1.jpg'),
+        Uint8List.fromList([2]),
+      );
+
+      expect(p.basename(a.path), p.basename(b.path));
+      expect(a.path, isNot(b.path));
+      expect(a.readAsBytesSync(), [1]);
+      expect(b.readAsBytesSync(), [2]);
+    });
   });
 }

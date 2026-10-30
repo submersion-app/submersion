@@ -36,10 +36,12 @@ void main() {
       expect(byName, contains(name));
     }
 
-    // Non-nullable, defaulted columns.
-    expect(byName['sac_factor']!.read<int>('notnull'), 1);
-    expect(byName['problem_solving_minutes']!.read<int>('notnull'), 1);
-    expect(byName['best_mix_end_meters']!.read<int>('notnull'), 1);
+    // sac_factor, problem_solving_minutes and best_mix_end_meters were made
+    // nullable in v305 (issue #3552), so a fresh plan can leave them unset
+    // and follow the diver's Settings default.
+    expect(byName['sac_factor']!.read<int>('notnull'), 0);
+    expect(byName['problem_solving_minutes']!.read<int>('notnull'), 0);
+    expect(byName['best_mix_end_meters']!.read<int>('notnull'), 0);
 
     // Nullable override columns.
     expect(byName['pp_o2_bottom']!.read<int>('notnull'), 0);

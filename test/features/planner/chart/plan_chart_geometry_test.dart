@@ -128,4 +128,52 @@ void main() {
       expect(segmentIdAtTime(const [], 10), isNull);
     });
   });
+
+  group('hitTestProfilePoint', () {
+    // A descent, a bottom, then a computed stop at 6 m and the surface.
+    const profile = [
+      CanvasPoint(0, 0),
+      CanvasPoint(120, 30),
+      CanvasPoint(1320, 30),
+      CanvasPoint(1500, 6),
+      CanvasPoint(1680, 6),
+      CanvasPoint(1720, 0),
+    ];
+
+    test('finds the profile point within reach of the cursor', () {
+      final stop = geometry.toPixel(1500, 6);
+      expect(
+        hitTestProfilePoint(
+          profile: profile,
+          geometry: geometry,
+          position: stop + const Offset(8, -6),
+        )?.timeSeconds,
+        1500,
+      );
+    });
+
+    test('picks the nearer of two points in reach', () {
+      final leave = geometry.toPixel(1680, 6);
+      expect(
+        hitTestProfilePoint(
+          profile: profile,
+          geometry: geometry,
+          position: leave + const Offset(-3, 0),
+        )?.timeSeconds,
+        1680,
+      );
+    });
+
+    test('yields null out of reach', () {
+      final stop = geometry.toPixel(1500, 6);
+      expect(
+        hitTestProfilePoint(
+          profile: profile,
+          geometry: geometry,
+          position: stop + const Offset(0, 30),
+        ),
+        isNull,
+      );
+    });
+  });
 }

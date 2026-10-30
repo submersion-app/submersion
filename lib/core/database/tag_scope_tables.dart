@@ -76,9 +76,32 @@ const equipmentTagScopeTable = TagScopeTable(
   sweepsOrphanLinks: true,
 );
 
+/// Media tags (v309, issue #1970). Links to photos and videos never re-stamp
+/// the media row, and links to a tag that no longer exists are swept by the
+/// repair, as equipment links are.
+const mediaTagScopeTable = TagScopeTable(
+  scopeColumn: 'applies_to_media',
+  junctionTable: 'media_tags',
+  parentColumn: 'media_id',
+  syncEntity: 'mediaTags',
+  sweepsOrphanLinks: true,
+);
+
+/// Document tags (v309, issue #1970). The links are clockless children of
+/// the document row (#1769), like equipment links.
+const documentTagScopeTable = TagScopeTable(
+  scopeColumn: 'applies_to_documents',
+  junctionTable: 'document_tags',
+  parentColumn: 'document_id',
+  syncEntity: 'documentTags',
+  sweepsOrphanLinks: true,
+);
+
 /// Every scope, in display order.
 const List<TagScopeTable> tagScopeTables = [
   diveTagScopeTable,
   siteTagScopeTable,
   equipmentTagScopeTable,
+  mediaTagScopeTable,
+  documentTagScopeTable,
 ];

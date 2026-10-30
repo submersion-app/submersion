@@ -25,12 +25,14 @@ import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
+import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     as tag_domain;
@@ -304,11 +306,15 @@ class SyncData {
   final List<Map<String, dynamic>> tripCylinders;
   final List<Map<String, dynamic>> tripCylinderEvents;
   final List<Map<String, dynamic>> checklistTemplates;
+  final List<Map<String, dynamic>> checklistTemplateSections;
   final List<Map<String, dynamic>> checklistTemplateItems;
+  final List<Map<String, dynamic>> tripChecklistSections;
   final List<Map<String, dynamic>> tripChecklistItems;
   final List<Map<String, dynamic>> preDiveChecklistTemplates;
+  final List<Map<String, dynamic>> preDiveChecklistTemplateSections;
   final List<Map<String, dynamic>> preDiveChecklistTemplateItems;
   final List<Map<String, dynamic>> preDiveSessions;
+  final List<Map<String, dynamic>> preDiveSessionSections;
   final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
   final List<Map<String, dynamic>> navTracks;
@@ -337,6 +343,9 @@ class SyncData {
   final List<Map<String, dynamic>> cylinderFills;
   final List<Map<String, dynamic>> connectionMaps;
   final List<Map<String, dynamic>> savedQueries;
+  final List<Map<String, dynamic>> rules;
+  final List<Map<String, dynamic>> ruleRuns;
+  final List<Map<String, dynamic>> ruleRunChanges;
   final List<Map<String, dynamic>> insightObservationDismissals;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
@@ -366,10 +375,14 @@ class SyncData {
   final List<Map<String, dynamic>> diveBuddyRoles;
   final List<Map<String, dynamic>> siteTags;
   final List<Map<String, dynamic>> equipmentTags;
+  final List<Map<String, dynamic>> mediaTags;
+  final List<Map<String, dynamic>> documentTags;
   final List<Map<String, dynamic>> equipmentShares;
   final List<Map<String, dynamic>> tripEquipment;
   final List<Map<String, dynamic>> tripHides;
   final List<Map<String, dynamic>> siteHides;
+  final List<Map<String, dynamic>> tripShares;
+  final List<Map<String, dynamic>> siteShares;
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> equipmentLocations;
   final List<Map<String, dynamic>> equipmentLocationMoves;
@@ -382,6 +395,9 @@ class SyncData {
   /// #2567).
   final List<Map<String, dynamic>> librarySiteNotes;
   final List<Map<String, dynamic>> mediaSpecies;
+
+  /// People tagged on photos and videos (v326, issue #1745).
+  final List<Map<String, dynamic>> mediaPeople;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
   final List<Map<String, dynamic>> viewConfigs;
@@ -436,11 +452,15 @@ class SyncData {
     this.tripCylinders = const [],
     this.tripCylinderEvents = const [],
     this.checklistTemplates = const [],
+    this.checklistTemplateSections = const [],
     this.checklistTemplateItems = const [],
+    this.tripChecklistSections = const [],
     this.tripChecklistItems = const [],
     this.preDiveChecklistTemplates = const [],
+    this.preDiveChecklistTemplateSections = const [],
     this.preDiveChecklistTemplateItems = const [],
     this.preDiveSessions = const [],
+    this.preDiveSessionSections = const [],
     this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
     this.navTracks = const [],
@@ -469,6 +489,9 @@ class SyncData {
     this.cylinderFills = const [],
     this.connectionMaps = const [],
     this.savedQueries = const [],
+    this.rules = const [],
+    this.ruleRuns = const [],
+    this.ruleRunChanges = const [],
     this.insightObservationDismissals = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
@@ -493,10 +516,14 @@ class SyncData {
     this.diveBuddyRoles = const [],
     this.siteTags = const [],
     this.equipmentTags = const [],
+    this.mediaTags = const [],
+    this.documentTags = const [],
     this.equipmentShares = const [],
     this.tripEquipment = const [],
     this.tripHides = const [],
     this.siteHides = const [],
+    this.tripShares = const [],
+    this.siteShares = const [],
     this.equipmentOwnershipEvents = const [],
     this.equipmentLocations = const [],
     this.equipmentLocationMoves = const [],
@@ -504,6 +531,7 @@ class SyncData {
     this.sharedLibraryMemberships = const [],
     this.librarySiteNotes = const [],
     this.mediaSpecies = const [],
+    this.mediaPeople = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
     this.viewConfigs = const [],
@@ -558,11 +586,15 @@ class SyncData {
     'tripCylinders': tripCylinders,
     'tripCylinderEvents': tripCylinderEvents,
     'checklistTemplates': checklistTemplates,
+    'checklistTemplateSections': checklistTemplateSections,
     'checklistTemplateItems': checklistTemplateItems,
+    'tripChecklistSections': tripChecklistSections,
     'tripChecklistItems': tripChecklistItems,
     'preDiveChecklistTemplates': preDiveChecklistTemplates,
+    'preDiveChecklistTemplateSections': preDiveChecklistTemplateSections,
     'preDiveChecklistTemplateItems': preDiveChecklistTemplateItems,
     'preDiveSessions': preDiveSessions,
+    'preDiveSessionSections': preDiveSessionSections,
     'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
     'navTracks': navTracks,
@@ -591,6 +623,9 @@ class SyncData {
     'cylinderFills': cylinderFills,
     'connectionMaps': connectionMaps,
     'savedQueries': savedQueries,
+    'rules': rules,
+    'ruleRuns': ruleRuns,
+    'ruleRunChanges': ruleRunChanges,
     'insightObservationDismissals': insightObservationDismissals,
     'tideRecords': tideRecords,
     'settings': settings,
@@ -614,10 +649,14 @@ class SyncData {
     'diveBuddyRoles': diveBuddyRoles,
     'siteTags': siteTags,
     'equipmentTags': equipmentTags,
+    'mediaTags': mediaTags,
+    'documentTags': documentTags,
     'equipmentShares': equipmentShares,
     'tripEquipment': tripEquipment,
     'tripHides': tripHides,
     'siteHides': siteHides,
+    'tripShares': tripShares,
+    'siteShares': siteShares,
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'equipmentLocations': equipmentLocations,
     'equipmentLocationMoves': equipmentLocationMoves,
@@ -625,6 +664,7 @@ class SyncData {
     'sharedLibraryMemberships': sharedLibraryMemberships,
     'librarySiteNotes': librarySiteNotes,
     'mediaSpecies': mediaSpecies,
+    'mediaPeople': mediaPeople,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
     'viewConfigs': viewConfigs,
@@ -687,13 +727,19 @@ class SyncData {
       tripCylinders: _parseList(json['tripCylinders']),
       tripCylinderEvents: _parseList(json['tripCylinderEvents']),
       checklistTemplates: _parseList(json['checklistTemplates']),
+      checklistTemplateSections: _parseList(json['checklistTemplateSections']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
+      tripChecklistSections: _parseList(json['tripChecklistSections']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
       preDiveChecklistTemplates: _parseList(json['preDiveChecklistTemplates']),
+      preDiveChecklistTemplateSections: _parseList(
+        json['preDiveChecklistTemplateSections'],
+      ),
       preDiveChecklistTemplateItems: _parseList(
         json['preDiveChecklistTemplateItems'],
       ),
       preDiveSessions: _parseList(json['preDiveSessions']),
+      preDiveSessionSections: _parseList(json['preDiveSessionSections']),
       preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
       navTracks: _parseList(json['navTracks']),
@@ -724,6 +770,9 @@ class SyncData {
       cylinderFills: _parseList(json['cylinderFills']),
       connectionMaps: _parseList(json['connectionMaps']),
       savedQueries: _parseList(json['savedQueries']),
+      rules: _parseList(json['rules']),
+      ruleRuns: _parseList(json['ruleRuns']),
+      ruleRunChanges: _parseList(json['ruleRunChanges']),
       insightObservationDismissals: _parseList(
         json['insightObservationDismissals'],
       ),
@@ -750,10 +799,14 @@ class SyncData {
       diveBuddyRoles: _parseList(json['diveBuddyRoles']),
       siteTags: _parseList(json['siteTags']),
       equipmentTags: _parseList(json['equipmentTags']),
+      mediaTags: _parseList(json['mediaTags']),
+      documentTags: _parseList(json['documentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
       tripEquipment: _parseList(json['tripEquipment']),
       tripHides: _parseList(json['tripHides']),
       siteHides: _parseList(json['siteHides']),
+      tripShares: _parseList(json['tripShares']),
+      siteShares: _parseList(json['siteShares']),
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       equipmentLocations: _parseList(json['equipmentLocations']),
       equipmentLocationMoves: _parseList(json['equipmentLocationMoves']),
@@ -761,6 +814,7 @@ class SyncData {
       sharedLibraryMemberships: _parseList(json['sharedLibraryMemberships']),
       librarySiteNotes: _parseList(json['librarySiteNotes']),
       mediaSpecies: _parseList(json['mediaSpecies']),
+      mediaPeople: _parseList(json['mediaPeople']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
       viewConfigs: _parseList(json['viewConfigs']),
@@ -882,6 +936,11 @@ class SyncDataSerializer {
   /// Incremental delta: only rows changed since [hlcWatermark]. Mutable
   /// entities are filtered by their own hlc; write-once children are gathered
   /// by their HLC parent. Pass null to export everything.
+  ///
+  /// [childrenByOwnClock] also selects parent-gated children whose own clock
+  /// is above [hlcWatermark]. Nearby sync needs it: it has no changeset log,
+  /// so a child edit already published to the cloud has lost the pending
+  /// mark that carries it here (issue #3731).
   Future<SyncPayload> exportChangeset({
     required String deviceId,
     required String? hlcWatermark,
@@ -889,8 +948,12 @@ class SyncDataSerializer {
     int? seq,
     String? uploadNonce,
     String? epochId,
+    bool childrenByOwnClock = false,
   }) async {
-    final data = await _buildSyncData(hlcWatermark);
+    final data = await _buildSyncData(
+      hlcWatermark,
+      childrenByOwnClock: childrenByOwnClock,
+    );
     // A base (null watermark) carries the FULL deletion log so a cold-start
     // reader can never miss a tombstone. An incremental changeset carries only
     // tombstones newer than the watermark; a null/legacy hlc is always included
@@ -929,7 +992,7 @@ class SyncDataSerializer {
   /// Ordered table descriptors for a base snapshot, matching SyncData.toJson.
   /// `table != null` => keyset-page by `id`; otherwise `full` loads the whole
   /// (small, composite-key) table once. `blob` selects the base64 BLOB
-  /// serializer (media / certifications / diveDataSources).
+  /// serializer (media / diveDataSources).
   List<
     ({
       String key,
@@ -1023,7 +1086,9 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
-    (key: 'certifications', table: _db.certifications, blob: true, full: null),
+    // The retired card photo BLOBs are stripped before emit (#3502), so the
+    // rows page by count, not by byte budget.
+    (key: 'certifications', table: _db.certifications, blob: false, full: null),
     (key: 'documents', table: _db.documents, blob: false, full: null),
     (key: 'documentPages', table: _db.documentPages, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
@@ -1108,8 +1173,20 @@ class SyncDataSerializer {
       full: null,
     ),
     (
+      key: 'checklistTemplateSections',
+      table: _db.checklistTemplateSections,
+      blob: false,
+      full: null,
+    ),
+    (
       key: 'checklistTemplateItems',
       table: _db.checklistTemplateItems,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'tripChecklistSections',
+      table: _db.tripChecklistSections,
       blob: false,
       full: null,
     ),
@@ -1119,16 +1196,23 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
-    // Built-in pre-dive templates (and the items of built-in templates) are
-    // re-seeded identically on every device, so both must be excluded from the
-    // base exactly as the incremental changeset excludes them. Paging the raw
-    // table would ship the seeds and diverge from exportChangeset (parity),
-    // so reuse the filtered exporters (mirrors serviceKinds).
+    // Built-in pre-dive templates (and the sections/items of built-in
+    // templates) are re-seeded identically on every device, so all three
+    // must be excluded from the base exactly as the incremental changeset
+    // excludes them. Paging the raw table would ship the seeds and diverge
+    // from exportChangeset (parity), so reuse the filtered exporters
+    // (mirrors serviceKinds).
     (
       key: 'preDiveChecklistTemplates',
       table: null,
       blob: false,
       full: () => _exportPreDiveChecklistTemplates(null),
+    ),
+    (
+      key: 'preDiveChecklistTemplateSections',
+      table: null,
+      blob: false,
+      full: () => _exportPreDiveChecklistTemplateSections(null),
     ),
     (
       key: 'preDiveChecklistTemplateItems',
@@ -1139,6 +1223,12 @@ class SyncDataSerializer {
     (
       key: 'preDiveSessions',
       table: _db.preDiveSessions,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'preDiveSessionSections',
+      table: _db.preDiveSessionSections,
       blob: false,
       full: null,
     ),
@@ -1194,7 +1284,8 @@ class SyncDataSerializer {
     (key: 'diveDiveTypes', table: _db.diveDiveTypes, blob: false, full: null),
     (key: 'diveCourses', table: _db.diveCourses, blob: false, full: null),
     // diveTypes/species/fieldPresets exclude built-in reference data
-    // (isBuiltIn=false), so reuse their exporters rather than paging all rows.
+    // (isBuiltIn=false; species keeps a built-in the diver edited), so reuse
+    // their exporters rather than paging all rows.
     (
       key: 'diveTypes',
       table: null,
@@ -1232,6 +1323,9 @@ class SyncDataSerializer {
     (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
     (key: 'connectionMaps', table: _db.connectionMaps, blob: false, full: null),
     (key: 'savedQueries', table: _db.savedQueries, blob: false, full: null),
+    (key: 'rules', table: _db.rules, blob: false, full: null),
+    (key: 'ruleRuns', table: _db.ruleRuns, blob: false, full: null),
+    (key: 'ruleRunChanges', table: _db.ruleRunChanges, blob: false, full: null),
     (
       key: 'insightObservationDismissals',
       table: _db.insightObservationDismissals,
@@ -1321,6 +1415,8 @@ class SyncDataSerializer {
     (key: 'diveBuddyRoles', table: _db.diveBuddyRoles, blob: false, full: null),
     (key: 'siteTags', table: _db.siteTags, blob: false, full: null),
     (key: 'equipmentTags', table: _db.equipmentTags, blob: false, full: null),
+    (key: 'mediaTags', table: _db.mediaTags, blob: false, full: null),
+    (key: 'documentTags', table: _db.documentTags, blob: false, full: null),
     (
       key: 'equipmentShares',
       table: _db.equipmentShares,
@@ -1330,6 +1426,8 @@ class SyncDataSerializer {
     (key: 'tripEquipment', table: _db.tripEquipment, blob: false, full: null),
     (key: 'tripHides', table: _db.tripHides, blob: false, full: null),
     (key: 'siteHides', table: _db.siteHides, blob: false, full: null),
+    (key: 'tripShares', table: _db.tripShares, blob: false, full: null),
+    (key: 'siteShares', table: _db.siteShares, blob: false, full: null),
     (
       key: 'equipmentOwnershipEvents',
       table: _db.equipmentOwnershipEvents,
@@ -1367,6 +1465,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'mediaSpecies', table: _db.mediaSpecies, blob: false, full: null),
+    (key: 'mediaPeople', table: _db.mediaPeople, blob: false, full: null),
     (key: 'siteFeatures', table: _db.siteFeatures, blob: false, full: null),
     (key: 'csvPresets', table: _db.csvPresets, blob: false, full: null),
     (key: 'viewConfigs', table: _db.viewConfigs, blob: false, full: null),
@@ -1781,10 +1880,14 @@ class SyncDataSerializer {
     'siteSiteTypes',
     'siteTags',
     'equipmentTags',
+    'mediaTags',
+    'documentTags',
     'equipmentShares',
     'tripEquipment',
     'tripHides',
     'siteHides',
+    'tripShares',
+    'siteShares',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
     'equipmentLocationMoves',
@@ -1810,6 +1913,7 @@ class SyncDataSerializer {
     'media',
     'mediaEnrichment',
     'mediaSpecies',
+    'mediaPeople',
     'mediaStores',
     'species',
     'importedFiles',
@@ -2011,10 +2115,14 @@ class SyncDataSerializer {
     'diveBuddyRoles': 'dive_buddy_roles',
     'siteTags': 'site_tags',
     'equipmentTags': 'equipment_tags',
+    'mediaTags': 'media_tags',
+    'documentTags': 'document_tags',
     'equipmentShares': 'equipment_shares',
     'tripEquipment': 'trip_equipment',
     'tripHides': 'trip_hides',
     'siteHides': 'site_hides',
+    'tripShares': 'trip_shares',
+    'siteShares': 'site_shares',
     'equipmentOwnershipEvents': 'equipment_ownership_events',
     'equipmentLocationMoves': 'equipment_location_moves',
     'diveDiveTypes': 'dive_dive_types',
@@ -2117,6 +2225,44 @@ class SyncDataSerializer {
     return byType;
   }
 
+  /// Record ids of [parentGatedChildEntities] rows whose own clock is above
+  /// [hlc], by entity type. Tables a partial database lacks are skipped.
+  Future<Map<String, Set<String>>> _parentGatedChildIdsAbove(String hlc) async {
+    final present = {
+      for (final r
+          in await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+              )
+              .get())
+        r.read<String>('name'),
+    };
+    final byType = <String, Set<String>>{};
+    for (final entry in parentGatedTables.entries) {
+      if (!present.contains(entry.value)) continue;
+      final table = _db.allTables.firstWhere(
+        (t) => t.actualTableName == entry.value,
+      );
+      final rows = await _db
+          .customSelect(
+            'SELECT * FROM ${entry.value} WHERE hlc > ?',
+            variables: [Variable.withString(hlc)],
+            readsFrom: {table},
+          )
+          .get();
+      for (final row in rows) {
+        final data = table.map(row.data);
+        if (data is! DataClass) continue;
+        final id = parentGatedRecordId(
+          entry.key,
+          data.toJson(serializer: _syncBlobSerializer),
+        );
+        if (id != null) byType.putIfAbsent(entry.key, () => <String>{}).add(id);
+      }
+    }
+    return byType;
+  }
+
   /// [rows] from the parent-gated export plus every pending [entityType] row
   /// it did not already include. A pending id whose row is gone is skipped:
   /// its deletion travels as a tombstone.
@@ -2143,14 +2289,31 @@ class SyncDataSerializer {
   }
 
   /// Build the full SyncData, filtering by [hlcSince] (null = full export).
-  Future<SyncData> _buildSyncData(String? hlcSince) =>
-      _withLibrarySiteIdsMemo(() => _buildSyncDataUnmemoised(hlcSince));
+  Future<SyncData> _buildSyncData(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) => _withLibrarySiteIdsMemo(
+    () => _buildSyncDataUnmemoised(
+      hlcSince,
+      childrenByOwnClock: childrenByOwnClock,
+    ),
+  );
 
-  Future<SyncData> _buildSyncDataUnmemoised(String? hlcSince) async {
+  Future<SyncData> _buildSyncDataUnmemoised(
+    String? hlcSince, {
+    bool childrenByOwnClock = false,
+  }) async {
     // A base (null hlcSince) already carries every row.
-    final pendingChildren = hlcSince == null
+    final pending = hlcSince == null
         ? const <String, Set<String>>{}
         : await _pendingParentGatedChildIds();
+    final byOwnClock = hlcSince != null && childrenByOwnClock
+        ? await _parentGatedChildIdsAbove(hlcSince)
+        : const <String, Set<String>>{};
+    final pendingChildren = {
+      for (final type in {...pending.keys, ...byOwnClock.keys})
+        type: {...?pending[type], ...?byOwnClock[type]},
+    };
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
@@ -2342,9 +2505,17 @@ class SyncDataSerializer {
         'checklistTemplates',
         () => _exportChecklistTemplates(hlcSince),
       ),
+      checklistTemplateSections: await _safeExport(
+        'checklistTemplateSections',
+        () => _exportChecklistTemplateSections(hlcSince),
+      ),
       checklistTemplateItems: await _safeExport(
         'checklistTemplateItems',
         () => _exportChecklistTemplateItems(hlcSince),
+      ),
+      tripChecklistSections: await _safeExport(
+        'tripChecklistSections',
+        () => _exportTripChecklistSections(hlcSince),
       ),
       tripChecklistItems: await _safeExport(
         'tripChecklistItems',
@@ -2354,6 +2525,10 @@ class SyncDataSerializer {
         'preDiveChecklistTemplates',
         () => _exportPreDiveChecklistTemplates(hlcSince),
       ),
+      preDiveChecklistTemplateSections: await _safeExport(
+        'preDiveChecklistTemplateSections',
+        () => _exportPreDiveChecklistTemplateSections(hlcSince),
+      ),
       preDiveChecklistTemplateItems: await _safeExport(
         'preDiveChecklistTemplateItems',
         () => _exportPreDiveChecklistTemplateItems(hlcSince),
@@ -2361,6 +2536,10 @@ class SyncDataSerializer {
       preDiveSessions: await _safeExport(
         'preDiveSessions',
         () => _exportPreDiveSessions(hlcSince),
+      ),
+      preDiveSessionSections: await _safeExport(
+        'preDiveSessionSections',
+        () => _exportPreDiveSessionSections(hlcSince),
       ),
       preDiveSessionItems: await _safeExport(
         'preDiveSessionItems',
@@ -2515,6 +2694,12 @@ class SyncDataSerializer {
         'savedQueries',
         () => _exportSavedQueries(hlcSince),
       ),
+      rules: await _safeExport('rules', () => _exportRules(hlcSince)),
+      ruleRuns: await _safeExport('ruleRuns', () => _exportRuleRuns(hlcSince)),
+      ruleRunChanges: await _safeExport(
+        'ruleRunChanges',
+        () => _exportRuleRunChanges(hlcSince),
+      ),
       insightObservationDismissals: await _safeExport(
         'insightObservationDismissals',
         () => _exportInsightObservationDismissals(hlcSince),
@@ -2637,6 +2822,22 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      mediaTags: await _safeExport(
+        'mediaTags',
+        () async => _withPendingChildren(
+          'mediaTags',
+          await _exportMediaTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      documentTags: await _safeExport(
+        'documentTags',
+        () async => _withPendingChildren(
+          'documentTags',
+          await _exportDocumentTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
       equipmentShares: await _safeExport(
         'equipmentShares',
         () async => _withPendingChildren(
@@ -2666,6 +2867,22 @@ class SyncDataSerializer {
         () async => _withPendingChildren(
           'siteHides',
           await _exportSiteHides(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      tripShares: await _safeExport(
+        'tripShares',
+        () async => _withPendingChildren(
+          'tripShares',
+          await _exportTripShares(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      siteShares: await _safeExport(
+        'siteShares',
+        () async => _withPendingChildren(
+          'siteShares',
+          await _exportSiteShares(hlcSince),
           pendingChildren,
         ),
       ),
@@ -2708,6 +2925,10 @@ class SyncDataSerializer {
       mediaSpecies: await _safeExport(
         'mediaSpecies',
         () => _exportMediaSpecies(hlcSince),
+      ),
+      mediaPeople: await _safeExport(
+        'mediaPeople',
+        () => _exportMediaPeople(hlcSince),
       ),
       siteFeatures: await _safeExport(
         'siteFeatures',
@@ -2762,18 +2983,24 @@ class SyncDataSerializer {
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) {
+  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
+
+  /// [validateChecksum] without an instance, for nearby sync's receiver.
+  static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
-    final computed = _computeChecksum(dataJson);
-    return computed == payload.checksum;
+    return _sha256Hex(dataJson) == payload.checksum;
   }
 
   /// Compute SHA-256 checksum
-  String _computeChecksum(String data) {
-    final bytes = utf8.encode(data);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+  String _computeChecksum(String data) => _sha256Hex(data);
+
+  /// The checksum a payload carrying [data] must have, for a caller that
+  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  static String checksumOf(SyncData data) =>
+      _sha256Hex(jsonEncode(data.toJson()));
+
+  static String _sha256Hex(String data) =>
+      sha256.convert(utf8.encode(data)).toString();
 
   // ============================================================================
   // Import / Apply Methods
@@ -2810,6 +3037,21 @@ class SyncDataSerializer {
     await _repairDanglingReferences();
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
+    await anchorTankInspectionClocks();
+  }
+
+  /// A peer below v317 saves a tank's last visual inspection and last hydro
+  /// dates without anchoring its VIP and hydro clocks on them (#3662), and
+  /// this device ran its v317 backfill before those rows arrived. Runs the
+  /// same backfill again, so the received tank counts from its dates. Marks
+  /// nothing pending: every device derives the same values from the same
+  /// synced rows.
+  Future<void> anchorTankInspectionClocks() async {
+    if (await _db.backfillTankInspectionBaselines() > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.serviceSchedules, kind: UpdateKind.update),
+      });
+    }
   }
 
   /// An older app version writes only the representative `dives.course_id`
@@ -3053,7 +3295,9 @@ class SyncDataSerializer {
         final row = await (_db.select(
           _db.certifications,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
-        return row?.toJson(serializer: _syncBlobSerializer);
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns('certifications', row.toJson());
       case 'documents':
         final row = await (_db.select(
           _db.documents,
@@ -3155,9 +3399,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'checklistTemplateSections':
+        final row = await (_db.select(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'checklistTemplateItems':
         final row = await (_db.select(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripChecklistSections':
+        final row = await (_db.select(
+          _db.tripChecklistSections,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'tripChecklistItems':
@@ -3170,6 +3424,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'preDiveChecklistTemplateSections':
+        final row = await (_db.select(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'preDiveChecklistTemplateItems':
         final row = await (_db.select(
           _db.preDiveChecklistTemplateItems,
@@ -3178,6 +3437,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         final row = await (_db.select(
           _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'preDiveSessionSections':
+        final row = await (_db.select(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'preDiveSessionItems':
@@ -3301,6 +3565,16 @@ class SyncDataSerializer {
           _db.equipmentTags,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'mediaTags':
+        final row = await (_db.select(
+          _db.mediaTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'documentTags':
+        final row = await (_db.select(
+          _db.documentTags,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentShares':
         final row = await (_db.select(
           _db.equipmentShares,
@@ -3319,6 +3593,16 @@ class SyncDataSerializer {
       case 'siteHides':
         final row = await (_db.select(
           _db.siteHides,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripShares':
+        final row = await (_db.select(
+          _db.tripShares,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'siteShares':
+        final row = await (_db.select(
+          _db.siteShares,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'equipmentOwnershipEvents':
@@ -3411,6 +3695,21 @@ class SyncDataSerializer {
       case 'savedQueries':
         final row = await (_db.select(
           _db.savedQueries,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'rules':
+        final row = await (_db.select(
+          _db.rules,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'ruleRuns':
+        final row = await (_db.select(
+          _db.ruleRuns,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'ruleRunChanges':
+        final row = await (_db.select(
+          _db.ruleRunChanges,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'insightObservationDismissals':
@@ -3506,6 +3805,11 @@ class SyncDataSerializer {
       case 'mediaSpecies':
         final row = await (_db.select(
           _db.mediaSpecies,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'mediaPeople':
+        final row = await (_db.select(
+          _db.mediaPeople,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'siteFeatures':
@@ -3655,6 +3959,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'mediaPeople':
+        final rows = await (_db.select(
+          _db.mediaPeople,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'species':
         final rows = await (_db.select(
           _db.species,
@@ -3735,9 +4044,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'checklistTemplateSections':
+        final rows = await (_db.select(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'checklistTemplateItems':
         final rows = await (_db.select(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripChecklistSections':
+        final rows = await (_db.select(
+          _db.tripChecklistSections,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tripChecklistItems':
@@ -3750,6 +4069,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveChecklistTemplateSections':
+        final rows = await (_db.select(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'preDiveChecklistTemplateItems':
         final rows = await (_db.select(
           _db.preDiveChecklistTemplateItems,
@@ -3758,6 +4082,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         final rows = await (_db.select(
           _db.preDiveSessions,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'preDiveSessionSections':
+        final rows = await (_db.select(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'preDiveSessionItems':
@@ -3894,6 +4223,21 @@ class SyncDataSerializer {
           _db.savedQueries,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'rules':
+        final rows = await (_db.select(
+          _db.rules,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'ruleRuns':
+        final rows = await (_db.select(
+          _db.ruleRuns,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'ruleRunChanges':
+        final rows = await (_db.select(
+          _db.ruleRunChanges,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'insightObservationDismissals':
         final rows = await (_db.select(
           _db.insightObservationDismissals,
@@ -3969,7 +4313,8 @@ class SyncDataSerializer {
           _db.certifications,
         )..where((t) => t.id.isIn(idList))).get();
         return {
-          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns('certifications', r.toJson()),
         };
       case 'documents':
         final rows = await (_db.select(
@@ -4223,6 +4568,14 @@ class SyncDataSerializer {
     for (final junction in tagScopeTables) {
       await _foldTagLinks(junction, loser: loser, survivor: survivor);
     }
+    // Saved smart albums filtered by the loser follow it too (issue #1970).
+    await repointSmartAlbumTags(
+      _db,
+      _syncRepository,
+      fromTagIds: [loser],
+      toTagId: survivor,
+      now: DateTime.now().millisecondsSinceEpoch,
+    );
     await (_db.delete(_db.tags)..where((t) => t.id.equals(loser))).go();
     _tagIdAliases[loser] = survivor;
   }
@@ -4540,10 +4893,18 @@ class SyncDataSerializer {
   }
 
   /// Applies one incoming `equipment_tags` row (v219, issue #1942), the
-  /// equipment twin of [_applySiteTagRecord]: the (equipment, tag) unique
-  /// index makes a peer's copy of a pair this device holds under another id
-  /// a no-op instead of a throw.
+  /// equipment twin of [_applySiteTagRecord]: a link to a tag not offered on
+  /// equipment is refused, and a peer's copy of a pair this device holds
+  /// under another id is reconciled to the lower id, so a later tombstone
+  /// for either id removes the link on every device (#1970 review).
   Future<void> _applyEquipmentTagRecord(EquipmentTag record) async {
+    if (!await _reconcileScopedTagLink(equipmentTagScopeTable, (
+      parent: record.equipmentId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
     await _db
         .into(_db.equipmentTags)
         .insert(
@@ -4552,6 +4913,85 @@ class SyncDataSerializer {
             target: const [],
           ),
         );
+  }
+
+  /// Applies one incoming `media_tags` row (v309, issue #1970), the media
+  /// twin of [_applyEquipmentTagRecord].
+  Future<void> _applyMediaTagRecord(MediaTag record) async {
+    if (!await _reconcileScopedTagLink(mediaTagScopeTable, (
+      parent: record.mediaId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
+    await _db
+        .into(_db.mediaTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$MediaTagsTable, MediaTag>(target: const []),
+        );
+  }
+
+  /// Applies one incoming `document_tags` row (v309, issue #1970), the
+  /// document twin of [_applyEquipmentTagRecord].
+  Future<void> _applyDocumentTagRecord(DocumentTag record) async {
+    if (!await _reconcileScopedTagLink(documentTagScopeTable, (
+      parent: record.documentId,
+      child: record.tagId,
+      id: record.id,
+    ))) {
+      return;
+    }
+    await _db
+        .into(_db.documentTags)
+        .insert(
+          record,
+          onConflict: DoNothing<$DocumentTagsTable, DocumentTag>(
+            target: const [],
+          ),
+        );
+  }
+
+  /// Readies one incoming tag link of [junction] for insertion: false when
+  /// its tag is not offered in that scope (the link is refused), otherwise
+  /// any local copy of the same pair under a higher id is dropped first, as
+  /// [_applySiteTagRecord] does.
+  Future<bool> _reconcileScopedTagLink(
+    TagScopeTable junction,
+    JunctionPair pair,
+  ) async {
+    if ((await _tagsOutsideScope(junction)).contains(pair.child)) return false;
+    await _reconcileJunctionIds(
+      junction.junctionTable,
+      parentColumn: junction.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [pair],
+    );
+    return true;
+  }
+
+  /// [rows] of [junction] ready for a batch insert: links to tags not
+  /// offered in that scope dropped, one row per pair (the lowest id), and
+  /// any local copy of a pair under a higher id deleted, as the `siteTags`
+  /// batch does.
+  Future<List<T>> _reconcileScopedTagLinks<T>(
+    TagScopeTable junction,
+    List<T> rows,
+    JunctionPair Function(T row) pairOf,
+  ) async {
+    final offScope = await _tagsOutsideScope(junction);
+    final kept = _lowestIdPerPair(
+      rows.where((row) => !offScope.contains(pairOf(row).child)).toList(),
+      pairOf,
+    );
+    await _reconcileJunctionIds(
+      junction.junctionTable,
+      parentColumn: junction.parentColumn,
+      childColumn: 'tag_id',
+      pairs: [for (final row in kept) pairOf(row)],
+    );
+    return kept;
   }
 
   /// Applies one incoming `equipment_shares` row (v234, issue #2046). The
@@ -4632,6 +5072,45 @@ class SyncDataSerializer {
         .insert(
           record,
           onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(target: const []),
+        );
+  }
+
+  /// Applies one incoming `trip_shares` row (v311, issue #2151). The
+  /// (trip, profile) pair is unique: a peer's copy under another id is
+  /// reconciled to the lower id and then skipped, as
+  /// [_applyTripEquipmentRecord] does.
+  Future<void> _applyTripShareRecord(TripShareRow record) async {
+    await _reconcileJunctionIds(
+      'trip_shares',
+      parentColumn: 'trip_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.tripId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.tripShares)
+        .insert(
+          record,
+          onConflict: DoNothing<$TripSharesTable, TripShareRow>(
+            target: const [],
+          ),
+        );
+  }
+
+  /// As [_applyTripShareRecord], for `site_shares`.
+  Future<void> _applySiteShareRecord(SiteShareRow record) async {
+    await _reconcileJunctionIds(
+      'site_shares',
+      parentColumn: 'site_id',
+      childColumn: 'diver_id',
+      pairs: [(parent: record.siteId, child: record.diverId, id: record.id)],
+    );
+    await _db
+        .into(_db.siteShares)
+        .insert(
+          record,
+          onConflict: DoNothing<$SiteSharesTable, SiteShareRow>(
+            target: const [],
+          ),
         );
   }
 
@@ -4984,11 +5463,25 @@ class SyncDataSerializer {
               ChecklistTemplate.fromJson(data).toCompanion(false),
             );
         return;
+      case 'checklistTemplateSections':
+        await _db
+            .into(_db.checklistTemplateSections)
+            .insertOnConflictUpdate(
+              ChecklistTemplateSectionRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'checklistTemplateItems':
         await _db
             .into(_db.checklistTemplateItems)
             .insertOnConflictUpdate(
               ChecklistTemplateItem.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripChecklistSections':
+        await _db
+            .into(_db.tripChecklistSections)
+            .insertOnConflictUpdate(
+              TripChecklistSectionRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tripChecklistItems':
@@ -5005,6 +5498,15 @@ class SyncDataSerializer {
               PreDiveChecklistTemplate.fromJson(data).toCompanion(false),
             );
         return;
+      case 'preDiveChecklistTemplateSections':
+        await _db
+            .into(_db.preDiveChecklistTemplateSections)
+            .insertOnConflictUpdate(
+              PreDiveChecklistTemplateSectionRow.fromJson(
+                data,
+              ).toCompanion(false),
+            );
+        return;
       case 'preDiveChecklistTemplateItems':
         await _db
             .into(_db.preDiveChecklistTemplateItems)
@@ -5017,6 +5519,13 @@ class SyncDataSerializer {
             .into(_db.preDiveSessions)
             .insertOnConflictUpdate(
               PreDiveSession.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'preDiveSessionSections':
+        await _db
+            .into(_db.preDiveSessionSections)
+            .insertOnConflictUpdate(
+              PreDiveSessionSectionRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'preDiveSessionItems':
@@ -5150,6 +5659,14 @@ class SyncDataSerializer {
           EquipmentTag.fromJson(_withTagAlias(data)),
         );
         return;
+      case 'mediaTags':
+        await _applyMediaTagRecord(MediaTag.fromJson(_withTagAlias(data)));
+        return;
+      case 'documentTags':
+        await _applyDocumentTagRecord(
+          DocumentTag.fromJson(_withTagAlias(data)),
+        );
+        return;
       case 'equipmentShares':
         await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
         return;
@@ -5161,6 +5678,12 @@ class SyncDataSerializer {
         return;
       case 'siteHides':
         await _applySiteHideRecord(SiteHideRow.fromJson(data));
+        return;
+      case 'tripShares':
+        await _applyTripShareRecord(TripShareRow.fromJson(data));
+        return;
+      case 'siteShares':
+        await _applySiteShareRecord(SiteShareRow.fromJson(data));
         return;
       case 'equipmentOwnershipEvents':
         await _db
@@ -5281,6 +5804,25 @@ class SyncDataSerializer {
             .into(_db.savedQueries)
             .insertOnConflictUpdate(
               SavedQueryRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'rules':
+        await _db
+            .into(_db.rules)
+            .insertOnConflictUpdate(RuleRow.fromJson(data).toCompanion(false));
+        return;
+      case 'ruleRuns':
+        await _db
+            .into(_db.ruleRuns)
+            .insertOnConflictUpdate(
+              RuleRunRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'ruleRunChanges':
+        await _db
+            .into(_db.ruleRunChanges)
+            .insertOnConflictUpdate(
+              RuleRunChangeRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'insightObservationDismissals':
@@ -5416,6 +5958,13 @@ class SyncDataSerializer {
             .into(_db.mediaSpecies)
             .insertOnConflictUpdate(
               MediaSpecy.fromJson(_withTimestampDefaults(data)),
+            );
+        return;
+      case 'mediaPeople':
+        await _db
+            .into(_db.mediaPeople)
+            .insertOnConflictUpdate(
+              MediaPeopleData.fromJson(_withTimestampDefaults(data)),
             );
         return;
       case 'siteFeatures':
@@ -6109,6 +6658,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'checklistTemplateSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.checklistTemplateSections,
+            records
+                .map(
+                  (r) => ChecklistTemplateSectionRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'checklistTemplateItems':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6116,6 +6679,18 @@ class SyncDataSerializer {
             records
                 .map(
                   (r) => ChecklistTemplateItem.fromJson(r).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'tripChecklistSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripChecklistSections,
+            records
+                .map(
+                  (r) => TripChecklistSectionRow.fromJson(r).toCompanion(false),
                 )
                 .toList(),
           ),
@@ -6144,6 +6719,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'preDiveChecklistTemplateSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveChecklistTemplateSections,
+            records
+                .map(
+                  (r) => PreDiveChecklistTemplateSectionRow.fromJson(
+                    r,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'preDiveChecklistTemplateItems':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6164,6 +6753,19 @@ class SyncDataSerializer {
             _db.preDiveSessions,
             records
                 .map((r) => PreDiveSession.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'preDiveSessionSections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.preDiveSessionSections,
+            records
+                .map(
+                  (r) =>
+                      PreDiveSessionSectionRow.fromJson(r).toCompanion(false),
+                )
                 .toList(),
           ),
         );
@@ -6481,13 +7083,46 @@ class SyncDataSerializer {
         );
         return;
       case 'equipmentTags':
+        final equipmentTagsRows = await _reconcileScopedTagLinks(
+          equipmentTagScopeTable,
+          records.map((r) => EquipmentTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.equipmentId, child: row.tagId, id: row.id),
+        );
         await _db.batch(
           (b) => b.insertAll(
             _db.equipmentTags,
-            records
-                .map((r) => EquipmentTag.fromJson(_withTagAlias(r)))
-                .toList(),
+            equipmentTagsRows,
             onConflict: DoNothing<$EquipmentTagsTable, EquipmentTag>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'mediaTags':
+        final mediaTagsRows = await _reconcileScopedTagLinks(
+          mediaTagScopeTable,
+          records.map((r) => MediaTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.mediaId, child: row.tagId, id: row.id),
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.mediaTags,
+            mediaTagsRows,
+            onConflict: DoNothing<$MediaTagsTable, MediaTag>(target: const []),
+          ),
+        );
+        return;
+      case 'documentTags':
+        final documentTagsRows = await _reconcileScopedTagLinks(
+          documentTagScopeTable,
+          records.map((r) => DocumentTag.fromJson(_withTagAlias(r))).toList(),
+          (row) => (parent: row.documentId, child: row.tagId, id: row.id),
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.documentTags,
+            documentTagsRows,
+            onConflict: DoNothing<$DocumentTagsTable, DocumentTag>(
               target: const [],
             ),
           ),
@@ -6588,6 +7223,56 @@ class SyncDataSerializer {
             _db.siteHides,
             siteHideRows,
             onConflict: DoNothing<$SiteHidesTable, SiteHideRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'tripShares':
+        // DoNothing: see [_applyTripShareRecord].
+        final tripShareRows = _lowestIdPerPair(
+          records.map((r) => TripShareRow.fromJson(r)).toList(),
+          (row) => (parent: row.tripId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'trip_shares',
+          parentColumn: 'trip_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in tripShareRows)
+              (parent: row.tripId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.tripShares,
+            tripShareRows,
+            onConflict: DoNothing<$TripSharesTable, TripShareRow>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
+      case 'siteShares':
+        // DoNothing: see [_applySiteShareRecord].
+        final siteShareRows = _lowestIdPerPair(
+          records.map((r) => SiteShareRow.fromJson(r)).toList(),
+          (row) => (parent: row.siteId, child: row.diverId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'site_shares',
+          parentColumn: 'site_id',
+          childColumn: 'diver_id',
+          pairs: [
+            for (final row in siteShareRows)
+              (parent: row.siteId, child: row.diverId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.siteShares,
+            siteShareRows,
+            onConflict: DoNothing<$SiteSharesTable, SiteShareRow>(
               target: const [],
             ),
           ),
@@ -6777,6 +7462,34 @@ class SyncDataSerializer {
             _db.savedQueries,
             records
                 .map((r) => SavedQueryRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'rules':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.rules,
+            records.map((r) => RuleRow.fromJson(r).toCompanion(false)).toList(),
+          ),
+        );
+        return;
+      case 'ruleRuns':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.ruleRuns,
+            records
+                .map((r) => RuleRunRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'ruleRunChanges':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.ruleRunChanges,
+            records
+                .map((r) => RuleRunChangeRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -6976,6 +7689,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'mediaPeople':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.mediaPeople,
+            records
+                .map((r) => MediaPeopleData.fromJson(_withTimestampDefaults(r)))
+                .toList(),
+          ),
+        );
+        return;
       case 'siteFeatures':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7168,14 +7891,26 @@ class SyncDataSerializer {
         return plain(_db.tripCylinderEvents, _db.tripCylinderEvents.id);
       case 'checklistTemplates':
         return plain(_db.checklistTemplates, _db.checklistTemplates.id);
+      case 'checklistTemplateSections':
+        return plain(
+          _db.checklistTemplateSections,
+          _db.checklistTemplateSections.id,
+        );
       case 'checklistTemplateItems':
         return plain(_db.checklistTemplateItems, _db.checklistTemplateItems.id);
+      case 'tripChecklistSections':
+        return plain(_db.tripChecklistSections, _db.tripChecklistSections.id);
       case 'tripChecklistItems':
         return plain(_db.tripChecklistItems, _db.tripChecklistItems.id);
       case 'preDiveChecklistTemplates':
         return plain(
           _db.preDiveChecklistTemplates,
           _db.preDiveChecklistTemplates.id,
+        );
+      case 'preDiveChecklistTemplateSections':
+        return plain(
+          _db.preDiveChecklistTemplateSections,
+          _db.preDiveChecklistTemplateSections.id,
         );
       case 'preDiveChecklistTemplateItems':
         return plain(
@@ -7184,6 +7919,8 @@ class SyncDataSerializer {
         );
       case 'preDiveSessions':
         return plain(_db.preDiveSessions, _db.preDiveSessions.id);
+      case 'preDiveSessionSections':
+        return plain(_db.preDiveSessionSections, _db.preDiveSessionSections.id);
       case 'preDiveSessionItems':
         return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
@@ -7234,6 +7971,10 @@ class SyncDataSerializer {
         return plain(_db.siteTags, _db.siteTags.id);
       case 'equipmentTags':
         return plain(_db.equipmentTags, _db.equipmentTags.id);
+      case 'mediaTags':
+        return plain(_db.mediaTags, _db.mediaTags.id);
+      case 'documentTags':
+        return plain(_db.documentTags, _db.documentTags.id);
       case 'equipmentShares':
         return plain(_db.equipmentShares, _db.equipmentShares.id);
       case 'tripEquipment':
@@ -7242,6 +7983,10 @@ class SyncDataSerializer {
         return plain(_db.tripHides, _db.tripHides.id);
       case 'siteHides':
         return plain(_db.siteHides, _db.siteHides.id);
+      case 'tripShares':
+        return plain(_db.tripShares, _db.tripShares.id);
+      case 'siteShares':
+        return plain(_db.siteShares, _db.siteShares.id);
       case 'equipmentOwnershipEvents':
         return plain(
           _db.equipmentOwnershipEvents,
@@ -7291,6 +8036,12 @@ class SyncDataSerializer {
         return plain(_db.connectionMaps, _db.connectionMaps.id);
       case 'savedQueries':
         return plain(_db.savedQueries, _db.savedQueries.id);
+      case 'rules':
+        return plain(_db.rules, _db.rules.id);
+      case 'ruleRuns':
+        return plain(_db.ruleRuns, _db.ruleRuns.id);
+      case 'ruleRunChanges':
+        return plain(_db.ruleRunChanges, _db.ruleRunChanges.id);
       case 'insightObservationDismissals':
         return plain(
           _db.insightObservationDismissals,
@@ -7348,6 +8099,8 @@ class SyncDataSerializer {
         return plain(_db.siteSpecies, _db.siteSpecies.id);
       case 'mediaSpecies':
         return plain(_db.mediaSpecies, _db.mediaSpecies.id);
+      case 'mediaPeople':
+        return plain(_db.mediaPeople, _db.mediaPeople.id);
       case 'siteFeatures':
         return plain(_db.siteFeatures, _db.siteFeatures.id);
       case 'csvPresets':
@@ -7408,6 +8161,35 @@ class SyncDataSerializer {
     }
   }
 
+  /// Puts every built-in species the diver edited back to its catalog text,
+  /// untouched (no hlc), for [deleteAllRecords]. An edited built-in exports
+  /// (issue #3669), so the cloud base carries it whenever the cloud has the
+  /// edit, and the refill re-applies it; one the base lacks is a local edit
+  /// the replace must drop. Restored in place rather than deleted: sightings,
+  /// photo tags and expected species reference the row.
+  Future<void> _restoreEditedBuiltInSpecies() async {
+    final catalog = await SpeciesSeedService.loadBundledSpecies();
+    await _db.batch((batch) {
+      for (final species in catalog) {
+        batch.update(
+          _db.species,
+          SpeciesCompanion(
+            commonName: Value(species.commonName),
+            scientificName: Value(species.scientificName),
+            category: Value(species.category.name),
+            taxonomyClass: Value(species.taxonomyClass),
+            description: Value(species.description),
+            hlc: const Value(null),
+          ),
+          where: (t) =>
+              t.id.equals(species.id) &
+              t.isBuiltIn.equals(true) &
+              t.hlc.isNotNull(),
+        );
+      }
+    });
+  }
+
   /// Delete every row of the table backing [entityType]. Used by streaming
   /// Replace-adopt (#358): clearing each table then re-inserting the cloud
   /// union is equivalent to upsert-then-delete-not-in-cloud but needs no in-RAM
@@ -7420,8 +8202,9 @@ class SyncDataSerializer {
   ///
   /// Built-in reference rows are preserved for the same reason:
   /// [_exportDiveTypes], [_exportSpecies] and [_exportFieldPresets] all omit
-  /// `isBuiltIn` rows, so the refill that follows this clear cannot put them
-  /// back. Deleting them would leave the catalog permanently empty.
+  /// `isBuiltIn` rows (species omits only untouched ones), so the refill that
+  /// follows this clear cannot put them back. Deleting them would leave the
+  /// catalog permanently empty.
   ///
   /// Device-local columns ([deviceLocalSyncColumns]) of the cleared rows are
   /// remembered first, so the refill keeps this device's values.
@@ -7456,6 +8239,7 @@ class SyncDataSerializer {
         await (_db.delete(
           _db.species,
         )..where((t) => t.isBuiltIn.equals(false))).go();
+        await _restoreEditedBuiltInSpecies();
         return;
       case 'fieldPresets':
         await (_db.delete(
@@ -7466,6 +8250,17 @@ class SyncDataSerializer {
         await (_db.delete(
           _db.preDiveChecklistTemplates,
         )..where((t) => t.isBuiltIn.equals(false))).go();
+        return;
+      case 'preDiveChecklistTemplateSections':
+        // Sections of built-in templates are seeded reference data too
+        // (issue #3360); same reasoning as preDiveChecklistTemplateItems
+        // just below.
+        final builtinSectionIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+          ..addColumns([_db.preDiveChecklistTemplates.id])
+          ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+        await (_db.delete(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.templateId.isNotInQuery(builtinSectionIds))).go();
         return;
       case 'preDiveChecklistTemplateItems':
         // Items of built-in templates are seeded reference data; clearing
@@ -7655,16 +8450,24 @@ class SyncDataSerializer {
         return _db.tripCylinderEvents;
       case 'checklistTemplates':
         return _db.checklistTemplates;
+      case 'checklistTemplateSections':
+        return _db.checklistTemplateSections;
       case 'checklistTemplateItems':
         return _db.checklistTemplateItems;
+      case 'tripChecklistSections':
+        return _db.tripChecklistSections;
       case 'tripChecklistItems':
         return _db.tripChecklistItems;
       case 'preDiveChecklistTemplates':
         return _db.preDiveChecklistTemplates;
+      case 'preDiveChecklistTemplateSections':
+        return _db.preDiveChecklistTemplateSections;
       case 'preDiveChecklistTemplateItems':
         return _db.preDiveChecklistTemplateItems;
       case 'preDiveSessions':
         return _db.preDiveSessions;
+      case 'preDiveSessionSections':
+        return _db.preDiveSessionSections;
       case 'preDiveSessionItems':
         return _db.preDiveSessionItems;
       case 'gpsTracks':
@@ -7715,6 +8518,10 @@ class SyncDataSerializer {
         return _db.siteTags;
       case 'equipmentTags':
         return _db.equipmentTags;
+      case 'mediaTags':
+        return _db.mediaTags;
+      case 'documentTags':
+        return _db.documentTags;
       case 'equipmentShares':
         return _db.equipmentShares;
       case 'tripEquipment':
@@ -7723,6 +8530,10 @@ class SyncDataSerializer {
         return _db.tripHides;
       case 'siteHides':
         return _db.siteHides;
+      case 'tripShares':
+        return _db.tripShares;
+      case 'siteShares':
+        return _db.siteShares;
       case 'equipmentOwnershipEvents':
         return _db.equipmentOwnershipEvents;
       case 'equipmentLocations':
@@ -7757,6 +8568,12 @@ class SyncDataSerializer {
         return _db.connectionMaps;
       case 'savedQueries':
         return _db.savedQueries;
+      case 'rules':
+        return _db.rules;
+      case 'ruleRuns':
+        return _db.ruleRuns;
+      case 'ruleRunChanges':
+        return _db.ruleRunChanges;
       case 'insightObservationDismissals':
         return _db.insightObservationDismissals;
       case 'species':
@@ -7811,6 +8628,8 @@ class SyncDataSerializer {
         return _db.siteSpecies;
       case 'mediaSpecies':
         return _db.mediaSpecies;
+      case 'mediaPeople':
+        return _db.mediaPeople;
       case 'siteFeatures':
         return _db.siteFeatures;
       case 'csvPresets':
@@ -8114,9 +8933,19 @@ class SyncDataSerializer {
           _db.checklistTemplates,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'checklistTemplateSections':
+        await (_db.delete(
+          _db.checklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'checklistTemplateItems':
         await (_db.delete(
           _db.checklistTemplateItems,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripChecklistSections':
+        await (_db.delete(
+          _db.tripChecklistSections,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tripChecklistItems':
@@ -8129,6 +8958,11 @@ class SyncDataSerializer {
           _db.preDiveChecklistTemplates,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'preDiveChecklistTemplateSections':
+        await (_db.delete(
+          _db.preDiveChecklistTemplateSections,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'preDiveChecklistTemplateItems':
         await (_db.delete(
           _db.preDiveChecklistTemplateItems,
@@ -8137,6 +8971,11 @@ class SyncDataSerializer {
       case 'preDiveSessions':
         await (_db.delete(
           _db.preDiveSessions,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'preDiveSessionSections':
+        await (_db.delete(
+          _db.preDiveSessionSections,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'preDiveSessionItems':
@@ -8267,6 +9106,16 @@ class SyncDataSerializer {
           _db.equipmentTags,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'mediaTags':
+        await (_db.delete(
+          _db.mediaTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'documentTags':
+        await (_db.delete(
+          _db.documentTags,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'equipmentShares':
         await (_db.delete(
           _db.equipmentShares,
@@ -8285,6 +9134,16 @@ class SyncDataSerializer {
       case 'siteHides':
         await (_db.delete(
           _db.siteHides,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripShares':
+        await (_db.delete(
+          _db.tripShares,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'siteShares':
+        await (_db.delete(
+          _db.siteShares,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentOwnershipEvents':
@@ -8370,6 +9229,19 @@ class SyncDataSerializer {
       case 'savedQueries':
         await (_db.delete(
           _db.savedQueries,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'rules':
+        await (_db.delete(_db.rules)..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'ruleRuns':
+        await (_db.delete(
+          _db.ruleRuns,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'ruleRunChanges':
+        await (_db.delete(
+          _db.ruleRunChanges,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'insightObservationDismissals':
@@ -8475,6 +9347,11 @@ class SyncDataSerializer {
           _db.mediaSpecies,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'mediaPeople':
+        await (_db.delete(
+          _db.mediaPeople,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'siteFeatures':
         await (_db.delete(
           _db.siteFeatures,
@@ -8531,7 +9408,14 @@ class SyncDataSerializer {
   ) async {
     final query = _db.select(_db.diverSettings);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A list arrangement change stamps its own clock, not the row clock
+      // (issue #3748), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.listArrangementHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     return rows
@@ -8925,8 +9809,10 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    // Certifications carry photoFront/photoBack BLOBs; base64-encode them.
-    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+    // The retired photoFront/photoBack BLOBs stay off the wire (#3502).
+    return rows
+        .map((r) => withoutDeviceLocalColumns('certifications', r.toJson()))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportDocuments(String? hlcSince) async {
@@ -9187,10 +10073,32 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportChecklistTemplateSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.checklistTemplateSections);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportChecklistTemplateItems(
     String? hlcSince,
   ) async {
     final query = _db.select(_db.checklistTemplateItems);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTripChecklistSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripChecklistSections);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -9223,6 +10131,23 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplateSections(
+    String? hlcSince,
+  ) async {
+    // Sections of built-in templates are seeded reference data too (issue
+    // #3360), same exclusion as _exportPreDiveChecklistTemplateItems.
+    final builtinIds = _db.selectOnly(_db.preDiveChecklistTemplates)
+      ..addColumns([_db.preDiveChecklistTemplates.id])
+      ..where(_db.preDiveChecklistTemplates.isBuiltIn.equals(true));
+    final query = _db.select(_db.preDiveChecklistTemplateSections)
+      ..where((t) => t.templateId.isNotInQuery(builtinIds));
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportPreDiveChecklistTemplateItems(
     String? hlcSince,
   ) async {
@@ -9244,6 +10169,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.preDiveSessions);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportPreDiveSessionSections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.preDiveSessionSections);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -9714,12 +10650,45 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportRules(String? hlcSince) async {
+    final query = _db.select(_db.rules);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportRuleRuns(String? hlcSince) async {
+    final query = _db.select(_db.ruleRuns);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportRuleRunChanges(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.ruleRunChanges);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   /// Nullable columns where null means "never held a value" rather than a
   /// choice (v262, issue #2948): a device adopts its own old pref into such a
   /// column. A peer that has none carries no choice, so its null must not
-  /// clear the value this device holds.
+  /// clear the value this device holds. An account's location (v293, issue
+  /// #3482) is never cleared once written: a peer that has none yet has
+  /// simply not seen it.
   static const Map<String, Set<String>> _nullMeansUnsetKeys = {
     'diverSettings': {'pscrRatio', 'profileMetricsFollowViewport'},
+    'connectedAccounts': {'location'},
+    'mediaStores': {'accountId'},
   };
 
   /// [data] without the [_nullMeansUnsetKeys] it carries as null, so
@@ -9781,11 +10750,14 @@ class SyncDataSerializer {
   }
 
   Future<List<Map<String, dynamic>>> _exportSpecies(String? hlcSince) async {
-    // Built-in species come from a bundled asset re-seeded on every device;
-    // only export user-created species. (Built-ins use stable bundled IDs so
-    // they would not collide, but there is no value in shipping them.)
+    // Built-in species come from a bundled asset re-seeded on every device,
+    // so an untouched one has no value in shipping. A diver can edit (or
+    // reset) a built-in, though, and every edit path stamps an hlc where the
+    // seed never does: those rows travel so the change reaches every device
+    // (issue #3669). Built-ins use stable bundled ids, so they land on the
+    // peer's own copy of the row.
     final query = _db.select(_db.species)
-      ..where((t) => t.isBuiltIn.equals(false));
+      ..where((t) => t.isBuiltIn.equals(false) | t.hlc.isNotNull());
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -9962,6 +10934,58 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  /// Media tag links (v309, issue #1970), gated on the parent media row's
+  /// clock like [_exportEquipmentTags]. A changed link travels on its own
+  /// pending mark, never by re-stamping the photo.
+  Future<List<Map<String, dynamic>>> _exportMediaTags(String? hlcSince) async {
+    if (hlcSince != null) {
+      // Ids only: a media row can carry a signature's image bytes.
+      final ids =
+          await (_db.selectOnly(_db.media)
+                ..addColumns([_db.media.id])
+                ..where(_db.media.hlc.isBiggerThanValue(hlcSince)))
+              .map((r) => r.read(_db.media.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      if (ids.isEmpty) return [];
+
+      return _childRowsOf(
+        ids,
+        (chunk) => (_db.select(
+          _db.mediaTags,
+        )..where((t) => t.mediaId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.mediaTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Document tag links (v309, issue #1970), gated on the parent document's
+  /// clock like [_exportEquipmentTags].
+  Future<List<Map<String, dynamic>>> _exportDocumentTags(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final ids =
+          await (_db.selectOnly(_db.documents)
+                ..addColumns([_db.documents.id])
+                ..where(_db.documents.hlc.isBiggerThanValue(hlcSince)))
+              .map((r) => r.read(_db.documents.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      if (ids.isEmpty) return [];
+
+      return _childRowsOf(
+        ids,
+        (chunk) => (_db.select(
+          _db.documentTags,
+        )..where((t) => t.documentId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.documentTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   /// Equipment shares (v234, issue #2046), gated on the parent item's clock
   /// like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentShares(
@@ -10041,6 +11065,46 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteHides).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// The profiles a trip is shared with (v311, issue #2151), gated on the
+  /// parent trip's clock like [_exportTripEquipment]. A share travels on its
+  /// own pending mark, never by re-stamping the trip.
+  Future<List<Map<String, dynamic>>> _exportTripShares(String? hlcSince) async {
+    if (hlcSince != null) {
+      final trips = await (_db.select(
+        _db.trips,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final tripIds = trips.map((t) => t.id).toSet();
+      if (tripIds.isEmpty) return [];
+      return _childRowsOf(
+        tripIds,
+        (chunk) => (_db.select(
+          _db.tripShares,
+        )..where((t) => t.tripId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.tripShares).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// As [_exportTripShares], for the profiles a site is shared with.
+  Future<List<Map<String, dynamic>>> _exportSiteShares(String? hlcSince) async {
+    if (hlcSince != null) {
+      final sites = await (_db.select(
+        _db.diveSites,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final siteIds = sites.map((s) => s.id).toSet();
+      if (siteIds.isEmpty) return [];
+      return _childRowsOf(
+        siteIds,
+        (chunk) => (_db.select(
+          _db.siteShares,
+        )..where((t) => t.siteId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.siteShares).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
@@ -10163,6 +11227,20 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.mediaSpecies);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// `media_people` (v326, issue #1745) carries its own clock from its first
+  /// write, so an incremental export filters on the tag's `hlc` like
+  /// [_exportMediaSpecies]; a full export ships the table.
+  Future<List<Map<String, dynamic>>> _exportMediaPeople(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.mediaPeople);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -10628,6 +11706,8 @@ class SyncDataSerializer {
       'showMapBackgroundOnDiveCards': false,
       'groupTripsInDiveList': false,
       'autoTagImports': true,
+      'downloadsFollowComputerOwner': true,
+      'omitUnusedOcGases': false,
       'showMapBackgroundOnSiteCards': false,
       // Dive profile markers
       'showMaxDepthMarker': true,

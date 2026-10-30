@@ -45,7 +45,47 @@ class MissionEngine {
     if (issues.any((i) => i.severity == MissionIssueSeverity.blocking)) {
       return MissionOutcome.empty(issues: issues);
     }
+    final resolved = _resolveDefaults(plan, mission);
+    return _computeResolved(
+      plan: resolved.plan,
+      mission: resolved.mission,
+      issues: issues,
+    );
+  }
 
+  /// [plan] and [mission] with every field the mission services read
+  /// directly resolved against [scenarios]' engine config (issue #3552):
+  /// the plan's own value where set, else the diver's Settings default.
+  /// The segment builder, exit evaluator and battery checks have no config
+  /// of their own, so resolving once here keeps them on the same rates,
+  /// SAC and reserves the plan engine itself computes with.
+  ({domain.DivePlan plan, DpvMission mission}) _resolveDefaults(
+    domain.DivePlan plan,
+    DpvMission mission,
+  ) {
+    final config = scenarios.engine.config.resolvedFor(plan);
+    return (
+      plan: plan.copyWith(
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
+        sacBottom: config.sacBottom,
+        sacDeco: config.sacDeco,
+        sacStressed: config.sacStressedFor(plan),
+        reservePressure: config.reservePressure,
+      ),
+      mission: mission.copyWith(
+        batteryReserveFraction:
+            mission.batteryReserveFraction ?? config.batteryReserveFraction,
+        walkSpeedMps: mission.walkSpeedMps ?? config.walkSpeedMps,
+      ),
+    );
+  }
+
+  MissionOutcome _computeResolved({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required List<MissionIssue> issues,
+  }) {
     final team = mission.team;
     final cruise = cruiseSpeedMps(team);
     final limitingId = cruiseLimitingMemberId(team);
@@ -229,7 +269,8 @@ class MissionEngine {
           returnSecondsFrom: returnSecondsFrom,
           setsCruise: member.id == limitingId,
           bottomTank: bottomTank,
-          reserveBar: plan.reservePressure,
+          reserveBar:
+              plan.reservePressure ?? scenarios.engine.config.reservePressure,
           gasModel: scenarios.engine.config.gasModel,
         ),
     ];
@@ -264,10 +305,11 @@ class MissionEngine {
     final route = traversableRoute(mission).speeds;
     if (route.isEmpty) return const [];
     final traversable = mission.legs.sublist(0, route.length);
+    final resolved = _resolveDefaults(plan, mission);
     return builder
         .build(
-          plan: plan,
-          mission: mission.copyWith(legs: traversable),
+          plan: resolved.plan,
+          mission: resolved.mission.copyWith(legs: traversable),
           throughLegIndex: traversable.length - 1,
           outboundSpeedMps: cruise,
           exitSpeedMps: cruise,

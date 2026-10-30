@@ -29,8 +29,8 @@ void main() {
     notes: 'Great site',
     hazards: 'Strong current',
     mooringNumber: '7',
-    entryMethod: EntryMethod.shore,
-    exitMethod: EntryMethod.ladder,
+    entryMethods: [EntryMethod.shore],
+    exitMethods: [EntryMethod.ladder],
   );
 
   const testEntity = SiteWithDiveCount(site: testSite, diveCount: 12);
@@ -175,6 +175,15 @@ void main() {
       expect(
         adapter.extractValue(SiteField.notes, testEntity),
         equals('Great site'),
+      );
+    });
+
+    test('returns Markdown notes as plain words', () {
+      final site = testSite.copyWith(notes: '# Plan\n**Bring torch**');
+      final entity = SiteWithDiveCount(site: site, diveCount: 0);
+      expect(
+        adapter.extractValue(SiteField.notes, entity),
+        'Plan\nBring torch',
       );
     });
 

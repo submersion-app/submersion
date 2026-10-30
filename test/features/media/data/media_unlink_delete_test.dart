@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart'
@@ -251,6 +252,21 @@ void main() {
       ]);
 
       expect(withData, {captioned.id, favorite.id});
+    });
+
+    test('reports a row someone is tagged on', () async {
+      await insertDive('d1');
+      await db.customStatement(
+        'INSERT INTO buddies (id, name, created_at, updated_at) '
+        "VALUES ('alex', 'Alex', 1, 1)",
+      );
+      final plain = await repo.createMedia(item('m1', diveId: 'd1'));
+      final tagged = await repo.createMedia(item('m2', diveId: 'd1'));
+      await MediaPeopleRepository().addTag(mediaId: tagged.id, buddyId: 'alex');
+
+      expect(await repo.idsWithUserMetadata([plain.id, tagged.id]), {
+        tagged.id,
+      });
     });
 
     test('treats an empty caption as nothing to lose', () async {

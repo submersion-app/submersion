@@ -87,7 +87,7 @@ change that affects it fails loudly.
 
 | Unit | Location | Responsibility |
 | --- | --- | --- |
-| `DivelogsApiClient` | `lib/core/services/divelogs/divelogs_api_client.dart` | `POST /login`; `GET /dives`, `/gear`, `/geartypes`, `/certifications`, `/pictures/{id}`; authorized picture download. One retry after a 401 via `DivelogsAuth`. Ported from #603 without post or divelist code. |
+| `DivelogsApiClient` | `lib/core/services/divelogs/divelogs_api_client.dart` | `POST /login`; `GET /dives`, `/gear`, `/geartypes`, `/certifications`; authorized picture download. One retry after a 401 via `DivelogsAuth`. Ported from #603 without post or divelist code. |
 | `DivelogsAuth` | `lib/core/services/divelogs/divelogs_auth.dart` | Single-flight login. Holds the password in memory for the wizard's lifetime only, to renew an expired token. |
 | `DivelogsSessionStore` | `lib/core/services/divelogs/divelogs_session_store.dart` | Keychain blob under key `divelogs_session`: username and JWT. Never the password. Modeled on `SuuntoSessionStore`. |
 | `divelogs_models.dart` | `lib/core/services/divelogs/` | Tolerant JSON models: dive, gear item, certification, picture. Ported, minus the divelist entry. |
@@ -126,8 +126,9 @@ New enum value: `ImportSourceType.divelogs`.
 
 1. Sign In: `POST /login` (multipart) returns a JWT. The session store saves
    username and token; `DivelogsAuth` keeps the password in memory.
-2. Fetch: `GET /dives`, `/gear`, `/geartypes`, `/certifications`. If "Include
-   photos" is on, `GET /pictures/{id}` for each dive (metadata only, no bytes).
+2. Fetch: `GET /dives`, `/gear`, `/geartypes`, `/certifications`. Each `/dives`
+   row lists its pictures inline (`pictures`, see below), so "Include photos"
+   costs no request per dive and no bytes until import time.
    `DivelogsImportService` builds the `ImportPayload` (dives, sites, equipment,
    certifications, gear links via `equipmentRefs`) and warnings, and a map from
    payload dive index to picture descriptors, held by the adapter.
@@ -177,8 +178,11 @@ Fetch:
   Fetch step right away and as a notice in the import Summary; the import
   proceeds without that data. `/geartypes` failing is silent.
   Unknown gear types degrade to `EquipmentType.other` silently.
-- Per-dive `/pictures` failures collapse into one warning with a count
-  (code `photoListingsUnavailable`).
+- A `/dives` row whose `pictures` is missing or of no readable shape leaves
+  that dive's photos unknown; those dives collapse into one warning with a
+  count (code `photoListingsUnavailable`). Listed pictures without a usable
+  link (no absolute http(s) URL with a host, or on a dive without an id) are
+  counted per photo in a second warning (code `photosWithoutLink`).
 - A dive missing required fields (date, time) is dropped and counted in a
   warning. Unknown fields are ignored.
 
@@ -226,4 +230,10 @@ TDD, one test file per unit.
 ## Open questions for divelogs.de (carried from #603)
 
 The parsers stay tolerant wherever these are unanswered: units, JWT lifetime,
-the `/pictures` response shape, `dbltank` semantics, and picture size limits.
+`dbltank` semantics, and picture size limits.
+
+Answered: pictures are `{"id", "path"}` rows. `/dives` lists them inline in
+each dive's `pictures` array with an absolute `path`
+(`https://<host>/pictures/<user>/<file>`), and sends `null` for a dive
+without any; `GET /pictures/{id}` returns the same rows with a site-relative
+`path` and is no longer called.

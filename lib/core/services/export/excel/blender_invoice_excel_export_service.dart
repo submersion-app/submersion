@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Exports a trimix blender's running bill to a spreadsheet.
 ///
@@ -94,6 +96,7 @@ class BlenderInvoiceExcelExportService {
   /// Prompts for a destination. Returns null when the diver cancelled.
   Future<String?> saveToFile(BlenderInvoiceExportData data) async {
     final bytes = generateBytes(data);
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save Invoice',
       fileName: _fileName(),

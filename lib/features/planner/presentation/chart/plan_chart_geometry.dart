@@ -129,3 +129,26 @@ String? segmentIdAtTime(List<PlanSegment> segments, double timeSeconds) {
   }
   return null;
 }
+
+/// The point of [profile] nearest [position] within [radius] pixels, or
+/// null. Covers every corner of the drawn profile, including the stop
+/// arrivals and departures of the computed deco schedule, which have no
+/// waypoint handle of their own (#3775).
+CanvasPoint? hitTestProfilePoint({
+  required List<CanvasPoint> profile,
+  required PlanChartGeometry geometry,
+  required Offset position,
+  double radius = 16,
+}) {
+  CanvasPoint? best;
+  var bestDistance = radius;
+  for (final point in profile) {
+    final distance =
+        (geometry.toPixel(point.timeSeconds, point.depth) - position).distance;
+    if (distance <= bestDistance) {
+      best = point;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}

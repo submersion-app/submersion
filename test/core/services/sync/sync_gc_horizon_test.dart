@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -124,5 +125,43 @@ void main() {
         .toSet();
     expect(ids, contains('young'));
     expect(ids, isNot(contains('old')));
+  });
+
+  test('a paired nearby device that has not acked keeps the tombstone '
+      '(issue #3731)', () async {
+    final cloud = FakeCloudStorageProvider();
+    final svc = SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await DiveRepository().deleteDive('d1');
+    await ageTombstone('d1');
+    final peers = NearbyPeerStore(DatabaseService.instance.database);
+    await peers.upsertPaired(
+      peerDeviceId: 'laptop',
+      displayName: 'Laptop',
+      pairedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    expect(
+      (await SyncRepository().getAllDeletions()).map((d) => d.recordId),
+      contains('d1'),
+    );
+
+    // Once the laptop reports holding everything, the next sync may GC.
+    await peers.markSynced(
+      'laptop',
+      at: DateTime.now().millisecondsSinceEpoch,
+      peerAppliedHlcHigh: '99999999999999:999999:zzz',
+    );
+    expect((await svc.performSync()).status, SyncResultStatus.success);
+    expect(
+      (await SyncRepository().getAllDeletions()).map((d) => d.recordId),
+      isNot(contains('d1')),
+    );
   });
 }

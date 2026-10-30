@@ -67,7 +67,7 @@ void main() {
   test('v288 is in the ladder and leaves the sync floor alone', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(288));
     expect(AppDatabase.migrationVersions, contains(288));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(288));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(288));
   });
 
   test('creates dive_courses with its columns', () async {

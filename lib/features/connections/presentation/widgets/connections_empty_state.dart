@@ -11,6 +11,7 @@ class ConnectionsEmptyState extends StatelessWidget {
     required this.view,
     required this.hasAnyDives,
     this.hasActiveFilter = false,
+    this.buddiesWithoutSites = false,
   });
 
   final ConnectionsViewState view;
@@ -19,6 +20,10 @@ class ConnectionsEmptyState extends StatelessWidget {
   /// True when the diver's own filter is what emptied the graph; the message
   /// then blames the filter rather than missing data.
   final bool hasActiveFilter;
+
+  /// True when Who dives where found buddies on dives but no dive with both
+  /// a buddy and a site; the message then asks for sites, not buddies.
+  final bool buddiesWithoutSites;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +38,8 @@ class ConnectionsEmptyState extends StatelessWidget {
         ? l10n.connections_empty_noDives
         : hasActiveFilter
         ? l10n.connections_empty_filtered
+        : buddiesWithoutSites
+        ? l10n.connections_empty_whereNoSites
         : involvesBuddies
         ? l10n.connections_empty_buddies
         : l10n.connections_empty_sites;

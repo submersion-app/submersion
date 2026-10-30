@@ -39,20 +39,72 @@ void main() {
     });
   });
 
-  group('AppSettingsRepository.getNavAlwaysHideLabels', () {
-    test('defaults to false when key is absent', () async {
-      expect(await repository.getNavAlwaysHideLabels(), isFalse);
+  group('AppSettingsRepository nav always-hide-labels, split by surface '
+      '(#3222)', () {
+    test('both default to false when nothing was ever written', () async {
+      expect(await repository.getNavAlwaysHideLabelsPhone(), isFalse);
+      expect(await repository.getNavAlwaysHideLabelsDesktop(), isFalse);
     });
 
-    test('round-trips true', () async {
-      await repository.setNavAlwaysHideLabels(true);
-      expect(await repository.getNavAlwaysHideLabels(), isTrue);
+    test('round-trips true independently per surface', () async {
+      await repository.setNavAlwaysHideLabelsPhone(true);
+      expect(await repository.getNavAlwaysHideLabelsPhone(), isTrue);
+      expect(await repository.getNavAlwaysHideLabelsDesktop(), isFalse);
     });
 
     test('round-trips false after being set to true', () async {
-      await repository.setNavAlwaysHideLabels(true);
-      await repository.setNavAlwaysHideLabels(false);
-      expect(await repository.getNavAlwaysHideLabels(), isFalse);
+      await repository.setNavAlwaysHideLabelsDesktop(true);
+      await repository.setNavAlwaysHideLabelsDesktop(false);
+      expect(await repository.getNavAlwaysHideLabelsDesktop(), isFalse);
+    });
+
+    test('writing one surface leaves the other surface untouched', () async {
+      await repository.setNavAlwaysHideLabelsPhone(true);
+      await repository.setNavAlwaysHideLabelsDesktop(false);
+
+      expect(await repository.getNavAlwaysHideLabelsPhone(), isTrue);
+      expect(await repository.getNavAlwaysHideLabelsDesktop(), isFalse);
+    });
+
+    group('fallback to the pre-split legacy value (migration)', () {
+      // Before #3222 both surfaces shared one key. A device upgrading from
+      // that version should keep its chosen behavior rather than silently
+      // reset to false, until the diver touches a scope-specific switch.
+      const legacyKey = 'nav_always_hide_labels';
+
+      test(
+        'an unset surface falls back to the legacy value when true',
+        () async {
+          await repository.setRawSetting(legacyKey, 'true');
+
+          expect(await repository.getNavAlwaysHideLabelsPhone(), isTrue);
+          expect(await repository.getNavAlwaysHideLabelsDesktop(), isTrue);
+        },
+      );
+
+      test(
+        'an unset surface falls back to the legacy value when false',
+        () async {
+          await repository.setRawSetting(legacyKey, 'false');
+
+          expect(await repository.getNavAlwaysHideLabelsPhone(), isFalse);
+          expect(await repository.getNavAlwaysHideLabelsDesktop(), isFalse);
+        },
+      );
+
+      test('writing the phone value stops it from following the legacy '
+          'value', () async {
+        await repository.setRawSetting(legacyKey, 'true');
+        await repository.setNavAlwaysHideLabelsPhone(false);
+
+        expect(await repository.getNavAlwaysHideLabelsPhone(), isFalse);
+        // Desktop was never written, so it still falls back.
+        expect(await repository.getNavAlwaysHideLabelsDesktop(), isTrue);
+      });
+
+      test('no legacy value and nothing written is just false', () async {
+        expect(await repository.getNavAlwaysHideLabelsPhone(), isFalse);
+      });
     });
   });
 

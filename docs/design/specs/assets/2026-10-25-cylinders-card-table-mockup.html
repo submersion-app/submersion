@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cylinders card table mockup</title>
+<style>body{font-family:-apple-system,"Segoe UI",sans-serif;background:#f3f4f6;color:#1a1c1e;padding:24px;} .subtitle{color:#5f6368;}</style>
+</head>
+<body>
+<style>
+  .row3 { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .col h3 { margin:4px 0 8px; }
+  .m3card { background:#fdfbff; color:#1a1c1e; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.25); padding:16px; width:360px; font-family:Roboto,-apple-system,"Segoe UI",sans-serif; }
+  .m3card h4 { margin:0 0 8px; font-size:16px; font-weight:500; }
+  .gas { font-size:12px; font-weight:600; color:#fff; border-radius:10px; padding:1px 8px; white-space:nowrap; }
+  .nx { background:#4CAF50; } .ox { background:#1976D2; } .air { background:#EF6C00; } .tx { background:#9C27B0; }
+  .lab { font-size:11px; color:#44474f; }
+  .mute { font-size:12px; color:#44474f; line-height:1.5; }
+  .warn { font-size:12px; color:#ba1a1a; }
+  .link { color:#0b57d0; font-weight:500; }
+  .badge { font-size:10px; border-radius:6px; padding:0 5px; background:#e1e2ec; color:#44474f; margin-right:4px; }
+  table.tt { width:100%; border-collapse:collapse; font-size:13px; }
+  table.tt th { text-align:left; font-weight:500; color:#44474f; font-size:11px; padding:4px 4px 6px; border-bottom:1px solid #c4c6d0; vertical-align:bottom; line-height:1.2; }
+  table.tt th .u { font-weight:400; color:#74777f; }
+  table.tt td { padding:8px 4px 2px; vertical-align:top; }
+  table.tt td.num, table.tt th.num { text-align:right; }
+  table.tt tr.sub td { border-bottom:1px solid #e1e2ec; padding:2px 4px 8px; }
+  .detail { display:flex; gap:8px; align-items:flex-start; }
+  .detail .txt { flex:1; }
+  .ci { color:#7d5260; font-size:16px; line-height:16px; }
+  .note { font-size:11px; color:#74777f; margin-top:8px; }
+  .side { max-width:360px; font-size:13px; line-height:1.55; }
+  .side li { margin-bottom:6px; }
+  .reassign { text-align:right; font-size:13px; color:#0b57d0; font-weight:500; margin-top:8px; }
+</style>
+
+<h2>C2, filled in</h2>
+<p class="subtitle">Phone width. Left: a deco dive with the awkward cases (a named tank, an unassigned transmitter, a gear check-in, a tank with no pressure readings). Middle: the everyday single-tank dive.</p>
+
+<div class="row3">
+  <div class="col">
+    <h3>Three-tank deco dive</h3>
+    <div class="m3card">
+      <h4>Cylinders</h4>
+      <table class="tt">
+        <tr><th>Tank</th><th>Gas</th><th class="num">Start<br><span class="u">bar</span></th><th class="num">End<br><span class="u">bar</span></th><th class="num">Used<br><span class="u">bar</span></th></tr>
+
+        <tr><td><b>AL80</b><br><span class="lab">Back gas</span></td><td><span class="gas nx">EAN32</span></td><td class="num">210</td><td class="num">60</td><td class="num"><b>150</b></td></tr>
+        <tr class="sub"><td colspan="5"><div class="detail"><div class="txt mute">Gas used 1,660 L &middot; SAC 1.1 bar/min &middot; RMV 12.5 L/min &middot; MOD 33 m &middot; MND 30 m<br>Transmitter 812345 &middot; <span class="link">Assign</span></div><span class="ci" title="Gear check-in">&#10003;</span></div></td></tr>
+
+        <tr><td><b>Left stage</b><br><span class="lab">AL40 &middot; Deco</span></td><td><span class="gas nx">EAN50</span></td><td class="num">200</td><td class="num">120</td><td class="num"><b>80</b></td></tr>
+        <tr class="sub"><td colspan="5"><div class="detail"><div class="txt mute">Gas used 455 L &middot; SAC 1.4 bar/min &middot; RMV 8.1 L/min &middot; MOD 18 m &middot; MND 30 m<br>Trip cylinder: Stage A &middot; bottle #3</div></div></td></tr>
+
+        <tr><td><b>11.1 L</b><br><span class="lab">Deco</span></td><td><span class="gas ox">O2</span></td><td class="num">--</td><td class="num">--</td><td class="num">--</td></tr>
+        <tr class="sub"><td colspan="5"><div class="detail"><div class="txt mute">MOD 4 m &middot; MND 30 m</div></div></td></tr>
+      </table>
+      <div class="note">MOD at ppO&#8322; 1.4</div>
+      <div class="reassign">&#8645; Reassign pressure series</div>
+    </div>
+  </div>
+
+  <div class="col">
+    <h3>Single-tank dive</h3>
+    <div class="m3card">
+      <h4>Cylinders</h4>
+      <table class="tt">
+        <tr><th>Tank</th><th>Gas</th><th class="num">Start<br><span class="u">bar</span></th><th class="num">End<br><span class="u">bar</span></th><th class="num">Used<br><span class="u">bar</span></th></tr>
+        <tr><td><b>AL80</b></td><td><span class="gas air">Air</span></td><td class="num">200</td><td class="num">70</td><td class="num"><b>130</b></td></tr>
+        <tr class="sub"><td colspan="5"><div class="detail"><div class="txt mute">Gas used 1,440 L &middot; SAC 1.0 bar/min &middot; RMV 11.2 L/min &middot; MOD 56 m &middot; MND 30 m</div></div></td></tr>
+      </table>
+      <div class="note">MOD at ppO&#8322; 1.4</div>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>What changed from today</h3>
+    <ul>
+      <li><b>Tank column:</b> the size (AL80) leads. A tank you named shows its name, with size and role underneath. The role is hidden on a plain single back-gas dive, as today.</li>
+      <li><b>Units sit once in the column header</b>, so the numbers are bare and line up.</li>
+      <li><b>One quiet style for everything under a row</b>, always "label value" joined by dots. The bold blue, the pink and the brackets are gone.</li>
+      <li><b>Litres used</b> moves into that line as "Gas used".</li>
+      <li><b>The ppO&#8322; behind MOD</b> is the same for every tank, so it is said once under the table instead of on every row.</li>
+      <li><b>Gear check-in</b> becomes a small icon at the end of the tank's detail line.</li>
+      <li><b>Kept in red</b>: the "role read from the transmitter's name" warning, since it is a warning.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

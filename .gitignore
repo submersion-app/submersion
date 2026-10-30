@@ -59,8 +59,8 @@ screenshots/
 !docs/assets/screenshots/
 !docs/assets/screenshots/readme/**
 
-# Test fixtures (generated at build time)
-integration_test/fixtures/
+# Demo logbook fetched for the store screenshots
+/demo_package/
 
 # Fastlane secrets
 ios/fastlane/api_key.json

@@ -1,0 +1,112 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Buddy photo tags mockup</title>
+<style>body{font-family:system-ui;background:#fff;color:#1f2328;padding:24px;max-width:960px;margin:auto}.subtitle{color:#57606a}</style></head><body>
+<style>
+  .row { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+  .phone { width:270px; border-radius:22px; overflow:hidden; background:#0b0f14; color:#fff; border:6px solid #222; font-size:12px; position:relative; }
+  .phone .cap { padding:8px 4px 0; font-weight:600; color:var(--text-primary, #222); width:270px; }
+  .topbar { display:flex; align-items:center; gap:10px; padding:10px 10px; background:linear-gradient(#000c,#0000); position:absolute; top:0; left:0; right:0; z-index:3; }
+  .topbar .sp { flex:1; text-align:center; opacity:.8; }
+  .ico { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:13px; }
+  .ico.on { background:#4aa3ff; color:#000; }
+  .photo { height:380px; position:relative; background:
+      radial-gradient(ellipse at 30% 40%, #2f6f8f 0%, #164257 45%, #0a2333 100%); }
+  .diver { position:absolute; width:46px; height:46px; border-radius:50%; background:#1a1a1a; border:3px solid #333; }
+  .diver::after { content:""; position:absolute; left:8px; top:12px; width:24px; height:12px; border-radius:6px; background:#7fb7d1; opacity:.7; }
+  .box { position:absolute; border:2px solid #fff; border-radius:6px; box-shadow:0 0 0 1px #0008; }
+  .box .tag { position:absolute; top:-20px; left:-2px; background:#fffe; color:#000; border-radius:4px; padding:1px 6px; font-size:11px; white-space:nowrap; }
+  .box.pending { border-style:dashed; border-color:#4aa3ff; }
+  .bottom { position:absolute; left:0; right:0; bottom:0; padding:10px; background:linear-gradient(#0000,#000d 40%); z-index:2; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
+  .chip { border:1px solid #fff6; border-radius:14px; padding:3px 9px; font-size:11px; display:inline-flex; gap:4px; align-items:center; }
+  .chip.person { background:#ffffff1f; }
+  .meta { opacity:.75; font-size:11px; }
+  .hint { position:absolute; top:52px; left:50%; transform:translateX(-50%); background:#4aa3ff; color:#000; border-radius:14px; padding:4px 12px; font-size:11px; z-index:3; white-space:nowrap; }
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:#1d232b; border-radius:16px 16px 0 0; padding:10px 12px 12px; z-index:4; }
+  .sheet .grab { width:36px; height:4px; background:#fff4; border-radius:2px; margin:0 auto 8px; }
+  .sheet .search { background:#0b0f14; border-radius:8px; padding:6px 8px; opacity:.7; margin-bottom:8px; }
+  .sheet .lbl { font-size:10px; text-transform:uppercase; letter-spacing:.06em; opacity:.55; margin:6px 0 2px; }
+  .sheet .item { display:flex; align-items:center; gap:8px; padding:5px 0; }
+  .av { width:22px; height:22px; border-radius:50%; background:#3a4a5a; display:inline-flex; align-items:center; justify-content:center; font-size:10px; }
+  .vctl { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .bar { flex:1; height:4px; background:#fff3; border-radius:2px; position:relative; }
+  .bar .fill { position:absolute; left:0; top:0; bottom:0; width:38%; background:#4aa3ff; border-radius:2px; }
+  .bar .mk { position:absolute; top:-3px; width:3px; height:10px; background:#ffd34a; border-radius:1px; }
+  .notes { max-width:270px; font-size:12px; color:var(--text-secondary, #555); margin-top:6px; }
+</style>
+
+<h2>Tagging people on a photo or video</h2>
+<p class="subtitle">Three moments in the media viewer. Tell me what feels wrong or missing.</p>
+
+<div class="row">
+  <div>
+    <div class="phone">
+      <div class="topbar"><span>&#x2715;</span><span class="sp">3 / 12</span><span class="ico">&#x1F3F7;</span><span class="ico">&#x1F464;+</span><span>&#x22EE;</span></div>
+      <div class="photo">
+        <div class="diver" style="left:60px; top:130px"></div>
+        <div class="diver" style="left:160px; top:170px"></div>
+        <div class="box" style="left:54px; top:124px; width:56px; height:56px"><span class="tag">Me</span></div>
+        <div class="box" style="left:154px; top:164px; width:56px; height:56px"><span class="tag">Alex</span></div>
+      </div>
+      <div class="bottom">
+        <div class="chips">
+          <span class="chip person">&#x1F464; Me</span>
+          <span class="chip person">&#x1F464; Alex</span>
+          <span class="chip">&#x1F41F; Sergeant major</span>
+        </div>
+        <div class="meta">Dive 214 &middot; Blue Hole &middot; 18 m</div>
+      </div>
+    </div>
+    <div class="cap">1. Viewing a tagged photo</div>
+    <div class="notes">People chips sit beside species chips. Boxes show the face tags; they hide with the rest of the controls when you tap to clear the screen. Tapping a buddy chip opens that buddy.</div>
+  </div>
+
+  <div>
+    <div class="phone">
+      <div class="topbar"><span>&#x2715;</span><span class="sp">3 / 12</span><span class="ico">&#x1F3F7;</span><span class="ico on">&#x1F464;+</span><span>&#x22EE;</span></div>
+      <div class="hint">Tap a person to tag them</div>
+      <div class="photo">
+        <div class="diver" style="left:60px; top:130px"></div>
+        <div class="diver" style="left:160px; top:170px"></div>
+        <div class="box" style="left:54px; top:124px; width:56px; height:56px"><span class="tag">Me</span></div>
+        <div class="box pending" style="left:154px; top:164px; width:56px; height:56px"></div>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="search">&#x1F50D; Search buddies</div>
+        <div class="item"><span class="av">&#x2605;</span> Me</div>
+        <div class="lbl">On this dive</div>
+        <div class="item"><span class="av">A</span> Alex Rivera</div>
+        <div class="item"><span class="av">S</span> Sam Okafor</div>
+        <div class="lbl">Everyone else</div>
+        <div class="item"><span class="av">J</span> Jo Lindqvist</div>
+        <div class="item" style="opacity:.75">&#xFF0B; New buddy</div>
+      </div>
+    </div>
+    <div class="cap">2. Tag mode, after tapping a face</div>
+    <div class="notes">The people button turns tag mode on. Tap drops a box (drag the corners to fit), then the picker: Me, this dive's buddies, then everyone, searchable. Tapping an existing box lets you change or remove it.</div>
+  </div>
+
+  <div>
+    <div class="phone">
+      <div class="topbar"><span>&#x2715;</span><span class="sp">5 / 12</span><span class="ico">&#x1F3F7;</span><span class="ico">&#x1F464;+</span><span>&#x22EE;</span></div>
+      <div class="photo" style="background:radial-gradient(ellipse at 60% 50%, #2a5f7a 0%, #123a4c 50%, #081b26 100%)">
+        <div class="diver" style="left:120px; top:150px"></div>
+        <div class="box" style="left:114px; top:144px; width:56px; height:56px"><span class="tag">Alex &middot; 0:42</span></div>
+      </div>
+      <div class="bottom">
+        <div class="chips">
+          <span class="chip person">&#x1F464; Alex &middot; 0:42</span>
+          <span class="chip person">&#x1F464; Alex &middot; 1:58</span>
+          <span class="chip person">&#x1F464; Sam</span>
+        </div>
+        <div class="vctl"><span>&#x25B6;</span>
+          <div class="bar"><div class="fill"></div><div class="mk" style="left:38%"></div><div class="mk" style="left:88%"></div></div>
+          <span class="meta">0:42 / 2:15</span></div>
+      </div>
+    </div>
+    <div class="cap">3. A paused video with moment tags</div>
+    <div class="notes">Each face tag is a moment: chips show the time and jump there; small marks on the scrub bar show where tags are. "Sam" has no time: tagged as in the video without a spot.</div>
+  </div>
+</div>
+
+</body></html>

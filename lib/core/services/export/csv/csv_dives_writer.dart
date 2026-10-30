@@ -136,7 +136,8 @@ class CsvDivesWriter {
         sanitizeCsvField(dive.diveComputerModel),
         sanitizeCsvField(dive.diveComputerSerial),
         sanitizeCsvField(dive.diveComputerFirmware),
-        sanitizeCsvField(dive.notes.replaceAll('\n', ' ')),
+        // Raw, line breaks and all: Submersion reads this file back (#3683).
+        sanitizeCsvField(dive.notes),
         units.value(CsvColumns.windSpeed, dive.windSpeed),
         dive.windDirection?.displayName ?? '',
         dive.cloudCover?.displayName ?? '',

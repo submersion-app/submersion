@@ -6,12 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
@@ -84,10 +84,20 @@ void main() {
 
     expect(await next((ids) => ids.length == 2), ['shared', 'pier']);
 
-    await TripRepository().setShared('shared', false, actingDiverId: 'a');
+    await ItemSharesRepository().setSharing(
+      SharedItemKind.trip,
+      'shared',
+      ItemSharing.none,
+      actingDiverId: 'a',
+    );
     expect(await next((ids) => ids.length == 1), ['pier']);
 
-    await SiteRepository().setShared('pier', false, actingDiverId: 'a');
+    await ItemSharesRepository().setSharing(
+      SharedItemKind.site,
+      'pier',
+      ItemSharing.none,
+      actingDiverId: 'a',
+    );
     expect(await next((ids) => ids.isEmpty), isEmpty);
   });
 

@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/presentation/formatters/dive_type_l
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// On-screen text for the distribution keys the statistics repository emits.
@@ -11,9 +12,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// text -- the contract the visibility distribution already follows (see
 /// `visibilityDistributionLabel`). Two reasons:
 ///
-/// 1. The time-of-day buckets come out of a SQL CASE expression whose literals
-///    are also the ORDER BY sort keys, so translating them in SQL would reorder
-///    the chart per locale and desynchronise the fixed legend colours.
+/// 1. The time-of-day buckets are `TimeOfDayBucket` keys, which the chart
+///    also looks its fixed colours up by, so a translated key would lose its
+///    colour.
 /// 2. Water type, entry method and dive type are stored enum names and slugs,
 ///    which sync, CSV export and the field extractor all carry verbatim.
 ///
@@ -22,15 +23,17 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Localized name for a time-of-day bucket key.
 ///
-/// Keys are `Morning`, `Afternoon`, `Evening` and `Night`; see
+/// Keys are the `TimeOfDayBucket` keys; see
 /// `InsightsRepository.getDivesByTimeOfDay`.
 String timeOfDayDistributionLabel(String key, AppLocalizations l10n) =>
-    switch (key) {
-      'Morning' => l10n.insights_timePatterns_timeOfDay_morning,
-      'Afternoon' => l10n.insights_timePatterns_timeOfDay_afternoon,
-      'Evening' => l10n.insights_timePatterns_timeOfDay_evening,
-      'Night' => l10n.insights_timePatterns_timeOfDay_night,
-      _ => key,
+    switch (TimeOfDayBucket.fromKey(key)) {
+      TimeOfDayBucket.dawn => l10n.insights_timePatterns_timeOfDay_dawn,
+      TimeOfDayBucket.morning => l10n.insights_timePatterns_timeOfDay_morning,
+      TimeOfDayBucket.afternoon =>
+        l10n.insights_timePatterns_timeOfDay_afternoon,
+      TimeOfDayBucket.dusk => l10n.insights_timePatterns_timeOfDay_dusk,
+      TimeOfDayBucket.night => l10n.insights_timePatterns_timeOfDay_night,
+      null => key,
     };
 
 /// Localized name for a stored [WaterType] enum name, or for

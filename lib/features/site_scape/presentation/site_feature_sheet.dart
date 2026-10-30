@@ -8,6 +8,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 /// What the sheet hands back to its caller. Null (a dismissed sheet)
 /// means "write nothing".
@@ -207,7 +208,7 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
             ],
           ),
           const SizedBox(height: 12),
-          TextFormField(
+          MarkdownNotesField(
             key: const ValueKey('siteFeatureNotesField'),
             controller: _notes,
             maxLines: 3,

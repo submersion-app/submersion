@@ -7,6 +7,8 @@ import 'package:submersion/features/equipment/domain/constants/equipment_type_or
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_arrangement_display.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The type axis of the diver's gear arrangement: whether to draw a heading
@@ -22,7 +24,7 @@ class EquipmentGroupingControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
-    final arrangement = ref.watch(equipmentArrangementNotifierProvider);
+    final arrangement = ref.watch(equipmentArrangementProvider);
 
     // Grouping without a type ordering would draw headers in an arbitrary
     // sequence, which is the very complaint this feature answers, so
@@ -142,8 +144,11 @@ Future<void> applyEquipmentArrangement(
   final message = context.l10n.equipment_arrange_saveFailed;
   try {
     await ref
-        .read(equipmentArrangementNotifierProvider.notifier)
-        .updateArrangement(change);
+        .read(settingsProvider.notifier)
+        .updateEquipmentArrangement(
+          ref.read(appSettingsRepositoryProvider),
+          change,
+        );
   } catch (_) {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }

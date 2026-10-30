@@ -238,13 +238,13 @@ void main() {
       expect(cleared.o2Narcotic, isNull);
     });
 
-    test('gas options default to Subsurface-style values', () {
+    test('gas options are unset by default, following Settings (#3552)', () {
       final plan = _plan();
-      expect(plan.sacFactor, 2.0);
-      expect(plan.problemSolvingMinutes, 2);
+      expect(plan.sacFactor, isNull);
+      expect(plan.problemSolvingMinutes, isNull);
       expect(plan.ppO2Bottom, isNull);
       expect(plan.ppO2Deco, isNull);
-      expect(plan.bestMixEndMeters, 30.0);
+      expect(plan.bestMixEndMeters, isNull);
       expect(plan.o2Narcotic, isNull);
     });
 

@@ -8,13 +8,13 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -65,7 +65,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 
 void main() {
   group('divePlanNotifierProvider', () {
-    test('uses ~34 bar reserve when pressure unit is psi', () {
+    test('a new plan has no reserve override regardless of pressure unit', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -76,8 +76,9 @@ void main() {
       addTearDown(container.dispose);
 
       final state = container.read(divePlanNotifierProvider);
-      // 500 psi ≈ 34.47 bar
-      expect(state.reservePressure, closeTo(34.47, 0.5));
+      // reservePressure live-resolves against the diver's Settings
+      // (issue #3552); a new plan never snapshots a value into state.
+      expect(state.reservePressure, isNull);
     });
 
     test('a new plan starts on salt water', () {
@@ -630,7 +631,7 @@ void main() {
       );
     });
 
-    test('uses 50 bar reserve when pressure unit is bar', () {
+    test('a new plan has no reserve override on metric settings', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -639,7 +640,7 @@ void main() {
       addTearDown(container.dispose);
 
       final state = container.read(divePlanNotifierProvider);
-      expect(state.reservePressure, DivePlanState.kDefaultReservePressureBar);
+      expect(state.reservePressure, isNull);
     });
 
     test('toDive sets runtime from segment durations', () {
@@ -761,6 +762,20 @@ void main() {
       expect(ttsForSalinity(40), greaterThan(ttsForSalinity(0)));
     });
 
+    test('the quick plan descends at the Settings rate when unset', () {
+      // An unset plan descent rate follows the diver's Settings (#3552),
+      // not the 18 m/min spec constant.
+      final notifier = DivePlanNotifier(
+        PlanCalculatorService(),
+        getEngineConfig: () => const PlanEngineConfig(descentRate: 10),
+      );
+      addTearDown(notifier.dispose);
+
+      notifier.addSimplePlan(maxDepth: 30.0, bottomTimeMinutes: 20);
+      // 30 m at 10 m/min.
+      expect(notifier.state.segments.first.durationSeconds, 180);
+    });
+
     test('plan results follow the plan water type', () {
       int ttsForWaterType(WaterType waterType) {
         final container = ProviderContainer(
@@ -783,7 +798,7 @@ void main() {
     });
 
     test(
-      'newPlan resets reserve to 500 psi (~34 bar) when pressure unit is psi',
+      'newPlan still has no reserve override after a pressure-unit change',
       () {
         final settingsNotifier = _TestSettingsNotifier();
         final container = ProviderContainer(
@@ -794,36 +809,36 @@ void main() {
         final notifier = container.read(divePlanNotifierProvider.notifier);
         expect(
           container.read(divePlanNotifierProvider).reservePressure,
-          DivePlanState.kDefaultReservePressureBar,
+          isNull,
         );
 
         settingsNotifier.updatePressureUnitForTest(PressureUnit.psi);
         notifier.newPlan();
 
         final state = container.read(divePlanNotifierProvider);
-        expect(state.reservePressure, closeTo(34.47, 0.5));
+        expect(state.reservePressure, isNull);
       },
     );
 
-    test(
-      'initial plan seeds gradient factors from the diver deco settings',
-      () {
-        final container = ProviderContainer(
-          overrides: [
-            settingsProvider.overrideWith(
-              (ref) => _TestSettingsNotifier(gfLow: 35, gfHigh: 75),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
+    test('a new plan has no gradient-factor override; it resolves from '
+        'settings', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _TestSettingsNotifier(gfLow: 35, gfHigh: 75),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-        final state = container.read(divePlanNotifierProvider);
-        expect(state.gfLow, 35);
-        expect(state.gfHigh, 75);
-      },
-    );
+      final state = container.read(divePlanNotifierProvider);
+      expect(state.gfLow, isNull);
+      expect(state.gfHigh, isNull);
+      expect(container.read(gfLowProvider), 35);
+      expect(container.read(gfHighProvider), 75);
+    });
 
-    test('newPlan re-reads gradient factors from the diver deco settings', () {
+    test('newPlan clears a gradient-factor override back to unset', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -840,8 +855,8 @@ void main() {
       notifier.newPlan();
 
       final state = container.read(divePlanNotifierProvider);
-      expect(state.gfLow, 35);
-      expect(state.gfHigh, 75);
+      expect(state.gfLow, isNull);
+      expect(state.gfHigh, isNull);
     });
 
     test('changing deco settings does not discard the in-progress plan', () {
@@ -862,27 +877,32 @@ void main() {
       final state = container.read(divePlanNotifierProvider);
       expect(state.id, planned.id);
       expect(state.segments, planned.segments);
-      // The plan keeps the gradient factors it was built with; settings seed
-      // new plans, they do not retroactively rewrite an open one.
-      expect(state.gfLow, 50);
-      expect(state.gfHigh, 85);
+      // gfLow/gfHigh live-resolve against Settings instead of being
+      // snapshotted into state, so a settings change never touches them.
+      expect(state.gfLow, isNull);
+      expect(state.gfHigh, isNull);
     });
 
-    test('an untouched plan follows later gradient factor settings', () {
+    test('an untouched plan has no gfLow/gfHigh; the resolved value follows '
+        'later gradient factor settings', () {
       final settingsNotifier = _TestSettingsNotifier(gfLow: 50, gfHigh: 85);
       final container = ProviderContainer(
         overrides: [settingsProvider.overrideWith((ref) => settingsNotifier)],
       );
       addTearDown(container.dispose);
 
-      expect(container.read(divePlanNotifierProvider).gfLow, 50);
+      expect(container.read(divePlanNotifierProvider).gfLow, isNull);
+      expect(container.read(gfLowProvider), 50);
 
-      // Settings hydrate from the database after this provider is first read.
+      // Settings hydrate from the database after this provider is first
+      // read.
       settingsNotifier.updateGradientFactorsForTest(20, 60);
 
       final state = container.read(divePlanNotifierProvider);
-      expect(state.gfLow, 20);
-      expect(state.gfHigh, 60);
+      expect(state.gfLow, isNull);
+      expect(state.gfHigh, isNull);
+      expect(container.read(gfLowProvider), 20);
+      expect(container.read(gfHighProvider), 60);
       // Adopting a setting is not a diver edit, so it must not arm Save.
       expect(state.isDirty, isFalse);
     });
@@ -928,26 +948,33 @@ void main() {
       expect(ttsForPlanFactors(20, 55), greaterThan(ttsForPlanFactors(90, 95)));
     });
 
-    test('newPlan uses gradient factor fallback when no callback provided', () {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
-      addTearDown(notifier.dispose);
+    test(
+      'newPlan leaves gfLow/gfHigh unset even with no callback provided',
+      () {
+        final notifier = DivePlanNotifier(PlanCalculatorService());
+        addTearDown(notifier.dispose);
 
-      notifier.newPlan();
+        notifier.newPlan();
 
-      expect(notifier.state.gfLow, 30);
-      expect(notifier.state.gfHigh, 70);
-    });
+        // gfLow/gfHigh live-resolve against Settings (issue #3552), so a
+        // new plan never snapshots them into state.
+        expect(notifier.state.gfLow, isNull);
+        expect(notifier.state.gfHigh, isNull);
+      },
+    );
 
-    test('newPlan uses reservePressure fallback when no callback provided', () {
-      final notifier = DivePlanNotifier(
-        PlanCalculatorService(),
-        reservePressure: 40,
-      );
-      addTearDown(notifier.dispose);
+    test(
+      'newPlan leaves reservePressure unset even with no callback provided',
+      () {
+        final notifier = DivePlanNotifier(PlanCalculatorService());
+        addTearDown(notifier.dispose);
 
-      notifier.newPlan();
-      expect(notifier.state.reservePressure, 40);
-    });
+        notifier.newPlan();
+        // reservePressure live-resolves against Settings (issue #3552), so
+        // a new plan never snapshots one into state.
+        expect(notifier.state.reservePressure, isNull);
+      },
+    );
 
     test('setFollowedDive seeds context and clearFollowedDive drops it', () {
       final notifier = DivePlanNotifier(PlanCalculatorService());

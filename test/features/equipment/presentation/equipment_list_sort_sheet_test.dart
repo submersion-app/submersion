@@ -13,6 +13,8 @@ import 'package:submersion/features/settings/data/repositories/app_settings_repo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../support/recording_arrangement_settings.dart';
+
 class _FakeSettingsRepository extends AppSettingsRepository {
   _FakeSettingsRepository() {
     // Not awaited: closing a single-subscription controller that never had a
@@ -23,29 +25,16 @@ class _FakeSettingsRepository extends AppSettingsRepository {
 
   EquipmentArrangement? stored;
   int reads = 0;
-  final List<EquipmentArrangement> written = [];
-  final StreamController<void> settingsTicks = StreamController<void>();
 
-  /// When set, writes wait until the test completes them, so several taps
-  /// can land while an earlier write is still in flight.
-  bool holdWrites = false;
-  final List<Completer<void>> heldWrites = [];
+  /// Where the sheet saves the arrangement now that it is per diver
+  /// (issue #3748); [stored] is the app-wide value older builds saved.
+  final settings = RecordingArrangementSettings();
+  final StreamController<void> settingsTicks = StreamController<void>();
 
   @override
   Future<EquipmentArrangement?> getEquipmentArrangement() async {
     reads++;
     return stored;
-  }
-
-  @override
-  Future<void> setEquipmentArrangement(EquipmentArrangement arrangement) async {
-    if (holdWrites) {
-      final gate = Completer<void>();
-      heldWrites.add(gate);
-      await gate.future;
-    }
-    written.add(arrangement);
-    stored = arrangement;
   }
 
   @override
@@ -69,7 +58,11 @@ void main() {
 
     fake = _FakeSettingsRepository()..stored = stored;
     container = ProviderContainer(
-      overrides: [appSettingsRepositoryProvider.overrideWithValue(fake)],
+      overrides: [
+        appSettingsRepositoryProvider.overrideWithValue(fake),
+        // The sort and arrangement are saved for the diver (issue #3748).
+        settingsProvider.overrideWith((ref) => fake.settings),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -138,6 +131,31 @@ void main() {
     expect(find.text('Group by type'), findsOneWidget);
   });
 
+  testWidgets('a pick made before settings load survives closing the sheet', (
+    tester,
+  ) async {
+    // The save waits for the diver's settings to load (issue #3748), and the
+    // diver can close the sheet before it does: the change must not depend
+    // on the sheet still being there.
+    await pumpSheet(tester);
+    fake.settings.holdWrites = true;
+
+    await tester.tap(find.text('Service Due'));
+    await tester.pump();
+    Navigator.of(tester.element(find.text('Service Due'))).pop();
+    await tester.pumpAndSettle();
+    while (fake.settings.heldWrites.isNotEmpty) {
+      fake.settings.heldWrites.removeAt(0).complete();
+      await tester.pumpAndSettle();
+    }
+
+    expect(tester.takeException(), isNull);
+    expect(
+      container.read(equipmentSortProvider).field,
+      EquipmentSortField.serviceDue,
+    );
+  });
+
   testWidgets('the header arrow sets the item direction', (tester) async {
     await pumpSheet(tester);
 
@@ -153,7 +171,11 @@ void main() {
         direction: SortDirection.descending,
       ),
     );
-    expect(fake.written, isEmpty, reason: 'the type axis was not touched');
+    expect(
+      fake.settings.written,
+      isEmpty,
+      reason: 'the type axis was not touched',
+    );
   });
 
   testWidgets('a direction and a field picked in one frame both survive', (
@@ -187,7 +209,7 @@ void main() {
     await tester.tap(find.byIcon(SortDirection.descending.icon).last);
     await tester.pumpAndSettle();
 
-    expect(fake.written.single.typeOrderDescending, isTrue);
+    expect(fake.settings.written.single.typeOrderDescending, isTrue);
     expect(
       container.read(equipmentSortProvider).direction,
       SortDirection.ascending,
@@ -202,7 +224,7 @@ void main() {
     await tester.tap(find.text('Group by type'));
     await tester.pumpAndSettle();
 
-    expect(fake.written.single.groupByType, isFalse);
+    expect(fake.settings.written.single.groupByType, isFalse);
   });
 
   testWidgets('quick changes to the grouping all survive', (tester) async {
@@ -212,19 +234,19 @@ void main() {
     // arrangement the sheet last rendered, or the later write silently
     // undoes the earlier one.
     await pumpSheet(tester);
-    fake.holdWrites = true;
+    fake.settings.holdWrites = true;
 
     await tester.tap(find.text('Group by type'));
     await tester.pump();
     await tester.tap(find.text('Head to toe'));
     await tester.pump();
-    while (fake.heldWrites.isNotEmpty) {
-      fake.heldWrites.removeAt(0).complete();
+    while (fake.settings.heldWrites.isNotEmpty) {
+      fake.settings.heldWrites.removeAt(0).complete();
       await tester.pumpAndSettle();
     }
 
-    expect(fake.stored?.groupByType, isFalse);
-    expect(fake.stored?.typeOrder, EquipmentTypeOrder.headToToe);
+    expect(fake.settings.stored?.groupByType, isFalse);
+    expect(fake.settings.stored?.typeOrder, EquipmentTypeOrder.headToToe);
   });
 
   testWidgets('tapping the grouping switch twice quickly turns it back on', (
@@ -234,18 +256,21 @@ void main() {
     // lands. Two taps before then must toggle twice, off and back on, not
     // both ask for "off".
     await pumpSheet(tester);
-    fake.holdWrites = true;
+    fake.settings.holdWrites = true;
 
     await tester.tap(find.text('Group by type'));
     await tester.pump();
     await tester.tap(find.text('Group by type'));
     await tester.pump();
-    while (fake.heldWrites.isNotEmpty) {
-      fake.heldWrites.removeAt(0).complete();
+    while (fake.settings.heldWrites.isNotEmpty) {
+      fake.settings.heldWrites.removeAt(0).complete();
       await tester.pumpAndSettle();
     }
 
-    expect(fake.written.map((a) => a.groupByType).toList(), [false, true]);
+    expect(fake.settings.written.map((a) => a.groupByType).toList(), [
+      false,
+      true,
+    ]);
   });
 
   testWidgets('the current field carries the check mark', (tester) async {

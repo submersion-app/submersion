@@ -16,7 +16,7 @@ const String kBlenderInvoiceArchiveRoute =
 
 /// The Trimix Mixer's settings page, which lives under Settings rather than
 /// under the calculator: the gear on the calculator and the Settings >
-/// Manage > Data entry open the same route, so neither can drift into a
+/// Manage > Planning entry open the same route, so neither can drift into a
 /// second way of reaching the page.
 const String kTrimixMixerSettingsRoute = '/settings/trimix-mixer';
 

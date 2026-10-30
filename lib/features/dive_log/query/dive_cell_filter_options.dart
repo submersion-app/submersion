@@ -325,7 +325,7 @@ Object? _queriedValue(
   DiveField.diveOperator => _nonBlank(dive.diveOperator),
   DiveField.surfaceConditions => _nonBlank(dive.surfaceConditions),
   DiveField.currentStrength => dive.currentStrength,
-  DiveField.entryMethod => dive.entryMethod,
+  DiveField.entryMethod => dive.effectiveEntryMethod,
   DiveField.exitMethod => dive.exitMethod,
   DiveField.waterType => dive.effectiveWaterType,
   DiveField.diveMode => dive.diveMode,

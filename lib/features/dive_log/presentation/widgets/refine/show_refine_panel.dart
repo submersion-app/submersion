@@ -46,7 +46,7 @@ Future<void> showRefinePanel(
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black26,
+    barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.26),
     transitionDuration: const Duration(milliseconds: 200),
     pageBuilder: (_, _, _) => Align(
       alignment: AlignmentDirectional.centerEnd,

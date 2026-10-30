@@ -20,6 +20,11 @@ const Map<String, String> kRenamedNavIds = {
   // certifications is the one a save writes back; see [withLegacyNavIds].
   'certifications': 'training',
   'courses': 'training',
+  // Media and Documents merged into one entry with both as tabs (#3631).
+  // Listed first, media is the one a save writes back; see
+  // [withLegacyNavIds].
+  'media': 'media-documents',
+  'documents': 'media-documents',
 };
 
 /// [ids] as they should be saved: each renamed destination's old id written

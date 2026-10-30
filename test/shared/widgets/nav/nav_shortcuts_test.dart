@@ -87,6 +87,11 @@ void main() {
       expect(navShortcutDestination(records).label(l10n), 'Records');
     });
 
+    test('the backup shortcut uses the Backups page name (#3482)', () {
+      final backup = navShortcutById('backup')!;
+      expect(backup.label(l10n), 'Backups');
+    });
+
     test('the long names all have a short nav label', () {
       const long = {
         'deco-calculator',

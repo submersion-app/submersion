@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/shared_library/backup/library_backup_archive.dart';
 import 'package:submersion/core/services/shared_library/backup/library_restore_service.dart';
@@ -15,9 +16,11 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/picked_file_path.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/recovery_code_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// Connect a shared site library (issue #2567): pick an S3 or WebDAV account,
 /// name the prefix, then join what is there or create a new library.
@@ -76,7 +79,8 @@ class _ConnectSharedLibraryPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final accounts = ref.watch(eligibleLibraryAccountsProvider);
+    // Own servers only: no Google or iCloud probe to list S3 and WebDAV.
+    final groups = ref.watch(accountGroupsOfKindsProvider(libraryKindsKey));
     final diver = ref.watch(currentDiverProvider).valueOrNull;
     if (!_nameSeeded && diver != null) {
       _displayName.text = diver.name;
@@ -84,19 +88,21 @@ class _ConnectSharedLibraryPageState
     }
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_connect_action)),
-      body: accounts.when(
+      // A reload (any roster or sync tick) keeps the form: replacing it with
+      // a spinner would drop what the diver typed or just chose.
+      body: groups.when(
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
-        data: (list) {
-          if (list.isEmpty && !_location.addingAccount) {
-            return _noAccounts(context);
-          }
+        data: (all) {
+          final list = libraryServers(all);
+          if (list.isEmpty) return _noAccounts(context);
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               LibraryLocationFields(
                 controller: _location,
-                accounts: list,
+                servers: list,
                 enabled: !_busy,
                 onEdited: () => setState(() {
                   _probe = null;
@@ -109,7 +115,9 @@ class _ConnectSharedLibraryPageState
                   alignment: Alignment.centerRight,
                   child: FilledButton.tonal(
                     onPressed: _busy ? null : _runProbe,
-                    child: Text(l10n.sharedLibrary_connect_probe_action),
+                    // The same words as the change-connection page: it
+                    // checks a folder (spec section 4).
+                    child: Text(l10n.sharedLibrary_connection_check),
                   ),
                 ),
               ],
@@ -147,8 +155,11 @@ class _ConnectSharedLibraryPageState
             const SizedBox(height: 16),
             FilledButton.icon(
               icon: const Icon(Icons.add),
-              label: Text(l10n.sharedLibrary_connect_addAccount),
-              onPressed: () => _location.setAddingAccount(true),
+              label: Text(l10n.settings_accounts_add),
+              onPressed: () async {
+                final added = await addLibraryServer(context);
+                if (added != null) _location.selectServer(added);
+              },
             ),
           ],
         ),
@@ -196,10 +207,7 @@ class _ConnectSharedLibraryPageState
         // What the owners say the library is for (issue #3389), so the
         // diver can tell they found the right one before joining.
         if (probe.exists && probe.description != null) ...[
-          Text(
-            probe.description!,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          MarkdownNotesView(probe.description!),
           const SizedBox(height: 8),
         ],
         if (!probe.exists) ...[
@@ -270,8 +278,7 @@ class _ConnectSharedLibraryPageState
   }
 
   Future<void> _runProbe() async {
-    final account = _location.account;
-    if (account == null) return;
+    if (_location.server == null) return;
     final problem = libraryFolderProblem(context.l10n, _location.folder);
     if (problem != null) {
       setState(() => _error = problem);
@@ -282,6 +289,10 @@ class _ConnectSharedLibraryPageState
       _error = null;
     });
     try {
+      // Checked through a signed-in row of the server; nothing is saved
+      // until the diver joins or creates.
+      final account = _location.probeAccount();
+      if (account == null) return;
       final probe = await ref
           .read(sharedLibraryMembershipServiceProvider)
           .probe(account: account, prefix: _location.folder);
@@ -322,9 +333,8 @@ class _ConnectSharedLibraryPageState
   }
 
   Future<void> _connect() async {
-    final account = _location.account;
     final probe = _probe;
-    if (account == null || probe == null) return;
+    if (_location.account == null || probe == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
     final displayName = _displayName.text.trim();
@@ -334,6 +344,12 @@ class _ConnectSharedLibraryPageState
       _error = null;
     });
     try {
+      // The library's own row on the chosen server, made now that the diver
+      // joins or creates.
+      final account = await _location.resolveAccount(
+        ref.read(accountGroupServiceProvider),
+      );
+      if (account == null) return;
       final service = ref.read(sharedLibraryMembershipServiceProvider);
       final prefix = _probedPrefix ?? _location.folder;
       final library = probe.exists
@@ -383,9 +399,8 @@ class _ConnectSharedLibraryPageState
   /// library's id (issue #2567). An encrypted backup asks for its
   /// passphrase, with the page idle while it does.
   Future<void> _restoreFromBackup() async {
-    final account = _location.account;
     final prefix = _probedPrefix;
-    if (account == null || prefix == null) return;
+    if (_location.account == null || prefix == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
     final displayName = _displayName.text.trim();
@@ -406,6 +421,10 @@ class _ConnectSharedLibraryPageState
       _error = null;
     });
     try {
+      final account = await _location.resolveAccount(
+        ref.read(accountGroupServiceProvider),
+      );
+      if (account == null) return;
       String? secret;
       RestoredLibrary? restored;
       while (restored == null) {

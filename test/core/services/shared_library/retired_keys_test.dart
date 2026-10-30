@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 /// A member whose editing role ends (they leave, are demoted, or their
 /// role is removed) keeps the edits they signed before then (issue #2567).
@@ -127,6 +128,7 @@ void main() {
       );
       SharedLibraryMembershipService memberships() =>
           SharedLibraryMembershipService(
+            accountById: anyTestAccount,
             store: SharedLibraryStore(),
             transportFor: ({required account, required prefix}) async =>
                 SharedLibraryTransport(cloud, prefix: prefix),

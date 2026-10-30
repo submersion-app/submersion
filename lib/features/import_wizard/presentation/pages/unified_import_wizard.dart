@@ -5,19 +5,22 @@ import 'package:submersion/core/router/back_navigation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
-import 'package:submersion/features/import_wizard/data/services/import_provider_invalidator.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
+import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/running_import_gate.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_progress_step.dart';
@@ -78,19 +81,30 @@ class _UnifiedImportWizardState extends State<UnifiedImportWizard> {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      overrides: [
-        importWizardNotifierProvider.overrideWith(
-          widget.notifierFactoryOverride ??
-              (ref) => ImportWizardNotifier(
-                _adapter,
-                tagRepository: ref.read(tagRepositoryProvider),
-              ),
+    return RunningImportGate(
+      title: _adapter.displayName,
+      child: ProviderScope(
+        overrides: [
+          importWizardNotifierProvider.overrideWith(
+            widget.notifierFactoryOverride ??
+                (ref) => ImportWizardNotifier(
+                  _adapter,
+                  tagRepository: ref.read(tagRepositoryProvider),
+                  ruleEngine: ref.read(ruleEngineProvider),
+                  gpsTrackMatchService: ref.read(gpsTrackMatchServiceProvider),
+                  equipmentDefaulter: DiveEquipmentDefaulter(),
+                  job: ref.read(importJobProvider.notifier),
+                  // Only the universal adapters read through a container
+                  // that outlives the wizard (#3554); every other source
+                  // stops when the wizard goes away.
+                  continuesWithoutWizard: _adapter is UniversalAdapter,
+                ),
+          ),
+        ],
+        child: _UnifiedImportWizardBody(
+          adapter: _adapter,
+          initialPageOverride: widget.initialPageOverride,
         ),
-      ],
-      child: _UnifiedImportWizardBody(
-        adapter: _adapter,
-        initialPageOverride: widget.initialPageOverride,
       ),
     );
   }
@@ -127,11 +141,6 @@ class _UnifiedImportWizardBodyState
   /// Why the last Next tap did not move the wizard on, shown above the bottom
   /// bar until the next attempt. Null while nothing has failed.
   String? _advanceError;
-
-  /// True once duplicate detection threw and the review list was built without
-  /// it. Surfaced on the review step so nobody re-imports a dive believing the
-  /// wizard checked.
-  bool _duplicateCheckFailed = false;
 
   static const _log = LoggerService('UnifiedImportWizard');
 
@@ -243,11 +252,8 @@ class _UnifiedImportWizardBodyState
   Future<void> _onNext() async {
     if (_advancing) return;
     _advancing = true;
-    if (_advanceError != null || _duplicateCheckFailed) {
-      setState(() {
-        _advanceError = null;
-        _duplicateCheckFailed = false;
-      });
+    if (_advanceError != null) {
+      setState(() => _advanceError = null);
     }
     try {
       await _advance();
@@ -320,6 +326,7 @@ class _UnifiedImportWizardBodyState
         // abandon the advance entirely, which is what a large or unhappy
         // library looked like from the outside: Next did nothing, forever.
         ImportBundle checkedBundle;
+        var duplicateCheckFailed = false;
         try {
           checkedBundle = await widget.adapter.checkDuplicates(bundle);
         } catch (e, stackTrace) {
@@ -329,14 +336,17 @@ class _UnifiedImportWizardBodyState
             stackTrace: stackTrace,
           );
           checkedBundle = bundle;
-          _duplicateCheckFailed = true;
+          duplicateCheckFailed = true;
         }
         if (!mounted) return;
         await _awaitSettingsLoad();
         if (!mounted) return;
         ref
             .read(importWizardNotifierProvider.notifier)
-            .setBundle(checkedBundle);
+            .setBundle(
+              checkedBundle,
+              duplicateCheckFailed: duplicateCheckFailed,
+            );
         ref
             .read(importWizardNotifierProvider.notifier)
             .initializeDefaultTag(
@@ -367,41 +377,18 @@ class _UnifiedImportWizardBodyState
   }
 
   Future<void> _startImport() async {
+    // Held while a change of profile re-checks the rows (issue #2050).
+    if (ref.read(importWizardNotifierProvider).isRetargeting) return;
     await _animateToPage(_importIndex);
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (!mounted) return;
     final notifier = ref.read(importWizardNotifierProvider.notifier);
     notifier.setDiverId(diverId);
+    // The import's job refreshes the imported lists when it ends, so they
+    // are fresh here and also when the diver has left the wizard.
     await notifier.performImport();
     if (!mounted) return;
-    _invalidateImportedProviders();
     await _animateToPage(_summaryIndex);
-  }
-
-  /// Invalidate list providers for entity types that were imported so
-  /// list screens reflect the new data without requiring an app restart.
-  void _invalidateImportedProviders() {
-    final result = ref.read(importWizardNotifierProvider).importResult;
-    if (result == null) return;
-
-    // Always refresh the computers list -- ensureComputer() (or
-    // SuuntoCloudAdapter's/GarminCloudAdapter's per-dive computer
-    // resolution) may have created a new record even when all dives were
-    // skipped.
-    if (widget.adapter.sourceType == ImportSourceType.diveComputer ||
-        widget.adapter.sourceType == ImportSourceType.suuntoCloud ||
-        widget.adapter.sourceType == ImportSourceType.suuntoFile ||
-        widget.adapter.sourceType == ImportSourceType.garminCloud) {
-      ref.invalidate(allDiveComputersProvider);
-    }
-
-    invalidateImportRelatedProviders(
-      (provider) => ref.invalidate(provider),
-      result.importedCounts.entries
-          .where((e) => e.value > 0)
-          .map((e) => e.key)
-          .toSet(),
-    );
   }
 
   /// Leaves the wizard. Opened from Transfer there is a page to pop back
@@ -573,7 +560,16 @@ class _UnifiedImportWizardBodyState
               icon: Icons.error_outline,
               isError: true,
             ),
-          if (_duplicateCheckFailed && _currentPage == _reviewIndex)
+          // Duplicate detection threw and the review list was built without
+          // it, on entering the review step or after a change of profile
+          // there (issue #2050). Said here so nobody re-imports a dive
+          // believing the wizard checked.
+          if (ref.watch(
+                importWizardNotifierProvider.select(
+                  (s) => s.duplicateCheckFailed,
+                ),
+              ) &&
+              _currentPage == _reviewIndex)
             _WizardMessage(
               message: context.l10n.universalImport_error_duplicateCheckFailed,
               icon: Icons.warning_amber_outlined,

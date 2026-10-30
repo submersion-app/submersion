@@ -7,6 +7,8 @@ import 'package:path/path.dart' as path;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// The host platform, as far as iCloud availability is concerned.
 ///
@@ -226,6 +228,8 @@ class ICloudStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       _log.info('uploadFile: START for $filename (${data.length} bytes)');
 
@@ -293,6 +297,8 @@ class ICloudStorageProvider
     String filename, {
     String? folderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       final targetFolder = await _resolveUploadFolder(folderId);
       final filePath = path.join(targetFolder, filename);
@@ -441,6 +447,8 @@ class ICloudStorageProvider
 
   @override
   Future<void> deleteFile(String fileId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       final file = File(fileId);
 
@@ -472,6 +480,8 @@ class ICloudStorageProvider
     String folderName, {
     String? parentFolderId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+
     try {
       final container = await _getICloudContainer();
       if (container == null) {

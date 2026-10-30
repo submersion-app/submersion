@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
-import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_connections_card.dart';
@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/computer_items_override.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -70,6 +71,7 @@ void main() {
   };
 
   List<dynamic> overrides() => [
+    computerItemsFromComputers,
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     allDiveComputersProvider.overrideWith((ref) async => [file, ble]),
     allDiveComputerConnectionsProvider.overrideWith((ref) async => connections),
@@ -131,8 +133,13 @@ void main() {
       routes: [
         GoRoute(
           path: '/dive-computers/:id',
-          builder: (context, state) =>
-              DeviceDetailPage(computerId: state.pathParameters['id']!),
+          builder: (context, state) => Scaffold(
+            body: SingleChildScrollView(
+              child: DiveComputerControls(
+                computerId: state.pathParameters['id']!,
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -29,22 +29,26 @@ class S3CredentialsStore {
 
   /// The stored config, or null when unset or the stored blob is corrupt.
   /// Keychain errors other than a missing entitlement propagate.
-  Future<S3Config?> load() async {
-    final raw = await _storage.read(key: _storageKey);
-    if (raw == null) return null;
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, Object?>) return null;
-      return S3Config.fromJson(decoded);
-    } on FormatException {
-      return null;
-    } on TypeError {
-      return null;
-    }
-  }
+  Future<S3Config?> load() async =>
+      decodeS3Config(await _storage.read(key: _storageKey));
 
   Future<void> save(S3Config config) =>
       _storage.write(key: _storageKey, value: jsonEncode(config.toJson()));
 
   Future<void> clear() => _storage.delete(key: _storageKey);
+}
+
+/// An S3 keychain blob as a config, or null when absent or corrupt. The one
+/// decoder for every key holding one (the sync settings, each account's).
+S3Config? decodeS3Config(String? raw) {
+  if (raw == null) return null;
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map<String, Object?>) return null;
+    return S3Config.fromJson(decoded);
+  } on FormatException {
+    return null;
+  } on TypeError {
+    return null;
+  }
 }

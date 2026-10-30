@@ -9,7 +9,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -220,41 +219,26 @@ class _NavTrackImportReviewPageState
     }
   }
 
-  /// Distinguishes "the diver tapped the sheet's own no-equipment row" from
-  /// "the sheet was dismissed without a choice" (backdrop tap, close
-  /// button): [showModalBottomSheet] resolves to null for the latter, so
-  /// the sheet pops this sentinel rather than a bare null for the former,
-  /// and only it clears an existing selection.
-  static const Object _noEquipmentChosen = Object();
-
   Future<void> _pickEquipment() async {
-    final result = await showModalBottomSheet<Object?>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (sheetContext, scrollController) =>
-            NavTrackEquipmentPickerSheet(
-              scrollController: scrollController,
-              selectedEquipmentId: _equipmentId,
-              onEquipmentSelected: (item) =>
-                  Navigator.of(sheetContext).pop(item ?? _noEquipmentChosen),
-            ),
-      ),
+    final choice = await pickNavTrackEquipment(
+      context,
+      selectedEquipmentId: _equipmentId,
     );
-    if (result == null) return; // dismissed without a choice
-    setState(() {
-      if (result is EquipmentItem) {
-        _equipmentId = result.id;
-        _equipmentName = result.name;
-      } else {
-        _equipmentId = null;
-        _equipmentName = null;
-      }
-    });
+    if (!mounted) return;
+    switch (choice) {
+      case NavTrackEquipmentChosen(:final item):
+        setState(() {
+          _equipmentId = item.id;
+          _equipmentName = item.name;
+        });
+      case NavTrackEquipmentCleared():
+        setState(() {
+          _equipmentId = null;
+          _equipmentName = null;
+        });
+      case NavTrackEquipmentPickCancelled():
+        break;
+    }
   }
 
   String _segmentSummary(
@@ -569,7 +553,10 @@ class _SummaryGrid extends StatelessWidget {
       ),
       (l10n.navTrack_review_row_maxDepth, units.formatDepth(stats.maxDepth)),
       if (stats.maxSpeed != null)
-        (l10n.navTrack_review_row_maxSpeed, units.formatSpeed(stats.maxSpeed!)),
+        (
+          l10n.navTrack_review_row_maxSpeed,
+          units.formatTrackSpeed(stats.maxSpeed!),
+        ),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

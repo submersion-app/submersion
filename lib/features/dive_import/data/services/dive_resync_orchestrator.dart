@@ -9,6 +9,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 class DiveResyncOutcome {
   final bool succeeded;
@@ -61,6 +63,7 @@ class DiveResyncOrchestrator {
        _writer = writer ?? DiveReimportService(db: db);
 
   Future<DiveResyncOutcome> resync(String diveId) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
     final dive = await (db.select(
       db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();

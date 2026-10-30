@@ -18,6 +18,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_detail_pa
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class SiteListPage extends ConsumerStatefulWidget {
   const SiteListPage({super.key});
@@ -101,6 +103,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
     if (viewMode == ListViewMode.table) {
       return TableModeLayout(
         sectionKey: 'sites',
+        rememberedSelectedId: ref.watch(rememberedSiteIdProvider),
         appBarTitle: context.l10n.nav_sites,
         appBarSubtitle: siteListCountLabel(context, ref),
         tableContent: SiteListContent(
@@ -181,10 +184,11 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
                     field.localizedName(context.l10n),
                 getFieldIcon: (field) => field.icon,
                 onSortChanged: (field, direction) {
-                  ref.read(siteSortProvider.notifier).state = SortState(
-                    field: field,
-                    direction: direction,
-                  );
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setSiteSort(
+                        SortState(field: field, direction: direction),
+                      );
                 },
               );
             },
@@ -196,7 +200,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(siteListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setSiteListViewMode(mode);
               } else if (value == 'fill_location_details') {
                 unawaited(
                   showSiteLocationBackfillFlow(
@@ -261,7 +265,8 @@ class _SiteListPageState extends ConsumerState<SiteListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
-          sectionId: 'sites',
+          sectionId: RecordListSection.sites,
+          rememberedSelectedId: ref.watch(rememberedSiteIdProvider),
           masterBuilder: (context, onItemSelected, selectedId) =>
               SiteListContent(
                 onItemSelected: onItemSelected,

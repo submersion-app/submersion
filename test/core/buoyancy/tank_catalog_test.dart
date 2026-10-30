@@ -75,14 +75,16 @@ void main() {
   });
 
   // A caller that has only volume and working pressure resolves through
-  // TankPresets.matchBySpecs, which returns the FIRST preset within tolerance.
+  // TankPresets.matchAnyBySpecs, which returns the FIRST preset within
+  // tolerance.
   // Some presets are genuinely indistinguishable that way (an AL40 and an AL40
   // Stage are both 5.7 L @ 206.843 bar), so the tie-break falls out of the
   // order of TankPresets.all. That is only safe while the tied presets share a
   // catalog row; otherwise reordering the list would silently change a
   // buoyancy prediction.
   group('spec-ambiguous presets cannot change a buoyancy result', () {
-    // matchBySpecs accepts a preset when |dVolume| < 0.2 and |dPressure| < 2.0,
+    // matchAnyBySpecs accepts a preset when |dVolume| < 0.2 and
+    // |dPressure| < 2.0,
     // so a single (volume, pressure) pair can match two presets exactly when
     // they lie within the sum of those tolerances of each other.
     bool indistinguishable(TankPreset a, TankPreset b) =>
@@ -90,10 +92,8 @@ void main() {
         (a.workingPressureBar - b.workingPressureBar).abs() < 4.0;
 
     test('agree on their catalog entries', () {
-      // Only presets with a cuft rating are matchable by specs at all.
-      final matchable = TankPresets.all
-          .where((p) => p.ratedCapacityCuft != null)
-          .toList();
+      // Buoyancy matches every preset, rated or metric (#3686).
+      const matchable = TankPresets.all;
 
       for (var i = 0; i < matchable.length; i++) {
         for (var j = i + 1; j < matchable.length; j++) {
@@ -105,7 +105,7 @@ void main() {
             kTankCatalog[b.name],
             reason:
                 '${a.name} and ${b.name} cannot be told apart by volume and '
-                'working pressure, so which one matchBySpecs returns depends '
+                'working pressure, so which one matchAnyBySpecs returns depends '
                 'on the order of TankPresets.all. They must therefore share a '
                 'catalog row, or that ordering silently decides a buoyancy '
                 'prediction. Give the differing preset its own resolution path '
@@ -117,9 +117,7 @@ void main() {
 
     test('the AL40 pair is the only such pair today', () {
       final pairs = <String>[];
-      final matchable = TankPresets.all
-          .where((p) => p.ratedCapacityCuft != null)
-          .toList();
+      const matchable = TankPresets.all;
       for (var i = 0; i < matchable.length; i++) {
         for (var j = i + 1; j < matchable.length; j++) {
           if (indistinguishable(matchable[i], matchable[j])) {
@@ -130,6 +128,21 @@ void main() {
       // Not a correctness requirement, but a new collision is worth a look:
       // it means two presets became mutually unreachable by specs.
       expect(pairs, ['al40/al40stage']);
+    });
+  });
+
+  group('metric steel presets resolve by specs', () {
+    test('every metric preset matches itself by volume and pressure', () {
+      for (final preset in TankPresets.metric) {
+        expect(
+          BuoyancyPhysics.tankTermKg(
+            volumeL: preset.volumeLiters,
+            workingPressureBar: preset.workingPressureBar,
+          ),
+          closeTo(BuoyancyPhysics.tankTermKg(presetName: preset.name), 1e-9),
+          reason: preset.name,
+        );
+      }
     });
   });
 }

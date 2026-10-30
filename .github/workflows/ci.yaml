@@ -35,12 +35,17 @@ jobs:
   # macOS keychain path of the database key, or the macOS runner they are
   # tested in. It follows the same fail-safe rules: an unknown base or a
   # [full-ci] marker sets it too.
+  #
+  # A third, fastlane, gates the fastlane bundle install check (#3495): true
+  # when ios/, macos/ or android/ changes its Gemfile, Gemfile.lock or
+  # fastlane/ folder, with the same fail-safe rules.
   changes:
     name: Detect code changes
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.detect.outputs.code }}
       macos_native: ${{ steps.detect.outputs.macos_native }}
+      fastlane: ${{ steps.detect.outputs.fastlane }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -66,8 +71,11 @@ jobs:
           # push, shallow clone), run the full pipeline rather than guess.
           if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
             echo "Base commit unavailable ('$base'); running the full pipeline."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "macos_native=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "code=true"
+              echo "macos_native=true"
+              echo "fastlane=true"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # Two ranges with different semantics:
@@ -92,8 +100,11 @@ jobs:
           if printf '%s\n%s' "$PR_TITLE" "$(git log --format=%B "$log_range")" \
                | grep -qiF '[full-ci]'; then
             echo "[full-ci] override found; running the full pipeline."
-            echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "macos_native=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "code=true"
+              echo "macos_native=true"
+              echo "fastlane=true"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # --no-renames: rename detection lists only a moved file's new path,
@@ -108,6 +119,7 @@ jobs:
           # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
           code=false
           macos_native=false
+          fastlane=false
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
@@ -130,6 +142,13 @@ jobs:
               macos/*|packages/submersion_transcoder/*) macos_native=true ;;
               lib/core/services/secure_storage/*|lib/core/services/security/*) macos_native=true ;;
               integration_test/darwin_transcode_test.dart|integration_test/db_security_test.dart) macos_native=true ;;
+            esac
+            # What the fastlane bundle install check can see change: each
+            # platform's bundle and the lanes it loads.
+            case "$f" in
+              ios/Gemfile|ios/Gemfile.lock|ios/fastlane/*) fastlane=true ;;
+              macos/Gemfile|macos/Gemfile.lock|macos/fastlane/*) fastlane=true ;;
+              android/Gemfile|android/Gemfile.lock|android/fastlane/*) fastlane=true ;;
             esac
           done <<< "$files"
           # A version change of a native package that db_security_test runs on
@@ -160,9 +179,12 @@ jobs:
               macos_native=true
             fi
           fi
-          echo "Result: code=$code macos_native=$macos_native"
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "macos_native=$macos_native" >> "$GITHUB_OUTPUT"
+          echo "Result: code=$code macos_native=$macos_native fastlane=$fastlane"
+          {
+            echo "code=$code"
+            echo "macos_native=$macos_native"
+            echo "fastlane=$fastlane"
+          } >> "$GITHUB_OUTPUT"
 
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
@@ -371,6 +393,16 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5]
     env:
       TOTAL_SHARDS: 6
+      # The whole suite runs in a zone with a non-zero offset and daylight
+      # saving time, not the runner's UTC (issue #3659). In UTC the offset is
+      # zero all year, so a test that mixes a local date with a UTC wall clock,
+      # or takes today's offset for another date, passes here and fails on a
+      # contributor's machine (#3656). Sydney is east of Greenwich, so a local
+      # morning falls on the previous UTC day, and it keeps DST in the
+      # southern summer, opposite the northern zones most contributors run
+      # in. The Timezone Tests job below adds a western and a half-hour zone
+      # for the files listed there.
+      TZ: Australia/Sydney
     steps:
       - uses: actions/checkout@v7
         with:
@@ -409,6 +441,12 @@ jobs:
 
       - name: Unpack generated code
         run: tar -xzf generated-code.tar.gz
+
+      - name: Check git for the Git backend interop tests
+        # The Git sync backend's tests run stock git (git http-backend and
+        # git index-pack) against the pure-Dart client. They skip without
+        # git locally but must never skip here; fail loudly instead.
+        run: git --version
 
       - name: Run tests
         # `flutter test` compiles and loads every test file as its own
@@ -462,12 +500,14 @@ jobs:
           flags: shard-${{ matrix.shard }}
           fail_ci_if_error: false  # Enable after configuring repo on codecov.io
 
-  # Replays the timezone-sensitive tests under a non-UTC zone. The runners are
-  # UTC, where a device's UTC offset is zero and a whole class of frame bug
+  # Replays the timezone-sensitive tests under more non-UTC zones. The runners
+  # are UTC, where a device's UTC offset is zero and a whole class of frame bug
   # cannot reproduce: `dives.dive_date_time` holds a wall clock flagged as UTC
   # while the filter's dates are built LOCAL, so mixing the two frames shifts
   # the day boundary by exactly that offset and stays invisible here
-  # (issue #1368).
+  # (issue #1368). The test shards above already run the whole suite in
+  # Australia/Sydney (issue #3659); this job covers the directions Sydney
+  # cannot.
   #
   # Two zones, because they fail differently: America/New_York is a whole hour
   # WEST of UTC (a boundary pulls dives out), Australia/Adelaide is a HALF hour
@@ -623,16 +663,23 @@ jobs:
         # docs-only pull requests too.
         run: python3 scripts/check_docs_links.py
 
-      - name: Check Gemfiles are parseable by Dependabot
+      - name: Check Gemfiles are parseable and covered by Dependabot
         # Fails on an eval_gemfile call Dependabot cannot parse (a variable
         # path, as `fastlane add_plugin` writes). That made every bundler
         # version and security update fail, monthly and silently (#2766).
+        # Also fails on a Gemfile whose directory no bundler entry in
+        # .github/dependabot.yml lists, as android/ was (#3495).
         run: python3 scripts/check_dependabot_gemfiles.py
+
+      - name: Check every workflow sets up one Ruby
+        # The fastlane bundle check below proves nothing if it installs on a
+        # different Ruby from the lanes it guards (#3495).
+        run: python3 scripts/check_ruby_versions.py
 
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -641,6 +688,8 @@ jobs:
             scripts/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_bundled_native_assets_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_glibc_floor_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -674,7 +723,17 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/check_dependabot_gemfiles_test.py
           python3 -m coverage run --append --include="$guards" \
+            scripts/check_ruby_versions_test.py
+          python3 -m coverage run --append --include="$guards" \
             scripts/dependabot_failure_alert_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/demo_data/fetch_demo_db_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/curated_sites_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/demo_package_age_alert_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/demo_data/fetch_published_manifest_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -796,6 +855,19 @@ jobs:
         # and 1.7.5 were rejected under 5.1.1(v) because nothing told the
         # reviewer the app has no accounts.
         run: ./scripts/release/app_review_notes_test.sh
+
+      - name: Run DMG notarization test
+        # Drives the macOS Notarize DMG step with a stub xcrun. A failed staple
+        # must be retried without uploading the DMG again: an unretried staple
+        # failed four Beta macOS builds in a row (issue #3488).
+        run: ./scripts/release/notarize_dmg_test.sh
+
+      - name: Run TestFlight distribution test
+        # Drives the Beta workflow's Distribute to Public Beta group step with a
+        # stub fastlane. Apple's daily beta review submission limit must pass
+        # with a warning while every other error still fails: failing on the
+        # limit turned busy merge days into red macOS betas (issue #3715).
+        run: ./scripts/release/distribute_testflight_beta_test.sh
 
       - name: Run pre-push hook test
         # Guards two hook bugs that both rejected pushes for reasons unrelated
@@ -949,6 +1021,54 @@ jobs:
   # Gated on changes.macos_native so a PR that cannot affect them does not
   # take a macOS runner; Build iOS and Build macOS already use two of the
   # organization's 5 per PR.
+  # The fastlane lanes run only after merge (beta, promote, release), so a
+  # bundle that will not install on CI's Ruby, or a Fastfile the locked
+  # fastlane cannot load, used to surface as a failed upload (#3495). This
+  # installs each platform's bundle frozen and loads its Fastfile, on the
+  # runner the upload lanes use (macos-15 in beta, release and promote; the
+  # macos-26 build-all and screenshots jobs are not covered). Gated on the `fastlane` output: Gemfile, Gemfile.lock
+  # and fastlane/ changes only, on pull requests only (the merged commit was
+  # checked on its PR, and two legs take macOS runners). The Ruby must match
+  # the lanes'; the check_ruby_versions.py step in script-tests enforces that.
+  fastlane-bundles:
+    name: Fastlane bundle (${{ matrix.platform }})
+    needs: changes
+    if: >
+      github.event_name == 'pull_request' &&
+      needs.changes.outputs.fastlane == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ios
+            runner: macos-15
+          - platform: macos
+            runner: macos-15
+          - platform: android
+            runner: ubuntu-latest
+    env:
+      LANG: en_US.UTF-8
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_HIDE_CHANGELOG: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Ruby and install the bundle
+        # bundler-cache runs a frozen `bundle install` from Gemfile.lock, so a
+        # lockfile that does not install on this Ruby fails here.
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+          working-directory: ${{ matrix.platform }}
+
+      - name: Load the Fastfile
+        working-directory: ${{ matrix.platform }}
+        run: bundle exec fastlane lanes
+
   integration-test-macos:
     name: Integration Test (macOS)
     needs: [changes, codegen]
@@ -1367,7 +1487,9 @@ jobs:
   build-linux:
     name: Build Linux
     needs: codegen
-    runs-on: ubuntu-latest
+    # Pinned to the runner build-all.yml's build-linux releases from, so the
+    # glibc floor and package checks below test what ships (issue #3523).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -1397,6 +1519,9 @@ jobs:
       # compiles SQLCipher from source and links it against OpenSSL. The
       # hosted runner image happens to ship the headers today, so declaring
       # it keeps a future image change from silently breaking the build.
+      # binutils supplies readelf for the glibc floor check and for
+      # scripts/linux_package_deps.py in the packaging step, on the same
+      # reasoning.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -1410,7 +1535,8 @@ jobs:
             libstdc++-12-dev \
             libsecret-1-dev \
             libwebkit2gtk-4.1-dev \
-            libssl-dev
+            libssl-dev \
+            binutils
 
       - name: Disable Swift Package Manager (project uses CocoaPods)
         run: flutter config --no-enable-swift-package-manager
@@ -1435,19 +1561,21 @@ jobs:
         # positive control that the check is not vacuously passing.
         run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
+      - name: Check glibc floor
+        # Same guard as build-all.yml's build-linux, run here so a change
+        # that raises the floor (a runner pin moved, a native dependency
+        # rebuilt against newer glibc) fails on the pull request rather than
+        # in the beta pipeline after merge (issue #3523).
+        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+
       # Packaging runs here as well as in build-all.yml because build-all.yml
       # is workflow_call-only: nothing a pull request triggers ever invokes it,
       # so without this the packaging path would be unverifiable until after a
       # merge, when a break already blocks the beta pipeline. Both workflows
       # call the same scripts, so they cannot drift.
-      #
-      # This job runs on ubuntu-latest, not the ubuntu:22.04 container
-      # build-all.yml uses, so it covers packaging mechanics and dependency
-      # resolution but NOT the glibc floor. build-all.yml remains the only
-      # check on the floor itself.
       - name: Install packaging tools
         run: |
-          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil binutils
+          sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
           sudo gem install --no-document fpm
 
       - name: Build .deb and .rpm
@@ -1462,14 +1590,15 @@ jobs:
             --rpm "packages/Submersion-ci-Linux-x86_64.rpm"
 
       # The .deb is verified against the runner's own Ubuntu release rather
-      # than an older distro. This job builds on ubuntu-latest, so its binary
-      # requires that runner's glibc, and installing it on debian:12
-      # (glibc 2.36) fails with "GLIBC_2.38 not found" no matter how correct
-      # the packaging is. build-all.yml builds on ubuntu-latest too, so no
-      # job proves installation on older distros: none is supported.
+      # than an older distro. The binary requires glibc 2.38 (the floor
+      # checked above), so installing it on debian:12 (glibc 2.36) fails with
+      # "GLIBC_2.38 not found" no matter how correct the packaging is: no
+      # older distro is supported. The job is pinned to ubuntu-24.04, the
+      # oldest Ubuntu that meets the floor, so this proves installation where
+      # it is hardest to satisfy.
       #
-      # The tag is derived from the runner rather than pinned, so this keeps
-      # matching when GitHub moves ubuntu-latest to the next release.
+      # The tag is derived from the runner rather than written out, so the
+      # job's runs-on is the only place to change.
       - name: Verify the packages install in clean containers
         run: |
           set -euo pipefail
@@ -1739,6 +1868,7 @@ jobs:
       - script-tests
       - integration-test
       - integration-test-macos
+      - fastlane-bundles
       - build-ios
       - build-macos
       - build-android

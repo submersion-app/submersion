@@ -1,0 +1,98 @@
+# Colour-corrected video encode, end to end (issue #3521).
+#
+# Runs scripts/run_color_encode_it.sh on Windows and macOS: ffmpeg synthesizes
+# input clips, the real app encodes them with the platform engine (Media
+# Foundation, AVFoundation), and ffprobe and the reference colour formula
+# check the copies. Android is checked the same way on an emulator by hand
+# (`scripts/run_color_encode_it.sh android`); HDR cases a runner cannot encode
+# are reported as unsupported and skipped.
+
+name: Colour Encode Tests
+
+on:
+  push:
+    paths:
+      - 'packages/submersion_transcoder/**'
+      - 'integration_test/*color_encode*'
+      - 'integration_test/helpers/color_encode_*'
+      - 'tool/color_encode_it/**'
+      - 'scripts/run_color_encode_it.sh'
+      - '.github/workflows/color-encode-tests.yml'
+  pull_request:
+    paths:
+      - 'packages/submersion_transcoder/**'
+      - 'integration_test/*color_encode*'
+      - 'integration_test/helpers/color_encode_*'
+      - 'tool/color_encode_it/**'
+      - 'scripts/run_color_encode_it.sh'
+      - '.github/workflows/color-encode-tests.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: color-encode-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  windows:
+    name: Colour encode (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        shell: bash
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Install ffmpeg
+        run: choco install ffmpeg -y --no-progress
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Synthesize, encode, verify
+        shell: bash
+        run: scripts/run_color_encode_it.sh
+
+  macos:
+    name: Colour encode (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat $FLUTTER_VERSION_FILE)" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Install ffmpeg
+        run: brew install ffmpeg
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # The runner has no signing identity; the integration build is local.
+      - name: Disable code signing
+        run: |
+          echo 'CODE_SIGNING_ALLOWED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGNING_REQUIRED = NO' >> macos/Runner/Configs/Debug.xcconfig
+          echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Debug.xcconfig
+
+      - name: Synthesize, encode, verify
+        run: scripts/run_color_encode_it.sh

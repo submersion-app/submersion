@@ -197,6 +197,8 @@ void main() {
 
         expect(result.divesLinked, 2);
         expect(result.sitesCreated, 1);
+        // Logbook rules run on the sites a match created (#3513).
+        expect(result.createdSiteIds, ['new-Wreck']);
         verify(
           sites.createSite(any, classification: anyNamed('classification')),
         ).called(1);

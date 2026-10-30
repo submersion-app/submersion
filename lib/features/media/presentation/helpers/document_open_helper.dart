@@ -16,6 +16,8 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Routes document attachments: PDFs to the in-app viewer, other formats
 /// to the platform; and hosts the pick-and-attach flow shared by dives,
@@ -56,6 +58,9 @@ class DocumentOpenHelper {
     WidgetRef ref,
     MediaItem item,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) {
+      return;
+    }
     final l10n = context.l10n;
     // Captured before the awaits: on iPad this anchors the share popover to
     // whatever the caller tapped, instead of the middle of the screen.
@@ -95,6 +100,9 @@ class DocumentOpenHelper {
     String? diveId,
     String? siteId,
   }) async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: DocumentImportService.allowedExtensions,

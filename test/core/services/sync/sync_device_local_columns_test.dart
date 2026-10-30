@@ -257,6 +257,109 @@ void main() {
     });
   });
 
+  // Retired in v294 (issue #3502): the card photos live in document_pages,
+  // and the old columns stay out of every payload, in both directions.
+  group('certifications legacy card photo columns', () {
+    const photoKeys = {'photoFront', 'photoBack'};
+
+    Future<Map<String, dynamic>> seedCertification({
+      String? front = "X'0102'",
+    }) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.customStatement(
+        'INSERT INTO certifications (id, name, agency, photo_front, '
+        "created_at, updated_at, hlc) VALUES ('k1', 'Nitrox', 'tdi', "
+        "${front ?? 'NULL'}, $now, $now, '0001')",
+      );
+      final row = await (db.select(
+        db.certifications,
+      )..where((t) => t.id.equals('k1'))).getSingle();
+      return row.toJson();
+    }
+
+    Future<Certification> storedCertification() => (db.select(
+      db.certifications,
+    )..where((t) => t.id.equals('k1'))).getSingle();
+
+    test('a full export omits the photo columns', () async {
+      await seedCertification();
+      final payload = await serializer.exportData(
+        deviceId: 'here',
+        deletions: const [],
+      );
+      final exported = payload.data.certifications.single;
+      expect(exported.keys, isNot(anyElement(isIn(photoKeys))));
+      expect(exported['name'], 'Nitrox');
+    });
+
+    test('an incremental changeset omits the photo columns', () async {
+      await seedCertification();
+      final payload = await serializer.exportChangeset(
+        deviceId: 'here',
+        hlcWatermark: '0000',
+        deletions: const [],
+      );
+      final exported = payload.data.certifications.single;
+      expect(exported.keys, isNot(anyElement(isIn(photoKeys))));
+    });
+
+    test('the synced base omits the photo columns', () async {
+      await seedCertification();
+      final payload = await syncedBase();
+      final exported = payload.data.certifications.single;
+      expect(exported.keys, isNot(anyElement(isIn(photoKeys))));
+    });
+
+    test('photos from an older peer are not written back', () async {
+      final local = await seedCertification(front: null);
+      final bytes = base64Encode([9, 9, 9]);
+      await serializer.upsertRecord('certifications', {
+        ...local,
+        'name': 'Advanced Nitrox',
+        'photoFront': bytes,
+        'photoBack': bytes,
+        'updatedAt': (local['updatedAt'] as int) + 1000,
+      });
+      final row = await storedCertification();
+      expect(row.name, 'Advanced Nitrox');
+      expect(row.photoFront, isNull);
+      expect(row.photoBack, isNull);
+    });
+
+    test('upsertRecords drops an older peer\'s photos too', () async {
+      final local = await seedCertification(front: null);
+      await serializer.upsertRecords('certifications', [
+        {
+          ...local,
+          'photoFront': base64Encode([9]),
+        },
+      ]);
+      expect((await storedCertification()).photoFront, isNull);
+    });
+
+    // v294 keeps photos it could not prove were copied: the only copy left.
+    test('a peer row never clears a photo kept here', () async {
+      final local = await seedCertification();
+      await serializer.upsertRecord('certifications', {
+        ...withoutKeys(local, photoKeys),
+        'name': 'Advanced Nitrox',
+        'updatedAt': (local['updatedAt'] as int) + 1000,
+      });
+      final row = await storedCertification();
+      expect(row.name, 'Advanced Nitrox');
+      expect(row.photoFront, [1, 2]);
+    });
+
+    test('a replace-adopt clear and refill keeps a photo kept here', () async {
+      final local = await seedCertification();
+      await serializer.deleteAllRecords('certifications');
+      await serializer.upsertRecords('certifications', [
+        withoutKeys(local, photoKeys),
+      ]);
+      expect((await storedCertification()).photoFront, [1, 2]);
+    });
+  });
+
   // A new entry in deviceLocalSyncColumns must work in every path that reads
   // the device-local values, not throw the first time a sync reaches it.
   test(

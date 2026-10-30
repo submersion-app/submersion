@@ -12,6 +12,7 @@ class AppDelegate: FlutterAppDelegate {
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
   private var systemProxyHandler: SystemProxyHandler?
+  private var multipeerHandler: MultipeerHandler?
   private var updateChannel: FlutterMethodChannel?
   private var displayChannel: FlutterMethodChannel?
 
@@ -48,6 +49,7 @@ class AppDelegate: FlutterAppDelegate {
       localMediaHandler = LocalMediaHandler(messenger: messenger)
       backupBookmarkHandler = BackupBookmarkHandler(messenger: messenger)
       systemProxyHandler = SystemProxyHandler(messenger: messenger)
+      multipeerHandler = MultipeerHandler(messenger: messenger)
       updateChannel = FlutterMethodChannel(
         name: "app.submersion/updates",
         binaryMessenger: messenger

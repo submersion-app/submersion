@@ -15,6 +15,7 @@ class ConsolidationSummary {
     required this.failed,
     this.keptStandalone = 0,
     this.removedDiveIds = const {},
+    this.consolidatedIntoDiveIds = const {},
   });
 
   /// Number of dives successfully folded into their matched dive.
@@ -39,6 +40,9 @@ class ConsolidationSummary {
   /// absent: it is still standalone in the DB, so the caller must keep
   /// reporting it as imported instead of hiding a stranded duplicate.
   final Set<String> removedDiveIds;
+
+  /// The existing dives the folded-away copies went into.
+  final Set<String> consolidatedIntoDiveIds;
 }
 
 /// Folds consolidate-flagged imported dives into their matched existing
@@ -90,6 +94,7 @@ Future<ConsolidationSummary> performConsolidations({
   var failed = 0;
   var keptStandalone = 0;
   final removedDiveIds = <String>{};
+  final consolidatedIntoDiveIds = <String>{};
 
   for (final index in indices) {
     final matchResult = duplicateResult?.diveMatchFor(index);
@@ -107,6 +112,7 @@ Future<ConsolidationSummary> performConsolidations({
         await diveRepository.bulkDeleteDives([newDiveId]);
         consolidated++;
         removedDiveIds.add(newDiveId);
+        consolidatedIntoDiveIds.add(matchResult.diveId);
         continue;
       }
       if (attachment == MatchAttachment.incomplete) {
@@ -124,6 +130,7 @@ Future<ConsolidationSummary> performConsolidations({
       consolidated++;
       // The fold tombstoned the standalone dive.
       removedDiveIds.add(newDiveId);
+      consolidatedIntoDiveIds.add(matchResult.diveId);
     } on UnreadableSeriesException catch (e) {
       // The refusal is about the pre-existing match's stored series, not
       // about the dive just imported. That dive is good data and this is
@@ -166,5 +173,6 @@ Future<ConsolidationSummary> performConsolidations({
     failed: failed,
     keptStandalone: keptStandalone,
     removedDiveIds: removedDiveIds,
+    consolidatedIntoDiveIds: consolidatedIntoDiveIds,
   );
 }

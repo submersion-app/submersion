@@ -231,6 +231,9 @@ final mediaSourceResolverRegistryProvider =
         // takes effect per resolution without rebuilding registry consumers.
         MediaSourceType.mediaStore: MediaStoreSourceResolver(
           remote: () => ref.read(mediaStoreResolverProvider)?.tryResolveRemote,
+          // The runtime the remote fetch above comes from, so the stamp is
+          // judged against the same store the bytes would be fetched from.
+          storeId: () => ref.read(mediaStoreRuntimeProvider).value?.storeId,
         ),
       });
     });

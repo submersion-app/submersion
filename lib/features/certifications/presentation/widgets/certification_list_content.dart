@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/estimated_row_scroll.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -13,18 +13,21 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/core/constants/sort_options.dart';
-import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/list_position_restorer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_grouping_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_sort_sheet.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_view_switch_selector.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -41,6 +44,7 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/shared/widgets/section_title_toggle.dart';
 
 /// Content widget for the certification list, used in master-detail layout.
 class CertificationListContent extends ConsumerStatefulWidget {
@@ -98,18 +102,22 @@ class _CertificationListContentState
   String? _lastScrolledToId;
   bool _selectionFromList = false;
 
+  /// Brings the list back to the certification last opened when it is built
+  /// again after the diver left it (#3301).
+  late final ListPositionRestorer _positionRestorer = ListPositionRestorer(
+    controller: _scrollController,
+    attempt: _restoreRememberedCertification,
+  );
+
   @override
   void initState() {
     super.initState();
-    if (widget.selectedId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
-      });
-    }
+    _positionRestorer.start(ref, filteredCertificationsProvider);
   }
 
   @override
   void dispose() {
+    _positionRestorer.dispose();
     _scrollController.dispose();
     if (_ownsSelection) _selection.dispose();
     super.dispose();
@@ -130,36 +138,45 @@ class _CertificationListContentState
     }
   }
 
-  void _scrollToSelectedItem() {
-    if (widget.selectedId == null) return;
+  /// One try at showing the selected certification (one in the address) or,
+  /// failing that, the certification last opened, for [_positionRestorer]: true
+  /// once there is nothing left to wait for. A list pushed over another page
+  /// starts at its top unless its address names one.
+  bool _restoreRememberedCertification() {
+    if (!mounted) return true;
+    return restoreListPosition(
+      context,
+      items: ref.read(filteredCertificationsProvider),
+      selectedId: widget.selectedId,
+      rememberedId: ref.read(highlightedCertificationIdProvider),
+      idOf: (item) => item.id,
+      controller: _scrollController,
+      scrollTo: (id) => _scrollToSelectedItem(targetId: id, jump: true),
+    );
+  }
 
-    final certsAsync = ref.read(filteredCertificationsProvider);
-    certsAsync.whenData((certs) {
-      final index = certs.indexWhere((c) => c.id == widget.selectedId);
-      if (index >= 0 && _scrollController.hasClients) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_scrollController.hasClients || certs.isEmpty) return;
-
-          final maxScroll = _scrollController.position.maxScrollExtent;
-          final viewportHeight = _scrollController.position.viewportDimension;
-          final totalContentHeight = maxScroll + viewportHeight - 80;
-          final avgItemHeight = totalContentHeight / certs.length;
-          final targetOffset = (index * avgItemHeight) - (viewportHeight / 3);
-          final clampedOffset = targetOffset.clamp(0.0, maxScroll);
-
-          _scrollController.animateTo(
-            clampedOffset,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
-          _lastScrolledToId = widget.selectedId;
-        });
-      }
-    });
+  /// Scrolls to [targetId], or the selected certification when omitted. [jump]
+  /// moves straight there, for a list being restored, which should not visibly
+  /// travel from the top.
+  void _scrollToSelectedItem({String? targetId, bool jump = false}) {
+    final target = targetId ?? widget.selectedId;
+    if (target == null || !_scrollController.hasClients) return;
+    final items = ref.read(filteredCertificationsProvider).value;
+    if (items == null) return;
+    final index = items.indexWhere((item) => item.id == target);
+    if (index < 0) return;
+    _lastScrolledToId = target;
+    scrollToEstimatedRow(
+      _scrollController,
+      index: index,
+      rowCount: items.length,
+      jump: jump,
+    );
   }
 
   void _handleItemTap(Certification cert) {
     ref.read(highlightedCertificationIdProvider.notifier).state = cert.id;
+    forgetClosedPane(ref, RecordListSection.certifications);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
       widget.onItemSelected!(cert.id);
@@ -293,7 +310,11 @@ class _CertificationListContentState
                       IconButton(
                         icon: const Icon(Icons.sort),
                         tooltip: context.l10n.certifications_list_tooltip_sort,
-                        onPressed: () => _showSortSheet(context),
+                        onPressed: () => showCertificationSortSheet(
+                          context,
+                          ref,
+                          currentView: CertificationView.list,
+                        ),
                       ),
                       QueryFilterAction(
                         provider: certificationQueryProvider,
@@ -308,12 +329,8 @@ class _CertificationListContentState
                               value.replaceFirst('view_', ''),
                             );
                             ref
-                                    .read(
-                                      certificationListViewModeProvider
-                                          .notifier,
-                                    )
-                                    .state =
-                                mode;
+                                .read(settingsProvider.notifier)
+                                .setCertificationListViewMode(mode);
                           }
                         },
                         itemBuilder: (context) {
@@ -502,6 +519,9 @@ class _CertificationListContentState
           onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedCertificationIdProvider.notifier).state = id;
+            // The same row again sets no new highlight; the pane is reopened all
+            // the same, so it is no longer one the diver emptied (#3301).
+            forgetClosedPane(ref, RecordListSection.certifications);
           },
           onEntityTap: (id) {
             if (_isSelectionMode) _selection.toggle(id);
@@ -541,9 +561,7 @@ class _CertificationListContentState
       );
     }
     return AppBar(
-      // 8 here plus the switch's own 8px label padding puts the first name
-      // at the 16px every other app bar title sits at, as Equipment's does.
-      titleSpacing: 8,
+      titleSpacing: SectionTitleToggle.appBarTitleSpacing,
       toolbarHeight: header.appBarHeight(context, subtitle),
       title: header.build(context, SectionHeaderSlot.appBar, subtitle),
       bottom: sectionHeaderActionsRow(actions),
@@ -583,7 +601,11 @@ class _CertificationListContentState
           IconButton(
             icon: const Icon(Icons.sort, size: 20),
             tooltip: context.l10n.certifications_list_tooltip_sort,
-            onPressed: () => _showSortSheet(context),
+            onPressed: () => showCertificationSortSheet(
+              context,
+              ref,
+              currentView: CertificationView.list,
+            ),
           ),
           QueryFilterAction(
             provider: certificationQueryProvider,
@@ -598,8 +620,9 @@ class _CertificationListContentState
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(certificationListViewModeProvider.notifier).state =
-                    mode;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setCertificationListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -657,23 +680,29 @@ class _CertificationListContentState
     );
   }
 
-  void _showSortSheet(BuildContext context) {
-    final sort = ref.read(certificationSortProvider);
-    showSortBottomSheet<CertificationSortField>(
-      context: context,
-      title: context.l10n.certifications_list_sort_title,
-      currentField: sort.field,
-      currentDirection: sort.direction,
-      fields: CertificationSortField.values,
-      getFieldDisplayName: (field) => field.localizedName(context.l10n),
-      getFieldIcon: (field) => field.icon,
-      onSortChanged: (field, direction) {
-        ref.read(certificationSortProvider.notifier).state = SortState(
-          field: field,
-          direction: direction,
-        );
-      },
-    );
+  /// This group's header: fixed strings/colors for a status group, the
+  /// agency's own localized name and no dot for an agency group. Never
+  /// called for [CertificationGroupBy.none], which renders no groups at all.
+  Widget _buildGroupHeader(
+    BuildContext context,
+    CertificationGroupBy groupBy,
+    CertificationGroup group,
+  ) {
+    if (groupBy == CertificationGroupBy.agency) {
+      return _buildSectionHeader(context, group.label, null);
+    }
+    final (title, color) = switch (group.key) {
+      certificationExpiredGroupKey => (
+        context.l10n.certifications_list_section_expired,
+        Colors.red,
+      ),
+      certificationExpiringSoonGroupKey => (
+        context.l10n.certifications_list_section_expiringSoon,
+        Colors.orange,
+      ),
+      _ => (context.l10n.certifications_list_section_valid, Colors.green),
+    };
+    return _buildSectionHeader(context, title, color);
   }
 
   Widget _buildCertificationList(
@@ -682,24 +711,30 @@ class _CertificationListContentState
     List<Certification> certifications,
   ) {
     final highlightedId = ref.watch(highlightedCertificationIdProvider);
-
-    // Group certifications by status
-    final expired = <Certification>[];
-    final expiringSoon = <Certification>[];
-    final valid = <Certification>[];
-
-    for (final cert in certifications) {
-      if (cert.isExpired) {
-        expired.add(cert);
-      } else if (cert.expiresWithin(90)) {
-        expiringSoon.add(cert);
-      } else {
-        valid.add(cert);
-      }
-    }
+    final groupBy = ref.watch(certificationGroupByProvider);
+    final groups = groupCertificationsFor(
+      groupBy,
+      certifications,
+      l10n: context.l10n,
+      catalog: context.certificationCatalog,
+    );
 
     // Display order, which is the order the keyboard cursor walks.
-    final ordered = [...expired, ...expiringSoon, ...valid];
+    final ordered = groupBy == CertificationGroupBy.none
+        ? certifications
+        : [for (final group in groups) ...group.certifications];
+
+    Widget buildTile(Certification cert) => KeyboardListItem(
+      navigationKey: cert.id,
+      child: CertificationListTile(
+        certification: cert,
+        isSelected: widget.selectedId == cert.id || highlightedId == cert.id,
+        onTap: () => _handleRowTap(cert),
+        isSelectionMode: _isSelectionMode,
+        isChecked: _selectedIds.contains(cert.id),
+        onCheckChanged: (_) => _selection.toggle(cert.id),
+      ),
+    );
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -720,90 +755,34 @@ class _CertificationListContentState
         child: ListView(
           controller: _scrollController,
           padding: const EdgeInsets.only(bottom: 80),
-          children: [
-            if (expired.isNotEmpty) ...[
-              _buildSectionHeader(
-                context,
-                context.l10n.certifications_list_section_expired,
-                Colors.red,
-              ),
-              ...expired.map(
-                (cert) => KeyboardListItem(
-                  navigationKey: cert.id,
-                  child: CertificationListTile(
-                    certification: cert,
-                    isSelected:
-                        widget.selectedId == cert.id ||
-                        highlightedId == cert.id,
-                    onTap: () => _handleRowTap(cert),
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: _selectedIds.contains(cert.id),
-                    onCheckChanged: (_) => _selection.toggle(cert.id),
-                  ),
-                ),
-              ),
-            ],
-            if (expiringSoon.isNotEmpty) ...[
-              _buildSectionHeader(
-                context,
-                context.l10n.certifications_list_section_expiringSoon,
-                Colors.orange,
-              ),
-              ...expiringSoon.map(
-                (cert) => KeyboardListItem(
-                  navigationKey: cert.id,
-                  child: CertificationListTile(
-                    certification: cert,
-                    isSelected:
-                        widget.selectedId == cert.id ||
-                        highlightedId == cert.id,
-                    onTap: () => _handleRowTap(cert),
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: _selectedIds.contains(cert.id),
-                    onCheckChanged: (_) => _selection.toggle(cert.id),
-                  ),
-                ),
-              ),
-            ],
-            if (valid.isNotEmpty) ...[
-              _buildSectionHeader(
-                context,
-                context.l10n.certifications_list_section_valid,
-                Colors.green,
-              ),
-              ...valid.map(
-                (cert) => KeyboardListItem(
-                  navigationKey: cert.id,
-                  child: CertificationListTile(
-                    certification: cert,
-                    isSelected:
-                        widget.selectedId == cert.id ||
-                        highlightedId == cert.id,
-                    onTap: () => _handleRowTap(cert),
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: _selectedIds.contains(cert.id),
-                    onCheckChanged: (_) => _selection.toggle(cert.id),
-                  ),
-                ),
-              ),
-            ],
-          ],
+          children: groupBy == CertificationGroupBy.none
+              ? [for (final cert in certifications) buildTile(cert)]
+              : [
+                  for (final group in groups) ...[
+                    _buildGroupHeader(context, groupBy, group),
+                    for (final cert in group.certifications) buildTile(cert),
+                  ],
+                ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, Color color) {
+  Widget _buildSectionHeader(BuildContext context, String title, Color? color) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
+          // Only a status group has a fixed color to show as a dot; an
+          // agency group's header is plain text (#3359).
+          if (color != null) ...[
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+          ],
           // Flexible: section titles are localized ("Läuft bald ab",
           // "Verloopt binnenkort") and overflow this Row in a narrow master
           // pane without a flexible child.

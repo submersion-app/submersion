@@ -137,6 +137,35 @@ void main() {
     });
   });
 
+  group('formatMonthOnly', () {
+    final date = DateTime(2026, 3, 15);
+
+    test('numeric preferences give a numeric month, text ones a name', () {
+      String month(DateFormatPreference p) =>
+          UnitFormatter(AppSettings(dateFormat: p)).formatMonthOnly(date);
+      expect(month(DateFormatPreference.mmddyyyy), '03');
+      expect(month(DateFormatPreference.ddmmyyyy), '03');
+      expect(month(DateFormatPreference.yyyymmdd), '03');
+      expect(month(DateFormatPreference.ddmmyyyyDots), '03');
+      expect(month(DateFormatPreference.mmmDYYYY), 'Mar');
+      expect(month(DateFormatPreference.dMMMYYYY), 'Mar');
+    });
+
+    test('renders the placeholder for a null date', () {
+      expect(monthFirst.formatMonthOnly(null), '--');
+    });
+
+    test('the month token comes from the month-year pattern', () {
+      expect(UnitFormatter.monthOnlyPattern('MM/yyyy'), 'MM');
+      expect(UnitFormatter.monthOnlyPattern('MMM yyyy'), 'MMM');
+    });
+
+    test('a pattern without a month token falls back to MMM', () {
+      expect(UnitFormatter.monthOnlyPattern('yyyy'), 'MMM');
+      expect(UnitFormatter.monthOnlyPattern(''), 'MMM');
+    });
+  });
+
   group('static patterns', () {
     test('monthDayPattern follows the day-first preference', () {
       expect(

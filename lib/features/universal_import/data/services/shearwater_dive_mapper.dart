@@ -92,6 +92,11 @@ class ShearwaterDiveMapper {
       // profile parses (mergeWithParsedDive).
       'gradientFactorLow': ?rawDive.gfMin,
       'gradientFactorHigh': ?rawDive.gfMax,
+      // Also from dive_logs. The deco model gives way to libdivecomputer's
+      // the same way; the CNS has no other source.
+      'decoAlgorithm': ?rawDive.decoModel,
+      'cnsStart': ?rawDive.startCNS,
+      'cnsEnd': ?rawDive.endCNS,
       'computerTissue': ?computerTissue,
     };
   }
@@ -402,36 +407,17 @@ class ShearwaterDiveMapper {
   }
 
   /// The tissue state the computer reported, or null when the export carries
-  /// none of it. States without a single value are omitted.
+  /// none of it: surface GF at the start, GF99 at the end. The CNS and the
+  /// deco model beside them are dive keys of their own (issue #2555).
   static ComputerTissueSnapshot? _computerTissue(ShearwaterRawDive rawDive) {
-    final start = _tissueState(
-      surfaceGfPercent: rawDive.startGFS,
-      cnsPercent: rawDive.startCNS,
-    );
-    final end = _tissueState(
-      gf99Percent: _endGf99(rawDive),
-      cnsPercent: rawDive.endCNS,
-    );
-    if (rawDive.decoModel == null && start == null && end == null) return null;
+    final surfaceGf = rawDive.startGFS;
+    final gf99 = _endGf99(rawDive);
+    if (surfaceGf == null && gf99 == null) return null;
     return ComputerTissueSnapshot(
-      algorithm: rawDive.decoModel,
-      start: start,
-      end: end,
-    );
-  }
-
-  static ComputerTissueState? _tissueState({
-    double? gf99Percent,
-    double? surfaceGfPercent,
-    double? cnsPercent,
-  }) {
-    if (gf99Percent == null && surfaceGfPercent == null && cnsPercent == null) {
-      return null;
-    }
-    return ComputerTissueState(
-      gf99Percent: gf99Percent,
-      surfaceGfPercent: surfaceGfPercent,
-      cnsPercent: cnsPercent,
+      start: surfaceGf == null
+          ? null
+          : ComputerTissueState(surfaceGfPercent: surfaceGf),
+      end: gf99 == null ? null : ComputerTissueState(gf99Percent: gf99),
     );
   }
 

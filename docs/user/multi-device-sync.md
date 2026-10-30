@@ -36,28 +36,36 @@ automatically:
 - Your connection details are stored in the device's secure keychain, never in
   the dive database, and never sent to Submersion.
 
-## Choosing a Cloud Provider
+## Choosing an Account
 
-Open **Settings > Data > Database Cloud Sync** and choose under
-**Cloud Provider**:
+Sync runs through an **account**: the sign-in it uses. Open
+**Settings > Data > Sync between devices**; the top row says which account sync
+uses (**Using: ...**), or **Not set up**. **Set up** or **Change** opens the
+account sheet, which lists the accounts you already have, then the kinds you
+can add:
 
-| Provider | Best for | Notes |
+| Account | Best for | Notes |
 |----------|----------|-------|
 | **iCloud** | All-Apple setups (iPhone, iPad, Mac) | Uses the iCloud account you are already signed in to. Apple devices only, and only in builds from the App Store. |
 | **Google Drive** | Google accounts, on any mix of devices | Sign in with your Google account. Works on iOS, Android and macOS; on Windows and Linux only in builds that include Google sign-in. |
 | **Dropbox** | Dropbox accounts | Sign in with your Dropbox account; files live in `Apps/Submersion`. |
-| **S3-Compatible Storage** | Full control over where data lives | Any S3-compatible provider: Cloudflare R2, Amazon S3, Backblaze B2, MinIO, self-hosted. Every platform. You supply an endpoint, a bucket and access keys. |
+| **My own server** | Full control over where data lives | An S3-compatible bucket (Cloudflare R2, Amazon S3, Backblaze B2, MinIO, self-hosted) or a WebDAV server. Every platform. You supply the address and the keys or password. |
+| **Git repository** | Divers who already keep things in Git | Any Git host over HTTPS: GitHub, GitLab, Gitea, Forgejo, Bitbucket, self-hosted. Every platform. You supply a repository address, a username and an access token. See [Git repositories](#git-repositories). |
 
-A provider that is not available in your build says so. The
+A kind that cannot sign in on your device or build is not offered. Every
+account you add also appears under **Settings > Data > Connected accounts**,
+where you can sign in again, sign out on this device, or remove it. The
 [Cloudflare R2 walkthrough](#example-cloudflare-r2-s3-compatible) at the end of
 this page shows a complete setup that works on every platform.
 
 ## Enabling Sync
 
-1. Open **Settings > Data > Database Cloud Sync**.
-2. Choose a provider. For iCloud, Google Drive or Dropbox, sign in when asked.
-   For S3-compatible storage, enter the endpoint, bucket and keys (see the
-   [Cloudflare R2 example](#example-cloudflare-r2-s3-compatible)).
+1. Open **Settings > Data > Sync between devices** and tap **Set up**.
+2. Choose an account, or add one. For iCloud, Google Drive or Dropbox, sign in
+   when asked. For **My own server**, enter the address, bucket and keys (see
+   the [Cloudflare R2 example](#example-cloudflare-r2-s3-compatible)). For
+   **Git repository**, enter the repository address, username, access token
+   and branch (see [Git repositories](#git-repositories)).
 3. Run the first sync with **Sync Now**.
 
 ### The "Combine Libraries?" Prompt
@@ -79,12 +87,24 @@ want when adding a new device to an existing library.
 
 ## Adding More Devices
 
-1. Install Submersion on the new device. In the first-run setup you can choose
-   to bring in your existing data and connect cloud sync straight away.
-2. Otherwise, open **Settings > Data > Database Cloud Sync** and choose the
-   **same provider** as your other devices: the same iCloud, Google or Dropbox
-   account, or the same bucket and access keys.
-3. Run **Sync Now**, and at **Combine Libraries?** choose **Merge and Sync**.
+1. Install Submersion on the new device. In the first-run setup, choose
+   **I have existing Submersion data**, then **Connect cloud sync**: the same
+   account and sync steps as below run straight away.
+2. Otherwise, open the **Set up this device** card on **Settings > Data** and
+   choose the **same account** as your other devices: the same iCloud, Google
+   or Dropbox account, or the same server. An account another device added is
+   already listed; for your own server you only type the key or password.
+3. The next step finds your library and names the device that changed it last.
+   With no dives on the new device, **Download library** brings it down. With
+   dives there, choose:
+   - **Combine them**: the dives on the new device join the library.
+   - **Replace the dives here with the library**: a backup of the dives on the
+     new device is saved under Backups first, then the library replaces them
+     and Submersion reloads. Restore that backup if you change your mind.
+
+You can still connect from **Settings > Data > Sync between devices** with
+**Change**, then **Sync Now** and, at **Combine Libraries?**, **Merge and
+Sync**. See [Set Up This Device](set-up-this-device.md) for the whole flow.
 
 From then on, all connected devices share one library. If your library is
 encrypted, the new device asks for your passphrase; see
@@ -108,6 +128,14 @@ species and sightings, presets, dive computers and the ways each one has been
 downloaded or imported, transmitters and cylinder fills,
 GPS tracks, saved searches, near-miss reports, and your photo and video links.
 
+How you leave each list also syncs, for each diver: its sort, its grouping and
+its view mode (dives, saved plans, trips, courses, buddies, dive centers, dive
+sites, certifications and equipment, including how gear is arranged). Sort the
+dive list on your phone and it is sorted that way on your computer too. These
+travel separately from your other settings, so sorting a list on a device that
+has not synced for a while never puts back an older setting, such as gradient
+factors or units, that you changed on another device.
+
 Some things stay with each device, because the right answer differs from one
 device to the next:
 
@@ -116,7 +144,7 @@ device to the next:
 | Light or dark mode, and service reminder settings | Each device can look and notify its own way |
 | Which diver profile is active | Two people can share a library on different devices |
 | The navigation layout | Phones and computers have different room |
-| A dive computer's Bluetooth address or USB port, and which connection this device last downloaded it over | Each device pairs on its own |
+| A dive computer's Bluetooth address or USB port, and which connection this device last downloaded it over | Each device pairs on its own. The first Bluetooth download on another device searches for the computer by its make and model, so switch the computer's Bluetooth on and keep it close |
 | The cloud provider and its sign-in, sync behaviour, and the encryption passphrase | Credentials never leave the device |
 | Backup settings and location, update channel, debug mode, database location, App Security | Device housekeeping |
 | Photo and video files | Only their links sync; the files themselves travel through [Media Sync](media-sync.md) |
@@ -127,27 +155,32 @@ On the sync page:
 
 | Option | What it does |
 |--------|--------------|
-| **Auto Sync** | Sync automatically after changes. |
-| **Sync on Launch** | Check for updates when the app starts. |
-| **Sync on Resume** | Check for updates when you return to the app. |
+| **Keep devices in step automatically** | Sync automatically after changes. |
+| **Also sync at launch** (under **Advanced**) | Check for updates when the app starts. Needs automatic sync on. |
+| **Also sync when the app returns** (under **Advanced**) | Check for updates when you return to the app. Needs automatic sync on. |
 | **Sync Now** | Sync straight away. The status card shows when it last synced. |
 
-## Switching or Removing a Provider
+## Switching or Stopping Sync
 
-If you switch a device from one provider to another, Submersion asks first
-(**Switch sync backend?**). Your data is not moved off the old provider; it stays
+**Change** on the account row switches this device to another account. If it
+has synced before, the account sheet explains first what switching does. Your
+data is not moved off the old account; it stays
 there until you delete it. After switching, this device's next sync combines its
 data with whatever is already on the new provider, and Submersion offers to
 clean up the old data once the switch is done.
 
-- **Switching is per device.** Each device keeps using its current provider
+- **Switching is per device.** Each device keeps using its current account
   until you switch it.
 - **Nothing is deleted without asking.** Your old data stays in the previous
   storage until you remove it.
 
-**Sign Out**, under **Advanced**, disconnects this device. For S3-compatible
-storage, **Remove Configuration** on the S3 settings forgets the endpoint and keys
-on this device. Neither touches the data already in your storage.
+**Stop syncing on this device**, under **Advanced**, turns sync off here and
+keeps the account signed in. A backup copy that went to the same account as
+sync keeps going there. To forget an account's keys on this device, use
+**Sign out on this device** on the account in **Connected accounts**; **Remove
+from all devices** takes it off the account list everywhere. None of these
+touches the data already in your storage. Deleting the old account's data after
+a switch asks first.
 
 ## Security and Privacy
 
@@ -167,14 +200,63 @@ on this device. Neither touches the data already in your storage.
   encrypts every sync file and cloud backup on your device before upload, with a
   key only you hold. See [Encrypted Sync](encrypted-sync.md).
 
+## Git Repositories
+
+Submersion can sync through a repository on any Git host. It talks to the host
+itself over HTTPS, so nothing else needs to be installed on your devices.
+
+**What to enter:**
+
+- **Repository address:** the HTTPS address you would clone from, for example
+  `https://github.com/you/dive-log.git`. On GitHub, GitLab, Bitbucket, Gitea
+  and Forgejo the repository's web address works too; on any other host, paste
+  the clone address exactly as the host shows it.
+- **Username and access token:** create a token on the host that can push to
+  this one repository. The setup screen shows which kind to create for the host
+  in your address:
+  - **GitHub:** a fine-grained token for the repository, with *Contents: read
+    and write*.
+  - **GitLab:** a personal or project access token with `write_repository`.
+    GitLab tokens expire within a year; paste a new one when sync says the
+    token was rejected.
+  - **Bitbucket:** an API token with repository read and write access. App
+    passwords no longer work.
+  - **Gitea and Forgejo:** an access token with `write:repository`.
+- **Branch:** `submersion-sync` unless you choose another name.
+
+**How the repository is used:**
+
+- **Submersion keeps its branch to itself.** It writes only to a branch it
+  created. It refuses a branch that already holds other content, so your
+  `main` and other branches are never touched.
+- **History is reset now and then.** Sync snapshots are large and Git keeps
+  every old one, so once enough has been deleted Submersion replaces its
+  branch's history with a single fresh commit. Your hosting service frees the
+  space on its own schedule.
+- **Backups go there too.** When cloud backup is on, backups are stored in the
+  same repository under `Submersion Backups`.
+- **A repository used only for Submersion works best.** In an empty repository,
+  Submersion's branch becomes the default branch.
+
+**Public repositories** are allowed only with
+[Encrypted Sync](encrypted-sync.md) turned on, so your dive data is never
+readable by others. If the repository is public, Submersion saves the settings
+but does not sync until you turn encryption on, and it will not let you turn
+encryption off while it can see the repository is public. Even if the host
+does not answer in time and encryption is turned off, nothing unencrypted is
+uploaded to a public repository: sync stops until encryption is back on or the
+repository is private. Cloud backups to a public repository also need backup
+encryption: an unencrypted backup is refused.
+
 ## Troubleshooting
 
-**Troubleshoot Sync**, under **Advanced** on the sync page, gathers the repair
+**Troubleshoot**, under **Advanced** on the sync page, gathers the repair
 tools: **Repair Sync** for a stuck sync, **Rebuild backend from this device**,
-the devices that use this storage, and ways to remove this device's cloud files
-or wipe all sync data from the storage.
+and ways to remove this device's cloud files or wipe all sync data from the
+storage. **Devices using this library**, also under **Advanced**, lists the
+devices that use this storage.
 
-**Replace cloud library**, in the sync page's **Danger Zone**, makes this
+**Replace the library with this device's copy**, under **Advanced**, makes this
 device's library the one every device uses; the other devices are asked to adopt
 it before their next sync.
 
@@ -234,8 +316,8 @@ walkthrough sets it up end to end.
 
 ### 4. Configure Submersion (First Device)
 
-1. In Submersion, open **Settings > Data > Database Cloud Sync** and choose
-   **S3-Compatible Storage**.
+1. In Submersion, open **Settings > Data > Sync between devices**, tap
+   **Set up**, then **My own server**, and keep **S3-compatible** selected.
 2. Fill in the four main fields:
 
 | Field | What to enter |
@@ -247,18 +329,20 @@ walkthrough sets it up end to end.
 
 3. Leave the **Advanced** section alone. Submersion fills in the right
    **Region** (`auto`) for R2 and picks the addressing mode (
-   **Use path-style addressing**) automatically, and the default **Key prefix**
-   (`submersion-sync/`) keeps Submersion's files together in the bucket.
-4. Tap **Test Connection**. Submersion writes a tiny test file to the bucket,
+   **Use path-style addressing**) automatically, and keeps its sync files
+   together in the bucket's `submersion-sync/` folder.
+4. Tap **Check connection**. Submersion writes a tiny test file to the bucket,
    reads it back, and deletes it to confirm the keys work. You should see
    **Connection successful**.
-5. Tap **Save**.
+5. Tap **Save**, then choose the new account for sync.
 6. Run **Sync Now** to seed your library into the bucket.
 
 ### 5. Repeat on Your Other Devices
 
-Enter the same four values on each additional device, tap **Test Connection**,
-then **Save**. On the first sync, choose **Merge and Sync** at the
+On each additional device, open **Set up** on the sync page and choose the
+account, which is already listed; enter the access keys when asked. (On a
+device that has never seen it, add **My own server** with the same four values.)
+On the first sync, choose **Merge and Sync** at the
 **Combine Libraries?** prompt. All of your devices now share one library through R2.
 
 ### Jurisdiction endpoints
@@ -277,8 +361,8 @@ them as R2 and sets the region for you.
 
 | Problem | What to try |
 |---------|-------------|
-| **Test Connection fails with an access or signature error** | Check the Access Key ID and Secret Access Key for stray spaces. Confirm the token's permission is **Object Read & Write** and that it applies to this bucket. |
-| **Test Connection reports a region problem** | Open **Advanced** and check **Region**; for R2 it should be `auto`. Run the test again. |
+| **Check connection fails with an access or signature error** | Check the Access Key ID and Secret Access Key for stray spaces. Confirm the token's permission is **Object Read & Write** and that it applies to this bucket. |
+| **Check connection reports a region problem** | Open **Advanced** and check **Region**; for R2 it should be `auto`. Run the test again. |
 | **The endpoint is rejected as invalid** | The endpoint must be a full `https://` address with nothing after the host name: `https://<account-id>.r2.cloudflarestorage.com`, not a `/bucket` path. The bucket name goes in its own field. |
 | **A dive appears twice after adding a device** | That dive was logged separately on both devices before they were merged. Delete the duplicate; the deletion syncs to the others. |
 | **No dives appear on the new device** | Make sure you tapped **Merge and Sync** at the Combine Libraries prompt, and that every device uses the same bucket and keys. |

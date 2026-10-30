@@ -131,8 +131,10 @@ ConflictComparison buildConflictComparison({
   // An older peer may spell a field the old way; "Keep remote" writes it
   // under the current name, so it is compared under that name (#3025).
   final remote = withCurrentWireSpelling(entity, conflict.remoteData);
-  final localRefs = {for (final r in conflict.localReferences) r.field: r};
-  final remoteRefs = {for (final r in conflict.remoteReferences) r.field: r};
+  // Grouped by column: a list column (a tank's extra regulators, #3375)
+  // resolves to one reference per id, and every one of them is shown.
+  final localRefs = _byField(conflict.localReferences);
+  final remoteRefs = _byField(conflict.remoteReferences);
 
   // Each column's label and kind, resolved once however often it is asked.
   final fields = <String, ConflictField>{};
@@ -143,8 +145,8 @@ ConflictComparison buildConflictComparison({
     final target = ConflictReferenceResolver.targetTypeFor(entity, key);
     if (target == null) return fieldOf(key).label(l10n);
     final reference =
-        localRefs[key] ??
-        remoteRefs[key] ??
+        localRefs[key]?.first ??
+        remoteRefs[key]?.first ??
         ConflictReference(field: key, targetType: target, recordId: '');
     return conflictReferenceLabel(l10n, reference);
   }
@@ -152,12 +154,14 @@ ConflictComparison buildConflictComparison({
   String display(
     String key,
     Object? value,
-    Map<String, ConflictReference> refs,
+    Map<String, List<ConflictReference>> refs,
   ) {
     if (value == null) return l10n.settings_conflict_notSet;
-    final reference = refs[key];
-    if (reference != null) {
-      return conflictReferenceValue(l10n, units, reference);
+    final references = refs[key];
+    if (references != null) {
+      return [
+        for (final r in references) conflictReferenceValue(l10n, units, r),
+      ].join(', ');
     }
     return formatConflictValue(
       l10n: l10n,
@@ -173,7 +177,7 @@ ConflictComparison buildConflictComparison({
   // read, so it is left out rather than shown as a bare placeholder.
   List<ShownField> shown(
     Map<String, dynamic> data,
-    Map<String, ConflictReference> refs,
+    Map<String, List<ConflictReference>> refs,
   ) => _sorted(
     [
       for (final entry in data.entries)
@@ -303,4 +307,15 @@ List<T> _sorted<T>(
       return byRank != 0 ? byRank : collator.compare(label(a), label(b));
     }),
   );
+}
+
+/// [references] grouped by the column they were resolved from, in order.
+Map<String, List<ConflictReference>> _byField(
+  List<ConflictReference> references,
+) {
+  final out = <String, List<ConflictReference>>{};
+  for (final r in references) {
+    (out[r.field] ??= []).add(r);
+  }
+  return out;
 }

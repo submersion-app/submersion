@@ -160,35 +160,41 @@ double _pressureGap(DiveTank earlier, DiveTank later) {
 /// [later]'s readings folded into the cylinder carried so far: the earliest
 /// value any half reports for each field, except the end pressure, which is
 /// the latest one reported.
-DiveTank _fold(DiveTank earlier, DiveTank later) => earlier.copyWith(
-  name: earlier.name ?? later.name,
-  volume: earlier.volume ?? later.volume,
-  workingPressure: earlier.workingPressure ?? later.workingPressure,
-  startPressure: earlier.startPressure ?? later.startPressure,
-  endPressure: later.endPressure ?? earlier.endPressure,
-  material: earlier.material ?? later.material,
-  presetName: earlier.presetName ?? later.presetName,
-  computerId: earlier.computerId ?? later.computerId,
-  // Normalized, like the matching: a "no transmitter" sentinel ('0', blank)
-  // on the earlier half must not hide a real serial on a later one. With no
-  // real serial on either side, null leaves the earlier raw value as it was.
-  transmitterSerial:
-      normalizeTransmitterSerial(earlier.transmitterSerial) ??
-      normalizeTransmitterSerial(later.transmitterSerial),
-  sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
-  regulatorEquipmentId:
-      earlier.regulatorEquipmentId ?? later.regulatorEquipmentId,
-  tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
-  passportId: earlier.passportId ?? later.passportId,
-  equipmentId: earlier.equipmentId ?? later.equipmentId,
-  decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
-  // The folded pressure drop spans both halves, so the time breathed is
-  // both halves' (#1496). With either unknown the total is too: one half's
-  // time against the whole drop would overstate the SAC.
-  usageDuration: _sumOrNull(earlier.usageDuration, later.usageDuration),
-  clearUsageDuration:
-      earlier.usageDuration == null || later.usageDuration == null,
-);
+DiveTank _fold(DiveTank earlier, DiveTank later) => earlier
+    .copyWith(
+      name: earlier.name ?? later.name,
+      volume: earlier.volume ?? later.volume,
+      workingPressure: earlier.workingPressure ?? later.workingPressure,
+      startPressure: earlier.startPressure ?? later.startPressure,
+      endPressure: later.endPressure ?? earlier.endPressure,
+      material: earlier.material ?? later.material,
+      presetName: earlier.presetName ?? later.presetName,
+      computerId: earlier.computerId ?? later.computerId,
+      // Normalized, like the matching: a "no transmitter" sentinel ('0', blank)
+      // on the earlier half must not hide a real serial on a later one. With no
+      // real serial on either side, null leaves the earlier raw value as it was.
+      transmitterSerial:
+          normalizeTransmitterSerial(earlier.transmitterSerial) ??
+          normalizeTransmitterSerial(later.transmitterSerial),
+      sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
+      tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
+      passportId: earlier.passportId ?? later.passportId,
+      equipmentId: earlier.equipmentId ?? later.equipmentId,
+      decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
+      // The folded pressure drop spans both halves, so the time breathed is
+      // both halves' (#1496). With either unknown the total is too: one half's
+      // time against the whole drop would overstate the SAC.
+      usageDuration: _sumOrNull(earlier.usageDuration, later.usageDuration),
+      clearUsageDuration:
+          earlier.usageDuration == null || later.usageDuration == null,
+    )
+    // The regulators travel as one list (issue #3375): the earlier half's when
+    // it names any, otherwise the later half's, never a mix of the two.
+    .withRegulators(
+      earlier.regulatorIds.isNotEmpty
+          ? earlier.regulatorIds
+          : later.regulatorIds,
+    );
 
 Duration? _sumOrNull(Duration? a, Duration? b) =>
     a == null || b == null ? null : a + b;

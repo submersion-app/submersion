@@ -24,6 +24,17 @@ class EstablishedProviderStore {
     await _prefs.setStringList(_key, [...current, providerId]);
   }
 
+  /// Forgets [providerId]: the next sync against it is first contact again
+  /// (a switch to another account of the same kind, issue #3482).
+  Future<void> remove(String providerId) async {
+    final current = _prefs.getStringList(_key) ?? const <String>[];
+    if (!current.contains(providerId)) return;
+    await _prefs.setStringList(_key, [
+      for (final id in current)
+        if (id != providerId) id,
+    ]);
+  }
+
   Future<void> clear() async {
     await _prefs.remove(_key);
   }

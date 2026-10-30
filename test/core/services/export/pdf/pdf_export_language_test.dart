@@ -106,6 +106,7 @@ void main() {
         template: PdfTemplate.simple,
         languageCode: 'de',
       ),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(template.localization?.languageCode, 'de');
@@ -129,6 +130,7 @@ void main() {
         template: PdfTemplate.simple,
         languageCode: 'fr',
       ),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(template.dates!.date(DateTime(2026, 8, 17)), contains('août'));
@@ -140,6 +142,7 @@ void main() {
       dates: dates,
       units: units,
       options: const PdfExportOptions(template: PdfTemplate.simple),
+      gearArrangement: EquipmentArrangement.defaults,
     );
 
     expect(template.localization?.languageCode, 'en');

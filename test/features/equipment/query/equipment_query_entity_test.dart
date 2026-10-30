@@ -43,6 +43,8 @@ void main() {
     await item('suit', 'wetsuit');
     await item('reg', 'regulator');
     await item('tank', 'cylinder');
+    await item('reg-first', 'regulator');
+    await item('reg-extra', 'regulator');
     await db
         .into(db.tags)
         .insert(
@@ -86,6 +88,17 @@ void main() {
             id: 'dt1',
             diveId: 'd1',
             equipmentId: const Value('tank'),
+          ),
+        );
+    // Tank regulators (#3375): the first and an extra.
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'dt2',
+            diveId: 'd1',
+            regulatorEquipmentId: const Value('reg-first'),
+            extraRegulatorIds: const Value('["reg-extra"]'),
           ),
         );
     await db
@@ -132,7 +145,14 @@ void main() {
   test('tags, dives and attributes reach the related rows', () async {
     expect(await ids('tags:any'), {'suit'});
     // The gear union: a cylinder matched through dive_tanks counts too.
-    expect(await ids('dives:any'), {'reg', 'tank'});
+    // So do tank regulators, the first and each extra (#3375).
+    expect(await ids('dives:any'), {'reg', 'tank', 'reg-first', 'reg-extra'});
+    expect(await ids('diveCount = 1'), {
+      'reg',
+      'tank',
+      'reg-first',
+      'reg-extra',
+    });
     expect(await ids('attributes[key = thickness_mm AND valueNum >= 5]'), {
       'suit',
     });

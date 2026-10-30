@@ -97,11 +97,14 @@ Future<List<Override>> _buildOverrides({
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    // The view mode is read from the diver's saved settings (#3748).
+    settingsProvider.overrideWith(
+      (ref) =>
+          MockSettingsNotifier(AppSettings(diveCenterListViewMode: viewMode)),
+    ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     allDiveCentersProvider.overrideWith((ref) async => <DiveCenter>[]),
     diveCenterListNotifierProvider.overrideWith((ref) => _MockDCListNotifier()),
-    diveCenterListViewModeProvider.overrideWith((ref) => viewMode),
     diveCenterTableConfigProvider.overrideWith(
       (ref) => _TestDCTableConfigNotifier(),
     ),
@@ -113,6 +116,37 @@ Future<List<Override>> _buildOverrides({
 // ---------------------------------------------------------------------------
 
 void main() {
+  // The pane a diver emptied is remembered per section, so the table and the
+  // list must agree on the section, or switching view reopens it (#3301).
+  testWidgets('the table\'s detail pane uses the list\'s section', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1400, 900);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = [
+      ...await _buildOverrides(viewMode: ListViewMode.table),
+      tableDetailsPaneProvider('diveCenters').overrideWith((ref) => true),
+    ];
+    await tester.pumpWidget(
+      _buildTestWidget(child: const DiveCenterListPage(), overrides: overrides),
+    );
+    await tester.pump();
+    // The empty list's row can overflow at this size; only the branch counts.
+    final error = tester.takeException();
+    expect(error == null || error.toString().contains('overflowed'), isTrue);
+
+    expect(
+      tester
+          .widget<MasterDetailScaffold>(find.byType(MasterDetailScaffold))
+          .sectionId,
+      'dive-centers',
+    );
+  });
+
   group('DiveCenterListPage layout branches', () {
     // The DiveCenterListContent empty-state has a Row that can overflow
     // at narrow widths. We suppress overflow errors here since these tests
@@ -476,11 +510,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(DiveCenterListPage)),
         );
-        container.read(diveCenterListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setDiveCenterListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(diveCenterListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setDiveCenterListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

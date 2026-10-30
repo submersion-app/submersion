@@ -7,12 +7,11 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_empty_row.dart';
 import 'package:submersion/shared/widgets/forms/form_overline.dart';
-import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
-/// Site group 5: expected marine life (overline + chips), notes row,
-/// share-with-all-profiles toggle.
+/// Site group 5: expected marine life (overline + chips), notes row, and
+/// who the site is shared with ([shareField]).
 class LifeNotesSection extends StatelessWidget {
   const LifeNotesSection({
     super.key,
@@ -25,11 +24,7 @@ class LifeNotesSection extends StatelessWidget {
     required this.onRemoveSpecies,
     required this.notesController,
     this.mergeExtras,
-    required this.showShareToggle,
-    required this.isShared,
-    required this.onShareChanged,
-    this.shareLocked = false,
-    this.shareLockedReason,
+    this.shareField,
   });
 
   final bool expanded;
@@ -41,16 +36,10 @@ class LifeNotesSection extends StatelessWidget {
   final ValueChanged<Species> onRemoveSpecies;
   final TextEditingController notesController;
 
-  /// Whether the share switch is locked: another profile owns the site
-  /// (issue #2594), or the active profile is not known yet (issue #2682).
-  final bool shareLocked;
-
-  /// Why the share switch is locked, shown under it; null for no line.
-  final String? shareLockedReason;
   final MergeFieldExtras? Function(String key)? mergeExtras;
-  final bool showShareToggle;
-  final bool isShared;
-  final ValueChanged<bool> onShareChanged;
+
+  /// Who the site is shared with (issue #2151); null to show nothing.
+  final Widget? shareField;
 
   @override
   Widget build(BuildContext context) {
@@ -109,19 +98,13 @@ class LifeNotesSection extends StatelessWidget {
           suggestions: const [],
           placeholder: l10n.diveSites_edit_field_notes_hint,
           maxLines: 4,
+          markdown: true,
           caption: notesExtras?.sourceLabel,
           trailing: notesExtras == null
               ? null
               : MergeCycleButton(onPressed: notesExtras.onCycle),
         ),
-        if (showShareToggle)
-          FormRow.toggle(
-            label: l10n.common_label_shareWithAllProfiles,
-            value: isShared,
-            onChanged: onShareChanged,
-            enabled: !shareLocked,
-            helpText: shareLockedReason,
-          ),
+        ?shareField,
       ],
     );
   }

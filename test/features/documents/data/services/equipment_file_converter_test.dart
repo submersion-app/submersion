@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/data/services/equipment_file_converter.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
@@ -104,6 +105,66 @@ void main() {
       expect(result.remaining, 4);
     },
   );
+
+  test('a database swapped while a file is read stops the run before it '
+      'writes to the new database (issue #3798)', () async {
+    final other = createTestDatabase();
+    addTearDown(db.close);
+    // A restored backup of the same logbook: the same diver and gear.
+    await other.customStatement(
+      'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+      "VALUES ('d1', 'Ana', 1, 0, 0)",
+    );
+    await other.customStatement(
+      'INSERT INTO equipment (id, diver_id, name, type, created_at, '
+      "updated_at) VALUES ('e1', 'd1', 'Perdix', 'computer', 0, 0)",
+    );
+    // A restore, a storage move or demo mode opens another database while
+    // the first file is being fetched.
+    Future<Uint8List?> swappingReader(MediaItem item) async {
+      DatabaseService.instance.setTestDatabase(other);
+      return kb;
+    }
+
+    final result = await EquipmentFileConverter(
+      readBytes: swappingReader,
+      prefs: prefs,
+    ).run();
+
+    expect(
+      await DocumentRepository().getById(documentEquipmentFileId('m1')),
+      isNull,
+      reason: 'nothing of the old database is written into the new one',
+    );
+    expect(
+      await db.customSelect('SELECT id FROM media').get(),
+      hasLength(5),
+      reason: 'the old database keeps its links for the next run',
+    );
+    expect(result.converted, 0);
+    expect(prefs.getStringList(EquipmentFileConverter.skippedKey), isNull);
+  });
+
+  test('a database swapped on a row that writes nothing still leaves the '
+      'skip list alone (issue #3798)', () async {
+    SharedPreferences.setMockInitialValues({
+      EquipmentFileConverter.skippedKey: ['kept-from-the-new-database'],
+    });
+    prefs = await SharedPreferences.getInstance();
+    final other = createTestDatabase();
+    addTearDown(db.close);
+    // The swap lands on a read that finds nothing, so no write is tried.
+    Future<Uint8List?> swappingReader(MediaItem item) async {
+      DatabaseService.instance.setTestDatabase(other);
+      return null;
+    }
+
+    await EquipmentFileConverter(readBytes: swappingReader, prefs: prefs).run();
+
+    expect(prefs.getStringList(EquipmentFileConverter.skippedKey), [
+      'kept-from-the-new-database',
+    ]);
+  });
 
   test('leaves what it cannot convert', () async {
     await converter().run();

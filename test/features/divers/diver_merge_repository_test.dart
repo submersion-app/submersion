@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
 
@@ -319,9 +320,11 @@ void main() {
     /// every row in every diver_id table, plus the divers themselves. Used
     /// to assert merge -> undo produces a true restore of the data.
     ///
-    /// Leaves out `hlc` and `updated_at`: an undo is a new edit (#2670), so
-    /// the rows it restores carry a fresh clock, and the ones it re-inserts a
-    /// fresh update time, for a peer that already synced the merge.
+    /// Leaves out `hlc`, the fact-group clocks and `updated_at`: an undo is
+    /// a new edit (#2670), so the rows it restores carry a fresh clock (and a
+    /// group clock their first stamp fills, as for a diver's list
+    /// arrangements, #3748), and the ones it re-inserts a fresh update time,
+    /// for a peer that already synced the merge.
     Future<Map<String, List<Map<String, dynamic>>>> dbSnapshot() async {
       final snap = <String, List<Map<String, dynamic>>>{};
       final tables =
@@ -335,6 +338,10 @@ void main() {
               .map((r) => r.read<String>('tbl'))
               .toList();
       tables.add('divers');
+      final factClocks = {
+        for (final groups in SyncFactGroups.byEntity.values)
+          for (final g in groups) g.clockColumn,
+      };
       for (final t in tables) {
         final rows = await db
             .customSelect('SELECT * FROM "$t" ORDER BY id')
@@ -343,7 +350,10 @@ void main() {
           for (final r in rows)
             {
               for (final e in r.data.entries)
-                if (e.key != 'hlc' && e.key != 'updated_at') e.key: e.value,
+                if (e.key != 'hlc' &&
+                    e.key != 'updated_at' &&
+                    !factClocks.contains(e.key))
+                  e.key: e.value,
             },
         ];
       }

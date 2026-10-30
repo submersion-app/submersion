@@ -256,10 +256,13 @@ void main() {
           ],
         );
 
+    /// [shown] unmounts the widget whose ref built the adapter when set to
+    /// false, as leaving the wizard does, while the container lives on.
     Future<UniversalAdapter> realAdapter(
       WidgetTester tester,
-      ImportPayload payload,
-    ) async {
+      ImportPayload payload, {
+      ValueNotifier<bool>? shown,
+    }) async {
       final tankPresets = MockTankPresetRepository();
       when(tankPresets.getPresetById(any)).thenAnswer((_) async => null);
       late UniversalAdapter adapter;
@@ -278,11 +281,16 @@ void main() {
             tankPresetRepositoryProvider.overrideWithValue(tankPresets),
           ],
           child: MaterialApp(
-            home: Consumer(
-              builder: (context, ref, _) {
-                adapter = UniversalAdapter(ref: ref);
-                return const SizedBox.shrink();
-              },
+            home: ValueListenableBuilder<bool>(
+              valueListenable: shown ?? ValueNotifier(true),
+              builder: (context, isShown, _) => isShown
+                  ? Consumer(
+                      builder: (context, ref, _) {
+                        adapter = UniversalAdapter(ref: ref);
+                        return const SizedBox.shrink();
+                      },
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
         ),
@@ -336,6 +344,30 @@ void main() {
       expect(check.boSites.map((s) => s.name), ['Blue Hole']);
       // Only the active profile's dives, which "View Dives" can open.
       expect(result.importedDiveIds, [check.mine.single.id]);
+    });
+
+    testWidgets('imports every profile after the wizard is gone (#3554)', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => DiverRepository().createDiver(_diver('diver-1', 'Test Diver')),
+      );
+      final shown = ValueNotifier(true);
+      final adapter = await realAdapter(tester, payload(), shown: shown);
+      final bundle = (await tester.runAsync(adapter.buildBundle))!;
+
+      shown.value = false;
+      await tester.pump();
+
+      final result = (await tester.runAsync(
+        () => adapter.performImport(bundle, {
+          ImportEntityType.dives: {0, 1},
+          ImportEntityType.sites: {0, 1},
+        }, {}),
+      ))!;
+
+      expect(result.errorMessage, isNull);
+      expect(result.diverOutcomes.map((o) => o.name), ['Test Diver', 'Bo Ray']);
     });
 
     testWidgets('a profile whose items are all deselected is not created', (

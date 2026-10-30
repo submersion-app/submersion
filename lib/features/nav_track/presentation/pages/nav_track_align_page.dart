@@ -19,8 +19,10 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
+import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -32,7 +34,9 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the crosshair-and-pan flow is currently placing, or nothing.
@@ -57,6 +61,28 @@ List<CorrectedNavTrackPoint> _activeCorrectedPoints(
     range.start.clamp(0, corrected.length),
     (range.end + 1).clamp(0, corrected.length),
   );
+}
+
+/// A degree tolerance for [_geoPointsMatch]: well under a millimetre at any
+/// latitude, loose enough to absorb floating-point rounding differences
+/// between two independently computed values that are meant to be the same
+/// point, tight enough that two genuinely different suggestions never read
+/// as a match.
+const double _geoPointMatchToleranceDeg = 1e-9;
+
+/// Whether [a] and [b] are the same point, within [_geoPointMatchToleranceDeg].
+///
+/// Used instead of [GeoPoint]'s own `==` to mark a start suggestion chip
+/// selected: a suggestion like [NavTrackCorrector]'s pre-dive-fix back-solve
+/// re-derives its [GeoPoint] from scratch on every build (the same
+/// floating-point arithmetic over the same inputs, not a cached value), so
+/// exact equality would only be as robust as that recomputation happening
+/// to land on the exact same bits as it did for the selection stored in
+/// [NavTrackCorrection.anchor].
+bool _geoPointsMatch(GeoPoint? a, GeoPoint? b) {
+  if (a == null || b == null) return false;
+  return (a.latitude - b.latitude).abs() < _geoPointMatchToleranceDeg &&
+      (a.longitude - b.longitude).abs() < _geoPointMatchToleranceDeg;
 }
 
 /// The alignment page (spec 2026-09-10-underwater-nav-track-design.md, "The
@@ -137,6 +163,26 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     NavTrack route,
   ) {
     setState(() => _correction = fn(_correction));
+    _scheduleTerrainCheck(route);
+  }
+
+  /// Like [_updateCorrection], for a suggestion chip or end-mode chip
+  /// specifically: also cancels an in-progress crosshair-placement flow.
+  ///
+  /// Without this, picking a chip while "Start/Ende auf der Karte setzen"
+  /// is still awaiting a map tap left the crosshair and the floating "Set
+  /// ... here" button on screen; a diver who then tapped that button got
+  /// [_setPointHere] silently overwriting the chip's choice with a manual
+  /// point at the map's current center, discarding the selection they just
+  /// made with no further confirmation (code review).
+  void _selectChip(
+    NavTrackCorrection Function(NavTrackCorrection) fn,
+    NavTrack route,
+  ) {
+    setState(() {
+      _placing = _Placing.none;
+      _correction = fn(_correction);
+    });
     _scheduleTerrainCheck(route);
   }
 
@@ -237,6 +283,17 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
 
   void _startPlacing(_Placing target) => setState(() => _placing = target);
 
+  /// Starts the end-point crosshair flow and sets the end mode to [point]
+  /// in one rebuild, instead of two separate `setState` calls for what is a
+  /// single user action (pressing "Place end on map").
+  void _startPlacingEndPoint(NavTrack route) {
+    setState(() {
+      _placing = _Placing.end;
+      _correction = _correction.copyWith(endMode: NavTrackEndMode.point);
+    });
+    _scheduleTerrainCheck(route);
+  }
+
   void _resetCorrection() => setState(() {
     _correction = const NavTrackCorrection();
     _terrainResult = null;
@@ -319,6 +376,14 @@ class _AlignPageBody extends ConsumerWidget {
     final transientRoute = state._transientRoute(route);
     final fixEvents = NavTrackSegmenter.classify(route.points).fixEvents;
     final hasFix = fixEvents.isNotEmpty;
+    // Gates the "GPS position at surfacing" end chip specifically: `hasFix`
+    // (used below for the map's fix dots) is true for ANY fix event, pre-dive
+    // included, but NavTrackEndMode.gpsFix only ever resolves against a
+    // post-dive one (NavTrackCorrector._resolveTarget). A recording with only
+    // a pre-dive calibration would otherwise show a chip that silently
+    // behaves like "no correction" once selected.
+    final hasPostDiveFix =
+        NavTrackCorrector.postDiveFixEvent(route.points) != null;
     final range = NavTrackCorrector.activeRange(route.points);
     final activeStart = range.start;
     final activeEnd = range.end;
@@ -355,7 +420,7 @@ class _AlignPageBody extends ConsumerWidget {
           ),
           IconButton(
             key: const ValueKey('nav-track-align-3d'),
-            icon: const Icon(Icons.view_in_ar),
+            icon: const Icon(Icons.terrain),
             tooltip: l10n.navTrack_common_open3dTooltip,
             onPressed: () => state._openIn3d(route),
           ),
@@ -373,6 +438,12 @@ class _AlignPageBody extends ConsumerWidget {
                     options: MapOptions(
                       initialCenter: initialCenter,
                       initialZoom: anchor != null ? 15 : 3,
+                      // The zoom range, pole stop and pinch handling every
+                      // other map has (#3664).
+                      minZoom: 2.0,
+                      maxZoom: 18.0,
+                      interactionOptions: rotatableMapInteraction,
+                      cameraConstraint: worldMapCameraConstraint,
                     ),
                     children: [
                       submersionTileLayer(ref),
@@ -462,7 +533,7 @@ class _AlignPageBody extends ConsumerWidget {
             state: state,
             route: route,
             correction: correction,
-            hasFix: hasFix,
+            hasPostDiveFix: hasPostDiveFix,
             activeStart: activeStart,
             cumulative: cumulative,
             totalDistance: totalDistance,
@@ -479,7 +550,7 @@ class _ControlsPanel extends ConsumerWidget {
     required this.state,
     required this.route,
     required this.correction,
-    required this.hasFix,
+    required this.hasPostDiveFix,
     required this.activeStart,
     required this.cumulative,
     required this.totalDistance,
@@ -489,7 +560,7 @@ class _ControlsPanel extends ConsumerWidget {
   final _NavTrackAlignPageState state;
   final NavTrack route;
   final NavTrackCorrection correction;
-  final bool hasFix;
+  final bool hasPostDiveFix;
   final int activeStart;
 
   /// The trust slider's distance axis over the active range, as the page
@@ -560,6 +631,93 @@ class _ControlsPanel extends ConsumerWidget {
     );
   }
 
+  /// The Start row's suggestion chips, plus whether the anchor was placed
+  /// by hand (crosshair or drag) rather than picked from one of them.
+  ///
+  /// There is no persisted "which source set this" field --
+  /// [NavTrackCorrection.anchor] is just a [GeoPoint] -- so both are
+  /// inferred by comparing the live anchor against each known coordinate
+  /// source, computed once here (each source is its own classification or
+  /// provider read) rather than twice over for the chip list and the
+  /// manual-placement check separately.
+  ({List<NavTrackPositionOption> options, bool isManual}) _startRow(
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    final anchor = correction.anchor;
+    final diveEntry = _diveEntryLocation(ref);
+    final site = _siteLocation(ref);
+    final preDiveFix = _preDiveFixStartSuggestion(ref);
+    final options = [
+      if (diveEntry != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-dive-entry',
+          label: l10n.navTrack_align_fromDiveEntry,
+          selected: _geoPointsMatch(anchor, diveEntry),
+          onSelected: () =>
+              state._selectChip((c) => c.copyWith(anchor: diveEntry), route),
+        ),
+      if (site != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-site',
+          label: l10n.navTrack_align_fromSite,
+          selected: _geoPointsMatch(anchor, site),
+          onSelected: () =>
+              state._selectChip((c) => c.copyWith(anchor: site), route),
+        ),
+      if (preDiveFix != null)
+        NavTrackPositionOption(
+          key: 'nav-track-align-from-gps',
+          label: l10n.navTrack_align_fromGps,
+          // _preDiveFixStartSuggestion re-derives this GeoPoint from scratch
+          // on every build (offsetToGeoPoint over the same inputs); a
+          // tolerance, not ==, keeps the chip selected even if that re-
+          // derivation ever lands a floating-point ULP off the value stored
+          // on a prior selection, instead of silently un-selecting a choice
+          // the diver did not actually change (code review).
+          selected: _geoPointsMatch(anchor, preDiveFix),
+          onSelected: () =>
+              state._selectChip((c) => c.copyWith(anchor: preDiveFix), route),
+        ),
+    ];
+    final isManual = anchor != null && options.every((o) => !o.selected);
+    return (options: options, isManual: isManual);
+  }
+
+  /// The End row's mode chips: unlike Start, [NavTrackCorrection.endMode]
+  /// is an explicit enum, so each chip's selected state reads it directly
+  /// instead of comparing coordinates.
+  List<NavTrackPositionOption> _endOptions(AppLocalizations l10n) => [
+    NavTrackPositionOption(
+      key: 'nav-track-align-end-none',
+      label: l10n.navTrack_align_endMode_none,
+      selected: correction.endMode == NavTrackEndMode.none,
+      onSelected: () => state._selectChip(
+        (c) => c.copyWith(endMode: NavTrackEndMode.none),
+        route,
+      ),
+    ),
+    NavTrackPositionOption(
+      key: 'nav-track-align-end-same-as-start',
+      label: l10n.navTrack_align_endMode_sameAsStart,
+      selected: correction.endMode == NavTrackEndMode.sameAsStart,
+      onSelected: () => state._selectChip(
+        (c) => c.copyWith(endMode: NavTrackEndMode.sameAsStart),
+        route,
+      ),
+    ),
+    if (hasPostDiveFix)
+      NavTrackPositionOption(
+        key: 'nav-track-align-end-gps-fix',
+        label: l10n.navTrack_align_endMode_gpsFix,
+        selected: correction.endMode == NavTrackEndMode.gpsFix,
+        onSelected: () => state._selectChip(
+          (c) => c.copyWith(endMode: NavTrackEndMode.gpsFix),
+          route,
+        ),
+      ),
+  ];
+
   int _trustedDurationSeconds() {
     if (route.points.isEmpty || totalDistance <= 0) return 0;
     final relativeIndex = trustCutoffIndex(cumulative, trustedDistance);
@@ -571,6 +729,7 @@ class _ControlsPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trustedMinutes = (_trustedDurationSeconds() / 60).round();
     final l10n = context.l10n;
+    final startRow = _startRow(ref, l10n);
     return SafeArea(
       top: false,
       child: Padding(
@@ -579,91 +738,22 @@ class _ControlsPanel extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.navTrack_align_startLabel),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    FilledButton.tonal(
-                      key: const ValueKey('nav-track-align-place-start'),
-                      onPressed: () => state._startPlacing(_Placing.start),
-                      child: Text(l10n.navTrack_align_setStartOnMap),
-                    ),
-                    if (_diveEntryLocation(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-dive-entry'),
-                        label: Text(l10n.navTrack_align_fromDiveEntry),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                    if (_siteLocation(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-site'),
-                        label: Text(l10n.navTrack_align_fromSite),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                    if (_preDiveFixStartSuggestion(ref) case final location?)
-                      ActionChip(
-                        key: const ValueKey('nav-track-align-from-gps'),
-                        label: Text(l10n.navTrack_align_fromGps),
-                        onPressed: () => state._updateCorrection(
-                          (c) => c.copyWith(anchor: location),
-                          route,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+            NavTrackPositionRowControls(
+              label: l10n.navTrack_align_startLabel,
+              placeKey: 'nav-track-align-place-start',
+              placeLabel: l10n.navTrack_align_setStartOnMap,
+              placeSelected: startRow.isManual,
+              onPlace: () => state._startPlacing(_Placing.start),
+              options: startRow.options,
             ),
             const SizedBox(height: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.navTrack_align_endLabel),
-                const SizedBox(height: 4),
-                DropdownButton<NavTrackEndMode>(
-                  key: const ValueKey('nav-track-align-end-mode'),
-                  value: correction.endMode,
-                  items: [
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.none,
-                      child: Text(l10n.navTrack_align_endMode_none),
-                    ),
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.sameAsStart,
-                      child: Text(l10n.navTrack_align_endMode_sameAsStart),
-                    ),
-                    DropdownMenuItem(
-                      value: NavTrackEndMode.point,
-                      child: Text(l10n.navTrack_align_endMode_point),
-                    ),
-                    if (hasFix)
-                      DropdownMenuItem(
-                        value: NavTrackEndMode.gpsFix,
-                        child: Text(l10n.navTrack_align_endMode_gpsFix),
-                      ),
-                  ],
-                  onChanged: (mode) {
-                    if (mode == null) return;
-                    if (mode == NavTrackEndMode.point) {
-                      state._startPlacing(_Placing.end);
-                    }
-                    state._updateCorrection(
-                      (c) => c.copyWith(endMode: mode),
-                      route,
-                    );
-                  },
-                ),
-              ],
+            NavTrackPositionRowControls(
+              label: l10n.navTrack_align_endLabel,
+              placeKey: 'nav-track-align-place-end',
+              placeLabel: l10n.navTrack_align_endMode_point,
+              placeSelected: correction.endMode == NavTrackEndMode.point,
+              onPlace: () => state._startPlacingEndPoint(route),
+              options: _endOptions(l10n),
             ),
             const SizedBox(height: 8),
             Text(

@@ -1,11 +1,11 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -23,6 +23,8 @@ import 'package:submersion/features/trips/query/trip_filter_query.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Filter state for trip list
 class TripFilterState {
@@ -154,11 +156,20 @@ final filteredTripsProvider = Provider<AsyncValue<List<TripWithStats>>>((ref) {
 });
 
 /// Trip sort state provider
-final tripSortProvider = StateProvider<SortState<TripSortField>>(
-  (ref) => const SortState(
-    field: TripSortField.startDate,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final tripSortProvider = Provider<SortState<TripSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(settingsProvider.select((s) => s.listArrangements.tripSort)),
+        TripSortField.values,
+      ) ??
+      const SortState(
+        field: TripSortField.startDate,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// Sorted and filtered trips provider
@@ -259,11 +270,20 @@ final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
 
   ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  // A trip's dives include its side trips', so linking or unlinking one
+  // changes them without a dive row being written (issue #3658).
+  ref.invalidateSelfWhen(repository.watchTripsChanges());
 
   return repository.getDiveIdsForTrip(tripId, diverId: diverId);
 });
 
-/// Full dive entities for a trip provider.
+/// A trip's dives, for the screens that list them.
+///
+/// Every trip screen waits on this, so it reads the dives without decoding a
+/// profile or pressure series for each one (issue #3831). What a card can show
+/// is all there, SAC and tank pressures included, but `Dive.profile` is empty
+/// on nearly every dive: a screen that draws one reads it through
+/// `getMergedProfile`.
 ///
 /// Scoped to the currently-active diver so that shared trips only show that
 /// diver's dives. See [diveIdsForTripProvider] for why this self-invalidates
@@ -280,17 +300,15 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   // buddy names, and a rename or a synced buddy link never restamps the dive
   // row (#1769, #3039).
   ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
+  // And a side trip linked or unlinked (issue #3658).
+  ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
 
   final diveIds = await tripRepository.getDiveIdsForTrip(
     tripId,
     diverId: diverId,
   );
   if (diveIds.isEmpty) return [];
-  // getDivesByIds does not load the dive_buddies junction; attach it so the
-  // cards' Buddy field matches the Dives tab (#3039).
-  return ref
-      .read(buddyRepositoryProvider)
-      .withBuddies(await diveRepository.getDivesByIds(diveIds));
+  return diveRepository.getDivesByIdsWithoutSamples(diveIds);
 });
 
 /// Trip search provider
@@ -629,3 +647,13 @@ final tripCompactCardConfigProvider =
         ],
       ),
     );
+
+/// The trip a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedTripIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(sortedFilteredTripsProvider),
+    rememberedId: ref.watch(highlightedTripIdProvider),
+    idOf: (entry) => entry.trip.id,
+  ),
+);

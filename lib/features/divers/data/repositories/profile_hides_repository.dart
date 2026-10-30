@@ -35,7 +35,8 @@ class HiddenItem {
   /// A trip's location, or a site's region and country.
   final String? location;
 
-  /// Shared with every profile. False only for a hide on the profile's own
+  /// Shared with the hiding profile: with every profile, or by a share row
+  /// naming it (issue #2151). False only for a hide on the profile's own
   /// private item, which sync can leave behind (issue #2678).
   final bool isShared;
 }
@@ -55,6 +56,7 @@ typedef _HideTable = ({
   String parentTable,
   String parentColumn,
   String entity,
+  String sharesTable,
 });
 
 /// The shared trips and sites each profile has hidden from itself (issue
@@ -76,12 +78,14 @@ class ProfileHidesRepository {
       parentTable: 'trips',
       parentColumn: 'trip_id',
       entity: tripEntity,
+      sharesTable: 'trip_shares',
     ),
     SharedItemKind.site => (
       table: 'site_hides',
       parentTable: 'dive_sites',
       parentColumn: 'site_id',
       entity: siteEntity,
+      sharesTable: 'site_shares',
     ),
   };
 
@@ -90,12 +94,15 @@ class ProfileHidesRepository {
     SharedItemKind.site => _db.siteHides,
   };
 
-  /// Emits when a hide is written or removed, or a hidden item's own row
-  /// changes (its name, or its deletion).
+  /// Emits when a hide is written or removed, a hidden item's own row
+  /// changes (its name, or its deletion), or a share row changes, which
+  /// decides whether a hidden item still reaches its profile (issue #2151).
   Stream<void> watchChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.tripHides),
       TableUpdateQuery.onTable(_db.siteHides),
+      TableUpdateQuery.onTable(_db.tripShares),
+      TableUpdateQuery.onTable(_db.siteShares),
       TableUpdateQuery.onTable(_db.trips),
       TableUpdateQuery.onTable(_db.diveSites),
     ]),
@@ -125,10 +132,17 @@ class ProfileHidesRepository {
       final isSite = kind == SharedItemKind.site;
       final parents = await _db
           .customSelect(
-            'SELECT id, diver_id, is_shared'
+            // Shared with this profile: with everyone, or by a share row
+            // naming it (issue #2151).
+            'SELECT id, diver_id, (is_shared = 1 OR id IN (SELECT '
+            '${t.parentColumn} FROM ${t.sharesTable} WHERE diver_id = ?)) '
+            'AS is_shared'
             '${isSite ? ', shared_library_id' : ''} FROM ${t.parentTable} '
             'WHERE id IN (${List.filled(ids.length, '?').join(', ')})',
-            variables: [for (final id in ids) Variable.withString(id)],
+            variables: [
+              Variable.withString(diverId),
+              for (final id in ids) Variable.withString(id),
+            ],
           )
           .get();
       final hideable = {
@@ -226,7 +240,9 @@ class ProfileHidesRepository {
   Future<List<HiddenItem>> hiddenItems(String diverId) async {
     final trips = await _db
         .customSelect(
-          'SELECT t.id, t.name, t.diver_id, t.is_shared, t.start_date, '
+          'SELECT t.id, t.name, t.diver_id, (t.is_shared = 1 OR t.id IN '
+          '(SELECT trip_id FROM trip_shares WHERE diver_id = h.diver_id)) '
+          'AS is_shared, t.start_date, '
           't.end_date, t.location '
           'FROM trip_hides h JOIN trips t ON t.id = h.trip_id '
           'WHERE h.diver_id = ? '
@@ -237,7 +253,10 @@ class ProfileHidesRepository {
         .get();
     final sites = await _db
         .customSelect(
-          'SELECT s.id, s.name, s.diver_id, s.is_shared, s.region, '
+          'SELECT s.id, s.name, s.diver_id, (s.is_shared = 1 OR '
+          '(s.shared_library_id IS NULL AND s.id IN '
+          '(SELECT site_id FROM site_shares WHERE diver_id = h.diver_id))) '
+          'AS is_shared, s.region, '
           's.country FROM site_hides h JOIN dive_sites s ON s.id = h.site_id '
           'WHERE h.diver_id = ? '
           'AND ${VisibilityFilter.ownerOrSharedOrLibrarySql('s', 'h.diver_id')} '

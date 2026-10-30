@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/domain/detectors/source_conflic
 import 'package:submersion/features/data_quality/domain/detectors/split_pair_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/tank_assignment_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/temp_anomaly_detector.dart';
+import 'package:submersion/features/data_quality/domain/detectors/transmitter_gear_serial_mismatch_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/transmitter_role_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/unknown_transmitter_detector.dart';
 
@@ -29,6 +30,7 @@ const List<QualityDetector> kQualityDetectors = [
   SourceConflictDetector(),
   SharedGearOverlapDetector(),
   TransmitterRoleDetector(),
+  TransmitterGearSerialMismatchDetector(),
 ];
 
 Map<String, int> qualityDetectorVersions() => {

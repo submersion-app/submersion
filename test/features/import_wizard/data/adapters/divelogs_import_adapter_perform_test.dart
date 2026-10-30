@@ -26,6 +26,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
     as ui;
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
@@ -169,15 +170,28 @@ void main() {
       ],
     });
 
+    final progress = <(ImportPhase, int, int)>[];
     final result = (await tester.runAsync(() async {
       final bundle = await adapter.buildBundle();
-      return adapter.performImport(bundle, {
-        ImportEntityType.dives: {0},
-      }, {});
+      return adapter.performImport(
+        bundle,
+        {
+          ImportEntityType.dives: {0},
+        },
+        {},
+        onProgress: (phase, current, total) =>
+            progress.add((phase, current, total)),
+      );
     }))!;
 
     expect(result.errorMessage, isNull);
     expect(result.attachedPhotoCount, 1);
+    // performImport hands its progress on to the downloads (#3555).
+    expect(progress.where((e) => e.$1 == ImportPhase.photos), [
+      (ImportPhase.photos, 0, 2),
+      (ImportPhase.photos, 1, 2),
+      (ImportPhase.photos, 2, 2),
+    ]);
     final notice = result.notices.singleWhere(
       (n) => n.kind == ImportNoticeKind.photosNotDownloaded,
     );

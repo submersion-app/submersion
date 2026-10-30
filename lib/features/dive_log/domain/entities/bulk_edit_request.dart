@@ -71,6 +71,16 @@ class DiverRolesOp extends BulkCollectionOp {
   const DiverRolesOp({required this.roleIds});
 }
 
+/// Links every selected dive to [siteId], or unlinks them when it is null
+/// (issue #3657). Each dive gets what picking the site on it alone gives it:
+/// the site's water type, entry/exit methods and dive types snap on per dive,
+/// under the rules of `DiveRepository.setSite`. The service applies it before
+/// the scalars and the other ops, so a row the diver set in the same edit wins.
+class SiteOp extends BulkCollectionOp {
+  final String? siteId;
+  const SiteOp({required this.siteId});
+}
+
 class TanksOp extends BulkCollectionOp {
   final BulkCollectionMode mode; // add | replace
   final List<DiveTank> tanks;

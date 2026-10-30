@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart' hide DiveComputer;
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_resolver.dart';
 
@@ -48,6 +49,7 @@ void main() {
     String? model,
     String? serialNumber,
     bool isActive = true,
+    String status = 'active',
   }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -62,6 +64,7 @@ void main() {
             model: Value(model),
             serialNumber: Value(serialNumber),
             isActive: Value(isActive),
+            status: Value(status),
             createdAt: t,
             updatedAt: t,
           ),
@@ -99,6 +102,15 @@ void main() {
     );
 
     expect(id, 'hand-made');
+  });
+
+  test('a stored link to an item of another type is not the computer\'s '
+      'entry (review)', () async {
+    await insertGear('mask', type: 'mask');
+
+    final id = await resolver.resolveGearTwin(computer(equipmentId: 'mask'));
+
+    expect(id, diveComputerGearId('c1'));
   });
 
   test('mints when the stored link points at a deleted row', () async {
@@ -151,23 +163,90 @@ void main() {
     expect(id, diveComputerGearId('c1'));
   });
 
-  test('ignores retired gear and non-computer gear when matching', () async {
-    await insertGear(
-      'retired',
-      brand: 'Shearwater',
-      model: 'Perdix 2',
-      isActive: false,
-    );
+  test('adopts retired gear but ignores wanted and non-computer gear when '
+      'matching (#3676)', () async {
     await insertGear(
       'a-bcd',
       type: 'bcd',
       brand: 'Shearwater',
       model: 'Perdix 2',
     );
+    await insertGear(
+      'wanted',
+      brand: 'Shearwater',
+      model: 'Perdix 2',
+      isActive: false,
+      status: 'wanted',
+    );
+    expect(
+      await resolver.resolveGearTwin(computer()),
+      diveComputerGearId('c1'),
+    );
+
+    await insertGear(
+      'retired',
+      brand: 'Shearwater',
+      model: 'Teric',
+      isActive: false,
+      status: 'retired',
+    );
+    expect(
+      await resolver.resolveGearTwin(computer(id: 'c2', model: 'Teric')),
+      'retired',
+    );
+  });
+
+  test('mints the next chain id when the derived twin was deleted '
+      '(#3676)', () async {
+    await db
+        .into(db.deletionLog)
+        .insert(
+          DeletionLogCompanion.insert(
+            id: 'del-1',
+            entityType: 'equipment',
+            recordId: diveComputerGearId('c1'),
+            deletedAt: 0,
+          ),
+        );
 
     final id = await resolver.resolveGearTwin(computer());
 
-    expect(id, diveComputerGearId('c1'));
+    expect(id, nextGearRemintId('c1', diveComputerGearId('c1')));
+  });
+
+  test('adopts a blank-serial item for a computer with a serial and writes '
+      'the serial onto it (#3676)', () async {
+    await insertGear('hand-made', brand: 'Shearwater', model: 'Perdix 2');
+
+    final id = await resolver.resolveGearTwin(computer(serialNumber: 'S1'));
+
+    expect(id, 'hand-made');
+    final row = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals('hand-made'))).getSingle();
+    expect(row.serialNumber, 'S1');
+  });
+
+  test('does not adopt an item another computer already owns by name '
+      '(#3676)', () async {
+    await insertGear('owned', brand: 'Shearwater', model: 'Perdix 2');
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'c0',
+            name: 'Other Perdix',
+            equipmentId: const Value('owned'),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    expect(
+      await resolver.resolveGearTwin(computer()),
+      diveComputerGearId('c1'),
+    );
   });
 
   test('is idempotent across repeated calls', () async {
@@ -215,5 +294,47 @@ void main() {
 
     expect(id, 'hand-made');
     expect(await pendingCountFor('hand-made'), 0);
+  });
+
+  test('createComputer keeps a preset equipmentId, binding a discovered '
+      'device to a hand-added item (#3676)', () async {
+    await insertGear('hand-made', brand: 'Suunto', model: 'EON Core');
+
+    final created = await DiveComputerRepository().createComputer(
+      computer(id: '', equipmentId: 'hand-made'),
+    );
+
+    expect(created.equipmentId, 'hand-made');
+    final row = await (db.select(
+      db.diveComputers,
+    )..where((t) => t.id.equals(created.id))).getSingle();
+    expect(row.equipmentId, 'hand-made');
+  });
+
+  test('a device bound to a hand-added item fills its blank serial, brand and '
+      'model and takes its name (review)', () async {
+    await insertGear('Backup gauge');
+
+    final created = await DiveComputerRepository().createComputer(
+      computer(
+        id: '',
+        name: 'Suunto EON Core',
+        manufacturer: 'Suunto',
+        model: 'EON Core',
+        serialNumber: 'S9',
+        equipmentId: 'Backup gauge',
+      ),
+    );
+
+    final item = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals('Backup gauge'))).getSingle();
+    expect(item.serialNumber, 'S9');
+    expect(item.brand, 'Suunto');
+    expect(item.model, 'EON Core');
+    final row = await (db.select(
+      db.diveComputers,
+    )..where((t) => t.id.equals(created.id))).getSingle();
+    expect(row.name, 'Backup gauge');
   });
 }

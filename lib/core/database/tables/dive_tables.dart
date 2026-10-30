@@ -302,6 +302,13 @@ class DiveTanks extends Table {
     onDelete: KeyAction.setNull,
   )();
 
+  /// v312: the regulators on this cylinder after the first (issue #3375), a
+  /// JSON array of equipment ids (tank_extra_regulators.dart); null means
+  /// none. User-authored like [regulatorEquipmentId]; downloads and
+  /// re-parses never write it. A JSON column has no foreign key, so
+  /// clearCylinderGearLinks removes a deleted regulator by hand.
+  TextColumn get extraRegulatorIds => text().nullable()();
+
   /// v232: the trip cylinder slot this tank was breathed from (issue
   /// #2325). User-authored through the tank editor; downloads and re-parses
   /// never write it. Set null when the slot goes, like every other nullable

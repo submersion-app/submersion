@@ -14,13 +14,13 @@ void main() {
     home: Scaffold(body: sheet),
   );
 
-  testWidgets('Save to File receives the trimmed note', (tester) async {
+  testWidgets('Save to a folder receives the trimmed note', (tester) async {
     String? saved = 'unset';
     await tester.pumpWidget(
       host(ExportBottomSheet(onSaveToFile: (note) => saved = note)),
     );
     await tester.enterText(find.byType(TextField), ' For the shop ');
-    await tester.tap(find.text('Save to File'));
+    await tester.tap(find.text('Save to a folder'));
     expect(saved, 'For the shop');
   });
 
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(
       host(ExportBottomSheet(onSaveToFile: (note) => saved = note)),
     );
-    await tester.tap(find.text('Save to File'));
+    await tester.tap(find.text('Save to a folder'));
     expect(saved, isNull);
   });
 

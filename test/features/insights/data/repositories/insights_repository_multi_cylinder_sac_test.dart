@@ -142,14 +142,15 @@ void main() {
       expect(trend.single.value, closeTo(1.5, 1e-9));
     });
 
-    test('a rebreather dive keeps the single reference cylinder', () async {
-      await insertDive('ccr', diveMode: 'ccr');
-      await insertTank('ccr', 0, 'diluent', volume: 3);
-      await insertTank('ccr', 1, 'oxygenSupply', volume: 3);
+    test('a rebreather dive has no SAC (#3673)', () async {
+      for (final mode in ['ccr', 'scr']) {
+        await insertDive(mode, diveMode: mode);
+        await insertTank(mode, 0, 'diluent', volume: 3);
+        await insertTank(mode, 1, 'oxygenSupply', volume: 3);
+        expect(await queryLanguageSac(mode), isNull, reason: mode);
+      }
 
-      final trend = await repository.getSacPressurePerDive();
-      expect(trend.single.value, closeTo(1.0, 1e-9));
-      expect(await queryLanguageSac('ccr'), closeTo(1.0, 1e-9));
+      expect(await repository.getSacPressurePerDive(), isEmpty);
     });
 
     test('a first cylinder with no drop gives no SAC, as Dive.sac', () async {

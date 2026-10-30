@@ -8,7 +8,9 @@ import 'package:submersion/features/connections/domain/views/map_spec.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
 /// A whole map: every entity of each chosen kind, and one edge query per
-/// chosen link. Entities without a surviving line stay, as islands.
+/// chosen link. Entities without a surviving line stay, as islands, except
+/// that a kind in `sharedWith` keeps only entities seen on a dive with the
+/// kind it maps to (Who dives where keeps only sites dived with a buddy).
 ///
 /// Each kind is read only as far as the budget could reach: the budget keeps
 /// at most twice its size, and anything in the overall top of that is also
@@ -24,10 +26,11 @@ class MapLoader {
     required String? diverId,
     required DiveFilterState filter,
     required int nodeBudget,
+    Map<ConnectionKind, ConnectionKind> sharedWith = const {},
   }) async {
     final kinds = spec.kinds.toList()
       ..sort((a, b) => a.index.compareTo(b.index));
-    final cap = nodeBudget > 0 ? nodeBudget * 2 : null;
+    final cap = budgetReach(nodeBudget);
     final nodes = <ConnectionNode>[];
     final totals = <ConnectionKind, int>{};
     for (final k in kinds) {
@@ -37,10 +40,16 @@ class MapLoader {
         filter: filter,
         limit: cap,
         byRank: true,
+        sharedWith: sharedWith[k],
       );
       nodes.addAll(rows);
       totals[k] = cap != null && rows.length >= cap
-          ? await _reader.nodeCount(k, diverId: diverId, filter: filter)
+          ? await _reader.nodeCount(
+              k,
+              diverId: diverId,
+              filter: filter,
+              sharedWith: sharedWith[k],
+            )
           : rows.length;
     }
     // Cut to the budget before the edge queries (see nodesWithinBudget), so
@@ -51,13 +60,12 @@ class MapLoader {
     final edges = <ConnectionEdge>[
       for (final l in links)
         if (keptIds[l.a] != null && keptIds[l.b] != null)
-          ...await _reader.edges(
+          ...await _reader.edgesWithin(
             l.a,
             l.b,
+            keptIds,
             diverId: diverId,
             filter: filter,
-            restrictA: keptIds[l.a],
-            restrictB: keptIds[l.b],
             minShared: spec.minSharedDives,
           ),
     ];

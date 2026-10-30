@@ -180,6 +180,9 @@ under-way cards and day chapters, in both the normal layout and the layout
 that opens at today. `TripPrepareOverview` (upcoming trips) already shows it
 after the summary and notes, and is unchanged.
 
+Reversed by #3711: on every trip the Documents card is again the last section,
+after the day chapters and the notes.
+
 ## 6. Reclaiming database space
 
 ### Deciding, while the app runs

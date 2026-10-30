@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/side_trips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -80,9 +82,21 @@ class TripSummaryWidget extends ConsumerWidget {
     int liveaboardCount = 0;
     double? maxDepth;
 
+    // A larger trip's figures already include its side trips' dives, and
+    // its dates span theirs, so a side trip adds neither (issue #3658).
+    final tripsById = <String, Trip>{
+      for (final t in trips) (t.trip as Trip).id: t.trip as Trip,
+    };
     for (final tripWithStats in trips) {
-      totalDives += tripWithStats.diveCount as num;
-      totalDays += tripWithStats.trip.durationDays as num;
+      final trip = tripWithStats.trip as Trip;
+      final parentId = effectiveParentId(trip, tripsById);
+      if (parentId == null) {
+        totalDives += tripWithStats.diveCount as num;
+        totalDays += trip.durationDays;
+      } else {
+        // Only the side trip's days that fall outside its larger trip.
+        totalDays += _daysOutside(trip, tripsById[parentId]!);
+      }
       if (tripWithStats.trip.isLiveaboard) liveaboardCount++;
       if (tripWithStats.maxDepth != null) {
         if (maxDepth == null || tripWithStats.maxDepth > maxDepth) {
@@ -358,4 +372,13 @@ class TripSummaryWidget extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The calendar days of [side] that [larger] does not cover.
+int _daysOutside(Trip side, Trip larger) {
+  final before = calendarDaysBetween(side.startDate, larger.startDate);
+  final after = calendarDaysBetween(larger.endDate, side.endDate);
+  final total = side.durationDays;
+  final outside = (before > 0 ? before : 0) + (after > 0 ? after : 0);
+  return outside > total ? total : outside;
 }

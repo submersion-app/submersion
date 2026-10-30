@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_grouping_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_grid.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_share_sheet.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_sort_sheet.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_view_switch_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// Full-screen page displaying the certification cards in a vertically
@@ -84,11 +89,22 @@ class CertificationWalletPage extends ConsumerWidget {
     // The grid's action rows title custom levels through the catalog, which
     // can arrive after the first frame (issue #690).
     ref.watch(certificationCatalogSyncProvider);
+    final sort = ref.watch(certificationSortProvider);
+    final groupBy = ref.watch(certificationGroupByProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.certifications_wallet_appBar_title),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: context.l10n.certifications_wallet_tooltip_sort,
+            onPressed: () => showCertificationSortSheet(
+              context,
+              ref,
+              currentView: CertificationView.wallet,
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: context.l10n.certifications_wallet_tooltip_add,
@@ -106,8 +122,23 @@ class CertificationWalletPage extends ConsumerWidget {
             error: (_, _) => 'Diver',
           );
 
+          // Card order follows the shared sort and grouping (#3359); the
+          // grid itself shows no group headers (stretch goal, not built
+          // here).
+          final ordered = flattenCertificationGroups(
+            groupBy,
+            applyCertificationSorting(
+              certifications,
+              sort,
+              l10n: context.l10n,
+              catalog: context.certificationCatalog,
+            ),
+            l10n: context.l10n,
+            catalog: context.certificationCatalog,
+          );
+
           return CertificationEcardGrid(
-            certifications: certifications,
+            certifications: ordered,
             diverName: diverName,
             onCardLongPress: (certification) =>
                 _showOptionsSheet(context, ref, certification),

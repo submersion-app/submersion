@@ -20,9 +20,8 @@ void main() {
 
     test('carries the snapshot the parser attached', () {
       const snapshot = ComputerTissueSnapshot(
-        algorithm: 'Suunto Fused2 RGBM',
         start: ComputerTissueState(n2Bar: [0.79, 0.79]),
-        end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+        end: ComputerTissueState(n2Bar: [0.9, 1.1]),
       );
 
       final dive = makeDive(computerTissue: snapshot);

@@ -15,18 +15,21 @@ void main() {
   tearDown(() async => tearDownTestDatabase());
 
   group('getOnThisDayDiveIds', () {
+    // Dive times are wall clocks flagged as UTC, and the query reads their
+    // month and day in UTC, so the dives are built with DateTime.utc. A
+    // local DateTime shifts to the previous UTC day east of Greenwich.
     test('matches month/day from prior years only, newest first', () async {
       await repository.createDive(
-        domain.Dive(id: 'match-2023', dateTime: DateTime(2023, 7, 24, 10)),
+        domain.Dive(id: 'match-2023', dateTime: DateTime.utc(2023, 7, 24, 10)),
       );
       await repository.createDive(
-        domain.Dive(id: 'match-2024', dateTime: DateTime(2024, 7, 24, 14)),
+        domain.Dive(id: 'match-2024', dateTime: DateTime.utc(2024, 7, 24, 14)),
       );
       await repository.createDive(
-        domain.Dive(id: 'this-year', dateTime: DateTime(2026, 7, 24, 9)),
+        domain.Dive(id: 'this-year', dateTime: DateTime.utc(2026, 7, 24, 9)),
       );
       await repository.createDive(
-        domain.Dive(id: 'wrong-day', dateTime: DateTime(2024, 7, 23, 9)),
+        domain.Dive(id: 'wrong-day', dateTime: DateTime.utc(2024, 7, 23, 9)),
       );
 
       final ids = await repository.getOnThisDayDiveIds(
@@ -39,10 +42,10 @@ void main() {
 
     test('Feb 29 matches only leap-year dives and does not crash', () async {
       await repository.createDive(
-        domain.Dive(id: 'leap', dateTime: DateTime(2024, 2, 29, 10)),
+        domain.Dive(id: 'leap', dateTime: DateTime.utc(2024, 2, 29, 10)),
       );
       await repository.createDive(
-        domain.Dive(id: 'mar1', dateTime: DateTime(2023, 3, 1, 10)),
+        domain.Dive(id: 'mar1', dateTime: DateTime.utc(2023, 3, 1, 10)),
       );
 
       final ids = await repository.getOnThisDayDiveIds(
@@ -55,7 +58,7 @@ void main() {
 
     test('respects diverId scoping', () async {
       await repository.createDive(
-        domain.Dive(id: 'd1', dateTime: DateTime(2024, 7, 24, 10)),
+        domain.Dive(id: 'd1', dateTime: DateTime.utc(2024, 7, 24, 10)),
       );
 
       final ids = await repository.getOnThisDayDiveIds(
@@ -70,7 +73,7 @@ void main() {
     test('caps results at limit', () async {
       for (var year = 2016; year < 2026; year++) {
         await repository.createDive(
-          domain.Dive(id: 'd$year', dateTime: DateTime(year, 7, 24, 10)),
+          domain.Dive(id: 'd$year', dateTime: DateTime.utc(year, 7, 24, 10)),
         );
       }
       final ids = await repository.getOnThisDayDiveIds(

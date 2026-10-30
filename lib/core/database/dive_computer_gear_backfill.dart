@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 
 /// Seed a gear twin for every registered dive computer and link it to the dives
 /// that computer logged (v175).
@@ -43,10 +44,7 @@ Future<void> backfillDiveComputerGearTwins(DatabaseConnectionUser db) async {
   // minimal fixtures and against databases caught mid-upgrade. PRAGMA
   // table_info returns empty for a missing table, so probing the columns covers
   // both "table absent" and "column absent".
-  Future<Set<String>> columnsOf(String table) async {
-    final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-    return rows.map((c) => c.read<String>('name')).toSet();
-  }
+  Future<Set<String>> columnsOf(String table) => tableColumnNames(db, table);
 
   final computerCols = await columnsOf('dive_computers');
   if (!computerCols.containsAll({

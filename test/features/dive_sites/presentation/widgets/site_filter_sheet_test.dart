@@ -16,6 +16,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/theme_sentinels.dart';
 
 /// Opens the sheet the way the site list does: as a modal bottom sheet handed
 /// a [WidgetRef]. Going through a real route keeps "Apply"'s Navigator.pop
@@ -55,16 +56,17 @@ Future<ProviderContainer> _container({
   );
 }
 
-Widget _app(ProviderContainer container) {
+Widget _app(ProviderContainer container, {ThemeData? theme}) {
   return UncontrolledProviderScope(
     container: container,
-    child: const MaterialApp(
+    child: MaterialApp(
+      theme: theme,
       // Pinned so assertions on English labels ("Max", "Apply Filters") do not
       // depend on the host machine's locale, which flutter_test forwards.
-      locale: Locale('en'),
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: _SheetLauncher(),
+      home: const _SheetLauncher(),
     ),
   );
 }
@@ -89,9 +91,10 @@ void _useTallSurface(WidgetTester tester) {
 
 Future<void> _openSheet(
   WidgetTester tester,
-  ProviderContainer container,
-) async {
-  await tester.pumpWidget(_app(container));
+  ProviderContainer container, {
+  ThemeData? theme,
+}) async {
+  await tester.pumpWidget(_app(container, theme: theme));
   await tester.pumpAndSettle();
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
@@ -352,6 +355,21 @@ void main() {
     expect(
       find.widgetWithText(FilterChip, 'Another profile\'s library'),
       findsNothing,
+    );
+  });
+
+  testWidgets('the button bar shadow follows the theme', (tester) async {
+    _useTallSurface(tester);
+    final container = await _container(settings: const AppSettings());
+    addTearDown(container.dispose);
+    await _openSheet(tester, container, theme: sentinelTheme());
+
+    final shadows = boxShadowsUnder(tester, find.byType(SiteFilterSheet));
+    expect(shadows, isNotEmpty);
+    expect(
+      shadows.every((s) => sameHue(s.color, sentinelShadow)),
+      isTrue,
+      reason: 'a shadow is fixed black instead of the theme shadow',
     );
   });
 }

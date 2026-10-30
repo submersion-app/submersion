@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/derived_neutrals.dart';
 import 'package:submersion/core/theme/tinted_containers.dart';
 
 // ---------------------------------------------------------------------------
@@ -88,18 +89,20 @@ final ThemeData consoleLight = ThemeData(
     FeatureAccentColors.light,
     StatusColors.light,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.light,
-      primary: _primaryLight,
-      onPrimary: _onPrimaryLight,
-      secondary: _appBarLight,
-      onSecondary: _onPrimaryLight,
-      error: _errorColor,
-      onError: _onErrorColor,
-      surface: _surfaceLight,
-      onSurface: _primaryLight,
-      surfaceContainerLow: _cardLight,
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.light,
+        primary: _primaryLight,
+        onPrimary: _onPrimaryLight,
+        secondary: _appBarLight,
+        onSecondary: _onPrimaryLight,
+        error: _errorColor,
+        onError: _onErrorColor,
+        surface: _surfaceLight,
+        onSurface: _primaryLight,
+        surfaceContainerLow: _cardLight,
+      ),
     ),
   ),
   textTheme: _buildTextTheme(Brightness.light),
@@ -142,24 +145,26 @@ final ThemeData consoleDark = ThemeData(
     FeatureAccentColors.dark,
     StatusColors.dark,
   ],
-  colorScheme: withTintedContainers(
-    const ColorScheme(
-      brightness: Brightness.dark,
-      primary: _primaryDark,
-      onPrimary: _onPrimaryDark,
-      secondary: _secondaryDark,
-      onSecondary: _onPrimaryDark,
-      tertiary: _tertiaryDark,
-      onTertiary: _onPrimaryDark,
-      error: _errorDark,
-      onError: _onErrorDark,
-      surface: _surfaceDark,
-      onSurface: Color(0xFFE0E4E8),
-      surfaceContainerLow: _cardDark,
+  colorScheme: withDerivedNeutrals(
+    withTintedContainers(
+      const ColorScheme(
+        brightness: Brightness.dark,
+        primary: _primaryDark,
+        onPrimary: _onPrimaryDark,
+        secondary: _secondaryDark,
+        onSecondary: _onPrimaryDark,
+        tertiary: _tertiaryDark,
+        onTertiary: _onPrimaryDark,
+        error: _errorDark,
+        onError: _onErrorDark,
+        surface: _surfaceDark,
+        onSurface: Color(0xFFE0E4E8),
+        surfaceContainerLow: _cardDark,
+      ),
+      // Selection indicators fill with secondaryContainer; tinting them from
+      // the teal primary keeps them in the theme's accent.
+      secondaryAccent: _primaryDark,
     ),
-    // Selection indicators fill with secondaryContainer; tinting them from
-    // the teal primary keeps them in the theme's accent.
-    secondaryAccent: _primaryDark,
   ),
   textTheme: _buildTextTheme(Brightness.dark),
   appBarTheme: const AppBarTheme(

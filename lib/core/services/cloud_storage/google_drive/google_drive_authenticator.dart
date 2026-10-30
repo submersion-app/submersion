@@ -12,9 +12,14 @@ abstract class GoogleDriveAuthenticator {
   /// Throws CloudStorageException on failure or user cancellation.
   Future<void> authenticate();
 
-  /// Non-interactive re-auth from cached state (google_sign_in lightweight
-  /// auth, or a stored refresh token). Never shows UI. Returns false when
+  /// Non-interactive re-auth from cached state (google_sign_in's
+  /// authorization for the known account, lightweight sign-in on a cold
+  /// launch, or a stored refresh token). Never shows UI. Returns false when
   /// re-auth is not possible; must not throw.
+  ///
+  /// A token refresh must not depend on lightweight sign-in: on Android it
+  /// needs a foreground activity, so a background sync could never refresh
+  /// through it (#3602).
   ///
   /// This MAY touch secure storage. The "don't prompt a user who never asked
   /// for Google Drive" guarantee is enforced upstream, by reachability rather

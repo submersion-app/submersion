@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// Issue #1427: a dive with no entry method of its own reports its site's.
 void main() {
   DiveSite site({EntryMethod? entryMethod}) =>
-      DiveSite(id: 'site', name: 'Site', entryMethod: entryMethod);
+      DiveSite(id: 'site', name: 'Site', entryMethods: [?entryMethod]);
 
   Dive dive({EntryMethod? entryMethod, DiveSite? site}) => Dive(
     id: 'dive',
@@ -42,5 +42,14 @@ void main() {
     // exit from entry, and that flag is form state, never persisted. A
     // read-time fallback cannot reproduce it, so exit stays as stored.
     expect(dive(site: site(entryMethod: EntryMethod.shore)).exitMethod, isNull);
+  });
+
+  test('does not fall back to a site with several entry methods', () {
+    const multi = DiveSite(
+      id: 'site',
+      name: 'Site',
+      entryMethods: [EntryMethod.shore, EntryMethod.boat],
+    );
+    expect(dive(site: multi).effectiveEntryMethod, isNull);
   });
 }

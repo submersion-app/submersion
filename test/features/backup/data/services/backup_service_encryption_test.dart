@@ -6,8 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
@@ -22,14 +24,45 @@ import '../../../../support/fake_cloud_storage_provider.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
+
+/// Records flush and history-reset calls, as a Git backend would receive.
+class _HistoryKeepingCloud extends FakeCloudStorageProvider
+    implements DeferredWriteProvider, HistoryResettable {
+  final calls = <String>[];
+
+  @override
+  Future<void> flush({Duration? timeout}) async => calls.add('flush');
+
+  @override
+  Future<void> resetHistoryNow() async => calls.add('reset');
+}
+
 const _passphrase = 'correct horse battery staple';
 
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
+  _FakeBackupDatabaseAdapter({this.writesRealDatabase = false});
+
+  /// Backs up a minimal Submersion-shaped SQLite file instead of the marker
+  /// text, for tests that restore what they backed up: a restore deep-checks
+  /// a decrypted copy, and the marker text is not a database.
+  final bool writesRealDatabase;
+
   @override
   Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
-    await file.writeAsString('fake backup data');
+    if (!writesRealDatabase) {
+      await file.writeAsString('fake backup data');
+      return;
+    }
+    if (await file.exists()) await file.delete();
+    final db = sqlite3.sqlite3.open(destinationPath);
+    try {
+      db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+      db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+    } finally {
+      db.close();
+    }
   }
 
   @override
@@ -97,13 +130,16 @@ void main() {
     cloud = FakeCloudStorageProvider();
   });
 
-  BackupService buildService() => BackupService(
-    dbAdapter: _FakeBackupDatabaseAdapter(),
-    preferences: preferences,
-    cloudProvider: cloud,
-    encryptionKeyStore: keyStore,
-    syncPreferences: syncPreferences,
-  );
+  BackupService buildService({bool writesRealDatabase = false}) =>
+      BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(
+          writesRealDatabase: writesRealDatabase,
+        ),
+        preferences: preferences,
+        cloudProvider: cloud,
+        encryptionKeyStore: keyStore,
+        syncPreferences: syncPreferences,
+      );
 
   /// Seed an unlocked encrypted-library state (key + mirror + flag).
   Future<String> seedEncryption() async {
@@ -199,7 +235,7 @@ void main() {
       'the cached key', () async {
     await seedEncryption();
     await preferences.setCloudBackupEnabled(true);
-    final service = buildService();
+    final service = buildService(writesRealDatabase: true);
     await service.performBackup();
     final uploaded = await singleCloudBackup();
     final picked = File(p.join(_isolatedTempDir.path, 'picked_enc.sbe'));
@@ -260,6 +296,36 @@ void main() {
     );
     expect(remaining, hasLength(1));
     expect(remaining.single.name, endsWith('.sbe'));
+  });
+
+  group('a backend that keeps deleted data in history (Git)', () {
+    late _HistoryKeepingCloud keeping;
+
+    setUp(() {
+      keeping = _HistoryKeepingCloud();
+      cloud = keeping;
+    });
+
+    test('removing plaintext cloud backups resets its history', () async {
+      await preferences.setCloudBackupEnabled(true);
+      final service = buildService();
+      await service.performBackup();
+      await seedEncryption();
+      expect(await service.deletePlaintextCloudBackups(), 1);
+      expect(keeping.calls, contains('reset'));
+    });
+
+    test(
+      'deleting a backup pushes the cloud delete before returning',
+      () async {
+        await preferences.setCloudBackupEnabled(true);
+        final service = buildService();
+        final record = await service.performBackup();
+        expect(record.cloudFileId, isNotNull);
+        await service.deleteBackup(record);
+        expect(keeping.calls, contains('flush'));
+      },
+    );
   });
 
   group('encryption on but this device is not unlocked (issue #3089)', () {

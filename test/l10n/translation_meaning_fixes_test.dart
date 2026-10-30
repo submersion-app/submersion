@@ -49,7 +49,17 @@ void main() {
         expect(
           l10n.transfer_export_aboutContent,
           contains(
-            '${l10n.settings_appBar_title} > ${l10n.settings_data_backup}',
+            '${l10n.settings_appBar_title} > ${l10n.settings_section_data_title} > ${l10n.settings_backups_title}',
+          ),
+        );
+      });
+
+      test('$locale encrypted-backup recovery names the Backups page', () {
+        final l10n = l10nFor(locale);
+        expect(
+          l10n.startup_recovery_encryptedBackup_body,
+          contains(
+            '${l10n.settings_appBar_title} > ${l10n.settings_section_data_title} > ${l10n.settings_backups_title}',
           ),
         );
       });

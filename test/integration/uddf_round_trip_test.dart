@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -38,7 +39,6 @@ import 'package:submersion/features/tags/domain/entities/tag.dart'
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../helpers/mock_channels.dart';
-import '../helpers/python_script_runner.dart';
 import '../helpers/uddf_comparison_helper.dart';
 import 'uddf_test_importer.dart';
 import '../helpers/fake_hosts.dart';
@@ -123,11 +123,8 @@ void main() {
 
   group('UDDF Round-Trip', () {
     test('import -> export preserves semantic data integrity', () async {
-      // STEP 1: Generate test UDDF file using Python script
-      final originalUddfPath = await PythonScriptRunner.generateUddfTestData(
-        quick: true,
-        outputPath: '${tempDir.path}/original.uddf',
-      );
+      // STEP 1: A synthetic UDDF logbook, committed as a fixture
+      final originalUddfPath = _copyFixture(tempDir, 'original.uddf');
 
       final originalContent = await File(originalUddfPath).readAsString();
 
@@ -282,10 +279,7 @@ void main() {
 
     test('preserves dive profile data through round-trip', () async {
       // Generate and import
-      final originalUddfPath = await PythonScriptRunner.generateUddfTestData(
-        quick: true,
-        outputPath: '${tempDir.path}/profile_test.uddf',
-      );
+      final originalUddfPath = _copyFixture(tempDir, 'profile_test.uddf');
 
       final content = await File(originalUddfPath).readAsString();
       final originalResult = await exportService.importAllDataFromUddf(content);
@@ -360,10 +354,7 @@ void main() {
 
     test('preserves tank data through round-trip', () async {
       // Generate and import
-      final originalUddfPath = await PythonScriptRunner.generateUddfTestData(
-        quick: true,
-        outputPath: '${tempDir.path}/tank_test.uddf',
-      );
+      final originalUddfPath = _copyFixture(tempDir, 'tank_test.uddf');
 
       final content = await File(originalUddfPath).readAsString();
       final originalResult = await exportService.importAllDataFromUddf(content);
@@ -575,4 +566,14 @@ void main() {
       },
     );
   });
+}
+
+/// A copy of the committed synthetic UDDF fixture (10 dives with profiles,
+/// tanks, sites, gear and buddies) in [dir], under [name].
+String _copyFixture(Directory dir, String name) {
+  final path = p.join(dir.path, name);
+  File(
+    p.join('test', 'fixtures', 'uddf', 'round_trip_quick.uddf'),
+  ).copySync(path);
+  return path;
 }

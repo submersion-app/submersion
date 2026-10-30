@@ -25,7 +25,7 @@ void main() {
         id: 'site-1',
         name: 'Blue Hole',
         waterType: waterType,
-        entryMethod: entryMethod,
+        entryMethods: [?entryMethod],
       );
 
   Dive diveWith({

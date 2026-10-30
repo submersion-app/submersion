@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/site_suggestion_actions.dart';
@@ -91,21 +93,33 @@ class SiteSuggestionCard extends ConsumerWidget {
       recommendedDistanceMeters: recommended?.distanceMeters,
       onAssign: recommended == null
           ? null
-          : () => _run(context, ref, (l10n) async {
-              await actions.assign(recommended.id);
-              // The candidate id is NOT necessarily the id the dive ends up
-              // with: a bundled candidate materialises a new row, and the
-              // coincidence guard can link an existing site nearby instead.
-              // Re-read the dive so the form gets the real, fully hydrated
-              // site rather than a partial entity built from the candidate.
-              final linked = await actions.linkedSite();
-              return (
-                linked,
-                l10n.siteSuggestion_assignedSnack(
-                  linked?.name ?? recommended.name,
-                ),
-              );
-            }),
+          : () async {
+              // Read now: the card may be gone by the time the site exists.
+              final rulesAfterCreate = captureRulesAfterCreate(context, ref);
+              await _run(context, ref, (l10n) async {
+                final applied = await actions.assign(recommended.id);
+                // A bundled candidate materialises a site the diver chose:
+                // created by hand for the logbook rules (#3513), run before
+                // the site is re-read below, so the form takes it as they
+                // left it.
+                await rulesAfterCreate(
+                  subject: RuleSubject.sites,
+                  ids: applied.createdSiteIds,
+                );
+                // The candidate id is NOT necessarily the id the dive ends up
+                // with: a bundled candidate materialises a new row, and the
+                // coincidence guard can link an existing site nearby instead.
+                // Re-read the dive so the form gets the real, fully hydrated
+                // site rather than a partial entity built from the candidate.
+                final linked = await actions.linkedSite();
+                return (
+                  linked,
+                  l10n.siteSuggestion_assignedSnack(
+                    linked?.name ?? recommended.name,
+                  ),
+                );
+              });
+            },
       onChooseNearby: () => context.push('/dives/match-sites', extra: [diveId]),
       onCreate: () => _create(context, ref, actions, suggestion),
       onAddLocation: !hasSite
@@ -142,9 +156,14 @@ class SiteSuggestionCard extends ConsumerWidget {
       longitude: suggestion.point.longitude,
     );
     if (draft == null || !context.mounted) return;
+    final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     await _run(context, ref, (l10n) async {
       final created = await actions.create(draft);
-      return (created, l10n.diveLog_edit_createdSite(created.name));
+      // Logbook rules for the site created by hand (#3513), before the form
+      // takes the site, so it gets it as they left it.
+      await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
+      final site = await actions.linkedSite() ?? created;
+      return (site, l10n.diveLog_edit_createdSite(created.name));
     });
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -78,7 +79,7 @@ void main() {
     expect(site.hazards, 'current');
     expect(site.maxDepth, 30.0);
     expect(site.location?.latitude, 1.5);
-    expect(site.entryMethod?.name, 'shore');
+    expect(site.entryMethods.map((m) => m.name), ['shore']);
     expect(
       (await SiteClassificationRepository().getTypesForSite(
         's1',
@@ -204,6 +205,36 @@ void main() {
     expect(SiteDocumentBridge.fieldValue(site, 'longitude'), 6.5);
     expect(SiteDocumentBridge.fieldValue(site, 'difficulty'), isNull);
   });
+
+  test(
+    'a site with several methods round-trips through a document (#2054)',
+    () async {
+      const site = DiveSite(
+        id: 'x',
+        name: 'n',
+        entryMethods: [EntryMethod.shore, EntryMethod.boat],
+        exitMethods: [EntryMethod.ladder, EntryMethod.platform],
+      );
+      expect(SiteDocumentBridge.fieldValue(site, 'entryMethod'), 'shore,boat');
+      expect(
+        SiteDocumentBridge.fieldValue(site, 'exitMethod'),
+        'ladder,platform',
+      );
+
+      const doc = SiteDocument(
+        id: 's9',
+        fields: {
+          'name': 'Two Ways',
+          'entryMethod': 'shore,boat',
+          'exitMethod': 'ladder,platform',
+        },
+      );
+      await bridge.apply(doc, libraryId: 'L', vocabularyDiverId: 'd1');
+      final applied = await SiteRepository().getSiteById('s9');
+      expect(applied!.entryMethods, [EntryMethod.shore, EntryMethod.boat]);
+      expect(applied.exitMethods, [EntryMethod.ladder, EntryMethod.platform]);
+    },
+  );
 
   test('apply does not mark the site pending for personal sync', () async {
     const doc = SiteDocument(id: 's5', fields: {'name': 'N'});

@@ -7,6 +7,8 @@ import 'package:submersion/features/media/domain/services/media_repair_types.dar
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// The 3-step repair wizard (design spec section 6): scope and sources,
 /// review grouped by confidence, apply summary. Panes are driven entirely
@@ -25,6 +27,9 @@ class _MediaRepairWizardPageState extends ConsumerState<MediaRepairWizardPage> {
   bool _useStore = true;
 
   Future<void> _addFolder() async {
+    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+      return;
+    }
     final path = await FilePicker.getDirectoryPath();
     if (path == null || _folderRoots.contains(path)) return;
     setState(() => _folderRoots.add(path));

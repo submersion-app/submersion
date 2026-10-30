@@ -25,6 +25,13 @@ class StoreKeys {
   static String renditionKey(String contentHash, {required String ext}) =>
       '${renditionKeyPrefix(contentHash)}$ext';
 
+  /// The output format of a compressed rendition: video transcodes to mp4,
+  /// everything else to jpg. One rule for every reader and writer of
+  /// rendition keys; the storage cleanup deletes a rendition whose extension
+  /// disagrees with it as an unused sibling.
+  static String renditionExtension({required bool isVideo}) =>
+      isVideo ? 'mp4' : 'jpg';
+
   /// Prefix shared by every extension variant of [contentHash] in the
   /// originals namespace. [extensionFor] is not injective over content:
   /// `photo.JPG` and `photo.jpeg` hash identically but key differently, and

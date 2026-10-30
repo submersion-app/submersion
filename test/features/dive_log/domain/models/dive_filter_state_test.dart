@@ -124,6 +124,39 @@ void main() {
         expect(filter.hasActiveFilters, isFalse);
       });
 
+      test('returns true when noRoleOnly is true', () {
+        const filter = DiveFilterState(noRoleOnly: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('returns true when noEntryMethodOnly is true', () {
+        const filter = DiveFilterState(noEntryMethodOnly: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('returns true when noWaterType is true', () {
+        const filter = DiveFilterState(noWaterType: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('water types and noWaterType count as one axis', () {
+        const filter = DiveFilterState(
+          waterTypes: [WaterType.salt],
+          noWaterType: true,
+        );
+
+        expect(filter.activeAxisCount, 1);
+      });
+
+      test('returns false when noRoleOnly is false', () {
+        const filter = DiveFilterState(noRoleOnly: false);
+
+        expect(filter.hasActiveFilters, isFalse);
+      });
+
       test('returns true when diveIds is non-empty', () {
         const filter = DiveFilterState(diveIds: ['d1', 'd2']);
 
@@ -216,6 +249,49 @@ void main() {
         final updated = original.copyWith(clearNoBuddyOnly: true);
 
         expect(updated.noBuddyOnly, isNull);
+      });
+
+      test('sets noRoleOnly', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noRoleOnly: true);
+
+        expect(updated.noRoleOnly, isTrue);
+      });
+
+      test('clears noRoleOnly with clearNoRoleOnly', () {
+        const original = DiveFilterState(noRoleOnly: true);
+
+        final updated = original.copyWith(clearNoRoleOnly: true);
+
+        expect(updated.noRoleOnly, isNull);
+      });
+
+      test('sets and clears noWaterType', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noWaterType: true);
+
+        expect(updated.noWaterType, isTrue);
+        expect(updated.copyWith(clearNoWaterType: true).noWaterType, isNull);
+      });
+
+      test('sets and clears noEntryMethodOnly', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noEntryMethodOnly: true);
+
+        expect(updated.noEntryMethodOnly, isTrue);
+        expect(
+          updated.copyWith(clearNoEntryMethodOnly: true).noEntryMethodOnly,
+          isNull,
+        );
+      });
+
+      test('copyWith keeps noRoleOnly when another axis changes', () {
+        const original = DiveFilterState(noRoleOnly: true);
+
+        expect(original.copyWith(minDepth: 10).noRoleOnly, isTrue);
       });
 
       test('sets weekdays', () {
@@ -452,6 +528,9 @@ void main() {
         const DiveFilterState(excludedFromStatsOnly: true),
         const DiveFilterState(decoOnly: false),
         const DiveFilterState(noBuddyOnly: true),
+        const DiveFilterState(noRoleOnly: true),
+        const DiveFilterState(noWaterType: true),
+        const DiveFilterState(noEntryMethodOnly: true),
         const DiveFilterState(tagIds: ['t']),
         const DiveFilterState(weekdays: [1]),
         const DiveFilterState(equipmentIds: ['e']),

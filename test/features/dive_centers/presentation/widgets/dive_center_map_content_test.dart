@@ -5,13 +5,16 @@ import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_map_content.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/mock_providers.dart';
 
 final _now = DateTime.now();
@@ -175,6 +178,53 @@ void main() {
     expect(find.byType(FlutterMap), findsWidgets);
   });
 
+  // A selected marker fills with primary, which dark themes make a light
+  // tone; the store glyph stayed white on it (about 1.5:1).
+  testWidgets('selected marker glyph reads on its fill in dark mode', (
+    tester,
+  ) async {
+    final overrides = await _buildOverrides(
+      centers: [
+        _makeCenter(
+          id: 'dc1',
+          name: 'Selected Center',
+          latitude: 10.0,
+          longitude: 20.0,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp(
+          theme: submersionDark,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: DiveCenterMapContent(
+              selectedId: 'dc1',
+              onItemSelected: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // The selected center's info card shows a store icon too.
+    final glyph = find.descendant(
+      of: find.byWidgetPredicate(
+        (w) =>
+            w is Semantics &&
+            w.properties.label == 'Dive center: Selected Center',
+      ),
+      matching: find.byIcon(Icons.store),
+    );
+    expect(glyph, findsOneWidget);
+    expect(glyphOnFillContrast(tester, glyph), greaterThanOrEqualTo(4.5));
+  });
+
   testWidgets('renders a cluster marker for co-located centers', (
     tester,
   ) async {
@@ -336,6 +386,36 @@ void main() {
       expect(after.center.latitude, closeTo(-30.0, 1e-6));
       expect(after.center.longitude, closeTo(-60.0, 1e-6));
       expect(after.zoom, closeTo(14.0, 1e-9));
+    });
+  });
+
+  group('a permanently closed center (#3379)', () {
+    Finder fadedMarker(String name) => find.descendant(
+      of: find.byWidgetPredicate(
+        (w) => w is Opacity && w.opacity == kClosedDiveCenterOpacity,
+      ),
+      matching: find.byIcon(Icons.store),
+    );
+
+    Future<void> pumpMap(WidgetTester tester, DiveCenter center) async {
+      final overrides = await _buildOverrides(centers: [center]);
+      await tester.pumpWidget(
+        _host(
+          overrides,
+          DiveCenterMapContent(selectedId: null, onItemSelected: (_) {}),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('draws its marker faded', (tester) async {
+      await pumpMap(tester, _southWest.copyWith(isPermanentlyClosed: true));
+      expect(fadedMarker('South West Divers'), findsWidgets);
+    });
+
+    testWidgets('an open center is not faded', (tester) async {
+      await pumpMap(tester, _southWest);
+      expect(fadedMarker('South West Divers'), findsNothing);
     });
   });
 }

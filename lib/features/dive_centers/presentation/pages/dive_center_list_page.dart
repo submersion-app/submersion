@@ -13,6 +13,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/dive_centers/query/dive_center_query_entity.
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_search_delegate.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_list_count_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class DiveCenterListPage extends ConsumerStatefulWidget {
   const DiveCenterListPage({super.key});
@@ -93,6 +95,8 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
     if (viewMode == ListViewMode.table) {
       return TableModeLayout(
         sectionKey: 'diveCenters',
+        paneSectionId: RecordListSection.diveCenters,
+        rememberedSelectedId: ref.watch(rememberedDiveCenterIdProvider),
         appBarTitle: context.l10n.nav_diveCenters,
         appBarSubtitle: diveCenterListCountLabel(context, ref),
         tableContent: DiveCenterListContent(
@@ -174,10 +178,11 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                     field.localizedName(context.l10n),
                 getFieldIcon: (field) => field.icon,
                 onSortChanged: (field, direction) {
-                  ref.read(diveCenterSortProvider.notifier).state = SortState(
-                    field: field,
-                    direction: direction,
-                  );
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setDiveCenterSort(
+                        SortState(field: field, direction: direction),
+                      );
                 },
               );
             },
@@ -189,7 +194,9 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(diveCenterListViewModeProvider.notifier).state = mode;
+                ref
+                    .read(settingsProvider.notifier)
+                    .setDiveCenterListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -217,7 +224,8 @@ class _DiveCenterListPageState extends ConsumerState<DiveCenterListPage>
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return FocusTraversalGroup(
         child: MasterDetailScaffold(
-          sectionId: 'dive-centers',
+          sectionId: RecordListSection.diveCenters,
+          rememberedSelectedId: ref.watch(rememberedDiveCenterIdProvider),
           masterBuilder: (context, onItemSelected, selectedId) =>
               DiveCenterListContent(
                 onItemSelected: onItemSelected,

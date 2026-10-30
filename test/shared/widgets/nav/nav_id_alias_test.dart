@@ -153,6 +153,53 @@ void main() {
       }
     });
 
+    test('a stored Media or Documents id keeps its slot as '
+        'Media-Documents', () {
+      for (final old in const ['media', 'documents']) {
+        expect(
+          normalizeNavOrder(
+            stored: ['dives', old, 'sites'],
+            movableIds: movableNavIds,
+          ).take(3).toList(),
+          ['dives', 'media-documents', 'sites'],
+          reason: old,
+        );
+      }
+    });
+
+    test('an order holding both Media and Documents keeps one '
+        'Media-Documents slot, where the first of them was', () {
+      for (final (stored, first) in const [
+        (['media', 'dives', 'documents'], ['media-documents', 'dives']),
+        (['documents', 'media', 'dives'], ['media-documents', 'dives']),
+        (
+          ['dives', 'documents', 'sites', 'media'],
+          ['dives', 'media-documents'],
+        ),
+      ]) {
+        final order = normalizeNavOrder(
+          stored: stored,
+          movableIds: movableNavIds,
+        );
+        expect(order.take(2).toList(), first, reason: '$stored');
+        expect(order.where((id) => id == 'media-documents').length, 1);
+        expect(order, isNot(contains('media')));
+        expect(order, isNot(contains('documents')));
+      }
+    });
+
+    test('a save writes only media after media-documents for older '
+        'builds', () {
+      // Writing documents too would make an older build put Documents in
+      // the slot after Media, pushing a destination out of the bar.
+      expect(withLegacyNavIds(const ['dives', 'media-documents', 'sites']), [
+        'dives',
+        'media-documents',
+        'media',
+        'sites',
+      ]);
+    });
+
     test('a save writes only certifications after training for older '
         'builds', () {
       // Writing courses too would make an older build put Courses in the

@@ -312,13 +312,8 @@ void main() {
   group('ImportedDiveConverter computer tissue', () {
     test('threads the tissue snapshot onto the Dive', () {
       const snapshot = ComputerTissueSnapshot(
-        algorithm: 'Suunto Fused2 RGBM',
         start: ComputerTissueState(n2Bar: [0.79, 0.79]),
-        end: ComputerTissueState(
-          n2Bar: [0.89665, 0.97105],
-          cnsPercent: 13.2,
-          otu: 35.57,
-        ),
+        end: ComputerTissueState(n2Bar: [0.89665, 0.97105]),
       );
       final importedDive = ImportedDive(
         sourceId: 'suunto-tissue',

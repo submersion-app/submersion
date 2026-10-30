@@ -35,20 +35,22 @@ final _dive = Dive(
   dateTime: DateTime(2026, 8, 22),
 );
 
-NavTrack _route({String? diveId, bool isPrimary = true}) => NavTrack(
-  id: 'r1',
-  diveId: diveId,
-  isPrimary: isPrimary,
-  source: NavTrackSource.seacraftEnc,
-  sourceRef: 'r1.csv',
-  startTime: 1755856800000,
-  endTime: 1755860400000,
-  pointCount: 0,
-  totalDistance: 1050,
-  maxDepth: 38,
-  createdAt: DateTime(2026, 8, 22),
-  updatedAt: DateTime(2026, 8, 22),
-);
+NavTrack _route({String? diveId, bool isPrimary = true, double? maxSpeed}) =>
+    NavTrack(
+      id: 'r1',
+      diveId: diveId,
+      isPrimary: isPrimary,
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'r1.csv',
+      startTime: 1755856800000,
+      endTime: 1755860400000,
+      pointCount: 0,
+      totalDistance: 1050,
+      maxDepth: 38,
+      maxSpeed: maxSpeed,
+      createdAt: DateTime(2026, 8, 22),
+      updatedAt: DateTime(2026, 8, 22),
+    );
 
 Future<_RecordingNavTrackRepository> _pump(
   WidgetTester tester, {
@@ -128,6 +130,20 @@ void main() {
       expect(find.textContaining('38'), findsOneWidget);
     },
   );
+
+  testWidgets('shows max speed in m/min, not km/h -- the diving/DPV convention '
+      '(Copilot review on PR #3637: this row still called formatSpeed after '
+      'the detail page and 3D preview switched to formatTrackSpeed)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      linkedRoutes: [_route(diveId: _dive.id, maxSpeed: 1.0)],
+    );
+
+    expect(find.textContaining('60.0 m/min'), findsOneWidget);
+    expect(find.textContaining('km/h'), findsNothing);
+  });
 
   testWidgets('collapsed state renders no content', (tester) async {
     await _pump(

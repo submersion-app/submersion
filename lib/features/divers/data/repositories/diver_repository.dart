@@ -8,7 +8,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -31,10 +33,13 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_dive_lin
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/diver_share_handover.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -53,6 +58,11 @@ class DeleteDiverResult {
   /// The profiles that received kept gear, in handover order, no repeats.
   final List<String> keptEquipmentHeirNames;
 
+  /// Trips and sites the deleted profile shared with chosen profiles, each
+  /// handed to one of them (issue #2151); not in the reassigned counts,
+  /// which name one heir.
+  final int handedOverCount;
+
   const DeleteDiverResult({
     required this.reassignedTripsCount,
     required this.reassignedSitesCount,
@@ -60,6 +70,7 @@ class DeleteDiverResult {
     this.reassignedToDiverName,
     this.keptEquipmentCount = 0,
     this.keptEquipmentHeirNames = const [],
+    this.handedOverCount = 0,
   });
 
   bool get hasReassignments =>
@@ -155,6 +166,47 @@ class DiverRepository {
     ]),
   );
 
+  /// Dive count per diver id, counted in SQL. A profile with no dives is
+  /// absent from the map, as are dives with no diver.
+  Future<Map<String, int>> getDiveCountsByDiver() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            // stats-scope-exempt: which profile holds the logbook, matched
+            // to the Dives list count (every row, planned and excluded too),
+            // not a statistic.
+            'SELECT diver_id, COUNT(*) AS count FROM dives '
+            'WHERE diver_id IS NOT NULL GROUP BY diver_id',
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('diver_id'): row.read<int>('count'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives per diver',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Emits whenever a write could change [getDiveCountsByDiver]: a dive
+  /// added, removed or moved, or a profile added or removed. Debounced like
+  /// the dive list's own tick, so a sync or import committing many dives runs
+  /// the GROUP BY once on the settled table instead of once per commit.
+  Stream<void> watchDiveCountChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.divers),
+        ]),
+      )
+      .debounce(DiveRepository.changeTickDebounce);
+
   /// Get the default diver (or first if none marked default)
   Future<domain.Diver?> getDefaultDiver() async {
     try {
@@ -249,6 +301,8 @@ class DiverRepository {
                 priorDiveCount: Value(diver.priorDiveCount),
                 priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
                 divingSince: Value(diver.divingSince?.year),
+                socialHandle: Value(diver.socialHandle),
+                buddyCardShare: Value(diver.buddyCardShare),
               ),
             );
 
@@ -348,6 +402,8 @@ class DiverRepository {
           priorDiveCount: Value(diver.priorDiveCount),
           priorDiveTimeSeconds: Value(diver.priorDiveTimeSeconds),
           divingSince: Value(diver.divingSince?.year),
+          socialHandle: Value(diver.socialHandle),
+          buddyCardShare: Value(diver.buddyCardShare),
         ),
       );
       await _syncRepository.markRecordPending(
@@ -539,6 +595,7 @@ class DiverRepository {
       int reassignedTrips = 0;
       int reassignedSites = 0;
       var keptEquipment = 0;
+      var handedOverCount = 0;
       final movedTransmitters = <String>[];
       final keptHeirIds = <String>[];
 
@@ -582,6 +639,18 @@ class DiverRepository {
           movedTransmitters.addAll(moved.movedTransmitterIds);
           if (!keptHeirIds.contains(kept.heirId)) keptHeirIds.add(kept.heirId);
         }
+
+        // Step 0-: Trips and sites shared with chosen profiles go to the
+        // first profile each was shared with (issue #2151), before the
+        // steps below treat them as private and delete them. They are not
+        // counted below: the message names only the heir of the trips and
+        // sites shared with everyone.
+        final handedOver = await handOverSharedItems(
+          _syncRepository,
+          fromDiverId: id,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        handedOverCount = handedOver.tripIds.length + handedOver.siteIds.length;
 
         // Step 0: Reassign shared records to the surviving diver (if any).
         if (targetId != null) {
@@ -642,6 +711,21 @@ class DiverRepository {
               localUpdatedAt: now,
             );
           }
+
+          // A share row naming the heir (left by a sync race beside the
+          // everyone flag) would share the item with its own owner
+          // (issue #2151).
+          final shares = ItemSharesRepository();
+          await shares.deleteShares(
+            SharedItemKind.trip,
+            sharedTripIds,
+            diverId: targetId,
+          );
+          await shares.deleteShares(
+            SharedItemKind.site,
+            sharedSiteIds,
+            diverId: targetId,
+          );
 
           // The heir now owns these; its own hides of them would leave it
           // owning items it cannot see (issue #2594).
@@ -788,6 +872,15 @@ class DiverRepository {
         // being unshared. The schema does not cascade SET NULL on these
         // FKs, so without this step the upcoming DELETEs would violate the
         // foreign-key constraint.
+        // The diver's side trips hand surviving profiles' dives to their
+        // larger trips first, and surviving side trips of the diver's trips
+        // become trips of their own (issue #3658).
+        await detachSideTripsForDelete(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM trips WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await clearDiveLinksToDiverRows(
           _db,
           _syncRepository,
@@ -901,6 +994,7 @@ class DiverRepository {
             ? targetName
             : null,
         keptEquipmentCount: keptEquipment,
+        handedOverCount: handedOverCount,
         keptEquipmentHeirNames: [
           for (final heirId in keptHeirIds)
             for (final r in allDiversRows)
@@ -1104,6 +1198,8 @@ class DiverRepository {
       priorDiveCount: row.priorDiveCount,
       priorDiveTimeSeconds: row.priorDiveTimeSeconds,
       divingSince: row.divingSince != null ? DateTime(row.divingSince!) : null,
+      socialHandle: row.socialHandle,
+      buddyCardShare: row.buddyCardShare,
     );
   }
 }

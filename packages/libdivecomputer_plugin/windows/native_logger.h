@@ -17,10 +17,11 @@ namespace libdivecomputer_plugin {
 // Petrel 2 that failed on both Windows 11 and Android; only the Android
 // half of the report could be diagnosed from a log).
 //
-// Deliberately used on the connect and discovery paths only, not from the
-// GATT notification handler: pigeon calls reach the Flutter engine from
-// whichever thread the caller runs on, and a per-packet log line during a
-// logbook dump would put that on the transport's hot path.
+// Used on the connect and discovery paths and for one-off failures on the
+// download thread (a rejected write, a failed characteristic read), never
+// from the GATT notification handler: pigeon calls reach the Flutter engine
+// from whichever thread the caller runs on, and a per-packet log line during
+// a logbook dump would put that on the transport's hot path.
 class NativeLogger {
  public:
   // Called by the plugin as it takes and releases ownership of the API.

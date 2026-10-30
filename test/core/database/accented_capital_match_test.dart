@@ -101,9 +101,10 @@ void main() {
     );
 
     Future<void> insertPreset(String id, String name) => insert(
-      "INSERT INTO tank_presets (id, name, display_name, volume_liters, "
-      "working_pressure_bar, material, created_at, updated_at) "
-      "VALUES ('$id', '$name', '$name', 11.1, 207, 'aluminum', 1000, 1000)",
+      "INSERT INTO tank_presets (id, diver_id, name, display_name, "
+      "volume_liters, working_pressure_bar, material, created_at, updated_at) "
+      "VALUES ('$id', 'diver-1', '$name', '$name', 11.1, 207, 'aluminum', "
+      "1000, 1000)",
     );
 
     test('dive type', () async {
@@ -121,14 +122,20 @@ void main() {
 
     test('tank preset', () async {
       await insertPreset('p1', 'Épave 11');
-      final found = await TankPresetRepository().getPresetByName('épave 11');
+      final found = await TankPresetRepository().getPresetByName(
+        'épave 11',
+        diverId: 'diver-1',
+      );
       expect(found?.id, 'p1');
     });
 
     test('tank preset: two names folding equal pick the lowest id', () async {
       await insertPreset('p2', 'épave 11');
       await insertPreset('p1', 'Épave 11');
-      final found = await TankPresetRepository().getPresetByName('ÉPAVE 11');
+      final found = await TankPresetRepository().getPresetByName(
+        'ÉPAVE 11',
+        diverId: 'diver-1',
+      );
       expect(found?.id, 'p1');
     });
   });

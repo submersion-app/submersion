@@ -59,8 +59,15 @@ final equipmentLocationMovesProvider =
       return repository.getMovesFor(equipmentId);
     });
 
-/// The Equipment page's group-by-location switch.
+/// The Equipment page's group-by-location switch, per diver since issue
+/// #3748: the active diver's saved value, else the app-wide value older
+/// builds saved, else off. Change it through
+/// `ListArrangementWrites.setEquipmentGroupByLocation`.
 final equipmentGroupByLocationProvider = FutureProvider<bool>((ref) async {
+  final own = ref.watch(
+    settingsProvider.select((s) => s.listArrangements.equipmentGroupByLocation),
+  );
+  if (own != null) return own;
   final repo = ref.watch(appSettingsRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchSettingsChanges());
   return repo.getEquipmentGroupByLocation();

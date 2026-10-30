@@ -11,6 +11,8 @@ list(APPEND PLUGIN_SOURCES
   "submersion_transcoder_plugin.cpp"
   "submersion_transcoder_plugin.h"
   "progress_dispatcher.h"
+  "color_encoder.cpp"
+  "color_encoder.h"
 )
 
 add_library(${PLUGIN_NAME} SHARED
@@ -31,6 +33,8 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 # C++/WinRT projection for Windows.Media.Transcoding.
 target_link_libraries(${PLUGIN_NAME} PRIVATE WindowsApp.lib)
+# Media Foundation, for the colour-corrected encode (issue #3521).
+target_link_libraries(${PLUGIN_NAME} PRIVATE mfplat.lib mfreadwrite.lib mfuuid.lib)
 
 set(submersion_transcoder_bundled_libraries
   ""

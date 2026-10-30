@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -54,6 +55,9 @@ final _labels = PlanSlateLabels(
   gas: 'Gas',
   turnAt: 'Turn',
   minGas: 'Min gas',
+  noTurnRule: 'No rule',
+  noStartPressure: 'No start pressure',
+  noVolume: 'No size',
   base: 'Base',
   minutes: (value) => '$value min',
   maxPrefix: 'max',
@@ -106,6 +110,10 @@ Future<List<int>> _build(domain.DivePlan plan) {
     bailout: const BailoutSolver().solve(plan),
     units: const UnitFormatter(AppSettings()),
     labels: _labels,
+    deviationDepthDelta: plan.deviationDepthDelta ?? 5.0,
+    deviationTimeMinutes: plan.deviationTimeMinutes ?? 5,
+    gfLow: plan.gfLow ?? 50,
+    gfHigh: plan.gfHigh ?? 85,
   );
 }
 
@@ -143,6 +151,8 @@ void main() {
         AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
       ),
       _labels,
+      gfLow: plan.gfLow!,
+      gfHigh: plan.gfHigh!,
     );
 
     expect(line, startsWith('05/07/2026'));
@@ -169,14 +179,57 @@ void main() {
         gas: '',
         turnAt: '',
         minGas: '',
+        noTurnRule: '',
+        noStartPressure: '',
+        noVolume: '',
         base: '',
         minutes: (value) => '$value Min.',
         maxPrefix: 'max.',
       ),
+      gfLow: plan.gfLow!,
+      gfHigh: plan.gfHigh!,
     );
 
     expect(line, contains(' Min.'));
     expect(line, contains('max. '));
     expect(line, isNot(contains(' min ')));
+  });
+
+  group('turn and min gas cells (#3603)', () {
+    const units = UnitFormatter(AppSettings());
+
+    test('a computed figure prints as a pressure', () {
+      expect(planSlateGasLimitCell(120.4, null, units, _labels), '120 bar');
+    });
+
+    test('a missing turn rule is named instead of a bare dash', () {
+      expect(
+        planSlateGasLimitCell(null, PlanGasLimitGap.noTurnRule, units, _labels),
+        'No rule',
+      );
+    });
+
+    test('a missing start pressure is named instead of a bare dash', () {
+      expect(
+        planSlateGasLimitCell(
+          null,
+          PlanGasLimitGap.noStartPressure,
+          units,
+          _labels,
+        ),
+        'No start pressure',
+      );
+    });
+
+    test('a missing cylinder size is named instead of a bare dash', () {
+      expect(
+        planSlateGasLimitCell(null, PlanGasLimitGap.noVolume, units, _labels),
+        'No size',
+      );
+    });
+
+    test('a cylinder the figure does not apply to keeps the dash', () {
+      expect(planSlateGasLimitCell(null, null, units, _labels), '--');
+    });
   });
 }

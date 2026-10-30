@@ -21,6 +21,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -30,6 +31,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class TripListPage extends ConsumerStatefulWidget {
   const TripListPage({super.key, this.returnTo});
@@ -75,6 +77,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'trips',
+          rememberedSelectedId: ref.watch(rememberedTripIdProvider),
           appBarTitle: context.l10n.nav_trips,
           appBarSubtitle: tripListCountLabel(context, ref),
           tableContent: TripListContent(
@@ -135,10 +138,11 @@ class _TripListPageState extends ConsumerState<TripListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(tripSortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setTripSort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -163,7 +167,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(tripListViewModeProvider.notifier).state = mode;
+                  ref.read(settingsProvider.notifier).setTripListViewMode(mode);
                 }
               },
               itemBuilder: (context) {
@@ -191,7 +195,8 @@ class _TripListPageState extends ConsumerState<TripListPage>
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
-        sectionId: 'trips',
+        sectionId: RecordListSection.trips,
+        rememberedSelectedId: ref.watch(rememberedTripIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => TripListContent(
           onItemSelected: onItemSelected,
           selectedId: selectedId,

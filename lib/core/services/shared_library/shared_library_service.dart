@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 
-import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -13,6 +12,8 @@ import 'package:submersion/core/services/shared_library/crypto/suggestion_signat
 import 'package:submersion/core/services/shared_library/library_details_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -20,8 +21,11 @@ import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/shared_library/site_document_bridge.dart';
 import 'package:submersion/core/services/shared_library/site_document_merge.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 part 'shared_library_sync_parts.dart';
+part 'shared_library_sync_removals.dart';
 
 enum SharedLibrarySyncStatus {
   success,
@@ -50,7 +54,7 @@ class SharedLibrarySyncResult {
   final SharedLibrarySyncStatus status;
   final int pulled;
   final int pushed;
-  final String? error;
+  final LibrarySyncError? error;
 
   bool get isHealthy =>
       status == SharedLibrarySyncStatus.success ||
@@ -107,6 +111,7 @@ class SharedLibraryService {
     String libraryId, {
     required String diverId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     final previous = _gates[libraryId] ?? Future<void>.value();
     final completer = Completer<void>();
     _gates[libraryId] = previous.then((_) => completer.future);
@@ -147,7 +152,7 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.notConnected,
-          e.message,
+          LibrarySyncError.fromTransportError(e),
         );
       }
 
@@ -157,7 +162,7 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.notALibrary,
-          'No library at this location',
+          const LibrarySyncError(LibrarySyncErrorCode.notALibrary),
         );
       }
       final version = (manifest['formatVersion'] as num?)?.toInt() ?? 1;
@@ -165,15 +170,17 @@ class SharedLibraryService {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.retired,
-          'This library was made by a test build of Submersion. '
-          'Create it again.',
+          const LibrarySyncError(LibrarySyncErrorCode.retired),
         );
       }
       if (version > SharedLibraryLayout.formatVersion) {
         return await _fail(
           libraryId,
           SharedLibrarySyncStatus.needsNewerApp,
-          'Library format $version needs a newer app',
+          LibrarySyncError(
+            LibrarySyncErrorCode.needsNewerApp,
+            detail: '$version',
+          ),
         );
       }
 
@@ -221,6 +228,10 @@ class SharedLibraryService {
         manifest,
       );
       await _store.replaceMembers(libraryId, members);
+      final removals = await _readRemovals(t, libraryId, roles);
+      final removedHere = removals.any(
+        (r) => r.memberId == membership.memberId,
+      );
       // Probed afresh every sync: a refused upload sets it, so upgraded
       // credentials clear the banner on the next run. An ownership reset
       // waiting for this member's answer holds every write back, and so do
@@ -231,7 +242,9 @@ class SharedLibraryService {
       // that belongs to the library) brings the device back.
       final now = await _store.getLibrary(libraryId);
       final holdWrites =
-          now?.pendingRoles != null || (now?.rolesRejected ?? false);
+          now?.pendingRoles != null ||
+          (now?.rolesRejected ?? false) ||
+          removedHere;
       var readOnly = holdWrites;
       SharedLibraryMember? mine;
       for (final m in members) {
@@ -244,10 +257,11 @@ class SharedLibraryService {
       // sync met.
       final myKey =
           membership.signingKey ?? await _store.ensureSigningKey(diverId);
-      if (mine == null ||
-          mine.displayName != membership.displayName ||
-          mine.publicKey != myKey.publicKey ||
-          !mine.cardVerified) {
+      if (!removedHere &&
+          (mine == null ||
+              mine.displayName != membership.displayName ||
+              mine.publicKey != myKey.publicKey ||
+              !mine.cardVerified)) {
         try {
           final card = await SharedLibraryMember.signed(
             memberId: membership.memberId,
@@ -267,16 +281,8 @@ class SharedLibraryService {
           _log.warning('Could not write member card for $libraryId: $e');
         }
       }
-      // Editors and owners with a genuine card whose key no owner approved
-      // yet: their edits are held, neither applied nor overwritten.
-      final pendingKeys = {
-        for (final m in members)
-          if (m.cardVerified &&
-              m.publicKey != null &&
-              roles.roleOf(m.memberId) != SharedLibraryRole.reader &&
-              roles.approvedKeys[m.memberId] != m.publicKey)
-            m.memberId: m.publicKey!,
-      };
+      final pendingKeys = _pendingKeysOf(members, roles, removals);
+      final judged = _judgedRoles(roles, removals);
 
       // Notes an earlier build left only on the site rows become the
       // profile's own records, for personal sync to carry: once, before
@@ -332,8 +338,8 @@ class SharedLibraryService {
         final checked = await dropUnverifiedAll(
           [for (final p in batch) (p.remote, p.local)],
           libraryId: libraryId,
-          approvedKeys: roles.editingKeys,
-          retiredKeys: roles.retiredKeys,
+          approvedKeys: judged.editingKeys,
+          retiredKeys: judged.retiredKeys,
           pendingKeys: pendingKeys,
         );
         for (var k = 0; k < batch.length; k++) {
@@ -406,8 +412,8 @@ class SharedLibraryService {
               localKeys.keys.toSet(),
               libraryId: libraryId,
               // A held author's signature proves the value as well.
-              keys: {...pendingKeys, ...roles.editingKeys},
-              retiredKeys: roles.retiredKeys,
+              keys: {...pendingKeys, ...judged.editingKeys},
+              retiredKeys: judged.retiredKeys,
             );
             if (state.deleted) {
               // A tombstone keeps the document's fields, so an undelete
@@ -417,8 +423,8 @@ class SharedLibraryService {
                 remote,
                 local: doc,
                 libraryId: libraryId,
-                approvedKeys: roles.editingKeys,
-                retiredKeys: roles.retiredKeys,
+                approvedKeys: judged.editingKeys,
+                retiredKeys: judged.retiredKeys,
               );
               doc = mergeSiteDocuments(local: doc, remote: proven).merged;
             }
@@ -470,7 +476,7 @@ class SharedLibraryService {
         }
       }
       if (roles.roleOf(membership.memberId) == SharedLibraryRole.owner) {
-        await _pullSuggestions(t, libraryId, roles: roles);
+        await _pullSuggestions(t, libraryId, roles: roles, removals: removals);
       }
 
       // Files read in the wrong form (a member wrote plain after the
@@ -520,7 +526,7 @@ class SharedLibraryService {
       return _fail(
         libraryId,
         SharedLibrarySyncStatus.failed,
-        e is CloudStorageException ? e.displayMessage : e.toString(),
+        LibrarySyncError.fromSyncFailure(e),
       );
     }
   }
@@ -613,9 +619,11 @@ class SharedLibraryService {
       return _fail(
         libraryId,
         SharedLibrarySyncStatus.locked,
-        held == null
-            ? 'Enter the passphrase for this library'
-            : "This library's passphrase changed",
+        LibrarySyncError(
+          held == null
+              ? LibrarySyncErrorCode.needsPassphrase
+              : LibrarySyncErrorCode.passphraseChanged,
+        ),
       );
     }
     t.encrypting = true;
@@ -625,9 +633,9 @@ class SharedLibraryService {
   Future<SharedLibrarySyncResult> _fail(
     String libraryId,
     SharedLibrarySyncStatus status,
-    String error,
+    LibrarySyncError error,
   ) async {
-    await _store.setLibraryStatus(libraryId, lastError: error);
+    await _store.setLibraryStatus(libraryId, lastError: error.encode());
     return SharedLibrarySyncResult(status: status, error: error);
   }
 

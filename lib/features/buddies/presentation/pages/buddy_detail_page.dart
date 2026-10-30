@@ -19,7 +19,9 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_photos_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_card_details_section.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -28,6 +30,8 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -146,8 +150,16 @@ class _BuddyDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Contact info
-          if (buddy.hasContactInfo || buddy.linkedDiverId != null) ...[
+          if (buddy.hasContactInfo ||
+              buddy.socialHandle != null ||
+              buddy.linkedDiverId != null) ...[
             _buildContactSection(context, ref),
+            const SizedBox(height: 24),
+          ],
+
+          // What their buddy card said (issue #3728).
+          if (buddy.hasCardDetails) ...[
+            BuddyCardDetailsSection(buddy: buddy),
             const SizedBox(height: 24),
           ],
 
@@ -172,6 +184,9 @@ class _BuddyDetailContent extends ConsumerWidget {
 
           // Shared dives
           BuddySharedDivesSection(buddyId: buddy.id),
+
+          // Photos and videos they are tagged in (issue #1745)
+          BuddyPhotosSection(buddyId: buddy.id),
         ],
       ),
     );
@@ -443,6 +458,13 @@ class _BuddyDetailContent extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 trailing: const Icon(Icons.open_in_new, size: 16),
               ),
+            if (buddy.socialHandle != null)
+              ListTile(
+                leading: const Icon(Icons.alternate_email),
+                title: Text(buddy.socialHandle!),
+                subtitle: Text(context.l10n.buddyShare_social),
+                contentPadding: EdgeInsets.zero,
+              ),
           ],
         ),
       ),
@@ -515,50 +537,52 @@ class _BuddyDetailContent extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.buddies_section_diveStatistics,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            statsAsync.when(
-              data: (stats) => Column(
-                children: [
-                  IconDetailRow(
-                    icon: Icons.scuba_diving,
-                    label: context.l10n.buddies_stat_divesTogether,
-                    value: stats.totalDives.toString(),
-                  ),
-                  if (stats.firstDive != null)
-                    IconDetailRow(
-                      icon: Icons.first_page,
-                      label: context.l10n.buddies_stat_firstDive,
-                      value: units.formatDate(stats.firstDive),
-                    ),
-                  if (stats.lastDive != null)
-                    IconDetailRow(
-                      icon: Icons.last_page,
-                      label: context.l10n.buddies_stat_lastDive,
-                      value: units.formatDate(stats.lastDive),
-                    ),
-                  if (stats.favoriteSite != null)
-                    IconDetailRow(
-                      icon: Icons.place,
-                      label: context.l10n.buddies_stat_favoriteSite,
-                      value: stats.favoriteSite!,
-                    ),
-                ],
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.buddies_section_diveStatistics,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              loading: () =>
-                  const Center(child: CircularProgressIndicator.adaptive()),
-              error: (error, _) =>
-                  Text(context.l10n.buddies_error_unableToLoadStats),
-            ),
-          ],
+              const SizedBox(height: 12),
+              statsAsync.when(
+                data: (stats) => Column(
+                  children: [
+                    IconDetailRow(
+                      icon: Icons.scuba_diving,
+                      label: context.l10n.buddies_stat_divesTogether,
+                      value: stats.totalDives.toString(),
+                    ),
+                    if (stats.firstDive != null)
+                      IconDetailRow(
+                        icon: Icons.first_page,
+                        label: context.l10n.buddies_stat_firstDive,
+                        value: units.formatDate(stats.firstDive),
+                      ),
+                    if (stats.lastDive != null)
+                      IconDetailRow(
+                        icon: Icons.last_page,
+                        label: context.l10n.buddies_stat_lastDive,
+                        value: units.formatDate(stats.lastDive),
+                      ),
+                    if (stats.favoriteSite != null)
+                      IconDetailRow(
+                        icon: Icons.place,
+                        label: context.l10n.buddies_stat_favoriteSite,
+                        value: stats.favoriteSite!,
+                      ),
+                  ],
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator.adaptive()),
+                error: (error, _) =>
+                    Text(context.l10n.buddies_error_unableToLoadStats),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -578,7 +602,7 @@ class _BuddyDetailContent extends ConsumerWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            Text(buddy.notes),
+            MarkdownNotesView(buddy.notes),
           ],
         ),
       ),

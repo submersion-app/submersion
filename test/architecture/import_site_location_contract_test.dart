@@ -56,6 +56,10 @@ void main() {
     // fold has had its chance to merge the entry into a named neighbour.
     'lib/features/universal_import/data/parsers/subsurface/subsurface_inline_site.dart':
         'hands its unnamed map to foldImportSites, which names it',
+    // The same for a site the `<divesites>` block declares:
+    // `SubsurfaceSiteResolver` folds it alongside the inline ones.
+    'lib/features/universal_import/data/parsers/subsurface/subsurface_declared_site.dart':
+        'hands its unnamed map to foldImportSites, which names it',
     // A photo's coordinates, which belong to the picture rather than to the
     // place the dive happened. Diving Log's pictures table has no GPS, so
     // the mapper writes nulls in the same shape as MacDive's media entries.

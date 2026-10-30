@@ -32,6 +32,11 @@ Finder _field(String label) =>
 String _text(WidgetTester tester, String label) =>
     tester.widget<TextField>(_field(label)).controller!.text;
 
+/// The hint a rate field shows while unset, following the diver's Settings
+/// default (issue #3552).
+String? _hint(WidgetTester tester, String label) =>
+    tester.widget<TextField>(_field(label)).decoration?.hintText;
+
 const _ascent = 'Ascent rate';
 const _intermediate = 'Intermediate stop ascent rate';
 const _shallow = 'Shallow stop ascent rate';
@@ -54,13 +59,20 @@ void main() {
     await tester.pumpAndSettle();
 
     // Working ascent, the two deco bands, the final stretch, and descent.
+    // A fresh plan has no override on any of them (issue #3552): each box
+    // is empty and follows the diver's Settings default as its hint.
     expect(find.byType(Slider), findsNothing);
     expect(find.byType(PlanNumberField), findsNWidgets(5));
-    expect(_text(tester, _ascent), '9'); // bottom to first stop
-    expect(_text(tester, _intermediate), '6'); // between intermediate stops
-    expect(_text(tester, _shallow), '3'); // between shallow stops
-    expect(_text(tester, _finalAscent('3m')), '1'); // last stop to surface
-    expect(_text(tester, _descent), '18');
+    expect(_text(tester, _ascent), '');
+    expect(_hint(tester, _ascent), '9'); // bottom to first stop
+    expect(_text(tester, _intermediate), '');
+    expect(_hint(tester, _intermediate), '6'); // between intermediate stops
+    expect(_text(tester, _shallow), '');
+    expect(_hint(tester, _shallow), '3'); // between shallow stops
+    expect(_text(tester, _finalAscent('3m')), '');
+    expect(_hint(tester, _finalAscent('3m')), '1'); // last stop to surface
+    expect(_text(tester, _descent), '');
+    expect(_hint(tester, _descent), '18');
     // The unit sits beside each box, once per row.
     expect(find.text('m/min'), findsNWidgets(5));
   });
@@ -117,7 +129,9 @@ void main() {
     await tester.enterText(_field(_ascent), '90');
     await tester.pumpAndSettle();
 
-    expect(container.read(divePlanNotifierProvider).ascentRate, 9);
+    // Out of range is never committed, so the field stays unset (issue
+    // #3552) rather than falling back to a concrete value.
+    expect(container.read(divePlanNotifierProvider).ascentRate, isNull);
     expect(
       tester.widget<TextField>(_field(_ascent)).decoration?.errorText,
       isNotNull,
@@ -140,14 +154,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Defaults shown converted to whole ft/min, with no m/min text. These are
-    // the TDI rates a diver taught in imperial would recognise: 30 / 20 / 10
-    // off the bottom and down the stops, 3 over the last stretch.
-    expect(_text(tester, _ascent), '30'); // 9 m/min
-    expect(_text(tester, _intermediate), '20'); // 6 m/min
-    expect(_text(tester, _shallow), '10'); // 3 m/min
-    expect(_text(tester, _finalAscent('10ft')), '3'); // 1 m/min
-    expect(_text(tester, _descent), '59'); // 18 m/min descent
+    // Defaults shown as the hint, converted to whole ft/min, with no m/min
+    // text. These are the TDI rates a diver taught in imperial would
+    // recognise: 30 / 20 / 10 off the bottom and down the stops, 3 over the
+    // last stretch. The box itself is empty (issue #3552): no override yet.
+    expect(_hint(tester, _ascent), '30'); // 9 m/min
+    expect(_hint(tester, _intermediate), '20'); // 6 m/min
+    expect(_hint(tester, _shallow), '10'); // 3 m/min
+    expect(_hint(tester, _finalAscent('10ft')), '3'); // 1 m/min
+    expect(_hint(tester, _descent), '59'); // 18 m/min descent
     expect(find.text('ft/min'), findsNWidgets(5));
     expect(find.textContaining('m/min'), findsNothing);
 
@@ -207,15 +222,17 @@ void main() {
         tester.element(find.byType(PlanRatesSection)),
       );
 
-      // The 1 m/min default shows as 3 ft/min. If the box floor sat above
-      // that, merely visiting the box would clamp and rewrite the plan.
+      // The 1 m/min default shows as a 3 ft/min hint while the field is
+      // unset (issue #3552). If the box floor sat above that, merely
+      // visiting the empty box would clamp and write an override.
       await tester.tap(_field(_finalAscent('10ft')));
       await tester.pumpAndSettle();
       await tester.tap(_field(_descent));
       await tester.pumpAndSettle();
 
-      expect(_text(tester, _finalAscent('10ft')), '3');
-      expect(container.read(divePlanNotifierProvider).finalAscentRate, 1.0);
+      expect(_text(tester, _finalAscent('10ft')), '');
+      expect(_hint(tester, _finalAscent('10ft')), '3');
+      expect(container.read(divePlanNotifierProvider).finalAscentRate, isNull);
     });
   });
 }

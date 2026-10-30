@@ -13,6 +13,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
@@ -28,6 +29,8 @@ import 'package:submersion/features/courses/presentation/providers/course_list_c
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 class CourseListPage extends ConsumerStatefulWidget {
   const CourseListPage({super.key, this.headerTitle});
@@ -72,6 +75,7 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
       return FocusTraversalGroup(
         child: TableModeLayout(
           sectionKey: 'courses',
+          rememberedSelectedId: ref.watch(rememberedCourseIdProvider),
           appBarTitle: context.l10n.nav_courses,
           appBarSubtitle: countLabel,
           appBarTitleWidget: widget.headerTitle?.build(
@@ -152,10 +156,11 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
                       field.localizedName(context.l10n),
                   getFieldIcon: (field) => field.icon,
                   onSortChanged: (field, direction) {
-                    ref.read(courseSortProvider.notifier).state = SortState(
-                      field: field,
-                      direction: direction,
-                    );
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setCourseSort(
+                          SortState(field: field, direction: direction),
+                        );
                   },
                 );
               },
@@ -167,7 +172,9 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
                   final mode = ListViewMode.fromName(
                     value.replaceFirst('view_', ''),
                   );
-                  ref.read(courseListViewModeProvider.notifier).state = mode;
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setCourseListViewMode(mode);
                 }
               },
               itemBuilder: (context) {
@@ -191,7 +198,8 @@ class _CourseListPageState extends ConsumerState<CourseListPage>
     // Desktop: Use master-detail layout
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
       return MasterDetailScaffold(
-        sectionId: 'courses',
+        sectionId: RecordListSection.courses,
+        rememberedSelectedId: ref.watch(rememberedCourseIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) =>
             CourseListContent(
               onItemSelected: onItemSelected,

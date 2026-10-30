@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -374,5 +375,48 @@ void main() {
     final m = (await store.getMembers('L')).single;
     expect(m.publicKey, 'pk');
     expect(m.cardVerified, isTrue);
+  });
+
+  test('removals are cached per library and survive upsertLibrary', () async {
+    const library = SharedLibrary(
+      id: 'L',
+      name: 'Reef Survey',
+      connectedAccountId: 'a',
+      prefix: 'site-sync',
+    );
+    await store.upsertLibrary(library);
+    final record = MemberRemoval(
+      memberId: 'x',
+      displayName: 'Xan',
+      removedAt: DateTime.utc(2026, 10, 18),
+      removedBy: 'm1',
+      signature: 'sig',
+    );
+    expect(await store.removals('L'), isEmpty);
+    await store.setRemovals('L', [record]);
+    await store.upsertLibrary(library);
+    expect(await store.removals('L'), [record]);
+    expect(await store.removals('other'), isEmpty);
+    await store.setRemovals('L', const []);
+    expect(await store.removals('L'), isEmpty);
+  });
+
+  test('a cache that does not parse reads as no removals', () async {
+    await store.upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'a',
+        prefix: 'site-sync',
+      ),
+    );
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE shared_libraries SET removals_json = 'not json' WHERE id = 'L'",
+    );
+    expect(await store.removals('L'), isEmpty);
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE shared_libraries SET removals_json = '{}' WHERE id = 'L'",
+    );
+    expect(await store.removals('L'), isEmpty);
   });
 }

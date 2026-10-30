@@ -93,6 +93,32 @@ void main() {
     return rows.map((r) => r.read<String>('id')).toSet();
   }
 
+  test('shared also matches a trip shared with a profile by name '
+      '(issue #2151)', () async {
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'son',
+            name: 'son',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await db
+        .into(db.tripShares)
+        .insert(
+          TripSharesCompanion.insert(
+            id: 'x',
+            tripId: 'home',
+            diverId: 'son',
+            createdAt: now,
+          ),
+        );
+    expect(await ids('shared = true'), {'beach', 'home'});
+    expect(await ids('shared = false'), {'boat'});
+  });
+
   test('trip type, sharing and dives are queryable', () async {
     expect(await ids('tripType = liveaboard'), {'boat'});
     expect(await ids('shared = true'), {'beach'});

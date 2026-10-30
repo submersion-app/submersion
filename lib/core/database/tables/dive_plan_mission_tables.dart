@@ -19,8 +19,9 @@ class DivePlanMissions extends Table {
   TextColumn get id => text()();
   TextColumn get planId => text().references(DivePlans, #id)();
 
-  /// Fraction of scooter burn time that must remain at the surface.
-  RealColumn get batteryReserveFraction => real()();
+  /// Fraction of scooter burn time that must remain at the surface. Null =
+  /// use the diver's Settings default (issue #3552).
+  RealColumn get batteryReserveFraction => real().nullable()();
 
   /// Current inherited by legs without their own; both null for none.
   RealColumn get defaultCurrentSpeedMps => real().nullable()();
@@ -30,8 +31,9 @@ class DivePlanMissions extends Table {
   TextColumn get environment =>
       text().withDefault(const Constant('overhead'))();
 
-  /// Walking speed for a shore exit, m/s.
-  RealColumn get walkSpeedMps => real().withDefault(const Constant(0.8))();
+  /// Walking speed for a shore exit, m/s. Null = use the diver's Settings
+  /// default (issue #3552).
+  RealColumn get walkSpeedMps => real().nullable()();
 
   /// Longest acceptable surface swim, metres; null for no limit.
   RealColumn get surfaceSwimLimitM => real().nullable()();

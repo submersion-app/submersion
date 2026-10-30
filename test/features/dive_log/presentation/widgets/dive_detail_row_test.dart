@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// Pumps a single [DiveDetailRow] inside a deliberately narrow viewport so a
 /// long value is forced to compete with the label for horizontal space. This
@@ -71,24 +73,19 @@ void main() {
       );
     });
 
-    testWidgets(
-      'a short value stays at the trailing edge, clear of the label',
-      (tester) async {
-        await _pumpRow(tester, label: 'Avg Depth', value: '22.3ft', width: 300);
+    testWidgets('a short value sits beside its label (issue #3678)', (
+      tester,
+    ) async {
+      await _pumpRow(tester, label: 'Avg Depth', value: '22.3ft', width: 600);
 
-        expect(tester.takeException(), isNull);
+      expect(tester.takeException(), isNull);
 
-        // Value hugs the trailing edge of the row (no horizontal padding).
-        final rowRight = tester.getTopRight(find.byType(DiveDetailRow)).dx;
-        final valueRight = tester.getTopRight(find.text('22.3ft')).dx;
-        expect((rowRight - valueRight).abs(), lessThan(1.0));
-
-        // ...and is plainly separated from the label, not jammed against it.
-        final labelRight = tester.getTopRight(find.text('Avg Depth')).dx;
-        final valueLeft = tester.getTopLeft(find.text('22.3ft')).dx;
-        expect(valueLeft - labelRight, greaterThan(16.0));
-      },
-    );
+      // The value starts one fixed gap after the label, however wide the
+      // row is, rather than at the trailing edge.
+      final labelRight = tester.getTopRight(find.text('Avg Depth')).dx;
+      final valueLeft = tester.getTopLeft(find.text('22.3ft')).dx;
+      expect(valueLeft - labelRight, DetailRow.gap);
+    });
 
     testWidgets('shows an attribution badge after the value when provided', (
       tester,
@@ -104,6 +101,11 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('22.3ft'), findsOneWidget);
       expect(find.text('Perdix'), findsOneWidget);
+      // The badge follows the value instead of sitting at the far edge.
+      expect(
+        tester.getTopLeft(find.byType(FieldAttributionBadge)).dx,
+        tester.getTopRight(find.text('22.3ft')).dx + 6,
+      );
     });
   });
 }

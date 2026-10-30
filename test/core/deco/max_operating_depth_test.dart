@@ -79,6 +79,41 @@ void main() {
     });
   });
 
+  group('gasSwitchDepthMeters', () {
+    final salt = DiveEnvironment.forConditions(waterType: WaterType.salt);
+
+    double readPpO2(double fO2, double depth) =>
+        double.parse((salt.pressureAtDepth(depth) * fO2).toStringAsFixed(2));
+
+    test('EAN40 at 1.6 leaves 30 m in seawater, where it reads 1.61', () {
+      final depth = gasSwitchDepthMeters(0.40, maxPpO2: 1.6, environment: salt);
+      expect(depth, lessThan(30.0));
+      expect(readPpO2(0.40, 30.0), 1.61);
+    });
+
+    test('oxygen at 1.6 keeps 6 m in seawater, where it reads 1.60', () {
+      final depth = gasSwitchDepthMeters(1.0, maxPpO2: 1.6, environment: salt);
+      expect(depth, greaterThanOrEqualTo(6.0));
+      expect(salt.pressureAtDepth(6.0), greaterThan(1.6));
+      expect(readPpO2(1.0, 6.0), 1.6);
+    });
+
+    test('is the MOD at the limit plus just under half a display step', () {
+      expect(
+        gasSwitchDepthMeters(0.5, maxPpO2: 1.6, environment: salt),
+        maxOperatingDepthMeters(
+          0.5,
+          maxPpO2: 1.6 + gasSwitchPpO2Tolerance,
+          environment: salt,
+        ),
+      );
+      expect(gasSwitchPpO2Tolerance, lessThan(0.005));
+      // At the switch depth itself the gas still reads as the limit.
+      final depth = gasSwitchDepthMeters(0.40, maxPpO2: 1.6, environment: salt);
+      expect(readPpO2(0.40, depth), 1.6);
+    });
+  });
+
   group('the existing entry points share the one formula', () {
     test('O2ToxicityCalculator.calculateMod is bit-identical', () {
       for (final f in [0.21, 0.32, 0.36, 0.5, 1.0]) {

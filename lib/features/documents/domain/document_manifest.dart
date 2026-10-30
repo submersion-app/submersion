@@ -4,10 +4,12 @@ import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/features/documents/domain/document_archive_layout.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// The localized words of the export manifest.
 class ManifestLabels {
-  /// The 14 column headers, in column order.
+  /// The 15 column headers, in column order. Tags (issue #1970) comes last,
+  /// so every earlier column keeps the position it always had.
   final List<String> headers;
   final String Function(DocumentType type) type;
   final String Function(DocumentOwnerKind kind) kind;
@@ -48,13 +50,14 @@ String buildDocumentManifestCsv(
       d.referenceNumber ?? '',
       date(d.issueDate),
       date(d.expiryDate),
-      d.notes,
+      markdownToPlainText(d.notes),
       insurance ? d.emergencyPhone ?? '' : '',
       insurance ? d.phone ?? '' : '',
     ];
+    final tags = input.tagNames.join('; ');
     final pages = [...input.pages]
       ..sort((a, b) => a.pageIndex.compareTo(b.pageIndex));
-    if (pages.isEmpty) rows.add([...details, '', '', '']);
+    if (pages.isEmpty) rows.add([...details, '', '', '', tags]);
     for (final (i, page) in pages.indexed) {
       rows.add([
         ...details,
@@ -65,6 +68,7 @@ String buildDocumentManifestCsv(
           null => '',
         },
         plan.pathsByPageId[page.id] ?? '',
+        tags,
       ]);
     }
   }

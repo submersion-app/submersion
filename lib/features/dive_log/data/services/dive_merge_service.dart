@@ -271,19 +271,11 @@ class DiveMergeService {
       }
       final mergeSlotByRowId = <String, int>{};
       for (final rows in rowsBySegment.values) {
-        rows.sort((a, b) {
-          if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
-          final byCreated = a.createdAt.compareTo(b.createdAt);
-          return byCreated != 0 ? byCreated : a.id.compareTo(b.id);
-        });
+        rows.sort(compareDataSourcesInShownOrder);
+        final strandOf = dataSourceStrandKeysById(rows);
         final slotByStrand = <String, int>{};
         for (final row in rows) {
-          final strand = dataSourceStrandKey(
-            rowId: row.id,
-            computerId: row.computerId,
-            mergeSourceSlot: row.mergeSourceSlot,
-          );
-          mergeSlotByRowId[row.id] = slotByStrand[strand] ??=
+          mergeSlotByRowId[row.id] = slotByStrand[strandOf[row.id]!] ??=
               slotByStrand.length;
         }
       }

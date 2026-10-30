@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
@@ -33,6 +34,7 @@ void main() {
       FocusFactorRow(
         diveId: 'd$i',
         dateTime: DateTime.utc(2025, 1, i + 1),
+        timeOfDay: TimeOfDayBucket.night,
         siteName: 'Site $i',
         maxDepth: 10.0 + i,
         durationMinutes: 45,

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_card_photo.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
+import '../../../../helpers/theme_sentinels.dart';
 
 /// A valid 1x1 transparent PNG, so the image decoder has real bytes.
 final _onePixelPng = base64Decode(
@@ -128,6 +129,38 @@ void main() {
       expect(decoration.borderRadius, BorderRadius.circular(4));
       expect(decoration.boxShadow, isNull);
     });
+  });
+
+  testWidgets('the card shadow follows the theme', (tester) async {
+    await tester.pumpWidget(
+      localizedMaterialApp(
+        locale: const Locale('en'),
+        home: Scaffold(
+          body: Center(
+            child: Theme(
+              data: sentinelTheme(),
+              child: SizedBox(
+                width: 320,
+                height: 202,
+                child: CertificationCardPhoto(bytes: _onePixelPng),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final shadows = boxShadowsUnder(
+      tester,
+      find.byType(CertificationCardPhoto),
+    );
+    expect(shadows, isNotEmpty);
+    expect(
+      shadows.every((s) => sameHue(s.color, sentinelShadow)),
+      isTrue,
+      reason: 'a shadow is fixed black instead of the theme shadow',
+    );
   });
 }
 

@@ -169,6 +169,147 @@ void main() {
     test('returns null when neither id nor any url key is present', () {
       expect(DivelogsPicture.fromJson({'foo': 'bar'}), isNull);
     });
+
+    test('reads the absolute path divelogs.de sends', () {
+      final pic = DivelogsPicture.fromJson({
+        'id': '8',
+        'path': 'https://www.divelogs.de/pictures/u/4711-1.jpg',
+      })!;
+      expect(pic.id, '8');
+      expect(
+        pic.url,
+        Uri.parse('https://www.divelogs.de/pictures/u/4711-1.jpg'),
+      );
+    });
+
+    test('resolves a site-relative path against base', () {
+      final pic = DivelogsPicture.fromJson({
+        'id': 9,
+        'path': '/pictures/u/4711-1.jpg',
+      }, base: Uri.parse('https://divelogs.de/api'))!;
+      expect(pic.url, Uri.parse('https://divelogs.de/pictures/u/4711-1.jpg'));
+    });
+
+    test('resolves neither a relative path without base nor a bare name', () {
+      final base = Uri.parse('https://divelogs.de/api');
+      expect(
+        DivelogsPicture.fromJson({'id': 9, 'path': '/pictures/u/1.jpg'})!.url,
+        isNull,
+      );
+      expect(
+        DivelogsPicture.fromJson({'id': 9, 'path': '1.jpg'}, base: base)!.url,
+        isNull,
+      );
+    });
+
+    test('drops a protocol-relative path rather than resolving it', () {
+      final pic = DivelogsPicture.fromJson({
+        'id': 9,
+        'path': '//elsewhere.example/1.jpg',
+      }, base: Uri.parse('https://divelogs.de/api'))!;
+      expect(pic.url, isNull);
+    });
+  });
+
+  group('DivelogsPicture link checks', () {
+    test('drops an http(s) link without a host', () {
+      for (final path in ['https:/pictures/u/1.jpg', 'http:foo']) {
+        final pic = DivelogsPicture.fromJson({'id': 1, 'path': path})!;
+        expect(pic.url, isNull, reason: path);
+      }
+    });
+
+    test('a blank path is no picture, like a blank id', () {
+      expect(DivelogsPicture.fromJson({'path': ''}), isNull);
+      expect(DivelogsPicture.fromJson({'path': '  ', 'id': ''}), isNull);
+    });
+  });
+
+  group('DivelogsPicture.listFromJson', () {
+    final base = Uri.parse('https://divelogs.de/api');
+    Map<String, Object> row(int id) => {
+      'id': id,
+      'path': 'https://divelogs.de/pictures/u/$id.jpg',
+    };
+
+    test('null lists no pictures', () {
+      expect(DivelogsPicture.listFromJson(null), isEmpty);
+    });
+
+    test('reads an array, a wrapper and a PHP object', () {
+      for (final raw in [
+        [row(1), row(2)],
+        {
+          'pictures': [row(1), row(2)],
+        },
+        {'4': row(1), '7': row(2)},
+      ]) {
+        final pics = DivelogsPicture.listFromJson(raw, base: base)!;
+        expect(pics.map((p) => p.id), ['1', '2'], reason: '$raw');
+      }
+    });
+
+    test('keeps a row that is not an object as a picture without a link', () {
+      final pics = DivelogsPicture.listFromJson([row(1), 'junk'])!;
+      expect(pics, hasLength(2));
+      expect(pics.last.url, isNull);
+    });
+
+    test('returns null for a value of no known shape', () {
+      expect(DivelogsPicture.listFromJson('junk'), isNull);
+      expect(DivelogsPicture.listFromJson(42), isNull);
+    });
+  });
+
+  test('DivelogsDive knows whether /dives listed its pictures', () {
+    Map<String, dynamic> dive() => {
+      'date': '2022-09-03',
+      'time': '14:42:00',
+      'duration': 2808,
+      'maxdepth': 12,
+    };
+    expect(DivelogsDive.fromJson(dive()).picturesListed, isFalse);
+    expect(
+      DivelogsDive.fromJson(dive()..['pictures'] = null).picturesListed,
+      isTrue,
+    );
+    expect(
+      DivelogsDive.fromJson(dive()..['pictures'] = 'junk').picturesListed,
+      isFalse,
+    );
+  });
+
+  test('DivelogsDive parses inline pictures', () {
+    final dive = DivelogsDive.fromJson({
+      'id': 4711,
+      'date': '2022-09-03',
+      'time': '14:42:00',
+      'duration': 2808,
+      'maxdepth': 12,
+      'pictures': [
+        {'id': '1', 'path': 'https://www.divelogs.de/pictures/u/4711-1.jpg'},
+        {'id': '2', 'path': '/pictures/u/4711-2.jpg'},
+        'junk',
+      ],
+    }, pictureBase: Uri.parse('https://divelogs.de/api'));
+    // The junk row stays, as a picture without a link, so it is counted.
+    expect(dive.pictures.map((p) => p.id), ['1', '2', null]);
+    expect(dive.pictures.map((p) => p.url), [
+      Uri.parse('https://www.divelogs.de/pictures/u/4711-1.jpg'),
+      Uri.parse('https://divelogs.de/pictures/u/4711-2.jpg'),
+      null,
+    ]);
+  });
+
+  test('DivelogsDive without pictures has none', () {
+    final dive = DivelogsDive.fromJson({
+      'date': '2022-09-03',
+      'time': '14:42:00',
+      'duration': 2808,
+      'maxdepth': 12,
+      'pictures': null,
+    });
+    expect(dive.pictures, isEmpty);
   });
 
   test('DivelogsDive parses gearitems as string ids', () {

@@ -137,6 +137,34 @@ void main() {
     );
   });
 
+  // Issue #3669: a renamed built-in species is the diver's own name, so it
+  // stays the rank-0 label and the catalog name is not offered at all.
+  test('a renamed built-in species ranks its stored name first', () async {
+    await db.customStatement(
+      "INSERT INTO species (id, common_name, category, is_built_in) "
+      "VALUES ('sp_cowfish', 'Honeycomb Cowfish', 'fish', 1)",
+    );
+    final de = l10nForLocaleTag('de');
+    final index = await NameIndexLoader(db).load(diverId: 'me', l10n: de);
+    final entries = index.forSubject(QuerySubject.species).toList();
+    expect(entries.map((e) => e.label), ['Honeycomb Cowfish']);
+    expect(entries.single.rank, 0);
+  });
+
+  test(
+    'a built-in species with no stored name is found by its translation',
+    () async {
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, category, is_built_in) "
+        "VALUES ('sp_whale_shark', '', 'fish', 1)",
+      );
+      final de = l10nForLocaleTag('de');
+      final index = await NameIndexLoader(db).load(diverId: 'me', l10n: de);
+      final entries = index.forSubject(QuerySubject.species).toList();
+      expect(entries.map((e) => e.label), [de.species_whale_shark_name]);
+    },
+  );
+
   test('every curated choice attribute choice is a gear entry', () async {
     final index = await load();
     final choices = index
@@ -211,6 +239,43 @@ void main() {
     expect(index.resolve(QuerySubject.equipment, 'loaner bcd')?.id, 'g-lent');
   });
 
+  test(
+    'a trip or site shared with this profile alone is in its index',
+    () async {
+      final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('owner', 'Owner', $now, $now), ('me', 'Me', $now, $now), "
+        "('third', 'Third', $now, $now) ON CONFLICT DO NOTHING",
+      );
+      await db.customStatement(
+        "INSERT INTO trips (id, diver_id, name, start_date, end_date, "
+        "is_shared, created_at, updated_at) VALUES ('t-mine', 'owner', "
+        "'Family Trip', $now, $now, 0, $now, $now)",
+      );
+      await db.customStatement(
+        "INSERT INTO dive_sites (id, diver_id, name, is_shared, created_at, "
+        "updated_at) VALUES ('s-mine', 'owner', 'Family Reef', 0, $now, $now)",
+      );
+      await db.customStatement(
+        "INSERT INTO trip_shares (id, trip_id, diver_id, created_at) "
+        "VALUES ('x1', 't-mine', 'me', $now)",
+      );
+      await db.customStatement(
+        "INSERT INTO site_shares (id, site_id, diver_id, created_at) "
+        "VALUES ('x2', 's-mine', 'me', $now)",
+      );
+      final mine = await NameIndexLoader(db).load(diverId: 'me', l10n: _en);
+      expect(mine.labelOf(QuerySubject.trips, 't-mine'), 'Family Trip');
+      expect(mine.labelOf(QuerySubject.sites, 's-mine'), 'Family Reef');
+      final theirs = await NameIndexLoader(
+        db,
+      ).load(diverId: 'third', l10n: _en);
+      expect(theirs.labelOf(QuerySubject.trips, 't-mine'), isNull);
+      expect(theirs.labelOf(QuerySubject.sites, 's-mine'), isNull);
+    },
+  );
+
   test('a shared row the diver hid stays out of its index only', () async {
     final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
     await db.customStatement(
@@ -252,6 +317,8 @@ void main() {
       'equipment_shares',
       'trip_hides',
       'site_hides',
+      'trip_shares',
+      'site_shares',
       'certifications',
       'site_types',
       'dive_sites',

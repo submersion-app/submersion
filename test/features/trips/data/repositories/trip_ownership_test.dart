@@ -87,9 +87,4 @@ void main() {
     await trips.updateTrip(trip.copyWith(isShared: false), actingDiverId: 'a');
     expect((await trips.getTripById('shared'))!.isShared, isFalse);
   });
-
-  test('setShared refuses a non-owner', () async {
-    expect(await trips.setShared('shared', false, actingDiverId: 'b'), isFalse);
-    expect((await trips.getTripById('shared'))!.isShared, isTrue);
-  });
 }

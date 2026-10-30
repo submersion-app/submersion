@@ -92,6 +92,8 @@ void main() {
     // font's cmap.
     const drawn = <EquipmentType, IconData>{
       EquipmentType.regulator: SubmersionIcons.regulator,
+      EquipmentType.firstStage: SubmersionIcons.firstStage,
+      EquipmentType.secondStage: SubmersionIcons.secondStage,
       EquipmentType.bcd: SubmersionIcons.bcd,
       EquipmentType.wetsuit: SubmersionIcons.wetsuit,
       EquipmentType.drysuit: SubmersionIcons.drysuit,

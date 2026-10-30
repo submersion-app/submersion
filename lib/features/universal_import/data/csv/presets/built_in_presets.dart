@@ -22,7 +22,8 @@ const List<CsvPreset> builtInCsvPresets = [
 
 /// The CSV downloadable from my.divessi.com (#190). Country, Dive Activity,
 /// Specialty Dive, and Dive type have no import target field and stay
-/// unmapped.
+/// unmapped. The people column holds buddies, the SSI pro and the dive
+/// centre in one cell, which buddyInstructorCenter splits (#3629).
 const _myssi = CsvPreset(
   id: 'myssi',
   name: 'MySSI',
@@ -53,7 +54,7 @@ const _myssi = CsvPreset(
         ColumnMapping(sourceColumn: 'Depth', targetField: 'maxDepth'),
         ColumnMapping(
           sourceColumn: 'Dive Buddy / Instructor / Center',
-          targetField: 'buddy',
+          targetField: 'buddyInstructorCenter',
         ),
       ],
     ),
@@ -62,6 +63,7 @@ const _myssi = CsvPreset(
     ImportEntityType.dives,
     ImportEntityType.sites,
     ImportEntityType.buddies,
+    ImportEntityType.diveCenters,
   },
 );
 

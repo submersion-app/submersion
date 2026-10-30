@@ -55,6 +55,7 @@ class GoogleDriveAccountAdapter extends AccountProviderAdapter
     if (await _provider.mediaHttpClient() == null) return null;
     return GoogleDriveMediaObjectStore(
       clientSupplier: _provider.mediaHttpClient,
+      onAuthRejected: _provider.mediaAuthRejected,
     );
   }
 }

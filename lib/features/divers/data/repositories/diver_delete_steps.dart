@@ -77,6 +77,15 @@ Future<void> deleteDiverRows(
 // stats-scope-exempt: deletion cascade. Deletes the diver's dives, excluded
 // ones included.
 const List<DiverDeleteStep> diverDiveSteps = [
+  // People tags first (issue #1745): the diver's own Me tags and their
+  // buddies' tags, which the buddies' cascade later would drop untombstoned.
+  (
+    table: 'media_people',
+    entityType: 'mediaPeople',
+    where:
+        'diver_id = ?1 OR buddy_id IN (SELECT id FROM buddies WHERE '
+        'diver_id = ?1)',
+  ),
   // Documents first: their owner links (dive, site, trip, gear, course,
   // cert, buddy, center) point at rows deleted below, and documents.diver_id
   // has no ON DELETE action. Documents follow the diver who filed them,
@@ -84,6 +93,11 @@ const List<DiverDeleteStep> diverDiveSteps = [
   (
     table: 'document_pages',
     entityType: 'documentPages',
+    where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
+  ),
+  (
+    table: 'document_tags',
+    entityType: 'documentTags',
     where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
   ),
   (table: 'documents', entityType: 'documents', where: 'diver_id = ?1'),
@@ -116,6 +130,11 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
     entityType: 'tripChecklistItems',
     where: _ofDiverTrips,
   ),
+  (
+    table: 'trip_checklist_sections',
+    entityType: 'tripChecklistSections',
+    where: _ofDiverTrips,
+  ),
   // The ledger first: it cascades from its slot, and a cascade logs nothing.
   (
     table: 'trip_cylinder_events',
@@ -140,6 +159,21 @@ const List<DiverDeleteStep> diverTripAndSiteSteps = [
   (
     table: 'site_hides',
     entityType: 'siteHides',
+    where:
+        'diver_id = ?1 OR '
+        'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',
+  ),
+  // The shares naming the diver, and every share of the diver's trips and
+  // sites (issue #2151), tombstoned for the same reason. Those it shared
+  // with chosen profiles were handed over before these steps run.
+  (
+    table: 'trip_shares',
+    entityType: 'tripShares',
+    where: 'diver_id = ?1 OR $_ofDiverTrips',
+  ),
+  (
+    table: 'site_shares',
+    entityType: 'siteShares',
     where:
         'diver_id = ?1 OR '
         'site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?1)',

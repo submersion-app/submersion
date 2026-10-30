@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Summary step's "By profile" section (issue #1893): what one import
@@ -57,35 +58,41 @@ class ImportSummaryDiverOutcomes extends StatelessWidget {
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          for (final outcome in outcomes)
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(
-                outcome.isNew ? Icons.person_add_alt : Icons.person_outline,
-              ),
-              title: Text(outcome.name),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (outcome.isNew)
-                    Text(l10n.universalImport_summary_newProfile, style: muted),
-                  Text(
-                    l10n.universalImport_summary_fileImported(
-                      outcome.diveIds.length,
-                    ),
-                    style: muted,
-                  ),
-                  if (!outcome.isActive)
-                    Text(
-                      l10n.universalImport_summary_switchToSee(outcome.name),
-                      style: muted,
-                    ),
-                ],
-              ),
-            ),
+          for (final outcome in outcomes) _row(outcome, l10n, muted),
         ],
       ],
+    );
+  }
+
+  /// A profile whose name could not be read is still named (issue #2050).
+  Widget _row(
+    DiverImportOutcome outcome,
+    AppLocalizations l10n,
+    TextStyle? muted,
+  ) {
+    final name = outcome.name.isEmpty
+        ? l10n.universalImport_summary_unnamedProfile
+        : outcome.name;
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(
+        outcome.isNew ? Icons.person_add_alt : Icons.person_outline,
+      ),
+      title: Text(name),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (outcome.isNew)
+            Text(l10n.universalImport_summary_newProfile, style: muted),
+          Text(
+            l10n.universalImport_summary_fileImported(outcome.diveIds.length),
+            style: muted,
+          ),
+          if (!outcome.isActive)
+            Text(l10n.universalImport_summary_switchToSee(name), style: muted),
+        ],
+      ),
     );
   }
 }

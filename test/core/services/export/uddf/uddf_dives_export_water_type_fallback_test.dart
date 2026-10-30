@@ -14,7 +14,7 @@ void main() {
     id: 'site-1',
     name: 'Blue Hole',
     waterType: WaterType.fresh,
-    entryMethod: EntryMethod.shore,
+    entryMethods: [EntryMethod.shore],
   );
 
   Future<XmlDocument> export(Dive dive) async => XmlDocument.parse(

@@ -26,24 +26,31 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
+part 'insights_repository_calendar_days.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_tank_configuration.dart';
+part 'insights_repository_time_of_day.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
@@ -258,14 +265,21 @@ class InsightsRepository {
   /// into the subquery would make the exclusion evaporate for every diver who
   /// never opens the filter sheet.
   ///
-  /// Pass `gas: true` for SAC/RMV and gas-mix aggregates, which additionally
-  /// drop per-dive gas exclusions and gauge-mode dives.
+  /// Pass `gas: true` for the gas-mix, gas-used and by-tank-role aggregates,
+  /// which additionally drop per-dive gas exclusions and gauge-mode dives.
+  /// Pass `consumptionRate: true` for the SAC/RMV averages, trends and
+  /// records, which drop those and rebreather dives as well (issue #3673).
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',
     bool gas = false,
+    bool consumptionRate = false,
   }) {
-    final scope = DiveStatsScope.and(alias: alias, gas: gas);
+    final scope = DiveStatsScope.and(
+      alias: alias,
+      gas: gas,
+      consumptionRate: consumptionRate,
+    );
     final f = buildFilteredDiveIdSubquery(filter);
     if (f.subquery.isEmpty) {
       return (clause: scope, params: const <Object?>[]);
@@ -308,7 +322,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -420,7 +434,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -523,7 +537,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -650,7 +664,7 @@ class InsightsRepository {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
+      final df = _diveFilter(filter, alias: 'd', consumptionRate: true);
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
@@ -702,6 +716,9 @@ class InsightsRepository {
   ///
   /// Returns a map of tank role to average SAC in L/min.
   /// Requires tank volume data.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -785,6 +802,9 @@ class InsightsRepository {
   ///
   /// Returns a map of tank role to average SAC in bar/min.
   /// Does not require tank volume.
+  ///
+  /// Each cylinder stands for its own role, so rebreather dives keep their
+  /// diluent and oxygen rows here (issue #3673).
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1417,7 +1437,7 @@ class InsightsRepository {
         FROM (
           SELECT COALESCE(
             NULLIF(dives.entry_method, ''),
-            NULLIF(dive_sites.entry_method, '')
+            ${singleSiteEntryMethodSql('dive_sites.entry_method')}
           ) AS entry_method
           FROM dives
           LEFT JOIN dive_sites ON dive_sites.id = dives.site_id
@@ -2093,7 +2113,9 @@ class InsightsRepository {
     }
   }
 
-  /// Get dives per trip
+  /// Get dives per trip. A larger trip counts its side trips' dives, and
+  /// the side trips are left out of the ranking so no dive counts twice
+  /// (issue #3658).
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
     int limit = 10,
@@ -2113,8 +2135,8 @@ class InsightsRepository {
           t.location,
           COUNT(d.id) AS dive_count
         FROM trips t
-        JOIN dives d ON d.trip_id = t.id
-        WHERE 1=1 $diverFilter ${df.clause}
+        ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
+        WHERE $topLevelTripSql $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?
@@ -2387,67 +2409,6 @@ class InsightsRepository {
     }
   }
 
-  /// Get dives by time of day (morning, afternoon, evening, night).
-  ///
-  /// The bucket names are stable keys, not display text: the same literals
-  /// are the ORDER BY sort keys below, so translating them in SQL would
-  /// reorder the chart per locale (and break the fixed colour order in the
-  /// legend). The presentation layer translates them instead, through
-  /// `timeOfDayDistributionLabel`.
-  Future<List<DistributionSegment>> getDivesByTimeOfDay({
-    String? diverId,
-    DiveFilterState filter = const DiveFilterState(),
-  }) async {
-    try {
-      final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'dives');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        SELECT
-          CASE
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 6 THEN 'Night'
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 12 THEN 'Morning'
-            WHEN CAST(strftime('%H', COALESCE(entry_time, dive_date_time) / 1000, 'unixepoch') AS INTEGER) < 18 THEN 'Afternoon'
-            ELSE 'Evening'
-          END AS time_of_day,
-          COUNT(*) AS count
-        FROM dives
-        WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY time_of_day
-        ORDER BY
-          CASE time_of_day
-            WHEN 'Morning' THEN 1
-            WHEN 'Afternoon' THEN 2
-            WHEN 'Evening' THEN 3
-            WHEN 'Night' THEN 4
-          END
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
-      final total = results.fold<int>(
-        0,
-        (sum, row) => sum + row.read<int>('count'),
-      );
-      if (total == 0) return [];
-
-      return results.map((row) {
-        final count = row.read<int>('count');
-        return DistributionSegment(
-          label: row.read<String>('time_of_day'),
-          count: count,
-          percentage: count / total * 100,
-        );
-      }).toList();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get dives by time of day',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Get dives by month (seasonal patterns)
   Future<List<({int month, int count})>> getDivesBySeason({
     String? diverId,
@@ -2560,6 +2521,8 @@ class InsightsRepository {
           UNION
           SELECT dive_id, equipment_id FROM dive_tanks
           WHERE equipment_id IS NOT NULL
+          -- Tank regulators, first and extra (#3375).
+          UNION $tankRegulatorPairsSql
         ) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}

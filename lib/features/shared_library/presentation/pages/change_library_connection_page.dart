@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/shared_library/library_connection_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/shared_library/presentation/providers/shared
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_location_fields.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -66,10 +69,13 @@ class _ChangeLibraryConnectionPageState
     }
     if (library != null && !_seeded) {
       _seeded = true;
-      _location.prefix.text = library.prefix;
-      _location.selectedAccountId = library.connectedAccountId;
+      _location.seed(
+        folder: library.prefix,
+        accountId: library.connectedAccountId,
+      );
     }
-    final accounts = ref.watch(eligibleLibraryAccountsProvider);
+    // Own servers only: no Google or iCloud probe to list S3 and WebDAV.
+    final groups = ref.watch(accountGroupsOfKindsProvider(libraryKindsKey));
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sharedLibrary_connection_change)),
       body: library == null
@@ -79,66 +85,76 @@ class _ChangeLibraryConnectionPageState
                   // Left meanwhile, or reached by a stale link.
                   : Text(l10n.sharedLibrary_list_empty),
             )
-          : accounts.when(
+          // A reload keeps the form; see the connect page.
+          : groups.when(
+              skipLoadingOnReload: true,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text(e.toString())),
-              data: (list) => ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  // Repointing is how a library whose account was removed
-                  // here is reached again: say so, rather than quietly
-                  // starting from another account.
-                  if (!list.any((a) => a.id == library!.connectedAccountId))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        l10n.sharedLibrary_connection_accountMissing,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  LibraryLocationFields(
-                    controller: _location,
-                    accounts: list,
-                    enabled: !_busy,
-                    onEdited: _edited,
-                  ),
-                  if (list.isEmpty && !_location.addingAccount)
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.sharedLibrary_connect_addAccount),
-                        onPressed: () => _location.setAddingAccount(true),
-                      ),
-                    ),
-                  if (list.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: FilledButton.tonal(
-                        onPressed: _busy ? null : () => _check(),
-                        child: Text(l10n.sharedLibrary_connection_check),
-                      ),
-                    ),
-                  ],
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
-                  if (_result case final result?) ...[
-                    const SizedBox(height: 16),
-                    ..._outcome(l10n, result),
-                  ],
-                ],
-              ),
+              data: (all) => _body(context, library!, libraryServers(all)),
             ),
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    SharedLibrary library,
+    List<AccountGroup> list,
+  ) {
+    final l10n = context.l10n;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Repointing is how a library whose account was removed
+        // here is reached again: say so, rather than quietly
+        // starting from another account.
+        if (list.holding(library.connectedAccountId) == null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              l10n.sharedLibrary_connection_accountMissing,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        LibraryLocationFields(
+          controller: _location,
+          servers: list,
+          enabled: !_busy,
+          onEdited: _edited,
+        ),
+        if (list.isEmpty)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              icon: const Icon(Icons.add),
+              label: Text(l10n.settings_accounts_add),
+              onPressed: () async {
+                final added = await addLibraryServer(context);
+                if (added != null) _location.selectServer(added);
+              },
+            ),
+          ),
+        if (list.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton.tonal(
+              onPressed: _busy ? null : () => _check(),
+              child: Text(l10n.sharedLibrary_connection_check),
+            ),
+          ),
+        ],
+        if (_error != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+        if (_result case final result?) ...[
+          const SizedBox(height: 16),
+          ..._outcome(l10n, result),
+        ],
+      ],
     );
   }
 
@@ -202,8 +218,7 @@ class _ChangeLibraryConnectionPageState
   }
 
   Future<void> _check({String? secret}) async {
-    final account = _location.account;
-    if (account == null) return;
+    if (_location.server == null) return;
     final problem = libraryFolderProblem(context.l10n, _location.folder);
     if (problem != null) {
       setState(() => _error = problem);
@@ -216,6 +231,10 @@ class _ChangeLibraryConnectionPageState
       _error = null;
     });
     try {
+      // Checked through a signed-in row of the server; nothing is saved
+      // until a check finds this library there and the diver saves.
+      final account = _location.probeAccount();
+      if (account == null) return;
       final result = await ref
           .read(libraryConnectionServiceProvider)
           .check(
@@ -238,8 +257,7 @@ class _ChangeLibraryConnectionPageState
   }
 
   Future<void> _save({required bool acceptOlder}) async {
-    final account = _location.account;
-    if (account == null) return;
+    if (_location.account == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
     final l10n = context.l10n;
@@ -250,6 +268,10 @@ class _ChangeLibraryConnectionPageState
       _error = null;
     });
     try {
+      final account = await _location.resolveAccount(
+        ref.read(accountGroupServiceProvider),
+      );
+      if (account == null) return;
       await ref
           .read(libraryConnectionServiceProvider)
           .repoint(

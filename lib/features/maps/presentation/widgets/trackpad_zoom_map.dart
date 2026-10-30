@@ -37,7 +37,12 @@ class TrackpadZoomMap extends StatelessWidget {
       // Controller not yet attached to a FlutterMap.
       return;
     }
-    final newZoom = (camera.zoom + zoomDelta).clamp(minZoom, maxZoom);
+    // The map's own range too: a zoom past it would pivot the centre toward
+    // a zoom the controller then clamps away, keeping only the pivot, so the
+    // map slid sideways at either end of its range (#3664).
+    final newZoom = camera.clampZoom(
+      (camera.zoom + zoomDelta).clamp(minZoom, maxZoom),
+    );
     if (newZoom == camera.zoom) return;
     // focusedZoomCenter keeps the point under the cursor fixed; it already
     // accounts for map rotation.

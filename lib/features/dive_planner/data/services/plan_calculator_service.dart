@@ -1,12 +1,15 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -14,6 +17,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 
 /// Service for calculating dive plan results.
 ///
@@ -35,6 +39,21 @@ class PlanCalculatorService {
 
   /// ppO2 critical threshold (typically 1.6 bar).
   final double ppO2Critical;
+
+  /// CCR Dil MOD limit: the ppO2 a diluent may reach on a flush, from the
+  /// diver's "ppO2 limits CCR" Settings (issue #3567). A diluent's ascent
+  /// gas MOD follows this rather than [ppO2Warning].
+  final double ccrDiluentModPpO2;
+
+  /// Per-O2-band deco ppO2 limits and the explicit MOD for 100% O2 (issue
+  /// #3580), the diver's Settings defaults. Off by default: [ppO2Critical]
+  /// alone keeps governing every deco gas until the diver turns one on.
+  final bool ppO2DecoBandsEnabled;
+  final double ppO2DecoBand1;
+  final double ppO2DecoBand2;
+  final double ppO2DecoBand3;
+  final bool maxO2DepthEnabled;
+  final double maxO2DepthMeters;
 
   /// CNS warning threshold percentage (typically 80).
   final int cnsWarningThreshold;
@@ -59,6 +78,13 @@ class PlanCalculatorService {
     this.gfHigh = 70,
     this.ppO2Warning = 1.4,
     this.ppO2Critical = 1.6,
+    this.ccrDiluentModPpO2 = 1.6,
+    this.ppO2DecoBandsEnabled = false,
+    this.ppO2DecoBand1 = 1.6,
+    this.ppO2DecoBand2 = 1.6,
+    this.ppO2DecoBand3 = 1.6,
+    this.maxO2DepthEnabled = false,
+    this.maxO2DepthMeters = 6.0,
     this.cnsWarningThreshold = 80,
     this.defaultAscentRate = 9.0,
     this.defaultDescentRate = 18.0,
@@ -78,6 +104,13 @@ class PlanCalculatorService {
       gfHigh: gfHigh,
       ppO2Warning: ppO2Warning,
       ppO2Critical: ppO2Critical,
+      ccrDiluentModPpO2: ccrDiluentModPpO2,
+      ppO2DecoBandsEnabled: ppO2DecoBandsEnabled,
+      ppO2DecoBand1: ppO2DecoBand1,
+      ppO2DecoBand2: ppO2DecoBand2,
+      ppO2DecoBand3: ppO2DecoBand3,
+      maxO2DepthEnabled: maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthMeters,
       cnsWarningThreshold: cnsWarningThreshold,
       defaultAscentRate: defaultAscentRate,
       defaultDescentRate: defaultDescentRate,
@@ -100,6 +133,15 @@ class PlanCalculatorService {
     double reservePressure = DivePlanState.kDefaultReservePressureBar,
     List<TissueCompartment>? initialTissueState,
     DiveEnvironment environment = DiveEnvironment.standard,
+    Map<String, TankRole>? tankRoles,
+    double? bottomPpO2,
+    double? decoPpO2,
+    double? decoPpO2Band1,
+    double? decoPpO2Band2,
+    double? decoPpO2Band3,
+    bool decoPpO2BandsExplicitlyOff = false,
+    double? maxO2DepthMetersOverride,
+    bool maxO2DepthExplicitlyOff = false,
   }) {
     if (segments.isEmpty) {
       return PlanResult.empty();
@@ -119,12 +161,36 @@ class PlanCalculatorService {
       algorithm.setCompartments(initialTissueState);
     }
 
-    // Initialize O2 toxicity calculator
+    // O2 toxicity calculator for CNS%/OTU accumulation, which both depend
+    // only on the actual breathed ppO2 (depth x O2 fraction), never on any
+    // limit - neither the flat ppO2Critical/ppO2Warning passed here nor the
+    // per-band limit below affects those totals.
     final o2Calc = O2ToxicityCalculator(
       ppO2WarningThreshold: ppO2Warning,
       ppO2CriticalThreshold: ppO2Critical,
       cnsWarningThreshold: cnsWarningThreshold,
       cnsMethod: cnsMethod,
+    );
+
+    // This plan's deco ppO2 limits as a DecoPpO2Limits (issue #3580): the
+    // per-gas critical threshold below, and the deco schedule built later,
+    // both resolve through this, so the live canvas preview agrees with the
+    // final PlanEngine result instead of staying on the flat ppO2Critical
+    // for the general ppO2 critical/warning check alone.
+    final decoLimits = DecoPpO2Limits.forPlan(
+      flat: decoPpO2 ?? ppO2Critical,
+      settingsBandsEnabled: ppO2DecoBandsEnabled,
+      settingsBand1: ppO2DecoBand1,
+      settingsBand2: ppO2DecoBand2,
+      settingsBand3: ppO2DecoBand3,
+      settingsMaxO2DepthEnabled: maxO2DepthEnabled,
+      settingsMaxO2DepthMeters: maxO2DepthMeters,
+      band1: decoPpO2Band1,
+      band2: decoPpO2Band2,
+      band3: decoPpO2Band3,
+      bandsExplicitlyOff: decoPpO2BandsExplicitlyOff,
+      maxO2DepthMeters: maxO2DepthMetersOverride,
+      maxO2DepthExplicitlyOff: maxO2DepthExplicitlyOff,
     );
 
     // Track results
@@ -176,8 +242,28 @@ class PlanCalculatorService {
       );
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
-      // Check ppO2 limits
-      if (segmentMaxPpO2 > ppO2Critical) {
+      // Check ppO2 limits. The critical threshold is this segment's own
+      // gas's deco ceiling (issue #3580): its band when bands are on, the
+      // ppO2 at the explicit depth for a gas under that setting, otherwise
+      // the flat ppO2Critical - matching PlanEngine's own check so this
+      // live preview agrees with the final, saved plan result. Only used
+      // for display here - the breach check itself goes through
+      // decoCeilingBreachedFor, which compares depth directly for an
+      // explicit-depth gas instead of this (environment-aware) ppO2 against
+      // segmentMaxPpO2 (the flat-model one), a mismatch a Copilot review
+      // caught disagreeing in salt water/at altitude.
+      final segmentDecoPpO2 = decoCeilingPpO2For(
+        segment.gasMix,
+        decoLimits,
+        environment: environment,
+      );
+      if (decoCeilingBreachedFor(
+        segment.gasMix,
+        decoLimits,
+        depthMeters: leg.deeperEnd,
+        actualPpO2: segmentMaxPpO2,
+        environment: environment,
+      )) {
         warnings.add(
           PlanWarning(
             type: PlanWarningType.ppO2Critical,
@@ -188,7 +274,7 @@ class PlanCalculatorService {
             atDepth: maxDepth,
             segmentId: segment.id,
             value: segmentMaxPpO2,
-            threshold: ppO2Critical,
+            threshold: segmentDecoPpO2,
           ),
         );
       } else if (segmentMaxPpO2 > ppO2Warning) {
@@ -380,8 +466,19 @@ class PlanCalculatorService {
     final decoSchedule = _buildDecoSchedule(
       algorithm: algorithm,
       segments: segments,
-      tanks: tanks,
+      // The planner stores most roles as a placeholder; the caller hands in
+      // the resolved ones, which decide each tank's default MOD (#3567).
+      tanks: [
+        for (final tank in tanks)
+          switch (tankRoles?[tank.id]) {
+            final role? => tank.copyWith(role: role),
+            null => tank,
+          },
+      ],
       runtime: runtime,
+      bottomPpO2: bottomPpO2 ?? ppO2Warning,
+      decoPpO2: decoLimits,
+      environment: environment,
     );
 
     // Determine if dive has deco obligation
@@ -422,15 +519,20 @@ class PlanCalculatorService {
   /// Build deco schedule from current algorithm state.
   ///
   /// The simulated ascent breathes the best eligible carried gas at each depth
-  /// via an [OptimalOcAscentGas] plan derived from [tanks]. Eligibility uses the
-  /// planner's deco ppO2 ceiling. Each stop reports the gas actually selected
-  /// at its depth. With a single carried gas this reduces to the legacy
-  /// fixed-gas ascent.
+  /// via an [OptimalOcAscentGas] plan derived from [tanks]. Each gas is
+  /// eligible from its cylinder's MOD up: the one set by hand, or the switch
+  /// depth for its role's limit at [bottomPpO2] / [decoPpO2] (issue #3567),
+  /// measured in [environment] (issue #3566, see [gasSwitchDepthMeters]).
+  /// Each stop reports the gas actually selected at its depth. With a single
+  /// carried gas this reduces to the legacy fixed-gas ascent.
   List<DecoStop> _buildDecoSchedule({
     required BuhlmannAlgorithm algorithm,
     required List<PlanSegment> segments,
     required List<DiveTank> tanks,
     required int runtime,
+    required double bottomPpO2,
+    required DecoPpO2Limits decoPpO2,
+    required DiveEnvironment environment,
   }) {
     if (segments.isEmpty) return [];
 
@@ -439,17 +541,15 @@ class PlanCalculatorService {
 
     if (currentDepth <= 0) return [];
 
-    final ascentGases = <AvailableGas>[
-      for (final tank in tanks)
-        AvailableGas(
-          fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-          fHe: tank.gasMix.he / 100.0,
-          maxPpO2Mod: O2ToxicityCalculator.calculateMod(
-            tank.gasMix.o2 / 100.0,
-            maxPpO2: ppO2Critical,
-          ),
-        ),
-    ];
+    // Each gas joins at its cylinder's MOD (issue #3567): the one the diver
+    // set, or the default for its role.
+    final ascentGases = ascentGasesFor(
+      tanks,
+      bottomPpO2: bottomPpO2,
+      decoPpO2: decoPpO2,
+      environment: environment,
+      diluentPpO2: ccrDiluentModPpO2,
+    );
     final AscentGasPlan? ascentGas = ascentGases.isEmpty
         ? null
         : OptimalOcAscentGas(gases: ascentGases, maxPpO2: ppO2Critical);

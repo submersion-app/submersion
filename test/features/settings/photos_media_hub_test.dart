@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
@@ -10,8 +10,8 @@ import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
+import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
 import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,6 +30,23 @@ class _FixedStatusAdapter extends AccountProviderAdapter {
 
   @override
   Future<void> disconnect(domain.ConnectedAccount account) async {}
+}
+
+/// Records the automatic color correction switch (issue #3520); every other
+/// SettingsNotifier member is unused here.
+class _ColorSettingsNotifier extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _ColorSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> get initialLoad async {}
+
+  @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -83,33 +100,50 @@ void main() {
     ),
   );
 
-  testWidgets('hub shows the two layer groups', (tester) async {
-    await tester.pumpWidget(app(const PhotosMediaHubPage()));
-    await tester.pump();
-
-    expect(find.text('Where photos come from'), findsOneWidget);
-    expect(find.text('Where copies are kept'), findsOneWidget);
-    // Issue #3460: connected accounts serve sync and shared libraries too,
-    // so they are reached from Settings > Data, not from this hub.
-    expect(find.text('Accounts'), findsNothing);
-    expect(find.text('Connected Accounts'), findsNothing);
-    // Lightroom and Network sources now live inside "Photo library &
-    // sources", not at the hub level.
-    expect(find.text('Adobe Lightroom'), findsNothing);
-    expect(find.text('Network sources'), findsNothing);
-  });
-
-  testWidgets('setup guide renders three steps with live status', (
+  testWidgets('the automatic color correction switch is off and turns on', (
     tester,
   ) async {
-    await tester.pumpWidget(app(const PhotosMediaSetupPage()));
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    final notifier = _ColorSettingsNotifier();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => notifier),
+          mediaCacheSettingsProvider.overrideWith(
+            (ref) => MediaCacheSettingsNotifier(
+              prefs,
+              applyMemoryCap: appliedMemoryBytes.add,
+              onEmptyDiskCache: () => emptyDiskCache(),
+            ),
+          ),
+          accountProviderRegistryProvider.overrideWithValue(
+            AccountProviderRegistry(const []),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PhotosAdvancedSection(attached: false),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pump();
 
-    expect(find.text('Photo sources'), findsOneWidget);
-    expect(find.text('Media storage'), findsOneWidget);
-    expect(find.text('Cloud sync'), findsOneWidget);
-    expect(find.text('Not set up'), findsNWidgets(3));
+    final tile = find.widgetWithText(
+      SwitchListTile,
+      'Automatic color correction',
+    );
+    await tester.scrollUntilVisible(tile, 200);
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    await tester.tap(tile);
+    await tester.pump();
+    expect(notifier.state.autoColorCorrection, isTrue);
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
   });
 
   testWidgets('connected accounts page lists an account with status', (
@@ -127,7 +161,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('My MinIO'), findsOneWidget);
-    expect(find.textContaining('Needs sign-in'), findsOneWidget);
+    expect(find.textContaining('Not signed in on this device'), findsOneWidget);
   });
 
   testWidgets('connected accounts page shows the empty state', (tester) async {
@@ -154,7 +188,7 @@ void main() {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const PhotosMediaHubPage()));
+      await tester.pumpWidget(app(const _CacheHost()));
       await tester.pump();
     }
 
@@ -225,7 +259,7 @@ void main() {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await tester.pumpWidget(app(const PhotosMediaHubPage()));
+      await tester.pumpWidget(app(const _CacheHost()));
       await tester.pump();
     }
 
@@ -295,4 +329,19 @@ void main() {
       expect(find.text('Could not empty the thumbnail cache'), findsOneWidget);
     });
   });
+}
+
+/// The cache card as the Photos page's Advanced section hosts it.
+class _CacheHost extends StatelessWidget {
+  const _CacheHost();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+    body: SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: MediaCacheSettingsCard(),
+      ),
+    ),
+  );
 }

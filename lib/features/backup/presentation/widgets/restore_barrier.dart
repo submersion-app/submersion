@@ -95,7 +95,10 @@ class _RestoreOverlay extends StatelessWidget {
           children: [
             // Absorbs every pointer event and paints the scrim, so nothing
             // beneath can be tapped or scrolled during the restore.
-            const ModalBarrier(dismissible: false, color: Colors.black54),
+            ModalBarrier(
+              dismissible: false,
+              color: theme.colorScheme.scrim.withValues(alpha: 0.54),
+            ),
             Center(
               child: Material(
                 color: theme.colorScheme.surface,

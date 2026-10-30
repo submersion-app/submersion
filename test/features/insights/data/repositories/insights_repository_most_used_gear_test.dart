@@ -70,4 +70,30 @@ void main() {
     final ranking = await repository.getMostUsedGear();
     expect(ranking.map((r) => '${r.id}:${r.count}'), ['al80:2', 'reg:1']);
   });
+
+  test('tank regulators count, first and extra (#3375)', () async {
+    await equipment('r1', 'regulator');
+    await equipment('r2', 'regulator');
+    await dive('d1', 1);
+    await dive('d2', 2);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(id: 'k1', diveId: 'd1').copyWith(
+            regulatorEquipmentId: const Value('r1'),
+            extraRegulatorIds: const Value('["r2"]'),
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'k2',
+            diveId: 'd2',
+          ).copyWith(regulatorEquipmentId: const Value('r1')),
+        );
+
+    final ranking = await repository.getMostUsedGear();
+    expect(ranking.map((r) => '${r.id}:${r.count}'), ['r1:2', 'r2:1']);
+  });
 }

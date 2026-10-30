@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
@@ -82,10 +83,14 @@ class CsvSitesWriter {
         // Typical current has no backing column; the header position is kept
         // so existing consumers of this CSV keep their column offsets.
         '',
-        site.entryMethod?.displayName ?? '',
+        // A site may list several (#2054): one cell, the same '; ' list the
+        // site types and tags use.
+        sanitizeCsvField(_methodNames(site.entryMethods)),
         site.rating?.toStringAsFixed(1) ?? '',
-        sanitizeCsvField(site.description.replaceAll('\n', ' ')),
-        sanitizeCsvField(site.notes.replaceAll('\n', ' ')),
+        // Markdown fields raw, line breaks and all: Submersion reads this
+        // file back (#3683).
+        sanitizeCsvField(site.description),
+        sanitizeCsvField(site.notes),
         units.value(CsvColumns.minDepth, site.minDepth),
         site.difficulty?.displayName ?? '',
         units.value(CsvColumns.altitude, site.altitude),
@@ -93,10 +98,10 @@ class CsvSitesWriter {
         sanitizeCsvField(site.island),
         sanitizeCsvField(site.bodyOfWater),
         sanitizeCsvField(site.hazards?.replaceAll('\n', ' ')),
-        sanitizeCsvField(site.accessNotes?.replaceAll('\n', ' ')),
+        sanitizeCsvField(site.accessNotes),
         sanitizeCsvField(site.mooringNumber),
         sanitizeCsvField(site.parkingInfo?.replaceAll('\n', ' ')),
-        site.exitMethod?.displayName ?? '',
+        sanitizeCsvField(_methodNames(site.exitMethods)),
         sanitizeCsvField(joinCsvList(typeNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(joinCsvList(tagNamesBySite[site.id] ?? const [])),
         sanitizeCsvField(
@@ -108,3 +113,6 @@ class CsvSitesWriter {
     return const ListToCsvConverter().convert(rows);
   }
 }
+
+String _methodNames(List<EntryMethod> methods) =>
+    joinCsvList(methods.map((m) => m.displayName));

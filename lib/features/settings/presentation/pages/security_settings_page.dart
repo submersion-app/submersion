@@ -10,6 +10,8 @@ import 'package:submersion/features/settings/presentation/widgets/enable_encrypt
     show RecoveryCodeDisplay;
 import 'package:submersion/features/settings/presentation/widgets/security_setup_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// App Security settings: the App Lock tier (password/biometric gate,
 /// auto-lock timeout) and the Database Encryption tier (SQLCipher at rest),
@@ -107,6 +109,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           subtitle: Text(l10n.settings_security_encryption_subtitle),
           value: encryptionOn,
           onChanged: (v) async {
+            if (!demoSealGuard(context, DemoSealedFeature.databaseFile)) {
+              return;
+            }
             if (!v) {
               await _disableEncryption();
               return;
@@ -139,6 +144,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<bool> _enableAppLock() async {
+    if (!demoSealGuard(context, DemoSealedFeature.databaseFile)) {
+      return false;
+    }
     if (_security.encryptionEnabled) {
       if (!_security.isUnlocked) {
         final secret = await _promptPassword(
@@ -178,6 +186,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _disableAppLock() async {
+    if (!demoSealGuard(context, DemoSealedFeature.databaseFile)) {
+      return;
+    }
     final l10n = context.l10n;
     final secret = await _promptPassword(l10n.settings_security_unlock_title);
     if (secret == null || !mounted) return;
@@ -359,6 +370,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _changePassword() async {
+    if (!demoSealGuard(context, DemoSealedFeature.databaseFile)) {
+      return;
+    }
     final dbPath = await _dbPath();
     if (!mounted) return;
     await showDialog<void>(
@@ -375,6 +389,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _regenerateRecovery() async {
+    if (!demoSealGuard(context, DemoSealedFeature.databaseFile)) {
+      return;
+    }
     final l10n = context.l10n;
     final secret = await _promptPassword(l10n.settings_security_unlock_title);
     if (secret == null || !mounted) return;

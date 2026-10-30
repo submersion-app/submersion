@@ -82,6 +82,7 @@ class DiveParser {
     roleSource: tank.roleSource?.name,
     transmitterSerial: tank.transmitterSerial,
     mixRecorded: tank.mixRecorded,
+    unusedOcGas: tank.unusedOcGas,
   );
 
   /// Convert a downloaded dive's gas switches to GasSwitchData.

@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 ImportedDive _dive({
   List<ImportedTank> tanks = const [],
@@ -16,8 +17,10 @@ ImportedDive _dive({
   int? bottomTimeSeconds,
   int? surfaceIntervalSeconds,
   String? waterType,
+  double? cnsStart,
   double? cnsEnd,
   double? otu,
+  ComputerTissueSnapshot? computerTissue,
   double? exitLatitude = 10.1,
   double? exitLongitude = 20.1,
 }) {
@@ -43,8 +46,10 @@ ImportedDive _dive({
     bottomTimeSeconds: bottomTimeSeconds,
     surfaceIntervalSeconds: surfaceIntervalSeconds,
     waterType: waterType,
+    cnsStart: cnsStart,
     cnsEnd: cnsEnd,
     otu: otu,
+    computerTissue: computerTissue,
     tanks: tanks,
     gasSwitches: gasSwitches,
     profile: profile,
@@ -230,6 +235,7 @@ void main() {
           bottomTimeSeconds: 3600,
           surfaceIntervalSeconds: 5400,
           waterType: 'salt',
+          cnsStart: 2.0,
           cnsEnd: 14.0,
           otu: 38.0,
         ),
@@ -239,6 +245,7 @@ void main() {
       expect(result.dive.bottomTimeSeconds, 3600);
       expect(result.dive.surfaceIntervalSeconds, 5400);
       expect(result.dive.waterType, WaterType.salt);
+      expect(result.dive.cnsStart, 2.0);
       expect(result.dive.cnsEnd, 14.0);
       expect(result.dive.otu, 38.0);
     });
@@ -264,8 +271,23 @@ void main() {
       expect(result.dive.bottomTimeSeconds, isNull);
       expect(result.dive.surfaceIntervalSeconds, isNull);
       expect(result.dive.waterType, isNull);
+      expect(result.dive.cnsStart, isNull);
       expect(result.dive.cnsEnd, isNull);
       expect(result.dive.otu, isNull);
+      expect(result.dive.computerTissue, isNull);
+    });
+
+    test('carries the FIT N2 loading snapshot onto the download', () {
+      const tissue = ComputerTissueSnapshot(
+        start: ComputerTissueState(n2LoadPercent: 0),
+        end: ComputerTissueState(n2LoadPercent: 86),
+      );
+      final result = GarminDiveMapper.map(
+        _dive(computerTissue: tissue),
+        activityId: 1,
+      );
+
+      expect(result.dive.computerTissue, tissue);
     });
 
     test('falls back to Connect\'s activity-list end position for the exit '

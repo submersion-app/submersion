@@ -41,7 +41,8 @@ Future<void> clickWithMouse(WidgetTester tester, Finder finder) async {
 /// list's first row; the list needs at least two rows.
 ///
 /// Beside a detail pane: a single desktop mouse click opens the row, Down
-/// opens the one after it, Up comes back, and Right keeps focus in the list.
+/// opens the one after it, Up comes back, End opens the last row, Home comes
+/// back again, and Right keeps focus in the list.
 /// At phone width: the list is reached by Tab, an arrow opens nothing, and
 /// Enter opens the cursor's row.
 Future<void> verifyKeyboardNavigationContract(
@@ -81,6 +82,15 @@ Future<void> verifyKeyboardNavigationContract(
 
   await press(LogicalKeyboardKey.arrowUp);
   expect(opened.last, opened[0], reason: 'Up comes back to the first row');
+
+  // #3302.
+  final beforeEnd = opened.length;
+  await press(LogicalKeyboardKey.end);
+  expect(opened, hasLength(beforeEnd + 1), reason: 'End opens the last row');
+  expect(opened.last, isNot(opened[0]));
+
+  await press(LogicalKeyboardKey.home);
+  expect(opened.last, opened[0], reason: 'Home comes back to the first row');
 
   await press(LogicalKeyboardKey.arrowRight);
   expect(listFocused(), isTrue, reason: 'Right must not move focus away');

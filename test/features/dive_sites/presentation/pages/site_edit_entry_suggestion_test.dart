@@ -91,7 +91,7 @@ void main() {
     await expandAccess(tester);
 
     expect(
-      find.text('Your 14 dives here: Boat Entry in, Ladder out'),
+      find.text('Your 14 dives here: Boat in, Ladder out'),
       findsOneWidget,
     );
   });
@@ -106,7 +106,7 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.shore,
+        entryMethods: [EntryMethod.shore],
       ),
     );
     await expandAccess(tester);
@@ -135,7 +135,7 @@ void main() {
     await tester.tap(find.byType(ActionChip));
     await tester.pumpAndSettle();
 
-    expect(find.text('Boat Entry'), findsOneWidget);
+    expect(find.text('Boat'), findsOneWidget);
     expect(find.text('Ladder'), findsOneWidget);
     // Filling both fields retires the chip.
     expect(find.byType(ActionChip), findsNothing);
@@ -155,6 +155,6 @@ void main() {
     );
     await expandAccess(tester);
 
-    expect(find.text('Your 3 dives here: Shore Entry'), findsOneWidget);
+    expect(find.text('Your 3 dives here: Shore'), findsOneWidget);
   });
 }

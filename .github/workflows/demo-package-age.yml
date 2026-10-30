@@ -1,0 +1,40 @@
+name: Demo package age
+
+# The demo-mode sample logbook is built by hand and published to the
+# demo-data release. The app keeps its seasons true only while the package is
+# younger than about five weeks (issue #3803), so this job checks the
+# published manifest once a week, opens one rolling issue asking for a rebuild
+# when the newest package is older, and closes it once a newer one is
+# published; scripts/demo_package_age_alert.py has the details.
+on:
+  schedule:
+    - cron: "23 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-package-age
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    name: Alert when the demo package needs a rebuild
+    # A fork has no demo-data release of its own to watch.
+    if: github.repository == 'submersion-app/submersion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Open or close the demo package rebuild alert
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/demo_package_age_alert.py

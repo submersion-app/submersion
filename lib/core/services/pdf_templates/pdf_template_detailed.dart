@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_notes_markdown.dart';
 
 /// Detailed PDF template: one dive per page with the full field set.
 ///
@@ -850,10 +851,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       // sheets. Without it a pw.Text cannot span, so a note taller than one
       // page body throws "Widget won't fit into the page" and fails the
       // whole export (#2056).
-      pw.Text(
+      ...notesMarkdownPdfBlocks(
         dive.notes,
         style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
-        overflow: pw.TextOverflow.span,
       ),
       pw.SizedBox(height: 14),
     ];

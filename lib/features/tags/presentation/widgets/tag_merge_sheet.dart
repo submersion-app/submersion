@@ -179,7 +179,11 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
                         value: stat.tag.id,
                         title: Text(stat.tag.name),
                         subtitle: Text(
-                          tagUsageCounts(context.l10n, stat.counts),
+                          tagUsageCounts(
+                            context.l10n,
+                            stat.counts,
+                            offered: stat.tag.scopes,
+                          ),
                         ),
                         secondary: CircleAvatar(
                           radius: 12,

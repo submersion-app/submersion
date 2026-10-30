@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_message_layout.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Why a saved computer cannot be downloaded from directly.
@@ -56,57 +57,15 @@ class DcNoDirectDownloadView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final l10n = context.l10n;
-
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorScheme.secondaryContainer,
-              ),
-              child: Icon(
-                _explainsUsb ? Icons.usb_off : Icons.file_open_outlined,
-                size: 64,
-                color: colorScheme.onSecondaryContainer,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.importWizard_dc_noDirectDownload,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _body(context),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: onImportFromFile,
-              icon: const Icon(Icons.upload_file),
-              label: Text(l10n.importWizard_dc_importFromFile),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: onDone,
-              child: Text(l10n.universalImport_action_done),
-            ),
-          ],
-        ),
-      ),
+    return DcMessageLayout(
+      icon: _explainsUsb ? Icons.usb_off : Icons.file_open_outlined,
+      title: l10n.importWizard_dc_noDirectDownload,
+      body: _body(context),
+      actionIcon: Icons.upload_file,
+      actionLabel: l10n.importWizard_dc_importFromFile,
+      onAction: onImportFromFile,
+      onDone: onDone,
     );
   }
 }

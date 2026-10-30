@@ -14,9 +14,14 @@ class TileSubtitleAction extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.actionKey,
+    this.semanticsLabel,
   });
 
   final String label;
+
+  /// What a screen reader announces instead of [label], for an action whose
+  /// label alone ("Set up") does not say what it acts on.
+  final String? semanticsLabel;
 
   /// Key for the button itself. A [ListTile] gives its subtitle the full
   /// line width, so this widget can be wider than its button; a key meant
@@ -43,7 +48,7 @@ class TileSubtitleAction extends StatelessWidget {
           alignment: AlignmentDirectional.centerStart,
         ),
         onPressed: onPressed,
-        child: Text(label),
+        child: Text(label, semanticsLabel: semanticsLabel),
       ),
     );
   }

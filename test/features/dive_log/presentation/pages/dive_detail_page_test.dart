@@ -1943,4 +1943,43 @@ void main() {
       expect(find.textContaining('Check-in: '), findsOneWidget);
     });
   });
+
+  group('DiveDetailPage notes', () {
+    Future<void> scrollToNotes(WidgetTester tester) async {
+      await tester.scrollUntilVisible(
+        find.text('Notes'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+    }
+
+    testWidgets('notes can be selected without entering edit mode (#3472)', (
+      tester,
+    ) async {
+      const notes = 'Saw a turtle at the drop-off.';
+      final dive = createTestDiveWithBottomTime().copyWith(notes: notes);
+      await _pumpDetailPage(tester, dive);
+      await scrollToNotes(tester);
+
+      // Drawn as Markdown (#3683) inside a SelectionArea, so still
+      // selectable without edit mode.
+      expect(
+        find.ancestor(
+          of: find.text(notes),
+          matching: find.byType(SelectionArea),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an empty note shows the placeholder as plain text', (
+      tester,
+    ) async {
+      await _pumpDetailPage(tester, createTestDiveWithBottomTime());
+      await scrollToNotes(tester);
+
+      expect(find.text('No notes for this dive.'), findsOneWidget);
+      expect(find.byType(SelectableText), findsNothing);
+    });
+  });
 }

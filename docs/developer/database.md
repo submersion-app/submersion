@@ -1014,9 +1014,15 @@ CREATE TABLE settings (
 **Sync:** every key syncs, and each key merges on its own clock, except the
 keys in `deviceLocalSettingsKeys` in
 `lib/core/services/sync/device_local_fields.dart` (today `active_diver_id`,
-`nav_primary_ids`, `nav_rail_ids` and `nav_always_hide_labels`). Those are
-filtered on export, skipped on import, kept through a replace-adopt, and never
-queued for sync when written. A new key syncs unless you add it there.
+`nav_primary_ids`, `nav_rail_ids`, `nav_always_hide_labels_phone` and
+`nav_always_hide_labels_desktop`). Those are filtered on export, skipped on
+import, kept through a replace-adopt, and never queued for sync when written.
+A new key syncs unless you add it there.
+
+`nav_always_hide_labels` (no surface suffix) is also listed there, though no
+code writes it anymore: it is the pre-split key both surfaces shared, kept
+local-only because `AppSettingsRepository` still reads it as a one-time
+fallback for a device whose phone or desktop key was never written.
 
 ### DiverSettings
 

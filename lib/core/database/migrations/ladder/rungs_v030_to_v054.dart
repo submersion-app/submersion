@@ -472,29 +472,11 @@ extension RungsV30ToV54 on AppDatabase {
                OR computer_id IS NOT NULL
           ''');
 
-      // Wearable and manual dives: stored as true local epoch.
-      // Both categories get the same shift so they are collapsed into one
-      // UPDATE using `import_version IS NULL` (computer dives are already
-      // set to 1 above).
-      //
-      // Convert local epoch to wall-clock-as-UTC:
-      //   newEpoch = localEpoch + timeZoneOffsetMs
-      //
-      // UTC+8 example: local 8:42 = 0:42 UTC epoch.  +8 h = 8:42 UTC.
-      // UTC-4 example: local 8:42 = 12:42 UTC epoch. -4 h = 8:42 UTC.
-      final now = DateTime.now();
-      final offsetMs = now.timeZoneOffset.inMilliseconds;
-
-      await customStatement('''
-            UPDATE dives
-            SET dive_date_time = dive_date_time + $offsetMs,
-                entry_time = CASE WHEN entry_time IS NOT NULL
-                             THEN entry_time + $offsetMs ELSE NULL END,
-                exit_time = CASE WHEN exit_time IS NOT NULL
-                            THEN exit_time + $offsetMs ELSE NULL END,
-                import_version = 1
-            WHERE import_version IS NULL
-          ''');
+      // Wearable and manual dives: stored as true local epoch. Both
+      // categories get the same shift, selected by `import_version IS NULL`
+      // (computer dives are already set to 1 above), each timestamp by the
+      // offset at its own instant (issue #3656).
+      await shiftLocalDiveTimesToWallClockUtc(this);
     }
     if (from < 49) await reportProgress();
     if (from < 50) {

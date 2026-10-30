@@ -22,6 +22,7 @@ const _headers = [
   'Page',
   'Side',
   'Path in ZIP',
+  'Tags',
 ];
 
 final _labels = ManifestLabels(
@@ -48,12 +49,14 @@ ArchiveDocumentInput _in(
   Document doc,
   List<DocumentPage> pages, {
   String? record,
+  List<String> tagNames = const [],
 }) => ArchiveDocumentInput(
   document: doc,
   displayTitle: doc.title,
   kindFolder: 'Folder',
   recordFolder: record,
   pages: pages,
+  tagNames: tagNames,
 );
 
 Document _doc({
@@ -125,6 +128,7 @@ void main() {
       '1',
       'front',
       plan.pathsByPageId['f'],
+      '',
     ]);
     expect(rows[2][11], '2');
     expect(rows[2][12], 'back');
@@ -138,7 +142,7 @@ void main() {
     );
     final rows = _rows(buildDocumentManifestCsv(inputs, plan, _labels));
     expect(rows.length, 2);
-    expect(rows[1].sublist(11), ['', '', '']);
+    expect(rows[1].sublist(11), ['', '', '', '']);
     expect(rows[1][3], '', reason: 'personal has no record name');
   });
 
@@ -200,5 +204,26 @@ void main() {
     );
     final row = _rows(buildDocumentManifestCsv(inputs, plan, _labels))[1];
     expect(row[6], '2026-10-12');
+  });
+
+  test('every row of a tagged document carries its tags last (#1970)', () {
+    final inputs = [
+      _in(
+        _doc(title: 'Permit'),
+        [_p('a', 0), _p('b', 1)],
+        tagNames: const ['Club', 'Travel'],
+      ),
+      _in(_doc(title: 'Notes only'), const [], tagNames: const ['Club']),
+    ];
+    final plan = planDocumentArchive(
+      inputs,
+      ArchiveNames(front: 'f', back: 'b', page: (n) => '$n'),
+    );
+    final rows = _rows(buildDocumentManifestCsv(inputs, plan, _labels));
+    expect(
+      [for (final r in rows.skip(1)) r.last],
+      ['Club; Travel', 'Club; Travel', 'Club'],
+    );
+    expect(rows.every((r) => r.length == _headers.length), isTrue);
   });
 }

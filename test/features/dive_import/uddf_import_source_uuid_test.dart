@@ -183,6 +183,37 @@ void main() {
       expect(tanks.single.transmitterSerial, '180777');
     });
 
+    test('a transmitter serial the import brings in gets its Transmitter '
+        'item, on the dive (#3676)', () async {
+      final diverId = await createTestDiver();
+      final uddf = buildMinimalUddf().replaceFirst(
+        '<tankvolume>12.0</tankvolume>',
+        '<tankvolume>12.0</tankvolume>\n'
+            '          <transmitterserial>180777</transmitterserial>',
+      );
+
+      final parsed = await exportService.importAllDataFromUddf(uddf);
+      await importer.import(
+        data: parsed,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final rows = await db.select(db.transmitters).get();
+      expect(rows.single.transmitterSerial, '180777');
+      expect(rows.single.isConfigured, isFalse);
+      final itemId = rows.single.transmitterEquipmentId!;
+      final item = await (db.select(
+        db.equipment,
+      )..where((t) => t.id.equals(itemId))).getSingle();
+      expect(item.type, 'transmitter');
+      final links = await (db.select(
+        db.diveEquipment,
+      )..where((t) => t.equipmentId.equals(itemId))).get();
+      expect(links, hasLength(1));
+    });
+
     test(
       'writes null source_uuid when UDDF <dive> has no id attribute',
       () async {

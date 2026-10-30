@@ -37,6 +37,16 @@ class UnifiedImportResult {
   /// IDs of the dives that were imported, for post-import filtering.
   final List<String> importedDiveIds;
 
+  /// Dives already in the log that this import wrote into: a download
+  /// consolidated onto them, replaced their source, or corrected their times.
+  /// Only the GPS track sweep reads these (issue #3704); "View Dives", tags,
+  /// rules and site matching keep to [importedDiveIds].
+  final List<String> updatedExistingDiveIds;
+
+  /// IDs of the sites the import created (universal imports only; other
+  /// sources create none), for the logbook rules pass (#3513).
+  final List<String> importedSiteIds;
+
   /// Non-null when the import failed with an error.
   final String? errorMessage;
 
@@ -67,6 +77,8 @@ class UnifiedImportResult {
     this.fillOutcomes = const [],
     required this.skippedCount,
     this.importedDiveIds = const [],
+    this.updatedExistingDiveIds = const [],
+    this.importedSiteIds = const [],
     this.errorMessage,
     this.fileOutcomes = const [],
     this.attachedPhotoCount = 0,

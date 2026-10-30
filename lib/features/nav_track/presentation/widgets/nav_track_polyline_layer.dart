@@ -8,6 +8,64 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 
+/// One sample [NavTrackPolylineLayer] draws: its [index] in the raw
+/// recording (a gap between two consecutive samples' indices is a break in
+/// the line), its corrected point, and where that point lands on the map.
+typedef NavTrackDrawnSample = ({
+  int index,
+  CorrectedNavTrackPoint point,
+  LatLng latLng,
+});
+
+/// Every sample [NavTrackPolylineLayer] draws for [route], in order.
+///
+/// Bounded to the active range, not filtered by kind across the whole
+/// recording: a diver who re-descends after a GPS fix produces more
+/// `underwater` samples past the jump, and kind-filtering alone would draw
+/// a second tail there and move the endpoint marker past the fix (mirrors
+/// NavTrackPathAdapter's own boundary for the same reason). Within that
+/// range only underwater and surface-reckoned samples are kept.
+///
+/// The one walk both the layer and a map that embeds it read (through
+/// [navTrackDrawnPoints]), so the extent a camera fits to can never drift
+/// from what is drawn. Empty without an anchor or with fewer than two
+/// points.
+List<NavTrackDrawnSample> navTrackDrawnSamples(NavTrack route) {
+  final anchor = route.anchor;
+  final points = route.points;
+  if (anchor == null || points.length < 2) return const [];
+
+  // Classified once: the kind filter and the active range share it.
+  final segmentation = NavTrackSegmenter.classify(points);
+  final kinds = segmentation.kinds;
+  final range = NavTrackCorrector.activeRangeOf(segmentation, points.length);
+  final corrected = NavTrackCorrector.apply(points, route.correction);
+
+  final samples = <NavTrackDrawnSample>[];
+  for (var i = range.start; i <= range.end && i < corrected.length; i++) {
+    final kind = kinds[i];
+    if (kind != NavTrackSampleKind.underwater &&
+        kind != NavTrackSampleKind.surfaceReckoned) {
+      continue;
+    }
+    final p = corrected[i];
+    final geo = offsetToGeoPoint(anchor, east: p.east, north: p.north);
+    samples.add((
+      index: i,
+      point: p,
+      latLng: LatLng(geo.latitude, geo.longitude),
+    ));
+  }
+  return samples;
+}
+
+/// The map positions of [navTrackDrawnSamples], so a map embedding the layer
+/// can fit its camera to the whole drawn route rather than a fixed zoom on
+/// the anchor alone (which cut a long route off at the map's edge).
+List<LatLng> navTrackDrawnPoints(NavTrack route) => [
+  for (final sample in navTrackDrawnSamples(route)) sample.latLng,
+];
+
 /// Draws a route on a flutter_map map, depth-coloured and thinner than
 /// `GpsTrackPolylineLayer` (spec 2026-09-10-underwater-nav-track-design.md,
 /// "2D map integration"): a route is an underwater instrument recording, not
@@ -26,88 +84,62 @@ class NavTrackPolylineLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final anchor = route.anchor;
-    final points = route.points;
-    if (anchor == null || points.length < 2) return const SizedBox.shrink();
+    final samples = navTrackDrawnSamples(route);
+    if (samples.isEmpty) return const SizedBox.shrink();
 
-    final kinds = NavTrackSegmenter.classify(points).kinds;
-    final corrected = NavTrackCorrector.apply(points, route.correction);
-    final maxDepth = route.maxDepth ?? _maxDepthOf(corrected);
-    // Bounded to the active range, not filtered by kind across the whole
-    // recording: a diver who re-descends after a GPS fix produces more
-    // `underwater` samples past the jump, and kind-filtering alone would
-    // draw a second tail there and move the endpoint marker past the fix
-    // (mirrors NavTrackPathAdapter's own boundary for the same reason).
-    final activeStart = NavTrackCorrector.activeRangeStartIndex(points);
-    final activeEnd = NavTrackCorrector.activeRangeEndIndex(points);
-
-    LatLng geoOf(CorrectedNavTrackPoint p) {
-      final geo = offsetToGeoPoint(anchor, east: p.east, north: p.north);
-      return LatLng(geo.latitude, geo.longitude);
-    }
-
-    bool kept(int i) =>
-        kinds[i] == NavTrackSampleKind.underwater ||
-        kinds[i] == NavTrackSampleKind.surfaceReckoned;
-
+    final maxDepth = route.maxDepth ?? _maxDepthOf(samples);
     final polylines = <Polyline>[];
-    LatLng? start;
-    LatLng? end;
-    CorrectedNavTrackPoint? previous;
-    for (var i = activeStart; i <= activeEnd && i < corrected.length; i++) {
-      if (!kept(i)) {
-        previous = null;
-        continue;
-      }
-      final p = corrected[i];
-      final latLng = geoOf(p);
-      start ??= latLng;
-      end = latLng;
-      if (previous != null) {
-        final t = maxDepth <= 0
-            ? 0.0
-            : ((previous.depth + p.depth) / 2 / maxDepth).clamp(0.0, 1.0);
-        polylines.add(
-          Polyline(
-            points: [geoOf(previous), latLng],
-            strokeWidth: _strokeWidth,
-            color: BathymetryTerrainBuilder.depthColor(t),
-            strokeCap: StrokeCap.round,
-          ),
-        );
-      }
-      previous = p;
+    for (var i = 1; i < samples.length; i++) {
+      final previous = samples[i - 1];
+      final current = samples[i];
+      // A sample skipped between these two (an out-of-water run inside the
+      // active range) breaks the line instead of being bridged.
+      if (current.index != previous.index + 1) continue;
+      final depth = (previous.point.depth + current.point.depth) / 2;
+      final t = maxDepth <= 0 ? 0.0 : (depth / maxDepth).clamp(0.0, 1.0);
+      polylines.add(
+        Polyline(
+          points: [previous.latLng, current.latLng],
+          strokeWidth: _strokeWidth,
+          color: BathymetryTerrainBuilder.depthColor(t),
+          strokeCap: StrokeCap.round,
+        ),
+      );
     }
 
+    final start = samples.first.latLng;
+    final end = samples.last.latLng;
     return Stack(
       children: [
         PolylineLayer(polylines: polylines),
-        if (start != null)
-          MarkerLayer(
-            markers: [
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: start,
+              width: 12,
+              height: 12,
+              child: const _Glyph(color: Colors.green),
+            ),
+            if (end != start)
               Marker(
-                point: start,
+                point: end,
                 width: 12,
                 height: 12,
-                child: const _Glyph(color: Colors.green),
+                child: const _Glyph(color: Colors.red),
               ),
-              if (end != null && end != start)
-                Marker(
-                  point: end,
-                  width: 12,
-                  height: 12,
-                  child: const _Glyph(color: Colors.red),
-                ),
-            ],
-          ),
+          ],
+        ),
       ],
     );
   }
 
-  static double _maxDepthOf(List<CorrectedNavTrackPoint> points) {
+  /// The colour scale for a row stored before its max depth was: the
+  /// deepest drawn sample, over the same active range the stored value
+  /// (`NavTrackStats.maxDepth`) covers.
+  static double _maxDepthOf(List<NavTrackDrawnSample> samples) {
     var max = 0.0;
-    for (final p in points) {
-      if (p.depth > max) max = p.depth;
+    for (final s in samples) {
+      if (s.point.depth > max) max = s.point.depth;
     }
     return max;
   }

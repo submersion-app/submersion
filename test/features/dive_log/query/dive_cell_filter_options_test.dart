@@ -280,6 +280,22 @@ void main() {
     );
   });
 
+  // The `entryMethod` field reads the site's sole method too (issue #3806),
+  // so the cell and the rule it offers agree on what the dive shows.
+  test('an entry method inherited from the site offers its rule', () {
+    final d = base.copyWith(
+      site: const DiveSite(
+        id: 's',
+        name: 'S',
+        entryMethods: [enums.EntryMethod.shore],
+      ),
+    );
+    expect(
+      (options(DiveField.entryMethod, d).first.rule as ConditionNode).value,
+      isA<EnumValue>().having((v) => v.name, 'name', 'shore'),
+    );
+  });
+
   group('derived display offers no items', () {
     test('runtime derived from timestamps', () {
       final d = base.copyWith(
@@ -287,17 +303,6 @@ void main() {
         exitTime: DateTime.utc(2026, 4, 1, 9, 50),
       );
       expect(options(DiveField.runtime, d), isEmpty);
-    });
-
-    test('entry method inherited from the site', () {
-      final d = base.copyWith(
-        site: const DiveSite(
-          id: 's',
-          name: 'S',
-          entryMethod: enums.EntryMethod.shore,
-        ),
-      );
-      expect(options(DiveField.entryMethod, d), isEmpty);
     });
 
     test('a dive whose only participant is a guide', () {

@@ -11,8 +11,8 @@ void main() {
       expect(insights.selectedIcon, Icons.insights);
     });
 
-    test('has exactly 17 entries (16 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 17);
+    test('has exactly 16 entries (15 routable + more sentinel)', () {
+      expect(kNavDestinations.length, 16);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -33,7 +33,7 @@ void main() {
       }
     });
 
-    test('contains the expected 16 routable ids plus more sentinel', () {
+    test('contains the expected 15 routable ids plus more sentinel', () {
       expect(kNavDestinations.map((d) => d.id).toList(), [
         'dashboard',
         'dives',
@@ -43,8 +43,7 @@ void main() {
         'buddies',
         'dive-centers',
         'training',
-        'media',
-        'documents',
+        'media-documents',
         'species',
         'insights',
         'planning',
@@ -92,6 +91,42 @@ void main() {
       }
     });
 
+    test('Media-Documents replaces Media and Documents', () {
+      final mediaDocuments = kNavDestinations.firstWhere(
+        (d) => d.id == 'media-documents',
+      );
+      expect(mediaDocuments.route, '/media');
+      expect(mediaDocuments.extraMatchPaths, ['/documents']);
+      expect(mediaDocuments.icon, Icons.photo_library_outlined);
+      expect(mediaDocuments.selectedIcon, Icons.photo_library);
+      expect(mediaDocuments.accentId, 'media');
+      final ids = kNavDestinations.map((d) => d.id);
+      expect(ids, isNot(contains('media')));
+      expect(ids, isNot(contains('documents')));
+    });
+
+    test(
+      'Media-Documents is the selected entry on every media/documents page',
+      () {
+        final mediaDocuments = kNavDestinations.indexWhere(
+          (d) => d.id == 'media-documents',
+        );
+        for (final location in const [
+          '/media',
+          '/documents',
+          '/documents/abc',
+          '/documents/abc/edit',
+          '/documents?type=insurance',
+        ]) {
+          expect(
+            bestNavMatchIndex(kNavDestinations, Uri.parse(location)),
+            mediaDocuments,
+            reason: location,
+          );
+        }
+      },
+    );
+
     test(
       'routable destinations have non-empty route; more sentinel has empty route',
       () {
@@ -116,8 +151,7 @@ void main() {
         'buddies',
         'dive-centers',
         'training',
-        'media',
-        'documents',
+        'media-documents',
         'species',
         'insights',
         'planning',
@@ -127,8 +161,8 @@ void main() {
       ]);
     });
 
-    test('has exactly 15 entries', () {
-      expect(movableNavIds.length, 15);
+    test('has exactly 14 entries', () {
+      expect(movableNavIds.length, 14);
     });
 
     test('Connections lives in Insights, not in the nav', () {

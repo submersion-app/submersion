@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -486,6 +487,50 @@ void main() {
       expect(initializer.getLastProvider(), CloudProviderType.icloud);
       await initializer.saveProvider(null);
       expect(initializer.getLastProvider(), isNull);
+    });
+  });
+
+  group('peer names follow the backend (issue #3482 review)', () {
+    test('switching provider forgets names learned on the old one', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final names = PeerDeviceNameStore(prefs);
+      addTearDown(names.dispose);
+      final init = SyncInitializer(
+        syncRepository: repository,
+        prefs: prefs,
+        peerNames: names,
+      );
+      await init.saveProvider(CloudProviderType.googledrive);
+      await names.record('dev-a', 'Old iPad');
+
+      await init.saveProvider(CloudProviderType.googledrive);
+      expect(names.all(), {'dev-a': 'Old iPad'}, reason: 'same backend');
+
+      await init.saveProvider(CloudProviderType.s3);
+      expect(names.all(), isEmpty);
+    });
+
+    test('turning sync off keeps the names for the same backend', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final names = PeerDeviceNameStore(prefs);
+      addTearDown(names.dispose);
+      final init = SyncInitializer(
+        syncRepository: repository,
+        prefs: prefs,
+        peerNames: names,
+      );
+      await init.saveProvider(CloudProviderType.googledrive);
+      await names.record('dev-a', 'Old iPad');
+
+      // Media provenance labels read these names while sync is off.
+      await init.saveProvider(null);
+      expect(names.all(), {'dev-a': 'Old iPad'});
+      await init.saveProvider(CloudProviderType.googledrive);
+      expect(names.all(), {'dev-a': 'Old iPad'});
+
+      await init.saveProvider(null);
+      await init.saveProvider(CloudProviderType.s3);
+      expect(names.all(), isEmpty, reason: 'a new backend after off');
     });
   });
 }

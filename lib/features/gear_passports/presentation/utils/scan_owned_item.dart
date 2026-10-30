@@ -133,6 +133,7 @@ void _notYours(
 ) => messenger.showSnackBar(
   SnackBar(
     content: Text(text),
+    persist: false,
     action: view == null
         ? null
         : SnackBarAction(label: viewLabel, onPressed: view),

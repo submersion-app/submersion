@@ -98,8 +98,14 @@ class DocumentMutations {
 
   DocumentRepository get _repo => _ref.read(documentRepositoryProvider);
 
-  Future<Document> save(Document document, List<DocumentPage> pages) async {
-    final saved = await _repo.save(document, pages);
+  /// [tagIds], when given, become the document's exact tag set; null
+  /// leaves its tags alone.
+  Future<Document> save(
+    Document document,
+    List<DocumentPage> pages, {
+    List<String>? tagIds,
+  }) async {
+    final saved = await _repo.save(document, pages, tagIds: tagIds);
     await _rearm(saved);
     return saved;
   }

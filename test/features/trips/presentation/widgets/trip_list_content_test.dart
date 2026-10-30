@@ -29,6 +29,8 @@ import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/list_create_router.dart';
@@ -38,6 +40,7 @@ import '../../../../helpers/selection_contract.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -204,6 +207,58 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // A selection made outside the list (the map, a deep link, the detail
+  // pane's previous and next) brings its row into view (#3301).
+  testWidgets('scrolls to a trip selected from outside the list', (
+    tester,
+  ) async {
+    final overrides = await _buildPhoneOverrides(
+      trips: [
+        for (var i = 0; i < 60; i++)
+          _makeTrip(id: 'r$i', name: 'Trip ${i.toString().padLeft(2, '0')}'),
+      ],
+    );
+    final selected = ValueNotifier<String?>(null);
+    addTearDown(selected.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: ValueListenableBuilder<String?>(
+          valueListenable: selected,
+          builder: (_, id, _) =>
+              TripListContent(showAppBar: true, selectedId: id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    selected.value = 'r50';
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trip 50'), findsOneWidget);
+  });
+
+  // A list built again after the diver left it comes back to the record they
+  // last opened (#3301).
+  testWidgets('scrolls to the highlighted trip when built', (tester) async {
+    final overrides = await _buildPhoneOverrides(
+      trips: [
+        for (var i = 0; i < 60; i++)
+          _makeTrip(id: 'r$i', name: 'Trip ${i.toString().padLeft(2, '0')}'),
+      ],
+      highlightedTripId: 'r50',
+    );
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: const TripListContent(showAppBar: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trip 50'), findsOneWidget);
+  });
+
   // The title's subtitle counts the list (#2669), in both the phone app bar
   // and the desktop pane header.
   group('entry count subtitle', () {
@@ -329,6 +384,7 @@ void main() {
 
   group('bulk delete of shared trips (issue #2594)', () {
     late _MockTripListNotifier notifier;
+    late FakeItemShares itemShares;
     // False takes the list out of the tree, as leaving the page does.
     final showList = ValueNotifier(true);
     setUp(() => showList.value = true);
@@ -339,8 +395,10 @@ void main() {
       List<TripWithStats> trips, {
       bool profileUnreadable = false,
       bool profilesUncountable = false,
+      bool thenDelete = true,
     }) async {
       notifier = _MockTripListNotifier(trips);
+      itemShares = FakeItemShares();
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       await tester.pumpWidget(
@@ -356,6 +414,7 @@ void main() {
               (_) async =>
                   profileUnreadable ? throw StateError('no profile') : 'd2',
             ),
+            itemSharesRepositoryProvider.overrideWithValue(itemShares),
             allDiversProvider.overrideWith(
               (_) async => profilesUncountable
                   ? throw StateError('no divers')
@@ -385,11 +444,63 @@ void main() {
       await enterSelectionViaMenu(tester);
       await tester.tap(find.byKey(const ValueKey('selection_select_all')));
       await tester.pumpAndSettle();
+      if (!thenDelete) return;
       await tester.tap(find.byKey(const ValueKey('selection_overflow')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('selection_delete')));
       await tester.pumpAndSettle();
     }
+
+    /// Taps the selection's Share action, in the bar or its overflow menu.
+    Future<void> tapShare(WidgetTester tester) async {
+      final inBar = find.byKey(const ValueKey('selection_action_share'));
+      if (inBar.evaluate().isEmpty) {
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_menu_share')));
+      } else {
+        await tester.tap(inBar);
+      }
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Share with... adds a profile to the selected own trips '
+        '(issue #2151)', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(id: 'mine2', name: 'Bbb Trip', diverId: 'd2'),
+      ], thenDelete: false);
+      await tapShare(tester);
+      expect(find.text('Share with'), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining('d1'),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Share'));
+      await tester.pumpAndSettle();
+      await tester.pump();
+      final (ids, added) = itemShares.addCalls.single;
+      expect(ids.toSet(), {'mine', 'mine2'});
+      expect(added, const ItemSharing(profileIds: {'d1'}));
+    });
+
+    testWidgets('Share with... is off when a selected trip is another '
+        'profile\'s', (tester) async {
+      await openDelete(tester, [
+        _makeTrip(id: 'mine', name: 'Aaa Trip', diverId: 'd2'),
+        _makeTrip(
+          id: 'theirs',
+          name: 'Bbb Trip',
+          diverId: 'd1',
+          isShared: true,
+        ),
+      ], thenDelete: false);
+      await tapShare(tester);
+      expect(find.text('Share with'), findsNothing);
+    });
 
     testWidgets('deletes the profile\'s own and hides another\'s shared', (
       tester,

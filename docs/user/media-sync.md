@@ -9,13 +9,15 @@ path. Neither pointer means anything on another device.
 **Media Sync** closes that gap. Connect a storage provider and Submersion keeps a
 copy of each photo and video in cloud storage you control, then serves those
 copies to your other devices on demand. It is optional, off by default, and set
-up separately from Cloud Sync.
+up separately from Sync between devices.
 
 > [!TIP]
-> **In the app this lives under Settings > Data > Photos & Media > Media Storage.** Photos & Media covers two ideas: where photos come from (your
-> gallery, files, URLs; see [Marine Life & Photos](marine-life-and-photos.md))
-> and where copies are kept, which is this page. **Guided setup** on the Photos &
-> Media page walks through both.
+> **In the app this lives under Settings > Data > Photos & videos.** The page
+> covers two ideas: **Copies in the cloud**, which is this guide, and **Where
+> photos come from** (your gallery, files, URLs; see
+> [Marine Life & Photos](marine-life-and-photos.md)). **Guided setup:** step 4
+> of [Set Up This Device](set-up-this-device.md) starts or joins the copies with
+> sync and backups.
 
 ## What Media Sync Solves
 
@@ -36,48 +38,59 @@ Nothing about how you link photos changes. Each photo keeps its original source,
 so if you later disconnect the store, every photo goes back to behaving exactly
 as it did before.
 
-## Choosing a Provider
+## Choosing an Account
 
-Media Sync supports four providers. All your devices should point at the same
-one.
+Copies can live in any of these kinds of account. All your devices should use
+the same one.
 
-| Provider | Where files land | Notes |
-|----------|------------------|-------|
-| **S3** | A bucket you own (AWS S3, Backblaze B2, MinIO, Wasabi and others) | Most control; you supply the endpoint, bucket and keys |
-| **Dropbox** | Your Dropbox app folder | Reuses the Dropbox connection from Cloud Sync |
-| **Google Drive** | The app's private Drive space | Signs in with Google; files are not visible in your normal Drive |
+| Account | Where files land | Notes |
+|---------|------------------|-------|
+| **My own server** (S3) | A bucket you own (AWS S3, Backblaze B2, MinIO, Wasabi and others) | Most control; copies go in the `submersion-media/` folder of the bucket |
+| **My own server** (WebDAV) | A folder on your server | Copies go in the server's `Submersion Media` folder |
+| **Dropbox** | Your Dropbox app folder | |
+| **Google Drive** | The app's private Drive space | Files are not visible in your normal Drive |
 | **iCloud** | The app's iCloud container | Apple devices only; travels with your Apple Account |
 
-The media store is set up independently of Cloud Sync. You can sync your logbook
-over iCloud and keep media in S3, or use media storage with no database sync at
-all.
+Copies are set up independently of Sync between devices. You can sync your
+logbook over iCloud and keep copies on your own server, or keep copies with no
+database sync at all. The same account can do both: on your own server, sync and
+copies each use a folder of their own.
 
-## Connecting
+## Setting Up
 
-1. Go to **Settings > Data > Photos & Media > Media Storage**.
-2. Choose a provider with **Provider**.
-3. For Dropbox, Google Drive or iCloud, tap **Connect** for that provider and
-   complete the sign-in. There is nothing else to fill in.
-4. For S3, enter the endpoint, bucket, access key and secret. Optional fields
-   (region, key prefix, path-style addressing) are under **Advanced**; the region
-   is worked out from the endpoint when you leave it blank, and the prefix
-   defaults to `submersion-media/`.
-5. Use **Test Connection** to check the details, then **Save**.
+The quickest way is the **Set up this device** card on Settings > Data: its
+photo step uses the account you chose for sync, and on a later device it joins
+the copies your other devices keep. To set up copies on their own:
 
-> [!TIP]
-> **Already using S3 for Cloud Sync?** **Copy settings from Sync** on the S3 form
-> fills in the endpoint, bucket and keys from your sync settings. The key prefix
-> stays `submersion-media/`, so media keeps its own space even in a shared
-> bucket.
+1. Go to **Settings > Data > Photos & videos**.
+2. Under **Copies in the cloud**, tap **Set up**. The account list opens.
+3. Choose one of your accounts, or add one under **Add an account**. An account
+   that is not signed in on this device signs in first. On your own server, the
+   copies folder is created with the account's keys; there is nothing else to
+   fill in.
 
-Once connected, the page shows that it is connected and replaces the sign-in
-form with the controls described below.
+The row then reads **Copies in {account}**, with a status line underneath, and
+the controls described below appear.
 
-Your other devices learn that the library has a media store, without its
-credentials. Each of them shows **Finish setting up this device** at the top of
-Settings, with an item to connect media storage; tap it and sign in, or enter the
-same keys, to join the same media library. The credentials themselves never
-leave the device they were entered on.
+Your other devices learn which account holds the copies, without its
+credentials. A device that is signed in to that account joins by choosing it the
+same way: the copies already there are found and adopted, so there is nothing to
+type. A device that is not signed in yet shows **Finish setting up this device**
+on the page, and the setup card on Settings > Data and at the top of Settings
+says the other devices keep copies there. The credentials themselves never leave
+the device they were entered on.
+
+### The status line
+
+| Status | Meaning |
+|--------|---------|
+| **{copied} of {total} copied** | Everything this device can upload is in the cloud, or this many of it |
+| **{copied} of {total} copied, {n} uploading** | Uploads are running |
+| **Waiting for a connection** | Offline; uploads resume on their own |
+| **{n} waiting to retry** | Uploads that failed and will try again |
+| **Uploads paused: ...** | The account could not be checked, this device is no longer connected, or the account now holds different copies than this device joined (**Uploads paused: choose the account again**: tap **Copies in {account}** and choose the same account) |
+| **Could not reach {account}** | The account could not be opened with this device's keys |
+| **Finish setting up this device** | The library keeps copies this device has not joined yet. A device already keeping copies reports on its own copies instead, even when the library has since moved to another account; a line above **Copies in {account}** then says where the copies went, and choosing that account there follows the move |
 
 ## What Gets Uploaded
 
@@ -90,14 +103,15 @@ Only media that belongs to your logbook is uploaded: a photo must be linked to a
 network URLs or manifest feeds (already reachable by URL everywhere), are left
 alone.
 
-- **Upload photos automatically:** on by default. New photos are queued as you
-  add them.
-- **Upload existing library:** queues everything already in your logbook that
-  has not been uploaded yet, newest dives first. Run this once after connecting.
+- **Upload new photos automatically:** on by default. New photos are queued as
+  you add them.
+- **Upload everything already attached** (under **Advanced**): queues everything
+  already in your logbook that has not been uploaded yet, newest dives first.
+  Run this once after setting up.
 
 ## Upload Quality
 
-By default Submersion uploads your original files. If you would rather trade
+Under **Advanced**, **Upload quality** sets the level. By default Submersion uploads your original files. If you would rather trade
 some quality for storage cost and bandwidth, set a level for photos and for
 video separately.
 
@@ -129,10 +143,9 @@ devices, Media3 on Android, Media Foundation on Windows, `ffmpeg` on Linux). A
 device without a working encoder uploads originals instead and says so under the
 video setting; on Linux, installing `ffmpeg` enables it.
 
-## Transfers
+## Uploads
 
-**View transfers** on the Media Storage page (or **Transfers** on the Photos &
-Media page) shows the queue. Each row is one item:
+**Uploads** on the Photos & videos page shows the queue. Each row is one item:
 
 | State | Meaning |
 |-------|---------|
@@ -144,9 +157,9 @@ Media page) shows the queue. Each row is one item:
 
 Failed rows offer **Retry**. Retries also back off automatically, so a row with
 an error may sit in Waiting for a while; tapping **Retry** skips the wait.
-**Clear completed** tidies away finished rows. If this device and the store no
-longer agree on which store is in use, the page says **Transfers paused**, and
-reconnecting media storage resumes them.
+**Clear completed** tidies away finished rows. If this device and the account
+no longer agree on which copies are in use, the page says **Uploads paused**,
+and choosing the account again resumes them.
 
 Photo tiles carry a small badge while a transfer is waiting, running or failed,
 and a cloud-off badge for items with no cloud copy. Items that are safely backed
@@ -157,13 +170,13 @@ connection or a closed app picks up from the last completed chunk.
 
 ## Data Use
 
-Two switches on the Media Storage page control what this device spends. They
+Two switches on the Photos & videos page control what this device spends. They
 are per device: each phone, tablet and computer keeps its own setting.
 
-- **Upload photos automatically:** turn it off to stop queueing new uploads on
-  this device. Anything already queued stays queued.
-- **Upload photos on cellular:** on by default. Turn it off to hold photo uploads
-  until Wi-Fi.
+- **Upload new photos automatically:** turn it off to stop queueing new uploads
+  on this device. Anything already queued stays queued.
+- **Use cellular data:** on by default. Turn it off to hold photo uploads until
+  Wi-Fi.
 
 Videos are never uploaded over a cellular connection; they wait for an unmetered
 network. Going offline pauses the queue, and it resumes on its own when the
@@ -197,9 +210,9 @@ Deletions go through the same transfer queue as uploads (they show as Removing
 from cloud), and the cellular rules do not hold them back, since they carry no
 file.
 
-## Verify Library
+## Verify the Copies
 
-**Verify library** compares what is in your storage with what your logbook
+**Verify the copies** (under **Advanced**) compares what is in your storage with what your logbook
 expects, and reports what it did:
 
 - **Orphans removed:** stored files nothing in your library points at any more
@@ -213,21 +226,43 @@ expects, and reports what it did:
 Submersion also runs this quietly in the background when no device has verified
 in the last 30 days and this device is on an unmetered connection. Recent files
 are given a grace period, so an upload still in progress is never mistaken for
-an orphan.
+an orphan. When database sync runs through a Git repository, every orphan waits
+the full seven days before it is removed: Git records each device's own clock,
+so Submersion cannot be sure when other devices last synced.
 
-**Export media report** writes a report of your media and its storage, useful
+**Export media report** (under **Advanced**) writes a report of your media and its storage, useful
 for a bug report. The report lists file paths and device names; nothing is sent
 anywhere.
 
-## Disconnecting
+## Changing the Account or Stopping
 
-**Disconnect** stops this device uploading and fetching. It does not delete
-anything from your bucket or account, and it does not affect your other devices.
+**Change** on the **Copies in {account}** row picks another account. The list
+says what that does first: this device stops using the current copies and
+starts or joins copies in the new account. Nothing is deleted from either.
+
+The new account counts its own copies. Photos already copied to the old account
+read as not yet copied there, and **Upload everything already attached** copies
+the ones this device still has (in the gallery or on disk) across, including
+any that had stopped retrying. Choosing the same account again (for example,
+after it could not be reached) reconnects to the copies already there. If the
+change cannot reach the new account, nothing changes and this device keeps
+using the current copies.
+
+Photos whose only copy is in the old account cannot be copied across: photos
+kept only in the cloud, and gallery photos or local files removed from this
+device after they were copied. After the change they show a placeholder on
+this device, although the old account still holds them. When some photos are
+kept only in the cloud, the list says how many before you confirm. To keep
+them viewable, choose the old account again.
+
+**Stop keeping copies on this device** (under **Advanced**) stops this device
+uploading and fetching. It does not delete anything from your bucket or account,
+and it does not affect your other devices.
 Photos on this device go back to how they behaved before: gallery photos come
 from the gallery, local files from disk, and anything that only existed in the
 store shows a placeholder.
 
-Reconnecting the same storage later picks the library straight back up.
+Choosing the same account again later picks the library straight back up.
 
 ## What Lands in Your Storage
 
@@ -236,7 +271,7 @@ folders under your chosen prefix:
 
 | Key | Contents |
 |-----|----------|
-| `smv1/store.json` | The store's identity, written when you first connect |
+| `smv1/store.json` | The store's identity, written when copies are first set up |
 | `smv1/objects/<aa>/<hash>.<ext>` | Full-size originals |
 | `smv1/renditions/<aa>/<hash>.<ext>` | Compressed versions, when a quality level is set |
 | `smv1/thumbs/<aa>/<hash>.jpg` | 512 px thumbnails |
@@ -254,17 +289,17 @@ many dives or devices use them.
 
 | Symptom | Likely cause |
 |---------|--------------|
-| Nothing queues after connecting | Photos are not linked to a dive or site yet, or **Upload photos automatically** is off. Run **Upload existing library**. |
+| Nothing queues after setting up | Photos are not linked to a dive or site yet, or **Upload new photos automatically** is off. Run **Upload everything already attached**. |
 | Queue stuck on Waiting | Offline, or a cellular setting is holding the work. Videos always wait for an unmetered connection. |
-| Photos show cloud-off badges on a second device | That device has not been connected to the media store yet; see **Finish setting up this device** in its Settings. |
-| **Transfers paused** after a bucket change | The store's identity no longer matches; reconnect to adopt the new store. |
-| Repeated failures on one item | Open **Transfers** and read the row's error; **Retry** also clears a cached "cannot find this file" result. |
-| Storage bill larger than the library | Run **Verify library**: it removes orphans and aborts stale partial uploads. |
+| Photos show cloud-off badges on a second device | That device has not joined the copies yet; on its Photos & videos page, tap **Set up** and choose the account. |
+| **Uploads paused** after a bucket change | The copies' identity no longer matches; choose the account again to adopt the copies it holds now. |
+| Repeated failures on one item | Open **Uploads** and read the row's error; **Retry** also clears a cached "cannot find this file" result. |
+| Storage bill larger than the library | Run **Verify the copies**: it removes orphans and aborts stale partial uploads. |
 
 ## See also
 
 - [Marine Life & Photos](marine-life-and-photos.md): linking photos to dives, and where they come from
 - [Multi-Device Sync](multi-device-sync.md): syncing the logbook itself
 - [Encrypted Sync](encrypted-sync.md): end-to-end encryption for sync and backups
-- [Backup & Restore](backup-and-restore.md): snapshots of your database
+- [Backups](backup-and-restore.md): snapshots of your database
 - [Settings](settings.md): every setting

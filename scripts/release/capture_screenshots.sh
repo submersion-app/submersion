@@ -10,6 +10,11 @@
 # Usage:
 #   ./scripts/release/capture_screenshots.sh
 #
+# The screens show the demo-mode sample logbook (issue #3708), downloaded from
+# the demo-data release. To use a package built locally instead (before it is
+# published), set DEMO_PACKAGE_DIR to the directory holding its extracted
+# submersion_demo.db and photos/.
+#
 # Requirements:
 #   - Xcode with iOS simulators installed
 #   - Flutter SDK with macOS desktop support enabled
@@ -20,14 +25,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 SCREENSHOTS_DIR="$PROJECT_ROOT/screenshots"
-UDDF_FILE="$PROJECT_ROOT/integration_test/fixtures/screenshot_test_data.uddf"
+DEMO_DIR="${DEMO_PACKAGE_DIR:-$PROJECT_ROOT/demo_package}"
 
 # Note: Output directories are created by the ScreenshotHelper in Dart
 # Pre-create them here as well for visibility
 mkdir -p "$SCREENSHOTS_DIR/iPhone_6_7_inch"
 mkdir -p "$SCREENSHOTS_DIR/iPad_13_inch"
 mkdir -p "$SCREENSHOTS_DIR/macOS"
-mkdir -p "$(dirname "$UDDF_FILE")"
 
 # Device configurations
 # Format: "Simulator Name Pattern|Output Folder Name|Orientation"
@@ -57,18 +61,17 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# Generate UDDF test data using Python script
-# This creates consistent, realistic dive data for screenshots
-echo "Generating UDDF test data..."
-if command -v python3 &> /dev/null; then
-  python3 "$PROJECT_ROOT/scripts/generate_uddf_test_data.py" \
-    -o "$UDDF_FILE" || {
-      echo "Warning: Failed to generate UDDF test data. Using existing file if available."
-    }
-  echo "UDDF test data generated: $UDDF_FILE"
-else
-  echo "Warning: python3 not found. Using existing UDDF file if available."
+# Fetch the demo logbook unless a local one was given
+if [ -z "${DEMO_PACKAGE_DIR:-}" ]; then
+  echo "Fetching the demo logbook..."
+  python3 "$PROJECT_ROOT/scripts/demo_data/fetch_demo_db.py" "$DEMO_DIR"
 fi
+if [ ! -f "$DEMO_DIR/submersion_demo.db" ]; then
+  echo "Error: no submersion_demo.db in $DEMO_DIR" >&2
+  exit 1
+fi
+DEMO_DIR="$(cd "$DEMO_DIR" && pwd)"
+echo "Demo logbook: $DEMO_DIR"
 echo ""
 
 # Check for available simulators
@@ -153,7 +156,7 @@ for device_config in "${DEVICES[@]}"; do
     --dart-define=SCREENSHOT_DEVICE_NAME="$output_name" \
     --dart-define=SCREENSHOT_OUTPUT_DIR="$SCREENSHOTS_DIR" \
     --dart-define=SCREENSHOT_ORIENTATION="$orientation" \
-    --dart-define=UDDF_TEST_DATA_PATH="$UDDF_FILE" \
+    --dart-define=DEMO_PACKAGE_DIR="$DEMO_DIR" \
     2>&1 || {
       echo "Warning: Screenshot tests encountered issues on $simulator_name"
     }
@@ -185,27 +188,24 @@ if [[ "$(uname)" == "Darwin" ]]; then
   cd "$PROJECT_ROOT"
 
   # macOS sandbox remaps relative paths to ~/Library/Containers/<bundle-id>/Data/.
-  # We stage the UDDF input into the sandbox container before the test, then copy
-  # screenshots out of the container afterward.
+  # We stage the demo logbook into the sandbox container before the test, then
+  # copy screenshots out of the container afterward.
   SANDBOX_DATA="$HOME/Library/Containers/app.submersion/Data"
-  SANDBOX_UDDF_DIR="$SANDBOX_DATA/integration_test/fixtures"
-
-  # Stage UDDF test data into the sandbox container
-  if [ -f "$UDDF_FILE" ]; then
-    mkdir -p "$SANDBOX_UDDF_DIR"
-    cp "$UDDF_FILE" "$SANDBOX_UDDF_DIR/"
-    echo "Staged UDDF test data into sandbox container"
-  fi
+  mkdir -p "$SANDBOX_DATA"
+  rm -rf "$SANDBOX_DATA/demo_package"
+  cp -R "$DEMO_DIR" "$SANDBOX_DATA/demo_package"
+  echo "Staged the demo logbook into the sandbox container"
 
   flutter test integration_test/screenshots_test.dart \
     -d macos \
     --dart-define=SCREENSHOT_MODE=true \
     --dart-define=SCREENSHOT_DEVICE_NAME=macOS \
     --dart-define=SCREENSHOT_OUTPUT_DIR=screenshots \
-    --dart-define=UDDF_TEST_DATA_PATH=integration_test/fixtures/screenshot_test_data.uddf \
+    --dart-define=DEMO_PACKAGE_DIR=demo_package \
     2>&1 || {
       echo "Warning: macOS screenshot capture encountered issues"
     }
+  rm -rf "$SANDBOX_DATA/demo_package"
 
   # Copy screenshots from sandbox container back to project directory
   SANDBOX_SCREENSHOTS="$SANDBOX_DATA/screenshots/macOS"

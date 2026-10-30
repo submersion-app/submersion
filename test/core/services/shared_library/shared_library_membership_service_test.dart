@@ -7,6 +7,7 @@ import 'package:submersion/core/services/shared_library/crypto/library_cipher.da
 import 'package:submersion/core/services/shared_library/crypto/library_recovery.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/shared_library_test_keys.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/shared_library_test_account.dart';
 
 Future<void> _diver(String id) => DiverRepository().createDiver(
   Diver(id: id, name: id, createdAt: DateTime(2026), updatedAt: DateTime(2026)),
@@ -41,6 +43,7 @@ void main() {
     await _diver('d1');
     cloud = FakeCloudStorageProvider();
     service = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async =>
           SharedLibraryTransport(cloud, prefix: prefix),
@@ -607,6 +610,7 @@ void main() {
     await folder.writeRoles(await signedTestRoles(owners: {'o'}));
     var built = 0;
     final counting = SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) async {
         built++;
@@ -1014,5 +1018,28 @@ void main() {
 
     expect(await store.getLibrary(lib.id), isNull);
     expect(await SiteRepository().getSiteById('lib'), isNull);
+  });
+
+  // Issue #3563: a library action whose account is gone says so, rather than
+  // reaching storage through an empty stand-in account.
+  test('a library whose account is gone reports it missing', () async {
+    final missing = SharedLibraryMembershipService(
+      store: SharedLibraryStore(),
+      transportFor: ({required account, required prefix}) async =>
+          SharedLibraryTransport(cloud, prefix: prefix),
+      accountById: (id) async => null,
+    );
+
+    await expectLater(
+      missing.transportForLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Reef Survey',
+          connectedAccountId: 'gone',
+          prefix: 'site-sync',
+        ),
+      ),
+      throwsA(isA<LibraryAccountMissingError>()),
+    );
   });
 }

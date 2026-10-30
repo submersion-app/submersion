@@ -141,8 +141,9 @@ class DownloadedDive {
   final int? decoConservatism;
 
   /// Dive-level tissue state the computer itself reported (start/end
-  /// compartment loadings, CNS, OTU), when the source carries one. Never
-  /// computed by the app; persisted verbatim on the dive.
+  /// compartment loadings), when the source carries one. Never computed by
+  /// the app; persisted verbatim on the dive. CNS and OTU are [cnsStart],
+  /// [cnsEnd] and [otu], never the snapshot (issue #2555).
   final ComputerTissueSnapshot? computerTissue;
 
   /// Dive events from the computer
@@ -176,6 +177,11 @@ class DownloadedDive {
 
   /// Water type the computer was set to for this dive, when it reports one.
   final WaterType? waterType;
+
+  /// CNS% at the start of the dive, as the source reported it (what earlier
+  /// dives left). Stored as `dives.cns_start`; null leaves the column at its
+  /// default of 0.
+  final double? cnsStart;
 
   /// CNS% at the end of the dive, as the source reported it. When null the
   /// import falls back to the highest per-sample CNS in [profile].
@@ -215,6 +221,7 @@ class DownloadedDive {
     this.bottomTimeSeconds,
     this.surfaceIntervalSeconds,
     this.waterType,
+    this.cnsStart,
     this.cnsEnd,
     this.otu,
   });
@@ -384,6 +391,13 @@ class DownloadedTank {
   /// mix someone fixed.
   final bool mixRecorded;
 
+  /// True for a cylinder made from a gas on a rebreather computer's gas list
+  /// that no transmitter read, that the computer tagged with no usage, and
+  /// that the diver never breathed (issue #3668). The cylinder is still
+  /// resolved; a writer drops it when the diver asks for that, after the
+  /// bailout transmitter claim has seen it.
+  final bool unusedOcGas;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -395,6 +409,7 @@ class DownloadedTank {
     this.roleSource,
     this.transmitterSerial,
     this.mixRecorded = true,
+    this.unusedOcGas = false,
   });
 
   DownloadedTank copyWith({
@@ -408,6 +423,7 @@ class DownloadedTank {
     TankRoleSource? roleSource,
     String? transmitterSerial,
     bool? mixRecorded,
+    bool? unusedOcGas,
   }) => DownloadedTank(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -419,6 +435,7 @@ class DownloadedTank {
     roleSource: roleSource ?? this.roleSource,
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     mixRecorded: mixRecorded ?? this.mixRecorded,
+    unusedOcGas: unusedOcGas ?? this.unusedOcGas,
   );
 
   /// Whether this is air (21% O2)

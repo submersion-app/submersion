@@ -24,6 +24,9 @@ import 'package:submersion/core/services/restore_source_missing_exception.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Which executor path [DatabaseService] used for the most recent open.
 enum DatabaseOpenMode {
@@ -187,12 +190,17 @@ class DatabaseService {
   /// for (issue #3333); null, the default, never compacts, so only the
   /// foreground launch, which passes it, can spend time rewriting the file.
   /// [onCompacting] is told just before that rewrite starts.
+  /// [pathOverride] opens that file instead of the location service's path,
+  /// without changing the location service: demo mode opens its sample
+  /// logbook this way and leaves the user's database location as it was
+  /// (issue #3708).
   Future<void> initialize({
     DatabaseLocationService? locationService,
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
     bool allowSchemaUpgrade = true,
     DatabaseCompactionPrefs? compaction,
     void Function()? onCompacting,
+    String? pathOverride,
   }) async {
     if (_database != null) return;
     _openAttempted = false;
@@ -202,7 +210,7 @@ class DatabaseService {
     // there would make the reopen resolve the DEFAULT path, silently
     // abandoning a custom database location on every restore.
     _locationService = locationService ?? _locationService;
-    final dbPath = await _resolveDatabasePath();
+    final dbPath = pathOverride ?? await _resolveDatabasePath();
     _currentDatabasePath = dbPath;
 
     // Ensure directory exists
@@ -600,7 +608,13 @@ class DatabaseService {
   }
 
   /// Reinitialize the database at a specific path (used during migration)
-  Future<void> reinitializeAtPath(String newPath) async {
+  ///
+  /// Runs as a [SyncCoordinator] turn: a sync still merging would otherwise
+  /// carry its remaining steps into the newly opened file (issue #3798).
+  Future<void> reinitializeAtPath(String newPath) =>
+      SyncCoordinator.join(() => _reinitializeAtPath(newPath));
+
+  Future<void> _reinitializeAtPath(String newPath) async {
     // Strict close: this method reopens immediately, so it must not race a
     // background connection that timed out mid-close and is still holding
     // file locks. A stuck close throws here rather than being abandoned.
@@ -1022,7 +1036,23 @@ class DatabaseService {
   /// Throws [RestoreSourceMissingException] when [backupPath] does not exist.
   /// The live database is left open and untouched in that case; the throw is
   /// what lets callers tell "nothing happened" from a completed restore.
+  ///
+  /// Runs as a [SyncCoordinator] turn, so a sync still merging finishes on
+  /// the live database rather than carrying on into the restored one
+  /// (issue #3798).
   Future<void> restore(
+    String backupPath, {
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
+    // Inside the async body, so a sealed restore fails the returned future
+    // rather than throwing at the call.
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.restore);
+    return SyncCoordinator.join(
+      () => _restore(backupPath, onMigrationProgress: onMigrationProgress),
+    );
+  }
+
+  Future<void> _restore(
     String backupPath, {
     void Function(int currentStep, int totalSteps)? onMigrationProgress,
   }) async {
@@ -1323,7 +1353,15 @@ class DatabaseService {
   /// Throws if the backup step fails (reset is aborted to protect data).
   /// If file deletion or reinitialize fails after backup succeeds,
   /// the error propagates and the caller should handle recovery.
+  ///
+  /// Runs as a [SyncCoordinator] turn, so a sync still merging finishes
+  /// before the database closes (issue #3798).
   Future<void> resetDatabase({required String backupPath}) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
+    return SyncCoordinator.join(() => _resetDatabase(backupPath));
+  }
+
+  Future<void> _resetDatabase(String backupPath) async {
     final dbPath = await databasePath;
 
     // Step 1: Backup first (throws on failure, aborting the reset)

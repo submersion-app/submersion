@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/rules/presentation/widgets/import_rules_box.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
@@ -47,6 +48,16 @@ class ImportSummaryStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(importWizardNotifierProvider);
     final result = state.importResult;
+
+    if (state.importRefused) {
+      final l10n = context.l10n;
+      return _ErrorView(
+        errorMessage:
+            '${l10n.universalImport_running_title}\n'
+            '${l10n.universalImport_running_body}',
+        onDone: onDone,
+      );
+    }
 
     if (result == null) {
       final error = state.error;
@@ -141,10 +152,20 @@ class _SuccessView extends StatelessWidget {
     // "Import notes" explain dives that imported. Dives that did not (rows
     // whose date could not be read, dives a parser could not read) get their
     // own card.
+    // A notice's action opens a page of the active profile, so it is
+    // dropped when every imported dive went to another profile (issue
+    // #2050): that page would not list them.
+    final divesInActiveProfile =
+        diverOutcomes.isEmpty || diverOutcomes.any((o) => o.isActive);
     final fileNotices = [
       for (final notice in notices)
         if (_fileNoticeWording(l10n, notice) case final wording?)
-          (notice: notice, wording: wording),
+          (
+            notice: notice,
+            wording: divesInActiveProfile
+                ? wording
+                : (title: wording.title, body: wording.body, action: null),
+          ),
     ];
 
     final String title;
@@ -334,6 +355,18 @@ class _SuccessView extends StatelessWidget {
               for (final outcome in fileOutcomes)
                 _FileOutcomeRow(outcome: outcome),
             ],
+            // What the diver's logbook rules changed (#3513).
+            Consumer(
+              builder: (context, ref, _) {
+                final state = ref.watch(importWizardNotifierProvider);
+                return ImportRulesBox(
+                  runs: state.ruleRuns,
+                  failed: state.rulesFailed,
+                  skippedRules: state.ruleSkippedRules,
+                  skippedActions: state.ruleSkippedActions,
+                );
+              },
+            ),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -342,7 +375,10 @@ class _SuccessView extends StatelessWidget {
                   onPressed: onDone,
                   child: Text(l10n.universalImport_action_done),
                 ),
-                if (hasActivity) ...[
+                // "View Dives" opens the active profile's list, which holds
+                // none of these dives when they all went elsewhere (#2050);
+                // the By profile section says where to find them instead.
+                if (hasActivity && divesInActiveProfile) ...[
                   const SizedBox(width: 16),
                   FilledButton(
                     onPressed: onViewDives,
@@ -547,6 +583,16 @@ _FileNoticeWording? _fileNoticeWording(
         route: '/transmitters',
       ),
     ),
+    ImportNoticeKind.deviceBelongsToOtherItem => (
+      title: l10n.universalImport_summary_noticeDeviceOtherItemTitle,
+      body: l10n.universalImport_summary_noticeDeviceOtherItemBody,
+      action: notice.targetId == null
+          ? null
+          : (
+              label: l10n.universalImport_summary_noticeDeviceOtherItemAction,
+              route: '/equipment/${notice.targetId}',
+            ),
+    ),
     ImportNoticeKind.columnsNotImported => (
       title: l10n.universalImport_summary_noticeColumnsNotImportedTitle,
       body: l10n.universalImport_summary_noticeColumnsNotImportedBody(names),
@@ -609,6 +655,13 @@ _FileNoticeWording? _fileNoticeWording(
     ImportNoticeKind.photoListingsUnavailable => (
       title: l10n.universalImport_summary_noticePhotoListingsUnavailableTitle,
       body: l10n.universalImport_summary_noticePhotoListingsUnavailableBody(
+        notice.count,
+      ),
+      action: null,
+    ),
+    ImportNoticeKind.photosWithoutLink => (
+      title: l10n.universalImport_summary_noticePhotosWithoutLinkTitle,
+      body: l10n.universalImport_summary_noticePhotosWithoutLinkBody(
         notice.count,
       ),
       action: null,

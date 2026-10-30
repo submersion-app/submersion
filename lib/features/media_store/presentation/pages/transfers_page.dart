@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_sweep_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfers_suspended_notice.dart';
 import 'package:submersion/features/media_store/presentation/widgets/transfers_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -42,9 +44,9 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     // Opening this page resumes the queue (issue #1270).
     //
     // The dashboard's "N uploads pending" chip pushes straight here, and this
-    // route is a plain `builder` nested under media-storage, so
-    // MediaStoragePage - whose build resolves the runtime, and which is
-    // therefore the app's only reliable drain trigger - never runs on the way
+    // route is a plain `builder` nested under photos-media, so the Photos &
+    // videos page (whose status line resolves the runtime, and which is
+    // therefore the app's only reliable drain trigger) never runs on the way
     // in. Someone arriving to ask why nothing is uploading was shown the
     // stuck rows and nothing else.
     //
@@ -113,7 +115,7 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
                   onDelete: () => _confirmAndDelete(rows),
                 )
               : AppBar(
-                  title: Text(l10n.settings_mediaStorage_transfers_title),
+                  title: Text(l10n.settings_photos_uploads),
                   actions: [
                     IconButton(
                       key: const ValueKey('enter_selection'),
@@ -211,8 +213,26 @@ class _TransfersPageState extends ConsumerState<TransfersPage> {
     final messenger = ScaffoldMessenger.of(context);
     final queue = ref.read(mediaTransferQueueRepositoryProvider);
     _selection.exit();
-    for (final id in ids) {
-      await queue.delete(id);
+    // The worker abandons any resumable session the rows held. Without a
+    // runtime (none attached, or one that cannot be built, which is when
+    // stuck rows most need clearing) the rows still go; their sessions are
+    // left to the verify sweep's reap.
+    MediaStoreWorker? worker;
+    try {
+      worker =
+          (await ref
+                  .read(mediaStoreRuntimeProvider.future)
+                  .timeout(ref.read(mediaStoreRuntimeWaitProvider)))
+              ?.worker;
+    } catch (_) {
+      worker = null;
+    }
+    if (worker != null) {
+      await worker.deleteEntries(ids.toList());
+    } else {
+      for (final id in ids) {
+        await queue.delete(id);
+      }
     }
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(

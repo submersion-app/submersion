@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,8 +11,9 @@ import 'package:submersion/features/dive_computer/presentation/utils/last_downlo
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
+import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -22,7 +24,9 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/card_icon_label.dart';
 
-/// Page displaying a list of saved dive computers.
+/// The Dive Computers list (issue #3676): every Dive Computer Equipment
+/// item, discovered or added by hand. Each row opens the item's Equipment
+/// page, which carries every control for the device.
 class DeviceListPage extends ConsumerStatefulWidget {
   const DeviceListPage({super.key});
 
@@ -46,18 +50,19 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final computersAsync = ref.watch(allDiveComputersProvider);
+    final computersAsync = ref.watch(computerItemsProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     final visibleIds =
-        computersAsync.value?.map((c) => c.id).toList() ?? const <String>[];
+        computersAsync.value?.map((r) => r.item.id).toList() ??
+        const <String>[];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _selection.pruneToSettled(
           computersAsync,
-          (rows) => rows.map((c) => c.id),
+          (rows) => rows.map((r) => r.item.id),
         );
       }
     });
@@ -142,7 +147,7 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
                         const SizedBox(height: 16),
                         FilledButton.icon(
                           onPressed: () =>
-                              ref.invalidate(allDiveComputersProvider),
+                              ref.invalidate(computerItemsProvider),
                           icon: const Icon(Icons.refresh),
                           label: Text(context.l10n.diveComputer_list_retry),
                         ),
@@ -156,7 +161,7 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
           floatingActionButton: selection.isActive
               ? null
               : FloatingActionButton.extended(
-                  onPressed: () => context.push('/dive-computers/discover'),
+                  onPressed: () => _showAddChoices(context),
                   icon: const Icon(Icons.add),
                   label: Text(context.l10n.diveComputer_list_addComputer),
                 ),
@@ -165,14 +170,50 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
     );
   }
 
-  /// Folds the checked computers into one (#645). The sheet owns the
-  /// confirmation; this only reports the outcome and leaves selection mode.
+  /// Find a computer over Bluetooth or USB, or add one by hand as an
+  /// Equipment item to connect later (issue #3676).
+  Future<void> _showAddChoices(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.bluetooth_searching),
+              title: Text(sheetContext.l10n.diveComputer_list_findComputers),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/dive-computers/discover');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: Text(sheetContext.l10n.diveComputer_list_addByHand),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push(
+                  '/equipment/new?type=${EquipmentType.computer.name}',
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Folds the registrations behind the checked items into one (#645). The
+  /// sheet owns the confirmation; this only reports the outcome and leaves
+  /// selection mode.
   Future<BulkActionOutcome> _startMerge() async {
     final ids = _selectedIds;
     final computers = [
-      for (final computer
-          in ref.read(allDiveComputersProvider).value ?? const <DiveComputer>[])
-        if (ids.contains(computer.id)) computer,
+      for (final row
+          in ref.read(computerItemsProvider).value ?? const <ComputerItem>[])
+        // Every registration behind a checked item: one left out would keep
+        // its item linked, and the item would not be folded in.
+        if (ids.contains(row.item.id)) ...row.computers,
     ];
     if (computers.length < 2) return BulkActionOutcome.cancelled;
 
@@ -204,7 +245,8 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(ctx.l10n.common_bulkDelete_title(ids.length)),
-        content: Text(ctx.l10n.common_bulkDelete_body),
+        // Every row is a computer's item, which takes the computer with it.
+        content: Text(bulkDeleteBody(ctx.l10n, [EquipmentType.computer])),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -223,15 +265,24 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
     if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
 
     final messenger = ScaffoldMessenger.of(context);
-    final notifier = ref.read(diveComputerNotifierProvider.notifier);
+    // Deleting the item deletes the computer behind it (issue #3676).
+    final deleteItem = ref.read(deviceItemDeleterProvider);
     _selection.exit();
+    // Delete is owner-only (issue #2046): a shared item is kept, and the
+    // snackbar says how many.
+    var deleted = 0;
     for (final id in ids) {
-      await notifier.delete(id);
+      if (await deleteItem(id)) deleted++;
     }
+    final skipped = ids.length - deleted;
     if (!mounted) return BulkActionOutcome.completed;
     messenger.showSnackBar(
       SnackBar(
-        content: Text(context.l10n.common_bulkDelete_snackbar(ids.length)),
+        content: Text(
+          skipped == 0
+              ? context.l10n.common_bulkDelete_snackbar(deleted)
+              : context.l10n.equipment_bulkDelete_partial(deleted, skipped),
+        ),
       ),
     );
     return BulkActionOutcome.completed;
@@ -279,42 +330,37 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
   Widget _buildComputerList(
     BuildContext context,
     WidgetRef ref,
-    List<DiveComputer> computers,
+    List<ComputerItem> rows,
   ) {
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 88), // FAB clearance
-      itemCount: computers.length,
+      itemCount: rows.length,
       itemBuilder: (context, index) {
-        final computer = computers[index];
+        final row = rows[index];
+        final id = row.item.id;
+        final computer = row.computers.firstOrNull;
         return _ComputerCard(
-          computer: computer,
+          row: row,
           onTap: () {
             if (SelectableListScope.isModifierPressed()) {
-              _selection.enterImplicit(computer.id);
+              _selection.enterImplicit(id);
               return;
             }
             if (_isSelectionMode) {
-              _selection.toggle(computer.id);
+              _selection.toggle(id);
               return;
             }
-            context.push('/dive-computers/${computer.id}');
+            context.push('/equipment/$id');
           },
-          onDownload: () => _startQuickDownload(context, ref, computer),
+          onDownload: computer == null
+              ? null
+              : () => context.push('/dive-computers/${computer.id}/download'),
           isSelectionMode: _isSelectionMode,
-          isChecked: _selectedIds.contains(computer.id),
-          onCheckChanged: (_) => _selection.toggle(computer.id),
+          isChecked: _selectedIds.contains(id),
+          onCheckChanged: (_) => _selection.toggle(id),
         );
       },
     );
-  }
-
-  void _startQuickDownload(
-    BuildContext context,
-    WidgetRef ref,
-    DiveComputer computer,
-  ) {
-    // Navigate to download page for this computer
-    context.push('/dive-computers/${computer.id}/download');
   }
 
   void _showHelpDialog(BuildContext context) {
@@ -377,17 +423,18 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
   }
 }
 
-/// Card widget displaying a single dive computer.
+/// One Dive Computer item: its name, and for a connected one the device's
+/// model, dive count, last download and a download shortcut.
 class _ComputerCard extends ConsumerWidget {
-  final DiveComputer computer;
+  final ComputerItem row;
   final VoidCallback onTap;
-  final VoidCallback onDownload;
+  final VoidCallback? onDownload;
   final bool isSelectionMode;
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
   const _ComputerCard({
-    required this.computer,
+    required this.row,
     required this.onTap,
     required this.onDownload,
     this.isSelectionMode = false,
@@ -400,21 +447,24 @@ class _ComputerCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final computer = row.computers.firstOrNull;
+    final isFavorite = computer?.isFavorite ?? false;
     // The newest connection's icon (issue #3106); the legacy type while the
     // connections load or for a computer with none yet.
     final connections =
         ref
             .watch(allDiveComputerConnectionsProvider)
-            .valueOrNull?[computer.id] ??
+            .valueOrNull?[computer?.id] ??
         const <DiveComputerConnection>[];
+    final subtitle =
+        computer?.fullName ??
+        [?row.item.brand, ?row.item.model].join(' ').trim();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Semantics(
         button: true,
-        label: context.l10n.diveComputer_list_cardSemanticLabel(
-          computer.displayName,
-        ),
+        label: context.l10n.diveComputer_list_cardSemanticLabel(row.item.name),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -431,14 +481,16 @@ class _ComputerCard extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: computer.isFavorite
+                      color: isFavorite
                           ? colorScheme.primaryContainer
                           : colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      computerConnectionIcon(computer, connections),
-                      color: computer.isFavorite
+                      computer == null
+                          ? Icons.watch_outlined
+                          : computerConnectionIcon(computer, connections),
+                      color: isFavorite
                           ? colorScheme.onPrimaryContainer
                           : colorScheme.onSurfaceVariant,
                     ),
@@ -454,12 +506,12 @@ class _ComputerCard extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              computer.displayName,
+                              row.item.name,
                               style: theme.textTheme.titleMedium,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (computer.isFavorite)
+                          if (isFavorite)
                             ExcludeSemantics(
                               child: Icon(
                                 Icons.star,
@@ -469,46 +521,63 @@ class _ComputerCard extends ConsumerWidget {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        computer.fullName,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      // Retired, loaned or spare reads differently from the
+                      // computer in use.
+                      if (row.item.status != EquipmentStatus.active)
+                        Text(
+                          row.item.status.localizedName(context.l10n),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.tertiary,
+                          ),
                         ),
-                      ),
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       // A Wrap, not a Row: the two stats drop onto their own
                       // lines when a narrow card, or the checkbox column in
                       // selection mode, leaves too little width for both.
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 4,
-                        children: [
-                          CardIconLabel(
-                            icon: Icons.scuba_diving,
-                            text: context.l10n.diveComputer_list_diveCount(
-                              computer.diveCount,
+                      if (computer == null)
+                        CardIconLabel(
+                          icon: Icons.link_off,
+                          text: context.l10n.diveComputer_list_notConnected,
+                        )
+                      else
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 4,
+                          children: [
+                            CardIconLabel(
+                              icon: Icons.scuba_diving,
+                              text: context.l10n.diveComputer_list_diveCount(
+                                computer.diveCount,
+                              ),
                             ),
-                          ),
-                          CardIconLabel(
-                            icon: Icons.access_time,
-                            text: formatLastDownload(
-                              context,
-                              computer.lastDownload,
-                              units: units,
+                            CardIconLabel(
+                              icon: Icons.access_time,
+                              text: formatLastDownload(
+                                context,
+                                computer.lastDownload,
+                                units: units,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
-                // Download button
-                IconButton(
-                  onPressed: onDownload,
-                  icon: const Icon(Icons.download),
-                  tooltip: context.l10n.diveComputer_list_downloadTooltip,
-                ),
+                if (onDownload != null)
+                  IconButton(
+                    onPressed: onDownload,
+                    icon: const Icon(Icons.download),
+                    tooltip: context.l10n.diveComputer_list_downloadTooltip,
+                  ),
               ],
             ),
           ),

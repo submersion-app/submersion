@@ -5,6 +5,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -431,6 +432,25 @@ void main() {
       expect(await db.select(db.buddies).get(), isEmpty);
       expect(await tombstones('diveBuddies'), receipt.linkIds.toSet());
       expect(await tombstones('buddies'), receipt.createdBuddyIds.toSet());
+    });
+
+    test('tombstones the people tags of a buddy it removes', () async {
+      await insertDive('d1', buddy: 'Ann');
+      final receipt = await run([
+        plan('d1', [newLink('Ann')]),
+      ]);
+      await db.customStatement(
+        'INSERT INTO media (id, file_path, file_type, created_at, updated_at) '
+        "VALUES ('m1', 'a', 'photo', 1, 1)",
+      );
+      final tag = await MediaPeopleRepository().addTag(
+        mediaId: 'm1',
+        buddyId: receipt.createdBuddyIds.single,
+      );
+
+      await repo.undo(receipt);
+
+      expect(await tombstones('mediaPeople'), {tag.id});
     });
 
     test('keeps a created buddy that another dive linked since', () async {

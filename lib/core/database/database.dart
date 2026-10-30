@@ -19,11 +19,14 @@ import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
+import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
+import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
 import 'package:submersion/core/database/tables/service_tables.dart';
 import 'package:submersion/core/database/tables/shared_library_tables.dart';
@@ -53,11 +56,14 @@ export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
+export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
+export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
 export 'package:submersion/core/database/tables/service_tables.dart';
 export 'package:submersion/core/database/tables/shared_library_tables.dart';
@@ -113,6 +119,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     Media,
     MediaEnrichment,
     MediaSpecies,
+    // Media tags (v309, issue #1970)
+    MediaTags,
+    // People tagged on photos and videos (v326, issue #1745)
+    MediaPeople,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaSmartAlbums,
@@ -176,6 +186,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SavedQueries,
     // Dive Lab saved scenarios (v236)
     DiveScenarios,
+    // Logbook rules and their run history (v301, issue #3513)
+    Rules,
+    RuleRuns,
+    RuleRunChanges,
     // Training courses (v1.5)
     Courses,
     // Course requirement tracker (v121)
@@ -189,6 +203,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DeletionLog,
     SyncPeerCursors,
     LocalPublishStates,
+    NearbyPeers,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -200,12 +215,18 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     TripItineraryDays,
     TripDayWeather,
     ChecklistTemplates,
-    ChecklistTemplateItems,
+    // Checklist sections (v297-298, issue #3360)
+    TripChecklistSections,
     TripChecklistItems,
+    ChecklistTemplateSections,
+    ChecklistTemplateItems,
     // Pre-dive checklists (spec 2026-07-16-pre-dive-checklist)
     PreDiveChecklistTemplates,
+    // Checklist sections (v299, issue #3360)
+    PreDiveChecklistTemplateSections,
     PreDiveChecklistTemplateItems,
     PreDiveSessions,
+    PreDiveSessionSections,
     PreDiveSessionItems,
     // GPS surface track logging (discussion #289)
     GpsTracks,
@@ -252,6 +273,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
+    TripShares,
+    SiteShares,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
     // Certification currency (v271, issue #2267)
@@ -261,6 +284,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Documents store (v277, issue #2613)
     Documents,
     DocumentPages,
+    // Document tags (v309, issue #1970)
+    DocumentTags,
     // Shared dive-site library (v289, issue #2567)
     SharedLibraries,
     SharedLibraryMembers,
@@ -278,7 +303,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 291;
+  static const int currentSchemaVersion = 327;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -381,7 +406,47 @@ class AppDatabase extends _$AppDatabase {
   /// exists so the floor can rise past the 275 to 279 betas. From 280 on
   /// the accounts repository skips unknown kinds, so later kinds need no
   /// floor bump of their own.
-  static const int minimumCompatibleSchemaVersion = 280;
+  ///
+  /// Raised 280 -> 297 by checklist sections (#3360): v297 drops the synced
+  /// column trip_checklist_items.category, replacing it with a reference to
+  /// a new trip_checklist_sections row, which the first rule above
+  /// classifies as breaking (a dropped column, not a rename an older reader
+  /// could still decode). Peers below 297 are held until they update. Their
+  /// own payloads still arrive here, carrying `category` and no
+  /// `sectionId`; the existing #474 overlay (see above) refills the omitted
+  /// `sectionId` key from the local row before merging, so an old peer's
+  /// edit cannot null out a section this device already backfilled. See
+  /// cross_version_roundtrip_test.dart for the matching projection.
+  /// (v292 is shared_libraries.removals_json from #3481, v294 clears
+  /// duplicated certification photos, v295 is connected_accounts.nickname
+  /// from #3522, and v296 is the media color-correction columns from #3520;
+  /// all additive or non-synced, so none of them raise the floor on their
+  /// own. v293 is claimed by the accounts work, #3482.)
+  ///
+  /// Raised 297 -> 298 by the same change applied to
+  /// checklist_template_items.category (issue #3360), one rung later for
+  /// the template side of the same concept. Same reasoning, same overlay
+  /// protection, one rung per table group rather than one combined bump.
+  ///
+  /// Raised 298 -> 299 by the same change applied to
+  /// pre_dive_checklist_template_items.section (issue #3360), one rung
+  /// later for the pre-dive template side.
+  ///
+  /// Raised 299 -> 300 by the same change applied to
+  /// pre_dive_session_items.section (issue #3360), the last of the four
+  /// checklist-sections table groups.
+  ///
+  /// Raised 300 -> 308 by the planner Setup defaults (#3552): v305, v306
+  /// and v308 drop NOT NULL from synced dive_plans and dive_plan_missions
+  /// columns (rates, SAC, gradient factors, reserve, battery reserve, walk
+  /// speed), and this build writes NULL there to mean "follow the diver's
+  /// Settings". Every build before 305 decodes those columns with a
+  /// non-nullable DivePlan.fromJson / DivePlanMission.fromJson, which
+  /// throws on null, so the second rule above classifies the change as
+  /// breaking. Peers below 308 are held until they update. Their own
+  /// payloads still arrive here and decode cleanly: a concrete value is a
+  /// valid override in the nullable columns.
+  static const int minimumCompatibleSchemaVersion = 308;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1273,6 +1338,163 @@ class AppDatabase extends _$AppDatabase {
     // v291: shared_libraries.description (issue #3389). Additive nullable
     // column, so the floor stays at 280.
     291,
+    // v292: shared_libraries.removals_json (issue #3481). Additive nullable
+    // column, so the floor stays at 280.
+    292,
+    // v293: connected_accounts.location (issue #3482). Additive nullable
+    // column, so the floor stays at 280.
+    293,
+    294,
+    // v295: connected_accounts.nickname (issue #3522). Additive nullable
+    // column, so the floor stays at 280.
+    295,
+    // v296: media.color_adjustment and diver_settings.auto_color_correction
+    // (issue #3520). Additive nullable/defaulted columns, so the floor stays
+    // at 280. Renumbered from 292, claimed first by #3481.
+    296,
+    // v297: trip_checklist_sections table + trip_checklist_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // the floor to 297. (v293 is claimed by the accounts work, #3482.)
+    297,
+    // v298: checklist_template_sections table +
+    // checklist_template_items.section_id, backfilled from category, which
+    // is then dropped (issue #3360). Raises the floor to 298.
+    298,
+    // v299: pre_dive_checklist_template_sections table +
+    // pre_dive_checklist_template_items.section_id, backfilled from
+    // section, which is then dropped (issue #3360). Raises the floor to
+    // 299.
+    299,
+    // v300: pre_dive_session_sections table +
+    // pre_dive_session_items.section_id, backfilled from section, which
+    // is then dropped (issue #3360). Raises the floor to 300.
+    300,
+    // v301: logbook rules, rule_runs and rule_run_changes (issue #3513).
+    // Additive tables, so the floor stays at 300. Renumbered from 292 as
+    // #3481 and #3502 shipped 292 and 294, #3482 holds 293, #3522 shipped
+    // 295, #3520 shipped 296 and #3360 shipped 297 to 300.
+    301,
+    // v302: media_stores.account_id (issue #3482). Additive, nullable and
+    // never cleared by a peer's null, so the floor stays at 300.
+    302,
+    // v303: media.remote_store_id (issue #3482). Additive and nullable, and
+    // an older peer omits it, so the floor stays at 300.
+    303,
+    // v304: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Additive columns only; does not move the compatibility floor.
+    // Renumbered from 302 as #3482 shipped 302-303 first.
+    304,
+    // v305: dive_plans Setup-accordion columns made nullable (issue #3552).
+    // Table rebuild; NULL now means "follow Settings", which an older
+    // reader cannot decode, so the floor moves (to 308, with v306/v308).
+    // Renumbered from 303.
+    305,
+    // v306: dive_plan_missions battery_reserve_fraction/walk_speed_mps made
+    // nullable (issue #3552). Table rebuild, same as 305 and part of the
+    // same floor move. Renumbered from 304.
+    306,
+    // v307: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552). Additive only;
+    // does not move the compatibility floor. Renumbered from 305.
+    307,
+    // v308: dive_plans.reserve_pressure/gf_low/gf_high made nullable,
+    // diver_settings.planner_reserve_pressure added (issue #3552). Table
+    // rebuild for dive_plans; raises the compatibility floor to 308 for
+    // the whole v305-v308 nullability change. Renumbered from 306.
+    308,
+    // v309: media and document tags (issue #1970). tags.applies_to_media and
+    // tags.applies_to_documents (off for every existing tag), and the
+    // media_tags and document_tags junctions with their unique indexes.
+    // Additive only, so the compatibility floor stays.
+    309,
+    // v310: diver_settings.downloads_follow_computer_owner (issue #2050).
+    // Additive, on by default; the floor does not move. Renumbered from 309
+    // as #3605 shipped 309 first.
+    310,
+    // v311: trip_shares and site_shares, the profiles a trip or site is
+    // shared with when it is not shared with everyone (issue #2151).
+    // Table-only rung, no backfill; an older peer keeps the new entity types
+    // as inert unknowns and sees such an item as private, so the floor does
+    // not move. Renumbered from 309 and 310, which #1970 and #2050 took.
+    311,
+    // v312: dive_tanks.extra_regulator_ids, the regulators on a cylinder
+    // after the first (issue #3375). An additive nullable column, so the
+    // floor stays: an older peer's payload omits it and the row keeps null.
+    // Renumbered from 310 and 311 as #3611 and #2151 shipped them first.
+    312,
+    // v313: dive_centers.is_permanently_closed (issue #3379). Additive synced
+    // column, no backfill: an older peer ignores the field, so the floor
+    // stays. Renumbered from 310 and 312, which #2050 and #3375 took.
+    313,
+    // v314: cylinder_config_items.deco_switch_depth (issue #3567). Additive
+    // and nullable, and an older peer omits it, so the floor stays.
+    // Renumbered from 304, which #3552 took.
+    314,
+    // v315: diver_settings.omit_unused_oc_gases (issue #3668). Additive, off
+    // by default; the floor does not move.
+    315,
+    // v316: transmitters.is_configured (issue #3676). Additive with a default
+    // of 1, and an older peer omits it, so the floor stays. The known cost: a
+    // peer still on v315 ignores the column, so it treats an entry this
+    // build created from a download as the diver's own configuration and
+    // names its tanks after it until it updates; and an edit it publishes on
+    // such an entry drops the column, which then arrives here as configured.
+    // Renumbered from 315, which #3668 took.
+    316,
+    // v317: the tank inspection dates become VIP and hydro clock baselines
+    // (issue #3662). Data only and unsynced, so the floor does not move. 316
+    // is held by PR #3685.
+    317,
+    // v318: moves the CNS, OTU and deco model stored computer tissue
+    // snapshots held into their own dive and source columns (issue #2555).
+    // Data only, so the floor does not move: an older peer reads the slimmer
+    // snapshot as one that reported less, and a dive it still sends in the
+    // old shape gets the same move once applied here (SyncService). 317 is
+    // #3662 (tank inspection baselines); 316 is held by PR #3685.
+    318,
+    // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+    // (issue #3580). Column only, both off by default, so the floor does
+    // not move. Sits below 320; the beforeOpen backstop covers a database
+    // already at 320.
+    319,
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor for nearby Bluetooth sync (issue #3731). Never synced, so
+    // the floor does not move. 319 is held
+    // by PR #3726.
+    320,
+    // v321: per-plan "explicitly off" flags for the bands and the
+    // explicit-depth override (issue #3580). Column only, both off by
+    // default, so the floor does not move.
+    321,
+    // v322: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
+    // (issue #3743). Column only, both off by default, so the floor does
+    // not move.
+    322,
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748). Additive and nullable, and an older peer omits them,
+    // so the floor does not move. 321 and 322 are held by PR #3726.
+    323,
+    // v324: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728). Additive and nullable: an older peer drops the keys it
+    // does not know, so the floor does not move.
+    324,
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Additive and nullable with no backfill: an older peer
+    // omits it and sees a side trip as a trip of its own, so the floor
+    // stays. Renumbered from 323, which #3748 shipped first; #3728 then
+    // shipped 324.
+    325,
+    // v326: the synced media_people table, buddies and the diver tagged on
+    // photos and videos (issue #1745). Additive only, so the floor does not
+    // move: an older peer ignores the new payload key. Renumbered from 323
+    // and 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322
+    // are held by PR #3726.
+    326,
+    // v327: drops the deco band columns v319 and v321 first added spelled
+    // `ppo2_*`, beside which Drift's `pp_o2_*` columns were missing on an
+    // upgraded database (issue #3809). Drift never read or wrote them, and
+    // sync never carried them, so the floor does not move.
+    327,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

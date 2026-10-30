@@ -25,6 +25,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Handles simple UDDF export of dives with optional site data.
 class UddfExportService {
@@ -735,6 +737,8 @@ class UddfExportService {
       extras: extras,
       options: options,
     );
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save UDDF File',

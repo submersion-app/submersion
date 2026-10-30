@@ -194,6 +194,57 @@ void main() {
     expect(keys, hasLength(5));
   });
 
+  test('deleteExtraCopies keeps one copy of a duplicated key', () async {
+    for (var i = 0; i < 3; i++) {
+      server.filesById['dup-$i'] = (
+        name: 'smv1/objects/aa/aabb.jpg',
+        bytes: Uint8List.fromList([1, 2]),
+      );
+    }
+    server.filesById['other'] = (
+      name: 'smv1/objects/aa/other.jpg',
+      bytes: Uint8List.fromList([3]),
+    );
+    final store = build();
+
+    expect(store, isA<DuplicateKeyStore>());
+    expect(await store.deleteExtraCopies('smv1/objects/aa/aabb.jpg'), 2);
+
+    final names = server.filesById.values.map((f) => f.name).toList();
+    expect(names.where((n) => n == 'smv1/objects/aa/aabb.jpg'), hasLength(1));
+    expect(names, contains('smv1/objects/aa/other.jpg'));
+  });
+
+  test('deleteExtraCopies stops once its guard says no', () async {
+    for (var i = 0; i < 3; i++) {
+      server.filesById['dup-$i'] = (
+        name: 'smv1/objects/aa/aabb.jpg',
+        bytes: Uint8List.fromList([1, 2]),
+      );
+    }
+    final store = build();
+    var asked = 0;
+
+    final removed = await store.deleteExtraCopies(
+      'smv1/objects/aa/aabb.jpg',
+      mayDelete: () => ++asked == 1,
+    );
+
+    expect(removed, 1);
+    expect(server.filesById, hasLength(2));
+  });
+
+  test('deleteExtraCopies deletes nothing when one copy exists', () async {
+    server.filesById['only'] = (
+      name: 'smv1/objects/aa/aabb.jpg',
+      bytes: Uint8List.fromList([1]),
+    );
+    final store = build();
+
+    expect(await store.deleteExtraCopies('smv1/objects/aa/aabb.jpg'), 0);
+    expect(server.filesById, hasLength(1));
+  });
+
   test('a 5xx from Drive surfaces as MediaStoreException on every '
       'verb', () async {
     final store = GoogleDriveMediaObjectStore.withClient(
@@ -391,6 +442,124 @@ void main() {
         ),
       ),
     );
+  });
+
+  group('an expired access token', () {
+    // The google_sign_in client carries a token that dies after about an
+    // hour. Without a refresh, every media transfer after that failed as an
+    // auth error until a sync call happened to replace the client (#3602).
+    final expired = MockClient(
+      (_) async => http.Response('{"error":{"code":401}}', 401),
+    );
+
+    test('is refreshed once and the request retried', () async {
+      http.Client current = expired;
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      expect(await store.head('smv1/objects/aa/x.jpg'), isNull);
+      expect(rejectedClients, [same(expired)]);
+    });
+
+    test('a request body survives the retry', () async {
+      http.Client current = expired;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (_) async {
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+      final src = File('${tmp.path}/retry.jpg')..writeAsBytesSync([1, 2, 3]);
+
+      await store.putFile(
+        'smv1/objects/aa/retry.jpg',
+        src,
+        contentType: 'image/jpeg',
+      );
+
+      expect(
+        server.filesById.values.map((f) => f.name),
+        contains('smv1/objects/aa/retry.jpg'),
+      );
+    });
+
+    test('fails as an auth error when the refresh fails', () async {
+      var refreshes = 0;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async {
+          refreshes++;
+          return false;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(refreshes, 1);
+    });
+
+    test('a refresh that throws is a transient failure', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async =>
+            throw const CloudStorageException('keychain locked'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.transient,
+          ),
+        ),
+      );
+    });
+
+    test('is retried only once when the fresh token is refused too', () async {
+      var refreshes = 0;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async {
+          refreshes++;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              // The queue shows this text as is, so it must say how to
+              // recover rather than quote an HTTP status.
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(refreshes, 1);
+    });
   });
 
   test('a supplier with no Google session fails as an auth error', () async {

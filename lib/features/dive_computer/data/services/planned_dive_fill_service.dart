@@ -113,6 +113,13 @@ class PlannedDiveFillService {
         dive,
         plannedDiveId,
         computerId,
+        settled: (
+          gfLow: measured.gradientFactorLow,
+          gfHigh: measured.gradientFactorHigh,
+          decoAlgorithm: measured.decoAlgorithm,
+          decoConservatism: measured.decoConservatism,
+          computerTissue: measured.computerTissue,
+        ),
         descriptorVendor: descriptorVendor,
         descriptorProduct: descriptorProduct,
         descriptorModel: descriptorModel,

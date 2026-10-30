@@ -112,9 +112,9 @@ void main() {
     expect(candidates['unknown_transmitter'], {'real'});
   });
 
-  test('registry contains all 14 detectors with unique ids', () {
+  test('registry contains all 15 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(14));
+    expect(ids.toSet(), hasLength(15));
     expect(
       ids.toSet(),
       containsAll({
@@ -132,6 +132,7 @@ void main() {
         'source_conflict',
         'shared_gear_overlap',
         'transmitter_role',
+        'transmitter_gear_serial_mismatch',
       }),
     );
     // Each bump is what raises the "new checks are available" banner, so an

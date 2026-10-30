@@ -1,12 +1,14 @@
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 /// The key each tag scope's flag rides under on an imported tag map
-/// (issues #1765, #1942). Parsers write them and UddfEntityImporter reads
-/// them. A missing key means the source said nothing about that scope.
+/// (issues #1765, #1942, #1970). Parsers write them and UddfEntityImporter
+/// reads them. A missing key means the source said nothing about that scope.
 const Map<TagScope, String> importTagScopeKeys = {
   TagScope.dives: 'appliesToDives',
   TagScope.sites: 'appliesToSites',
   TagScope.equipment: 'appliesToEquipment',
+  TagScope.media: 'appliesToMedia',
+  TagScope.documents: 'appliesToDocuments',
 };
 
 /// The scopes an imported tag map asks for. A scope the map says nothing

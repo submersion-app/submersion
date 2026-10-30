@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -46,6 +48,9 @@ Future<void> scanGalleryForTripPhotos(
   String tripId,
   Trip trip,
 ) async {
+  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+    return;
+  }
   final loading = _LoadingDialog(Navigator.of(context, rootNavigator: true));
   showDialog(
     context: context,
@@ -72,14 +77,21 @@ Future<void> scanGalleryForTripPhotos(
       return;
     }
 
-    final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
+    // From the repository, not mediaForTripProvider: nothing on the trip page
+    // watches that provider, so it could dispose mid-read.
+    final linked = await ref
+        .read(tripMediaRepositoryProvider)
+        .getMediaForTrip(
+          tripId,
+          diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+        );
 
     final photoPickerService = ref.read(photoPickerServiceProvider);
     final result = await TripMediaScanner.scanGalleryForTrip(
       dives: dives,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      linked: [for (final items in mediaByDive.values) ...items],
+      linked: linked,
       linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
@@ -163,7 +175,7 @@ Future<void> _importPhotos(
     }
 
     ref.invalidate(mediaForTripProvider(tripId));
-    ref.invalidate(mediaCountForTripProvider(tripId));
+    ref.invalidate(tripMediaPreviewProvider(tripId));
     ref.invalidate(flatMediaListForTripProvider(tripId));
 
     loading.dismiss(); // Dismiss progress.

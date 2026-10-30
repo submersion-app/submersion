@@ -41,7 +41,7 @@ Widget _buildDownloadStep({
       // rather than hitting the real Drift-backed provider, which has no
       // database in this test and would leave the widget on its loading
       // spinner forever.
-      firstSyncCutoffDefaultProvider.overrideWith((ref) async => null),
+      firstSyncCutoffDefaultProvider.overrideWith((ref, _) async => null),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

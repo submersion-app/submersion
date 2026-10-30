@@ -24,6 +24,23 @@ extension DiveMigrations on AppDatabase {
     }
   }
 
+  /// v312: dive_tanks.extra_regulator_ids (issue #3375), and a partial index
+  /// over the few tanks that have extras, so the regulator lookups
+  /// (tank_regulator_sql.dart) read those rows instead of scanning every
+  /// tank. Idempotent, so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop, and a no-op when the table does not exist yet. No
+  /// backfill: an existing tank's single regulator stays in
+  /// regulator_equipment_id.
+  Future<void> _assertTankExtraRegulatorIds() async {
+    if (!await _tableExists('dive_tanks')) return;
+    await _addColumnIfMissing('dive_tanks', 'extra_regulator_ids', 'TEXT');
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_dive_tanks_extra_regulators '
+      'ON dive_tanks(extra_regulator_ids) '
+      'WHERE extra_regulator_ids IS NOT NULL',
+    );
+  }
+
   /// v256: dives.computer_tissue_json. Idempotent, so it is safe to call
   /// from both onUpgrade and the beforeOpen backstop, and a no-op when the
   /// table does not exist yet.

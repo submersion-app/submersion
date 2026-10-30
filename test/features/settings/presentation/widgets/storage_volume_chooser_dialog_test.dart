@@ -66,7 +66,7 @@ void main() {
       find.text(
         'Android cannot run the database from a cloud-synced folder. '
         'To keep a copy in Dropbox, Nextcloud, or Google Drive, set a '
-        'Backup Location under Backup & Restore.',
+        'backup folder under Backups.',
       ),
       findsOneWidget,
     );

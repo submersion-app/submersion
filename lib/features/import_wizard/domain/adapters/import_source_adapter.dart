@@ -92,3 +92,12 @@ abstract class ImportSourceAdapter {
     ImportCancellationToken? cancelToken,
   });
 }
+
+/// An adapter whose import can be sent to a profile other than the one it
+/// would choose itself (issue #2050). The review step asks for it through
+/// [ImportBundle.targetChoice]; the wizard then rebuilds and re-checks the
+/// bundle for the new profile.
+abstract interface class RetargetableImportAdapter {
+  /// Send this session's import to [diverId]. Applies to this session only.
+  Future<void> setTargetDiver(String diverId);
+}

@@ -15,6 +15,21 @@ class TimeShiftRepair extends QualityRepairAction {
   final bool offerImportWide;
 }
 
+/// Correct one secondary source's clock (issue #3655): a computer downloaded
+/// with its clock off by whole hours disagrees with a primary that is right,
+/// so only that source's own window moves and the logbook stays put.
+/// [suggestedOffset] brings the source onto the primary's clock.
+class SourceClockShiftRepair extends QualityRepairAction {
+  const SourceClockShiftRepair({
+    required this.diveId,
+    required this.sourceId,
+    required this.suggestedOffset,
+  });
+  final String diveId;
+  final String sourceId;
+  final Duration suggestedOffset;
+}
+
 /// Merge a likely duplicate pair as one dive recorded by two computers.
 ///
 /// Carries the pair only. Which recording survives (and so supplies the notes,
@@ -187,9 +202,10 @@ class GoToDiveRepair extends QualityRepairAction {
   final String diveId;
 }
 
-/// Navigate to the transmitter editor prefilled with [serial].
-class AssignTransmitterRepair extends QualityRepairAction {
-  const AssignTransmitterRepair(this.serial);
+/// Open the Equipment page of the transmitter [serial] names, to set up the
+/// cylinder it feeds (issue #3676).
+class SetUpTransmitterRepair extends QualityRepairAction {
+  const SetUpTransmitterRepair(this.serial);
   final String serial;
 }
 
@@ -234,10 +250,22 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
 
     case 'clock_offset':
       if (p.containsKey('offsetHours')) {
+        // The secondary source reads `offsetHours` later than the primary.
+        // Either side can be the wrong one (#3655): the secondary's clock,
+        // corrected by pulling it back, or the logbook's, moved forward to
+        // the secondary along with the primary source it mirrors. A wrong
+        // download clock is the common case, so it leads.
         final hours = (p['offsetHours'] as num).toInt();
+        final sourceId = p['sourceId'] as String?;
         return [
+          if (sourceId != null)
+            SourceClockShiftRepair(
+              diveId: diveId,
+              sourceId: sourceId,
+              suggestedOffset: Duration(hours: -hours),
+            ),
           TimeShiftRepair(
-            suggestedOffset: Duration(hours: -hours),
+            suggestedOffset: Duration(hours: hours),
             offerImportWide: true,
           ),
           GoToDiveRepair(diveId),
@@ -405,7 +433,7 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
     case 'unknown_transmitter':
       final serial = p['serial'] as String?;
       return [
-        if (serial != null) AssignTransmitterRepair(serial),
+        if (serial != null) SetUpTransmitterRepair(serial),
         GoToDiveRepair(diveId),
       ];
 

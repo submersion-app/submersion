@@ -5,7 +5,9 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 
 /// A downloaded tank reports a transmitter serial the diver has not assigned
 /// to a cylinder, so its size and role came from the default preset (issue
-/// #1365). Informational: the repair is to register the transmitter.
+/// #1365). Since #3676 a download registers every serial it sees, so the
+/// test is "not set up" (unconfigured, or naming no cylinder), not "not
+/// registered". Informational: the repair opens the transmitter's item.
 class UnknownTransmitterDetector extends QualityDetector {
   const UnknownTransmitterDetector();
 
@@ -15,8 +17,10 @@ class UnknownTransmitterDetector extends QualityDetector {
   /// 2: library scans now run this check (#2870). The bump shows the
   /// inbox's new-checks banner, so the diver runs the library scan that
   /// brings back the findings earlier scans retired.
+  /// 3: "set up" replaces "registered" (#3676), so a transmitter with no
+  /// cylinder is found again.
   @override
-  int get version => 2;
+  int get version => 3;
   @override
   QualityCategory get category => QualityCategory.tank;
 

@@ -1,8 +1,20 @@
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-final siteGroupByProvider = StateProvider<SiteGroupBy>(
-  (ref) => SiteGroupBy.none,
+/// How the diver grouped the Dive Sites list, as they left it (issue #3748):
+/// the active diver's saved grouping, or ungrouped when there is none.
+/// Change it through `ListArrangementWrites.setSiteGroupBy`.
+final siteGroupByProvider = Provider<SiteGroupBy>(
+  (ref) =>
+      decodeEnumName(
+        ref.watch(
+          settingsProvider.select((s) => s.listArrangements.siteGroupBy),
+        ),
+        SiteGroupBy.values,
+      ) ??
+      SiteGroupBy.none,
 );
 
 /// Groups the diver has opened on the grouped Dive Sites list: outer groups

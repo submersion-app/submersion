@@ -277,6 +277,26 @@ void main() {
       expect(dive2.entries.map((e) => e.item.id), ['v1']);
     });
 
+    test("a trip filter takes in its side trips' media (#3658)", () async {
+      await insertTrip('trip-side');
+      await db.customStatement(
+        "UPDATE trips SET parent_trip_id = 'trip-1' WHERE id = 'trip-side'",
+      );
+      await db.customStatement(
+        "UPDATE dives SET trip_id = 'trip-side' WHERE id = 'dive-2'",
+      );
+      final onTrip = await repo.getPage(
+        diverId: 'd1',
+        filter: const MediaLibraryFilter(tripId: 'trip-1'),
+      );
+      expect(onTrip.entries.map((e) => e.item.id), contains('v1'));
+      final onSide = await repo.getPage(
+        diverId: 'd1',
+        filter: const MediaLibraryFilter(tripId: 'trip-side'),
+      );
+      expect(onSide.entries.map((e) => e.item.id).toSet(), {'v1'});
+    });
+
     test('site, trip, and date range filters compile correctly', () async {
       final atSite = await repo.getPage(
         diverId: 'd1',

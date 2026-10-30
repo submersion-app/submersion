@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -29,6 +30,7 @@ Future<void> _pump(
   DiveTank tank = _testTank,
   List<TripCylinderState>? slots,
   bool suggested = false,
+  DiveMode diveMode = DiveMode.oc,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -55,6 +57,7 @@ Future<void> _pump(
                 canRemove: false,
                 tripCylinderStates: slots,
                 suggested: suggested,
+                diveMode: diveMode,
               ),
             ),
           ),
@@ -117,6 +120,23 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.byType(TankEditor), findsNothing);
+  });
+
+  testWidgets('the expanded editor knows the dive mode (issue #3752)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _pump(tester, diveMode: DiveMode.ccr);
+    await tester.tap(find.textContaining('Tank 1'));
+    await tester.pumpAndSettle();
+
+    // The diluent's MOD limit depends on it.
+    expect(
+      tester.widget<TankEditor>(find.byType(TankEditor)).diveMode,
+      DiveMode.ccr,
+    );
   });
 
   group('trip cylinder line', () {

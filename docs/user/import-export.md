@@ -233,20 +233,20 @@ These three features look similar but do different jobs:
   tool Submersion does not talk to directly.
 - **Backup & restore** takes a complete, point-in-time snapshot of your entire
   database that you can restore later. Make one before a big import or a device
-  change. See [Backup & Restore](backup-and-restore.md).
+  change. See [Backups](backup-and-restore.md).
 - **Multi-device sync** keeps several devices showing the same library
   automatically. It is not a backup. See [Multi-Device Sync](multi-device-sync.md).
 
 > [!TIP]
 > Exporting a full **UDDF** file is also a handy portable archive of your log,
 > but for a true safety net that restores Submersion exactly as it was, use
-> **Backup & Restore**.
+> **Backups**.
 
 ## See also
 
 - [Dive Computer](dive-computer.md): download dives over Bluetooth, USB, or Apple Watch
 - [Dive Logging](dive-logging.md): what happens to dives once they are imported
-- [Backup & Restore](backup-and-restore.md): full database snapshots
+- [Backups](backup-and-restore.md): full database snapshots
 - [Multi-Device Sync](multi-device-sync.md): keep devices in step
 - [Settings](settings.md): units, date format, and import defaults
 - [Data Quality Assistant](data-quality-assistant.md): reviewing imported dives for clock, profile, and duplicate problems

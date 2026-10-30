@@ -11,6 +11,7 @@ import 'package:submersion/features/safety/presentation/widgets/emergency_region
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// The offline emergency card: one screen readable by a stranger under
 /// stress. Large type, tap-to-call, everything sourced locally.
@@ -368,7 +369,10 @@ class _DiverSection extends StatelessWidget {
         if (diver.medications != null && diver.medications!.isNotEmpty)
           Text(l10n.emergencyCard_medications(diver.medications!), style: big),
         if (diver.medicalNotes.isNotEmpty)
-          Text(diver.medicalNotes, style: theme.textTheme.bodyMedium),
+          MarkdownNotesView(
+            diver.medicalNotes,
+            style: theme.textTheme.bodyMedium,
+          ),
         const SizedBox(height: 16),
         _SectionHeader(title: l10n.emergencyCard_contactsSection),
         contact(diver.emergencyContact),

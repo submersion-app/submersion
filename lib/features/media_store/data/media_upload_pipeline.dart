@@ -19,7 +19,16 @@ import 'package:submersion/features/media_store/data/video_transcoder.dart';
 import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 
-enum UploadOutcome { uploaded, deduplicated, skippedIneligible, failed }
+enum UploadOutcome {
+  uploaded,
+  deduplicated,
+  skippedIneligible,
+
+  /// Another store holds the row's copy and the library announces that one,
+  /// so this device left the row alone (issue #3569).
+  leftToAnotherStore,
+  failed,
+}
 
 /// Retry delay for an item whose bytes could not be materialized. Chosen to
 /// outlast the shortest asset-resolution lockout (24h) so each queue attempt
@@ -41,8 +50,12 @@ class MediaUploadPipeline {
     MediaUploadQualityPolicy? quality,
     MediaCompressor? imageCompressor,
     VideoTranscoder? videoTranscoder,
+    String? storeId,
+    Future<bool> Function()? takesOver,
     DateTime Function()? now,
   }) : _mediaRepository = mediaRepository,
+       _storeId = storeId,
+       _takesOver = takesOver,
        _queue = queue,
        _store = store,
        _registry = registry,
@@ -56,6 +69,24 @@ class MediaUploadPipeline {
        _now = now ?? DateTime.now;
 
   final MediaRepository _mediaRepository;
+
+  /// The store this pipeline uploads to (issue #3482): stamps made in
+  /// another store do not skip an upload, and every stamp names this one.
+  /// Null in tests that predate per-store stamps.
+  final String? _storeId;
+
+  /// Whether this pipeline's store is the one the library announces, asked
+  /// per item since another device can move the library meanwhile. When it
+  /// is not, rows stamped in another store are left alone (issue #3569).
+  /// Null takes over, as before.
+  final Future<bool> Function()? _takesOver;
+
+  /// [_takesOver] asked now, before any work on an item. Every stamp asks
+  /// again by passing [_takesOver] itself: staging, transcoding and the
+  /// transfer can outlast another device moving the library (issue #3569),
+  /// and the repository asks it inside the stamp's transaction, so the
+  /// answer cannot go stale before the write.
+  Future<bool> _takesOverNow() async => await _takesOver?.call() ?? true;
   final MediaTransferQueueRepository _queue;
   final MediaObjectStore _store;
   final MediaSourceResolverRegistry _registry;
@@ -77,9 +108,36 @@ class MediaUploadPipeline {
   /// poster frame from a playable original.
   bool _isThumbOnly(MediaItem item) => isThumbOnlyMedia(item);
 
+  /// Abandons the provider-side sessions of resumable uploads whose queue
+  /// rows were dropped (a re-upload override or a Transfers delete), so
+  /// their parts do not wait a week for the verify sweep's reap (storage GC
+  /// design, leak 4). Resumable sessions only exist for originals, so the
+  /// key is the row's original key. Best-effort: a row without a hash, or a
+  /// provider that refuses, is skipped.
+  Future<void> abandonDroppedSessions(List<DroppedResume> dropped) async {
+    for (final d in dropped) {
+      try {
+        final item = await _mediaRepository.getMediaById(d.mediaId);
+        final hash = item?.contentHash;
+        if (item == null || hash == null) continue;
+        await _store.abandonResume(
+          StoreKeys.objectKey(
+            hash,
+            extension: StoreKeys.extensionFor(item.originalFilename),
+          ),
+          d.resumeStateJson,
+        );
+      } on Exception catch (e) {
+        _log.warning('Abandoning dropped session failed', error: e);
+      }
+    }
+  }
+
   Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
     await _queue.markTransferring(entry.id);
-    final item = await _mediaRepository.getMediaById(entry.mediaId);
+    final found = await _mediaRepository.getMediaById(entry.mediaId);
+    final elsewhere = found != null && stampedElsewhere(found, _storeId);
+    final item = found == null ? null : stampsInStore(found, _storeId);
     if (item == null || !_isEligible(item)) {
       await _queue.markDone(entry.id);
       return UploadOutcome.skippedIneligible;
@@ -105,6 +163,14 @@ class MediaUploadPipeline {
     var latestResumeJson = entry.resumeStateJson;
     String? resumableUploadKey;
     try {
+      // Another store holds this row's copy and the library announces that
+      // one, not ours: uploading here would erase its record and hand the row
+      // back and forth with the device on it (issue #3569). Asked inside the
+      // try: the answer is a database read, and a throw escaping process()
+      // would strand the row in 'transferring' (issue #1270).
+      if (elsewhere && !await _takesOverNow()) {
+        return await _leaveToAnotherStore(entry, item, item.contentHash);
+      }
       final source = await _registry.resolverFor(item.sourceType).resolve(item);
       if (source is UnavailableData &&
           source.kind == UnavailableKind.fromOtherDevice) {
@@ -142,6 +208,10 @@ class MediaUploadPipeline {
       // Thumb first (spec section 9 step 5): tiny, so remote devices get
       // something renderable while the original uploads. Best-effort - a
       // thumb failure must never block the original.
+      // Set when a stamp is refused: another device took the row over for
+      // the store the library announces while this upload ran, so nothing
+      // more is written for it (issue #3569).
+      var takenOver = false;
       if (item.remoteThumbUploadedAt == null) {
         File? thumb;
         try {
@@ -151,9 +221,11 @@ class MediaUploadPipeline {
             if (await _store.head(thumbKey) == null) {
               await _store.putFile(thumbKey, thumb, contentType: 'image/jpeg');
             }
-            await _mediaRepository.stampRemoteThumbUploaded(
+            takenOver = !await _mediaRepository.stampRemoteThumbUploaded(
               item.id,
               uploadedAt: _now(),
+              storeId: _storeId,
+              takesOver: _takesOver,
             );
           }
         } on Exception catch (e) {
@@ -163,6 +235,10 @@ class MediaUploadPipeline {
             await thumb.delete();
           }
         }
+      }
+
+      if (takenOver) {
+        return await _leaveToAnotherStore(entry, item, digest.hash);
       }
 
       if (_isThumbOnly(item)) {
@@ -202,10 +278,12 @@ class MediaUploadPipeline {
             contentType: StoreKeys.contentTypeFor(rendition.ext),
           );
         }
-        await _mediaRepository.stampRemoteCompressedUploaded(
+        final applied = await _mediaRepository.stampRemoteCompressedUploaded(
           item.id,
           uploadedAt: _now(),
           level: level.name,
+          storeId: _storeId,
+          takesOver: _takesOver,
           // First-writer-wins: on the dedup path the stored object was written
           // by the first uploader and may differ from this device's local
           // rendition (renditions are not hash-verified and can vary by level),
@@ -215,6 +293,12 @@ class MediaUploadPipeline {
           // level).
           sizeBytes: existingRendition?.sizeBytes ?? rendition.sizeBytes,
         );
+        if (!applied) {
+          if (item.mediaType != MediaType.video) {
+            await _cleanupRendition(rendition.file);
+          }
+          return await _leaveToAnotherStore(entry, item, digest.hash);
+        }
         if (item.mediaType != MediaType.video) {
           // Photos re-compress cheaply, so drop the temp rendition now.
           await _cleanupRendition(rendition.file);
@@ -272,7 +356,14 @@ class MediaUploadPipeline {
         );
       }
 
-      await _mediaRepository.stampRemoteUploaded(item.id, uploadedAt: _now());
+      if (!await _mediaRepository.stampRemoteUploaded(
+        item.id,
+        uploadedAt: _now(),
+        storeId: _storeId,
+        takesOver: _takesOver,
+      )) {
+        return await _leaveToAnotherStore(entry, item, digest.hash);
+      }
       // Namespace switch (override compressed -> original): drop the now
       // unreferenced rendition object.
       if (hadCompressed) {
@@ -281,7 +372,9 @@ class MediaUploadPipeline {
           await _bestEffortDelete(
             StoreKeys.renditionKey(
               digest.hash,
-              ext: item.mediaType == MediaType.video ? 'mp4' : 'jpg',
+              ext: StoreKeys.renditionExtension(
+                isVideo: item.mediaType == MediaType.video,
+              ),
             ),
             'abandoned rendition',
           );
@@ -355,6 +448,21 @@ class MediaUploadPipeline {
         }
       }
     }
+  }
+
+  /// Finishes [entry] for a row another store holds (issue #3569), with
+  /// nothing more written for it. A video's transcode is kept for a retry
+  /// that will not come now, so it goes too, as on the upload paths.
+  Future<UploadOutcome> _leaveToAnotherStore(
+    MediaTransferQueueEntry entry,
+    MediaItem item,
+    String? contentHash,
+  ) async {
+    await _queue.markDone(entry.id);
+    if (item.mediaType == MediaType.video && contentHash != null) {
+      await _cache.deleteTranscodeArtifacts(contentHash);
+    }
+    return UploadOutcome.leftToAnotherStore;
   }
 
   bool _isEligible(MediaItem item) {

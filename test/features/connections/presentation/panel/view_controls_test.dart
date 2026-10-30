@@ -157,6 +157,11 @@ void main() {
 
   testWidgets('the editor ticks kinds, links and the minimum', (tester) async {
     final (c, _) = await _pump(tester, const MapEditor());
+    // Starts from Dive circle, so the buddy-buddy link can be unticked.
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('circle')!));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Custom map'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('kind-chip-site')));

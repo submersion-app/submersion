@@ -92,20 +92,30 @@ List<int> _travelGaps(List<dynamic> stops) => [
 
 void main() {
   group('defaults', () {
-    test('a plan carries the TDI bands: 9 off the bottom, then 6, 3 and 1', () {
-      final plan = domain.DivePlan(
-        id: 'p',
-        name: 'n',
-        gfLow: 30,
-        gfHigh: 70,
-        createdAt: DateTime(2026, 9, 2),
-        updatedAt: DateTime(2026, 9, 2),
-      );
-      expect(plan.ascentRate, 9.0);
-      expect(plan.intermediateAscentRate, 6.0);
-      expect(plan.shallowAscentRate, 3.0);
-      expect(plan.finalAscentRate, 1.0);
-    });
+    test(
+      'an unconfigured plan leaves the rates unset, following the diver\'s '
+      'Settings TDI bands: 9 off the bottom, then 6, 3 and 1 (issue #3552)',
+      () {
+        final plan = domain.DivePlan(
+          id: 'p',
+          name: 'n',
+          gfLow: 30,
+          gfHigh: 70,
+          createdAt: DateTime(2026, 9, 2),
+          updatedAt: DateTime(2026, 9, 2),
+        );
+        expect(plan.ascentRate, isNull);
+        expect(plan.intermediateAscentRate, isNull);
+        expect(plan.shallowAscentRate, isNull);
+        expect(plan.finalAscentRate, isNull);
+
+        const config = PlanEngineConfig();
+        expect(config.ascentRate, 9.0);
+        expect(config.intermediateAscentRate, 6.0);
+        expect(config.shallowAscentRate, 3.0);
+        expect(config.finalAscentRate, 1.0);
+      },
+    );
   });
 
   group('no-deco plan', () {

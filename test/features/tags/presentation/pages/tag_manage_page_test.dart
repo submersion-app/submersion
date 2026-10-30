@@ -284,9 +284,9 @@ void main() {
 
       expect(find.text('Night Dive'), findsOneWidget);
       expect(find.text('Photography'), findsOneWidget);
-      // Usage counts: "12 dives" and "5 dives"
-      expect(find.text('12 dives'), findsOneWidget);
-      expect(find.text('5 dives'), findsOneWidget);
+      // Usage counts, each on its own labelled line (#3746).
+      expect(find.text('Used on: 12 dives'), findsOneWidget);
+      expect(find.text('Used on: 5 dives'), findsOneWidget);
     });
 
     testWidgets('the last tag\'s edit button clears the Add Tag button', (
@@ -362,7 +362,7 @@ void main() {
       // A row tap toggles the row during selection, so a second tap target
       // inside the row that does something else would be a trap.
       expect(find.byKey(const ValueKey('tag_edit_tag1')), findsNothing);
-      expect(find.text('12 dives'), findsOneWidget);
+      expect(find.text('Used on: 12 dives'), findsOneWidget);
     });
 
     testWidgets('FAB opens create dialog', (tester) async {
@@ -1258,7 +1258,9 @@ void main() {
 
       expect(
         find.text(
-          'These tags will be removed from 12 dives and 3 sites total. '
+          'These tags will be removed from:\n'
+          '• 12 dives\n'
+          '• 3 sites\n'
           'This cannot be undone.',
         ),
         findsOneWidget,
@@ -1289,8 +1291,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Dives · Sites · Equipment'), findsOneWidget);
-      expect(find.text('12 dives, 3 sites, 5 equipment items'), findsOneWidget);
+      expect(find.text('For: Dives · Sites · Equipment'), findsOneWidget);
+      expect(
+        find.text('Used on: 12 dives, 3 sites, 5 equipment items'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('an equipment tag row stays on the page', (tester) async {
@@ -1383,8 +1388,11 @@ void main() {
 
       expect(
         find.text(
-          'These tags will be removed from 12 dives, 3 sites, and 2 equipment '
-          'items total. This cannot be undone.',
+          'These tags will be removed from:\n'
+          '• 12 dives\n'
+          '• 3 sites\n'
+          '• 2 equipment items\n'
+          'This cannot be undone.',
         ),
         findsOneWidget,
       );

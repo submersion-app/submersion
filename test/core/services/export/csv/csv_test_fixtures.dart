@@ -31,8 +31,8 @@ const goldenSite = DiveSite(
   mooringNumber: 'M-14',
   parkingInfo: 'Marina lot, pay and display',
   waterType: WaterType.salt,
-  entryMethod: EntryMethod.boat,
-  exitMethod: EntryMethod.shore,
+  entryMethods: [EntryMethod.boat],
+  exitMethods: [EntryMethod.shore],
 );
 
 List<DiveSite> goldenSites() => const [

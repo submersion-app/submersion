@@ -120,11 +120,7 @@ class DiveMergeBuilder {
     final start = first?.start;
     final end = last?.end;
     if (start == null && end == null) return null;
-    return ComputerTissueSnapshot(
-      algorithm: (end != null ? last?.algorithm : null) ?? first?.algorithm,
-      start: start,
-      end: end,
-    );
+    return ComputerTissueSnapshot(start: start, end: end);
   }
 
   String _mergedNotes(List<Dive> sorted) =>

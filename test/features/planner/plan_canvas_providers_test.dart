@@ -165,13 +165,18 @@ void main() {
     expect(series.depthAt(0), 0);
   });
 
-  test('new plan adopts the diver gradient factor settings', () {
-    final container = _container(gfLow: 35, gfHigh: 75);
-    final state = container.read(divePlanNotifierProvider);
+  test(
+    'a new plan has no gradient-factor override; it resolves from settings',
+    () {
+      final container = _container(gfLow: 35, gfHigh: 75);
+      final state = container.read(divePlanNotifierProvider);
 
-    expect(state.gfLow, 35);
-    expect(state.gfHigh, 75);
-  });
+      expect(state.gfLow, isNull);
+      expect(state.gfHigh, isNull);
+      expect(container.read(gfLowProvider), 35);
+      expect(container.read(gfHighProvider), 75);
+    },
+  );
 
   test('conservative gradient factors lengthen the computed deco', () {
     final conservative = _container(gfLow: 20, gfHigh: 55);

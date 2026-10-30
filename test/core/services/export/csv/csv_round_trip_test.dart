@@ -102,10 +102,10 @@ void main() {
         expect(blue.location!.longitude, goldenSite.location!.longitude);
         near(blue.maxDepth, goldenSite.maxDepth, 0.06, 'maxDepth');
         expect(blue.waterType, goldenSite.waterType);
-        expect(blue.entryMethod, goldenSite.entryMethod);
+        expect(blue.entryMethods, goldenSite.entryMethods);
         expect(blue.rating, goldenSite.rating);
         expect(blue.description, goldenSite.description);
-        expect(blue.notes, goldenSite.notes.replaceAll('\n', ' '));
+        expect(blue.notes, goldenSite.notes);
         // Issue #2201: every remaining site field the writer used to drop.
         near(blue.minDepth, goldenSite.minDepth, 0.06, 'minDepth');
         expect(blue.difficulty, goldenSite.difficulty);
@@ -117,7 +117,7 @@ void main() {
         expect(blue.accessNotes, goldenSite.accessNotes);
         expect(blue.mooringNumber, goldenSite.mooringNumber);
         expect(blue.parkingInfo, goldenSite.parkingInfo);
-        expect(blue.exitMethod, goldenSite.exitMethod);
+        expect(blue.exitMethods, goldenSite.exitMethods);
         expect(sites.map((s) => s.name), contains('House Reef'));
       });
 
@@ -149,7 +149,7 @@ void main() {
             original.serviceIntervalDays,
             reason: what,
           );
-          expect(back.notes, original.notes.replaceAll('\n', ' '));
+          expect(back.notes, original.notes);
           for (final attr in original.attributes) {
             final match = back.attributes
                 .where((a) => a.key == attr.key && a.isCustom == attr.isCustom)
@@ -271,7 +271,7 @@ void main() {
           expect(back.buddy, original.buddy);
           expect(back.diveMaster, original.diveMaster);
           expect(back.rating, original.rating);
-          expect(back.notes, original.notes.replaceAll('\n', ' '));
+          expect(back.notes, original.notes);
           expect(back.visibility, original.visibility);
           expect(back.diveComputerModel, original.diveComputerModel);
           expect(back.diveComputerSerial, original.diveComputerSerial);

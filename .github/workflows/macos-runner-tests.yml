@@ -1,0 +1,86 @@
+# macOS Runner Tests
+#
+# Runs the XCTest target of the macOS app (macos/RunnerTests). They pin the
+# renderer override that keeps Intel Macs on Skia (#3531) against the pinned
+# Flutter version, so a Flutter bump that renames the overridden selector
+# fails here.
+
+name: macOS Runner Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'macos/Runner/**'
+      - 'macos/RunnerTests/**'
+      - 'macos/Runner.xcodeproj/**'
+      - '.github/flutter-version.txt'
+      - '.github/workflows/macos-runner-tests.yml'
+      - '.github/actions/setup-flutter/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'macos/Runner/**'
+      - 'macos/RunnerTests/**'
+      - 'macos/Runner.xcodeproj/**'
+      - '.github/flutter-version.txt'
+      - '.github/workflows/macos-runner-tests.yml'
+      - '.github/actions/setup-flutter/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-runner-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
+
+jobs:
+  runner-tests:
+    name: macOS Runner Tests
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Read Flutter version
+        id: flutter-version
+        run: echo "version=$(cat "$FLUTTER_VERSION_FILE")" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # The tests are hosted in the app, so this builds it first. Unsigned,
+      # as the plugin workflow's macOS build is. arm64 is pinned because the
+      # runner also offers a Rosetta x86_64 destination.
+      - name: Run RunnerTests (no codesign)
+        run: |
+          flutter build macos --config-only --debug
+          xcodebuild test \
+            -workspace macos/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Debug \
+            -destination 'platform=macOS,arch=arm64' \
+            -only-testing:RunnerTests \
+            -resultBundlePath "$RUNNER_TEMP/RunnerTests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      # xcodebuild reports success when no test ran at all, so a filter that
+      # stops matching, or a guard test that starts skipping, would stay
+      # green. Require every test to have run and passed.
+      - name: Check RunnerTests ran
+        run: |
+          summary=$(xcrun xcresulttool get test-results summary \
+            --path "$RUNNER_TEMP/RunnerTests.xcresult")
+          echo "$summary" | jq '{result, totalTestCount, passedTests, failedTests, skippedTests}'
+          echo "$summary" | jq -e '.totalTestCount > 0
+            and .passedTests == .totalTestCount
+            and .skippedTests == 0' > /dev/null

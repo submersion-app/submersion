@@ -3,9 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -480,7 +483,22 @@ class _FakeDiveRepo implements DiveRepository {
   final List<Dive> dives;
 
   @override
-  Future<List<Dive>> getAllDives({String? diverId}) async => dives;
+  Future<List<DivePickerRow>> getDivePickerRows({
+    String? diverId,
+    String query = '',
+    DiveSummaryCursor? cursor,
+    int limit = kDivePickerPageSize,
+  }) async => [
+    for (final dive in dives)
+      DivePickerRow(
+        id: dive.id,
+        diveNumber: dive.diveNumber,
+        name: dive.name,
+        siteName: dive.site?.name,
+        dateTime: dive.dateTime,
+        sortTimestamp: dive.dateTime.millisecondsSinceEpoch,
+      ),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

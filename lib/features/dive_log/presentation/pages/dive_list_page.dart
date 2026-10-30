@@ -13,6 +13,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -27,13 +28,16 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_add_fab.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -53,6 +57,7 @@ import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
@@ -100,6 +105,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   }
 
   void _showAddDiveSheet(BuildContext context) {
+    if (ref.read(diveListScrubbingProvider)) return;
     final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
     final viewMode = ref.read(diveListViewModeProvider);
     showAddDiveBottomSheet(
@@ -168,12 +174,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     // Use desktop breakpoint (800px) to show master-detail when NavigationRail appears
     final showMasterDetail = ResponsiveBreakpoints.isMasterDetail(context);
 
-    final fab = FloatingActionButton.extended(
-      onPressed: () => _showAddDiveSheet(context),
-      tooltip: context.l10n.diveLog_listPage_fab_logDive,
-      icon: const Icon(Icons.add),
-      label: Text(context.l10n.diveLog_listPage_fab_logDive),
-    );
+    final fab = DiveListAddFab(onPressed: () => _showAddDiveSheet(context));
 
     resetTableSelectionOffTable(diveListViewModeProvider);
 
@@ -185,6 +186,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
 
       return TableModeLayout(
         sectionKey: 'dives',
+        // The table holds every dive the filter selects, so the dive is
+        // looked up there rather than paged for.
+        rememberedSelectedId: rememberedListedId(
+          items: ref.watch(allDivesForTableProvider),
+          rememberedId: ref.watch(highlightedDiveIdProvider),
+          idOf: (dive) => dive.id,
+        ),
         appBarTitle: context.l10n.nav_dives,
         appBarSubtitle: diveCountSubtitle(
           context,
@@ -277,7 +285,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
                 );
-                ref.read(diveListViewModeProvider.notifier).state = mode;
+                ref.read(settingsProvider.notifier).setDiveListViewMode(mode);
               }
             },
             itemBuilder: (context) {
@@ -369,7 +377,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (showMasterDetail) {
       // Desktop: Use master-detail layout
       return MasterDetailScaffold(
-        sectionId: 'dives',
+        sectionId: RecordListSection.dives,
+        rememberedSelectedId: ref.watch(rememberedDiveIdProvider),
         masterBuilder: (context, onItemSelected, selectedId) => DiveListContent(
           onItemSelected: onItemSelected,
           selectedId: selectedId,
@@ -653,8 +662,15 @@ class DiveListTile extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final profileCache = ref.watch(batchProfileCacheProvider);
-    final profile = profileCache[diveId] ?? const [];
+    // This dive's entry only: every page load writes the cache once, and
+    // watching the whole map re-rendered every card on screen for it (#3506).
+    // The merge keeps existing entries' lists, so an unchanged entry selects
+    // the identical list and the card stays put.
+    final cached = ref.watch(
+      batchProfileCacheProvider.select((cache) => cache[diveId]),
+    );
+    if (cached == null) ref.read(diveProfileBatcherProvider).request(diveId);
+    final profile = cached ?? const <DiveProfilePoint>[];
 
     // Check if attribute-colored cards are enabled
     final colorAttribute = ref.watch(cardColorAttributeProvider);
@@ -848,11 +864,11 @@ class DiveListTile extends ConsumerWidget {
                               ],
                               if (isFavorite) ...[
                                 const SizedBox(width: 4),
-                                ExcludeSemantics(
+                                const ExcludeSemantics(
                                   child: Icon(
                                     Icons.favorite,
                                     size: 18,
-                                    color: Colors.red.shade400,
+                                    color: AppColors.favorite,
                                   ),
                                 ),
                               ],

@@ -5,6 +5,7 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 
 /// Minimal in PR 1 (enough for `gear.type` and the suit-thickness lowering
 /// through `gear[attributes[...]]`); PR 3 of #2365 completes it.
@@ -12,13 +13,15 @@ import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
 /// query names it in `tablesTouched` exactly when it reads the verdicts.
 const serviceStatusTable = 'equipment_service_status';
 
-/// A counted dive this item was on: linked through dive_equipment, or a
-/// cylinder matched through dive_tanks (the dive gear union).
-const _gearDiveLink =
+/// A counted dive this item was on: linked through dive_equipment, a
+/// cylinder matched through dive_tanks, or a regulator on a tank, first or
+/// extra (the dive gear union, issue #3375).
+final _gearDiveLink =
     'ad.id IN (SELECT de.dive_id FROM dive_equipment de '
     'WHERE de.equipment_id = {r}.id '
     'UNION SELECT dt.dive_id FROM dive_tanks dt '
-    'WHERE dt.equipment_id = {r}.id)';
+    'WHERE dt.equipment_id = {r}.id '
+    'UNION ${tankRegulatorDiveIdsSql('{r}.id')})';
 
 final equipmentQueryEntity = QueryEntity(
   subject: QuerySubject.equipment,
@@ -131,8 +134,8 @@ final equipmentQueryEntity = QueryEntity(
       tables: const ['equipment_location_moves', 'equipment_locations'],
     ),
   ],
-  relations: const [
-    QueryRelation(
+  relations: [
+    const QueryRelation(
       key: 'attributes',
       target: QuerySubject.equipmentAttributes,
       shape: RelationShape.child,
@@ -140,7 +143,7 @@ final equipmentQueryEntity = QueryEntity(
       isMany: true,
       labelKey: 'query_equipment_attributes',
     ),
-    QueryRelation(
+    const QueryRelation(
       key: 'tags',
       target: QuerySubject.tags,
       shape: RelationShape.junction,
@@ -152,8 +155,8 @@ final equipmentQueryEntity = QueryEntity(
       tables: ['equipment_tags'],
     ),
     // The dive gear union (`kDiveGearJoinSql`) read from the item's side:
-    // linked through dive_equipment, or a cylinder matched through
-    // dive_tanks.
+    // linked through dive_equipment, a cylinder matched through dive_tanks,
+    // or a regulator on a tank, first or extra (#3375).
     QueryRelation(
       key: 'dives',
       target: QuerySubject.dives,
@@ -162,10 +165,11 @@ final equipmentQueryEntity = QueryEntity(
           '{to}.id IN (SELECT de.dive_id FROM dive_equipment de '
           'WHERE de.equipment_id = {from}.id '
           'UNION SELECT dt.dive_id FROM dive_tanks dt '
-          'WHERE dt.equipment_id = {from}.id)',
+          'WHERE dt.equipment_id = {from}.id '
+          'UNION ${tankRegulatorDiveIdsSql('{from}.id')})',
       isMany: true,
       labelKey: 'query_equipment_dives',
-      tables: ['dive_equipment', 'dive_tanks'],
+      tables: const ['dive_equipment', 'dive_tanks'],
     ),
   ],
 );

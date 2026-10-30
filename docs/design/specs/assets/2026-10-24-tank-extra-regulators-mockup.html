@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tank Extra Regulators: Tank Editor Mockup (2026-10-24)</title>
+<style>body{background:#111418;color:#e6ebf0;font:14px system-ui;margin:16px}.cards{display:flex;gap:16px;flex-wrap:wrap}.card{flex:1;min-width:260px;background:#1a1e24;border-radius:12px;padding:12px}.subtitle{color:#9fb0c0}:root{--bg-secondary:#22272e;--border:#3a414b;--accent:#6ea8ff}</style>
+</head>
+<body>
+<p class="subtitle">Option C (extras behind an "+ Add regulator" button) was chosen, with no limit on the number of regulators.</p>
+<style>
+  .card-image { aspect-ratio: auto !important; display: block !important; padding: 12px; }
+  .tank { background: var(--bg-secondary, #f5f5f5); border-radius: 10px; padding: 14px; font-size: 13px; }
+  .tank h4 { margin: 0 0 10px; font-size: 14px; }
+  .fld { border-bottom: 1px solid var(--border, #bbb); padding: 4px 0 6px; margin-bottom: 10px; flex: 1; }
+  .fld .lbl { font-size: 11px; opacity: .65; }
+  .fld .val { display: flex; justify-content: space-between; }
+  .fld .val::after { content: "\25BE"; opacity: .6; }
+  .line { display: flex; align-items: flex-end; gap: 8px; }
+  .x { font-size: 16px; opacity: .6; padding: 0 4px 12px; }
+  .link { color: var(--accent, #2a6fdb); font-size: 12px; margin: -4px 0 10px; }
+  .faded { opacity: .5; }
+  .note { font-size: 12px; opacity: .7; margin-top: 8px; }
+</style>
+
+<h2>The regulator list on a tank</h2>
+<p class="subtitle">Tank editor, three states of the same tank. The picker that exists today is unchanged; extras sit under it.</p>
+
+<div class="cards">
+  <div class="card" data-choice="none">
+    <div class="card-image"><div style="width:100%">
+      <div class="tank">
+        <h4>No regulator yet</h4>
+        <div class="fld faded"><div class="lbl">Preset</div><div class="val">AL80</div></div>
+        <div class="line"><div class="fld"><div class="lbl">Regulator</div><div class="val">None</div></div></div>
+        <div class="fld faded"><div class="lbl">Gas mix</div><div class="val">Air</div></div>
+      </div>
+      <p class="note">No link while the first picker is None: there is nothing to add to yet. Looks exactly like today.</p>
+    </div></div>
+    <div class="card-body"><h3>1. Empty</h3></div>
+  </div>
+
+  <div class="card" data-choice="one">
+    <div class="card-image"><div style="width:100%">
+      <div class="tank">
+        <h4>One regulator</h4>
+        <div class="fld faded"><div class="lbl">Preset</div><div class="val">AL80</div></div>
+        <div class="line"><div class="fld"><div class="lbl">Regulator</div><div class="val">Apeks XTX50 (#2)</div></div></div>
+        <div class="link">+ Add regulator</div>
+        <div class="fld faded"><div class="lbl">Gas mix</div><div class="val">Air</div></div>
+      </div>
+      <p class="note">The link appears once a regulator is chosen.</p>
+    </div></div>
+    <div class="card-body"><h3>2. One set</h3></div>
+  </div>
+
+  <div class="card" data-choice="many">
+    <div class="card-image"><div style="width:100%">
+      <div class="tank">
+        <h4>Twin valve, three regulators</h4>
+        <div class="fld faded"><div class="lbl">Preset</div><div class="val">D12 232</div></div>
+        <div class="line"><div class="fld"><div class="lbl">Regulator</div><div class="val">Apeks XTX50 (#2)</div></div></div>
+        <div class="line"><div class="fld"><div class="lbl">Regulator 2</div><div class="val">Apeks XTX50 (#3)</div></div><div class="x">&#x2715;</div></div>
+        <div class="line"><div class="fld"><div class="lbl">Regulator 3</div><div class="val">Scubapro MK25</div></div><div class="x">&#x2715;</div></div>
+        <div class="link">+ Add regulator</div>
+        <div class="fld faded"><div class="lbl">Gas mix</div><div class="val">Air</div></div>
+      </div>
+      <p class="note">Each added picker has a remove button. Regulators already chosen on this tank are not offered again. Setting the first to None moves Regulator 2 up into its place.</p>
+    </div></div>
+    <div class="card-body"><h3>3. Several</h3></div>
+  </div>
+</div>
+</body></html>

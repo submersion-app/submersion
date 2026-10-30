@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
@@ -105,6 +106,7 @@ import 'package:submersion/features/universal_import/data/services/import_tank_d
 import 'package:uuid/uuid.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -298,6 +300,10 @@ class UddfEntityImportResult {
   final int fills;
   final List<String> diveIds;
 
+  /// The sites this import created (not those it matched to existing
+  /// sites), so logbook rules can run on them afterwards (#3513).
+  final List<String> siteIds;
+
   /// The persisted dive id created for each imported source-dive index.
   ///
   /// Keyed by the index into the `dives` list passed to [import] (the same
@@ -324,6 +330,7 @@ class UddfEntityImportResult {
     this.courses = 0,
     this.fills = 0,
     this.diveIds = const [],
+    this.siteIds = const [],
     this.diveIdByIndex = const {},
     this.restoredDataSources = 0,
   });
@@ -413,6 +420,16 @@ class UddfEntityImporter {
 
   /// Parse a value that may be either an enum instance or a string matching
   /// an enum name. Returns null if the value is null or unrecognised.
+  /// A site's entry or exit methods from an import payload value (stored
+  /// comma-joined names), or null when the payload carries none this build
+  /// can read, so an overwrite keeps the site's own list rather than
+  /// emptying it.
+  static List<EntryMethod>? _entryMethodsOrNull(Object? value) {
+    if (value is! String) return null;
+    final methods = decodeEntryMethods(value);
+    return methods.isEmpty ? null : methods;
+  }
+
   static T? _parseEnum<T extends Enum>(Object? value, List<T> values) {
     if (value == null) return null;
     if (value is T) return value;
@@ -621,6 +638,21 @@ class UddfEntityImporter {
         now,
         kindResolver,
       );
+      // A backup written before v317 restores clocks without the baseline
+      // the tank's inspection dates give them (issue #3662). After the
+      // records, so a clock with a service of its kind keeps counting
+      // from that service. Best-effort: the gear is already in.
+      try {
+        await repositories.serviceScheduleRepository
+            ?.anchorFromInspectionDates();
+      } catch (e, stackTrace) {
+        _log.error(
+          'Anchoring tank clocks on their inspection dates failed; the '
+          'gear was still imported',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
 
     // Cylinder fills (passports phase 5) are keyed by passport id, not by
@@ -774,6 +806,7 @@ class UddfEntityImporter {
             diverId,
           );
 
+    final createdSiteIds = <String>[];
     final sitesCount = stopped()
         ? 0
         : await _importSites(
@@ -784,6 +817,7 @@ class UddfEntityImporter {
             diverId,
             siteIdMapping,
             onProgress,
+            createdSiteIds: createdSiteIds,
             restoreSiteChildren: (siteData, siteId) async {
               // A library site this profile may not edit keeps the
               // library's lists (issue #2567).
@@ -897,6 +931,7 @@ class UddfEntityImporter {
       courses: coursesCount,
       fills: fillsCount,
       diveIds: divesResult.diveIds,
+      siteIds: createdSiteIds,
       diveIdByIndex: divesResult.diveIdByIndex,
       restoredDataSources: divesResult.restoredDataSources,
     );
@@ -1888,6 +1923,7 @@ class UddfEntityImporter {
     Future<void> Function(Map<String, dynamic> siteData, String siteId)?
     restoreSiteChildren,
     ImportCancellationToken? cancelToken,
+    List<String>? createdSiteIds,
   }) async {
     // For deselected sites (duplicates the user chose not to re-import),
     // resolve their UDDF IDs to existing database sites so that dives
@@ -2012,10 +2048,10 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
-        // A site's typical way out (issue #2201); null means the
-        // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        // Null for an absent key, so the site keeps its own methods; a
+        // decoded list (even an empty one) would replace them (#2054).
+        entryMethods: _entryMethodsOrNull(siteData['entryMethod']),
+        exitMethods: _entryMethodsOrNull(siteData['exitMethod']),
       );
 
       // Core fields and the importer-only metadata columns go out as one
@@ -2103,13 +2139,14 @@ class UddfEntityImporter {
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
-        entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
         // A site's typical way out (issue #2201); null means the
         // same as the entry, so an absent cell stays null.
-        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
+        exitMethods: decodeEntryMethods(siteData['exitMethod'] as String?),
       );
 
       final createdSite = await repository.createSite(newSite);
+      createdSiteIds?.add(createdSite.id);
 
       // Write MacDive site metadata columns that don't flow through the
       // DiveSite domain entity. Only set columns when source provides a value.
@@ -3120,18 +3157,27 @@ class UddfEntityImporter {
 
       // Write MacDive dive metadata columns that don't flow through the Dive
       // domain entity. Also plug `weather` into the existing weatherDescription
-      // column (it wasn't being populated for UDDF imports). Only issue the
-      // UPDATE when at least one value is present to avoid a no-op write.
+      // column (it wasn't being populated for UDDF imports), and the CNS and
+      // OTU the computer reported, which have no Dive field either; the
+      // source row below keeps its own copy of the end values, as a download
+      // does (issue #2555). Only issue the UPDATE when at least one value is
+      // present to avoid a no-op write.
       final boatName = diveData['boatName'] as String?;
       final boatCaptain = diveData['boatCaptain'] as String?;
       final diveOperator = diveData['diveOperator'] as String?;
       final surfaceConditions = diveData['surfaceConditions'] as String?;
       final weather = diveData['weather'] as String?;
+      final cnsStart = asDoubleOrNull(diveData['cnsStart']);
+      final cnsEnd = asDoubleOrNull(diveData['cnsEnd']);
+      final otu = asDoubleOrNull(diveData['otu']);
       if (boatName != null ||
           boatCaptain != null ||
           diveOperator != null ||
           surfaceConditions != null ||
-          weather != null) {
+          weather != null ||
+          cnsStart != null ||
+          cnsEnd != null ||
+          otu != null) {
         await repos.diveRepository.applyImportedMetadata(
           diveId,
           DivesCompanion(
@@ -3148,6 +3194,9 @@ class UddfEntityImporter {
             weatherDescription: weather != null
                 ? Value(weather)
                 : const Value.absent(),
+            cnsStart: cnsStart != null ? Value(cnsStart) : const Value.absent(),
+            cnsEnd: cnsEnd != null ? Value(cnsEnd) : const Value.absent(),
+            otu: otu != null ? Value(otu) : const Value.absent(),
           ),
         );
       }
@@ -3455,6 +3504,10 @@ class UddfEntityImporter {
       usedConnections,
       usedAt: now,
     );
+
+    // A transmitter serial the file brings in gets its Transmitter item and
+    // joins its dives, as a download's does (issue #3676).
+    await registerTransmittersForDives(importedDiveIds);
 
     return _DiveImportResult(
       count,

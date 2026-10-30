@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 
 void main() {
@@ -25,6 +26,33 @@ void main() {
 
     test('a negative count is clamped to zero rather than formatted', () {
       expect(formatBytes(-1), '0 B');
+    });
+  });
+
+  group('in the active language', () {
+    late String? previous;
+
+    setUp(() => previous = Intl.defaultLocale);
+    tearDown(() => Intl.defaultLocale = previous);
+
+    test('French takes its decimal comma and its own unit symbols', () {
+      Intl.defaultLocale = 'fr';
+
+      expect(formatBytes(1536), '1,5 Ko');
+      expect(formatBytes((2.5 * 1024 * 1024).round()), '2,5 Mo');
+      expect(formatBytes(512), '512 o');
+    });
+
+    test('German takes its decimal comma and keeps MB', () {
+      Intl.defaultLocale = 'de-DE';
+
+      expect(formatBytes((2.5 * 1024 * 1024).round()), '2,5 MB');
+    });
+
+    test('a language the app does not have reads as English', () {
+      Intl.defaultLocale = 'ja';
+
+      expect(formatBytes(1536), '1.5 KB');
     });
   });
 }

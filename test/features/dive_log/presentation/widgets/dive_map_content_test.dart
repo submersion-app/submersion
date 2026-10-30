@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/glyph_contrast.dart';
 import '../../../../helpers/mock_providers.dart';
 
 DiveSite _site({
@@ -33,6 +35,7 @@ Future<void> _pump(
   String? selectedId,
   ValueNotifier<String?>? selection,
   void Function(String?)? onItemSelected,
+  ThemeData? theme,
 }) async {
   final base = await getBaseOverrides();
   await tester.pumpWidget(
@@ -45,6 +48,7 @@ Future<void> _pump(
         ),
       ],
       child: MaterialApp(
+        theme: theme,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -118,6 +122,26 @@ void main() {
     expect(find.byType(FlutterMap), findsOneWidget);
     // The selected dive surfaces an info card containing the site name.
     expect(find.text('Blue Hole'), findsOneWidget);
+  });
+
+  // A selected marker fills with primary, which dark themes make a light
+  // tone; the dive count stayed white on it (about 1.5:1).
+  testWidgets('selected marker count reads on its fill in dark mode', (
+    tester,
+  ) async {
+    final site = _site();
+    await _pump(
+      tester,
+      dives: AsyncValue.data([_diveAtSite(site)]),
+      selectedId: 'dive-1',
+      theme: submersionDark,
+    );
+
+    final count = find.descendant(
+      of: _siteMarker('Blue Hole'),
+      matching: find.text('1'),
+    );
+    expect(glyphOnFillContrast(tester, count), greaterThanOrEqualTo(4.5));
   });
 
   testWidgets('renders a cluster marker for co-located sites', (tester) async {

@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/cylinder_config_applier.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -41,6 +42,7 @@ class DiveTankConfigAdapter {
     gasMix: GasMix(o2: item.o2Percent, he: item.hePercent),
     role: item.tankRole,
     material: item.tankMaterial,
+    decoSwitchDepth: item.decoSwitchDepth,
     order: order,
   );
 
@@ -51,11 +53,22 @@ class DiveTankConfigAdapter {
   /// so each pick is a deliberate addition, not a fill of what was missing.
   /// Gas is carried for the same reason [apply] refuses it on a fill - in a
   /// plan the mix is the thing being chosen.
+  ///
+  /// A plan cylinder also needs a start pressure, or the planner can work out
+  /// neither its turn pressure nor its minimum gas (#3603). A saved cylinder
+  /// that never recorded one is filled the way a new tank is: to its rated
+  /// working pressure, else the planner's usual 200 bar.
   DiveTank tankFromItem(
     CylinderConfigItem item, {
     required String id,
     int order = 0,
-  }) => _fromItem(item, order, id);
+  }) {
+    final tank = _fromItem(item, order, id);
+    if (tank.startPressure != null) return tank;
+    return tank.copyWith(
+      startPressure: item.workingPressureBar ?? TankPresets.planFillPressureBar,
+    );
+  }
 
   /// Returns the merged tank list, the counts to report to the diver, and
   /// whether anything actually changed.

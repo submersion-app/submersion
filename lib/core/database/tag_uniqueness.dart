@@ -19,6 +19,7 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/table_columns.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 
 /// Unique index over `tags`, keyed on (diver scope, case-folded name).
@@ -77,6 +78,38 @@ const String _collapseDuplicateEquipmentTagPairsSql = '''
       SELECT rowid, ROW_NUMBER() OVER (
         PARTITION BY equipment_id, tag_id ORDER BY created_at ASC, id ASC
       ) AS rn FROM equipment_tags
+    ) WHERE rn > 1
+  )
+''';
+
+/// Unique index over the `media_tags` junction (v309, issue #1970), one row
+/// per (media item, tag). Like `equipment_tags`, the table has the index from
+/// the day it exists, so the collapse below only runs on a database that lost
+/// it.
+const String kMediaTagsUniqueIndexName = 'idx_media_tags_media_tag_unique';
+
+const String kCreateMediaTagsUniqueIndexSql =
+    'CREATE UNIQUE INDEX IF NOT EXISTS $kMediaTagsUniqueIndexName '
+    'ON media_tags(media_id, tag_id)';
+
+/// Unique index over the `document_tags` junction (v309, issue #1970), one
+/// row per (document, tag).
+const String kDocumentTagsUniqueIndexName =
+    'idx_document_tags_document_tag_unique';
+
+const String kCreateDocumentTagsUniqueIndexSql =
+    'CREATE UNIQUE INDEX IF NOT EXISTS $kDocumentTagsUniqueIndexName '
+    'ON document_tags(document_id, tag_id)';
+
+/// Keeps the oldest row of each (parent, tag) pair in [table], `id` breaking
+/// ties, so every device lands on the same survivor.
+String _collapseDuplicatePairsSql(String table, String parentColumn) =>
+    '''
+  DELETE FROM $table WHERE rowid IN (
+    SELECT rowid FROM (
+      SELECT rowid, ROW_NUMBER() OVER (
+        PARTITION BY $parentColumn, tag_id ORDER BY created_at ASC, id ASC
+      ) AS rn FROM $table
     ) WHERE rn > 1
   )
 ''';
@@ -187,11 +220,6 @@ Future<bool> _tableExists(DatabaseConnectionUser db, String name) async {
   return rows.isNotEmpty;
 }
 
-Future<Set<String>> _columnsOf(DatabaseConnectionUser db, String table) async {
-  final columns = await db.customSelect("PRAGMA table_info('$table')").get();
-  return {for (final column in columns) column.read<String>('name')};
-}
-
 /// Collapses duplicate tags and duplicate links, in the only order that
 /// leaves no ties: normalize the names the grouping keys on, give each
 /// survivor the union of its group's scopes, repoint every junction in the
@@ -208,7 +236,7 @@ Future<void> collapseDuplicateTags(DatabaseConnectionUser db) async {
     for (final junction in tagScopeTables)
       if (await _tableExists(db, junction.junctionTable)) junction,
   ];
-  final tagColumns = await _columnsOf(db, 'tags');
+  final tagColumns = await tableColumnNames(db, 'tags');
   final scopeColumns = [
     for (final junction in tagScopeTables)
       if (tagColumns.contains(junction.scopeColumn)) junction.scopeColumn,
@@ -321,3 +349,40 @@ Future<void> assertEquipmentTagUniqueness(DatabaseConnectionUser db) async {
 /// to tolerate formatting rather than demand a byte match.
 String _normalizeSql(String sql) =>
     sql.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
+
+/// Asserts the `media_tags` and `document_tags` unique indexes exist,
+/// collapsing duplicate pairs first so creating them cannot abort. One
+/// `sqlite_master` lookup per index when it is present. Each is skipped when
+/// its table does not exist, so partial migration-test fixtures pass through.
+///
+/// Called from `onCreate` (`createAll()` never builds raw-SQL indexes), the
+/// v309 rung and `beforeOpen`, through `_assertMediaAndDocumentTagSchema`.
+Future<void> assertMediaAndDocumentTagUniqueness(
+  DatabaseConnectionUser db,
+) async {
+  for (final (table, parentColumn, index, create) in const [
+    (
+      'media_tags',
+      'media_id',
+      kMediaTagsUniqueIndexName,
+      kCreateMediaTagsUniqueIndexSql,
+    ),
+    (
+      'document_tags',
+      'document_id',
+      kDocumentTagsUniqueIndexName,
+      kCreateDocumentTagsUniqueIndexSql,
+    ),
+  ]) {
+    if (!await _tableExists(db, table)) continue;
+    final present = await db
+        .customSelect(
+          "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?",
+          variables: [Variable<String>(index)],
+        )
+        .get();
+    if (present.isNotEmpty) continue;
+    await db.customStatement(_collapseDuplicatePairsSql(table, parentColumn));
+    await db.customStatement(create);
+  }
+}

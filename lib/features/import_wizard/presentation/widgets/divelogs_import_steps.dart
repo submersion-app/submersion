@@ -382,7 +382,6 @@ enum _FetchPhase { idle, fetching, done, empty, failed, expired }
 class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
   _FetchPhase _phase = _FetchPhase.idle;
   DivelogsFetchResult? _result;
-  (int, int)? _photoProgress;
 
   Future<void> _fetch() async {
     final client = widget.client;
@@ -397,17 +396,11 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     final generation = ref.read(divelogsSessionGenerationProvider);
     bool sessionChanged() =>
         !mounted || ref.read(divelogsSessionGenerationProvider) != generation;
-    setState(() {
-      _phase = _FetchPhase.fetching;
-      _photoProgress = null;
-    });
+    setState(() => _phase = _FetchPhase.fetching);
     try {
-      final result = await DivelogsImportService(api: client).fetchLogbook(
-        includePhotos: includePhotos,
-        onPhotoListingProgress: (current, total) {
-          if (mounted) setState(() => _photoProgress = (current, total));
-        },
-      );
+      final result = await DivelogsImportService(
+        api: client,
+      ).fetchLogbook(includePhotos: includePhotos);
       // Signed out or switched accounts while the request was in flight.
       if (sessionChanged()) {
         _backToIdle();
@@ -518,7 +511,6 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
         }
         children.add(fetchButton());
       case _FetchPhase.fetching:
-        final progress = _photoProgress;
         children.add(
           Row(
             children: [
@@ -528,16 +520,7 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  progress == null
-                      ? l10n.divelogsImport_fetch_fetching
-                      : l10n.divelogsImport_fetch_listingPhotos(
-                          progress.$1,
-                          progress.$2,
-                        ),
-                ),
-              ),
+              Expanded(child: Text(l10n.divelogsImport_fetch_fetching)),
             ],
           ),
         );
@@ -549,7 +532,9 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             style: theme.textTheme.titleMedium,
           ),
         );
-        if (result.photoCount > 0 || result.photoListingFailures > 0) {
+        if (result.photoCount > 0 ||
+            result.photoListingFailures > 0 ||
+            result.photosWithoutLink > 0) {
           children.add(
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -579,6 +564,15 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
             problem(
               l10n.divelogsImport_fetch_photoListingsFailed(
                 result.photoListingFailures,
+              ),
+            ),
+          );
+        }
+        if (result.photosWithoutLink > 0) {
+          children.add(
+            problem(
+              l10n.divelogsImport_fetch_photosWithoutLink(
+                result.photosWithoutLink,
               ),
             ),
           );

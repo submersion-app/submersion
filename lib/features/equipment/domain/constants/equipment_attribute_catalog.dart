@@ -110,6 +110,11 @@ abstract final class EquipmentAttrKeys {
   static const workingPressureBar = 'working_pressure_bar';
   static const tankMaterial = 'tank_material';
 
+  // A cylinder's last visual inspection and hydro test dates. The VIP and
+  // hydro service clocks count from them (issue #3662).
+  static const lastVisualInspection = 'last_visual_inspection';
+  static const lastHydroTest = 'last_hydro_test';
+
   // The diver's own mark for telling identical items apart (issue #1549).
   // Cylinders had it first, and the stored key keeps that name: renaming it
   // would rewrite attribute rows on every sync peer.
@@ -393,10 +398,13 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['din', 'yoke', 'convertible'],
       ),
       EquipmentAttributeDef(
-        key: 'last_visual_inspection',
+        key: EquipmentAttrKeys.lastVisualInspection,
         kind: AttributeKind.date,
       ),
-      EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.lastHydroTest,
+        kind: AttributeKind.date,
+      ),
     ],
     EquipmentType.rebreather: [
       EquipmentAttributeDef(
@@ -907,6 +915,14 @@ abstract final class EquipmentAttributeCatalog {
 
   /// Definition for a curated key, or null for unknown/custom keys.
   static EquipmentAttributeDef? defFor(String key) => _byKey[key];
+
+  /// The curated keys whose values are dates ([AttributeKind.date], stored
+  /// as unix milliseconds in `value_num`), such as a fitted part's
+  /// `installed_date`.
+  static final Set<String> dateKeys = {
+    for (final def in _byKey.values)
+      if (def.kind == AttributeKind.date) def.key,
+  };
 
   /// Whether [key] is a curated attribute the app owns ([AttributeGroup.system],
   /// such as a cylinder's passport id). Such values are identities, never

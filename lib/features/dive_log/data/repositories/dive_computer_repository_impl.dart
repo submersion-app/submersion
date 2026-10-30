@@ -24,6 +24,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
@@ -111,6 +112,27 @@ class DiveComputerRepository {
   // ============================================================================
   // CRUD Operations for Dive Computers
   // ============================================================================
+
+  /// The registrations behind Equipment item [equipmentId] (issue #3676),
+  /// the most recently downloaded first. Usually one; a device registered
+  /// twice shows as one item until it is merged.
+  Future<List<domain.DiveComputer>> getComputersForEquipment(
+    String equipmentId,
+  ) async {
+    final rows =
+        await (_db.select(_db.diveComputers)
+              ..where((t) => t.equipmentId.equals(equipmentId))
+              ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.lastDownloadTimestamp,
+                  mode: OrderingMode.desc,
+                  nulls: NullsOrder.last,
+                ),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_mapRowToComputer).toList();
+  }
 
   /// Get all dive computers
   Future<List<domain.DiveComputer>> getAllComputers({String? diverId}) async {
@@ -284,6 +306,44 @@ class DiveComputerRepository {
     }
   }
 
+  Future<void> _adoptBoundItem(
+    String computerId,
+    String itemId,
+    domain.DiveComputer computer,
+    int now,
+  ) async {
+    final item = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(itemId))).getSingleOrNull();
+    if (item == null) return;
+    bool blank(String? v) => v == null || v.trim().isEmpty;
+    final fill = db.EquipmentCompanion(
+      serialNumber: blank(item.serialNumber) && !blank(computer.serialNumber)
+          ? Value(computer.serialNumber)
+          : const Value.absent(),
+      brand: blank(item.brand) && !blank(computer.manufacturer)
+          ? Value(computer.manufacturer)
+          : const Value.absent(),
+      model: blank(item.model) && !blank(computer.model)
+          ? Value(computer.model)
+          : const Value.absent(),
+    );
+    if (fill != const db.EquipmentCompanion()) {
+      await (_db.update(_db.equipment)..where((t) => t.id.equals(itemId)))
+          .write(fill.copyWith(updatedAt: Value(now)));
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: itemId,
+        localUpdatedAt: now,
+      );
+    }
+    if (item.name != computer.name) {
+      await (_db.update(_db.diveComputers)
+            ..where((t) => t.id.equals(computerId)))
+          .write(DiveComputersCompanion(name: Value(item.name)));
+    }
+  }
+
   /// Create a new dive computer
   Future<domain.DiveComputer> createComputer(
     domain.DiveComputer computer,
@@ -322,10 +382,11 @@ class DiveComputerRepository {
               ),
             );
 
-        // Seed the gear twin once, here, because this is the only repository
-        // path that genuinely inserts a registry row (v175). Minting nowhere
-        // else is what makes a user-deleted twin permanent. Pass the resolved
-        // id: the caller's may have been empty and minted just above.
+        // Resolve the gear twin here, where a registry row is genuinely
+        // inserted (v175). Since #3676 a computer always has its item: the
+        // device gear heal also mints one for a computer left without, on
+        // the same id chain. Pass the resolved id: the caller's may have
+        // been empty and minted just above.
         final twinId = await DiveComputerGearResolver().resolveGearTwin(
           computer.copyWith(id: id),
         );
@@ -334,6 +395,12 @@ class DiveComputerRepository {
             'UPDATE dive_computers SET equipment_id = ? WHERE id = ?',
             [twinId, id],
           );
+        }
+        // Bound to an item the diver added by hand ("Connect and download",
+        // issue #3676): the item is the one entry, so the computer takes its
+        // name, and the item gains what it lacked of the device's identity.
+        if (twinId != null && twinId == computer.equipmentId) {
+          await _adoptBoundItem(id, twinId, computer, now);
         }
 
         // Marked pending ONCE, after the optional equipment_id write, so the
@@ -498,6 +565,9 @@ class DiveComputerRepository {
       // the connections with no tombstone, and a peer would keep them
       // (issue #3106).
       await DiveComputerConnectionRepository().deleteForComputer(id);
+      // Its channel-only transmitter keys go with it; a serial key stays
+      // (issue #3676).
+      await TransmitterRepository().detachFromDeletedComputer(id);
 
       await (_db.delete(_db.diveComputers)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(
@@ -970,6 +1040,16 @@ class DiveComputerRepository {
             ])
             ..limit(1))
           .getSingleOrNull();
+
+  /// Whether [diveId]'s row holds a computer tissue snapshot.
+  Future<bool> _hasStoredTissue(String diveId) async {
+    final row =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.computerTissueJson])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
+    return row?.read(_db.dives.computerTissueJson) != null;
+  }
 
   /// Whether any reading of [diveId] holds the primary role: a primary
   /// source row or a primary profile series.
@@ -1452,7 +1532,8 @@ class DiveComputerRepository {
     double? diluentO2,
     double? diluentHe,
     // Tissue state the computer reported for the dive as a whole; stored
-    // verbatim. Null on an update leaves any stored snapshot in place.
+    // verbatim. On an update the dive's primary reading replaces the stored
+    // snapshot, null included; a secondary one only fills a dive with none.
     ComputerTissueSnapshot? computerTissue,
     List<EventData>? events,
     List<GasSwitchData>? gasSwitches,
@@ -1477,10 +1558,13 @@ class DiveComputerRepository {
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
     // download's own data source row takes them either way, except the
-    // bottom time: that row keeps the measured runtime (issue #2421).
+    // bottom time: that row keeps the measured runtime (issue #2421). The
+    // start CNS has no column on the source row, so only a new dive keeps it
+    // (issue #2555).
     int? bottomTimeSeconds,
     int? surfaceIntervalSeconds,
     WaterType? waterType,
+    double? cnsStart,
     double? cnsEnd,
     double? otu,
     // Attach to this dive instead of matching by time (issue #2002). A
@@ -1581,6 +1665,11 @@ class DiveComputerRepository {
                 runtime: Value(durationSeconds),
                 maxDepth: Value(maxDepth),
                 avgDepth: Value(effectiveAvgDepth),
+                // NOT NULL with a default of 0, which stands when the
+                // source reports no start CNS.
+                cnsStart: cnsStart == null
+                    ? const Value.absent()
+                    : Value(cnsStart),
                 cnsEnd: Value(effectiveCnsEnd),
                 otu: Value(otu),
                 surfaceIntervalSeconds: Value(surfaceIntervalSeconds),
@@ -1768,6 +1857,10 @@ class DiveComputerRepository {
       // re-download pass and the series had no owning source (issue #2002).
       // Primary when the dive had nothing yet, or when it takes back the
       // role a replaced reading held (#2582); a secondary otherwise.
+      //
+      // Whether this reading took the primary role from another source's
+      // row, whose tissue snapshot it then must not clear (#2556).
+      var displacedPrimary = false;
       if (!isNewDive && ownSource == null) {
         // A dive can already hold a summary-only source row and no series:
         // a UDDF import writes one for every dive it creates. The download
@@ -1775,17 +1868,19 @@ class DiveComputerRepository {
         // flag and any older primary loses it. Readers resolve "the"
         // primary with LIMIT 1, so two primaries would be ambiguous.
         if (isPrimary) {
-          await (_db.update(_db.diveDataSources)..where(
-                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
-              ))
-              .write(
-                DiveDataSourcesCompanion(
-                  isPrimary: const Value(false),
-                  // A fresh clock, so a peer's older copy cannot make it the
-                  // primary again (#2644).
-                  hlc: Value(await _syncRepository.issueRowClock()),
-                ),
-              );
+          final demoted =
+              await (_db.update(_db.diveDataSources)..where(
+                    (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+                  ))
+                  .write(
+                    DiveDataSourcesCompanion(
+                      isPrimary: const Value(false),
+                      // A fresh clock, so a peer's older copy cannot make
+                      // it the primary again (#2644).
+                      hlc: Value(await _syncRepository.issueRowClock()),
+                    ),
+                  );
+          displacedPrimary = demoted > 0;
         }
         final existingSampleTemps = points
             .map((p) => p.temperature)
@@ -2195,16 +2290,49 @@ class DiveComputerRepository {
       }
 
       if (!isNewDive) {
+        // The primary reading owns the snapshot, so its re-import writes what
+        // it carries, none included: a snapshot the parser no longer emits
+        // must not outlive it (issue #2556). A reading that just took the
+        // role from another source, which stored the snapshot, replaces it
+        // only with one of its own. A secondary reading never replaces one;
+        // it only fills a dive that has none.
+        final writesTissue = isPrimary
+            ? !displacedPrimary || computerTissue != null
+            : computerTissue != null && !await _hasStoredTissue(diveId);
+        // The deco settings follow the same owner: the primary reading writes
+        // what it reports, none included. A secondary one, or one that just
+        // took the role from the source that stored them, leaves them alone
+        // when it reports none rather than blanking them. They go as one set
+        // either way: gradient factors from one computer beside another's
+        // algorithm describe a configuration no computer ran.
+        final writesDecoSettings =
+            (isPrimary && !displacedPrimary) ||
+            gfLow != null ||
+            gfHigh != null ||
+            decoAlgorithm != null ||
+            decoConservatism != null;
+        Value<T?> reported<T>(T? value) =>
+            writesDecoSettings ? Value(value) : const Value.absent();
+        // A named target is a dive this download is the record of (the
+        // planned-dive fill, #2002), so it takes the computer's O2 exposure
+        // the way a new dive does. A dive matched by time keeps its own: the
+        // download's values go to its source row only (#1798, #2555).
+        final fillsTarget = targetDiveId != null;
+        Value<double> exposure(double? value) =>
+            fillsTarget && value != null ? Value(value) : const Value.absent();
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),
-            gradientFactorLow: Value(gfLow),
-            gradientFactorHigh: Value(gfHigh),
-            decoAlgorithm: Value(decoAlgorithm),
-            decoConservatism: Value(decoConservatism),
-            computerTissueJson: computerTissue == null
-                ? const Value.absent()
-                : Value(computerTissue.encode()),
+            gradientFactorLow: reported(gfLow),
+            gradientFactorHigh: reported(gfHigh),
+            decoAlgorithm: reported(decoAlgorithm),
+            decoConservatism: reported(decoConservatism),
+            computerTissueJson: writesTissue
+                ? Value(computerTissue?.encode())
+                : const Value.absent(),
+            cnsStart: exposure(cnsStart),
+            cnsEnd: exposure(cnsEnd),
+            otu: exposure(otu),
           ),
         );
         await _syncRepository.markRecordPending(
@@ -2968,6 +3096,10 @@ class TankData {
   /// than a mix the computer recorded (see `DownloadedTank.mixRecorded`).
   final bool mixRecorded;
 
+  /// An open-circuit gas no transmitter read and the diver never breathed
+  /// (see `DownloadedTank.unusedOcGas`, issue #3668).
+  final bool unusedOcGas;
+
   const TankData({
     required this.index,
     required this.o2Percent,
@@ -2984,6 +3116,7 @@ class TankData {
     this.equipmentId,
     this.tankName,
     this.mixRecorded = true,
+    this.unusedOcGas = false,
   });
 
   TankData copyWith({
@@ -3003,6 +3136,7 @@ class TankData {
     String? equipmentId,
     String? tankName,
     bool? mixRecorded,
+    bool? unusedOcGas,
   }) => TankData(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -3019,6 +3153,7 @@ class TankData {
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,
     mixRecorded: mixRecorded ?? this.mixRecorded,
+    unusedOcGas: unusedOcGas ?? this.unusedOcGas,
   );
 }
 

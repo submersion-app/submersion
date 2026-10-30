@@ -75,6 +75,10 @@ void main() {
       'preDiveSessions': 'Pre-dive checklist run',
       'checklistTemplates': 'Checklist template',
       'preDiveChecklistTemplates': 'Pre-dive checklist template',
+      'tripChecklistSections': 'Checklist section',
+      'checklistTemplateSections': 'Checklist template section',
+      'preDiveChecklistTemplateSections': 'Pre-dive checklist template section',
+      'preDiveSessionSections': 'Pre-dive checklist section',
     };
 
     test('covers every entity type a foreign key can point at', () {
@@ -129,6 +133,7 @@ void main() {
       for (final (field, target, label) in [
         ('diverRole', 'diveRoles', 'Your role'),
         ('regulatorEquipmentId', 'equipment', 'Regulator'),
+        ('extraRegulatorIds', 'equipment', 'Regulator'),
         ('viaEquipmentId', 'equipment', 'Attached through'),
         ('viaSetId', 'equipmentSets', 'Applied from set'),
         ('parentEquipmentId', 'equipment', 'Installed in'),
@@ -238,6 +243,32 @@ void main() {
           de,
           units,
           builtIn('species', 'sp_whale_shark', 'Whale Shark'),
+        ),
+        'Walhai',
+      );
+    });
+
+    // Issue #3669: a renamed built-in species keeps the diver's name.
+    test('keeps the name of a renamed built-in species', () {
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('species', 'sp_cowfish', 'Honeycomb Cowfish'),
+        ),
+        'Honeycomb Cowfish',
+      );
+    });
+
+    test('translates a built-in species whose reference has no name', () {
+      expect(
+        conflictReferenceName(
+          de,
+          ref(
+            targetType: 'species',
+            recordId: 'sp_whale_shark',
+            builtInSource: (targetType: 'species', id: 'sp_whale_shark'),
+          ),
         ),
         'Walhai',
       );

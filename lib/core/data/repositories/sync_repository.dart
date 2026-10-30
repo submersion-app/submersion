@@ -1,3 +1,5 @@
+import 'dart:math' show min;
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
@@ -17,7 +19,7 @@ import 'package:submersion/core/services/sync/sync_clock.dart';
 enum SyncStatus { synced, pending, conflict }
 
 /// Cloud provider types
-enum CloudProviderType { icloud, googledrive, s3, dropbox, webdav }
+enum CloudProviderType { icloud, googledrive, s3, dropbox, webdav, git }
 
 /// Repository for managing sync metadata and tracking
 class SyncRepository {
@@ -62,6 +64,19 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
+    // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
+    // wired for sync (SyncData, mergeOrder, parentRefs, conflict_reference
+    // labels) alongside their item tables.
+    'tripChecklistSections': (table: 'trip_checklist_sections', pk: 'id'),
+    'checklistTemplateSections': (
+      table: 'checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveChecklistTemplateSections': (
+      table: 'pre_dive_checklist_template_sections',
+      pk: 'id',
+    ),
+    'preDiveSessionSections': (table: 'pre_dive_session_sections', pk: 'id'),
     'preDiveChecklistTemplates': (
       table: 'pre_dive_checklist_templates',
       pk: 'id',
@@ -115,6 +130,9 @@ class SyncRepository {
     'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
     'connectionMaps': (table: 'connection_maps', pk: 'id'),
     'savedQueries': (table: 'saved_queries', pk: 'id'),
+    'rules': (table: 'rules', pk: 'id'),
+    'ruleRuns': (table: 'rule_runs', pk: 'id'),
+    'ruleRunChanges': (table: 'rule_run_changes', pk: 'id'),
     'insightObservationDismissals': (
       table: 'insight_observation_dismissals',
       pk: 'id',
@@ -156,6 +174,7 @@ class SyncRepository {
     'media': (table: 'media', pk: 'id'),
     'mediaEnrichment': (table: 'media_enrichment', pk: 'id'),
     'mediaSpecies': (table: 'media_species', pk: 'id'),
+    'mediaPeople': (table: 'media_people', pk: 'id'),
     'species': (table: 'species', pk: 'id'),
     'fieldPresets': (table: 'field_presets', pk: 'id'),
     'qualityFindings': (table: 'quality_findings', pk: 'id'),
@@ -194,6 +213,8 @@ class SyncRepository {
     'diveBuddyRoles': (table: 'dive_buddy_roles', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
+    'mediaTags': (table: 'media_tags', pk: 'id'),
+    'documentTags': (table: 'document_tags', pk: 'id'),
     'equipmentShares': (table: 'equipment_shares', pk: 'id'),
     'tripEquipment': (table: 'trip_equipment', pk: 'id'),
     'diveComputerConnections': (table: 'dive_computer_connections', pk: 'id'),
@@ -201,6 +222,8 @@ class SyncRepository {
     'librarySiteNotes': (table: 'library_site_notes', pk: 'id'),
     'tripHides': (table: 'trip_hides', pk: 'id'),
     'siteHides': (table: 'site_hides', pk: 'id'),
+    'tripShares': (table: 'trip_shares', pk: 'id'),
+    'siteShares': (table: 'site_shares', pk: 'id'),
     'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
     'equipmentLocations': (table: 'equipment_locations', pk: 'id'),
     'equipmentLocationMoves': (table: 'equipment_location_moves', pk: 'id'),
@@ -459,6 +482,27 @@ class SyncRepository {
     );
   }
 
+  /// Retires the cursor minted against [providerId], for a switch to another
+  /// account of the same kind: its time still reads as the last sync, but
+  /// `getLastSyncTime(forProvider: providerId)` reads null, so the new
+  /// account's first sync is first contact (the Combine check runs, and no
+  /// cursor from the old account is reused).
+  Future<void> retireCursor(String providerId) async {
+    final metadata = await getOrCreateMetadata();
+    if (metadata.lastSyncTimestamp == null) return;
+    final stamped = metadata.lastSyncProvider;
+    if (stamped != null && stamped != providerId) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(
+      _db.syncMetadata,
+    )..where((t) => t.id.equals(_globalMetadataId))).write(
+      SyncMetadataCompanion(
+        lastSyncProvider: Value('$providerId:retired'),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   /// Set the cloud provider. Clearing it (null) also clears the sync
   /// account selection; setting a bare type leaves any account id in place
   /// (the account-aware writer is [setSyncAccount]).
@@ -523,10 +567,11 @@ class SyncRepository {
     final metadata = await getOrCreateMetadata();
     if (metadata.syncProvider == null) return null;
 
-    return CloudProviderType.values.firstWhere(
-      (e) => e.name == metadata.syncProvider,
-      orElse: () => CloudProviderType.googledrive,
-    );
+    // A name this build does not know (a newer build's backend) reads as no
+    // provider, never as a different one.
+    return CloudProviderType.values
+        .where((e) => e.name == metadata.syncProvider)
+        .firstOrNull;
   }
 
   /// Set the remote file ID for the sync file
@@ -681,6 +726,85 @@ class SyncRepository {
     }
   }
 
+  /// [markFactsPending] for many rows written together: one clock reading
+  /// stamps every row's [group] clock, and the writes are set-based, so a
+  /// library-wide fact write costs a handful of statements rather than four
+  /// round trips per row. Callers run it inside the transaction that wrote
+  /// the facts.
+  Future<void> markFactsPendingForAll({
+    required String entityType,
+    required List<String> recordIds,
+    required int localUpdatedAt,
+    required SyncFactGroup group,
+  }) async {
+    if (recordIds.isEmpty) return;
+    final target = hlcTargets[entityType];
+    if (target == null || compositeHlcKeys.containsKey(entityType)) {
+      for (final recordId in recordIds) {
+        await markFactsPending(
+          entityType: entityType,
+          recordId: recordId,
+          localUpdatedAt: localUpdatedAt,
+          group: group,
+        );
+      }
+      return;
+    }
+    try {
+      await _db.transaction(() async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(_db.syncRecords, [
+            for (final recordId in recordIds)
+              SyncRecordsCompanion(
+                id: Value('${entityType}_$recordId'),
+                entityType: Value(entityType),
+                recordId: Value(recordId),
+                localUpdatedAt: Value(localUpdatedAt),
+                syncStatus: const Value('pending'),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+          ]),
+        );
+        await ensureSyncClockConfigured();
+        final hlc = SyncClock.instance.issue();
+        if (hlc == null) return;
+        // Chunked: one statement may bind only so many variables.
+        for (var i = 0; i < recordIds.length; i += _clockChunk) {
+          final chunk = recordIds.sublist(
+            i,
+            min(i + _clockChunk, recordIds.length),
+          );
+          final marks = List.filled(chunk.length, '?').join(', ');
+          await _db.customStatement(
+            'UPDATE "${target.table}" SET "${group.clockColumn}" = ? '
+            'WHERE "${target.pk}" IN ($marks)',
+            [hlc, ...chunk],
+          );
+        }
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mark facts pending: $entityType x${recordIds.length} '
+        '(${group.name})',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  static const _clockChunk = 500;
+
+  /// This device's node id as its clock writes it into every HLC it issues.
+  /// A row whose clock ends in it was last written on this device. Null when
+  /// the clock cannot be configured.
+  Future<String?> localNodeId() async {
+    await ensureSyncClockConfigured();
+    return SyncClock.instance.current?.nodeId;
+  }
+
   /// Tables that can still hold rows written while their entity type did not
   /// stamp an HLC.
   ///
@@ -696,6 +820,27 @@ class SyncRepository {
     ({String entityType, String table, String timestamp, String? filter})
   >
   _hlcBackfillTargets = [
+    // The device gear heal and the v316 upgrade (issue #3676) write these
+    // with a NULL hlc so the next sync publishes what they adopted, linked
+    // or minted; the v175 and #1288 seeds left some unstamped too.
+    (
+      entityType: 'equipment',
+      table: 'equipment',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'diveComputers',
+      table: 'dive_computers',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'transmitters',
+      table: 'transmitters',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
     (
       entityType: 'mediaEnrichment',
       table: 'media_enrichment',
@@ -768,6 +913,68 @@ class SyncRepository {
     (
       entityType: 'tankPressureSeries',
       table: 'tank_pressure_series',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    // The category/section->section_id migration (issue #3360) clears hlc
+    // on every section it backfills (brand new rows, never stamped) and on
+    // every item it re-points at one (an already-synced row whose link just
+    // changed under it). Without these eight entries, a diver who had
+    // already synced before updating would see the migration's new
+    // sections and item links apply locally but never reach any peer.
+    (
+      entityType: 'tripChecklistSections',
+      table: 'trip_checklist_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'tripChecklistItems',
+      table: 'trip_checklist_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateSections',
+      table: 'checklist_template_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'checklistTemplateItems',
+      table: 'checklist_template_items',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateSections',
+      table: 'pre_dive_checklist_template_sections',
+      timestamp: 'updated_at',
+      // Built-in templates' sections are reference data re-seeded on every
+      // device and skipped by the export (same reasoning as serviceKinds
+      // above), so stamping one would only queue a sync record that
+      // publishes nothing.
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveChecklistTemplateItems',
+      table: 'pre_dive_checklist_template_items',
+      timestamp: 'updated_at',
+      filter:
+          'template_id NOT IN '
+          '(SELECT id FROM pre_dive_checklist_templates WHERE is_built_in = 1)',
+    ),
+    (
+      entityType: 'preDiveSessionSections',
+      table: 'pre_dive_session_sections',
+      timestamp: 'updated_at',
+      filter: null,
+    ),
+    (
+      entityType: 'preDiveSessionItems',
+      table: 'pre_dive_session_items',
       timestamp: 'updated_at',
       filter: null,
     ),
@@ -872,7 +1079,8 @@ class SyncRepository {
         ? const <String>[]
         : [
             for (final g in SyncFactGroups.of(entityType))
-              if (!columns.contains(g.clockColumn)) g.clockColumn,
+              if (!columns.contains(g.clockColumn) && !g.nullClockIsUnset)
+                g.clockColumn,
           ];
     final set = [
       ...columns.map((c) => '"$c" = ?'),
@@ -962,6 +1170,85 @@ class SyncRepository {
   /// Public accessor for [_maxRowHlc] -- the highest hlc across conflict-capable
   /// tables.
   Future<String?> maxRowHlc() => _maxRowHlc();
+
+  /// The oldest clock this library holds from [writer] across the same
+  /// clocks as [maxRowHlcByWriter], or null when it holds none. Nearby sync
+  /// relays a writer new to this device from here (issue #3731).
+  Future<String?> minRowHlcForWriter(String writer) async {
+    final clocks = _writerClockSelects(await _presentTables());
+    if (clocks.isEmpty) return null;
+    final row = await _db
+        .customSelect(
+          'SELECT MIN(c) AS m FROM (${clocks.join(' UNION ALL ')}) '
+          'WHERE c IS NOT NULL AND substr(c, 24) = ?',
+          variables: [Variable.withString(writer)],
+        )
+        .getSingleOrNull();
+    return row?.read<String?>('m');
+  }
+
+  static const _librarySiteChildTables = {
+    'site_features',
+    'site_species',
+    'site_site_types',
+    'site_tags',
+  };
+
+  static String _personalOnly(String table) {
+    if (table == 'dive_sites') return ' WHERE shared_library_id IS NULL';
+    if (_librarySiteChildTables.contains(table)) {
+      return ' WHERE site_id NOT IN (SELECT id FROM dive_sites '
+          'WHERE shared_library_id IS NOT NULL)';
+    }
+    return '';
+  }
+
+  Future<Set<String>> _presentTables() async => {
+    for (final r
+        in await _db
+            .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
+            .get())
+      r.read<String>('name'),
+  };
+
+  /// One `SELECT <clock> AS c` per clock that personal sync carries: row
+  /// clocks, fact clocks, and tombstones under the device that deleted.
+  ///
+  /// A shared site library's rows (issue #2567) never enter personal sync, so
+  /// their writers (other club members) are left out: counting them would
+  /// make every nearby session a full copy for a writer that never arrives.
+  List<String> _writerClockSelects(Set<String> present) => [
+    for (final t in hlcTargets.values)
+      if (present.contains(t.table))
+        'SELECT hlc AS c FROM "${t.table}"${_personalOnly(t.table)}',
+    for (final e in SyncFactGroups.byEntity.entries)
+      if (present.contains(hlcTargets[e.key]?.table))
+        for (final g in e.value)
+          'SELECT "${g.clockColumn}" AS c '
+              'FROM "${hlcTargets[e.key]!.table}"',
+    if (present.contains('deletion_log'))
+      'SELECT COALESCE(origin_hlc, hlc) AS c FROM deletion_log',
+  ];
+
+  /// For every device whose clock appears in this library, the highest clock
+  /// held from it: row clocks, fact clocks, and tombstones under the device
+  /// that deleted the row (origin clock, else the local one). Nearby sync
+  /// exchanges this to send each peer only what it lacks (issue #3731).
+  ///
+  /// The writer is the node id after the packed clock's two fixed-width
+  /// fields (15 + 1 + 6 + 1 characters).
+  Future<Map<String, String>> maxRowHlcByWriter() async {
+    final clocks = _writerClockSelects(await _presentTables());
+    if (clocks.isEmpty) return const {};
+    final rows = await _db
+        .customSelect(
+          'SELECT substr(c, 24) AS w, MAX(c) AS h '
+          'FROM (${clocks.join(' UNION ALL ')}) '
+          'WHERE c IS NOT NULL AND length(c) > 23 GROUP BY w',
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('w'): r.read<String>('h')};
+  }
 
   /// The highest hlc this device still ACCOUNTS FOR: live rows or tombstones.
   ///

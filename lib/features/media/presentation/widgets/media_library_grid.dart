@@ -74,6 +74,7 @@ class MediaLibraryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       onSecondaryTapDown: (details) => _showContextMenu(context, details),
@@ -95,15 +96,25 @@ class MediaLibraryTile extends StatelessWidget {
             child: MediaStatusBadge(item: entry.item),
           ),
           if (selected) ...[
-            Container(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.3),
-            ),
-            const Positioned(
+            Container(color: colorScheme.primary.withValues(alpha: 0.3)),
+            // On its own disc, as the dive and site media grids draw it: a
+            // bare white glyph was lost on bright photos and placeholders.
+            Positioned(
               top: 4,
               right: 4,
-              child: Icon(Icons.check_circle, color: Colors.white),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  size: 16,
+                  color: colorScheme.onPrimary,
+                ),
+              ),
             ),
           ],
         ],

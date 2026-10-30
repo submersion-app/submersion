@@ -190,4 +190,28 @@ void main() {
     expect(find.text('Add certification'), findsNothing);
     expect(find.text('Certifications'), findsNothing);
   });
+
+  testWidgets('merge mode starts with a social handle one of them has', (
+    tester,
+  ) async {
+    final now = DateTime(2024);
+    final survivor = Buddy(
+      id: 'b1',
+      name: 'Alice',
+      createdAt: now,
+      updatedAt: now,
+    );
+    final duplicate = Buddy(
+      id: 'b2',
+      name: 'Alice',
+      socialHandle: '@alice',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await tester.pumpWidget(harness(mergeBuddies: [survivor, duplicate]));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextFormField, '@alice'), findsOneWidget);
+  });
 }

@@ -40,6 +40,13 @@ String formatCoordinates(
   }
 }
 
+/// [formatted] (from [formatCoordinates]) with every space made
+/// non-breaking except the one after the axis separator, so text too wide for
+/// its line wraps between latitude and longitude, never inside one ("N,"
+/// then "E" alone, #3745). Grid references have no separator and stay whole.
+String breakCoordinatesOnlyBetweenAxes(String formatted) =>
+    formatted.replaceAll(' ', '\u00A0').replaceAll(',\u00A0', ', ');
+
 /// Renders a single latitude. Grid formats degrade to decimal degrees.
 String formatLatitude(double latitude, CoordinateFormat format) =>
     _formatAxis(latitude, format, isLatitude: true);

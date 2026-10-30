@@ -12,12 +12,16 @@ import 'package:submersion/core/utils/number_utils.dart';
 /// map-based import pipeline carries it under the dive map key
 /// `'computerTissue'` as a [ComputerTissueSnapshot] (a JSON map or JSON text
 /// is accepted too, see [from]).
+///
+/// It holds only what has no dive column (issue #2555). The deco model is
+/// `dives.deco_algorithm`, the computer's CNS at dive start and end is
+/// `dives.cns_start` / `dives.cns_end` and its OTU is `dives.otu` (and the
+/// data source's `cns` / `otu`); importers write those, never this. Older
+/// snapshots carried all four; v318 moved them out, sync makes the same move
+/// on a dive an older peer sends, and [fromJson] reads past any left (see
+/// `LegacyTissueScalars`).
 class ComputerTissueSnapshot extends Equatable {
-  const ComputerTissueSnapshot({this.algorithm, this.start, this.end});
-
-  /// Raw model name from the source, e.g. 'Suunto Fused2 RGBM', 'zhl_16c',
-  /// 'buhlmann'. Not normalised.
-  final String? algorithm;
+  const ComputerTissueSnapshot({this.start, this.end});
 
   /// State at dive start (residual loading from earlier dives).
   final ComputerTissueState? start;
@@ -30,12 +34,10 @@ class ComputerTissueSnapshot extends Equatable {
   bool get hasCompartmentData => (end ?? start)?.hasCompartments ?? false;
 
   ComputerTissueSnapshot copyWith({
-    String? algorithm,
     ComputerTissueState? start,
     ComputerTissueState? end,
   }) {
     return ComputerTissueSnapshot(
-      algorithm: algorithm ?? this.algorithm,
       start: start ?? this.start,
       end: end ?? this.end,
     );
@@ -43,26 +45,25 @@ class ComputerTissueSnapshot extends Equatable {
 
   /// JSON object with only the non-null fields.
   Map<String, dynamic> toJson() => {
-    if (algorithm != null) 'algorithm': algorithm,
     if (start != null) 'start': start!.toJson(),
     if (end != null) 'end': end!.toJson(),
   };
 
   /// Reads [toJson]'s shape. Missing keys and malformed values read as
-  /// null; this never throws on a map.
+  /// null, and so does a state left with no value it knows (one an older
+  /// snapshot filled with CNS and OTU alone); this never throws on a map.
   factory ComputerTissueSnapshot.fromJson(Map<String, dynamic> json) {
-    final algorithm = json['algorithm'];
     return ComputerTissueSnapshot(
-      algorithm: algorithm is String ? algorithm : null,
       start: _stateOf(json['start']),
       end: _stateOf(json['end']),
     );
   }
 
-  static ComputerTissueState? _stateOf(Object? value) =>
-      value is Map<String, dynamic>
-      ? ComputerTissueState.fromJson(value)
-      : null;
+  static ComputerTissueState? _stateOf(Object? value) {
+    if (value is! Map<String, dynamic>) return null;
+    final state = ComputerTissueState.fromJson(value);
+    return state == const ComputerTissueState() ? null : state;
+  }
 
   /// The JSON text the database column stores.
   String encode() => jsonEncode(toJson());
@@ -71,6 +72,14 @@ class ComputerTissueSnapshot extends Equatable {
   /// is nullable). Throws [FormatException] when [text] is not a JSON
   /// object; malformed values inside the object read as null.
   static ComputerTissueSnapshot? decode(String? text) {
+    final json = decodeObject(text);
+    return json == null ? null : ComputerTissueSnapshot.fromJson(json);
+  }
+
+  /// The JSON object [text] holds, before [fromJson] reads it: null for
+  /// null and blank text, a [FormatException] when it is not a JSON object.
+  /// For readers that need the raw keys, such as `LegacyTissueScalars`.
+  static Map<String, dynamic>? decodeObject(String? text) {
     if (text == null || text.trim().isEmpty) return null;
     final Object? decoded;
     try {
@@ -81,7 +90,7 @@ class ComputerTissueSnapshot extends Equatable {
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('computer tissue JSON is not an object');
     }
-    return ComputerTissueSnapshot.fromJson(decoded);
+    return decoded;
   }
 
   /// [decode] that answers null instead of throwing. For the storage read
@@ -104,7 +113,7 @@ class ComputerTissueSnapshot extends Equatable {
   };
 
   @override
-  List<Object?> get props => [algorithm, start, end];
+  List<Object?> get props => [start, end];
 }
 
 /// One instant's tissue state as the computer reported it. Every field is
@@ -117,8 +126,6 @@ class ComputerTissueState extends Equatable {
     this.n2LoadPercent,
     this.gf99Percent,
     this.surfaceGfPercent,
-    this.cnsPercent,
-    this.otu,
     this.rgbmNitrogen,
     this.rgbmHelium,
   });
@@ -141,9 +148,6 @@ class ComputerTissueState extends Equatable {
   /// Surface GF, percent (Shearwater startGFS).
   final double? surfaceGfPercent;
 
-  final double? cnsPercent;
-  final double? otu;
-
   /// Suunto RGBM factors.
   final double? rgbmNitrogen;
   final double? rgbmHelium;
@@ -161,8 +165,6 @@ class ComputerTissueState extends Equatable {
     double? n2LoadPercent,
     double? gf99Percent,
     double? surfaceGfPercent,
-    double? cnsPercent,
-    double? otu,
     double? rgbmNitrogen,
     double? rgbmHelium,
   }) {
@@ -173,8 +175,6 @@ class ComputerTissueState extends Equatable {
       n2LoadPercent: n2LoadPercent ?? this.n2LoadPercent,
       gf99Percent: gf99Percent ?? this.gf99Percent,
       surfaceGfPercent: surfaceGfPercent ?? this.surfaceGfPercent,
-      cnsPercent: cnsPercent ?? this.cnsPercent,
-      otu: otu ?? this.otu,
       rgbmNitrogen: rgbmNitrogen ?? this.rgbmNitrogen,
       rgbmHelium: rgbmHelium ?? this.rgbmHelium,
     );
@@ -188,8 +188,6 @@ class ComputerTissueState extends Equatable {
     if (n2LoadPercent != null) 'n2_load_percent': n2LoadPercent,
     if (gf99Percent != null) 'gf99_percent': gf99Percent,
     if (surfaceGfPercent != null) 'surface_gf_percent': surfaceGfPercent,
-    if (cnsPercent != null) 'cns_percent': cnsPercent,
-    if (otu != null) 'otu': otu,
     if (rgbmNitrogen != null) 'rgbm_nitrogen': rgbmNitrogen,
     if (rgbmHelium != null) 'rgbm_helium': rgbmHelium,
   };
@@ -206,8 +204,6 @@ class ComputerTissueState extends Equatable {
       n2LoadPercent: asDoubleOrNull(json['n2_load_percent']),
       gf99Percent: asDoubleOrNull(json['gf99_percent']),
       surfaceGfPercent: asDoubleOrNull(json['surface_gf_percent']),
-      cnsPercent: asDoubleOrNull(json['cns_percent']),
-      otu: asDoubleOrNull(json['otu']),
       rgbmNitrogen: asDoubleOrNull(json['rgbm_nitrogen']),
       rgbmHelium: asDoubleOrNull(json['rgbm_helium']),
     );
@@ -232,8 +228,6 @@ class ComputerTissueState extends Equatable {
     n2LoadPercent,
     gf99Percent,
     surfaceGfPercent,
-    cnsPercent,
-    otu,
     rgbmNitrogen,
     rgbmHelium,
   ];

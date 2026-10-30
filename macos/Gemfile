@@ -2,3 +2,9 @@ source "https://rubygems.org"
 
 gem "fastlane"
 gem "cocoapods", "~> 1.16"
+
+# Security floor: 7.2.3.1 fixes CVE-2026-33169, CVE-2026-33170 and
+# CVE-2026-33176. cocoapods-core pulls activesupport in, and without this the
+# resolver prefers minitest 6 and connection_pool 3, which hold activesupport
+# on the vulnerable 7.2.3.
+gem "activesupport", ">= 7.2.3.1"

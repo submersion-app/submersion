@@ -12,6 +12,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_style_button.d
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -197,6 +198,39 @@ void main() {
         findsOneWidget,
       );
     });
+  });
+
+  testWidgets('notes draw as Markdown (#3683)', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(600, 2000);
+    addTearDown(tester.view.reset);
+    final center = DiveCenter(
+      id: 'center-notes',
+      name: 'Reef Divers',
+      notes: '**Ask** for Ana',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          diveCenterByIdProvider(center.id).overrideWith((ref) async => center),
+          diveCenterDiveCountProvider(center.id).overrideWith((ref) async => 0),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DiveCenterDetailPage(centerId: center.id),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(MarkdownNotesView), findsOneWidget);
+    expect(find.text('Ask for Ana'), findsOneWidget);
   });
 
   group('DiveCenterDetailPage map section', () {

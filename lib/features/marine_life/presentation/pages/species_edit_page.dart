@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/species_display.dar
 import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class SpeciesEditPage extends ConsumerStatefulWidget {
   final String? speciesId;
@@ -193,7 +194,7 @@ class _SpeciesEditPageState extends ConsumerState<SpeciesEditPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    MarkdownNotesField(
                       controller: _descriptionController,
                       decoration: InputDecoration(
                         labelText: context

@@ -33,11 +33,16 @@ class ConnectionsRepository {
     required String? diverId,
     DiveFilterState filter = const DiveFilterState(),
     int nodeBudget = 80,
+    Map<ConnectionKind, ConnectionKind> sharedWith = const {},
   }) {
     return _db.transaction(() async {
-      return MapLoader(
-        ConnectionsReader(_db),
-      ).load(spec, diverId: diverId, filter: filter, nodeBudget: nodeBudget);
+      return MapLoader(ConnectionsReader(_db)).load(
+        spec,
+        diverId: diverId,
+        filter: filter,
+        nodeBudget: nodeBudget,
+        sharedWith: sharedWith,
+      );
     });
   }
 

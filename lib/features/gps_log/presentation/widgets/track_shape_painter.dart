@@ -12,7 +12,7 @@ import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 /// Returns fewer than two offsets when there is nothing to draw.
 List<Offset> trackShapeOffsets(List<GpsTrackPoint> points, Size size) {
   if (points.length < 2) return const [];
-  final bounds = trackBounds(points);
+  final bounds = gpsTrackBounds(points);
   if (bounds == null) return const [];
 
   final latSpan = bounds.maxLat - bounds.minLat;

@@ -97,10 +97,10 @@ void main() {
       await pumpNewDivePage(tester);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Shore Entry');
+      await pickMethod(tester, 'Entry Method', 'Shore');
 
       // Entry row value + mirrored exit row value.
-      expect(find.text('Shore Entry'), findsNWidgets(2));
+      expect(find.text('Shore'), findsNWidgets(2));
     });
 
     testWidgets('exit follows subsequent entry changes while linked', (
@@ -109,11 +109,11 @@ void main() {
       await pumpNewDivePage(tester);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Shore Entry');
-      await pickMethod(tester, 'Entry Method', 'Boat Entry');
+      await pickMethod(tester, 'Entry Method', 'Shore');
+      await pickMethod(tester, 'Entry Method', 'Boat');
 
-      expect(find.text('Boat Entry'), findsNWidgets(2));
-      expect(find.text('Shore Entry'), findsNothing);
+      expect(find.text('Boat'), findsNWidgets(2));
+      expect(find.text('Shore'), findsNothing);
     });
 
     testWidgets('touching exit breaks the link for the session', (
@@ -122,12 +122,12 @@ void main() {
       await pumpNewDivePage(tester);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Shore Entry');
+      await pickMethod(tester, 'Entry Method', 'Shore');
       await pickMethod(tester, 'Exit Method', 'Ladder');
-      await pickMethod(tester, 'Entry Method', 'Boat Entry');
+      await pickMethod(tester, 'Entry Method', 'Boat');
 
       // Entry changed alone; exit kept its explicit value.
-      expect(find.text('Boat Entry'), findsOneWidget);
+      expect(find.text('Boat'), findsOneWidget);
       expect(find.text('Ladder'), findsOneWidget);
     });
 
@@ -135,10 +135,10 @@ void main() {
       await pumpNewDivePage(tester);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Shore Entry');
+      await pickMethod(tester, 'Entry Method', 'Shore');
       await pickMethod(tester, 'Entry Method', 'Not specified');
 
-      expect(find.text('Shore Entry'), findsNothing);
+      expect(find.text('Shore'), findsNothing);
     });
   });
 
@@ -212,10 +212,10 @@ void main() {
       await pumpExistingDivePage(tester, created.id);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Boat Entry');
+      await pickMethod(tester, 'Entry Method', 'Boat');
 
-      expect(find.text('Boat Entry'), findsNWidgets(2));
-      expect(find.text('Shore Entry'), findsNothing);
+      expect(find.text('Boat'), findsNWidgets(2));
+      expect(find.text('Shore'), findsNothing);
     });
 
     testWidgets('differing saved values open unlinked: exit stays put', (
@@ -227,9 +227,9 @@ void main() {
       await pumpExistingDivePage(tester, created.id);
       await expandConditions(tester);
 
-      await pickMethod(tester, 'Entry Method', 'Boat Entry');
+      await pickMethod(tester, 'Entry Method', 'Boat');
 
-      expect(find.text('Boat Entry'), findsOneWidget);
+      expect(find.text('Boat'), findsOneWidget);
       expect(find.text('Ladder'), findsOneWidget);
       expect(find.text('Giant Stride'), findsNothing);
     });
@@ -244,7 +244,7 @@ void main() {
       await expandConditions(tester);
 
       // Exit row shows no value on load — only the entry row has one.
-      expect(find.text('Shore Entry'), findsOneWidget);
+      expect(find.text('Shore'), findsOneWidget);
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();

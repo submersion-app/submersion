@@ -4,6 +4,7 @@ import 'package:submersion/core/domain/models/dive_comparison_result.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/overlaid_profile_chart.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -695,7 +696,17 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final isFilled = style == _ActionButtonStyle.filled;
+    // When the button is disabled (onPressed == null), skip the semantic
+    // color/border so Material's default disabled styling takes over. That
+    // keeps the "not clickable" affordance visually clear.
+    final isEnabled = onPressed != null;
+    final effectiveColor = isEnabled ? color : null;
+
+    // The label on an enabled filled button, read against its fill. When
+    // null, the labels keep the text theme's colours.
+    final onFill = style == _ActionButtonStyle.filled && effectiveColor != null
+        ? foregroundOn(theme.colorScheme, effectiveColor)
+        : null;
 
     final child = Column(
       mainAxisSize: MainAxisSize.min,
@@ -704,15 +715,15 @@ class _ActionButton extends StatelessWidget {
           label,
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            color: isFilled ? Colors.white : null,
+            color: onFill,
           ),
         ),
         Text(
           subtitle,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: isFilled
-                ? Colors.white.withValues(alpha: 0.85)
-                : theme.colorScheme.onSurfaceVariant,
+            color:
+                onFill?.withValues(alpha: 0.85) ??
+                theme.colorScheme.onSurfaceVariant,
             fontSize: 10,
           ),
         ),
@@ -720,12 +731,6 @@ class _ActionButton extends StatelessWidget {
     );
 
     const minSize = Size(0, 48);
-
-    // When the button is disabled (onPressed == null), skip the semantic
-    // color/border so Material's default disabled styling takes over — keeps
-    // the "not clickable" affordance visually clear.
-    final isEnabled = onPressed != null;
-    final effectiveColor = isEnabled ? color : null;
     switch (style) {
       case _ActionButtonStyle.text:
         return TextButton(
@@ -754,7 +759,7 @@ class _ActionButton extends StatelessWidget {
           style: FilledButton.styleFrom(
             minimumSize: minSize,
             backgroundColor: effectiveColor,
-            foregroundColor: effectiveColor != null ? Colors.white : null,
+            foregroundColor: onFill,
           ),
           child: child,
         );

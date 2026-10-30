@@ -77,6 +77,7 @@ class MediaRepairService {
     this.log,
     this.cloudIdentifiers,
     this.assetCache,
+    this.attachedStoreId,
   });
 
   final MediaRepository repository;
@@ -99,6 +100,11 @@ class MediaRepairService {
   /// row used to point at, is dropped after the relink commits. Peers drop
   /// theirs through the sync hook when the relink reaches them.
   final LocalAssetCacheRepository? assetCache;
+
+  /// The media store this device is attached to, or null when detached.
+  /// Store proposals convert only rows whose stamp was made in that store
+  /// (issue #3482); with no store attached, or no lookup given, none do.
+  final Future<String?> Function()? attachedStoreId;
 
   static const _log = LoggerService('MediaRepairService');
   static const _uuid = Uuid();
@@ -150,6 +156,8 @@ class MediaRepairService {
     final writes = <RepairWrite>[];
     final editedStamps = <({String mediaId, String hash, int sizeBytes})>[];
     final storeIds = <String>[];
+    // Logged only for the rows the repository actually converts.
+    final storeAudit = <String, RepairLogEntry>{};
     // One batch id per apply pass, so the history can group a wizard run.
     final batchId = _uuid.v4();
     final auditEntries = <RepairLogEntry>[];
@@ -165,16 +173,14 @@ class MediaRepairService {
       try {
         if (candidate.isStore) {
           storeIds.add(proposal.item.id);
-          auditEntries.add(
-            RepairLogEntry(
-              id: _uuid.v4(),
-              mediaId: proposal.item.id,
-              batchId: batchId,
-              occurredAt: now,
-              action: RepairLogAction.cloudBacked,
-              oldValue: oldPointer,
-              source: source,
-            ),
+          storeAudit[proposal.item.id] = RepairLogEntry(
+            id: _uuid.v4(),
+            mediaId: proposal.item.id,
+            batchId: batchId,
+            occurredAt: now,
+            action: RepairLogAction.cloudBacked,
+            oldValue: oldPointer,
+            source: source,
           );
           continue;
         }
@@ -284,8 +290,18 @@ class MediaRepairService {
       reuploadsQueued++;
     }
     if (storeIds.isNotEmpty) {
-      await repository.convertToCloudBacked(storeIds);
-      cloudBacked = storeIds.length;
+      final storeId = await attachedStoreId?.call();
+      final converted = storeId == null
+          ? const <String>{}
+          : await repository.convertToCloudBacked(storeIds, storeId: storeId);
+      cloudBacked = converted.length;
+      // Refused rows (stamped only for another store, or no store attached)
+      // keep their pointers and stay missing.
+      skipped += storeIds.length - converted.length;
+      auditEntries.addAll([
+        for (final id in storeIds)
+          if (converted.contains(id)) storeAudit[id]!,
+      ]);
     }
 
     // Audit last: history records what actually happened, so it is written

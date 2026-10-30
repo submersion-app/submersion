@@ -99,6 +99,10 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     onProgress?.call(bytes.length, bytes.length);
   }
 
+  /// Called after each successful delete, so a test can change state
+  /// between two deletes of one sweep.
+  void Function(String key)? onDelete;
+
   @override
   Future<void> delete(String key) async {
     _maybeFail();
@@ -109,6 +113,7 @@ class InMemoryMediaObjectStore implements MediaObjectStore {
     }
     objects.remove(key);
     modified.remove(key);
+    onDelete?.call(key);
   }
 
   /// (key, resumeStateJson) pairs abandonResume was called with.

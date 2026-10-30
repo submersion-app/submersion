@@ -45,8 +45,8 @@ void main() {
     mooringNumber: 'M7',
     parkingInfo: 'Lay-by 100 m north',
     altitude: 434,
-    entryMethod: EntryMethod.shore,
-    exitMethod: EntryMethod.ladder,
+    entryMethods: [EntryMethod.shore],
+    exitMethods: [EntryMethod.ladder],
     isShared: true,
   );
 

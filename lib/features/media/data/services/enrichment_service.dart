@@ -135,7 +135,10 @@ class EnrichmentService {
         temperatureCelsius: point.temperature,
         elapsedSeconds: elapsedSeconds,
         matchConfidence: MatchConfidence.estimated,
-        timestampOffsetSeconds: elapsedSeconds - point.timestamp,
+        // No offset: a lone sample has no edge the time was clamped to. An
+        // offset marks a time outside the recorded profile (before the
+        // descent or after the ascent), which the colour correction reads
+        // as a surface shot; every photo on the dive would read as one.
       );
     }
 

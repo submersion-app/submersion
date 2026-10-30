@@ -8,6 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
@@ -328,7 +329,7 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
     final colorScheme = Theme.of(context).colorScheme;
     final markerColor = _getMarkerColor(context, center.rating);
 
-    return AnimatedContainer(
+    final marker = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         color: isSelected ? colorScheme.primary : markerColor,
@@ -349,9 +350,15 @@ class _DiveCenterMapContentState extends ConsumerState<DiveCenterMapContent>
         child: Icon(
           Icons.store,
           size: isSelected ? 24 : 20,
-          color: Colors.white,
+          color: isSelected ? colorScheme.onPrimary : Colors.white,
         ),
       ),
+    );
+    // A permanently closed center is still on the map, drawn faded (#3379),
+    // except while selected.
+    return greyIfClosed(
+      closed: center.isPermanentlyClosed && !isSelected,
+      child: marker,
     );
   }
 

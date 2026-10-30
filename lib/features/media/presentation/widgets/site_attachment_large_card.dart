@@ -118,12 +118,22 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
               thumbnail: item.isVideo,
               targetSize: Size(width, height),
             ),
+            // The viewer's play badge: a poster-less video shows a light
+            // placeholder, where a bare white glyph vanished.
             if (item.isVideo)
-              const Center(
-                child: Icon(
-                  Icons.play_circle_fill,
-                  size: 56,
-                  color: Colors.white,
+              Center(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    size: 40,
+                    color: Colors.white,
+                  ),
                 ),
               ),
           ],

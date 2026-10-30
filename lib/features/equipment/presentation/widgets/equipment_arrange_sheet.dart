@@ -39,7 +39,7 @@ class EquipmentArrangeSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final arrangement = ref.watch(equipmentArrangementNotifierProvider);
+    final arrangement = ref.watch(equipmentArrangementProvider);
     // The type order is the first key whether or not headings are drawn: a
     // flat list is still ordered by type before the item field.
     final typesOrderFirst = arrangement.typeOrder != EquipmentTypeOrder.none;

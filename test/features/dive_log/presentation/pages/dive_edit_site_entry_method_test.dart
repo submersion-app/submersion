@@ -94,8 +94,8 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.giantStride,
-        exitMethod: EntryMethod.ladder,
+        entryMethods: [EntryMethod.giantStride],
+        exitMethods: [EntryMethod.ladder],
       ),
     );
     await expandConditions(tester);
@@ -110,13 +110,13 @@ void main() {
       site: const DiveSite(
         id: 'site-1',
         name: 'Blue Hole',
-        entryMethod: EntryMethod.boat,
+        entryMethods: [EntryMethod.boat],
       ),
     );
     await expandConditions(tester);
 
     // Entry row value + mirrored exit row value.
-    expect(find.text('Boat Entry'), findsNWidgets(2));
+    expect(find.text('Boat'), findsNWidgets(2));
   });
 
   testWidgets('a site with no methods leaves both rows unset', (tester) async {

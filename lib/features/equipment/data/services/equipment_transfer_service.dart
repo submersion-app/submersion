@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_models.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_ownership_event.dart';
 import 'package:submersion/features/equipment/domain/services/transfer_unit.dart';
@@ -152,10 +153,16 @@ class EquipmentTransferService {
           'SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($marks) '
           'UNION SELECT dive_id FROM dive_tanks '
           'WHERE equipment_id IN ($marks) '
-          'OR regulator_equipment_id IN ($marks)) '
+          'OR ${tankNamesAnyRegulatorSql('dive_tanks', marks)}) '
           'ORDER BY COALESCE(d.entry_time, d.dive_date_time) DESC, d.id ASC '
           'LIMIT 1',
-          variables: [Variable.withString(deleted), ...ids, ...ids, ...ids],
+          variables: [
+            Variable.withString(deleted),
+            ...ids,
+            ...ids,
+            ...ids,
+            ...ids,
+          ],
         )
         .getSingleOrNull();
     return dive?.read<String>('diver_id');

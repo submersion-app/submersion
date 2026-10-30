@@ -332,6 +332,17 @@ void main() {
     await broken.remove(item);
   });
 
+  test('removePath deletes the thumbnail of the file at that path', () async {
+    final source = writePng('reef.png', width: 40, height: 30);
+    final item = photo(source);
+    final made = await cache.generate(item, file: source);
+
+    await cache.removePath(source.path);
+
+    expect(made!.existsSync(), isFalse);
+    expect(await cache.cached(item), isNull);
+  });
+
   test('remove deletes the thumbnail', () async {
     final source = writePng('reef.png', width: 40, height: 30);
     final item = photo(source);

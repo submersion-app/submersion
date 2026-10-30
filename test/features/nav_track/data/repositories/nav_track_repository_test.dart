@@ -885,6 +885,58 @@ void main() {
     });
   });
 
+  group('setEquipment', () {
+    Future<void> insertEquipment(AppDatabase db, String id, String name) =>
+        db.customStatement(
+          "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+          "updated_at) VALUES ('$id', NULL, '$name', 'dpv', 1, 1)",
+        );
+
+    test('sets both fields and marks the row pending for sync', () async {
+      await insertEquipment(db, 'eq1', 'Scooter');
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+      );
+
+      await repo.setEquipment(id, equipmentId: 'eq1', deviceName: 'Scooter');
+
+      final updated = await repo.getById(id);
+      expect(updated!.equipmentId, 'eq1');
+      expect(updated.deviceName, 'Scooter');
+
+      final pending = await db
+          .customSelect(
+            "SELECT local_updated_at FROM sync_records "
+            "WHERE entity_type = 'navTracks' AND record_id = '$id'",
+          )
+          .getSingleOrNull();
+      expect(pending, isNotNull);
+      expect(
+        pending!.read<int>('local_updated_at'),
+        updated.updatedAt.millisecondsSinceEpoch,
+      );
+    });
+
+    test('clears both fields when called with neither argument', () async {
+      await insertEquipment(db, 'eq1', 'Scooter');
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+        equipmentId: 'eq1',
+        deviceName: 'Scooter',
+      );
+
+      await repo.setEquipment(id);
+
+      final updated = await repo.getById(id);
+      expect(updated!.equipmentId, isNull);
+      expect(updated.deviceName, isNull);
+    });
+  });
+
   group('setSite', () {
     Future<void> insertSite(
       String id,

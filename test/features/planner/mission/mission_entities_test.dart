@@ -92,9 +92,9 @@ void main() {
   });
 
   group('DpvMission', () {
-    test('battery reserve defaults to one third', () {
+    test('battery reserve is unset by default, following Settings (#3552)', () {
       const mission = DpvMission();
-      expect(mission.batteryReserveFraction, closeTo(1 / 3, 1e-12));
+      expect(mission.batteryReserveFraction, isNull);
       expect(mission.legs, isEmpty);
       expect(mission.team, isEmpty);
     });

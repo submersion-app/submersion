@@ -1589,8 +1589,7 @@ void main() {
       expect(restored.excludedFromStats, isFalse);
     });
 
-    // getDivesByIds maps every dive without its profile, so whether the
-    // target has one must come from its stored series.
+    // Whether the target has a profile comes from its stored series.
     Future<void> seedMeasurementPair({required bool targetProfile}) async {
       await seedDive(
         't',

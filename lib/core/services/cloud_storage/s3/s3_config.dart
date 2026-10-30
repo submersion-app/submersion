@@ -112,6 +112,14 @@ class S3Config {
       if (uri.path.isNotEmpty && uri.path != '/') {
         return 'Endpoint must not include a path';
       }
+      // The endpoint is synced with the account (issue #3482); a key pair or
+      // token in it would travel to every device.
+      if (uri.userInfo.isNotEmpty) {
+        return 'Put the keys in their own fields, not in the endpoint';
+      }
+      if (uri.hasQuery || uri.hasFragment) {
+        return 'The endpoint cannot contain ? or #';
+      }
     }
     return null;
   }

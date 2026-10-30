@@ -18,15 +18,29 @@ String deleteDiverSnackbarText(
           result.reassignedToDiverName ?? '',
         )
       : l10n.settings_profileHub_deleted;
-  if (!result.hasKeptEquipment) return first;
+  final parts = [first];
+  if (result.handedOverCount > 0) {
+    parts.add(l10n.divers_delete_handedOver(result.handedOverCount));
+  }
+  if (!result.hasKeptEquipment) return _join(parts);
   final heirs = result.keptEquipmentHeirNames;
-  final kept = heirs.length == 1
-      ? l10n.divers_delete_keptEquipment_toOne(
-          result.keptEquipmentCount,
-          heirs.single,
-        )
-      : l10n.divers_delete_keptEquipment_toMany(result.keptEquipmentCount);
-  final trimmed = first.trimRight();
-  final joiner = _sentenceEnd.hasMatch(trimmed) ? ' ' : '. ';
-  return '$trimmed$joiner$kept';
+  parts.add(
+    heirs.length == 1
+        ? l10n.divers_delete_keptEquipment_toOne(
+            result.keptEquipmentCount,
+            heirs.single,
+          )
+        : l10n.divers_delete_keptEquipment_toMany(result.keptEquipmentCount),
+  );
+  return _join(parts);
+}
+
+/// Joins sentences with a space, adding a full stop to one that lacks it.
+String _join(List<String> parts) {
+  var text = parts.first.trimRight();
+  for (final next in parts.skip(1)) {
+    final joiner = _sentenceEnd.hasMatch(text) ? ' ' : '. ';
+    text = '$text$joiner$next';
+  }
+  return text;
 }

@@ -60,10 +60,10 @@ void main() {
       expect(phone('/settings?selected=data'), isNull);
       expect(
         phone(
-          '/settings?selected=data&dataPage=cloud-sync'
-          '&dataPage=cloud-sync%2Fs3-config',
+          '/settings?selected=data&dataPage=connected-accounts'
+          '&dataPage=connected-accounts%2Facct1',
         ),
-        '/settings/cloud-sync/s3-config',
+        '/settings/connected-accounts/acct1',
       );
       expect(
         phone(

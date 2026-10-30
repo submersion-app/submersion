@@ -25,6 +25,14 @@ stays visible until the next one. It also lets a security stream that never
 runs again (its alert was fixed by a version update) age out instead of
 holding the issue open forever.
 
+A run counts as reported once any alert issue records it, a closed one
+included. Closing the alert, by hand or with a fix PR's "Closes", acknowledges
+the runs it reported; until they age out of the lookback their streams still
+read as failing, and the next daily check would otherwise open a fresh alert
+repeating them (#3720 repeated all of #3495). A stream also stays failing
+when its title changes, as editing a `directories:` list in dependabot.yml
+does, because the renamed stream's green runs are another key.
+
 The rolling issue is found by MARKER in its body, and each reported run by a
 hidden FAILED_RUN record, so editing the title or text by hand changes
 nothing. A listing that cannot be read raises, failing the job, rather than
@@ -111,40 +119,68 @@ def _workflow_id(gh, repo):
     )
 
 
+def _since(now):
+    """Return the first day of the lookback, as YYYY-MM-DD."""
+    return (now - datetime.timedelta(days=LOOKBACK_DAYS)).date().isoformat()
+
+
 def _runs(gh, repo, now):
-    since = (now - datetime.timedelta(days=LOOKBACK_DAYS)).date().isoformat()
     query = urllib.parse.urlencode(
-        {"per_page": 100, "status": "completed", "created": f">={since}"}
+        {"per_page": 100, "status": "completed", "created": f">={_since(now)}"}
     )
     path = f"repos/{repo}/actions/workflows/{_workflow_id(gh, repo)}/runs?{query}"
     return [run for page in _api(gh, path) for run in page.get("workflow_runs", [])]
 
 
-def _open_alert(gh, repo):
-    """Return the number of the oldest open rolling alert issue, or None."""
-    listing = gh(
-        [
-            "issue", "list", "--repo", repo, "--state", "open",
-            "--label", LABEL, "--limit", "200", "--json", "number,body",
-        ]
-    )
-    numbers = sorted(
-        int(issue["number"])
-        for issue in json.loads(listing or "[]")
+def _alerts(gh, repo, state, search=None):
+    """Return the rolling alert issues in `state`, narrowed by `search`."""
+    args = [
+        "issue", "list", "--repo", repo, "--state", state,
+        "--label", LABEL, "--limit", "200", "--json", "number,body",
+    ]
+    if search:
+        args += ["--search", search]
+    return [
+        issue
+        for issue in json.loads(gh(args) or "[]")
         if MARKER in (issue.get("body") or "")
-    )
+    ]
+
+
+def _open_alerts(gh, repo):
+    return _alerts(gh, repo, "open")
+
+
+def _recently_closed_alerts(gh, repo, now):
+    # A closed alert last updated before the lookback cannot record a run
+    # inside it. Listing open and closed alerts separately also keeps the
+    # open one from being pushed past --limit by old closed issues.
+    return _alerts(gh, repo, "closed", f"updated:>={_since(now)}")
+
+
+def _open_alert(alerts):
+    """Return the number of the oldest open rolling alert issue, or None."""
+    numbers = sorted(int(issue["number"]) for issue in alerts)
     return numbers[0] if numbers else None
 
 
-def _reported(gh, repo, number):
-    """Return the ids of the runs the open alert has already reported."""
-    issue = json.loads(
-        gh(["issue", "view", str(number), "--repo", repo, "--json", "body,comments"])
-    )
-    texts = [issue.get("body") or ""] + [
-        c.get("body") or "" for c in issue.get("comments") or []
-    ]
-    return {int(n) for t in texts for n in _FAILED_RUN_RE.findall(t)}
+def _reported(gh, repo, alerts):
+    """Return the ids of the runs the given alert issues have reported."""
+    reported = set()
+    for alert in alerts:
+        issue = json.loads(
+            gh(
+                [
+                    "issue", "view", str(alert["number"]), "--repo", repo,
+                    "--json", "body,comments",
+                ]
+            )
+        )
+        texts = [issue.get("body") or ""] + [
+            c.get("body") or "" for c in issue.get("comments") or []
+        ]
+        reported |= {int(n) for t in texts for n in _FAILED_RUN_RE.findall(t)}
+    return reported
 
 
 def _report(runs, assignee):
@@ -175,12 +211,20 @@ def _assign(gh, repo, number, assignee):
         )
 
 
-def raise_alert(gh, ctx, failing):
+def raise_alert(gh, ctx, failing, now):
     repo = ctx["repo"]
     # A login is often written "@name"; verbatim it would be an "@@name"
     # mention and an assignment GitHub rejects, so nobody would be notified.
     assignee = ctx["assignee"].strip().lstrip("@") or DEFAULT_ASSIGNEE
-    number = _open_alert(gh, repo)
+    open_alerts = _open_alerts(gh, repo)
+    number = _open_alert(open_alerts)
+    reported = _reported(
+        gh, repo, open_alerts + _recently_closed_alerts(gh, repo, now)
+    )
+    new = [run for run in failing if int(run["id"]) not in reported]
+    if not new:
+        print("Every failing run is already reported on an open or closed alert.")
+        return
     if number is None:
         body = "\n".join(
             [
@@ -188,7 +232,7 @@ def raise_alert(gh, ctx, failing):
                 "Opened automatically by the Dependabot failure alert workflow. "
                 "Later failures comment here instead of opening another issue.",
                 "",
-                _report(failing, assignee),
+                _report(new, assignee),
             ]
         )
         url = gh(
@@ -200,11 +244,6 @@ def raise_alert(gh, ctx, failing):
         number = int(url.rstrip("/").rsplit("/", 1)[-1])
         print(f"Opened Dependabot failure alert {url}")
     else:
-        reported = _reported(gh, repo, number)
-        new = [run for run in failing if int(run["id"]) not in reported]
-        if not new:
-            print(f"Every failing run is already reported on #{number}.")
-            return
         gh(
             [
                 "issue", "comment", str(number), "--repo", repo,
@@ -217,7 +256,7 @@ def raise_alert(gh, ctx, failing):
 
 def resolve_alert(gh, ctx):
     repo = ctx["repo"]
-    number = _open_alert(gh, repo)
+    number = _open_alert(_open_alerts(gh, repo))
     if number is None:
         print("No Dependabot update stream is failing; no alert is open.")
         return
@@ -243,7 +282,7 @@ def run(ctx, gh=gh_cli, now=None):
         )
     failing = failing_streams(runs, now)
     if failing:
-        raise_alert(gh, ctx, failing)
+        raise_alert(gh, ctx, failing, now)
     else:
         resolve_alert(gh, ctx)
     return 0

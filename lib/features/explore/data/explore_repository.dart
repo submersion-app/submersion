@@ -7,6 +7,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
@@ -66,13 +67,15 @@ class ExploreRepository {
           join: 'JOIN sightings s ON s.dive_id = d.id',
           id: 's.species_id',
         ),
-        // The dive gear union: linked through dive_equipment, or a cylinder
-        // matched through dive_tanks. UNION drops the pair both give.
+        // The dive gear union: linked through dive_equipment, a cylinder
+        // matched through dive_tanks, or a regulator on a tank, first or
+        // extra (#3375). UNION drops the pair two of them give.
         ParsedSubject.equipment => (
           join:
               'JOIN (SELECT dive_id, equipment_id FROM dive_equipment '
               'UNION SELECT dive_id, equipment_id FROM dive_tanks '
-              'WHERE equipment_id IS NOT NULL) g ON g.dive_id = d.id',
+              'WHERE equipment_id IS NOT NULL '
+              'UNION $tankRegulatorPairsSql) g ON g.dive_id = d.id',
           id: 'g.equipment_id',
         ),
         ParsedSubject.dives => throw ArgumentError.value(

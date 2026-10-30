@@ -60,6 +60,14 @@ class PeerDeviceNameStore {
     await _write({...current, deviceId: name});
   }
 
+  /// Forgets every peer, for a new sync backend whose devices are a new set:
+  /// names learned on the old one would keep saying "In step with" a device
+  /// that is not there. An empty store emits nothing.
+  Future<void> clear() async {
+    if (all().isEmpty) return;
+    await _write(const {});
+  }
+
   Future<void> _write(Map<String, String> next) async {
     await _prefs.setString(prefsKey, jsonEncode(next));
     _changes.add(next);

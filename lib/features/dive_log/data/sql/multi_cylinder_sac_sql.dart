@@ -3,6 +3,7 @@
 /// statistics, the query language and the dive overview agree on one dive.
 library;
 
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
@@ -34,10 +35,10 @@ String consumptionVolumeSql(String tank) {
 /// cylinder, as `Dive.sacReferenceTank` picks it) plus every other breathed
 /// cylinder's drop converted to the reference by volume, or one to one
 /// when a size is missing and the two are a matched pair (both sidemount,
-/// or both back gas on the same gas). A rebreather dive reads the
-/// reference alone. NULL when the reference has no drop, since only
-/// breathed cylinders join; the caller guards the runtime and average
-/// depth. Mirrors `Dive.sac`.
+/// or both back gas on the same gas). NULL on a rebreather dive, whose
+/// cylinders do not drain with the diver's breathing (issue #3673), and
+/// when the reference has no drop, since only breathed cylinders join; the
+/// caller guards the runtime and average depth. Mirrors `Dive.sac`.
 String diveSacPressureSql(String dive) {
   // Each breathed cylinder once, with its consumption volume computed once.
   final breathed =
@@ -49,7 +50,10 @@ String diveSacPressureSql(String dive) {
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
       'AND sac_t.start_pressure > sac_t.end_pressure)';
-  return '((SELECT SUM(sac_c.pressure_drop * CASE '
+  return "(CASE WHEN COALESCE($dive.dive_mode, 'oc') "
+      'IN ${DiveStatsScope.rebreatherModesSql} '
+      'THEN NULL ELSE '
+      '((SELECT SUM(sac_c.pressure_drop * CASE '
       'WHEN sac_c.id = sac_r.id THEN 1.0 '
       'WHEN sac_c.volume > 0 AND sac_r.volume > 0 '
       'THEN sac_c.volume / sac_r.volume '
@@ -65,9 +69,7 @@ String diveSacPressureSql(String dive) {
       "AND (t2.tank_role = 'backGas' OR NOT EXISTS ("
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       "AND t3.tank_role = 'backGas')) "
-      'ORDER BY t2.tank_order, t2.rowid LIMIT 1) '
-      'WHERE sac_c.id = sac_r.id '
-      "OR COALESCE($dive.dive_mode, 'oc') NOT IN ('ccr', 'scr')) "
+      'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
       '/ (COALESCE($dive.runtime, $dive.bottom_time) / 60.0) '
-      '/ (($dive.avg_depth / 10.0) + 1))';
+      '/ (($dive.avg_depth / 10.0) + 1)) END)';
 }

@@ -7,8 +7,6 @@ void main() {
   // string is 14 px per character and one line is 20 px tall.
   const lineHeight = 20.0;
   const rowWidth = 300.0;
-  // The icon (20 px) and its 12 px gap come off the front of the row.
-  const textWidth = rowWidth - 32;
 
   Future<void> pumpRow(
     WidgetTester tester, {
@@ -81,23 +79,44 @@ void main() {
       value: 'CCR Normoxic Plus 70m MOD2',
     );
 
+    // The label column (icon, gap, label) stops at 40% of the row, and the
+    // value starts one gap after it.
     final label = find.text('Tambien reconocida como');
     final value = find.text('CCR Normoxic Plus 70m MOD2');
-    expect(tester.getSize(label).width, lessThanOrEqualTo(textWidth * 0.4));
-    expect(
-      tester.getSize(value).width,
-      greaterThanOrEqualTo(textWidth * 0.6 - 16),
-    );
+    expect(tester.getTopRight(label).dx, lessThanOrEqualTo(rowWidth * 0.4));
+    expect(tester.getTopLeft(value).dx, rowWidth * 0.4 + 16);
   });
 
-  testWidgets('a label that fits beside its value keeps one line', (
+  testWidgets('the 40% cap holds even beside a short value (issue #3678)', (
     tester,
   ) async {
-    // 12 characters is 168 px, wider than 40% of the row, yet it fits beside
-    // a four-character value, so it must not be wrapped early.
+    // 12 characters is 168 px: with the icon it is wider than 40% of the
+    // row, so it wraps, even though it would fit beside "12". Every value
+    // of a card shares one column, which only labels decide.
     await pumpRow(tester, label: 'Gemeinsame T', value: '12');
 
-    expect(tester.getSize(find.text('Gemeinsame T')).height, lineHeight);
+    expect(
+      tester.getSize(find.text('Gemeinsame T')).height,
+      greaterThan(lineHeight),
+    );
+    expect(tester.getTopLeft(find.text('12')).dx, rowWidth * 0.4 + 16);
+  });
+
+  testWidgets('a short value sits beside its label, start-aligned', (
+    tester,
+  ) async {
+    await pumpRow(tester, label: 'Type', value: 'PADI');
+
+    expect(
+      tester.getTopLeft(find.text('PADI')).dx,
+      tester.getTopRight(find.text('Type')).dx + 16,
+    );
+    // Its box hugs the text instead of spanning the row end-aligned.
+    expect(
+      tester.widget<Text>(find.text('PADI')).textAlign,
+      isNot(TextAlign.end),
+    );
+    expect(tester.getSize(find.text('PADI')).width, lessThan(rowWidth / 4));
   });
 
   for (final scale in [1.35, 0.85]) {

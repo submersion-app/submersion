@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,6 +51,7 @@ Trip _trip({
   required DateTime start,
   required DateTime end,
   TripType type = TripType.resort,
+  String notes = '',
 }) {
   return Trip(
     id: 'trip-1',
@@ -57,6 +59,7 @@ Trip _trip({
     startDate: start,
     endDate: end,
     tripType: type,
+    notes: notes,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   );
@@ -179,21 +182,45 @@ void main() {
       );
     }
 
-    testWidgets('the Documents card sits with the hero, above today', (
+    testWidgets('the Documents card comes last, under the notes', (
       tester,
     ) async {
-      await pumpView(tester, longTrip(todayOffset: 0));
+      // Short, so the slivers after the lazily built days are laid out. One
+      // fixed clock for the story and the view, so a run that crosses
+      // midnight cannot see two different todays.
+      final now = DateTime(2026, 6, 10, 12);
+      final trip = _trip(
+        start: DateTime(2026, 6, 10),
+        end: DateTime(2026, 6, 11),
+        notes: 'Bring the reef hook',
+      );
+      await withClock(
+        Clock.fixed(now),
+        () => pumpView(
+          tester,
+          _story(
+            trip,
+            today: now,
+            dives: [_dive('d0', DateTime(2026, 6, 10, 9))],
+          ),
+        ),
+      );
       final docs = find.byKey(
         const ValueKey('documents-section-trip'),
         skipOffstage: false,
       );
-      final today = find.byType(TripStoryDayHeader).first;
-      expect(tester.getTopLeft(docs).dy, lessThan(tester.getTopLeft(today).dy));
+      final lastDay = find.byType(TripStoryDayHeader, skipOffstage: false).last;
+      final notes = find.text('Bring the reef hook', skipOffstage: false);
+      // The layout that opens at today, not the finished trip's.
+      expect(find.byKey(const Key('today-chip')), findsOneWidget);
+      expect(find.byType(TripStoryDayHeader), findsNWidgets(2));
+      expect(
+        tester.getTopLeft(notes).dy,
+        greaterThan(tester.getTopLeft(lastDay).dy),
+      );
       expect(
         tester.getTopLeft(docs).dy,
-        greaterThan(
-          tester.getTopLeft(find.byType(TripStatStrip, skipOffstage: false)).dy,
-        ),
+        greaterThan(tester.getTopLeft(notes).dy),
       );
     });
 
@@ -624,12 +651,13 @@ void main() {
     );
   });
 
-  testWidgets('a past trip shows its Documents before the first day', (
+  testWidgets('a past trip shows its Documents last, under the notes', (
     tester,
   ) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),
       end: DateTime(2026, 3, 29),
+      notes: 'Bring the reef hook',
     );
     final story = _story(
       trip,
@@ -640,7 +668,45 @@ void main() {
     final docs = tester.getTopLeft(
       find.byKey(const ValueKey('documents-section-trip')),
     );
-    final firstDay = tester.getTopLeft(find.byType(TripStoryDayHeader).first);
-    expect(docs.dy, lessThan(firstDay.dy));
+    final notes = tester.getTopLeft(find.text('Bring the reef hook'));
+    final lastDay = tester.getTopLeft(find.byType(TripStoryDayHeader).last);
+    expect(notes.dy, greaterThan(lastDay.dy));
+    expect(docs.dy, greaterThan(notes.dy));
+  });
+
+  testWidgets('without notes, Documents follows the last day at the same gap', (
+    tester,
+  ) async {
+    // Every card here (day, notes, Documents) has the default Card margin,
+    // so equal gaps between their boxes are equal gaps on screen.
+    Future<double> gapAboveDocs({required String notes}) async {
+      final trip = _trip(
+        start: DateTime(2026, 3, 27),
+        end: DateTime(2026, 3, 28),
+        notes: notes,
+      );
+      await pumpView(
+        tester,
+        _story(
+          trip,
+          dives: [
+            _dive('d1', DateTime(2026, 3, 27, 9)),
+            _dive('d2', DateTime(2026, 3, 28, 9)),
+          ],
+          today: DateTime(2026, 6, 1),
+        ),
+      );
+      final above = notes.isEmpty
+          ? find.byType(TripStoryDayCard).last
+          : find.ancestor(of: find.text(notes), matching: find.byType(Card));
+      final docsTop = tester
+          .getTopLeft(find.byKey(const ValueKey('documents-section-trip')))
+          .dy;
+      return docsTop - tester.getBottomLeft(above).dy;
+    }
+
+    final withoutNotes = await gapAboveDocs(notes: '');
+    expect(withoutNotes, greaterThan(0));
+    expect(await gapAboveDocs(notes: 'Bring the reef hook'), withoutNotes);
   });
 }

@@ -22,22 +22,47 @@ class PreDiveSessionRepository {
 
   static const _sessionEntity = 'preDiveSessions';
   static const _itemEntity = 'preDiveSessionItems';
+  static const _sectionEntity = 'preDiveSessionSections';
 
   Stream<void> watchSessionsChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([
       _db.preDiveSessions,
+      _db.preDiveSessionSections,
       _db.preDiveSessionItems,
     ]),
   );
 
-  /// Inserts the session plus its item snapshots in one transaction. Items
-  /// arrive with a blank sessionId, and either a blank id (assigned here) or
-  /// one the caller already minted. SessionItemComposer mints its own so it
-  /// can write the cell-linearity link between two items it builds in the
-  /// same pass. Sync bookkeeping runs after the transaction commits.
+  Future<List<domain.PreDiveSessionSection>> getSectionsForSession(
+    String sessionId,
+  ) async {
+    try {
+      final rows =
+          await (_db.select(_db.preDiveSessionSections)
+                ..where((s) => s.sessionId.equals(sessionId))
+                ..orderBy([(s) => OrderingTerm.asc(s.sortOrder)]))
+              .get();
+      return rows.map(_mapSection).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get pre-dive session sections',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Inserts the session plus its section and item snapshots in one
+  /// transaction. Items arrive with a blank sessionId, and either a blank id
+  /// (assigned here) or one the caller already minted. SessionItemComposer
+  /// mints its own so it can write the cell-linearity link between two items
+  /// it builds in the same pass, and the same section ids its items'
+  /// sectionId values already reference. Sync bookkeeping runs after the
+  /// transaction commits.
   Future<domain.PreDiveSession> startSession({
     required domain.PreDiveChecklistTemplate template,
     required List<domain.PreDiveSessionItem> items,
+    List<domain.PreDiveSessionSection> sections = const [],
     String? diverId,
     String? diveId,
     String? tripId,
@@ -48,6 +73,7 @@ class PreDiveSessionRepository {
       final sessionId = _uuid.v4();
       final now = DateTime.now().millisecondsSinceEpoch;
       final itemIds = <String>[];
+      final sectionIds = <String>[];
       await _db.transaction(() async {
         await _db
             .into(_db.preDiveSessions)
@@ -68,6 +94,22 @@ class PreDiveSessionRepository {
                 updatedAt: Value(now),
               ),
             );
+        for (final section in sections) {
+          final sectionId = section.id.isEmpty ? _uuid.v4() : section.id;
+          sectionIds.add(sectionId);
+          await _db
+              .into(_db.preDiveSessionSections)
+              .insert(
+                PreDiveSessionSectionsCompanion(
+                  id: Value(sectionId),
+                  sessionId: Value(sessionId),
+                  title: Value(section.title),
+                  sortOrder: Value(section.sortOrder),
+                  createdAt: Value(now),
+                  updatedAt: Value(now),
+                ),
+              );
+        }
         for (final item in items) {
           // Honour an id the caller already minted, so a cell-linearity
           // item's sourceItemId still names a row that exists. Matches the
@@ -80,7 +122,7 @@ class PreDiveSessionRepository {
                 PreDiveSessionItemsCompanion(
                   id: Value(itemId),
                   sessionId: Value(sessionId),
-                  section: Value(item.section),
+                  sectionId: Value(item.sectionId),
                   title: Value(item.title),
                   notes: Value(item.notes),
                   sortOrder: Value(item.sortOrder),
@@ -110,6 +152,13 @@ class PreDiveSessionRepository {
         recordId: sessionId,
         localUpdatedAt: now,
       );
+      for (final id in sectionIds) {
+        await _syncRepository.markRecordPending(
+          entityType: _sectionEntity,
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
       for (final id in itemIds) {
         await _syncRepository.markRecordPending(
           entityType: _itemEntity,
@@ -206,6 +255,33 @@ class PreDiveSessionRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get pre-dive session stats',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sections for many sessions in one query, grouped by session id and
+  /// sorted within each group. Mirrors [getItemsForSessions]; used by the
+  /// checklist export to resolve each item's section title.
+  Future<Map<String, List<domain.PreDiveSessionSection>>>
+  getSectionsForSessions(List<String> sessionIds) async {
+    if (sessionIds.isEmpty) return {};
+    try {
+      final rows =
+          await (_db.select(_db.preDiveSessionSections)
+                ..where((s) => s.sessionId.isIn(sessionIds))
+                ..orderBy([(s) => OrderingTerm.asc(s.sortOrder)]))
+              .get();
+      final grouped = <String, List<domain.PreDiveSessionSection>>{};
+      for (final row in rows) {
+        (grouped[row.sessionId] ??= []).add(_mapSection(row));
+      }
+      return grouped;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get pre-dive session sections in bulk',
         error: e,
         stackTrace: stackTrace,
       );
@@ -498,13 +574,23 @@ class PreDiveSessionRepository {
   Future<void> deleteSession(String id) async {
     try {
       final items = await getItemsForSession(id);
+      final sections = await getSectionsForSession(id);
       await (_db.delete(
         _db.preDiveSessionItems,
       )..where((t) => t.sessionId.equals(id))).go();
+      await (_db.delete(
+        _db.preDiveSessionSections,
+      )..where((s) => s.sessionId.equals(id))).go();
       for (final item in items) {
         await _syncRepository.logDeletion(
           entityType: _itemEntity,
           recordId: item.id,
+        );
+      }
+      for (final section in sections) {
+        await _syncRepository.logDeletion(
+          entityType: _sectionEntity,
+          recordId: section.id,
         );
       }
       await (_db.delete(
@@ -557,11 +643,21 @@ class PreDiveSessionRepository {
         updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       );
 
+  domain.PreDiveSessionSection _mapSection(PreDiveSessionSectionRow row) =>
+      domain.PreDiveSessionSection(
+        id: row.id,
+        sessionId: row.sessionId,
+        title: row.title,
+        sortOrder: row.sortOrder,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      );
+
   domain.PreDiveSessionItem _mapItem(PreDiveSessionItem row) =>
       domain.PreDiveSessionItem(
         id: row.id,
         sessionId: row.sessionId,
-        section: row.section,
+        sectionId: row.sectionId,
         title: row.title,
         notes: row.notes,
         sortOrder: row.sortOrder,

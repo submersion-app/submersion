@@ -41,13 +41,41 @@ void main() {
         endCNS: 21,
       );
 
-      final tissue = tissueOf(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
+      final dive = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
+      final tissue = tissueOf(dive);
       expect(tissue, isNotNull);
-      expect(tissue!.algorithm, 'VPM-B/GFS');
-      expect(tissue.start?.surfaceGfPercent, 18.0);
-      expect(tissue.start?.cnsPercent, 4.0);
+      expect(tissue!.start?.surfaceGfPercent, 18.0);
       expect(tissue.end?.gf99Percent, 58.0);
-      expect(tissue.end?.cnsPercent, 21.0);
+      // The CNS and the deco model are the dive's own columns (#2555).
+      expect(dive['cnsStart'], 4.0);
+      expect(dive['cnsEnd'], 21.0);
+      expect(dive['decoAlgorithm'], 'VPM-B/GFS');
+    });
+
+    test('a header with only CNS and a deco model makes no snapshot', () {
+      const rawDive = ShearwaterRawDive(
+        diveId: 'cns-only',
+        decoModel: 'GF',
+        startCNS: 4,
+        endCNS: 21,
+      );
+
+      final dive = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
+      expect(dive.containsKey('computerTissue'), isFalse);
+      expect(dive['cnsStart'], 4.0);
+      expect(dive['cnsEnd'], 21.0);
+      expect(dive['decoAlgorithm'], 'GF');
+    });
+
+    test('the libdivecomputer deco model replaces the header one', () {
+      const rawDive = ShearwaterRawDive(diveId: 'model', decoModel: 'GF');
+      final parsed = parsedWithSamples([0, 10])..decoAlgorithm = 'buhlmann';
+
+      final merged = ShearwaterDiveMapper.mergeWithParsedDive(
+        ShearwaterDiveMapper.mapDiveMetadata(rawDive),
+        parsed,
+      );
+      expect(merged['decoAlgorithm'], 'buhlmann');
     });
 
     test('prefers the EndGF99 derived from the samples over a 0.0 '
@@ -68,7 +96,6 @@ void main() {
       final tissue = tissueOf(ShearwaterDiveMapper.mapDiveMetadata(rawDive));
       expect(tissue?.end?.gf99Percent, 41.0);
       expect(tissue?.start, isNull);
-      expect(tissue?.algorithm, isNull);
     });
 
     test('falls back to the last gf99 sample when neither summary is set', () {
@@ -90,6 +117,9 @@ void main() {
 
       final dive = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
       expect(dive.containsKey('computerTissue'), isFalse);
+      expect(dive.containsKey('cnsStart'), isFalse);
+      expect(dive.containsKey('cnsEnd'), isFalse);
+      expect(dive.containsKey('decoAlgorithm'), isFalse);
     });
 
     test('omits the end state when only start values are present', () {
@@ -180,7 +210,6 @@ void main() {
       expect(tissue?.end?.gf99Percent, 62.0);
       // The export carries no dive_logs row, so there is no start state.
       expect(tissue?.start, isNull);
-      expect(tissue?.algorithm, isNull);
     });
   });
 }

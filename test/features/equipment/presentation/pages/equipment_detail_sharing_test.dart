@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 class _MockServiceRecordNotifier
     extends StateNotifier<AsyncValue<List<ServiceRecord>>>
@@ -214,6 +215,23 @@ void main() {
     expect(find.text('Anna'), findsOneWidget);
     expect(find.text('Owned by'), findsNothing);
     expect(find.byKey(overflow), findsOneWidget);
+  });
+
+  testWidgets('Shared with lines up with the other values (#3678)', (
+    tester,
+  ) async {
+    await pump(tester, activeDiverId: 'owner');
+
+    // The sharee chip starts at the value column, like every other value.
+    final chip = find.ancestor(
+      of: find.text('Anna'),
+      matching: find.byType(Chip),
+    );
+    expect(tester.getTopLeft(chip).dx, detailValueLeft(tester, 'Status'));
+    final wrap = tester.widget<Wrap>(
+      find.ancestor(of: chip, matching: find.byType(Wrap)),
+    );
+    expect(wrap.alignment, WrapAlignment.start);
   });
 
   testWidgets('a sharee sees Owned by and a menu without Delete', (

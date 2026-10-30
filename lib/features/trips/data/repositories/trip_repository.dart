@@ -9,10 +9,10 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
@@ -20,6 +20,9 @@ import 'package:submersion/features/trips/data/repositories/liveaboard_details_r
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
+import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
+import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -37,13 +40,15 @@ class TripRepository {
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(TripRepository);
 
-  /// Emits whenever the `trips` table, or a profile's hidden trips, change,
-  /// so list providers refresh after a sync or any other write (a hide
-  /// changes which trips a profile sees, issue #2594).
+  /// Emits whenever the `trips` table, or a profile's hidden or shared
+  /// trips, change, so list providers refresh after a sync or any other
+  /// write (a hide or a share changes which trips a profile sees, issues
+  /// #2594, #2151).
   Stream<void> watchTripsChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.trips),
       TableUpdateQuery.onTable(_db.tripHides),
+      TableUpdateQuery.onTable(_db.tripShares),
     ]),
   );
 
@@ -56,7 +61,7 @@ class TripRepository {
       VisibilityFilter.applyToTrips(_db, query, diverId);
 
       final rows = await query.get();
-      return rows.map(_mapRowToTrip).toList();
+      return rows.map(tripFromRow).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all trips', error: e, stackTrace: stackTrace);
       rethrow;
@@ -69,7 +74,7 @@ class TripRepository {
       final query = _db.select(_db.trips)..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToTrip(row) : null;
+      return row != null ? tripFromRow(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get trip by id: $id',
@@ -108,7 +113,7 @@ class TripRepository {
         ORDER BY start_date DESC
       ''', variables: variables).get();
 
-      return results.map((row) => _mapDataToTrip(row.data)).toList();
+      return results.map((row) => tripFromData(row.data)).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to search trips', error: e, stackTrace: stackTrace);
       rethrow;
@@ -121,33 +126,44 @@ class TripRepository {
       _log.info('Creating trip: ${trip.name}');
       final id = trip.id.isEmpty ? _uuid.v4() : trip.id;
       final now = DateTime.now();
-
-      await _db
-          .into(_db.trips)
-          .insert(
-            TripsCompanion(
-              id: Value(id),
-              diverId: Value(trip.diverId),
-              name: Value(trip.name),
-              startDate: Value(trip.startDate.millisecondsSinceEpoch),
-              endDate: Value(trip.endDate.millisecondsSinceEpoch),
-              location: Value(trip.location),
-              resortName: Value(trip.resortName),
-              liveaboardName: Value(trip.liveaboardName),
-              notes: Value(trip.notes),
-              tripType: Value(trip.tripType.name),
-              isShared: Value(trip.isShared),
-              returnFlightAt: Value(
-                trip.returnFlightAt?.millisecondsSinceEpoch,
+      // The link is checked inside the insert's transaction, as updateTrip
+      // checks it, so a racing save cannot make the parent a side trip in
+      // between (issue #3658).
+      final parentTripId = await _db.transaction(() async {
+        final parentTripId = await writableParentId(
+          _db,
+          tripId: id,
+          parentId: trip.parentTripId,
+        );
+        await _db
+            .into(_db.trips)
+            .insert(
+              TripsCompanion(
+                id: Value(id),
+                diverId: Value(trip.diverId),
+                name: Value(trip.name),
+                startDate: Value(trip.startDate.millisecondsSinceEpoch),
+                endDate: Value(trip.endDate.millisecondsSinceEpoch),
+                location: Value(trip.location),
+                resortName: Value(trip.resortName),
+                liveaboardName: Value(trip.liveaboardName),
+                notes: Value(trip.notes),
+                tripType: Value(trip.tripType.name),
+                isShared: Value(trip.isShared),
+                returnFlightAt: Value(
+                  trip.returnFlightAt?.millisecondsSinceEpoch,
+                ),
+                expectedDives: Value(trip.expectedDives),
+                expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+                diversSharingCylinders: Value(trip.diversSharingCylinders),
+                divesPerDayTarget: Value(trip.divesPerDayTarget),
+                parentTripId: Value(parentTripId),
+                createdAt: Value(now.millisecondsSinceEpoch),
+                updatedAt: Value(now.millisecondsSinceEpoch),
               ),
-              expectedDives: Value(trip.expectedDives),
-              expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
-              diversSharingCylinders: Value(trip.diversSharingCylinders),
-              divesPerDayTarget: Value(trip.divesPerDayTarget),
-              createdAt: Value(now.millisecondsSinceEpoch),
-              updatedAt: Value(now.millisecondsSinceEpoch),
-            ),
-          );
+            );
+        return parentTripId;
+      });
 
       await _syncRepository.markRecordPending(
         entityType: 'trips',
@@ -157,7 +173,12 @@ class TripRepository {
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created trip with id: $id');
-      return trip.copyWith(id: id, createdAt: now, updatedAt: now);
+      return trip.copyWith(
+        id: id,
+        parentTripId: parentTripId,
+        createdAt: now,
+        updatedAt: now,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to create trip: ${trip.name}',
@@ -185,26 +206,58 @@ class TripRepository {
             activeDiverId: actingDiverId,
           );
 
-      await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
-        TripsCompanion(
-          name: Value(trip.name),
-          startDate: Value(trip.startDate.millisecondsSinceEpoch),
-          endDate: Value(trip.endDate.millisecondsSinceEpoch),
-          location: Value(trip.location),
-          resortName: Value(trip.resortName),
-          liveaboardName: Value(trip.liveaboardName),
-          notes: Value(trip.notes),
-          tripType: Value(trip.tripType.name),
-          isShared: maySetSharing ? Value(trip.isShared) : const Value.absent(),
-          // Value(null) writes SQL NULL, so clearing the flight time works.
-          returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
-          expectedDives: Value(trip.expectedDives),
-          expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
-          diversSharingCylinders: Value(trip.diversSharingCylinders),
-          divesPerDayTarget: Value(trip.divesPerDayTarget),
-          updatedAt: Value(now),
-        ),
-      );
+      await _db.transaction(() async {
+        // Checked inside the write's transaction, which Drift runs one at a
+        // time: two saves racing to link a pair of trips each see the
+        // other's link and cannot both write one (issue #3658).
+        final parentTripId = await writableParentId(
+          _db,
+          tripId: trip.id,
+          parentId: trip.parentTripId,
+        );
+        final current = await (_db.select(
+          _db.trips,
+        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
+        final parentChanged =
+            current != null && current.parentTripId != parentTripId;
+        await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
+          TripsCompanion(
+            name: Value(trip.name),
+            startDate: Value(trip.startDate.millisecondsSinceEpoch),
+            endDate: Value(trip.endDate.millisecondsSinceEpoch),
+            location: Value(trip.location),
+            resortName: Value(trip.resortName),
+            liveaboardName: Value(trip.liveaboardName),
+            notes: Value(trip.notes),
+            tripType: Value(trip.tripType.name),
+            isShared: maySetSharing
+                ? Value(trip.isShared)
+                : const Value.absent(),
+            // Value(null) writes SQL NULL, so clearing the flight time works.
+            returnFlightAt: Value(trip.returnFlightAt?.millisecondsSinceEpoch),
+            expectedDives: Value(trip.expectedDives),
+            expectedRuntimeMinutes: Value(trip.expectedRuntimeMinutes),
+            diversSharingCylinders: Value(trip.diversSharingCylinders),
+            divesPerDayTarget: Value(trip.divesPerDayTarget),
+            parentTripId: Value(parentTripId),
+            updatedAt: Value(now),
+          ),
+        );
+        // A side trip moved to another larger trip, or made a trip of its
+        // own, drops its dives' links to the old larger trip's cylinders
+        // (issue #3658). After the write, so the rule reads the new parent.
+        if (parentChanged) {
+          for (final diveId in await _diveIdsOnTrip(trip.id)) {
+            await clearForeignTripCylinderLinks(
+              _db,
+              _syncRepository,
+              diveId,
+              tripId: trip.id,
+              now: now,
+            );
+          }
+        }
+      });
       await _syncRepository.markRecordPending(
         entityType: 'trips',
         recordId: trip.id,
@@ -238,88 +291,16 @@ class TripRepository {
     }
   }
 
-  /// Flip the shared state of a single trip, when [actingDiverId] may
-  /// (issue #2594). Returns false, with nothing changed, for a trip another
-  /// profile owns or one that does not exist. Marks it pending for sync.
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async {
-    try {
-      final row = await (_db.select(
-        _db.trips,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (row == null ||
-          !canDestroySharedItem(
-            ownerId: row.diverId,
-            activeDiverId: actingDiverId,
-          )) {
-        return false;
-      }
-      _log.info('Setting trip $id isShared=$isShared');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.trips)..where((t) => t.id.equals(id))).write(
-        TripsCompanion(isShared: Value(isShared), updatedAt: Value(now)),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'trips',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to set shared flag on trip $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Mark every private trip owned by [diverId] as shared. Returns the
-  /// count of rows updated. All updated rows are marked pending for sync.
-  Future<int> shareAllForDiver(String diverId) async {
-    try {
-      _log.info('Bulk sharing all private trips for diver $diverId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      return await _db.transaction(() async {
-        final toShare =
-            await (_db.select(_db.trips)..where(
-                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
-                ))
-                .get();
-
-        if (toShare.isEmpty) return 0;
-
-        await _db.customUpdate(
-          'UPDATE trips SET is_shared = 1, updated_at = ? '
-          'WHERE diver_id = ? AND is_shared = 0',
-          variables: [Variable.withInt(now), Variable.withString(diverId)],
-          updates: {_db.trips},
-        );
-
-        for (final row in toShare) {
-          await _syncRepository.markRecordPending(
-            entityType: 'trips',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
-        SyncEventBus.notifyLocalChange();
-        return toShare.length;
-      });
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to bulk-share trips for diver $diverId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
+  /// The ids of the dives whose own trip is [tripId], every profile's.
+  Future<List<String>> _diveIdsOnTrip(String tripId) async {
+    final rows = await _db
+        .customSelect(
+          // stats-scope-exempt: tank link cleanup, excluded dives included.
+          'SELECT id FROM dives WHERE trip_id = ?',
+          variables: [Variable.withString(tripId)],
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Delete a trip and all associated child records, when [actingDiverId]
@@ -372,6 +353,11 @@ class TripRepository {
 
         // Every profile's hide of the trip (issue #2594), tombstoned.
         await ProfileHidesRepository().deleteHides(SharedItemKind.trip, [id]);
+        // Every share row of the trip (issue #2151), tombstoned.
+        await ItemSharesRepository().deleteShares(SharedItemKind.trip, [id]);
+        // A side trip's dives go back to its larger trip, and a larger
+        // trip's side trips become trips of their own (issue #3658).
+        await detachSideTripsForDelete(_db, _syncRepository, [id], now: now);
         // Every profile's dives lose the trip, stamped and marked pending.
         await clearDiveTripLinks(_db, _syncRepository, [id], now: now);
         // Its documents go with it, tombstoned (issue #2613).
@@ -395,7 +381,8 @@ class TripRepository {
     }
   }
 
-  /// Get dives for a specific trip.
+  /// Get dives for a specific trip, its side trips' dives included (issue
+  /// #3658).
   ///
   /// When [diverId] is non-null only dives belonging to that diver are
   /// returned. Pass null to return dives from all divers (import-time use).
@@ -413,7 +400,7 @@ class TripRepository {
         -- stats-scope-exempt: drives the trip's displayed dive list, which
         -- shows excluded dives like the logbook does
         SELECT id FROM dives
-        WHERE trip_id = ?
+        WHERE ${tripDivesScopeSql('dives', '?1')}
         $diverClause
         ORDER BY dive_date_time DESC
       ''', variables: variables).get();
@@ -429,7 +416,7 @@ class TripRepository {
     }
   }
 
-  /// Get dive count for a trip.
+  /// Get dive count for a trip, its side trips' dives included.
   ///
   /// When [diverId] is non-null only dives belonging to that diver are
   /// counted. Pass null to count dives from all divers (import-time use).
@@ -442,7 +429,7 @@ class TripRepository {
     final result = await _db.customSelect('''
       SELECT COUNT(*) as count
       FROM dives
-      WHERE trip_id = ?
+      WHERE ${tripDivesScopeSql('dives', '?1')}
       $diverClause${DiveStatsScope.and(alias: 'dives')}
     ''', variables: variables).getSingle();
 
@@ -546,6 +533,8 @@ class TripRepository {
         WHERE d.dive_date_time >= ? AND d.dive_date_time <= ?
           AND d.diver_id = ?
           AND (d.trip_id IS NULL OR d.trip_id != ?)
+          -- A side trip's dives are already the larger trip's (#3658).
+          AND (d.trip_id IS NULL OR d.trip_id NOT IN (${sideTripIdsSql('?')}))
         ORDER BY d.dive_date_time ASC
       ''',
             variables: [
@@ -554,16 +543,18 @@ class TripRepository {
               Variable.withInt(endMs),
               Variable.withString(diverId),
               Variable.withString(tripId),
+              Variable.withString(tripId),
             ],
           )
           .get();
 
       if (rows.isEmpty) return [];
 
-      // Load full dive objects
+      // The assignment dialog lists these, so a wide date range decodes samples
+      // only for a dive whose row needs them (issue #3831).
       final diveRepository = DiveRepository();
       final diveIds = rows.map((r) => r.data['dive_id'] as String).toList();
-      final dives = await diveRepository.getDivesByIds(diveIds);
+      final dives = await diveRepository.getDivesByIdsWithoutSamples(diveIds);
 
       // Build a map for quick lookup
       final diveMap = {for (final d in dives) d.id: d};
@@ -674,7 +665,7 @@ class TripRepository {
           MAX(max_depth) as max_depth,
           AVG(max_depth) as avg_depth
         FROM dives
-        WHERE trip_id = ?
+        WHERE ${tripDivesScopeSql('dives', '?1')}
         $diverClause${DiveStatsScope.and(alias: 'dives')}
       ''', variables: variables).getSingle();
     } catch (e, stackTrace) {
@@ -729,7 +720,7 @@ class TripRepository {
 
     if (result == null) return null;
 
-    return _mapDataToTrip(result.data);
+    return tripFromData(result.data);
   }
 
   /// Get all trips with their statistics.
@@ -758,9 +749,12 @@ class TripRepository {
       // LEFT JOIN and a WHERE would turn it inner, dropping every trip that
       // has no in-scope dives instead of showing it with a zero count.
       final scope = DiveStatsScope.and(alias: 'd');
-      final joinClause = diverId != null
-          ? 'LEFT JOIN dives d ON d.trip_id = t.id AND d.diver_id = ?$scope'
-          : 'LEFT JOIN dives d ON d.trip_id = t.id$scope';
+      // A trip counts its side trips' dives too (issue #3658).
+      final joinClause = tripDivesJoinSql(
+        tripAlias: 't',
+        diveAlias: 'd',
+        extraOn: diverId != null ? ' AND d.diver_id = ?$scope' : scope,
+      );
 
       // When diverId is provided, prepend its variable before the visibility
       // filter variables so the positional binding lines up with joinClause.
@@ -784,7 +778,7 @@ class TripRepository {
       ''', variables: variables).get();
 
       return rows.map((row) {
-        final trip = _mapDataToTrip(row.data);
+        final trip = tripFromData(row.data);
         return domain.TripWithStats(
           trip: trip,
           diveCount: row.data['dive_count'] as int,
@@ -801,68 +795,5 @@ class TripRepository {
       );
       rethrow;
     }
-  }
-
-  domain.Trip _mapRowToTrip(Trip row) {
-    return domain.Trip(
-      id: row.id,
-      diverId: row.diverId,
-      name: row.name,
-      startDate: DateTime.fromMillisecondsSinceEpoch(row.startDate),
-      endDate: DateTime.fromMillisecondsSinceEpoch(row.endDate),
-      location: row.location,
-      resortName: row.resortName,
-      liveaboardName: row.liveaboardName,
-      notes: row.notes,
-      tripType: TripType.fromName(row.tripType),
-      isShared: row.isShared,
-      // Wall-clock-as-UTC: decode with isUtc so the stored components are
-      // preserved rather than shifted into the device's timezone.
-      returnFlightAt: row.returnFlightAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              row.returnFlightAt!,
-              isUtc: true,
-            )
-          : null,
-      expectedDives: row.expectedDives,
-      expectedRuntimeMinutes: row.expectedRuntimeMinutes,
-      diversSharingCylinders: row.diversSharingCylinders,
-      divesPerDayTarget: row.divesPerDayTarget,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
-    );
-  }
-
-  /// Shared mapper for customSelect rows (searchTrips, findTripForDate,
-  /// getAllTripsWithStats) so a new trips column cannot silently miss one
-  /// of the hand-written sites.
-  domain.Trip _mapDataToTrip(Map<String, Object?> data) {
-    return domain.Trip(
-      id: data['id'] as String,
-      diverId: data['diver_id'] as String?,
-      name: data['name'] as String,
-      startDate: DateTime.fromMillisecondsSinceEpoch(data['start_date'] as int),
-      endDate: DateTime.fromMillisecondsSinceEpoch(data['end_date'] as int),
-      location: data['location'] as String?,
-      resortName: data['resort_name'] as String?,
-      liveaboardName: data['liveaboard_name'] as String?,
-      notes: (data['notes'] as String?) ?? '',
-      tripType: TripType.fromName((data['trip_type'] as String?) ?? 'shore'),
-      isShared: (data['is_shared'] as int? ?? 0) != 0,
-      // Wall-clock-as-UTC: decode with isUtc so the stored components are
-      // preserved rather than shifted into the device's timezone.
-      returnFlightAt: data['return_flight_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              data['return_flight_at'] as int,
-              isUtc: true,
-            )
-          : null,
-      expectedDives: data['expected_dives'] as int?,
-      expectedRuntimeMinutes: data['expected_runtime_minutes'] as int?,
-      diversSharingCylinders: (data['divers_sharing_cylinders'] as int?) ?? 1,
-      divesPerDayTarget: data['dives_per_day_target'] as int?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] as int),
-    );
   }
 }

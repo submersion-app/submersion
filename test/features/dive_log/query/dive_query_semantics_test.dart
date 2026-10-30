@@ -205,4 +205,39 @@ void main() {
   test('a percentage searches as one term', () async {
     expect(await ids('100%'), {'d3'});
   });
+
+  test('gear reaches tank regulators, first and extra (#3375)', () async {
+    for (final id in ['g_reg1', 'g_reg2']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'regulator',
+              createdAt: 0,
+              updatedAt: 0,
+            ),
+          );
+    }
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'k1',
+            diveId: 'd2',
+            regulatorEquipmentId: const Value('g_reg1'),
+          ),
+        );
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'k2',
+            diveId: 'd3',
+            extraRegulatorIds: const Value('["g_reg2"]'),
+          ),
+        );
+    expect(await ids('gear[type = regulator]'), {'d2', 'd3'});
+  });
 }

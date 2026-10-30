@@ -8,6 +8,7 @@ library;
 
 import 'package:drift/drift.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
+import 'package:submersion/core/database/table_columns.dart';
 
 /// Re-points pressure rows whose tank id is no longer one of the dive's
 /// tanks at a tank that is, in place, before anything is packed.
@@ -35,7 +36,7 @@ Future<void> adoptStrandedTankPressures(
   String table,
 ) async {
   if (!await legacyTableExists(db, 'dive_tanks')) return;
-  final tankColumns = await legacyColumnNames(db, 'dive_tanks');
+  final tankColumns = await tableColumnNames(db, 'dive_tanks');
   if (!tankColumns.containsAll(const {'id', 'dive_id'})) return;
   final hasOrder = tankColumns.contains('tank_order');
   final tankRows = await db

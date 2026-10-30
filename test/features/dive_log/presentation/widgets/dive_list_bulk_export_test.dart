@@ -43,6 +43,7 @@ import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 Dive _dive(String id, {DiveSite? site}) {
   final dt = DateTime(2026, 1, 1, id.hashCode % 12);
@@ -111,6 +112,7 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) {
     pdfOptions = options;
     pdfDiver = diver;
@@ -133,6 +135,7 @@ class _RecordingExportService implements ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) {
     pdfOptions = options;
     pdfDiver = diver;

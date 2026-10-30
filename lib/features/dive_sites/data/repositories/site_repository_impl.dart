@@ -24,6 +24,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
@@ -33,6 +34,7 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_dive_lin
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
     show SiteLinks, SiteUsage;
@@ -110,13 +112,15 @@ class SiteRepository {
     }
   }
 
-  /// Emits whenever the `dive_sites` table, or a profile's hidden sites,
-  /// change, so list providers refresh after a sync or any other write (a
-  /// hide changes which sites a profile sees, issue #2594).
+  /// Emits whenever the `dive_sites` table, or a profile's hidden or shared
+  /// sites, change, so list providers refresh after a sync or any other
+  /// write (a hide or a share changes which sites a profile sees, issues
+  /// #2594, #2151).
   Stream<void> watchSitesChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.diveSites),
       TableUpdateQuery.onTable(_db.siteHides),
+      TableUpdateQuery.onTable(_db.siteShares),
     ]),
   );
 
@@ -175,8 +179,8 @@ class SiteRepository {
                 mooringNumber: Value(site.mooringNumber),
                 parkingInfo: Value(site.parkingInfo),
                 altitude: Value(site.altitude),
-                entryMethod: Value(site.entryMethod?.name),
-                exitMethod: Value(site.exitMethod?.name),
+                entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+                exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                 isShared: Value(site.isShared),
                 sharedLibraryId: Value(site.sharedLibraryId),
                 createdAt: Value(now),
@@ -297,8 +301,8 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
-        entryMethod: Value(site.entryMethod?.name),
-        exitMethod: Value(site.exitMethod?.name),
+        entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+        exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
         updatedAt: Value(now),
       );
@@ -495,6 +499,32 @@ class SiteRepository {
     }
   }
 
+  /// Appends [text] to [siteId]'s description, as a new Markdown paragraph
+  /// when the description already holds text (logbook rules, #3513; #3683).
+  /// Marks the site pending; the caller notifies.
+  Future<void> appendDescription(String siteId, String text) async {
+    if (text.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.customUpdate(
+      "UPDATE dive_sites SET description = CASE WHEN description = '' "
+      "THEN ? ELSE description || char(10) || char(10) || ? END, "
+      'updated_at = ? '
+      'WHERE id = ?',
+      variables: [
+        Variable.withString(text),
+        Variable.withString(text),
+        Variable.withInt(now),
+        Variable.withString(siteId),
+      ],
+      updates: {_db.diveSites},
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'diveSites',
+      recordId: siteId,
+      localUpdatedAt: now,
+    );
+  }
+
   /// Only columns set on [patch] are written; others are left untouched.
   /// Marks the row pending for sync.
   Future<void> applyImportedMetadata(
@@ -534,83 +564,6 @@ class SiteRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to apply imported metadata to site: $siteId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Flip the shared state of a single site, when [actingDiverId] may
-  /// (issue #2594). Returns false, with nothing changed, for a site another
-  /// profile owns or one that does not exist. Marks it pending for sync.
-  Future<bool> setShared(
-    String id,
-    bool isShared, {
-    String? actingDiverId,
-  }) async {
-    try {
-      if ((await _siteOwnership([id], actingDiverId)).allowed.isEmpty) {
-        return false;
-      }
-      _log.info('Setting site $id isShared=$isShared');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.diveSites)..where((t) => t.id.equals(id))).write(
-        DiveSitesCompanion(isShared: Value(isShared), updatedAt: Value(now)),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'diveSites',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      return true;
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to set shared flag on site $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Mark every private site owned by [diverId] as shared. Returns the
-  /// count of rows updated. All updated rows are marked pending for sync.
-  Future<int> shareAllForDiver(String diverId) async {
-    try {
-      _log.info('Bulk sharing all private sites for diver $diverId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-
-      return await _db.transaction(() async {
-        final toShare =
-            await (_db.select(_db.diveSites)..where(
-                  (t) => t.diverId.equals(diverId) & t.isShared.equals(false),
-                ))
-                .get();
-
-        if (toShare.isEmpty) return 0;
-
-        await _db.customUpdate(
-          'UPDATE dive_sites SET is_shared = 1, updated_at = ? '
-          'WHERE diver_id = ? AND is_shared = 0',
-          variables: [Variable.withInt(now), Variable.withString(diverId)],
-          updates: {_db.diveSites},
-        );
-
-        for (final row in toShare) {
-          await _syncRepository.markRecordPending(
-            entityType: 'diveSites',
-            recordId: row.id,
-            localUpdatedAt: now,
-          );
-        }
-        SyncEventBus.notifyLocalChange();
-        return toShare.length;
-      });
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to bulk-share sites for diver $diverId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -697,6 +650,11 @@ class SiteRepository {
         SharedItemKind.site,
         ids,
       );
+      // Every share row of the sites (issue #2151), likewise.
+      final shares = await ItemSharesRepository().deleteShares(
+        SharedItemKind.site,
+        ids,
+      );
       // The sites' documents go with them, tombstoned (issue #2613), kept
       // for the undo. A merge re-points them to the survivor first.
       final documents = undoable
@@ -722,6 +680,7 @@ class SiteRepository {
       return cleared.copyWith(
         documents: documents,
         hides: hides,
+        shares: shares,
         children: children,
         media: doomedMedia,
         mediaSiteIds: mediaSiteIds,
@@ -821,6 +780,10 @@ class SiteRepository {
       await ProfileHidesRepository().restoreHides(
         SharedItemKind.site,
         links.hides,
+      );
+      await ItemSharesRepository().restoreShares(
+        SharedItemKind.site,
+        links.shares,
       );
       await restoreSiteChildren(_db, _syncRepository, links.children, now: now);
       final restored = await restoreMediaRows(
@@ -1051,6 +1014,21 @@ class SiteRepository {
           SharedItemKind.site,
           duplicateIds,
         );
+        // The profiles a merged-away site was shared with keep seeing the
+        // site their dives now point at (issue #2151): its share rows go,
+        // and the survivor is shared with those profiles, unless it is
+        // shared with everyone. Both kept for the undo.
+        final shareRepo = ItemSharesRepository();
+        final shares = await shareRepo.deleteShares(
+          SharedItemKind.site,
+          duplicateIds,
+        );
+        final carried = await shareRepo.carryShares(
+          SharedItemKind.site,
+          shares,
+          survivorId,
+          now: now,
+        );
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
             _db.diveSites,
@@ -1060,7 +1038,13 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
-        return (plans: movedPlans, hides: hides, documents: documents);
+        return (
+          plans: movedPlans,
+          hides: hides,
+          shares: shares,
+          carried: carried,
+          documents: documents,
+        );
       });
 
       SyncEventBus.notifyLocalChange();
@@ -1101,6 +1085,8 @@ class SiteRepository {
         siteTypeIdsBySite: typeIdsBySite,
         siteTagIdsBySite: tagIdsBySite,
         deletedHides: merged.hides,
+        deletedShares: merged.shares,
+        createdShareIds: merged.carried,
         documentOriginalSiteIds: merged.documents,
       );
     } catch (e, stackTrace) {
@@ -1164,8 +1150,8 @@ class SiteRepository {
                   mooringNumber: Value(site.mooringNumber),
                   parkingInfo: Value(site.parkingInfo),
                   altitude: Value(site.altitude),
-                  entryMethod: Value(site.entryMethod?.name),
-                  exitMethod: Value(site.exitMethod?.name),
+                  entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+                  exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                   isShared: Value(site.isShared),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
@@ -1202,6 +1188,17 @@ class SiteRepository {
         await ProfileHidesRepository().restoreHides(
           SharedItemKind.site,
           snapshot.deletedHides,
+        );
+        // 2d. The survivor's carried share rows go, and the merged-away
+        // sites' come back (issue #2151).
+        final shareRepo = ItemSharesRepository();
+        await shareRepo.dropShareRows(
+          SharedItemKind.site,
+          snapshot.createdShareIds,
+        );
+        await shareRepo.restoreShares(
+          SharedItemKind.site,
+          snapshot.deletedShares,
         );
 
         // 3. Re-point dives back to their original sites
@@ -1531,8 +1528,8 @@ class SiteRepository {
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
         altitude: Value(site.altitude),
-        entryMethod: Value(site.entryMethod?.name),
-        exitMethod: Value(site.exitMethod?.name),
+        entryMethod: Value(encodeEntryMethods(site.entryMethods)),
+        exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
         sharedLibraryId: Value(site.sharedLibraryId),
         updatedAt: Value(now),
@@ -1794,6 +1791,13 @@ class MergeSnapshot {
   /// removed (issue #2710).
   final List<ProfileHide> deletedHides;
 
+  /// The merged-away sites' share rows, which the merge removed (issue
+  /// #2151).
+  final List<ItemShare> deletedShares;
+
+  /// The share rows the merge added to the survivor in their place.
+  final List<String> createdShareIds;
+
   const MergeSnapshot({
     required this.originalSurvivor,
     required this.deletedSites,
@@ -1808,6 +1812,8 @@ class MergeSnapshot {
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
     this.deletedHides = const [],
+    this.deletedShares = const [],
+    this.createdShareIds = const [],
     this.documentOriginalSiteIds = const {},
   });
 

@@ -47,21 +47,18 @@ DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
 /// A cylinder whose size cannot be related to the reference, or that was
 /// carried but not breathed, adds nothing.
 ///
-/// With [referenceOnly] (a rebreather dive, where diluent and oxygen
-/// drops are not breathing gas in one unit) only [reference] counts.
-/// Null when [reference] has no positive drop.
+/// Null when [reference] has no positive drop. A rebreather dive has no
+/// SAC at all (issue #3673), so its callers never reach here.
 ///
 /// [dropOf] reads a cylinder's drop, its start minus end pressure by
 /// default; a part of the dive passes the drop over that part (#2928).
 double? referencePressureDrop({
   required DiveTank reference,
   required List<DiveTank> tanks,
-  bool referenceOnly = false,
   double? Function(DiveTank tank) dropOf = _drop,
 }) {
   final referenceDrop = dropOf(reference);
   if (referenceDrop == null) return null;
-  if (referenceOnly) return referenceDrop;
 
   final referenceVolume = consumptionVolume(reference, tanks);
   var total = referenceDrop;

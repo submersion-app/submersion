@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -65,13 +66,23 @@ final allBuddyCertificationsProvider =
     });
 
 /// Certification sort state provider
-final certificationSortProvider =
-    StateProvider<SortState<CertificationSortField>>(
-      (ref) => const SortState(
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final certificationSortProvider = Provider<SortState<CertificationSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(
+          settingsProvider.select((s) => s.listArrangements.certificationSort),
+        ),
+        CertificationSortField.values,
+      ) ??
+      const SortState(
         field: CertificationSortField.dateIssued,
         direction: SortDirection.descending,
       ),
-    );
+);
 
 /// Apply sorting to a list of certifications
 List<Certification> applyCertificationSorting(
@@ -305,15 +316,10 @@ final certificationListNotifierProvider =
 // Certification List View Mode
 // ============================================================================
 
-/// Runtime-scoped certification list view mode. Initialized from the saved
-/// setting (v262), and overridden by the list's menu without changing the
-/// saved default.
-///
-/// Uses `ref.read()` (not `ref.watch()`) for the same reason as
-/// [diveListViewModeProvider]: a write to any other setting must not reset
-/// the session override.
-final certificationListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  return ref.read(settingsProvider).certificationListViewMode;
+/// The certification list's view mode, as the diver left it (issue #3748);
+/// same contract as [diveListViewModeProvider].
+final certificationListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.certificationListViewMode));
 });
 
 // ============================================================================

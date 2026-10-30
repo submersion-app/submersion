@@ -358,6 +358,12 @@ final currentDatabasePathProvider = FutureProvider<String>((ref) async {
 });
 
 /// Whether the current storage mode is custom folder
+/// The storage location has been read from disk: until then the config is
+/// the app default, which a custom-folder device is not.
+final storageConfigLoadedProvider = Provider<bool>(
+  (ref) => !ref.watch(storageConfigNotifierProvider.select((s) => s.isLoading)),
+);
+
 final isCustomFolderModeProvider = Provider<bool>((ref) {
   final configState = ref.watch(storageConfigNotifierProvider);
   return configState.config.mode == StorageLocationMode.customFolder;

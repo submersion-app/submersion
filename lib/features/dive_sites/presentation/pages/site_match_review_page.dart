@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/rules/domain/rule_subject.dart';
+import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/match_sites_map.dart';
@@ -41,6 +45,18 @@ class SiteMatchReviewPage extends ConsumerWidget {
           ),
         ),
       );
+      // Sites the diver confirmed into being are created by hand (#3513).
+      // Not awaited: the rules read all they need before their first await,
+      // and the page leaves now, as before them; waiting kept Confirm live
+      // again, and a second tap created every new site twice.
+      unawaited(
+        runRulesAfterCreate(
+          context,
+          ref,
+          subject: RuleSubject.sites,
+          ids: result.createdSiteIds,
+        ),
+      );
       Navigator.of(context).pop();
     }
 
@@ -78,17 +94,24 @@ class SiteMatchReviewPage extends ConsumerWidget {
         longitude: point.longitude,
       );
       if (draft == null || !context.mounted) return;
+      // Read now: the site exists even if the diver leaves while it is
+      // made, and gets its logbook rules (#3513) either way.
+      final rulesAfterCreate = captureRulesAfterCreate(context, ref);
       final created = await notifier.createSiteHere(p.dive.id, draft);
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            created == null
-                ? l10n.siteMatchReview_applyError
-                : l10n.diveLog_edit_createdSite(created.name),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              created == null
+                  ? l10n.siteMatchReview_applyError
+                  : l10n.diveLog_edit_createdSite(created.name),
+            ),
           ),
-        ),
-      );
+        );
+      }
+      if (created != null) {
+        await rulesAfterCreate(subject: RuleSubject.sites, ids: [created.id]);
+      }
     }
 
     return Scaffold(

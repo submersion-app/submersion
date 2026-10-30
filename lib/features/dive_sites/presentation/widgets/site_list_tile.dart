@@ -239,8 +239,8 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                           if (widget.showSharedBadge) ...[
                             const SizedBox(width: 6),
                             Tooltip(
-                              message: l10n
-                                  .accessibility_label_sharedWithAllProfiles,
+                              message:
+                                  l10n.accessibility_label_sharedWithProfiles,
                               child: Icon(
                                 Icons.people_outline,
                                 size: 16,

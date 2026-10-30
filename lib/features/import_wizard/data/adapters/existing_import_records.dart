@@ -86,18 +86,20 @@ class ExistingImportRecords {
 /// through the diver-scoped list providers, refreshed. `refresh()` rather
 /// than `read()`, which may return a value invalidated but not re-fetched.
 Future<ExistingImportRecords> loadActiveDiverRecords(
-  WidgetRef ref,
+  ProviderContainer container,
   String? diverId,
 ) async {
-  final trips = await ref.refresh(allTripsProvider.future);
-  final sites = await ref.refresh(sitesProvider.future);
-  final equipment = await ref.refresh(allEquipmentProvider.future);
-  final buddies = await ref.refresh(allBuddiesProvider.future);
-  final diveCenters = await ref.refresh(allDiveCentersProvider.future);
-  final certifications = await ref.refresh(allCertificationsProvider.future);
-  final tags = await ref.refresh(tagsProvider.future);
-  final diveTypes = await ref.refresh(diveTypesProvider.future);
-  final diveRepo = ref.read(diveRepositoryProvider);
+  final trips = await container.refresh(allTripsProvider.future);
+  final sites = await container.refresh(sitesProvider.future);
+  final equipment = await container.refresh(allEquipmentProvider.future);
+  final buddies = await container.refresh(allBuddiesProvider.future);
+  final diveCenters = await container.refresh(allDiveCentersProvider.future);
+  final certifications = await container.refresh(
+    allCertificationsProvider.future,
+  );
+  final tags = await container.refresh(tagsProvider.future);
+  final diveTypes = await container.refresh(diveTypesProvider.future);
+  final diveRepo = container.read(diveRepositoryProvider);
   return ExistingImportRecords(
     trips: trips,
     sites: sites,
@@ -109,7 +111,7 @@ Future<ExistingImportRecords> loadActiveDiverRecords(
     diveTypes: diveTypes,
     dives: await diveRepo.getAllDives(diverId: diverId),
     sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
-    certificationCatalog: await ref.read(
+    certificationCatalog: await container.read(
       allCustomCertificationsCatalogProvider.future,
     ),
   );
@@ -119,32 +121,38 @@ Future<ExistingImportRecords> loadActiveDiverRecords(
 /// which take the diver id as an argument. [diverId] is never null here: a
 /// null id would make every filter return all divers' rows.
 Future<ExistingImportRecords> loadProfileRecords(
-  WidgetRef ref,
+  ProviderContainer container,
   String diverId,
 ) async {
-  final diveRepo = ref.read(diveRepositoryProvider);
+  final diveRepo = container.read(diveRepositoryProvider);
   return ExistingImportRecords(
-    trips: await ref.read(tripRepositoryProvider).getAllTrips(diverId: diverId),
-    sites: await ref.read(siteRepositoryProvider).getAllSites(diverId: diverId),
-    equipment: await ref
+    trips: await container
+        .read(tripRepositoryProvider)
+        .getAllTrips(diverId: diverId),
+    sites: await container
+        .read(siteRepositoryProvider)
+        .getAllSites(diverId: diverId),
+    equipment: await container
         .read(equipmentRepositoryProvider)
         .getAllEquipment(diverId: diverId),
-    buddies: await ref
+    buddies: await container
         .read(buddyRepositoryProvider)
         .getAllBuddies(diverId: diverId),
-    diveCenters: await ref
+    diveCenters: await container
         .read(diveCenterRepositoryProvider)
         .getAllDiveCenters(diverId: diverId),
-    certifications: await ref
+    certifications: await container
         .read(certificationRepositoryProvider)
         .getAllCertifications(diverId: diverId),
-    tags: await ref.read(tagRepositoryProvider).getAllTags(diverId: diverId),
-    diveTypes: await ref
+    tags: await container
+        .read(tagRepositoryProvider)
+        .getAllTags(diverId: diverId),
+    diveTypes: await container
         .read(diveTypeRepositoryProvider)
         .getAllDiveTypes(diverId: diverId),
     dives: await diveRepo.getAllDives(diverId: diverId),
     sourceUuidByDiveId: await diveRepo.getSourceUuidByDiveId(diverId: diverId),
-    certificationCatalog: await ref.read(
+    certificationCatalog: await container.read(
       allCustomCertificationsCatalogProvider.future,
     ),
   );
@@ -153,8 +161,12 @@ Future<ExistingImportRecords> loadProfileRecords(
 /// A profile the import will create has no records yet. Built-in dive types
 /// exist for every diver, so they still count (a null id asks for those
 /// alone).
-Future<ExistingImportRecords> loadNewProfileRecords(WidgetRef ref) async {
+Future<ExistingImportRecords> loadNewProfileRecords(
+  ProviderContainer container,
+) async {
   return ExistingImportRecords(
-    diveTypes: await ref.read(diveTypeRepositoryProvider).getAllDiveTypes(),
+    diveTypes: await container
+        .read(diveTypeRepositoryProvider)
+        .getAllDiveTypes(),
   );
 }

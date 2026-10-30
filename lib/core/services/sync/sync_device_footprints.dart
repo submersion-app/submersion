@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/deferred_write_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/retirement_marker.dart';
@@ -223,6 +224,17 @@ class SyncDeviceFootprints {
         _log.warning('Could not delete ${f.name}: $e');
       }
       onProgress?.call(deleted + failed, targets.length);
+    }
+    // A backend that batches deletes (Git) has only recorded them so far:
+    // push them before telling anyone they are gone.
+    if (deleted > 0) {
+      try {
+        await flushDeferredWrites(provider, timeout: cloudCallTimeout * 3);
+      } catch (e) {
+        _log.warning('Could not push the deletes retiring $deviceId: $e');
+        failed += deleted;
+        deleted = 0;
+      }
     }
     _log.info('Retired peer $deviceId: removed $deleted files, $failed failed');
     return SyncCleanupOutcome(deleted: deleted, failed: failed);

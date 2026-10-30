@@ -57,6 +57,7 @@ void main() {
   DownloadedDive download({
     List<DownloadedTank>? tanks,
     ComputerTissueSnapshot? computerTissue,
+    bool reportsDecoSettings = true,
   }) => DownloadedDive(
     startTime: DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
@@ -80,9 +81,9 @@ void main() {
         ],
     events: const [],
     rawFingerprint: Uint8List.fromList([9, 9]),
-    gfLow: 40,
-    gfHigh: 85,
-    decoAlgorithm: 'Buhlmann ZHL-16C',
+    gfLow: reportsDecoSettings ? 40 : null,
+    gfHigh: reportsDecoSettings ? 85 : null,
+    decoAlgorithm: reportsDecoSettings ? 'Buhlmann ZHL-16C' : null,
     computerTissue: computerTissue,
   );
 
@@ -146,7 +147,6 @@ void main() {
 
   test('fill takes the tissue state the computer reported', () async {
     const tissue = ComputerTissueSnapshot(
-      algorithm: 'zhl_16c',
       end: ComputerTissueState(gf99Percent: 62, surfaceGfPercent: 48),
     );
     final planned = await plannedDive();
@@ -160,6 +160,65 @@ void main() {
     final filled = await dives.getDiveById(planned.id);
     expect(filled?.computerTissue, tissue);
   });
+
+  test(
+    'fill keeps the planned tissue state a computer does not report',
+    () async {
+      const tissue = ComputerTissueSnapshot(
+        end: ComputerTissueState(gf99Percent: 55, surfaceGfPercent: 40),
+      );
+      final planned = await dives.createPlannedDive(
+        Dive(
+          id: '',
+          diverId: eric,
+          dateTime: DateTime(2026, 6, 1, 9),
+          maxDepth: 20,
+          computerTissue: tissue,
+          tanks: const [DiveTank(id: '', gasMix: GasMix(o2: 32), volume: 12)],
+        ),
+      );
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      final filled = await dives.getDiveById(planned.id);
+      expect(filled?.computerTissue, tissue);
+    },
+  );
+
+  test(
+    'fill keeps the planned deco settings a computer does not report',
+    () async {
+      final planned = await dives.createPlannedDive(
+        Dive(
+          id: '',
+          diverId: eric,
+          dateTime: DateTime(2026, 6, 1, 9),
+          maxDepth: 20,
+          gradientFactorLow: 30,
+          gradientFactorHigh: 70,
+          decoAlgorithm: 'buhlmann',
+          decoConservatism: 2,
+          tanks: const [DiveTank(id: '', gasMix: GasMix(o2: 32), volume: 12)],
+        ),
+      );
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(reportsDecoSettings: false),
+        computerId: computerId,
+      );
+
+      final filled = await dives.getDiveById(planned.id);
+      expect(filled?.gradientFactorLow, 30);
+      expect(filled?.gradientFactorHigh, 70);
+      expect(filled?.decoAlgorithm, 'buhlmann');
+      expect(filled?.decoConservatism, 2);
+    },
+  );
 
   test('the sketched profile is replaced, not merged', () async {
     final planned = await plannedDive();

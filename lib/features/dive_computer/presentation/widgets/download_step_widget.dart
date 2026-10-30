@@ -37,7 +37,8 @@ class DownloadStepWidget extends ConsumerStatefulWidget {
   final bool forceFullDownload;
 
   /// Default first-sync cutoff date, computed from the newest dive already
-  /// in the active diver's log (see `firstSyncCutoffDefaultProvider`). When
+  /// in the log the download will go to (see `firstSyncCutoffDefaultProvider`,
+  /// issue #2050). When
   /// non-null and the computer has no stored fingerprint yet (and
   /// [forceFullDownload] is not set), the widget shows a prompt letting the
   /// diver skip re-downloading dives they already have instead of

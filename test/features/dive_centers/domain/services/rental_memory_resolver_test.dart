@@ -51,6 +51,7 @@ void main() {
     transmitterSerial: 'TX1',
     sourceTankIndex: 0,
     regulatorEquipmentId: 'reg',
+    extraRegulatorIds: ['reg-2'],
     equipmentId: 'tank',
   );
 
@@ -123,6 +124,7 @@ void main() {
     expect(copy.transmitterSerial, isNull);
     expect(copy.sourceTankIndex, isNull);
     expect(copy.regulatorEquipmentId, isNull);
+    expect(copy.extraRegulatorIds, isEmpty);
     expect(copy.equipmentId, isNull);
   });
 

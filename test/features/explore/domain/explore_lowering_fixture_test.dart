@@ -84,6 +84,10 @@ void main() {
       {'d1', 'd2'},
     ),
     'no buddy': (q(clauses: [_c('noBuddy', ClauseOp.eq, true)]), {'d3', 'd4'}),
+    'no role': (
+      q(clauses: [_c('noRole', ClauseOp.eq, true)]),
+      {'d2', 'd3', 'd4'},
+    ),
     'place Bonaire': (
       q(mentions: [_m(MentionKind.place, 'Bonaire')]),
       {'d1', 'd2', 'd3'},

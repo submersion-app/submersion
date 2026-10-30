@@ -254,4 +254,21 @@ void main() {
     final loaded = await repository.getConfigById(id);
     expect(loaded!.items.single.tankRole, TankRole.backGas);
   });
+
+  // Issue #3567: a saved cylinder keeps the MOD the diver set on it.
+  test(
+    'saves and reads back a cylinder MOD override, and its absence',
+    () async {
+      await seedDiver('d1');
+      final id = await repository.createConfig(diverId: 'd1', name: 'Stages');
+      await repository.saveItems(id, [
+        item(id: 'a', configId: id, o2: 40).copyWith(decoSwitchDepth: 21),
+        item(id: 'b', configId: id, order: 1, o2: 50),
+      ]);
+
+      final loaded = (await repository.getConfigById(id))!.items;
+      expect(loaded.firstWhere((i) => i.id == 'a').decoSwitchDepth, 21);
+      expect(loaded.firstWhere((i) => i.id == 'b').decoSwitchDepth, isNull);
+    },
+  );
 }

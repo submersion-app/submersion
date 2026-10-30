@@ -41,6 +41,8 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Handles comprehensive UDDF export of all application data.
 class UddfFullExportService {
@@ -684,6 +686,8 @@ class UddfFullExportService {
     );
     final fileName =
         'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save UDDF File',

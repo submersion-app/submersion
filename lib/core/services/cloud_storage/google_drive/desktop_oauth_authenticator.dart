@@ -117,6 +117,17 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
 
   static const String _revokeEndpoint = 'https://oauth2.googleapis.com/revoke';
 
+  /// Whether [credentials] let Submersion use Drive, not merely sign in.
+  ///
+  /// Google's granular consent screen gives the Drive scope a checkbox of its
+  /// own. Left unticked, the token exchange still succeeds with openid and
+  /// email alone, and every Drive call then fails with `insufficient_scope`
+  /// while the account reads as signed in (#3742). The credentials' scopes
+  /// come from the token response, so they are what Google granted rather
+  /// than what was asked for.
+  static bool _grantsDrive(gauth.AccessCredentials credentials) =>
+      credentials.scopes.contains(drive.DriveApi.driveAppdataScope);
+
   final String _clientSecret;
   final GoogleDriveTokenStore _tokenStore;
   final ObtainConsentCredentials _obtainConsent;
@@ -158,6 +169,13 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
           'open the Google consent page',
         );
       });
+      if (!_grantsDrive(credentials)) {
+        _log.warning('Google consent granted sign-in without Drive access');
+        throw const CloudStorageException(
+          'Google Drive access was not allowed. Sign in again and tick the '
+          "Google Drive box on Google's consent page.",
+        );
+      }
       await _tokenStore.save(credentials);
       _installClient(credentials);
       _log.info('Authenticated with Google Drive via browser consent');
@@ -198,6 +216,13 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
 
       final credentials = await _tokenStore.load();
       if (credentials == null || credentials.refreshToken == null) {
+        return false;
+      }
+      if (!_grantsDrive(credentials)) {
+        // Stored before authenticate() checked the grant. Dropping it turns a
+        // sign-in that can never sync into "not signed in", which asks again.
+        _log.warning('Stored Google grant has no Drive access; clearing it');
+        await _tokenStore.clear();
         return false;
       }
       _installClient(credentials);

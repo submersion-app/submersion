@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
+import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
@@ -51,7 +52,9 @@ class SiteMediaViewerPage extends ConsumerStatefulWidget {
 }
 
 class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
-    with MediaFullscreenMixin<SiteMediaViewerPage> {
+    with
+        MediaFullscreenMixin<SiteMediaViewerPage>,
+        ColorAdjustViewerMixin<SiteMediaViewerPage> {
   late PageController _pageController;
   int _currentIndex = 0;
 
@@ -143,15 +146,17 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
     final sourceAsync = widget.scope == SiteViewerScope.attachments
         ? ref.watch(mediaForSiteProvider(widget.siteId))
         : ref.watch(flatMediaFromDivesAtSiteProvider(widget.siteId));
-    final mediaAsync = sourceAsync.whenData(
-      (list) => list.where((m) => !m.isDocument).toList(),
-    );
-
     return fullscreenPopScope(
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: mediaAsync.when(
-          data: (mediaList) {
+        // A reload keeps drawing the list it has: every media write (a
+        // colour save from the panel below among them) reloads the
+        // dive-photo providers, and showing the spinner for it would tear
+        // down the gallery and the panel mid-edit (issue #3520).
+        body: sourceAsync.when(
+          skipLoadingOnReload: true,
+          data: (all) {
+            final mediaList = all.where((m) => !m.isDocument).toList();
             if (mediaList.isEmpty) {
               // Nothing left to tap means no exit button (a sync can empty the
               // list under the viewer).
@@ -197,17 +202,20 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               },
               child: Stack(
                 children: [
-                  _MediaGalleryPager(
-                    mediaList: mediaList,
-                    pageController: _pageController,
-                    onPageChanged: (index) {
-                      // Swipes and settles both land here, which is what
-                      // re-syncs the nav target after a gesture.
-                      setState(() {
-                        _currentIndex = index;
-                        _navTargetIndex = index;
-                      });
-                    },
+                  RepaintBoundary(
+                    key: galleryBoundaryKey,
+                    child: _MediaGalleryPager(
+                      mediaList: mediaList,
+                      pageController: _pageController,
+                      onPageChanged: (index) {
+                        // Swipes and settles both land here, which is what
+                        // re-syncs the nav target after a gesture.
+                        setState(() {
+                          _currentIndex = index;
+                          _navTargetIndex = index;
+                        });
+                      },
+                    ),
                   ),
 
                   // Transparent tap target to toggle overlays
@@ -216,17 +224,28 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                       label: context.l10n.media_photoViewer_toggleOverlayLabel,
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
-                        onTap: isFullscreen
+                        onTap: pickingWhite
+                            ? null
+                            : isFullscreen
                             ? toggleFullscreenControls
                             : () =>
                                   setState(() => _showOverlay = !_showOverlay),
+                        onTapUp: pickingWhite
+                            ? (details) => pickWhiteOnPhoto(
+                                currentItem,
+                                details.localPosition,
+                              )
+                            : null,
                         child: const SizedBox.expand(),
                       ),
                     ),
                   ),
 
-                  if (_showOverlay && !isFullscreen) ...[
+                  if (pickingWhite) const PickWhiteHint(),
+
+                  if (_showOverlay && !isFullscreen && !pickingWhite) ...[
                     _TopOverlay(
+                      onAdjustColor: () => openColorPanel(),
                       currentIndex: currentIndex,
                       totalCount: mediaList.length,
                       onClose: () => Navigator.of(context).pop(),
@@ -244,6 +263,15 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                               siteId: widget.siteId,
                             )
                           : null,
+                    ),
+                    // What colour correction the item is drawn with.
+                    Positioned(
+                      top:
+                          MediaQuery.paddingOf(context).top +
+                          kToolbarHeight +
+                          12,
+                      left: 12,
+                      child: ColorCorrectionLabel(item: currentItem),
                     ),
                     // Previous / next controls. Mounted with the rest of the
                     // chrome, so the tap-to-hide gesture takes them away too.
@@ -269,7 +297,15 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
               autofocus: true,
               onKeyEvent: (node, event) =>
                   _handleKeyEvent(event, mediaList.length),
-              child: viewer,
+              // Adjust color (issue #3520). Photos only pick white here:
+              // this viewer shows a video's poster, not a player.
+              child: colorAdjustLayout(
+                item: currentItem,
+                fullscreen: isFullscreen,
+                pickWhiteAvailable: !currentItem.isVideo,
+                onPickWhite: togglePickWhite,
+                child: viewer,
+              ),
             );
           },
           loading: () => const Center(
@@ -289,52 +325,9 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   }
 
   Future<void> _shareCurrentItem(MediaItem item, Rect? anchor) async {
-    final l10n = context.l10n;
-
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) =>
-          const Center(child: CircularProgressIndicator(color: Colors.white)),
-    );
-
-    try {
-      final resolvedResult = await ref.read(
-        resolvedFullResolutionProvider(item).future,
-      );
-
-      if (resolvedResult.isUnavailable || resolvedResult.bytes == null) {
-        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-        _showError(l10n.media_photoViewer_cannotShare);
-        return;
-      }
-
-      final file = await writeShareTempFile(item, resolvedResult.bytes!);
-
-      // Dismiss loading - use rootNavigator to match where showDialog placed it
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: item.shareMimeType)],
-          sharePositionOrigin: anchor,
-        ),
-      );
-    } catch (e) {
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      _showError(l10n.media_photoViewer_failedToShare(e.toString()));
-    }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ),
-    );
+    // Shared resolve-and-share flow (the dive viewer and the library use it
+    // too), so a corrected video goes out re-encoded here as well (#3521).
+    await shareMediaItems(context, ref, [item], anchor: anchor);
   }
 }
 
@@ -393,8 +386,10 @@ class _TopOverlay extends StatelessWidget {
   final VoidCallback onEnterFullscreen;
   final void Function(Rect? anchor) onShare;
   final VoidCallback? onEditDetails;
+  final VoidCallback onAdjustColor;
 
   const _TopOverlay({
+    required this.onAdjustColor,
     required this.currentIndex,
     required this.totalCount,
     required this.onClose,
@@ -448,6 +443,12 @@ class _TopOverlay extends StatelessWidget {
                       ),
                     ),
                   ),
+                ),
+                IconButton(
+                  key: const ValueKey('viewer_adjust_color'),
+                  icon: const Icon(Icons.palette_outlined, color: Colors.white),
+                  tooltip: context.l10n.media_color_adjustAction,
+                  onPressed: onAdjustColor,
                 ),
                 if (onEditDetails != null)
                   IconButton(

@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
+
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -106,5 +108,16 @@ void main() {
     );
     expect(webdavNaturalKey(a), isNot(contains('one')));
     expect(naturalKeyForKind(AccountKind.webdav), isNull);
+  });
+
+  test('only ids made by accountIdFor read as deterministic', () {
+    expect(
+      isDeterministicAccountId(
+        accountIdFor(kind: AccountKind.dropbox, naturalKey: 'dropbox'),
+      ),
+      isTrue,
+    );
+    expect(isDeterministicAccountId(const Uuid().v4()), isFalse);
+    expect(isDeterministicAccountId('not-an-id'), isFalse);
   });
 }

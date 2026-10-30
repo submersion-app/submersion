@@ -121,13 +121,20 @@ class CsvImportParser implements ImportParser {
   /// 'site' is the legacy alias the correlator normalizes to 'siteName'.
   /// 'gps' names a site on its own when the file has no site name column, so
   /// it needs sites too; the dive keeps the pair either way (#2212).
-  static const _entityTypeForTargetField = {
-    'siteName': ImportEntityType.sites,
-    'site': ImportEntityType.sites,
-    'gps': ImportEntityType.sites,
-    'buddy': ImportEntityType.buddies,
-    'tags': ImportEntityType.tags,
-    'diveType': ImportEntityType.diveTypes,
+  /// MySSI's combined people column holds buddies and a dive centre (#3629).
+  static const _entityTypesForTargetField = {
+    'siteName': {ImportEntityType.sites},
+    'site': {ImportEntityType.sites},
+    'gps': {ImportEntityType.sites},
+    'buddy': {ImportEntityType.buddies},
+    'instructor': {ImportEntityType.buddies},
+    'diveCenter': {ImportEntityType.diveCenters},
+    'buddyInstructorCenter': {
+      ImportEntityType.buddies,
+      ImportEntityType.diveCenters,
+    },
+    'tags': {ImportEntityType.tags},
+    'diveType': {ImportEntityType.diveTypes},
   };
 
   /// [entityTypes] plus every type a column in [mappings] needs, so a
@@ -139,7 +146,7 @@ class CsvImportParser implements ImportParser {
     ...entityTypes,
     for (final mapping in mappings)
       for (final column in mapping.columns)
-        ?_entityTypeForTargetField[column.targetField],
+        ...?_entityTypesForTargetField[column.targetField],
   };
 
   /// Build an [ImportConfiguration] from the resolved mapping source, with

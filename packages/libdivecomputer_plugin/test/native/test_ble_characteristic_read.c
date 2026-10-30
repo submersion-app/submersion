@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <libdivecomputer/ble.h>
+#include <libdivecomputer/context.h>
 #include <libdivecomputer/ioctl.h>
 
 #include "libdc_wrapper.h"
@@ -104,6 +105,46 @@ static void test_fill_rejects_a_shorter_value(void) {
     printf("PASS: test_fill_rejects_a_shorter_value\n");
 }
 
+static int g_logged_level = 0;
+static char g_logged_message[256];
+
+static void capture_log(int level, const char *message, void *userdata) {
+    (void)userdata;
+    g_logged_level = level;
+    snprintf(g_logged_message, sizeof(g_logged_message), "%s", message);
+}
+
+// libdivecomputer reports a refused short value only as "Failed to read the
+// characteristic", which left a default debug log unable to tell it from a
+// GATT error (issue #422). The fill names both lengths at WARNING, the level
+// every platform keeps when verbose logging is off.
+static void test_fill_warns_about_a_shorter_value(void) {
+    unsigned char request[16 + 5] = {0};
+    const unsigned char value[3] = {0x01, 0x02, 0x03};
+    g_logged_level = 0;
+    g_logged_message[0] = '\0';
+    libdc_set_log_callback(capture_log, NULL);
+
+    assert(libdc_ble_characteristic_read_fill(request, sizeof(request),
+                                              value, 3) ==
+           LIBDC_STATUS_DATAFORMAT);
+    assert(g_logged_level == DC_LOGLEVEL_WARNING);
+    assert(strcmp(g_logged_message,
+                  "BLE characteristic read returned 3 bytes, expected 5") ==
+           0);
+
+    // A value of the right length is not worth a line.
+    g_logged_level = 0;
+    const unsigned char exact[5] = {0};
+    assert(libdc_ble_characteristic_read_fill(request, sizeof(request),
+                                              exact, 5) ==
+           LIBDC_STATUS_SUCCESS);
+    assert(g_logged_level == 0);
+
+    libdc_set_log_callback(NULL, NULL);
+    printf("PASS: test_fill_warns_about_a_shorter_value\n");
+}
+
 int main(void) {
     test_request_constant_matches_libdivecomputer();
     test_decodes_uuid_and_value_size();
@@ -112,6 +153,7 @@ int main(void) {
     test_fill_copies_exact_value_after_the_uuid();
     test_fill_truncates_a_longer_value();
     test_fill_rejects_a_shorter_value();
+    test_fill_warns_about_a_shorter_value();
     printf("All BLE characteristic read tests passed.\n");
     return 0;
 }

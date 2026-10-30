@@ -7,6 +7,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_crop_dialog.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_source_sheet.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 final _log = LoggerService.forClass(ProfilePhotoResult);
 
@@ -82,6 +84,9 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
       if (pickImageOverride != null) {
         picked = await pickImageOverride(imageSource);
       } else {
+        if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+          return null;
+        }
         final file = await ImagePicker().pickImage(source: imageSource);
         // Read through the XFile handle, not File(file.path). A picked file
         // is a HANDLE: on Android SAF the path can be unusable, and

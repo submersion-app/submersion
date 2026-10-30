@@ -11,7 +11,8 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.d
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 
 import '../../../../helpers/test_app.dart';
-import 'dive_list_trip_grouping_test.dart' show groupingOverrides, makeDive;
+import 'dive_list_trip_grouping_test.dart'
+    show MockPaginatedNotifier, groupingOverrides, makeDive;
 
 /// Holds the open dive the way the master-detail scaffold does, so a row's
 /// tap and a keyboard move both come back in as [DiveListContent.selectedId].
@@ -50,6 +51,7 @@ Future<void> _pump(
   Size size = const Size(1400, 1000),
   Map<String, int> tripTotals = const {},
   bool grouping = false,
+  MockPaginatedNotifier? notifier,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -58,11 +60,24 @@ Future<void> _pump(
     dives,
     grouping: grouping,
     tripTotals: tripTotals,
+    notifier: notifier,
   );
   await tester.pumpWidget(
     testApp(locale: const Locale('en'), overrides: overrides, child: child),
   );
-  await tester.pumpAndSettle();
+  await _settle(tester, untilIdle: !(notifier?.state.value?.hasMore ?? false));
+}
+
+/// Settles the list. One with more pages to load shows a spinner on its
+/// trailing row, which never lets the frames stop, so it gets a fixed run.
+Future<void> _settle(WidgetTester tester, {bool untilIdle = true}) async {
+  if (untilIdle) {
+    await tester.pumpAndSettle();
+    return;
+  }
+  for (var i = 0; i < 10; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
 }
 
 Future<void> _press(WidgetTester tester, LogicalKeyboardKey key) async {
@@ -95,6 +110,51 @@ void main() {
     await tester.pumpAndSettle();
     await _press(tester, LogicalKeyboardKey.arrowUp);
     expect(opened, ['d1', 'd2', 'd4', 'd3']);
+  });
+
+  testWidgets('End loads the dives not loaded yet and opens the last (#3302)', (
+    tester,
+  ) async {
+    // Well over the list's prefetch distance of three screens, so it does
+    // not page on its own before End.
+    final loaded = [for (var i = 1; i <= 120; i++) makeDive('d$i')];
+    final notifier = MockPaginatedNotifier(loaded, hasMore: true)
+      ..rest = [for (var i = 121; i <= 130; i++) makeDive('d$i')];
+    final opened = <String?>[];
+    await _pump(tester, loaded, _SplitHost(opened: opened), notifier: notifier);
+
+    await tester.tap(_row('d1'));
+    await _settle(tester, untilIdle: false);
+    // The rest loads and paging ends, so the spinner goes and frames settle.
+    await _press(tester, LogicalKeyboardKey.end);
+
+    expect(notifier.loadRestCalls, 1);
+    expect(opened, ['d1', 'd130']);
+    expect(_row('d130').hitTestable(), findsOneWidget);
+
+    await _press(tester, LogicalKeyboardKey.home);
+    expect(opened, ['d1', 'd130', 'd1']);
+  });
+
+  testWidgets('End lands on the loaded dives when the rest fails to load', (
+    tester,
+  ) async {
+    final loaded = [for (var i = 1; i <= 120; i++) makeDive('d$i')];
+    final notifier = MockPaginatedNotifier(loaded, hasMore: true)
+      ..restError = StateError('load failed');
+    final opened = <String?>[];
+    await _pump(tester, loaded, _SplitHost(opened: opened), notifier: notifier);
+
+    await tester.tap(_row('d1'));
+    await _settle(tester, untilIdle: false);
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    // Paging never ends, so the trailing spinner keeps the frames going.
+    await _settle(tester, untilIdle: false);
+    await _settle(tester, untilIdle: false);
+
+    expect(notifier.loadRestCalls, 1);
+    expect(opened, ['d1', 'd120']);
+    expect(tester.takeException(), isNull, reason: 'the list caught it');
   });
 
   testWidgets('split view: Enter does not step to a neighbouring dive', (

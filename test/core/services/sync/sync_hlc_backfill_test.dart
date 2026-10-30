@@ -244,4 +244,179 @@ void main() {
 
     expect(await hlcOf('cylinder_configs', 'cfg-1'), 'preset-hlc');
   });
+
+  // The category/section->section_id migration (issue #3360) clears hlc on
+  // every section it backfills and on every item it re-points at one, so
+  // these four new table groups need the same self-heal the rest of this
+  // file exercises.
+  group('checklist sections (#3360)', () {
+    test(
+      'stamps and publishes null-hlc trip checklist sections and items',
+      (() async {
+        await db.customStatement(
+          "INSERT INTO trips (id, name, start_date, end_date, created_at, "
+          "updated_at) VALUES ('trip-1', 'Red Sea', 1000, 2000, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO trip_checklist_sections '
+          '(id, trip_id, title, sort_order, created_at, updated_at) '
+          "VALUES ('tcs-1', 'trip-1', 'Gear', 0, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO trip_checklist_items '
+          '(id, trip_id, title, section_id, sort_order, created_at, '
+          "updated_at) VALUES ('tci-1', 'trip-1', 'Mask', 'tcs-1', 0, 1000, "
+          '1000)',
+        );
+
+        await SyncRepository().backfillMissingHlc();
+
+        expect(await hlcOf('trip_checklist_sections', 'tcs-1'), isNotNull);
+        expect(await hlcOf('trip_checklist_items', 'tci-1'), isNotNull);
+        expect(await pendingIdsFor('tripChecklistSections'), contains('tcs-1'));
+        expect(await pendingIdsFor('tripChecklistItems'), contains('tci-1'));
+      }),
+    );
+
+    test(
+      'stamps and publishes null-hlc checklist template sections and items',
+      () async {
+        await db.customStatement(
+          'INSERT INTO checklist_templates (id, name, created_at, '
+          "updated_at) VALUES ('ct-1', 'Packing', 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO checklist_template_sections '
+          '(id, template_id, title, sort_order, created_at, updated_at) '
+          "VALUES ('cts-1', 'ct-1', 'Gear', 0, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO checklist_template_items '
+          '(id, template_id, title, section_id, sort_order, created_at, '
+          "updated_at) VALUES ('cti-1', 'ct-1', 'Mask', 'cts-1', 0, 1000, "
+          '1000)',
+        );
+
+        await SyncRepository().backfillMissingHlc();
+
+        expect(await hlcOf('checklist_template_sections', 'cts-1'), isNotNull);
+        expect(await hlcOf('checklist_template_items', 'cti-1'), isNotNull);
+        expect(
+          await pendingIdsFor('checklistTemplateSections'),
+          contains('cts-1'),
+        );
+        expect(
+          await pendingIdsFor('checklistTemplateItems'),
+          contains('cti-1'),
+        );
+      },
+    );
+
+    test('stamps and publishes null-hlc pre-dive template sections and items, '
+        'but leaves a built-in template\'s alone', () async {
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_templates (id, name, is_built_in, '
+        "created_at, updated_at) VALUES ('pdt-1', 'Custom', 0, 1000, 1000)",
+      );
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_sections '
+        '(id, template_id, title, sort_order, created_at, updated_at) '
+        "VALUES ('pdts-1', 'pdt-1', 'Gear', 0, 1000, 1000)",
+      );
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_items '
+        '(id, template_id, title, section_id, sort_order, created_at, '
+        "updated_at) VALUES ('pdti-1', 'pdt-1', 'Mask', 'pdts-1', 0, 1000, "
+        '1000)',
+      );
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_templates (id, name, is_built_in, '
+        "created_at, updated_at) VALUES ('pdt-builtin', 'CCR', 1, 1000, "
+        '1000)',
+      );
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_sections '
+        '(id, template_id, title, sort_order, created_at, updated_at) '
+        "VALUES ('pdts-builtin', 'pdt-builtin', 'Assembly', 0, 1000, 1000)",
+      );
+      await db.customStatement(
+        'INSERT INTO pre_dive_checklist_template_items '
+        '(id, template_id, title, section_id, sort_order, created_at, '
+        "updated_at) VALUES ('pdti-builtin', 'pdt-builtin', 'Scrubber', "
+        "'pdts-builtin', 0, 1000, 1000)",
+      );
+
+      await SyncRepository().backfillMissingHlc();
+
+      expect(
+        await hlcOf('pre_dive_checklist_template_sections', 'pdts-1'),
+        isNotNull,
+      );
+      expect(
+        await hlcOf('pre_dive_checklist_template_items', 'pdti-1'),
+        isNotNull,
+      );
+      expect(
+        await pendingIdsFor('preDiveChecklistTemplateSections'),
+        contains('pdts-1'),
+      );
+      expect(
+        await pendingIdsFor('preDiveChecklistTemplateItems'),
+        contains('pdti-1'),
+      );
+
+      expect(
+        await hlcOf('pre_dive_checklist_template_sections', 'pdts-builtin'),
+        isNull,
+        reason:
+            'a built-in template\'s sections are reference data the '
+            'export already skips; stamping them only queues a sync '
+            'record that publishes nothing',
+      );
+      expect(
+        await hlcOf('pre_dive_checklist_template_items', 'pdti-builtin'),
+        isNull,
+      );
+      expect(
+        await pendingIdsFor('preDiveChecklistTemplateSections'),
+        isNot(contains('pdts-builtin')),
+      );
+      expect(
+        await pendingIdsFor('preDiveChecklistTemplateItems'),
+        isNot(contains('pdti-builtin')),
+      );
+    });
+
+    test(
+      'stamps and publishes null-hlc pre-dive session sections and items',
+      (() async {
+        await db.customStatement(
+          'INSERT INTO pre_dive_sessions (id, template_name, started_at, '
+          "created_at, updated_at) VALUES ('pds-1', 'Custom', 1000, 1000, "
+          '1000)',
+        );
+        await db.customStatement(
+          'INSERT INTO pre_dive_session_sections '
+          '(id, session_id, title, sort_order, created_at, updated_at) '
+          "VALUES ('pdss-1', 'pds-1', 'Gear', 0, 1000, 1000)",
+        );
+        await db.customStatement(
+          'INSERT INTO pre_dive_session_items '
+          '(id, session_id, title, section_id, sort_order, created_at, '
+          "updated_at) VALUES ('pdsi-1', 'pds-1', 'Mask', 'pdss-1', 0, 1000, "
+          '1000)',
+        );
+
+        await SyncRepository().backfillMissingHlc();
+
+        expect(await hlcOf('pre_dive_session_sections', 'pdss-1'), isNotNull);
+        expect(await hlcOf('pre_dive_session_items', 'pdsi-1'), isNotNull);
+        expect(
+          await pendingIdsFor('preDiveSessionSections'),
+          contains('pdss-1'),
+        );
+        expect(await pendingIdsFor('preDiveSessionItems'), contains('pdsi-1'));
+      }),
+    );
+  });
 }

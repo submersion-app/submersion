@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_grouping_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/utils/site_group_by_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// The Dive Sites sort sheet's "Group by" control (#1080, #3270). Choosing
 /// closes the sheet, as choosing a sort field does.
@@ -33,7 +35,7 @@ class SiteGroupBySelector extends ConsumerWidget {
             groupValue: ref.watch(siteGroupByProvider),
             onChanged: (value) {
               if (value == null) return;
-              ref.read(siteGroupByProvider.notifier).state = value;
+              ref.read(settingsProvider.notifier).setSiteGroupBy(value);
               Navigator.of(context).pop();
             },
             child: Column(

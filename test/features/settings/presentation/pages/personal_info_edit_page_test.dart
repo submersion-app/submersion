@@ -123,6 +123,21 @@ void main() {
     expect(notifier.updated!.phone, '555-0199');
   });
 
+  testWidgets('saving persists the social handle (#3728)', (tester) async {
+    final notifier = await pump(
+      tester,
+      makeDiver().copyWith(socialHandle: '@old'),
+    );
+    expect(find.text('@old'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Social handle'),
+      '  @jordan  ',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(notifier.updated!.socialHandle, '@jordan');
+  });
+
   testWidgets('clearing an optional field persists null', (tester) async {
     final notifier = await pump(
       tester,

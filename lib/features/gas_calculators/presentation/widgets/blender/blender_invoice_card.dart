@@ -9,6 +9,8 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
@@ -438,6 +440,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     DateTime billedDate,
     BilledTotal total,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.export)) return;
     final settings = ref.read(settingsProvider);
     final topupO2 = ref.read(blenderTopupO2PercentProvider);
     final prices = ref.read(blenderGasPricesProvider);

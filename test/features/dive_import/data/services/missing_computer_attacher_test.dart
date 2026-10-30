@@ -192,6 +192,44 @@ $computers
     expect(await attach(diveId, dive), 1);
   });
 
+  // Issue #3654: two computer-less rows of one recording read as one source
+  // under either spelling. A parse naming the computer the way the hidden
+  // row does still finds it present.
+  test('a computer the dive holds under its other spelling is not added '
+      'again', () async {
+    final dive = await parse(
+      '${computer(model: 'Shearwater Teric', serial: 'SN-B')}\n'
+      '${computer(model: 'Perdix 2', serial: 'A5433DEA')}',
+    );
+    final diveId = await importTheOldWay(dive);
+    final start = DateTime.utc(2025, 3, 10, 9);
+    for (final (id, model, serial, day) in [
+      ('perdix-vendor', 'Shearwater Perdix 2', null, 1),
+      ('perdix-bare', 'Perdix 2', 'A5433DEA', 2),
+    ]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: diveId,
+              importedAt: DateTime.utc(2026, 1, day),
+              createdAt: DateTime.utc(2026, 1, day),
+            ).copyWith(
+              computerModel: Value(model),
+              computerSerial: Value(serial),
+              entryTime: Value(start),
+              duration: const Value(2400),
+              maxDepth: const Value(30),
+            ),
+          );
+    }
+    expect(await DiveRepository().getDataSources(diveId), hasLength(2));
+
+    expect(await attach(diveId, dive), 0);
+    expect(await sourcesOf(diveId), hasLength(3));
+  });
+
   test('re-bases the computer onto the dive it joins', () async {
     // The same dive read from a file whose clock put it two minutes later:
     // the added computer's samples land where they happened on this dive.

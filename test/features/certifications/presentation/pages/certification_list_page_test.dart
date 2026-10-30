@@ -110,14 +110,18 @@ void main() {
     }) {
       return [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        // The view mode is read from the diver's saved settings (#3748).
+        settingsProvider.overrideWith(
+          (ref) => MockSettingsNotifier(
+            AppSettings(certificationListViewMode: viewMode),
+          ),
+        ),
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         certificationListNotifierProvider.overrideWith(
           (ref) => _MockCertificationListNotifier(),
         ),
-        certificationListViewModeProvider.overrideWith((ref) => viewMode),
         certificationTableConfigProvider.overrideWith(
           (ref) => _TestCertificationTableConfigNotifier(),
         ),
@@ -295,6 +299,41 @@ void main() {
       expect(find.text('Agency'), findsOneWidget);
     });
 
+    // Table mode stays flat -- no grouping control -- but still offers the
+    // List/Wallet switch every other sort sheet carries (#3359).
+    testWidgets(
+      'table mode sort sheet offers the view switch but no group-by control',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(1200, 800);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final originalOnError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          if (details.toString().contains('overflowed')) return;
+          originalOnError?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = originalOnError);
+
+        await tester.pumpWidget(
+          _buildTestWidget(
+            overrides: baseOverrides(viewMode: ListViewMode.table),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(Icons.sort));
+        await tester.pumpAndSettle();
+
+        expect(find.text('List'), findsOneWidget);
+        expect(find.text('Certification Wallet'), findsOneWidget);
+        expect(find.text('Group by'), findsNothing);
+      },
+    );
+
     testWidgets('table mode search button opens search', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);
@@ -439,11 +478,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(CertificationListPage)),
         );
-        container.read(certificationListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setCertificationListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(certificationListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setCertificationListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

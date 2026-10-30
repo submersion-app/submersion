@@ -16,7 +16,7 @@ void main() {
         'models',
         'equipment_filter_state.dart',
       ),
-    ).readAsStringSync();
+    ).readAsStringSync().replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final start = state.indexOf('class EquipmentFilterState');
     expect(start, isNonNegative);
     final body = state.substring(start, state.indexOf('\n}\n', start));

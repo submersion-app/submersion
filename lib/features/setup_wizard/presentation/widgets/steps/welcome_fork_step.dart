@@ -9,11 +9,16 @@ class WelcomeForkStep extends StatelessWidget {
   final VoidCallback onExistingData;
   final VoidCallback onSkipSetup;
 
+  /// Opens demo mode with the sample logbook (issue #3708). Null hides the
+  /// card, as when no sample logbook is reachable.
+  final VoidCallback? onTryDemo;
+
   const WelcomeForkStep({
     super.key,
     required this.onStartFresh,
     required this.onExistingData,
     required this.onSkipSetup,
+    this.onTryDemo,
   });
 
   @override
@@ -68,6 +73,15 @@ class WelcomeForkStep extends StatelessWidget {
             subtitle: l10n.setup_welcome_existingData_subtitle,
             onTap: onExistingData,
           ),
+          if (onTryDemo != null) ...[
+            const SizedBox(height: 12),
+            _ForkCard(
+              icon: Icons.explore_outlined,
+              title: l10n.demo_welcome_title,
+              subtitle: l10n.demo_welcome_subtitle,
+              onTap: onTryDemo!,
+            ),
+          ],
           const SizedBox(height: 24),
           TextButton(
             onPressed: onSkipSetup,

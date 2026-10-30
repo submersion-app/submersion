@@ -15,9 +15,12 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/side_trip_delete_lines.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
@@ -109,13 +112,19 @@ class _TripDetailContent extends ConsumerWidget {
     final trip = tripWithStats.trip;
     // One layout for every trip type (#2845): the tab row under the "Shared
     // by" banner, embedded under the master-detail header or in a Scaffold.
+    // Who the trip is shared with is shown and changed on the edit page
+    // only (#3766).
     final body = Column(
       children: [
         SharedByBanner(
           kind: SharedItemKind.trip,
           itemId: trip.id,
           ownerId: trip.diverId,
-          isShared: trip.isShared,
+        ),
+        // A side trip names its larger trip (issue #3658).
+        PartOfTripLink(
+          tripId: trip.id,
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         ),
         Expanded(
           child: TripDetailTabs(
@@ -266,6 +275,8 @@ class _TripDetailContent extends ConsumerWidget {
       trip.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the trip reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(ref, SharedItemKind.trip, trip.id);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -391,7 +402,7 @@ class _TripDetailContent extends ConsumerWidget {
               ],
             ),
           )
-        else if (canDestroy == false)
+        else if (canDestroy == false && reachesHere)
           PopupMenuItem(
             value: 'remove',
             child: Row(
@@ -413,11 +424,34 @@ class _TripDetailContent extends ConsumerWidget {
   ) async {
     final divers = await ref.read(allDiversProvider.future);
     final diverCount = divers.length;
-    final isSharedDelete = trip.isShared && diverCount >= 2;
+    if (!context.mounted) return false;
+    // Shared with everyone or with chosen profiles (issue #2151).
+    final shared = diverCount < 2
+        ? false
+        : await readSharedWithAnyone(
+            ref,
+            context,
+            SharedItemKind.trip,
+            trip.id,
+          );
+    if (shared == null) return false;
+    final isSharedDelete = shared;
     // The other profiles' dives that lose the trip (issue #2594).
     final others = isSharedDelete
         ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others
         : 0;
+    if (!context.mounted) return false;
+    // What the delete does to side trips and their dives (issue #3658).
+    final activeDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
+    if (!context.mounted) return false;
+    final sideTripLines = await sideTripDeleteLines(
+      context.l10n,
+      ref.read(sideTripRepositoryProvider),
+      [trip.id],
+      diverId: activeDiverId,
+    );
     if (!context.mounted) return false;
 
     return await showDialog<bool>(
@@ -437,8 +471,12 @@ class _TripDetailContent extends ConsumerWidget {
                         SharedItemKind.trip,
                         others,
                       ),
+                      ...sideTripLines,
                     ].join('\n\n')
-                  : ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
+                  : [
+                      ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
+                      ...sideTripLines,
+                    ].join('\n\n'),
             ),
             actions: [
               TextButton(

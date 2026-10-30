@@ -7,21 +7,22 @@ import 'package:submersion/features/data_quality/presentation/pages/data_quality
 import 'package:submersion/features/maps/presentation/pages/offline_maps_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_page.dart';
 import 'package:submersion/features/media/presentation/pages/network_sources_page.dart';
-import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
+import 'package:submersion/features/media_store/presentation/pages/photos_videos_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
+import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
+import 'package:submersion/features/settings/presentation/pages/nearby_pair_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
+import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
-import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
-import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
-import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/set_up_device_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
 import 'package:submersion/features/shared_library/presentation/pages/change_library_connection_page.dart';
 import 'package:submersion/features/shared_library/presentation/pages/connect_shared_library_page.dart';
@@ -62,8 +63,7 @@ Widget? dataPanePage(Uri location) {
   return switch (segments.sublist(1)) {
     ['backup'] => const BackupSettingsPage(),
     ['cloud-sync'] => const CloudSyncPage(),
-    ['cloud-sync', 's3-config'] => const S3ConfigPage(),
-    ['cloud-sync', 'webdav-config'] => const WebDavConfigPage(),
+    ['cloud-sync', 'nearby-pair'] => const NearbyPairPage(),
     ['shared-libraries'] => const SharedLibrariesPage(),
     ['shared-libraries', 'connect'] => ConnectSharedLibraryPage(
       initialPrefix: location.queryParameters['prefix'],
@@ -81,21 +81,25 @@ Widget? dataPanePage(Uri location) {
     ['shared-libraries', final id, 'connection'] => ChangeLibraryConnectionPage(
       libraryId: id,
     ),
-    ['photos-media'] => const PhotosMediaHubPage(),
-    ['photos-media', 'setup'] => const PhotosMediaSetupPage(),
+    ['setup'] => SetUpDevicePage.fromUri(location),
+    ['photos-media'] => const PhotosVideosPage(),
+    ['photos-media', 'uploads'] => const TransfersPage(),
     ['media-sources'] => const MediaSourcesPage(),
     ['media-sources', 'network-sources'] => const NetworkSourcesPage(),
     // Hidden pending Adobe review; while it is, the route redirects to Media
     // Sources, so a push is left to the router.
     ['lightroom'] when lightroomUiEnabled => const LightroomSettingsPage(),
-    ['media-storage'] => const MediaStoragePage(),
+    ['media-storage'] => const PhotosVideosPage(),
     ['media-storage', 'transfers'] => const TransfersPage(),
     ['connected-accounts'] => const ConnectedAccountsPage(),
+    ['connected-accounts', final id] => AccountDetailPage(accountId: id),
     ['storage'] => const StorageSettingsPage(),
     ['storage-usage'] => const StorageUsagePage(),
     ['storage-usage', 'unrecognized-backups'] =>
       const UnrecognizedBackupsPage(),
     ['offline-maps'] => const OfflineMapsPage(),
+    ['import-options'] => const ImportOptionsPage(),
+    ['data-tools'] => const DataToolsPage(),
     ['fix-dive-times'] => const FixDiveTimesPage(),
     ['link-buddy-names'] => const LinkBuddyNamesPage(),
     ['retype-other-gear'] => const RetypeOtherGearPage(),

@@ -122,6 +122,15 @@ void main() {
     expect(q.chips.single.viaDives, isTrue);
   });
 
+  test('sites where I had no role reach the role through the dives', () {
+    final q = compile('sites', clauses: [clause('noRole', 'eq', true)]);
+    final noRole = cond(['role'], QueryOp.isEmpty, null);
+    expect(q.unplaced, isEmpty);
+    expect(q.query, countedDives([noRole]));
+    expect(q.diveScope, noRole);
+    expect(q.chips.single.viaDives, isTrue);
+  });
+
   test('regulators due for service in 30 days', () {
     final q = compile(
       'equipment',

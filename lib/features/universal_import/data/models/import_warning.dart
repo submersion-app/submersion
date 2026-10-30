@@ -104,6 +104,10 @@ enum ImportWarningCode {
   /// [ImportWarning.count] is the number of dives.
   photoListingsUnavailable,
 
+  /// A remote source listed photos that cannot be downloaded, for want of a
+  /// usable link. [ImportWarning.count] is the number of photos.
+  photosWithoutLink,
+
   /// Recorded for logs and tests only; deliberately never shown to the diver.
   diagnostic,
 }

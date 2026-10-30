@@ -17,6 +17,7 @@ Transmitter _entry({
   String? equipmentId = 'g1',
   String label = 'O2',
   DateTime? updatedAt,
+  bool isConfigured = true,
 }) => Transmitter(
   id: id,
   transmitterSerial: serial,
@@ -29,11 +30,31 @@ Transmitter _entry({
   material: material,
   presetName: presetName,
   equipmentId: equipmentId,
+  isConfigured: isConfigured,
   createdAt: DateTime.utc(2026, 9, 1),
   updatedAt: updatedAt ?? DateTime.utc(2026, 9, 1),
 );
 
 void main() {
+  test('an unconfigured entry does not stamp its label or role (#3676)', () {
+    final matcher = TransmitterMatcher.fromEntries([
+      _entry(label: 'Transmitter 180777', isConfigured: false),
+    ]);
+    const tank = TankData(
+      index: 0,
+      o2Percent: 21,
+      transmitterSerial: '180777',
+      role: 'stage',
+    );
+
+    final out = applyTransmitterRegistry([tank], matcher, computerId: 'c1');
+
+    expect(out.single.role, 'stage');
+    expect(out.single.tankName, isNull);
+    expect(out.single.equipmentId, isNull);
+    expect(matcher.match(serial: '180777', computerId: 'c1', index: 0), isNull);
+  });
+
   test('a serial match applies role, gear, name and fills empty specs', () {
     final matcher = TransmitterMatcher.fromEntries([_entry()]);
     const tank = TankData(

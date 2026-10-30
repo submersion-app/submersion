@@ -95,6 +95,8 @@ class MediaViewerToolbar extends StatelessWidget {
     required this.onShowInfo,
     required this.onWriteMetadata,
     required this.onTagSpecies,
+    this.onTagPeople,
+    this.peopleTaggingActive = false,
     required this.canWriteMetadata,
     required this.showPerdixToggle,
     required this.perdixEnabled,
@@ -102,6 +104,7 @@ class MediaViewerToolbar extends StatelessWidget {
     this.onOpenInLightroom,
     this.onGoToDive,
     this.onReupload,
+    this.onAdjustColor,
   });
 
   final MediaItem item;
@@ -113,6 +116,12 @@ class MediaViewerToolbar extends StatelessWidget {
   final VoidCallback onShowInfo;
   final VoidCallback onWriteMetadata;
   final VoidCallback onTagSpecies;
+
+  /// Turns people tag mode on or off (issue #1745); null hides the action.
+  final VoidCallback? onTagPeople;
+
+  /// Whether people tag mode is on (tints the icon).
+  final bool peopleTaggingActive;
 
   /// Whether the write-dive-data action is offered. Needs enrichment depth to
   /// have anything to write, and a photo to write it to: videos cannot be
@@ -136,6 +145,9 @@ class MediaViewerToolbar extends StatelessWidget {
   /// Non-null when a media store is connected on this device.
   final void Function(BuildContext anchorContext)? onReupload;
 
+  /// Opens the Adjust color panel (issue #3520); null hides the action.
+  final VoidCallback? onAdjustColor;
+
   List<MediaViewerAction> _actions(BuildContext context) {
     final l10n = context.l10n;
     return [
@@ -152,7 +164,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'write_metadata',
           icon: Icons.edit_note,
           label: l10n.media_photoViewer_writeDiveDataTooltip,
-          priority: 5,
+          priority: 6,
           onPressed: (_) => onWriteMetadata(),
         ),
       if (showPerdixToggle)
@@ -171,7 +183,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'lightroom',
           icon: Icons.open_in_new,
           label: l10n.media_lightroom_openInLightroom,
-          priority: 6,
+          priority: 7,
           onPressed: (_) => onOpenInLightroom!(),
         ),
       MediaViewerAction(
@@ -181,6 +193,19 @@ class MediaViewerToolbar extends StatelessWidget {
         priority: 4,
         onPressed: (_) => onTagSpecies(),
       ),
+      if (onTagPeople != null)
+        MediaViewerAction(
+          id: 'people',
+          icon: Icons.person_add_alt_1,
+          label: l10n.media_people_actionTooltip,
+          // After Adjust color: on a narrow phone it moves to the overflow
+          // menu rather than displacing an existing action.
+          priority: 6,
+          iconColor: peopleTaggingActive
+              ? Theme.of(context).colorScheme.primary
+              : null,
+          onPressed: (_) => onTagPeople!(),
+        ),
       MediaViewerAction(
         id: 'info',
         icon: Icons.info_outline,
@@ -188,6 +213,16 @@ class MediaViewerToolbar extends StatelessWidget {
         priority: 2,
         onPressed: (_) => onShowInfo(),
       ),
+      if (onAdjustColor != null)
+        MediaViewerAction(
+          id: 'adjust_color',
+          icon: Icons.palette_outlined,
+          label: l10n.media_color_adjustAction,
+          // After the existing actions, so a phone keeps showing the ones
+          // it showed before this was added (issue #3520).
+          priority: 5,
+          onPressed: (_) => onAdjustColor!(),
+        ),
       MediaViewerAction(
         id: 'share',
         icon: Icons.share,
@@ -202,7 +237,7 @@ class MediaViewerToolbar extends StatelessWidget {
           id: 'reupload',
           icon: Icons.tune,
           label: l10n.settings_mediaStorage_quality_section,
-          priority: 7,
+          priority: 8,
           onPressed: (anchor) => onReupload!(anchor),
         ),
     ];

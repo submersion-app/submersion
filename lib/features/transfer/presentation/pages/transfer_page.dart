@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -767,7 +768,7 @@ class _ComputersSectionContent extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
-        onTap: () => context.push('/dive-computers/${computer.id}'),
+        onTap: () => context.push(diveComputerLocation(computer)),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),

@@ -38,13 +38,30 @@
 // decimals would throw there. v275 adds no column, so no new projection is
 // needed. The direction the floor cannot reach, an older peer's whole-bar int
 // arriving here, is covered by sync_diver_settings_start_pressure_test.dart.
+//
+// The floor moved 280 -> 297 -> 298 -> 299 -> 300 by checklist sections
+// (#3360), one rung per table group: each drops a synced free-text
+// `category`/`section` column in favour of a `sectionId` row reference.
+// Every rung's group below proves the same thing the v137 group above
+// proves for dives.visibilityMeters: an old peer's payload, genuinely
+// missing the `sectionId` key (never carrying it as an explicit null),
+// still applies its own edit without nulling out a `sectionId` this
+// device already backfilled or set locally.
+//
+// The floor moved 300 -> 308 with the planner Setup defaults (#3552):
+// v305/v306/v308 make synced dive_plans and dive_plan_missions columns
+// nullable, and an older reader's fromJson throws on the NULL that now
+// means "follow Settings". v305-v308 add no key an older peer omits, so no
+// new projection is needed. The direction the floor cannot reach, an older
+// peer's concrete value arriving here, decodes as a plain override; the
+// migration_v305/v306/v308 tests pin the floor itself.
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database.dart' hide Trip;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
@@ -60,6 +77,20 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
+    as checklist_template;
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
+    as trip_checklist;
+import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
+import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
+    as pre_dive_template;
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart'
+    as pre_dive_session;
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../helpers/changeset_test_helpers.dart';
 import '../../../helpers/fake_cloud_storage_provider.dart';
@@ -691,4 +722,381 @@ void main() {
       expect(ids, ['e-after']);
     });
   });
+
+  // The floor moved 280 -> 297 -> 298 -> 299 -> 300 by checklist sections
+  // (#3360): each rung drops a synced `category`/`section` column in
+  // favour of a `sectionId` reference. Peers below each floor are held
+  // (changeset_reader.dart), but their own payloads -- genuinely missing
+  // the `sectionId` key, never carrying it as an explicit null -- still
+  // arrive here. The #474 overlay (see the file header) refills the
+  // omitted key from the local row before merging, the same mechanism
+  // the v137 group above proves for dives.visibilityMeters. One test per
+  // table group locks that in; see docs/design/plans/2026-10-18-checklist-
+  // sections-plan.md's migration-safety section for the full reasoning.
+
+  group('pre-v297 peer editing a trip checklist item (checklist sections)', () {
+    late FakeCloudStorageProvider cloud;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      cloud = FakeCloudStorageProvider();
+    });
+
+    tearDown(() => DatabaseService.instance.resetForTesting());
+
+    SyncService buildService() => SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+
+    test('an old-peer edit applies AND the sectionId survives', () async {
+      final trip = await TripRepository().createTrip(
+        Trip(
+          id: '',
+          name: 'Red Sea',
+          startDate: DateTime(2026, 9, 10),
+          endDate: DateTime(2026, 9, 17),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final repository = TripChecklistRepository();
+      final section = await repository.createSection(
+        tripId: trip.id,
+        title: 'Gear',
+      );
+      final created = await repository.createItem(
+        trip_checklist.TripChecklistItem(
+          id: '',
+          tripId: trip.id,
+          title: 'Mask',
+          sectionId: section.id,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final row = (await SyncDataSerializer().fetchRecord(
+        'tripChecklistItems',
+        created.id,
+      ))!;
+      expect(row['sectionId'], section.id, reason: 'precondition');
+      await SyncRepository().resetSyncState();
+
+      // A pre-293 peer's republished shape: the key is absent, not null.
+      final peerRow = Map<String, dynamic>.from(row)
+        ..remove('sectionId')
+        ..['title'] = 'Renamed on old device'
+        ..['hlc'] = Hlc(
+          Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+          0,
+          'peer-pre297',
+        ).toString()
+        ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+      final data = SyncData(tripChecklistItems: [peerRow]);
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 9000,
+        deviceId: 'peer-pre297',
+        checksum: sha256
+            .convert(utf8.encode(jsonEncode(data.toJson())))
+            .toString(),
+        data: data,
+        deletions: const {},
+      );
+      await seedPeerBaseFromPayload(cloud, 'peer-pre297', payload);
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final after = await SyncDataSerializer().fetchRecord(
+        'tripChecklistItems',
+        created.id,
+      );
+      expect(after!['title'], 'Renamed on old device');
+      expect(
+        after['sectionId'],
+        section.id,
+        reason: 'THE HAZARD: the column the old peer never knew must survive',
+      );
+    });
+  });
+
+  group(
+    'pre-v298 peer editing a checklist template item (checklist sections)',
+    () {
+      late FakeCloudStorageProvider cloud;
+
+      setUp(() async {
+        await setUpTestDatabase();
+        cloud = FakeCloudStorageProvider();
+      });
+
+      tearDown(() => DatabaseService.instance.resetForTesting());
+
+      SyncService buildService() => SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+
+      test('an old-peer edit applies AND the sectionId survives', () async {
+        final repository = ChecklistTemplateRepository();
+        final template = await repository.createTemplate(
+          checklist_template.ChecklistTemplate(
+            id: '',
+            name: 'Prep',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final section = await repository.createSection(
+          templateId: template.id,
+          title: 'Bookings',
+        );
+        await repository.saveItems(template.id, [
+          checklist_template.ChecklistTemplateItem(
+            id: '',
+            templateId: template.id,
+            title: 'Book flights',
+            sectionId: section.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ]);
+        final created = (await repository.getItemsForTemplate(
+          template.id,
+        )).single;
+        final row = (await SyncDataSerializer().fetchRecord(
+          'checklistTemplateItems',
+          created.id,
+        ))!;
+        expect(row['sectionId'], section.id, reason: 'precondition');
+        await SyncRepository().resetSyncState();
+
+        final peerRow = Map<String, dynamic>.from(row)
+          ..remove('sectionId')
+          ..['title'] = 'Renamed on old device'
+          ..['hlc'] = Hlc(
+            Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+            0,
+            'peer-pre298',
+          ).toString()
+          ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+        final data = SyncData(checklistTemplateItems: [peerRow]);
+        final payload = SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'peer-pre298',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: const {},
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-pre298', payload);
+        final result = await buildService().performSync();
+        expect(result.status, isNot(SyncResultStatus.error));
+
+        final after = await SyncDataSerializer().fetchRecord(
+          'checklistTemplateItems',
+          created.id,
+        );
+        expect(after!['title'], 'Renamed on old device');
+        expect(after['sectionId'], section.id);
+      });
+    },
+  );
+
+  group(
+    'pre-v299 peer editing a pre-dive template item (checklist sections)',
+    () {
+      late FakeCloudStorageProvider cloud;
+
+      setUp(() async {
+        await setUpTestDatabase();
+        cloud = FakeCloudStorageProvider();
+      });
+
+      tearDown(() => DatabaseService.instance.resetForTesting());
+
+      SyncService buildService() => SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+
+      test('an old-peer edit applies AND the sectionId survives', () async {
+        final repository = PreDiveTemplateRepository();
+        final template = await repository.createTemplate(
+          pre_dive_template.PreDiveChecklistTemplate(
+            id: '',
+            name: 'Custom',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final section = await repository.createSection(
+          templateId: template.id,
+          title: 'Assembly',
+        );
+        await repository.saveItems(template.id, [
+          pre_dive_template.PreDiveChecklistTemplateItem(
+            id: '',
+            templateId: template.id,
+            title: 'Scrubber packed',
+            sectionId: section.id,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ]);
+        final created = (await repository.getItemsForTemplate(
+          template.id,
+        )).single;
+        final row = (await SyncDataSerializer().fetchRecord(
+          'preDiveChecklistTemplateItems',
+          created.id,
+        ))!;
+        expect(row['sectionId'], section.id, reason: 'precondition');
+        await SyncRepository().resetSyncState();
+
+        final peerRow = Map<String, dynamic>.from(row)
+          ..remove('sectionId')
+          ..['title'] = 'Renamed on old device'
+          ..['hlc'] = Hlc(
+            Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+            0,
+            'peer-pre299',
+          ).toString()
+          ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+        final data = SyncData(preDiveChecklistTemplateItems: [peerRow]);
+        final payload = SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'peer-pre299',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: const {},
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-pre299', payload);
+        final result = await buildService().performSync();
+        expect(result.status, isNot(SyncResultStatus.error));
+
+        final after = await SyncDataSerializer().fetchRecord(
+          'preDiveChecklistTemplateItems',
+          created.id,
+        );
+        expect(after!['title'], 'Renamed on old device');
+        expect(after['sectionId'], section.id);
+      });
+    },
+  );
+
+  group(
+    'pre-v300 peer editing a pre-dive session item (checklist sections)',
+    () {
+      late FakeCloudStorageProvider cloud;
+
+      setUp(() async {
+        await setUpTestDatabase();
+        cloud = FakeCloudStorageProvider();
+      });
+
+      tearDown(() => DatabaseService.instance.resetForTesting());
+
+      SyncService buildService() => SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+
+      test('an old-peer edit applies AND the sectionId survives', () async {
+        final templateRepository = PreDiveTemplateRepository();
+        final template = await templateRepository.createTemplate(
+          pre_dive_template.PreDiveChecklistTemplate(
+            id: '',
+            name: 'Custom',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+        final sessionRepository = PreDiveSessionRepository();
+        // startSession mints a fresh id for a section whose id arrives
+        // blank (same as it does for items), so an item referencing a
+        // section by id must be given that section's REAL id upfront, the
+        // same way SessionItemComposer pre-generates both before calling
+        // startSession in production -- not the blank placeholder.
+        const sectionId = 'section-1';
+        final section = pre_dive_session.PreDiveSessionSection(
+          id: sectionId,
+          sessionId: '',
+          title: 'Assembly',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final session = await sessionRepository.startSession(
+          template: template,
+          sections: [section],
+          items: [
+            pre_dive_session.PreDiveSessionItem(
+              id: '',
+              sessionId: '',
+              title: 'Scrubber packed',
+              sectionId: sectionId,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          ],
+        );
+        final sections = await sessionRepository.getSectionsForSession(
+          session.id,
+        );
+        final created = (await sessionRepository.getItemsForSession(
+          session.id,
+        )).single;
+        final row = (await SyncDataSerializer().fetchRecord(
+          'preDiveSessionItems',
+          created.id,
+        ))!;
+        expect(row['sectionId'], sections.single.id, reason: 'precondition');
+        await SyncRepository().resetSyncState();
+
+        final peerRow = Map<String, dynamic>.from(row)
+          ..remove('sectionId')
+          ..['note'] = 'Edited on old device'
+          ..['hlc'] = Hlc(
+            Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+            0,
+            'peer-pre300',
+          ).toString()
+          ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+
+        final data = SyncData(preDiveSessionItems: [peerRow]);
+        final payload = SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: 9000,
+          deviceId: 'peer-pre300',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: const {},
+        );
+        await seedPeerBaseFromPayload(cloud, 'peer-pre300', payload);
+        final result = await buildService().performSync();
+        expect(result.status, isNot(SyncResultStatus.error));
+
+        final after = await SyncDataSerializer().fetchRecord(
+          'preDiveSessionItems',
+          created.id,
+        );
+        expect(after!['note'], 'Edited on old device');
+        expect(after['sectionId'], sections.single.id);
+      });
+    },
+  );
 }

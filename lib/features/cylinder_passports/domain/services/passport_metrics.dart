@@ -4,7 +4,6 @@ import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/gas_density.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
-import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -36,11 +35,9 @@ class PassportSpecMetrics extends Equatable {
     required GasModel gasModel,
   }) {
     if (volumeL == null) return const PassportSpecMetrics();
-    final preset = workingPressureBar == null
-        ? null
-        : TankPresets.matchBySpecs(volumeL, workingPressureBar);
+    // tankTermKg matches the preset by size itself, and never across the
+    // material, so the passport agrees with the dive's Buoyancy card.
     final empty = BuoyancyPhysics.tankTermKg(
-      presetName: preset?.name,
       volumeL: volumeL,
       workingPressureBar: workingPressureBar,
       material: material,

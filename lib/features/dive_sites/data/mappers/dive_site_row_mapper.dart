@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 
 /// Maps a `dive_sites` row to the domain entity, every column included.
 ///
@@ -38,12 +39,8 @@ domain.DiveSite mapDiveSiteRow(DiveSite row) {
     mooringNumber: row.mooringNumber,
     parkingInfo: row.parkingInfo,
     altitude: row.altitude,
-    entryMethod: row.entryMethod == null
-        ? null
-        : EntryMethod.values.asNameMap()[row.entryMethod],
-    exitMethod: row.exitMethod == null
-        ? null
-        : EntryMethod.values.asNameMap()[row.exitMethod],
+    entryMethods: decodeEntryMethods(row.entryMethod),
+    exitMethods: decodeEntryMethods(row.exitMethod),
     isShared: row.isShared,
     sharedLibraryId: row.sharedLibraryId,
   );

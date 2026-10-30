@@ -38,6 +38,19 @@ void main() {
     );
   }
 
+  testWidgets('notes rest as plain words and edit as Markdown', (tester) async {
+    notesController.text = '# Plan\n**Bring torch**';
+    await tester.pumpWidget(host(rating: 0));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Bring torch'), findsOneWidget);
+    expect(find.textContaining('**'), findsNothing);
+
+    await tester.tap(find.text('Notes').first);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Bold'), findsOneWidget);
+    expect(find.text('Preview'), findsOneWidget);
+  });
+
   testWidgets('a rated dive offers a clear affordance that reports zero', (
     tester,
   ) async {

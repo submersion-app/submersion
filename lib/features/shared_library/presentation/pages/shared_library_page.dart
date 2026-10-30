@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -51,6 +52,11 @@ class SharedLibraryPage extends ConsumerWidget {
         ref.watch(libraryRoleProvider(libraryId)).value ??
         SharedLibraryRole.reader;
     final membership = ref.watch(currentMembershipProvider(libraryId)).value;
+    final removedHere =
+        membership != null &&
+        (ref.watch(libraryRemovalsProvider(libraryId)).value ?? const []).any(
+          (r) => r.memberId == membership.memberId,
+        );
     final names = ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull;
     final pending =
         ref.watch(pendingIncomingSuggestionCountProvider(libraryId)).value ?? 0;
@@ -66,6 +72,11 @@ class SharedLibraryPage extends ConsumerWidget {
         children: [
           PendingResetBanner(library: library, names: names ?? const {}),
           LockedLibraryBanner(library: library, membership: membership),
+          if (removedHere)
+            _Banner(
+              icon: Icons.person_remove_outlined,
+              text: l10n.sharedLibrary_library_removedBanner,
+            ),
           if (library.readOnlyDetected)
             _Banner(
               icon: Icons.lock_outline,
@@ -80,7 +91,13 @@ class SharedLibraryPage extends ConsumerWidget {
           if (library.lastError != null)
             _Banner(
               icon: Icons.error_outline,
-              text: l10n.sharedLibrary_library_errorBanner(library.lastError!),
+              text: l10n.sharedLibrary_library_errorBanner(
+                librarySyncErrorText(
+                  l10n,
+                  LibrarySyncError.decode(library.lastError!),
+                  libraryName: library.name,
+                ),
+              ),
               isError: true,
             ),
           ListTile(

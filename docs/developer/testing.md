@@ -457,6 +457,33 @@ CI bundle, or through `flutter test` locally.
 - **No font downloads.** Google Fonts runtime fetching is off for every test.
   The family name is still on each `TextStyle`; the font bytes never load.
 
+## Time Zones
+
+A test must pass in every time zone on every date. CI runs the whole suite
+with `TZ=Australia/Sydney` rather than the runner's UTC (issue #3659), because
+UTC's offset is zero all year and hides two common mistakes:
+
+- **Building a dive time as a local `DateTime`.** Dive times are wall clocks
+  flagged as UTC (`dives.dive_date_time`), so a test builds them with
+  `DateTime.utc(...)`. A local `DateTime(2024, 2, 29, 10)` is 23:00 on
+  28 February in UTC when run in Sydney, and a query that reads the month and
+  day misses it.
+- **Taking today's offset for another date.** `DateTime.now().timeZoneOffset`
+  differs from the offset in force at a fixed date for half the year in any
+  zone with DST. Take the offset at the date in question
+  (`date.timeZoneOffset`) instead (#3656).
+
+To reproduce a CI failure that names a time, run the file in the same zone:
+
+```bash
+TZ=Australia/Sydney flutter test <path>
+```
+
+The Timezone Tests job also replays a hand-maintained list of files in
+`America/New_York` and `Australia/Adelaide`, a western zone and a half-hour
+zone. Add a test to that list in `.github/workflows/ci.yaml` when its result
+depends on the direction or size of the offset.
+
 ## Shared Isolates in CI
 
 `flutter test` compiles and loads every test file as its own entrypoint. In CI

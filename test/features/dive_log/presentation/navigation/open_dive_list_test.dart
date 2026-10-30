@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// "Show these dives" pushes the dive list over the page the link is on,
 /// so its back arrow returns there (#2784, #3292).
@@ -100,6 +101,67 @@ void main() {
     final ret = h.extras.last! as DiveListReturn;
     expect(ret.filter.buddyId, 'b0');
     expect(ret.highlightedDiveId, 'd0');
+  });
+
+  // What the diver opens or empties in a pushed list must not change whether
+  // the Dives tab reopens its pane on return (#3301).
+  testWidgets('the return snapshot carries the tab\'s closed pane', (
+    tester,
+  ) async {
+    final h = await pumpHarness(tester);
+    h.container.read(closedPaneRecordProvider.notifier).state = const {
+      'dives': 'd0',
+    };
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final ret = h.extras.last! as DiveListReturn;
+    expect(ret.closedPaneDiveId, 'd0');
+  });
+
+  Future<Map<String, String>> restoredClosedPanes(
+    WidgetTester tester, {
+    required String? snapshot,
+  }) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    late VoidCallback restore;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: Consumer(
+          builder: (context, ref, _) {
+            restore = DiveListReturn(
+              filter: const DiveFilterState(),
+              highlightedDiveId: null,
+              closedPaneDiveId: snapshot,
+            ).bindRestore(ref);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    // The pushed list emptied its pane on another dive.
+    container.read(closedPaneRecordProvider.notifier).state = const {
+      'dives': 'other',
+      'sites': 's1',
+    };
+    restore();
+    return container.read(closedPaneRecordProvider);
+  }
+
+  testWidgets('going away puts the tab\'s closed pane back', (tester) async {
+    expect(await restoredClosedPanes(tester, snapshot: 'd0'), {
+      'dives': 'd0',
+      'sites': 's1',
+    });
+  });
+
+  testWidgets('going away clears a closed pane the tab did not have', (
+    tester,
+  ) async {
+    expect(await restoredClosedPanes(tester, snapshot: null), {'sites': 's1'});
   });
 
   testWidgets('map: true pushes the map view', (tester) async {

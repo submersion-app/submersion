@@ -38,6 +38,7 @@ final ConflictEnumLabeler planModeLabeler = enumLabeler(
 final ConflictEnumLabeler turnPressureRuleLabeler = enumLabeler(
   TurnPressureRule.values,
   (l, v) => switch (v) {
+    TurnPressureRule.off => l.plannerCanvas_turnRule_none,
     TurnPressureRule.allUsable => l.plannerCanvas_turnRule_allUsable,
     TurnPressureRule.halves => l.plannerCanvas_turnRule_halves,
     TurnPressureRule.thirds => l.plannerCanvas_turnRule_thirds,

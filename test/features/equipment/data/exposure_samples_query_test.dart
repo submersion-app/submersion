@@ -63,6 +63,7 @@ void main() {
     String role = 'backGas',
     String? equipmentId,
     String? regulatorId,
+    String? extraRegulators,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -71,6 +72,7 @@ void main() {
           tankRole: Value(role),
           equipmentId: Value(equipmentId),
           regulatorEquipmentId: Value(regulatorId),
+          extraRegulatorIds: Value(extraRegulators),
         ),
       );
 
@@ -454,5 +456,33 @@ void main() {
     expect(samples.map((s) => s.diveId), ['d1', 'd2']);
     // insertDive stamps updated_at with the dive date.
     expect(samples.map((s) => s.updatedAt), [1000, 2000]);
+  });
+
+  test('an extra regulator sees its cylinder\'s gas (#3375)', () async {
+    final first = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg A', type: EquipmentType.regulator),
+    );
+    final extra = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg B', type: EquipmentType.regulator),
+    );
+    await insertDive('d1', dateMs: t1);
+    await tank(
+      't1',
+      'd1',
+      o2: 32,
+      regulatorId: first.id,
+      extraRegulators: '["${extra.id}"]',
+    );
+
+    final samples = await repo.getExposureSamplesForEquipment(extra.id);
+    expect(samples.single.diveId, 'd1');
+    expect(samples.single.contactO2Fraction, closeTo(0.32, 1e-9));
+
+    // A first stage of the extra regulator reaches the dive through it.
+    final viaParent = await repo.getExposureSamplesForEquipment(
+      'first-stage',
+      parentEquipmentId: extra.id,
+    );
+    expect(viaParent.single.diveId, 'd1');
   });
 }

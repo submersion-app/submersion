@@ -54,9 +54,9 @@ void main() {
     await dive('other', 4000, 'hp100', 'reg-c');
 
     final repo = EquipmentRepository();
-    expect(await repo.getLastRegulatorForPreset('al80'), 'reg-b');
-    expect(await repo.getLastRegulatorForPreset('hp100'), 'reg-c');
-    expect(await repo.getLastRegulatorForPreset('lp85'), isNull);
+    expect(await repo.getLastRegulatorsForPreset('al80'), ['reg-b']);
+    expect(await repo.getLastRegulatorsForPreset('hp100'), ['reg-c']);
+    expect(await repo.getLastRegulatorsForPreset('lp85'), isEmpty);
   });
 
   test('skips a regulator that has since left the kit (#3210)', () async {
@@ -108,6 +108,102 @@ void main() {
     await dive('d', 4000, 'legacy');
 
     final repo = EquipmentRepository();
-    expect(await repo.getLastRegulatorForPreset('al80'), 'kept');
+    expect(await repo.getLastRegulatorsForPreset('al80'), ['kept']);
+  });
+
+  group('every regulator on the tank (#3375)', () {
+    Future<void> reg(String id, {String status = 'active'}) => db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            status: Value(status),
+            isActive: Value(status == 'active'),
+          ),
+        );
+    Future<void> dive(String id, int ms, String first, String? extras) async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: id,
+              diveDateTime: ms,
+              createdAt: ms,
+              updatedAt: ms,
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(id: 't-$id', diveId: id).copyWith(
+              presetName: const Value('d12'),
+              regulatorEquipmentId: Value(first),
+              extraRegulatorIds: Value(extras),
+            ),
+          );
+    }
+
+    test('returns the first and the extras, in order', () async {
+      await reg('r1');
+      await reg('r2');
+      await dive('a', 1000, 'r1', '["r2"]');
+      expect(await EquipmentRepository().getLastRegulatorsForPreset('d12'), [
+        'r1',
+        'r2',
+      ]);
+    });
+
+    test('drops a regulator that has left the kit', () async {
+      await reg('r1');
+      await reg('r2', status: 'retired');
+      await dive('a', 1000, 'r1', '["r2"]');
+      expect(await EquipmentRepository().getLastRegulatorsForPreset('d12'), [
+        'r1',
+      ]);
+    });
+
+    test('a tank whose regulators all left the kit falls back to an older '
+        'one', () async {
+      await reg('r1');
+      await reg('r2', status: 'sold');
+      await reg('r3', status: 'retired');
+      await dive('old', 1000, 'r1', null);
+      await dive('new', 2000, 'r2', '["r3"]');
+      expect(await EquipmentRepository().getLastRegulatorsForPreset('d12'), [
+        'r1',
+      ]);
+    });
+
+    test('a tank with extras but no first regulator is still read', () async {
+      // Normalised on every local write, but a synced row can arrive this
+      // way; its extras are still the regulators on that cylinder.
+      await reg('r1');
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'a',
+              diveDateTime: 1000,
+              createdAt: 1000,
+              updatedAt: 1000,
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(id: 't-a', diveId: 'a').copyWith(
+              presetName: const Value('d12'),
+              extraRegulatorIds: const Value('["r1"]'),
+            ),
+          );
+      expect(await EquipmentRepository().getLastRegulatorsForPreset('d12'), [
+        'r1',
+      ]);
+    });
   });
 }

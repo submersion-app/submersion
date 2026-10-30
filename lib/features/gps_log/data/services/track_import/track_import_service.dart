@@ -200,25 +200,42 @@ class TrackImportService {
     // for the duplicate check.
     validateFixCount(parsed.fixes.length);
 
-    final dives = await _diveRepository.getAllDives();
-    final deviceOffset = DateTime.now().timeZoneOffset.inMinutes;
+    // The device zone's offset when the track was recorded, not today's,
+    // which is an hour out for half the year in a daylight saving zone. A
+    // wall-clock track's components are a clock reading, not an instant, so
+    // its offset is looked up at that reading.
+    final firstFix = parsed.fixes.first.utc;
+    final recordedAt = parsed.timesAreWallClock
+        ? DateTime(
+            firstFix.year,
+            firstFix.month,
+            firstFix.day,
+            firstFix.hour,
+            firstFix.minute,
+            firstFix.second,
+          )
+        : firstFix.toLocal();
+    final deviceOffset = recordedAt.timeZoneOffset.inMinutes;
     // A dive can only CONSTRAIN the offset, never determine it, so the device
-    // zone stays the prior and the review step remains the real answer.
-    final tzOffsetMinutes =
-        resolveOffsetFromDives(
-          firstFixUtc: parsed.fixes.first.utc,
-          lastFixUtc: parsed.fixes.last.utc,
-          dives: dives,
-          deviceOffsetMinutes: deviceOffset,
-        ) ??
-        deviceOffset;
+    // zone stays the prior and the review step remains the real answer. A
+    // wall-clock track is already on the dives' clock, so they constrain
+    // nothing: the resolver reads its fixes as real UTC.
+    final tzOffsetMinutes = parsed.timesAreWallClock
+        ? deviceOffset
+        : resolveOffsetFromDives(
+                firstFixUtc: parsed.fixes.first.utc,
+                lastFixUtc: parsed.fixes.last.utc,
+                dives: await _diveRepository.getAllDives(),
+                deviceOffsetMinutes: deviceOffset,
+              ) ??
+              deviceOffset;
 
+    // The same shift commit applies, so the span matches what it stores.
+    final shift = parsed.timesAreWallClock ? 0 : tzOffsetMinutes;
     final startMs =
-        toWallClockEpochSecondsAt(parsed.fixes.first.utc, tzOffsetMinutes) *
-        1000;
+        toWallClockEpochSecondsAt(parsed.fixes.first.utc, shift) * 1000;
     final endMs =
-        toWallClockEpochSecondsAt(parsed.fixes.last.utc, tzOffsetMinutes) *
-        1000;
+        toWallClockEpochSecondsAt(parsed.fixes.last.utc, shift) * 1000;
 
     // Same source only: a phone recording and a handheld recording of the
     // same boat day are two legitimate records, not a duplicate.

@@ -345,6 +345,8 @@ void main() {
           presetName: 'al80',
           decoSwitchDepth: 21,
           equipmentId: 'eq-1',
+          regulatorEquipmentId: 'reg-1',
+          extraRegulatorIds: const ['reg-2'],
         ),
       );
       await tester.pumpAndSettle();
@@ -362,6 +364,7 @@ void main() {
       expect(edited.presetName, 'al80');
       expect(edited.decoSwitchDepth, 21);
       expect(edited.equipmentId, 'eq-1');
+      expect(edited.regulatorIds, ['reg-1', 'reg-2']);
     });
   });
 
@@ -889,6 +892,185 @@ void main() {
       expect(find.text('No bailout cylinder yet'), findsNothing);
       final added = container.read(divePlanNotifierProvider).tanks.last;
       expect(added.role, TankRole.backGas);
+    });
+  });
+
+  // Issue #3567: each plan tank's MOD, overridable in its dialog.
+  group('PlanTankList MOD', () {
+    Future<ProviderContainer> pump(WidgetTester tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: const SingleChildScrollView(child: PlanTankList()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(PlanTankList)),
+      );
+    }
+
+    const deco = DiveTank(
+      id: 'deco',
+      name: 'Deco 1',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: GasMix(o2: 50),
+      order: 1,
+    );
+
+    Finder modField() => find.widgetWithText(TextField, 'MOD');
+
+    testWidgets('the dialog shows the default for the tank role', (
+      tester,
+    ) async {
+      final container = await pump(tester);
+      container.read(divePlanNotifierProvider.notifier).addTank(deco);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Deco 1'));
+      await tester.pumpAndSettle();
+
+      // Richer than the bottom gas, so a deco gas: 22 m at 1.6.
+      expect(tester.widget<TextField>(modField()).controller!.text, '22');
+    });
+
+    testWidgets('a MOD typed in the dialog is saved on the tank', (
+      tester,
+    ) async {
+      final container = await pump(tester);
+      container.read(divePlanNotifierProvider.notifier).addTank(deco);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Deco 1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(modField(), '18');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = container
+          .read(divePlanNotifierProvider)
+          .tanks
+          .firstWhere((t) => t.id == 'deco');
+      expect(saved.decoSwitchDepth, 18);
+    });
+
+    testWidgets('a cleared MOD saves as none', (tester) async {
+      final container = await pump(tester);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addTank(deco.copyWith(decoSwitchDepth: 18));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(InputChip, 'Deco 1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(modField(), '');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = container
+          .read(divePlanNotifierProvider)
+          .tanks
+          .firstWhere((t) => t.id == 'deco');
+      expect(saved.decoSwitchDepth, isNull);
+    });
+
+    testWidgets('a tank chip names a MOD set by hand, and no other', (
+      tester,
+    ) async {
+      final container = await pump(tester);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addTank(deco.copyWith(decoSwitchDepth: 18));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('MOD 18m'), findsOneWidget);
+      expect(find.textContaining('MOD'), findsOneWidget);
+    });
+
+    testWidgets('a chip whose MOD is too deep is flagged', (tester) async {
+      final container = await pump(tester);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addTank(deco.copyWith(decoSwitchDepth: 24));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('MOD 24m'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.widgetWithText(InputChip, 'Deco 1'),
+          matching: find.byIcon(Icons.warning_amber_rounded),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      "a diluent chip's MOD override is checked against its Dil MOD limit, "
+      'not the bottom limit (issue #3567)',
+      (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            locale: const Locale('en'),
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+            child: const SingleChildScrollView(child: PlanTankList()),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(PlanTankList)),
+        );
+        container
+            .read(divePlanNotifierProvider.notifier)
+            .updateMode(PlanMode.ccr);
+        await tester.pumpAndSettle();
+        container
+            .read(divePlanNotifierProvider.notifier)
+            .addTank(
+              const DiveTank(
+                id: 'dil',
+                name: 'EAN40 dil',
+                volume: 11.1,
+                startPressure: 200,
+                gasMix: GasMix(o2: 40),
+                role: TankRole.diluent,
+                // ppO2 1.52: above the 1.4 bottom limit, within the 1.6
+                // Dil MOD limit settings gives a diluent (#TestSettingsNotifier
+                // default).
+                decoSwitchDepth: 28,
+                order: 2,
+              ),
+            );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.widgetWithText(InputChip, 'EAN40 dil'),
+            matching: find.byIcon(Icons.warning_amber_rounded),
+          ),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets('the CCR oxygen slot has no MOD to set', (tester) async {
+      final container = await pump(tester);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .updateMode(PlanMode.ccr);
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.ancestor(of: find.text('O2'), matching: find.byType(InputChip)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(modField(), findsNothing);
     });
   });
 }

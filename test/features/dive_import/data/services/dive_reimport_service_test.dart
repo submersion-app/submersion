@@ -1171,6 +1171,7 @@ void main() {
         diveId: diveId,
         diveData: {
           'dateTime': DateTime(2026, 9, 1, 9),
+          'cnsStart': 3.0,
           'cnsEnd': 18.0,
           'otu': 12.0,
           'decoConservatism': 1,
@@ -1181,17 +1182,37 @@ void main() {
       final dive = await (db.select(
         db.dives,
       )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.cnsStart, 3.0);
       expect(dive.cnsEnd, 18.0);
       expect(dive.otu, 12.0);
       expect(dive.decoConservatism, 1);
     });
 
+    test('a parse without a start CNS puts the column back to its default '
+        'of 0 (issue #2555)', () async {
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+      await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+        const DivesCompanion(cnsStart: Value(7.0)),
+      );
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {'dateTime': DateTime(2026, 9, 1, 9)},
+        now: DateTime(2026, 9, 3),
+      );
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(dive.cnsStart, 0.0);
+    });
+
     test('writes the computer tissue snapshot the file parse carries, and '
         'clears one it no longer reports', () async {
       const tissue = ComputerTissueSnapshot(
-        algorithm: 'zhl_16c',
         start: ComputerTissueState(n2LoadPercent: 0),
-        end: ComputerTissueState(n2LoadPercent: 86, cnsPercent: 12),
+        end: ComputerTissueState(n2LoadPercent: 86),
       );
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');

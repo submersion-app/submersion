@@ -258,30 +258,16 @@ jobs:
               fi
             }
 
+      # Submits with retries, then staples with its own retries, so a dropped
+      # CloudKit connection while fetching the ticket does not cost a second
+      # upload (issue #3488). scripts/release/notarize_dmg_test.sh covers it.
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           TAG_NAME: ${{ inputs.version-tag }}
-        run: |
-          DMG="Submersion-${TAG_NAME}-macOS.dmg"
-          for attempt in 1 2 3; do
-            if xcrun notarytool submit "$DMG" \
-                --apple-id "$APPLE_ID" \
-                --password "$APPLE_APP_PASSWORD" \
-                --team-id "$APPLE_TEAM_ID" \
-                --wait; then
-              break
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "Notarization failed after 3 attempts"
-              exit 1
-            fi
-            echo "Notarization attempt $attempt failed, retrying in 30s..."
-            sleep 30
-          done
-          xcrun stapler staple "$DMG"
+        run: ./scripts/release/notarize_dmg.sh "Submersion-${TAG_NAME}-macOS.dmg"
 
       - name: Sign DMG with Sparkle EdDSA
         id: sparkle-sign
@@ -336,7 +322,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.4'
           bundler-cache: true
           working-directory: macos
 
@@ -536,7 +522,10 @@ jobs:
   # ============================================================================
   build-linux:
     name: Build Linux
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest: the runner image sets the glibc floor
+    # of everything shipped here, and the label moves (issue #3523). See the
+    # dependency step below before changing it.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:
@@ -550,17 +539,20 @@ jobs:
         id: flutter-ver
         run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
 
-      # The runner image sets the glibc floor of everything shipped here.
-      # Deliberately left as ubuntu-latest: the released tarball has always
-      # required GLIBC_2.38, pinned by libsqlcipher.so and the two plugin
-      # libraries rather than by the app, so building on an older host would
-      # buy reach the project has never claimed at the cost of a container
-      # and its toolchain. See docs/user/installation.md for the distro
-      # requirement this implies.
+      # The runner image sets the glibc floor of everything shipped here. On
+      # ubuntu-24.04 the released tarball requires GLIBC_2.38, pinned by
+      # libsqlcipher.so and the two plugin libraries rather than by the app,
+      # which is the floor docs/user/installation.md states. Building on an
+      # older host would buy reach the project has never claimed at the cost
+      # of a container and its toolchain. Building on a newer one raises the
+      # floor: ubuntu-latest moving to 26.04 (glibc 2.43) would have dropped
+      # Ubuntu 24.04 LTS and Debian 13 without failing a single step, which
+      # is why the job is pinned and why "Check glibc floor" runs below
+      # (issue #3523). Move the pin only together with the docs.
       #
-      # binutils supplies readelf for scripts/linux_package_deps.py; the
-      # hosted image already has it, and it is named here so a future image
-      # change cannot remove it silently.
+      # binutils supplies readelf for scripts/linux_package_deps.py and
+      # scripts/check_glibc_floor.py; the hosted image already has it, and it
+      # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
         run: |
           sudo apt-get update -y
@@ -628,6 +620,14 @@ jobs:
         # app (issue #1129).
         run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
 
+      - name: Check glibc floor
+        # Fails if anything in the bundle needs a newer glibc than the 2.38
+        # docs/user/installation.md promises. A runner image change raises
+        # that floor without failing any build step, and the package install
+        # check below cannot see it because it tests on the runner's own
+        # release (issue #3523). Runs before the tarball and packages exist.
+        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+
       - name: Install packaging tools
         run: |
           sudo apt-get install -y ruby ruby-dev build-essential rpm python3-pil
@@ -683,7 +683,9 @@ jobs:
   verify-linux-packages:
     name: Verify Linux Packages
     needs: build-linux
-    runs-on: ubuntu-latest
+    # Same pin as build-linux, so the install below runs on the release the
+    # packages were built for (see the step comment).
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       # Checkout first: actions/checkout cleans the workspace by default, so
@@ -703,11 +705,14 @@ jobs:
       # Installing through the real package manager is the point: it proves
       # every declared dependency is resolvable on a stock system, which is
       # exactly what the tar.gz could never demonstrate.
-      # The .deb is verified against the runner's own Ubuntu release, not an
-      # older distro: build-linux runs on ubuntu-latest, so its binaries
-      # require that runner's glibc and cannot run anywhere older. The tag is
-      # derived rather than pinned so it keeps matching when GitHub moves
-      # ubuntu-latest. Mirrors the same step in ci.yaml.
+      # The .deb is verified against the runner's own Ubuntu release. This
+      # job and build-linux are both pinned to ubuntu-24.04, the oldest
+      # Ubuntu the glibc floor supports, so this proves installation where
+      # it is hardest to satisfy. The tag is derived from the runner rather
+      # than written out, so the pin above is the only place to change.
+      # Distros older than the floor are not tested: build-linux's glibc
+      # floor check is what holds that line (issue #3523). Mirrors the same
+      # step in ci.yaml.
       - name: Install and run in clean containers
         run: |
           set -euo pipefail
@@ -1022,7 +1027,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.4'
           bundler-cache: true
           working-directory: ios
 

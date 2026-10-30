@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_assessment_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,6 +16,7 @@ GasLimitsInputs _inputs({
   double minPpO2 = 0.16,
   double? target,
   WaterType waterType = WaterType.fresh,
+  GasDensityTemperature temperature = GasDensityTemperature.zeroC,
 }) => GasLimitsInputs(
   mode: mode,
   o2Percent: o2,
@@ -28,6 +30,7 @@ GasLimitsInputs _inputs({
   o2Narcotic: true,
   targetDepthMeters: target,
   waterType: waterType,
+  temperature: temperature,
 );
 
 void main() {
@@ -97,6 +100,27 @@ void main() {
     );
     expect(danger.severity, ModAssessmentSeverity.danger);
     expect(danger.text, contains('a flush there gives ppO₂'));
+  });
+
+  test('the density warning names the chosen gas temperature', () {
+    // Air at 120 m is well past the hard density limit at either
+    // temperature; only the stated temperature should differ.
+    final cold = assess(
+      _inputs(o2: 21, he: 0, target: 120, waterType: WaterType.salt),
+    ).firstWhere((a) => a.text.contains('gas density'));
+    expect(cold.severity, ModAssessmentSeverity.danger);
+    expect(cold.text, contains('0°C'));
+
+    final warm = assess(
+      _inputs(
+        o2: 21,
+        he: 0,
+        target: 120,
+        waterType: WaterType.salt,
+        temperature: GasDensityTemperature.twentyC,
+      ),
+    ).firstWhere((a) => a.text.contains('gas density'));
+    expect(warm.text, contains('20°C'));
   });
 
   test('Rec: air is flagged beyond the recreational limit', () {

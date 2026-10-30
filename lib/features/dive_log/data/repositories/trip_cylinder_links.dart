@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 /// Nulls the slot link on every tank pointing at [cylinderIds] and stages
 /// those tanks, the way clearCylinderGearLinks does for gear. The schema's
@@ -41,9 +42,10 @@ Future<void> clearTripCylinderLinks(
 }
 
 /// Drops the links on [diveId]'s tanks that point at a slot of any trip
-/// other than [tripId] (every link when [tripId] is null) and stages those
-/// tanks. A link means nothing outside its trip, so a dive that moves, or
-/// leaves its trip, cannot keep one.
+/// other than [tripId] or its larger trip (every link when [tripId] is null)
+/// and stages those tanks. A link means nothing outside its trip, so a dive
+/// that moves, or leaves its trip, cannot keep one; a side trip's dives
+/// share the larger trip's slots (issue #3658).
 Future<void> clearForeignTripCylinderLinks(
   AppDatabase db,
   SyncRepository syncRepository,
@@ -58,10 +60,10 @@ Future<void> clearForeignTripCylinderLinks(
         WHERE t.dive_id = ?1
           AND t.trip_cylinder_id IS NOT NULL
           AND (?2 IS NULL OR t.trip_cylinder_id NOT IN
-               (SELECT id FROM trip_cylinders WHERE trip_id = ?2))
+               (${linkableSlotIdsSql('?2')}))
         ''',
         variables: [Variable<String>(diveId), Variable<String>(tripId)],
-        readsFrom: {db.diveTanks, db.tripCylinders},
+        readsFrom: {db.diveTanks, db.tripCylinders, db.trips},
       )
       .get();
   if (rows.isEmpty) return;
@@ -82,21 +84,25 @@ Future<void> clearForeignTripCylinderLinks(
   }
 }
 
-/// The ids of the slots on [tripId]; empty when the dive has no trip. A dive
-/// save checks each tank's link against this set before the tank row is
-/// written, so a link to a slot that does not exist, or to another trip's
-/// slot, is dropped instead of failing the save on the foreign key.
+/// The ids of the slots a dive on [tripId] may link: the trip's own and,
+/// for a side trip, its larger trip's (issue #3658); empty when the dive has
+/// no trip. A dive save checks each tank's link against this set before the
+/// tank row is written, so a link to a slot that does not exist, or to
+/// another trip's slot, is dropped instead of failing the save on the
+/// foreign key.
 Future<Set<String>> tripCylinderIdsForTrip(
   AppDatabase db,
   String? tripId,
 ) async {
   if (tripId == null) return const {};
-  final rows =
-      await (db.selectOnly(db.tripCylinders)
-            ..addColumns([db.tripCylinders.id])
-            ..where(db.tripCylinders.tripId.equals(tripId)))
-          .get();
-  return {for (final r in rows) r.read(db.tripCylinders.id)!};
+  final rows = await db
+      .customSelect(
+        linkableSlotIdsSql('?1'),
+        variables: [Variable<String>(tripId)],
+        readsFrom: {db.tripCylinders, db.trips},
+      )
+      .get();
+  return {for (final r in rows) r.read<String>('id')};
 }
 
 /// [link] when it names one of [validSlots], else null.

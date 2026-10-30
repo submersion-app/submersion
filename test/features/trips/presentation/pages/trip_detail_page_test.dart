@@ -23,6 +23,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
+    as domain;
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -33,8 +35,10 @@ import 'package:submersion/features/trips/presentation/providers/trip_equipment_
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/shared_items_fixture.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   // The default widget test surface width is 800px, which trips the app's
@@ -60,6 +64,9 @@ List<Override> _tabOverrides(String tripId) => [
   tripChecklistProvider(
     tripId,
   ).overrideWith((ref) async => const <TripChecklistItem>[]),
+  tripChecklistSectionsProvider(
+    tripId,
+  ).overrideWith((ref) async => const <domain.TripChecklistSection>[]),
   tripChecklistProgressProvider(
     tripId,
   ).overrideWith((ref) async => (done: 0, total: 0)),
@@ -590,6 +597,9 @@ void main() {
             overrides: [
               // No active profile, as before sharing: every action is the owner's.
               validatedCurrentDiverIdProvider.overrideWith((_) async => null),
+              itemSharesRepositoryProvider.overrideWithValue(
+                FakeItemShares.everyone([sharedTrip.id]),
+              ),
               tripWithStatsProvider(sharedTrip.id).overrideWith((ref) {
                 return Future.value(sharedTripWithStats);
               }),

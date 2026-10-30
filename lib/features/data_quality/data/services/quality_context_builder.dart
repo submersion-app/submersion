@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_sql.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
@@ -20,24 +21,49 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/data_quality/domain/services/shared_gear_overlap_rules.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 class QualityContextBuilder {
   QualityContextBuilder({
     DiveRepository? diveRepository,
     DiverSettingsRepository? settingsRepository,
     TransmitterRepository? transmitterRepository,
+    EquipmentRepository? equipmentRepository,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _settingsRepo = settingsRepository ?? DiverSettingsRepository(),
-       _transmitterRepo = transmitterRepository ?? TransmitterRepository();
+       _transmitterRepo = transmitterRepository ?? TransmitterRepository(),
+       _equipmentRepo = equipmentRepository ?? EquipmentRepository();
 
   final DiveRepository _diveRepo;
   final DiverSettingsRepository _settingsRepo;
   final TransmitterRepository _transmitterRepo;
+  final EquipmentRepository _equipmentRepo;
 
   /// Registered transmitter serials per diver id, resolved once per
   /// [buildAll] batch. '' stands for the null diver, like the ppO2 cache.
   final Map<String, Set<String>> _knownSerialsByDiver = {};
+
+  /// Normalized serials of registry entries whose linked transmitter gear
+  /// item carries a different, non-empty serial of its own (issue #3367),
+  /// resolved once per [buildAll] batch like [_knownSerialsByDiver].
+  final Map<String, Set<String>> _mismatchedSerialsByDiver = {};
+
+  /// The diver's registry entries, resolved once per [buildAll] batch and
+  /// shared by [_knownSerials] and [_mismatchedSerials] so the batch issues
+  /// one `getForDiver` query per diver, not one per caller.
+  final Map<String, List<Transmitter>> _transmittersByDiver = {};
+
+  Future<List<Transmitter>> _transmitters(String? diverId) async {
+    final key = diverId ?? '';
+    final cached = _transmittersByDiver[key];
+    if (cached != null) return cached;
+    final value = await _transmitterRepo.getForDiver(diverId);
+    _transmittersByDiver[key] = value;
+    return value;
+  }
+
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
   AppDatabase get _db => DatabaseService.instance.database;
@@ -61,6 +87,8 @@ class QualityContextBuilder {
     final effectiveNow = now ?? DateTime.now();
     _ppO2MaxByDiver.clear();
     _knownSerialsByDiver.clear();
+    _mismatchedSerialsByDiver.clear();
+    _transmittersByDiver.clear();
     _profileCount = null;
     _diverNames = null;
     final dives = await _diveRepo.getDivesByIds(diveIds);
@@ -92,13 +120,46 @@ class QualityContextBuilder {
     if (cached != null) return cached;
     Set<String> value;
     try {
-      value = Transmitter.knownSerials(
-        await _transmitterRepo.getForDiver(diverId),
-      );
+      // Set up, not merely registered (issue #3676): a download now
+      // registers every serial it sees, so "known" would never nudge.
+      value = Transmitter.setUpSerials(await _transmitters(diverId));
     } catch (_) {
       value = const {};
     }
     _knownSerialsByDiver[key] = value;
+    return value;
+  }
+
+  Future<Set<String>> _mismatchedSerials(String? diverId) async {
+    final key = diverId ?? '';
+    final cached = _mismatchedSerialsByDiver[key];
+    if (cached != null) return cached;
+    Set<String> value;
+    try {
+      final entries = [
+        for (final t in await _transmitters(diverId))
+          if (t.transmitterEquipmentId != null && t.hasSerial) t,
+      ];
+      final gearById = {
+        for (final g in await _equipmentRepo.getEquipmentByIds([
+          for (final t in entries) t.transmitterEquipmentId!,
+        ]))
+          g.id: g,
+      };
+      value = {
+        for (final t in entries)
+          if (normalizeTransmitterSerial(t.transmitterSerial)
+              case final serial?)
+            if (normalizeTransmitterSerial(
+                  gearById[t.transmitterEquipmentId]?.serialNumber,
+                )
+                case final gearSerial? when gearSerial != serial)
+              serial,
+      };
+    } catch (_) {
+      value = const {};
+    }
+    _mismatchedSerialsByDiver[key] = value;
     return value;
   }
 
@@ -142,10 +203,17 @@ class QualityContextBuilder {
       }
     }
 
-    // A name-derived tank is judged on its own computer's reading (#3307).
+    // A name-derived tank (#3307) and a loop cylinder (#3652) are judged
+    // against their own computer's switches, so on their own computer's
+    // reading too. A loop cylinder no computer owns is judged on the merged
+    // series, so it needs no copy of its own.
     final ownComputerPressures = <String, List<QualityPressureSample>>{};
     for (final tank in dive.tanks) {
-      if (tank.roleSource != TankRoleSource.transmitterName) continue;
+      final ownedLoopTank =
+          tank.computerId != null && isLoopTankRole(tank.role.name);
+      if (tank.roleSource != TankRoleSource.transmitterName && !ownedLoopTank) {
+        continue;
+      }
       // Same pick getTankPressuresForComputer makes: this computer's series,
       // then one source per stretch, so two recordings never interleave.
       final own = [
@@ -199,6 +267,14 @@ class QualityContextBuilder {
       neighbors: neighbors,
       ppO2MaxBar: await _ppO2Max(dive.diverId),
       knownTransmitterSerials: await _knownSerials(dive.diverId),
+      // Only the mismatch detector reads this, and only for a tank carrying
+      // a serial, so a dive without one skips the equipment lookup.
+      mismatchedTransmitterSerials:
+          dive.tanks.any(
+            (t) => normalizeTransmitterSerial(t.transmitterSerial) != null,
+          )
+          ? await _mismatchedSerials(dive.diverId)
+          : const {},
       sharedGearOverlaps: await _sharedGearOverlaps(dive),
     );
   }

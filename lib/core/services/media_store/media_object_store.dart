@@ -140,3 +140,27 @@ abstract class MediaObjectStore {
   /// return 0.
   Future<int> reapStaleUploadSessions({required DateTime olderThan});
 }
+
+/// A store whose full listing costs more than the listing (iCloud's starts
+/// downloading every evicted item). A sweep that only measures asks for the
+/// local listing instead.
+abstract interface class LocalListingStore {
+  /// What this device already has, asking the provider for nothing. It may
+  /// miss what other devices added lately, and reports no size for an item
+  /// this device has not downloaded.
+  Stream<StoreObjectInfo> listLocal(String keyPrefix);
+}
+
+/// A store that can hold more than one object under one key.
+///
+/// Google Drive keys objects by file name, and two devices uploading the same
+/// key at the same moment can both create a file. Content addressing makes
+/// the copies identical, so all but one can go. The store re-resolves the
+/// copies by their own ids before deleting, so a listing that merely repeats
+/// a key (a paging artefact) never costs the only copy.
+abstract interface class DuplicateKeyStore {
+  /// Deletes every copy of [key] but one and returns how many it deleted:
+  /// zero when only one copy exists. [mayDelete] is asked before each
+  /// delete; once it returns false the rest are left.
+  Future<int> deleteExtraCopies(String key, {bool Function()? mayDelete});
+}

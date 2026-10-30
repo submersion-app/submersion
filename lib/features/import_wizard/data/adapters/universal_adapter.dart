@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -92,6 +93,8 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 import 'package:submersion/features/universal_import/presentation/widgets/field_mapping_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_triage_step.dart';
+
+part 'universal_import_repositories.dart';
 
 /// True once a file has been detected and the wizard moved past file selection.
 final universalAdapterFileSelectedProvider = Provider<bool>((ref) {
@@ -219,30 +222,44 @@ final universalAdapterDiverMappingReadyProvider = Provider<bool>((ref) {
 class UniversalAdapter implements ImportSourceAdapter {
   static const _log = LoggerService('UniversalAdapter');
 
+  /// [ref] belongs to the wizard's route and only lends its container: the
+  /// adapter reads every provider through that container, which outlives the
+  /// route, so an import keeps working after the diver leaves the wizard
+  /// (#3554). Nothing here reads through [ref] itself.
   UniversalAdapter({required WidgetRef ref, String displayName = 'File Import'})
-    : _ref = ref,
+    : _container = ProviderScope.containerOf(ref.context, listen: false),
       _displayName = displayName;
 
-  final WidgetRef _ref;
+  final ProviderContainer _container;
   final String _displayName;
 
-  /// The ref this adapter reads providers through, for subclasses.
+  /// Reads [provider] from the container the wizard's route lives in. The one
+  /// way this adapter and its subclasses read providers: a `WidgetRef` dies
+  /// with the route, and a read through it after the diver left would throw.
   @protected
-  WidgetRef get widgetRef => _ref;
+  T readProvider<T>(ProviderListenable<T> provider) =>
+      _container.read(provider);
+
+  /// The container [readProvider] reads from, for work beyond reading, such
+  /// as invalidating a provider.
+  @protected
+  ProviderContainer get container => _container;
 
   bool get hasPreloadedState {
-    final state = _ref.read(universalImportNotifierProvider);
+    final state = readProvider(universalImportNotifierProvider);
     return state.wasLoadedExternally;
   }
 
   /// Clear the external-load flag so subsequent wizard opens reset normally.
   void consumePreloadedState() {
-    _ref.read(universalImportNotifierProvider.notifier).clearExternalLoadFlag();
+    readProvider(
+      universalImportNotifierProvider.notifier,
+    ).clearExternalLoadFlag();
   }
 
   @override
   void resetState() {
-    _ref.read(universalImportNotifierProvider.notifier).reset();
+    readProvider(universalImportNotifierProvider.notifier).reset();
   }
 
   // ---------------------------------------------------------------------------
@@ -257,7 +274,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   @override
   String get defaultTagName {
-    final state = _ref.read(universalImportNotifierProvider);
+    final state = readProvider(universalImportNotifierProvider);
     final name = state.fileName ?? _displayName;
     final now = DateTime.now();
     final date =
@@ -316,9 +333,9 @@ class UniversalAdapter implements ImportSourceAdapter {
       builder: (context) => const SourceConfirmationOrTriageStep(),
       canAdvance: universalAdapterSourceReadyProvider,
       onBeforeAdvance: () async {
-        await _ref
-            .read(universalImportNotifierProvider.notifier)
-            .confirmSource();
+        await readProvider(
+          universalImportNotifierProvider.notifier,
+        ).confirmSource();
       },
     ),
     WizardStepDef(
@@ -330,7 +347,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       autoAdvance: true,
       hiddenWhen: universalAdapterNoFieldMappingProvider,
       onBeforeAdvance: () async {
-        final notifier = _ref.read(universalImportNotifierProvider.notifier);
+        final notifier = readProvider(universalImportNotifierProvider.notifier);
         await notifier.confirmFieldMapping();
         await _seedDiverMapping();
       },
@@ -353,13 +370,13 @@ class UniversalAdapter implements ImportSourceAdapter {
       autoAdvance: true,
       hiddenWhen: universalAdapterSingleDiverProvider,
       onBeforeAdvance: () async {
-        final activeDiverId = await _ref.read(
+        final activeDiverId = await readProvider(
           validatedCurrentDiverIdProvider.future,
         );
         if (activeDiverId == null) return;
-        _ref
-            .read(universalImportNotifierProvider.notifier)
-            .applyDiverMapping(activeDiverId: activeDiverId);
+        readProvider(
+          universalImportNotifierProvider.notifier,
+        ).applyDiverMapping(activeDiverId: activeDiverId);
       },
     ),
     WizardStepDef(
@@ -381,7 +398,8 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// targets, and only when the user chose a destination folder.
   ///
   /// Returns what was attached and what failed; a failure is reported in the
-  /// summary and never fails the import. File imports have none.
+  /// summary and never fails the import. File imports have none. Downloads
+  /// report through [onProgress] as [ImportPhase.photos].
   @protected
   Future<RemotePhotoOutcome> attachAdditionalPhotos({
     required Map<int, String> photoDiveIds,
@@ -390,6 +408,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     required List<Map<String, dynamic>> dives,
     required String destinationDir,
     ImportCancellationToken? cancelToken,
+    ImportProgressCallback? onProgress,
   }) async => (attached: 0, failed: 0);
 
   @visibleForTesting
@@ -410,21 +429,21 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// left, which the wizard does even when it auto-skips that step, after
   /// choosing the next page and before rendering it.
   Future<void> _seedDiverMapping() async {
-    final parsed = _ref.read(universalImportNotifierProvider).parsedPayload;
+    final parsed = readProvider(universalImportNotifierProvider).parsedPayload;
     if (parsed == null || !parsed.needsDiverMapping) return;
-    final activeDiverId = await _ref.read(
+    final activeDiverId = await readProvider(
       validatedCurrentDiverIdProvider.future,
     );
     if (activeDiverId == null) return;
-    final profiles = await _ref.read(allDiversProvider.future);
-    _ref
-        .read(universalImportNotifierProvider.notifier)
-        .initDiverMapping(profiles: profiles, activeDiverId: activeDiverId);
+    final profiles = await readProvider(allDiversProvider.future);
+    readProvider(
+      universalImportNotifierProvider.notifier,
+    ).initDiverMapping(profiles: profiles, activeDiverId: activeDiverId);
   }
 
   @override
   Future<ImportBundle> buildBundle() async {
-    final notifierState = _ref.read(universalImportNotifierProvider);
+    final notifierState = readProvider(universalImportNotifierProvider);
     final payload = notifierState.payload;
 
     if (payload == null) {
@@ -537,7 +556,7 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// files override this.
   @protected
   Future<ImportSourceDetails> sourceDetails() {
-    final state = _ref.read(universalImportNotifierProvider);
+    final state = readProvider(universalImportNotifierProvider);
     return fileSourceDetails(state.files, confirmed: state.options);
   }
 
@@ -552,7 +571,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           if (item[DiverTarget.itemKey] case final String key) key,
     };
     if (keys.isEmpty) return const {};
-    final profiles = await _ref.read(allDiversProvider.future);
+    final profiles = await readProvider(allDiversProvider.future);
     final nameById = {for (final p in profiles) p.id: p.name};
     final nameBySource = {for (final d in payload.sourceDivers) d.key: d.name};
     return {
@@ -603,7 +622,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   /// Each target's next dive number: a new profile starts at 1.
   Future<Map<String, int>> _nextDiveNumbers(Iterable<String> targetKeys) async {
-    final dives = _ref.read(diveRepositoryProvider);
+    final dives = readProvider(diveRepositoryProvider);
     return {
       for (final key in targetKeys)
         key: switch (DiverTarget.diverIdOf(key)) {
@@ -620,29 +639,31 @@ class UniversalAdapter implements ImportSourceAdapter {
     String? targetKey,
     String? activeDiverId,
   ) {
-    if (targetKey == null) return loadActiveDiverRecords(_ref, activeDiverId);
-    final diverId = DiverTarget.diverIdOf(targetKey);
-    if (diverId == null) return loadNewProfileRecords(_ref);
-    if (diverId == activeDiverId) {
-      return loadActiveDiverRecords(_ref, activeDiverId);
+    if (targetKey == null) {
+      return loadActiveDiverRecords(_container, activeDiverId);
     }
-    return loadProfileRecords(_ref, diverId);
+    final diverId = DiverTarget.diverIdOf(targetKey);
+    if (diverId == null) return loadNewProfileRecords(_container);
+    if (diverId == activeDiverId) {
+      return loadActiveDiverRecords(_container, activeDiverId);
+    }
+    return loadProfileRecords(_container, diverId);
   }
 
   @override
   Future<ImportBundle> checkDuplicates(ImportBundle bundle) async {
-    final notifierState = _ref.read(universalImportNotifierProvider);
+    final notifierState = readProvider(universalImportNotifierProvider);
     final payload = notifierState.payload;
     if (payload == null) return bundle;
 
     // Scope duplicate detection to each target profile's own data (#1893).
     // An unexpanded payload is one slice checked against the active diver,
     // exactly as before.
-    final currentDiver = await _ref.read(currentDiverProvider.future);
+    final currentDiver = await readProvider(currentDiverProvider.future);
     final activeDiverId = currentDiver?.id;
     final checkIntraBatch =
         (payload.metadata['batchFileCount'] as int? ?? 1) > 1;
-    final units = UnitFormatter(_ref.read(settingsProvider));
+    final units = UnitFormatter(readProvider(settingsProvider));
     final slices = PayloadSlicer.slice(
       payload,
       firstTargetKey: activeDiverId == null
@@ -741,6 +762,7 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// written to [diverId]. A single-diver import runs this once for the
   /// whole payload; a multi-diver import once per profile (issue #1893).
   Future<UddfEntityImportResult> _runImporter({
+    required UniversalImportState notifierState,
     required UddfEntityImporter importer,
     required ImportRepositories repos,
     required ImportPayload payload,
@@ -753,8 +775,6 @@ class UniversalAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) {
-    final notifierState = _ref.read(universalImportNotifierProvider);
-
     // Resolve selections for all entity types: include duplicate items
     // whose action is importAsNew (not just the base selection set).
     Set<int> resolve(wizard.ImportEntityType type) =>
@@ -853,13 +873,15 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
   }
 
-  Future<UddfEntityImporter> _buildImporter() async {
-    final settings = _ref.read(settingsProvider);
+  /// [diverId] is the active diver, whose settings [settingsProvider] holds.
+  Future<UddfEntityImporter> _buildImporter({required String diverId}) async {
+    final settings = readProvider(settingsProvider);
     final resolver = DefaultTankPresetResolver(
-      repository: _ref.read(tankPresetRepositoryProvider),
+      repository: readProvider(tankPresetRepositoryProvider),
     );
     final defaultTankPreset = await resolver.resolve(
       settings.defaultTankPreset,
+      diverId: diverId,
     );
     return UddfEntityImporter(
       defaultTankPreset: defaultTankPreset,
@@ -867,7 +889,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       applyDefaultTankToImports: settings.applyDefaultTankToImports,
       defaultPurchaseCurrency: settings.defaultCurrency,
       placeNameLanguage: settings.placeNameLanguage,
-      shareCustomAgenciesByDefault: await _ref.read(
+      shareCustomAgenciesByDefault: await readProvider(
         shareByDefaultProvider.future,
       ),
     );
@@ -887,6 +909,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     })
   >
   _importSlices({
+    required UniversalImportState notifierState,
     required List<DiverSlice> slices,
     required UddfEntityImporter importer,
     required ImportRepositories repos,
@@ -900,7 +923,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
-    final profiles = await _ref.read(allDiversProvider.future);
+    final profiles = await readProvider(allDiversProvider.future);
     final nameById = {for (final p in profiles) p.id: p.name};
     var total = const UddfEntityImportResult();
     final outcomes = <DiverImportOutcome>[];
@@ -948,6 +971,7 @@ class UniversalAdapter implements ImportSourceAdapter {
         }
 
         final sliceResult = await _runImporter(
+          notifierState: notifierState,
           importer: importer,
           repos: repos,
           payload: slice.payload,
@@ -967,6 +991,7 @@ class UniversalAdapter implements ImportSourceAdapter {
             isNew: newSourceKey != null,
             isActive: diverId == activeDiverId,
             diveIds: sliceResult.diveIds,
+            siteIds: sliceResult.siteIds,
           ),
         );
       } catch (e, stackTrace) {
@@ -1009,26 +1034,21 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// the source logbook knows about the diver.
   Future<String> _createProfile(SourceDiver source) async {
     final now = DateTime.now();
-    final created = await _ref
-        .read(diverRepositoryProvider)
-        .createDiver(
-          Diver(
-            id: '',
-            name: source.name,
-            email: source.email,
-            phone: source.phone,
-            emergencyContact: EmergencyContact(name: source.emergencyContact),
-            bloodType: source.bloodType,
-            insurance: source.danNumber == null
-                ? const DiverInsurance()
-                : DiverInsurance(
-                    provider: 'DAN',
-                    policyNumber: source.danNumber,
-                  ),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
+    final created = await readProvider(diverRepositoryProvider).createDiver(
+      Diver(
+        id: '',
+        name: source.name,
+        email: source.email,
+        phone: source.phone,
+        emergencyContact: EmergencyContact(name: source.emergencyContact),
+        bloodType: source.bloodType,
+        insurance: source.danNumber == null
+            ? const DiverInsurance()
+            : DiverInsurance(provider: 'DAN', policyNumber: source.danNumber),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
     return created.id;
   }
 
@@ -1041,7 +1061,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     ImportProgressCallback? onProgress,
     ImportCancellationToken? cancelToken,
   }) async {
-    final notifierState = _ref.read(universalImportNotifierProvider);
+    final notifierState = readProvider(universalImportNotifierProvider);
     final payload = notifierState.payload;
 
     if (payload == null) {
@@ -1053,7 +1073,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       );
     }
 
-    final currentDiver = await _ref.read(currentDiverProvider.future);
+    final currentDiver = await readProvider(currentDiverProvider.future);
     if (currentDiver == null) {
       return const UnifiedImportResult(
         importedCounts: {},
@@ -1064,8 +1084,8 @@ class UniversalAdapter implements ImportSourceAdapter {
     }
 
     final skipped = _countSkipped(selections, duplicateActions);
-    final repos = universalImportRepositories(_ref);
-    final importer = await _buildImporter();
+    final repos = universalImportRepositories(_container);
+    final importer = await _buildImporter(diverId: currentDiver.id);
 
     // Every profile this import writes to, the active one first (#1893). A
     // payload the Divers step never split is one untargeted slice, imported
@@ -1080,6 +1100,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     var unreachedDives = const <int>{};
     if (slices.length == 1 && slices.single.targetKey == null) {
       result = await _runImporter(
+        notifierState: notifierState,
         importer: importer,
         repos: repos,
         payload: payload,
@@ -1093,6 +1114,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       );
     } else {
       final run = await _importSlices(
+        notifierState: notifierState,
         slices: slices,
         importer: importer,
         repos: repos,
@@ -1136,12 +1158,13 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     var consolidated = 0;
     var removedDiveIds = const <String>{};
+    var consolidatedIntoDiveIds = const <String>{};
     if (consolidateIndices.isNotEmpty) {
       final summary = await performConsolidations(
         indices: consolidateIndices,
         diveIdByIndex: result.diveIdByIndex,
         duplicateResult: ImportDuplicateResult(diveMatches: reached.matches),
-        consolidationService: _ref.read(diveConsolidationServiceProvider),
+        consolidationService: readProvider(diveConsolidationServiceProvider),
         diveRepository: repos.diveRepository,
         attachMissingComputers: _missingComputerAttacherFor(
           payload,
@@ -1150,6 +1173,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       );
       consolidated = summary.consolidated;
       removedDiveIds = summary.removedDiveIds;
+      consolidatedIntoDiveIds = summary.consolidatedIntoDiveIds;
     }
 
     // Attach ZIP-bundled photos to the dives that survived import (skipping
@@ -1185,11 +1209,20 @@ class UniversalAdapter implements ImportSourceAdapter {
       }
     }
 
+    // Linking or downloading thousands of photos takes a while after the
+    // dives are saved; each photo loop reports as its own phase (#3555).
+    final reportPhotos = onProgress == null
+        ? null
+        : (int current, int total) =>
+              onProgress(ImportPhase.photos, current, total);
+
     final bundledFolder = notifierState.bundledPhotoFolderPath;
     var attachedPhotos = 0;
     if (bundledFolder != null &&
         _hasBundledPhotos(notifierState.photoPathsByBaseName)) {
-      final linker = ImportPhotoLinker(_ref.read(localFileLinkServiceProvider));
+      final linker = ImportPhotoLinker(
+        readProvider(localFileLinkServiceProvider),
+      );
       final attached = await attachImportedPhotos(
         photoPathsByBaseName: notifierState.photoPathsByBaseName,
         diveIdByIndex: photoDiveIds,
@@ -1205,6 +1238,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           destinationDir: bundledFolder,
         ),
         cancelToken: cancelToken,
+        onProgress: reportPhotos,
       );
       attachedPhotos = attached - linker.alreadyLinked;
     }
@@ -1222,7 +1256,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     final resolution = notifierState.photoResolution;
     var resolvedPhotos = 0;
     if (resolution != null) {
-      final linker = ImportPhotoLinker(_ref.read(localFileLinkServiceProvider));
+      final linker = ImportPhotoLinker(
+        readProvider(localFileLinkServiceProvider),
+      );
       final attached = await attachResolvedPhotos(
         media: payload.entitiesOf(ui.ImportEntityType.media),
         resolvedPathByIndex: resolution.resolvedPathByIndex,
@@ -1233,6 +1269,7 @@ class UniversalAdapter implements ImportSourceAdapter {
         selectedIndices: selections[wizard.ImportEntityType.media],
         attach: linker.linkResolved,
         cancelToken: cancelToken,
+        onProgress: reportPhotos,
       );
       // Already-linked photos are successful no-ops to the attach loop;
       // keep them out of the summary's attached count.
@@ -1250,6 +1287,7 @@ class UniversalAdapter implements ImportSourceAdapter {
         dives: payload.entitiesOf(ui.ImportEntityType.dives),
         destinationDir: bundledFolder,
         cancelToken: cancelToken,
+        onProgress: onProgress,
       );
     }
 
@@ -1355,6 +1393,13 @@ class UniversalAdapter implements ImportSourceAdapter {
               for (final outcome in diverOutcomes)
                 if (outcome.isActive) ...outcome.diveIds,
             ],
+      importedSiteIds: diverOutcomes.isEmpty
+          ? result.siteIds
+          : [
+              for (final outcome in diverOutcomes)
+                if (outcome.isActive) ...outcome.siteIds,
+            ],
+      updatedExistingDiveIds: consolidatedIntoDiveIds.toList(),
       fileOutcomes: fileOutcomes,
       attachedPhotoCount: attachedPhotos + resolvedPhotos + additional.attached,
       unmatchedPhotoCount:
@@ -1370,7 +1415,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   /// Formatter for the review list's dates and times, built from the active
   /// diver's unit settings so the wizard matches the rest of the app.
-  UnitFormatter get _units => UnitFormatter(_ref.read(settingsProvider));
+  UnitFormatter get _units => UnitFormatter(readProvider(settingsProvider));
 
   void _addGroupIfNotEmpty(
     Map<wizard.ImportEntityType, EntityGroup> groups,
@@ -1433,7 +1478,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       subtitle = location;
     } else if (lat != null && lon != null) {
       subtitle = UnitFormatter(
-        _ref.read(settingsProvider),
+        readProvider(settingsProvider),
       ).formatCoordinates(lat, lon);
     } else {
       subtitle = '';
@@ -1601,6 +1646,8 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// already succeeded and a failed photo must not fail the wizard.
   ///
   /// Stops at the next photo once [cancelToken] is cancelled (issue #3216).
+  /// [onProgress] hears how many photos are done out of how many, before the
+  /// first and after each one.
   ///
   /// Returns the number of photos attached.
   static Future<int> attachImportedPhotos({
@@ -1618,6 +1665,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     )
     attach,
     ImportCancellationToken? cancelToken,
+    void Function(int current, int total)? onProgress,
   }) async {
     if (photoPathsByBaseName.isEmpty || diveIdByIndex.isEmpty) return 0;
 
@@ -1646,7 +1694,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       (divesByBase[base] ??= []).add(entry);
     }
 
-    var attachedCount = 0;
+    final jobs = <({String photoPath, String diveId, DateTime? diveStart})>[];
     for (final entry in divesByBase.entries) {
       final photos = photoPathsByBaseName[entry.key];
       // Photos only attach when the file produced exactly one dive.
@@ -1660,17 +1708,25 @@ class UniversalAdapter implements ImportSourceAdapter {
       final diveStart =
           diveStartById[diveId] ?? dives[diveIndex]['dateTime'] as DateTime?;
       for (final photoPath in photos) {
-        if (cancelToken?.isCancelled ?? false) return attachedCount;
-        try {
-          await attach(File(photoPath), diveId, diveStart);
-          attachedCount++;
-        } catch (e) {
-          // Best-effort: see doc comment. Logged, because this path now
-          // writes into a folder the user chose, and a photo that never
-          // arrived there should be diagnosable.
-          _log.warning('Failed to attach bundled photo $photoPath: $e');
-        }
+        jobs.add((photoPath: photoPath, diveId: diveId, diveStart: diveStart));
       }
+    }
+    if (jobs.isEmpty) return 0;
+
+    var attachedCount = 0;
+    onProgress?.call(0, jobs.length);
+    for (final (done, job) in jobs.indexed) {
+      if (cancelToken?.isCancelled ?? false) break;
+      try {
+        await attach(File(job.photoPath), job.diveId, job.diveStart);
+        attachedCount++;
+      } catch (e) {
+        // Best-effort: see doc comment. Logged, because this path now
+        // writes into a folder the user chose, and a photo that never
+        // arrived there should be diagnosable.
+        _log.warning('Failed to attach bundled photo ${job.photoPath}: $e');
+      }
+      onProgress?.call(done + 1, jobs.length);
     }
     return attachedCount;
   }
@@ -1755,7 +1811,9 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// reports the shortfall against the resolved count.
   ///
   /// Stops at the next photo once [cancelToken] is cancelled (issue #3216):
-  /// a MacDive logbook can reference thousands of photos.
+  /// a MacDive logbook can reference thousands of photos. [onProgress] hears
+  /// how many resolved photos are done out of how many, before the first and
+  /// after each one, skipped ones included.
   ///
   /// Returns the number of photos actually attached.
   static Future<int> attachResolvedPhotos({
@@ -1768,11 +1826,17 @@ class UniversalAdapter implements ImportSourceAdapter {
     Set<int>? selectedIndices,
     required Future<void> Function(ResolvedPhotoAttachment photo) attach,
     ImportCancellationToken? cancelToken,
+    void Function(int current, int total)? onProgress,
   }) async {
     var attachedCount = 0;
+    final total = resolvedPathByIndex.length;
+    if (total > 0) onProgress?.call(0, total);
 
+    var done = 0;
     for (final entry in resolvedPathByIndex.entries) {
       if (cancelToken?.isCancelled ?? false) break;
+      if (done > 0) onProgress?.call(done, total);
+      done++;
       final mediaIndex = entry.key;
       if (mediaIndex < 0 || mediaIndex >= media.length) continue;
       // Photos appear in review like any other entity, so a deselected one
@@ -1821,6 +1885,7 @@ class UniversalAdapter implements ImportSourceAdapter {
         _log.warning('Failed to attach imported photo ${entry.value}: $e');
       }
     }
+    if (done > 0) onProgress?.call(done, total);
 
     return attachedCount;
   }
@@ -1834,9 +1899,9 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// fill): the importer stores each id once, so the review marks the rest.
   Future<Set<int>> _fillsAlreadyHere(List<Map<String, dynamic>> fills) async {
     final ids = [for (final fill in fills) fill['id'] as String?];
-    final known = await _ref
-        .read(cylinderFillRepositoryProvider)
-        .knownIds(ids.nonNulls);
+    final known = await readProvider(
+      cylinderFillRepositoryProvider,
+    ).knownIds(ids.nonNulls);
     final seen = <String>{};
     return {
       for (final (i, id) in ids.indexed)
@@ -2068,67 +2133,4 @@ class UniversalAdapter implements ImportSourceAdapter {
         if (row is Map<String, dynamic>) row,
     ];
   }
-}
-
-/// The repositories a UDDF import writes through. Every optional one is
-/// supplied here: the importer skips the entities a missing one owns, so
-/// leaving one out drops that data from real imports without a word.
-ImportRepositories universalImportRepositories(WidgetRef ref) {
-  return ImportRepositories(
-    tripRepository: ref.read(tripRepositoryProvider),
-    equipmentRepository: ref.read(equipmentRepositoryProvider),
-    equipmentSetRepository: ref.read(equipmentSetRepositoryProvider),
-    buddyRepository: ref.read(buddyRepositoryProvider),
-    diveCenterRepository: ref.read(diveCenterRepositoryProvider),
-    certificationRepository: ref.read(certificationRepositoryProvider),
-    tagRepository: ref.read(tagRepositoryProvider),
-    diveTypeRepository: ref.read(diveTypeRepositoryProvider),
-    diveRoleRepository: ref.read(diveRoleRepositoryProvider),
-    siteRepository: ref.read(siteRepositoryProvider),
-    diveRepository: ref.read(diveRepositoryProvider),
-    tankPressureRepository: ref.read(tankPressureRepositoryProvider),
-    speciesRepository: ref.read(speciesRepositoryProvider),
-    courseRepository: ref.read(courseRepositoryProvider),
-    serviceRecordRepository: ref.read(serviceRecordRepositoryProvider),
-    diveComputerRepository: ref.read(diveComputerRepositoryProvider),
-    diveComputerConnectionRepository: ref.read(
-      diveComputerConnectionRepositoryProvider,
-    ),
-    // Without it every check-in in the file is skipped (condition phase
-    // 3a); the field is optional only for legacy callers.
-    equipmentObservationRepository: ref.read(
-      equipmentObservationRepositoryProvider,
-    ),
-    // Site types and site tags (issue #1765); without them an import
-    // restores sites but not their classification.
-    siteTypeRepository: ref.read(siteTypeRepositoryProvider),
-    siteClassificationRepository: ref.read(
-      siteClassificationRepositoryProvider,
-    ),
-    // Equipment tags (issue #1942); without it imported gear arrives with
-    // none of its tags.
-    equipmentTagRepository: ref.read(equipmentTagRepositoryProvider),
-    // Equipment locations (v268); without both, a CSV's Location column is
-    // dropped.
-    equipmentLocationRepository: ref.read(equipmentLocationRepositoryProvider),
-    equipmentLocationMoveRepository: ref.read(
-      equipmentLocationMoveRepositoryProvider,
-    ),
-    // Site features (issue #2200); without it every feature in the file is
-    // dropped and the site arrives with none of its markers.
-    siteFeatureRepository: ref.read(siteFeatureRepositoryProvider),
-    // Cylinder fills (passports phase 5); without both, every fill in a
-    // fills CSV is skipped.
-    cylinderFillRepository: ref.read(cylinderFillRepositoryProvider),
-    cylinderPassportRepository: ref.read(cylinderPassportRepositoryProvider),
-    // Service kinds and clocks (issue #2651); without them a backup's
-    // custom kinds and clocks are skipped and record kinds stay unset.
-    serviceKindRepository: ref.read(serviceKindRepositoryProvider),
-    serviceScheduleRepository: ref.read(serviceScheduleRepositoryProvider),
-    // Certification currency (issue #2267); without it a backup's custom
-    // rules, prefs and refresher history are skipped.
-    certificationCurrencyRepository: ref.read(
-      certificationCurrencyRepositoryProvider,
-    ),
-  );
 }

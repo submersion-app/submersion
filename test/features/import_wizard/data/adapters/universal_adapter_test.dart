@@ -144,7 +144,7 @@ Diver _testDiver() =>
 /// tests: extends `StateNotifier<AppSettings>` and implements SettingsNotifier.
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.state = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -307,9 +307,17 @@ List<Override> _fullOverrides({
   MockTankPressureRepository? mockTankPressureRepo,
   MockCourseRepository? mockCourseRepo,
   MockTankPresetRepository? mockTankPresetRepo,
+  AppSettings settings = const AppSettings(),
 }) {
   final diveRepo = mockDiveRepo ?? MockDiveRepository();
   final siteRepo = mockSiteRepo ?? MockSiteRepository();
+  if (mockSiteRepo == null) {
+    // The importer reads a created site's id (#3513), so the default mock
+    // hands back the site it was given rather than an unstubbed fake.
+    when(siteRepo.createSite(any)).thenAnswer(
+      (invocation) async => invocation.positionalArguments[0] as DiveSite,
+    );
+  }
   final tripRepo = mockTripRepo ?? MockTripRepository();
   final equipmentRepo = mockEquipmentRepo ?? MockEquipmentRepository();
   final equipmentSetRepo = mockEquipmentSetRepo ?? MockEquipmentSetRepository();
@@ -340,7 +348,7 @@ List<Override> _fullOverrides({
       if (detectionResult != null) notifier.setDetectionResult(detectionResult);
       return notifier;
     }),
-    settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+    settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
     currentDiverProvider.overrideWith((ref) async => diver),
     diveRepositoryProvider.overrideWithValue(diveRepo),
     siteRepositoryProvider.overrideWithValue(siteRepo),
@@ -2166,6 +2174,52 @@ void main() {
 
           // Item 0 was in selections but marked skip -- should be removed.
           expect(result.skippedCount, equals(1));
+        },
+      );
+    });
+
+    testWidgets('resolves the default tank preset among the active diver\'s '
+        'own presets (#3343)', (tester) async {
+      final payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 3, 15, 10, 0),
+              'maxDepth': 20.0,
+              'runtime': const Duration(minutes: 30),
+            },
+          ],
+        },
+      );
+
+      final mockTankPresetRepo = MockTankPresetRepository();
+      when(
+        mockTankPresetRepo.getPresetByName(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => null);
+
+      await _runWithAdapter(
+        tester,
+        overrides: _fullOverrides(
+          payload: payload,
+          diver: _testDiver(),
+          mockTankPresetRepo: mockTankPresetRepo,
+          settings: const AppSettings(defaultTankPreset: 'dubbel_7'),
+        ),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          await adapter.performImport(
+            bundle,
+            {
+              wizard.ImportEntityType.dives: {0},
+            },
+            {
+              wizard.ImportEntityType.dives: {0: DuplicateAction.skip},
+            },
+          );
+
+          verify(
+            mockTankPresetRepo.getPresetByName('dubbel_7', diverId: 'diver-1'),
+          ).called(1);
         },
       );
     });

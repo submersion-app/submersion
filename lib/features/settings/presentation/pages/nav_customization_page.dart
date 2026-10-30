@@ -30,7 +30,11 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
         ? NavOrderScope.desktop
         : NavOrderScope.phone;
 
-    final alwaysHideLabelsAsync = ref.watch(navAlwaysHideLabelsProvider);
+    // Each surface persists its own value (#3222): switching tabs switches
+    // which provider and repository method the switch below reads/writes.
+    final alwaysHideLabelsAsync = scope == NavOrderScope.phone
+        ? ref.watch(navAlwaysHideLabelsPhoneProvider)
+        : ref.watch(navAlwaysHideLabelsDesktopProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settings_navCustomization_title)),
@@ -44,34 +48,6 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
         header: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            alwaysHideLabelsAsync.when(
-              data: (alwaysHideLabels) => SwitchListTile(
-                key: const ValueKey('navAlwaysHideLabelsSwitch'),
-                title: Text(
-                  l10n.settings_navCustomization_alwaysHideLabels_title,
-                ),
-                subtitle: Text(
-                  l10n.settings_navCustomization_alwaysHideLabels_subtitle,
-                ),
-                value: alwaysHideLabels,
-                onChanged: (value) async {
-                  try {
-                    await ref
-                        .read(appSettingsRepositoryProvider)
-                        .setNavAlwaysHideLabels(value);
-                    ref.invalidate(navAlwaysHideLabelsProvider);
-                  } catch (_) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.common_error_tryAgain)),
-                    );
-                  }
-                },
-              ),
-              loading: () => const SizedBox.shrink(),
-              error: (_, _) => const SizedBox.shrink(),
-            ),
-            const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: SegmentedButton<NavOrderScope>(
@@ -101,6 +77,40 @@ class _NavCustomizationPageState extends ConsumerState<NavCustomizationPage> {
                     : l10n.settings_navCustomization_descriptionDesktop,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+            ),
+            const Divider(height: 1),
+            alwaysHideLabelsAsync.when(
+              data: (alwaysHideLabels) => SwitchListTile(
+                key: const ValueKey('navAlwaysHideLabelsSwitch'),
+                title: Text(
+                  l10n.settings_navCustomization_alwaysHideLabels_title,
+                ),
+                subtitle: Text(
+                  scope == NavOrderScope.phone
+                      ? l10n.settings_navCustomization_alwaysHideLabels_subtitle
+                      : l10n.settings_navCustomization_alwaysHideLabels_subtitleDesktop,
+                ),
+                value: alwaysHideLabels,
+                onChanged: (value) async {
+                  try {
+                    final repo = ref.read(appSettingsRepositoryProvider);
+                    if (scope == NavOrderScope.phone) {
+                      await repo.setNavAlwaysHideLabelsPhone(value);
+                      ref.invalidate(navAlwaysHideLabelsPhoneProvider);
+                    } else {
+                      await repo.setNavAlwaysHideLabelsDesktop(value);
+                      ref.invalidate(navAlwaysHideLabelsDesktopProvider);
+                    }
+                  } catch (_) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.common_error_tryAgain)),
+                    );
+                  }
+                },
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
           ],
         ),

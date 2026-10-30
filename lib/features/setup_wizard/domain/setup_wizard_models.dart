@@ -1,6 +1,4 @@
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/data/repositories/sync_repository.dart';
-import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Whether the wizard runs at first launch or from Settings.
@@ -17,15 +15,28 @@ enum SetupStepId {
   welcomeFork,
   profile,
   units,
-  backupSync,
+
+  /// The four Set up this device steps (spec 6.6), shared with Settings.
+  setUpAccount,
+  setUpSync,
+  setUpBackups,
+  setUpPhotos,
   finish,
   existingChoice,
   restore,
-  syncConnect,
   openFolder,
 }
 
-/// Immutable wizard draft. Nothing is persisted until Finish applies it.
+/// The four Set up this device steps, in order.
+const kSetUpWizardSteps = [
+  SetupStepId.setUpAccount,
+  SetupStepId.setUpSync,
+  SetupStepId.setUpBackups,
+  SetupStepId.setUpPhotos,
+];
+
+/// Immutable wizard draft: the profile and units, which Finish applies.
+/// The Set up this device steps write on their own buttons (spec 6.6).
 class SetupWizardDraft {
   final SetupWizardMode mode;
   final SetupPath path;
@@ -33,10 +44,10 @@ class SetupWizardDraft {
   final bool skipRequested;
   final String name;
   final AppSettings settings;
-  final bool backupEnabled;
-  final BackupFrequency backupFrequency;
-  final bool cloudBackupEnabled;
-  final CloudProviderType? connectedProvider;
+
+  /// Finish found no diver and no name to create one with: the Profile
+  /// step is asked for before Finish.
+  final bool needsProfile;
 
   const SetupWizardDraft({
     required this.mode,
@@ -45,10 +56,7 @@ class SetupWizardDraft {
     this.skipRequested = false,
     this.name = '',
     this.settings = const AppSettings(),
-    this.backupEnabled = false,
-    this.backupFrequency = BackupFrequency.weekly,
-    this.cloudBackupEnabled = false,
-    this.connectedProvider,
+    this.needsProfile = false,
   });
 
   SetupWizardDraft copyWith({
@@ -57,11 +65,7 @@ class SetupWizardDraft {
     bool? skipRequested,
     String? name,
     AppSettings? settings,
-    bool? backupEnabled,
-    BackupFrequency? backupFrequency,
-    bool? cloudBackupEnabled,
-    CloudProviderType? connectedProvider,
-    bool clearConnectedProvider = false,
+    bool? needsProfile,
   }) {
     return SetupWizardDraft(
       mode: mode,
@@ -70,12 +74,7 @@ class SetupWizardDraft {
       skipRequested: skipRequested ?? this.skipRequested,
       name: name ?? this.name,
       settings: settings ?? this.settings,
-      backupEnabled: backupEnabled ?? this.backupEnabled,
-      backupFrequency: backupFrequency ?? this.backupFrequency,
-      cloudBackupEnabled: cloudBackupEnabled ?? this.cloudBackupEnabled,
-      connectedProvider: clearConnectedProvider
-          ? null
-          : (connectedProvider ?? this.connectedProvider),
+      needsProfile: needsProfile ?? this.needsProfile,
     );
   }
 
@@ -116,11 +115,7 @@ class SetupWizardDraft {
 /// Computes the ordered step list for the current draft state.
 List<SetupStepId> computeSteps(SetupWizardDraft draft) {
   if (draft.mode == SetupWizardMode.settings) {
-    return const [
-      SetupStepId.units,
-      SetupStepId.backupSync,
-      SetupStepId.finish,
-    ];
+    return const [SetupStepId.units, ...kSetUpWizardSteps, SetupStepId.finish];
   }
   switch (draft.path) {
     case SetupPath.undecided:
@@ -137,7 +132,7 @@ List<SetupStepId> computeSteps(SetupWizardDraft draft) {
         SetupStepId.welcomeFork,
         SetupStepId.profile,
         SetupStepId.units,
-        SetupStepId.backupSync,
+        ...kSetUpWizardSteps,
         SetupStepId.finish,
       ];
     case SetupPath.existingData:
@@ -148,7 +143,11 @@ List<SetupStepId> computeSteps(SetupWizardDraft draft) {
         case ExistingDataSource.restoreBackup:
           steps.add(SetupStepId.restore);
         case ExistingDataSource.cloudSync:
-          steps.add(SetupStepId.syncConnect);
+          steps.addAll([
+            ...kSetUpWizardSteps,
+            if (draft.needsProfile) SetupStepId.profile,
+            SetupStepId.finish,
+          ]);
         case ExistingDataSource.openFolder:
           steps.add(SetupStepId.openFolder);
       }

@@ -1,7 +1,7 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
-import 'package:submersion/features/connections/presentation/panel/preset_grid.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_caption_text.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -25,20 +25,12 @@ class ConnectionsShareCaption {
     required ({int first, int last})? span,
     required Map<String, String> savedMapNames,
   }) {
-    final focus = view.focus;
-    final presetId = view.presetId;
-    final String title;
-    if (view.mode == ConnectionsMode.around && focus != null) {
-      title = l10n.connections_share_aroundName(
-        graph.nodeFor(focus)?.label ?? focus.id,
-      );
-    } else {
-      title =
-          savedMapNames[view.savedMapId] ??
-          (presetId != null
-              ? presetLabel(l10n, presetId)
-              : l10n.connections_editor_title);
-    }
+    final title = connectionsMapTitle(
+      l10n: l10n,
+      view: view,
+      graph: graph,
+      savedMapNames: savedMapNames,
+    );
     final String range;
     if (filter.startDate != null || filter.endDate != null) {
       range = units.formatDateRange(

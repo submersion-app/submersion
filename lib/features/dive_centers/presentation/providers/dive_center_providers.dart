@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Repository provider
 final diveCenterRepositoryProvider = Provider<DiveCenterRepository>((ref) {
@@ -36,11 +38,22 @@ final allDiveCentersProvider = FutureProvider<List<DiveCenter>>((ref) async {
 });
 
 /// Dive center sort state provider
-final diveCenterSortProvider = StateProvider<SortState<DiveCenterSortField>>(
-  (ref) => const SortState(
-    field: DiveCenterSortField.name,
-    direction: SortDirection.descending,
-  ),
+///
+/// Comes back as the diver left it (issue #3748): the active diver's saved
+/// sort, or the starting order below when there is none (or this build
+/// cannot read it). Change it through `ListArrangementWrites`.
+final diveCenterSortProvider = Provider<SortState<DiveCenterSortField>>(
+  (ref) =>
+      decodeSortState(
+        ref.watch(
+          settingsProvider.select((s) => s.listArrangements.diveCenterSort),
+        ),
+        DiveCenterSortField.values,
+      ) ??
+      const SortState(
+        field: DiveCenterSortField.name,
+        direction: SortDirection.descending,
+      ),
 );
 
 /// Apply sorting to a list of dive centers

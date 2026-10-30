@@ -28,6 +28,14 @@ extension DiveSortFieldDisplay on DiveSortField {
   };
 }
 
+extension DivePlanSortFieldDisplay on DivePlanSortField {
+  String localizedName(AppLocalizations l10n) => switch (this) {
+    DivePlanSortField.date => l10n.enum_sortField_date,
+    DivePlanSortField.depth => l10n.enum_sortField_maxDepth,
+    DivePlanSortField.name => l10n.enum_sortField_name,
+  };
+}
+
 extension SiteSortFieldDisplay on SiteSortField {
   String localizedName(AppLocalizations l10n) => switch (this) {
     SiteSortField.name => l10n.enum_sortField_name,

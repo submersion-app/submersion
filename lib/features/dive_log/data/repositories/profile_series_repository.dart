@@ -10,10 +10,10 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
-import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_sample_dedupe.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// Every read and write of `dive_profile_series`. The only production code
@@ -973,7 +973,8 @@ class ProfileSeriesRepository {
   }
 
   /// Raw rows of every series of [diveIds], undecoded, for snapshots that
-  /// restore them verbatim through [restoreSeriesRow].
+  /// restore them verbatim through [restoreSeriesRow] and for summaries that
+  /// decode them on a background isolate.
   Future<List<DiveProfileSeriesRow>> getRowsForDives(
     List<String> diveIds,
   ) async {
@@ -1186,36 +1187,11 @@ class ProfileSeriesRepository {
   /// sample read could only ever return fewer rows, and
   /// `series_profile_aggregates._decodeStreams` already applies this policy.
   ProfileSeries? _decodeOrNull(DiveProfileSeriesRow row) {
-    final List<ProfileSample> samples;
     try {
-      samples = _codec.decode(row.samples);
+      return decodeProfileSeriesRow(row);
     } on ProfileSeriesCodecException catch (e) {
       _log.warning('Skipping unreadable diveProfileSeries ${row.id}: $e');
       return null;
     }
-    return ProfileSeries(
-      id: row.id,
-      diveId: row.diveId,
-      computerId: row.computerId,
-      sourceId: row.sourceId,
-      isPrimary: row.isPrimary,
-      summary: ProfileSeriesSummary(
-        sampleCount: row.sampleCount,
-        startTimestamp: row.startTimestamp,
-        endTimestamp: row.endTimestamp,
-        maxDepth: row.maxDepth,
-        firstDepth: row.firstDepth,
-        lastDepth: row.lastDepth,
-        hasDecoType: row.hasDecoType,
-        hasDecoStop: row.hasDecoStop,
-        hasPositiveCeiling: row.hasPositiveCeiling,
-      ),
-      samples: samples,
-      codecVersion: row.codecVersion,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      hlc: row.hlc,
-      activatedAt: row.activatedAt,
-    );
   }
 }

@@ -230,6 +230,99 @@ void main() {
     },
   );
 
+  group('whileWritten: the copy the cloud upload reads', () {
+    test('a filesystem target hands over the file it wrote', () async {
+      final tmp = await Directory.systemTemp.createTemp('fbt_ww_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final src = File(p.join(tmp.path, 'src.db'));
+      await src.writeAsString('db');
+      String? seen;
+
+      final result = await FilesystemBackupTarget(tmp.path).write(
+        _FakeAdapter(src.path),
+        'out.db',
+        whileWritten: (path) async => seen = path,
+      );
+
+      expect(seen, result.ref);
+    });
+
+    test('a SAF target hands over its staged file, then deletes it', () async {
+      final tmp = await Directory.systemTemp.createTemp('sbt_ww_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final live = File(p.join(tmp.path, 'live.db'));
+      await live.writeAsString('db');
+      String? seen;
+      var existedThen = false;
+
+      await SafBackupTarget(
+        'content://tree/1',
+        _FakeSafPort(),
+        tempDir: () async => tmp,
+      ).write(
+        _FakeAdapter(live.path),
+        'out.db',
+        whileWritten: (path) async {
+          seen = path;
+          existedThen = File(path).existsSync();
+        },
+      );
+
+      expect(isSafRef(seen!), isFalse);
+      expect(existedThen, isTrue);
+      expect(File(seen!).existsSync(), isFalse);
+    });
+
+    test('the staged file is deleted when whileWritten throws', () async {
+      final tmp = await Directory.systemTemp.createTemp('sbt_wwx_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final live = File(p.join(tmp.path, 'live.db'));
+      await live.writeAsString('db');
+      String? seen;
+
+      await expectLater(
+        SafBackupTarget(
+          'content://tree/1',
+          _FakeSafPort(),
+          tempDir: () async => tmp,
+        ).write(
+          _FakeAdapter(live.path),
+          'out.db',
+          whileWritten: (path) async {
+            seen = path;
+            throw StateError('upload blew up');
+          },
+        ),
+        throwsStateError,
+      );
+
+      expect(File(seen!).existsSync(), isFalse);
+    });
+
+    test('a failed SAF write never calls whileWritten', () async {
+      final tmp = await Directory.systemTemp.createTemp('sbt_wwf_');
+      addTearDown(() => tmp.delete(recursive: true));
+      final live = File(p.join(tmp.path, 'live.db'));
+      await live.writeAsString('db');
+      var called = false;
+
+      await expectLater(
+        SafBackupTarget(
+          'content://tree/1',
+          _FakeSafPort(failWrite: true),
+          tempDir: () async => tmp,
+        ).write(
+          _FakeAdapter(live.path),
+          'out.db',
+          whileWritten: (_) async => called = true,
+        ),
+        throwsA(isA<Exception>()),
+      );
+
+      expect(called, isFalse);
+    });
+  });
+
   test('filesystem target hands the note to the copy', () async {
     final dir = Directory.systemTemp.createTempSync('target_note');
     addTearDown(() => dir.deleteSync(recursive: true));

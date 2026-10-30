@@ -927,6 +927,15 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         // read-only field on Cressi, so no further disambiguation is attempted.
         if pendingRead.complete(uuid: characteristic.uuid.uuidString,
                                 value: error == nil ? characteristic.value : nil) {
+            // The waiter only learns that no value came, so the reason is
+            // logged here or not at all.
+            if let error {
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "ioctl BLE_CHARACTERISTIC_READ"
+                        + " \(characteristic.uuid.uuidString) failed:"
+                        + " \(error.localizedDescription)"
+                        + " (code \((error as NSError).code))")
+            }
             return
         }
         if let readChar = readCharacteristic {

@@ -52,6 +52,8 @@ Future<void> _exchange(
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.diveLog_reassignSheet_applied),
+        duration: const Duration(seconds: 5),
+        persist: false,
         action: undo == null
             ? null
             : SnackBarAction(

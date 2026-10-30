@@ -26,25 +26,31 @@ class PlanDecoSection extends ConsumerWidget {
         _GfField(
           label: context.l10n.divePlanner_label_gfLow,
           value: planState.gfLow,
+          hintValue: ref.watch(gfLowProvider),
           onChanged: (value) =>
               notifier.updateGradientFactors(value, planState.gfHigh),
         ),
         _GfField(
           label: context.l10n.divePlanner_label_gfHigh,
           value: planState.gfHigh,
+          hintValue: ref.watch(gfHighProvider),
           onChanged: (value) =>
               notifier.updateGradientFactors(planState.gfLow, value),
         ),
         const SizedBox(height: 8),
         PlanLastStopSelector(
           value: planState.lastStopDepth,
+          defaultValueMeters: ref.watch(lastStopDepthProvider),
           units: units,
           onChanged: notifier.updateLastStopDepth,
         ),
         const SizedBox(height: 8),
         PlanAirBreaksControl(
           policy: planState.airBreaks,
-          onChanged: notifier.setAirBreaks,
+          explicitlyOff: planState.airBreaksExplicitlyOff,
+          defaultPolicy: ref.watch(plannerAirBreakPolicyProvider),
+          onChanged: (policy, {required explicitlyOff}) =>
+              notifier.setAirBreaks(policy, explicitlyOff: explicitlyOff),
         ),
       ],
     );
@@ -57,12 +63,20 @@ class _GfField extends StatelessWidget {
   const _GfField({
     required this.label,
     required this.value,
+    required this.hintValue,
     required this.onChanged,
   });
 
   final String label;
-  final int value;
-  final ValueChanged<int> onChanged;
+
+  /// The plan's own override; null = follows [hintValue] (issue #3552).
+  final int? value;
+
+  /// The diver's Settings default, shown as the field's placeholder.
+  final int hintValue;
+
+  /// Receives the new override, or null when the field is cleared.
+  final ValueChanged<int?> onChanged;
 
   // Buhlmann gradient factors are a percentage of the M-value line; below 10%
   // the schedule stops being divable and above 100% it is no longer a
@@ -74,18 +88,14 @@ class _GfField extends StatelessWidget {
   Widget build(BuildContext context) {
     return PlanNumberField(
       label: label,
-      value: value.toDouble(),
-      hintValue: value.toDouble(),
+      value: value?.toDouble(),
+      hintValue: hintValue.toDouble(),
       suffixText: '%',
       isInteger: true,
-      allowEmpty: false,
       min: _min,
       max: _max,
-      semanticsLabel: '$label ($value%)',
-      onChanged: (v) {
-        if (v == null) return;
-        onChanged(v.round());
-      },
+      semanticsLabel: '$label (${value ?? hintValue}%)',
+      onChanged: (v) => onChanged(v?.round()),
     );
   }
 }

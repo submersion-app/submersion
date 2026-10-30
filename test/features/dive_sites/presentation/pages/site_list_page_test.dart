@@ -89,19 +89,20 @@ Widget _buildTestWidget({
 
 Future<List<Override>> _buildOverrides({
   ListViewMode viewMode = ListViewMode.detailed,
+  List<SiteWithDiveCount> sites = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
-    sortedSitesWithCountsProvider.overrideWith(
-      (ref) => const AsyncValue.data(<SiteWithDiveCount>[]),
+    // The view mode is read from the diver's saved settings (#3748).
+    settingsProvider.overrideWith(
+      (ref) => MockSettingsNotifier(AppSettings(siteListViewMode: viewMode)),
     ),
+    currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
+    sortedSitesWithCountsProvider.overrideWith((ref) => AsyncValue.data(sites)),
     siteListNotifierProvider.overrideWith((ref) => _MockSiteListNotifier()),
-    siteListViewModeProvider.overrideWith((ref) => viewMode),
     siteTableConfigProvider.overrideWith(
       (ref) => _TestSiteTableConfigNotifier(),
     ),
@@ -113,6 +114,67 @@ Future<List<Override>> _buildOverrides({
 // ---------------------------------------------------------------------------
 
 void main() {
+  // Returning to Sites reopens the site last opened, while the list still
+  // shows it (#3301).
+  group('SiteListPage remembered site', () {
+    const site = SiteWithDiveCount(
+      site: DiveSite(id: 's1', name: 'Reef'),
+      diveCount: 1,
+    );
+
+    Future<AsyncValue<String?>?> rememberedOn(
+      WidgetTester tester, {
+      required String? highlighted,
+      ListViewMode viewMode = ListViewMode.detailed,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1400, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final overrides = [
+        ...await _buildOverrides(viewMode: viewMode, sites: const [site]),
+        highlightedSiteIdProvider.overrideWith((ref) => highlighted),
+        tableDetailsPaneProvider('sites').overrideWith((ref) => true),
+      ];
+      await tester.pumpWidget(
+        _buildTestWidget(child: const SiteListPage(), overrides: overrides),
+      );
+      // Read before the scaffold's post-frame restore opens the site.
+      return tester
+          .widget<MasterDetailScaffold>(find.byType(MasterDetailScaffold))
+          .rememberedSelectedId;
+    }
+
+    testWidgets('hands a listed site to the scaffold', (tester) async {
+      expect(
+        await rememberedOn(tester, highlighted: 's1'),
+        const AsyncData<String?>('s1'),
+      );
+    });
+
+    testWidgets('hands nothing for a site the list does not show', (
+      tester,
+    ) async {
+      expect(
+        await rememberedOn(tester, highlighted: 'deleted'),
+        const AsyncData<String?>(null),
+      );
+    });
+
+    testWidgets('table mode hands it on too', (tester) async {
+      expect(
+        await rememberedOn(
+          tester,
+          highlighted: 's1',
+          viewMode: ListViewMode.table,
+        ),
+        const AsyncData<String?>('s1'),
+      );
+    });
+  });
+
   group('SiteListPage layout branches', () {
     testWidgets('mobile mode renders SiteListContent', (tester) async {
       tester.view.devicePixelRatio = 1.0;
@@ -411,11 +473,13 @@ void main() {
         final container = ProviderScope.containerOf(
           tester.element(find.byType(SiteListPage)),
         );
-        container.read(siteListViewModeProvider.notifier).state =
-            ListViewMode.detailed;
+        container
+            .read(settingsProvider.notifier)
+            .setSiteListViewMode(ListViewMode.detailed);
         await tester.pumpAndSettle();
-        container.read(siteListViewModeProvider.notifier).state =
-            ListViewMode.table;
+        container
+            .read(settingsProvider.notifier)
+            .setSiteListViewMode(ListViewMode.table);
         await tester.pumpAndSettle();
 
         expect(find.byKey(const ValueKey('selection_exit')), findsNothing);

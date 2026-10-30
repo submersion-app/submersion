@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -13,6 +15,25 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
+
+/// Notes when the first part of a base is uploaded, and takes a moment over
+/// each part, as a real upload of a large library does.
+class _TimedProvider extends FakeCloudStorageProvider {
+  int? firstBasePartAt;
+
+  @override
+  Future<UploadResult> uploadFile(
+    Uint8List data,
+    String filename, {
+    String? folderId,
+  }) async {
+    if (filename.contains('.base.')) {
+      firstBasePartAt ??= DateTime.now().millisecondsSinceEpoch;
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    return super.uploadFile(data, filename, folderId: folderId);
+  }
+}
 
 void main() {
   late FakeCloudStorageProvider provider;
@@ -95,6 +116,30 @@ void main() {
       expect(staleBaseParts, isEmpty, reason: 'old base parts pruned');
     },
   );
+
+  test('a compacted manifest is dated by its export, not its upload', () async {
+    // Peers read updatedAt as "everything this device had by then is
+    // published"; a photo added while the base uploads is not in it.
+    final timed = _TimedProvider();
+    provider = timed;
+    folder = await provider.getOrCreateSyncFolder();
+    final deviceId = await SyncRepository().getDeviceId();
+    for (var i = 1; i <= 3; i++) {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd$i', diveNumber: i),
+      );
+      final result = await publish();
+      if (i < 3) timed.firstBasePartAt = null;
+      if (i == 3) expect(result.kind, ChangesetWriteKind.compacted);
+    }
+
+    final manifest = SyncManifest.fromBytes(
+      await provider.downloadFile(
+        '$folder/${ChangesetLogLayout.manifestName(deviceId)}',
+      ),
+    );
+    expect(manifest.updatedAt, lessThanOrEqualTo(timed.firstBasePartAt!));
+  });
 
   test('a compacted base carries the deletion log (no resurrection)', () async {
     final deviceId = await SyncRepository().getDeviceId();

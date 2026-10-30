@@ -58,12 +58,16 @@ void main() {
     List<MediaTransferQueueEntry> entries, {
     Map<String, String> labels = const {},
     bool suspended = false,
+    bool runtimeFails = false,
   }) => ProviderScope(
     overrides: [
       mediaTransferQueueRepositoryProvider.overrideWithValue(repo),
       localAssetCacheRepositoryProvider.overrideWithValue(assetCache),
       mediaTransferEntriesProvider.overrideWith((ref) => Stream.value(entries)),
-      mediaStoreRuntimeProvider.overrideWith((ref) async => null),
+      mediaStoreRuntimeProvider.overrideWith(
+        (ref) async =>
+            runtimeFails ? throw StateError('keychain unavailable') : null,
+      ),
       // The rows name their media; without this the lookup would reach for
       // an uninitialised database.
       mediaTransferLabelsProvider.overrideWith((ref) async => labels),
@@ -306,6 +310,36 @@ void main() {
     });
   });
 
+  testWidgets('bulk delete still works when the media store cannot be built', (
+    tester,
+  ) async {
+    // The diver clears stuck rows exactly when the store is broken.
+    late List<MediaTransferQueueEntry> snapshot;
+    await tester.runAsync(() async {
+      await repo.enqueueUpload(mediaId: 'm-a');
+      snapshot = await repo.watchEntries().first;
+    });
+
+    await tester.pumpWidget(app(snapshot, runtimeFails: true));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+    await pumpRoute(tester);
+    await tester.tap(find.byKey(const ValueKey('selection_delete')));
+    await pumpRoute(tester);
+    await tester.tap(find.text('Delete').hitTestable().last);
+    await tester.pump();
+    await tester.pump();
+
+    await tester.runAsync(() async {
+      expect(await repo.watchEntries().first, isEmpty);
+    });
+  });
+
   testWidgets('renders the empty state', (tester) async {
     await tester.pumpWidget(app(const []));
     await tester.pump();
@@ -503,9 +537,9 @@ void main() {
 
   // Issue #1270: the dashboard's "N uploads pending" chip pushes straight
   // here, and go_router builds this route with a plain `builder` nested under
-  // media-storage, so MediaStoragePage - the one screen whose build resolves
-  // the runtime, and therefore the app's only reliable drain trigger - never
-  // runs on the way in. Opening Transfers showed the stuck rows without doing
+  // photos-media, so the Photos & videos page (whose status line resolves the
+  // runtime, and therefore the app's only reliable drain trigger) never runs
+  // on the way in. Opening Transfers showed the stuck rows without doing
   // anything about them, which is precisely what the reporter expected it to
   // fix. Resolving the runtime here kicks the drain (see the unawaited
   // worker.drain() at the end of mediaStoreRuntimeProvider).
@@ -586,7 +620,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Transfers paused'), findsOneWidget);
+    expect(find.text('Uploads paused'), findsOneWidget);
     expect(find.text('Waiting'), findsOneWidget);
   });
 }

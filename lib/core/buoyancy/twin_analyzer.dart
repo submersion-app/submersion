@@ -270,7 +270,10 @@ class TwinAnalyzer {
         TwinStaticTerm(
           label: tank.label,
           kg: twinTankKgAt(tank, pressure),
-          source: TermSource.physics,
+          // A guessed material is an estimate, not physics (#3686).
+          source: tank.materialAssumed
+              ? TermSource.typeDefault
+              : TermSource.physics,
         ),
       );
     }

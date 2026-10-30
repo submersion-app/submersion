@@ -20,6 +20,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen map of one recorded GPS surface track.
@@ -461,7 +462,11 @@ class _TrackMapState extends ConsumerState<_TrackMap> {
                 initialCameraFit: camera.fit,
                 initialCenter: camera.center ?? const LatLng(0, 0),
                 initialZoom: camera.zoom ?? 13.0,
+                // The zoom range and pole stop every other map has (#3664).
+                minZoom: 2.0,
+                maxZoom: 18.0,
                 interactionOptions: rotatableMapInteraction,
+                cameraConstraint: worldMapCameraConstraint,
               ),
               children: [
                 submersionTileLayer(ref),

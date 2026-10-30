@@ -3,22 +3,27 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/database/tag_scope_tables.dart';
 
-/// Where a tag is offered (issues #1765, #1942). A tag applies to at least
-/// one. Member order follows [tagScopeTables], which is the display order.
+/// Where a tag is offered (issues #1765, #1942, #1970). A tag applies to at
+/// least one. Member order follows [tagScopeTables], which is the display order.
 enum TagScope {
   dives,
   sites,
-  equipment;
+  equipment,
+  media,
+  documents;
 
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
     TagScope.dives => diveTagScopeTable,
     TagScope.sites => siteTagScopeTable,
     TagScope.equipment => equipmentTagScopeTable,
+    TagScope.media => mediaTagScopeTable,
+    TagScope.documents => documentTagScopeTable,
   };
 }
 
-/// Tag entity for organizing dives, dive sites and equipment
+/// Tag entity for organizing dives, dive sites, equipment, media and
+/// documents
 class Tag extends Equatable {
   final String id;
   final String? diverId;
@@ -27,7 +32,8 @@ class Tag extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  /// Where the tag is offered (issues #1765, #1942). Never empty once stored:
+  /// Where the tag is offered (issues #1765, #1942, #1970). Never empty once
+  /// stored:
   /// TagRepository rejects a tag with no scope. Treat as read-only.
   final Set<TagScope> scopes;
 

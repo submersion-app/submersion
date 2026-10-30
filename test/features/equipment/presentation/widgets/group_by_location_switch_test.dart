@@ -5,15 +5,28 @@ import 'package:submersion/features/equipment/presentation/widgets/group_by_loca
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
-import '../../../../support/fake_app_settings_repository.dart';
-
-class _FailingSettings extends FakeAppSettingsRepository {
-  @override
-  Future<void> setEquipmentGroupByLocation(bool value) async =>
-      throw StateError('disk full');
-}
+import '../../../../support/recording_arrangement_settings.dart';
 
 void main() {
+  testWidgets('the switch saves the choice for the diver', (tester) async {
+    // Per diver since issue #3748.
+    final settings = RecordingArrangementSettings();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => settings),
+          equipmentGroupByLocationProvider.overrideWith((ref) async => false),
+        ],
+        child: const GroupByLocationSwitch(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+    expect(settings.state.listArrangements.equipmentGroupByLocation, isTrue);
+  });
+
   testWidgets('a failed save says so instead of failing silently', (
     tester,
   ) async {
@@ -21,7 +34,9 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
-          appSettingsRepositoryProvider.overrideWithValue(_FailingSettings()),
+          settingsProvider.overrideWith(
+            (ref) => RecordingArrangementSettings()..failWrite = true,
+          ),
           equipmentGroupByLocationProvider.overrideWith((ref) async => false),
         ],
         child: const GroupByLocationSwitch(),

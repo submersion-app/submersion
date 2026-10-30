@@ -145,7 +145,7 @@ void main() {
       expect(result.sac, isNull);
     });
 
-    test('a rebreather range reads SAC from the reference cylinder alone', () {
+    test('a rebreather range has no SAC and no RMV (#3673)', () {
       const diluent = DiveTank(id: 'dil', volume: 3, role: TankRole.diluent);
       const oxygen = DiveTank(
         id: 'o2',
@@ -167,8 +167,8 @@ void main() {
         isRebreather: true,
       );
 
-      // Diluent only: 20 bar over 10 min at 2 bar ambient.
-      expect(result.sac, closeTo(1.0, 1e-9));
+      expect(result.sac, isNull);
+      expect(result.rmv, isNull);
     });
 
     test('an empty or reversed range yields nothing', () {

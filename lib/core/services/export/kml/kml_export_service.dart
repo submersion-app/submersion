@@ -11,7 +11,11 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/export/shared/unit_converters.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Handles KML export for Google Earth visualization.
 class KmlExportService {
@@ -79,6 +83,8 @@ class KmlExportService {
 
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'submersion_sites_$dateStr.kml';
+
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
 
     final result = await FilePicker.saveFile(
       dialogTitle: 'Save KML File',
@@ -220,7 +226,7 @@ class KmlExportService {
 
     if (site.description.isNotEmpty) {
       buffer.writeln(
-        '<p><b>Description:</b> ${_escapeHtml(site.description)}</p>',
+        '<p><b>Description:</b> ${_plainHtml(site.description)}</p>',
       );
     }
 
@@ -229,15 +235,21 @@ class KmlExportService {
         '<p><b>Water Type:</b> ${_escapeHtml(site.waterType!.displayName)}</p>',
       );
     }
-    if (site.entryMethod != null) {
-      buffer.writeln(
-        '<p><b>Entry:</b> ${_escapeHtml(site.entryMethod!.displayName)}</p>',
+    // A site may list several ways in and out (#2054). Exit is written only
+    // when it is a different set from entry.
+    if (site.entryMethods.isNotEmpty) {
+      final names = joinEntryMethodNames(
+        site.entryMethods,
+        (m) => m.displayName,
       );
+      buffer.writeln('<p><b>Entry:</b> ${_escapeHtml(names)}</p>');
     }
-    if (site.exitMethod != null && site.exitMethod != site.entryMethod) {
-      buffer.writeln(
-        '<p><b>Exit:</b> ${_escapeHtml(site.exitMethod!.displayName)}</p>',
+    if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) {
+      final names = joinEntryMethodNames(
+        site.exitMethods,
+        (m) => m.displayName,
       );
+      buffer.writeln('<p><b>Exit:</b> ${_escapeHtml(names)}</p>');
     }
 
     if (site.hazards != null && site.hazards!.isNotEmpty) {
@@ -245,7 +257,7 @@ class KmlExportService {
     }
 
     if (site.accessNotes != null && site.accessNotes!.isNotEmpty) {
-      buffer.writeln('<p><b>Access:</b> ${_escapeHtml(site.accessNotes!)}</p>');
+      buffer.writeln('<p><b>Access:</b> ${_plainHtml(site.accessNotes!)}</p>');
     }
 
     if (site.rating != null) {
@@ -276,6 +288,10 @@ class KmlExportService {
 
     return buffer.toString();
   }
+
+  /// A Markdown field as escaped plain words, one line per line (#3683).
+  String _plainHtml(String markdown) =>
+      _escapeHtml(markdownToPlainText(markdown)).replaceAll('\n', '<br>');
 
   String _escapeHtml(String text) {
     return const HtmlEscape().convert(text);

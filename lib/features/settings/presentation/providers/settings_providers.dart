@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
@@ -26,6 +27,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -43,6 +47,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 
 /// Which cylinders the simulated (ideal) ascent may breathe.
 enum AscentGasSet {
@@ -94,6 +99,12 @@ class SettingsKeys {
   static const String gfHigh = 'gf_high';
   static const String ppO2MaxWorking = 'ppo2_max_working';
   static const String ppO2MaxDeco = 'ppo2_max_deco';
+  static const String ppO2DecoBandsEnabled = 'ppo2_deco_bands_enabled';
+  static const String ppO2DecoBand1 = 'ppo2_deco_band1';
+  static const String ppO2DecoBand2 = 'ppo2_deco_band2';
+  static const String ppO2DecoBand3 = 'ppo2_deco_band3';
+  static const String maxO2DepthEnabled = 'max_o2_depth_enabled';
+  static const String maxO2DepthMeters = 'max_o2_depth_meters';
   static const String cnsWarningThreshold = 'cns_warning_threshold';
   static const String ascentRateWarning = 'ascent_rate_warning';
   static const String ascentRateCritical = 'ascent_rate_critical';
@@ -249,6 +260,26 @@ class AppSettings {
   /// Maximum ppO2 for deco gas (typically 1.6 bar)
   final double ppO2MaxDeco;
 
+  /// Per-O2-band deco ppO2 limits (issue #3580), Dive Planner only: an
+  /// optional, finer-grained alternative to [ppO2MaxDeco]. Off by default.
+  final bool ppO2DecoBandsEnabled;
+
+  /// Deco ppO2 ceiling for a gas up to 28% O2.
+  final double ppO2DecoBand1;
+
+  /// Deco ppO2 ceiling for a gas from 28% up to 45% O2.
+  final double ppO2DecoBand2;
+
+  /// Deco ppO2 ceiling for a gas above 45% O2.
+  final double ppO2DecoBand3;
+
+  /// Explicit MOD for 100% O2 (issue #3580), Dive Planner only: bypasses
+  /// the ppO2 formula for a pure-O2 deco gas when on. Off by default.
+  final bool maxO2DepthEnabled;
+
+  /// MOD in meters for pure O2 when [maxO2DepthEnabled] is on.
+  final double maxO2DepthMeters;
+
   /// CCR default low setpoint in bar (issue #2342).
   final double ccrSetpointLow;
 
@@ -310,6 +341,9 @@ class AppSettings {
 
   /// The profile-chart metric colours this diver chose (issue #3012).
   final ProfileMetricColorOverrides profileMetricColors;
+
+  /// How the diver left each list (issue #3748); see [ListArrangements].
+  final ListArrangements listArrangements;
 
   /// Bundled chamber ids hidden from the emergency card
   final Set<String> hiddenChamberIds;
@@ -389,6 +423,17 @@ class AppSettings {
   /// lets the diver override it for that one import without changing this
   /// default.
   final bool autoTagImports;
+
+  /// Whether a dive computer download defaults to the profile that owns the
+  /// computer when that is not the active profile (issue #2050). Off starts
+  /// the review step's profile picker on the active profile instead; the
+  /// computer is recognised either way.
+  final bool downloadsFollowComputerOwner;
+
+  /// Whether a rebreather download or re-parse leaves out an open-circuit gas
+  /// that no transmitter read and the diver never breathed (issue #3668). Off
+  /// keeps every gas the computer reports.
+  final bool omitUnusedOcGases;
 
   /// Which layout to use for the site list
   final ListViewMode siteListViewMode;
@@ -543,6 +588,56 @@ class AppSettings {
   /// card (issue #2326). Off by default.
   final bool showDiveFigure;
 
+  /// Warm up underwater photos and videos on screen from the depth each was
+  /// taken at (issue #3520). Off by default; files are never changed.
+  final bool autoColorCorrection;
+
+  // Planner Setup-accordion global defaults (issue #3552). A new plan
+  // resolves each of these when its own field is unset, the same way
+  // ppO2MaxWorking/ppO2MaxDeco/o2Narcotic/ccrSetpointLow/ccrSetpointHigh/
+  // lastStopDepth already do.
+  final double plannerDescentRate;
+  final double plannerAscentRate;
+  final double plannerIntermediateAscentRate;
+  final double plannerShallowAscentRate;
+  final double plannerFinalAscentRate;
+  final int plannerGasSwitchStopSeconds;
+  final double plannerSacBottom;
+  final double plannerSacDeco;
+
+  /// Multiplier on [plannerSacBottom] for the stressed/bailout SAC rate -
+  /// not an absolute rate, so it tracks bottom SAC instead of silently
+  /// diverging from it.
+  final double plannerSacStressedFactor;
+  final double plannerBuddyFactor;
+
+  /// Hypercapnia-bailout phase (issue #3743): an elevated RMV for a
+  /// configurable duration at the start of an OC bailout, layered over
+  /// [plannerSacStressedFactor] rather than replacing it. Gated together,
+  /// matching [ppO2DecoBandsEnabled]'s shape.
+  final bool plannerHypercapniaEnabled;
+  final double plannerHypercapniaFactor;
+  final int plannerHypercapniaMinutes;
+  final int plannerProblemSolvingMinutes;
+  final double plannerBestMixEndMeters;
+  final double plannerDeviationDepthDelta;
+  final int plannerDeviationTimeMinutes;
+  final double plannerBatteryReserveFraction;
+  final double plannerWalkSpeedMps;
+
+  /// Turn-pressure/air-break global defaults (issue #3552, follow-up to
+  /// v304-306). Nullable, unlike the fields above: null = no rule/no
+  /// breaks, matching today's behaviour for a diver who has not opted in.
+  final domain.TurnPressureRule? plannerTurnPressureRule;
+  final double? plannerTurnPressureFraction;
+  final int? plannerAirBreakO2Seconds;
+  final int? plannerAirBreakBreakSeconds;
+
+  /// The diver's tank reserve-pressure default (issue #3552, follow-up to
+  /// v304-307) - previously hardcoded to the pressure unit's convention (50
+  /// bar / 500 psi) with no Settings override at all.
+  final double plannerReservePressure;
+
   /// Show profile panel in table view by default
   final bool showProfilePanelInTableView;
 
@@ -655,6 +750,12 @@ class AppSettings {
     this.gfHigh = 85,
     this.ppO2MaxWorking = 1.4,
     this.ppO2MaxDeco = 1.6,
+    this.ppO2DecoBandsEnabled = false,
+    this.ppO2DecoBand1 = 1.6,
+    this.ppO2DecoBand2 = 1.6,
+    this.ppO2DecoBand3 = 1.6,
+    this.maxO2DepthEnabled = false,
+    this.maxO2DepthMeters = 6.0,
     this.ccrSetpointLow = 0.7,
     this.ccrSetpointHigh = 1.3,
     this.ccrDiluentModPpO2 = 1.6,
@@ -675,6 +776,7 @@ class AppSettings {
     this.trendGapThreshold = TrendGapThreshold.year1,
     this.equipmentDefaultStatuses = factoryDefaultEquipmentStatuses,
     this.profileMetricColors = ProfileMetricColorOverrides.none,
+    this.listArrangements = ListArrangements.none,
     this.hiddenChamberIds = const {},
     this.emergencyRegion,
     this.showAscentRateColors = false,
@@ -699,6 +801,8 @@ class AppSettings {
     this.diveListViewMode = ListViewMode.detailed,
     this.groupTripsInDiveList = false,
     this.autoTagImports = true,
+    this.downloadsFollowComputerOwner = true,
+    this.omitUnusedOcGases = false,
     this.siteListViewMode = ListViewMode.detailed,
     this.tripListViewMode = ListViewMode.detailed,
     this.equipmentListViewMode = ListViewMode.detailed,
@@ -751,6 +855,31 @@ class AppSettings {
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
     this.showDiveFigure = false,
+    this.autoColorCorrection = false,
+    this.plannerDescentRate = 18.0,
+    this.plannerAscentRate = 9.0,
+    this.plannerIntermediateAscentRate = 6.0,
+    this.plannerShallowAscentRate = 3.0,
+    this.plannerFinalAscentRate = 1.0,
+    this.plannerGasSwitchStopSeconds = 0,
+    this.plannerSacBottom = 15.0,
+    this.plannerSacDeco = 15.0,
+    this.plannerSacStressedFactor = 2.5,
+    this.plannerBuddyFactor = 2.0,
+    this.plannerHypercapniaEnabled = false,
+    this.plannerHypercapniaFactor = 4.0,
+    this.plannerHypercapniaMinutes = 5,
+    this.plannerProblemSolvingMinutes = 2,
+    this.plannerBestMixEndMeters = 30.0,
+    this.plannerDeviationDepthDelta = 5.0,
+    this.plannerDeviationTimeMinutes = 5,
+    this.plannerBatteryReserveFraction = 1.0 / 3.0,
+    this.plannerWalkSpeedMps = 0.8,
+    this.plannerTurnPressureRule,
+    this.plannerTurnPressureFraction,
+    this.plannerAirBreakO2Seconds,
+    this.plannerAirBreakBreakSeconds,
+    this.plannerReservePressure = 50.0,
     this.showProfilePanelInTableView = true,
     this.showDetailsPaneDives = false,
     this.showDetailsPaneSites = false,
@@ -850,6 +979,12 @@ class AppSettings {
     int? gfHigh,
     double? ppO2MaxWorking,
     double? ppO2MaxDeco,
+    bool? ppO2DecoBandsEnabled,
+    double? ppO2DecoBand1,
+    double? ppO2DecoBand2,
+    double? ppO2DecoBand3,
+    bool? maxO2DepthEnabled,
+    double? maxO2DepthMeters,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
     double? ccrDiluentModPpO2,
@@ -870,6 +1005,7 @@ class AppSettings {
     TrendGapThreshold? trendGapThreshold,
     Set<EquipmentStatus>? equipmentDefaultStatuses,
     ProfileMetricColorOverrides? profileMetricColors,
+    ListArrangements? listArrangements,
     Set<String>? hiddenChamberIds,
     String? emergencyRegion,
     bool clearEmergencyRegion = false,
@@ -893,6 +1029,8 @@ class AppSettings {
     ListViewMode? diveListViewMode,
     bool? groupTripsInDiveList,
     bool? autoTagImports,
+    bool? downloadsFollowComputerOwner,
+    bool? omitUnusedOcGases,
     ListViewMode? siteListViewMode,
     ListViewMode? tripListViewMode,
     ListViewMode? equipmentListViewMode,
@@ -944,6 +1082,35 @@ class AppSettings {
     TimeOfDay? reminderTime,
     bool? showDataSourceBadges,
     bool? showDiveFigure,
+    bool? autoColorCorrection,
+    double? plannerDescentRate,
+    double? plannerAscentRate,
+    double? plannerIntermediateAscentRate,
+    double? plannerShallowAscentRate,
+    double? plannerFinalAscentRate,
+    int? plannerGasSwitchStopSeconds,
+    double? plannerSacBottom,
+    double? plannerSacDeco,
+    double? plannerSacStressedFactor,
+    double? plannerBuddyFactor,
+    bool? plannerHypercapniaEnabled,
+    double? plannerHypercapniaFactor,
+    int? plannerHypercapniaMinutes,
+    int? plannerProblemSolvingMinutes,
+    double? plannerBestMixEndMeters,
+    double? plannerDeviationDepthDelta,
+    int? plannerDeviationTimeMinutes,
+    double? plannerBatteryReserveFraction,
+    double? plannerWalkSpeedMps,
+    domain.TurnPressureRule? plannerTurnPressureRule,
+    bool clearPlannerTurnPressureRule = false,
+    double? plannerTurnPressureFraction,
+    bool clearPlannerTurnPressureFraction = false,
+    int? plannerAirBreakO2Seconds,
+    bool clearPlannerAirBreakO2Seconds = false,
+    int? plannerAirBreakBreakSeconds,
+    bool clearPlannerAirBreakBreakSeconds = false,
+    double? plannerReservePressure,
     bool? showProfilePanelInTableView,
     bool? showDetailsPaneDives,
     bool? showDetailsPaneSites,
@@ -1016,6 +1183,12 @@ class AppSettings {
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
       ppO2MaxDeco: ppO2MaxDeco ?? this.ppO2MaxDeco,
+      ppO2DecoBandsEnabled: ppO2DecoBandsEnabled ?? this.ppO2DecoBandsEnabled,
+      ppO2DecoBand1: ppO2DecoBand1 ?? this.ppO2DecoBand1,
+      ppO2DecoBand2: ppO2DecoBand2 ?? this.ppO2DecoBand2,
+      ppO2DecoBand3: ppO2DecoBand3 ?? this.ppO2DecoBand3,
+      maxO2DepthEnabled: maxO2DepthEnabled ?? this.maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
@@ -1043,6 +1216,7 @@ class AppSettings {
       equipmentDefaultStatuses:
           equipmentDefaultStatuses ?? this.equipmentDefaultStatuses,
       profileMetricColors: profileMetricColors ?? this.profileMetricColors,
+      listArrangements: listArrangements ?? this.listArrangements,
       hiddenChamberIds: hiddenChamberIds ?? this.hiddenChamberIds,
       emergencyRegion: clearEmergencyRegion
           ? null
@@ -1068,6 +1242,9 @@ class AppSettings {
       diveListViewMode: diveListViewMode ?? this.diveListViewMode,
       groupTripsInDiveList: groupTripsInDiveList ?? this.groupTripsInDiveList,
       autoTagImports: autoTagImports ?? this.autoTagImports,
+      downloadsFollowComputerOwner:
+          downloadsFollowComputerOwner ?? this.downloadsFollowComputerOwner,
+      omitUnusedOcGases: omitUnusedOcGases ?? this.omitUnusedOcGases,
       siteListViewMode: siteListViewMode ?? this.siteListViewMode,
       tripListViewMode: tripListViewMode ?? this.tripListViewMode,
       equipmentListViewMode:
@@ -1139,6 +1316,53 @@ class AppSettings {
       reminderTime: reminderTime ?? this.reminderTime,
       showDataSourceBadges: showDataSourceBadges ?? this.showDataSourceBadges,
       showDiveFigure: showDiveFigure ?? this.showDiveFigure,
+      autoColorCorrection: autoColorCorrection ?? this.autoColorCorrection,
+      plannerDescentRate: plannerDescentRate ?? this.plannerDescentRate,
+      plannerAscentRate: plannerAscentRate ?? this.plannerAscentRate,
+      plannerIntermediateAscentRate:
+          plannerIntermediateAscentRate ?? this.plannerIntermediateAscentRate,
+      plannerShallowAscentRate:
+          plannerShallowAscentRate ?? this.plannerShallowAscentRate,
+      plannerFinalAscentRate:
+          plannerFinalAscentRate ?? this.plannerFinalAscentRate,
+      plannerGasSwitchStopSeconds:
+          plannerGasSwitchStopSeconds ?? this.plannerGasSwitchStopSeconds,
+      plannerSacBottom: plannerSacBottom ?? this.plannerSacBottom,
+      plannerSacDeco: plannerSacDeco ?? this.plannerSacDeco,
+      plannerSacStressedFactor:
+          plannerSacStressedFactor ?? this.plannerSacStressedFactor,
+      plannerBuddyFactor: plannerBuddyFactor ?? this.plannerBuddyFactor,
+      plannerHypercapniaEnabled:
+          plannerHypercapniaEnabled ?? this.plannerHypercapniaEnabled,
+      plannerHypercapniaFactor:
+          plannerHypercapniaFactor ?? this.plannerHypercapniaFactor,
+      plannerHypercapniaMinutes:
+          plannerHypercapniaMinutes ?? this.plannerHypercapniaMinutes,
+      plannerProblemSolvingMinutes:
+          plannerProblemSolvingMinutes ?? this.plannerProblemSolvingMinutes,
+      plannerBestMixEndMeters:
+          plannerBestMixEndMeters ?? this.plannerBestMixEndMeters,
+      plannerDeviationDepthDelta:
+          plannerDeviationDepthDelta ?? this.plannerDeviationDepthDelta,
+      plannerDeviationTimeMinutes:
+          plannerDeviationTimeMinutes ?? this.plannerDeviationTimeMinutes,
+      plannerBatteryReserveFraction:
+          plannerBatteryReserveFraction ?? this.plannerBatteryReserveFraction,
+      plannerWalkSpeedMps: plannerWalkSpeedMps ?? this.plannerWalkSpeedMps,
+      plannerTurnPressureRule: clearPlannerTurnPressureRule
+          ? null
+          : (plannerTurnPressureRule ?? this.plannerTurnPressureRule),
+      plannerTurnPressureFraction: clearPlannerTurnPressureFraction
+          ? null
+          : (plannerTurnPressureFraction ?? this.plannerTurnPressureFraction),
+      plannerAirBreakO2Seconds: clearPlannerAirBreakO2Seconds
+          ? null
+          : (plannerAirBreakO2Seconds ?? this.plannerAirBreakO2Seconds),
+      plannerAirBreakBreakSeconds: clearPlannerAirBreakBreakSeconds
+          ? null
+          : (plannerAirBreakBreakSeconds ?? this.plannerAirBreakBreakSeconds),
+      plannerReservePressure:
+          plannerReservePressure ?? this.plannerReservePressure,
       showProfilePanelInTableView:
           showProfilePanelInTableView ?? this.showProfilePanelInTableView,
       showDetailsPaneDives: showDetailsPaneDives ?? this.showDetailsPaneDives,
@@ -1214,13 +1438,25 @@ final shareByDefaultProvider = FutureProvider<bool>((ref) async {
   return repo.getShareByDefault();
 });
 
-/// Whether nav destinations are forced to icon-only, hiding their text label
-/// even where the layout would otherwise show one (#1424). Global (not
-/// per-diver), matching the nav-order settings this pairs with.
-final navAlwaysHideLabelsProvider = FutureProvider<bool>((ref) async {
+/// Whether the phone bottom bar is forced to icon-only, hiding its text
+/// labels even where it would otherwise show one (#1424). Global (not
+/// per-diver), matching the nav-order settings this pairs with. Independent
+/// of [navAlwaysHideLabelsDesktopProvider] (#3222): a phone and a desktop
+/// syncing to the same account each keep their own choice.
+final navAlwaysHideLabelsPhoneProvider = FutureProvider<bool>((ref) async {
   final repo = ref.watch(appSettingsRepositoryProvider);
   ref.invalidateSelfWhen(repo.watchSettingsChanges());
-  return repo.getNavAlwaysHideLabels();
+  return repo.getNavAlwaysHideLabelsPhone();
+});
+
+/// Whether the desktop navigation rail starts collapsed to icon-only
+/// (#1424). Only the starting state: the rail's collapse arrow can still
+/// override it for the rest of the session without persisting that
+/// override. Independent of [navAlwaysHideLabelsPhoneProvider] (#3222).
+final navAlwaysHideLabelsDesktopProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(appSettingsRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchSettingsChanges());
+  return repo.getNavAlwaysHideLabelsDesktop();
 });
 
 /// Settings notifier that persists to database per-diver
@@ -1626,7 +1862,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     });
   }
 
-  Future<void> _saveSettings() async {
+  /// Saves [state]: the device-local preferences, then the diver's row.
+  ///
+  /// [devicePrefs] false skips the preferences for a change that has none,
+  /// such as how a list was left (issue #3748), saved on most list taps.
+  Future<void> _saveSettings({bool devicePrefs = true}) async {
     // Taken before the first await: [state] can move on, and a diver switch
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
@@ -1638,37 +1878,40 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final turnDone = Completer<void>();
     _rowWriteTurn = turnDone.future;
     try {
-      // Device-local preferences are always persisted to SharedPreferences,
-      // independent of whether a diver is currently selected.
       final prefs = _ref.read(sharedPreferencesProvider);
-      await prefs.setStringList(
-        SettingsKeys.hiddenHomeChips,
-        state.hiddenHomeChips.toList()..sort(),
-      );
-      await prefs.setStringList(
-        SettingsKeys.homeCardOrder,
-        state.homeCardOrder,
-      );
-      await prefs.setStringList(
-        SettingsKeys.hiddenHomeCards,
-        state.hiddenHomeCards.toList()..sort(),
-      );
-      await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-      await prefs.setBool(
-        SettingsKeys.perdixOverlayEnabled,
-        state.perdixOverlayEnabled,
-      );
-      final perdixX = state.perdixOverlayX;
-      if (perdixX != null) {
-        await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+      if (devicePrefs) {
+        // Device-local preferences are always persisted to SharedPreferences,
+        // independent of whether a diver is currently selected.
+        await prefs.setStringList(
+          SettingsKeys.hiddenHomeChips,
+          state.hiddenHomeChips.toList()..sort(),
+        );
+        await prefs.setStringList(
+          SettingsKeys.homeCardOrder,
+          state.homeCardOrder,
+        );
+        await prefs.setStringList(
+          SettingsKeys.hiddenHomeCards,
+          state.hiddenHomeCards.toList()..sort(),
+        );
+        await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
+        await prefs.setBool(
+          SettingsKeys.perdixOverlayEnabled,
+          state.perdixOverlayEnabled,
+        );
+        final perdixX = state.perdixOverlayX;
+        if (perdixX != null) {
+          await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
+        }
+        final perdixY = state.perdixOverlayY;
+        if (perdixY != null) {
+          await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+        }
+        await _writeCachedTheme(prefs);
       }
-      final perdixY = state.perdixOverlayY;
-      if (perdixY != null) {
-        await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
-      }
-      await _writeCachedTheme(prefs);
 
       if (diverId == null) {
+        if (!devicePrefs) return;
         // No diver yet: these prefs are the pSCR ratio's and viewport
         // choice's only store; a diver row adopts them on load (v262).
         if (_prefsAreStore) {
@@ -1783,8 +2026,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPressureUnit(PressureUnit unit) async {
-    state = state.copyWith(pressureUnit: unit);
+    state = state.copyWith(
+      pressureUnit: unit,
+      plannerReservePressure: _plannerReserveFor(unit),
+    );
     await _saveSettings();
+  }
+
+  /// The planner reserve-pressure default after a switch to [unit] (issue
+  /// #3552): a reserve still on a unit's convention (50 bar, or 500 psi)
+  /// moves to [unit]'s convention, as every new plan's reserve did before
+  /// it became a Setting, so a diver who picks psi after the row was
+  /// created gets 500 psi rather than 725. A reserve the diver set to any
+  /// other value is kept.
+  double _plannerReserveFor(PressureUnit unit) {
+    const metric = 50.0;
+    final imperial = PressureUnit.psi.convert(500, PressureUnit.bar);
+    final current = state.plannerReservePressure;
+    final onConvention =
+        (current - metric).abs() < 0.01 || (current - imperial).abs() < 0.01;
+    if (!onConvention) return current;
+    return unit == PressureUnit.psi ? imperial : metric;
   }
 
   Future<void> setVolumeUnit(VolumeUnit unit) async {
@@ -2055,6 +2317,74 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Per-O2-band deco ppO2 limits (issue #3580): a wider range than the
+  /// [ppO2MaxDeco] ceiling alone, in 0.1 bar steps down to [ppO2WorkingMin]
+  /// rather than [ppO2MaxMin]. Each band is independent: unlike
+  /// [setPpO2Limits], there is no enforced ordering between them.
+  static const double ppO2DecoBandStep = 0.1;
+
+  /// [value] snapped to the grid of [step]: divides by the step count per
+  /// unit rather than multiplying by [step], so a grid point is the exact
+  /// nearest double (1.4, not 1.4000000000000001).
+  static double onStepGrid(double value, double step) =>
+      (value / step).round() / (1 / step);
+
+  /// [value] rounded DOWN onto the grid of [step], for a limit seeded from
+  /// another one: the seed is never more permissive than its source. The
+  /// 1e-9 keeps a value float noise put just under a grid line on it.
+  static double onStepGridFloor(double value, double step) =>
+      (value / step + 1e-9).floorToDouble() / (1 / step);
+
+  /// [ppO2DecoBandOnGrid], rounding down instead of to the nearest step.
+  static double ppO2DecoBandFloorOnGrid(double value) => onStepGridFloor(
+    value.clamp(ppO2WorkingMin, ppO2Ceiling),
+    ppO2DecoBandStep,
+  );
+
+  /// [value] clamped to [ppO2WorkingMin]..[ppO2Ceiling] and snapped to the
+  /// [ppO2DecoBandStep] grid.
+  static double ppO2DecoBandOnGrid(double value) =>
+      onStepGrid(value.clamp(ppO2WorkingMin, ppO2Ceiling), ppO2DecoBandStep);
+
+  /// Explicit MOD for 100% O2 (issue #3580): 3-9 m in 0.5 m steps.
+  static const double maxO2DepthMin = 3.0;
+  static const double maxO2DepthMax = 9.0;
+  static const double maxO2DepthStep = 0.5;
+
+  /// [value] clamped to [maxO2DepthMin]..[maxO2DepthMax] and snapped to the
+  /// [maxO2DepthStep] grid.
+  static double maxO2DepthOnGrid(double value) =>
+      onStepGrid(value.clamp(maxO2DepthMin, maxO2DepthMax), maxO2DepthStep);
+
+  /// [maxO2DepthOnGrid], rounding down instead of to the nearest step.
+  static double maxO2DepthFloorOnGrid(double value) => onStepGridFloor(
+    value.clamp(maxO2DepthMin, maxO2DepthMax),
+    maxO2DepthStep,
+  );
+
+  /// Set both optional deco layers at once, in a single persisted write
+  /// (issue #3580): the per-O2-band toggle/values and the explicit-100%-O2-
+  /// depth toggle/value. Mirrors [setPpO2Limits]/[setGradientFactors],
+  /// which batch their pair of related values the same way.
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async {
+    state = state.copyWith(
+      ppO2DecoBandsEnabled: bandsEnabled,
+      ppO2DecoBand1: ppO2DecoBandOnGrid(band1),
+      ppO2DecoBand2: ppO2DecoBandOnGrid(band2),
+      ppO2DecoBand3: ppO2DecoBandOnGrid(band3),
+      maxO2DepthEnabled: maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthOnGrid(maxO2DepthMeters),
+    );
+    await _saveSettings();
+  }
+
   /// Selectable range of the CCR ppO2 limits (issue #2342), on a 0.1 bar
   /// grid like the OC limits.
   static const double ccrPpO2Min = 0.5;
@@ -2281,6 +2611,181 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  // Planner Setup-accordion global defaults (issue #3552). The rates clamp
+  // to the same band the Setup accordion's per-plan rate fields accept
+  // ([kPlannerRateMinMetersPerMinute]..[kPlannerRateMaxMetersPerMinute]),
+  // since every plan that leaves a rate unset computes with this value.
+
+  static double _clampRate(double value) => value.clamp(
+    kPlannerRateMinMetersPerMinute,
+    kPlannerRateMaxMetersPerMinute,
+  );
+
+  Future<void> setPlannerDescentRate(double value) async {
+    state = state.copyWith(plannerDescentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAscentRate(double value) async {
+    state = state.copyWith(plannerAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerIntermediateAscentRate(double value) async {
+    state = state.copyWith(plannerIntermediateAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerShallowAscentRate(double value) async {
+    state = state.copyWith(plannerShallowAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerFinalAscentRate(double value) async {
+    state = state.copyWith(plannerFinalAscentRate: _clampRate(value));
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async {
+    state = state.copyWith(plannerGasSwitchStopSeconds: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacBottom(double value) async {
+    state = state.copyWith(plannerSacBottom: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacDeco(double value) async {
+    state = state.copyWith(plannerSacDeco: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerSacStressedFactor(double value) async {
+    state = state.copyWith(plannerSacStressedFactor: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBuddyFactor(double value) async {
+    state = state.copyWith(plannerBuddyFactor: value);
+    await _saveSettings();
+  }
+
+  /// Hypercapnia-bailout phase (issue #3743): an RMV factor of 1-10x bottom
+  /// RMV in 0.5 steps, held for 1-15 minutes.
+  static const double plannerHypercapniaFactorMin = 1.0;
+  static const double plannerHypercapniaFactorMax = 10.0;
+  static const double plannerHypercapniaFactorStep = 0.5;
+  static const int plannerHypercapniaMinutesMin = 1;
+  static const int plannerHypercapniaMinutesMax = 15;
+
+  /// Set the hypercapnia-bailout toggle/factor/duration at once, in a
+  /// single persisted write (issue #3743), mirroring
+  /// [setPpO2DecoBandsConfig]'s shape, including its clamping and snapping.
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async {
+    state = state.copyWith(
+      plannerHypercapniaEnabled: enabled,
+      plannerHypercapniaFactor: onStepGrid(
+        factor.clamp(plannerHypercapniaFactorMin, plannerHypercapniaFactorMax),
+        plannerHypercapniaFactorStep,
+      ),
+      plannerHypercapniaMinutes: minutes.clamp(
+        plannerHypercapniaMinutesMin,
+        plannerHypercapniaMinutesMax,
+      ),
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerProblemSolvingMinutes(int value) async {
+    state = state.copyWith(plannerProblemSolvingMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBestMixEndMeters(double value) async {
+    state = state.copyWith(plannerBestMixEndMeters: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationDepthDelta(double value) async {
+    state = state.copyWith(plannerDeviationDepthDelta: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerDeviationTimeMinutes(int value) async {
+    state = state.copyWith(plannerDeviationTimeMinutes: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerBatteryReserveFraction(double value) async {
+    state = state.copyWith(plannerBatteryReserveFraction: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerWalkSpeedMps(double value) async {
+    state = state.copyWith(plannerWalkSpeedMps: value);
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async {
+    state = state.copyWith(
+      plannerTurnPressureRule: value,
+      clearPlannerTurnPressureRule: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerTurnPressureFraction(double? value) async {
+    state = state.copyWith(
+      plannerTurnPressureFraction: value,
+      clearPlannerTurnPressureFraction: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: value,
+      clearPlannerAirBreakO2Seconds: value == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async {
+    state = state.copyWith(
+      plannerAirBreakBreakSeconds: value,
+      clearPlannerAirBreakBreakSeconds: value == null,
+    );
+    await _saveSettings();
+  }
+
+  /// Sets or clears both air-break seconds fields together in one save, so
+  /// toggling the Settings default on/off can never persist one half of
+  /// the pair without the other (issue #3552).
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async {
+    state = state.copyWith(
+      plannerAirBreakO2Seconds: o2Seconds,
+      clearPlannerAirBreakO2Seconds: o2Seconds == null,
+      plannerAirBreakBreakSeconds: breakSeconds,
+      clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+    );
+    await _saveSettings();
+  }
+
+  Future<void> setPlannerReservePressure(double value) async {
+    state = state.copyWith(plannerReservePressure: value);
+    await _saveSettings();
+  }
+
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
     state = state.copyWith(decoStopIncrement: clamped);
@@ -2436,15 +2941,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDiveListViewMode(ListViewMode mode) async {
-    state = state.copyWith(diveListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setDiveListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(diveListViewMode: mode));
 
-  Future<void> setGroupTripsInDiveList(bool value) async {
-    state = state.copyWith(groupTripsInDiveList: value);
-    await _saveSettings();
-  }
+  Future<void> setGroupTripsInDiveList(bool value) =>
+      _saveListArrangement((s) => s.copyWith(groupTripsInDiveList: value));
 
   /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
   /// holds the defaults (or, after a diver switch, the previous diver's
@@ -2464,40 +2965,68 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setSiteListViewMode(ListViewMode mode) async {
-    state = state.copyWith(siteListViewMode: mode);
-    await _saveSettings();
+  /// Applies [change] to how the diver left their lists (issue #3748) and
+  /// saves it. Waits for the load like [setAutoTagImports]: a sort tapped
+  /// before the diver's row lands would otherwise be overwritten by it.
+  /// [change] runs against the state after that wait, so successive changes
+  /// build on each other. Typed setters live in `list_arrangement_writes`.
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) => _saveListArrangement(
+    (s) => s.copyWith(listArrangements: change(s.listArrangements)),
+  );
+
+  /// Flips the dive list's "group trips" toggle. The flip is computed from
+  /// the loaded state, so two taps made before the load both count.
+  Future<void> toggleGroupTripsInDiveList() => _saveListArrangement(
+    (s) => s.copyWith(groupTripsInDiveList: !s.groupTripsInDiveList),
+  );
+
+  /// Saves a change to how the diver left a list (issue #3748): its sort,
+  /// grouping or view mode. Waits for the diver's settings to load, or a
+  /// change made at launch would be overwritten when the load lands, then
+  /// applies [change] to the state as it is then. The lists start these
+  /// without awaiting them, so a failed save is logged here rather than
+  /// left to the zone; a caller that awaits still sees it.
+  Future<void> _saveListArrangement(
+    AppSettings Function(AppSettings current) change,
+  ) {
+    Future<void> work() async {
+      try {
+        await settingsLoaded;
+      } catch (_) {
+        // Already logged by the load; defaults are the fallback.
+      }
+      if (!mounted) return;
+      state = change(state);
+      await _saveSettings(devicePrefs: false);
+    }
+
+    final saving = work();
+    logFailure(saving, SettingsNotifier, 'save how a list was left');
+    return saving;
   }
 
-  Future<void> setTripListViewMode(ListViewMode mode) async {
-    state = state.copyWith(tripListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setSiteListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(siteListViewMode: mode));
 
-  Future<void> setEquipmentListViewMode(ListViewMode mode) async {
-    state = state.copyWith(equipmentListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setTripListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(tripListViewMode: mode));
 
-  Future<void> setBuddyListViewMode(ListViewMode mode) async {
-    state = state.copyWith(buddyListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setEquipmentListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(equipmentListViewMode: mode));
 
-  Future<void> setDiveCenterListViewMode(ListViewMode mode) async {
-    state = state.copyWith(diveCenterListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setBuddyListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(buddyListViewMode: mode));
 
-  Future<void> setCertificationListViewMode(ListViewMode mode) async {
-    state = state.copyWith(certificationListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setDiveCenterListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(diveCenterListViewMode: mode));
 
-  Future<void> setCourseListViewMode(ListViewMode mode) async {
-    state = state.copyWith(courseListViewMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setCertificationListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(certificationListViewMode: mode));
+
+  Future<void> setCourseListViewMode(ListViewMode mode) =>
+      _saveListArrangement((s) => s.copyWith(courseListViewMode: mode));
 
   Future<void> setMapStyle(MapStyle style) async {
     state = state.copyWith(mapStyle: style);
@@ -2506,6 +3035,34 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async {
     state = state.copyWith(siteMatchSensitivity: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [settingsLoaded] first, as [setAutoTagImports] does: a switch
+  /// flipped before the diver's row lands would otherwise be overwritten by
+  /// that load (issue #2050).
+  Future<void> setDownloadsFollowComputerOwner(bool value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the constructor; the defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(downloadsFollowComputerOwner: value);
+    await _saveSettings();
+  }
+
+  /// Waits for [settingsLoaded] first, as [setDownloadsFollowComputerOwner]
+  /// does, so a switch flipped before the diver's row lands is not
+  /// overwritten by that load (issue #3668).
+  Future<void> setOmitUnusedOcGases(bool value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the constructor; the defaults are the fallback.
+    }
+    if (!mounted) return;
+    state = state.copyWith(omitUnusedOcGases: value);
     await _saveSettings();
   }
 
@@ -2740,6 +3297,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setAutoColorCorrection(bool value) async {
+    state = state.copyWith(autoColorCorrection: value);
+    await _saveSettings();
+  }
+
   /// Records that this diver has confirmed the planning safety disclaimer
   /// (issue #3120). Never set back to false from the app.
   Future<void> acceptPlanningDisclaimer() async {
@@ -2872,6 +3434,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.meters,
       temperatureUnit: TemperatureUnit.celsius,
       pressureUnit: PressureUnit.bar,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.bar),
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
@@ -2886,6 +3449,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       depthUnit: DepthUnit.feet,
       temperatureUnit: TemperatureUnit.fahrenheit,
       pressureUnit: PressureUnit.psi,
+      plannerReservePressure: _plannerReserveFor(PressureUnit.psi),
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
@@ -3038,6 +3602,30 @@ final ppO2MaxDecoProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ppO2MaxDeco));
 });
 
+final ppO2DecoBandsEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBandsEnabled));
+});
+
+final ppO2DecoBand1Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand1));
+});
+
+final ppO2DecoBand2Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand2));
+});
+
+final ppO2DecoBand3Provider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ppO2DecoBand3));
+});
+
+final maxO2DepthEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.maxO2DepthEnabled));
+});
+
+final maxO2DepthMetersProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.maxO2DepthMeters));
+});
+
 final ccrSetpointLowProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ccrSetpointLow));
 });
@@ -3102,6 +3690,138 @@ final showNdlOnProfileProvider = Provider<bool>((ref) {
 
 final lastStopDepthProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.lastStopDepth));
+});
+
+/// The band, in m/min, a planner descent or ascent rate may take: the
+/// Setup accordion's per-plan rate fields and the Settings defaults they
+/// fall back to share it (issue #3552). The floor sits at 0.9 rather than 1
+/// so that 3 ft/min (0.91 m/min), the imperial face of the 1 m/min
+/// final-ascent default, stays legal.
+const double kPlannerRateMinMetersPerMinute = 0.9;
+const double kPlannerRateMaxMetersPerMinute = 30.0;
+
+// Planner Setup-accordion global defaults (issue #3552).
+final plannerDescentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerDescentRate));
+});
+
+final plannerAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerAscentRate));
+});
+
+final plannerIntermediateAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerIntermediateAscentRate),
+  );
+});
+
+final plannerShallowAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerShallowAscentRate));
+});
+
+final plannerFinalAscentRateProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerFinalAscentRate));
+});
+
+final plannerGasSwitchStopSecondsProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerGasSwitchStopSeconds),
+  );
+});
+
+final plannerSacBottomProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacBottom));
+});
+
+final plannerSacDecoProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacDeco));
+});
+
+final plannerSacStressedFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerSacStressedFactor));
+});
+
+final plannerBuddyFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBuddyFactor));
+});
+
+final plannerHypercapniaEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaEnabled));
+});
+
+final plannerHypercapniaFactorProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaFactor));
+});
+
+final plannerHypercapniaMinutesProvider = Provider<int>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerHypercapniaMinutes));
+});
+
+final plannerProblemSolvingMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerProblemSolvingMinutes),
+  );
+});
+
+final plannerBestMixEndMetersProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerBestMixEndMeters));
+});
+
+final plannerDeviationDepthDeltaProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationDepthDelta),
+  );
+});
+
+final plannerDeviationTimeMinutesProvider = Provider<int>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerDeviationTimeMinutes),
+  );
+});
+
+final plannerBatteryReserveFractionProvider = Provider<double>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerBatteryReserveFraction),
+  );
+});
+
+final plannerWalkSpeedMpsProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerWalkSpeedMps));
+});
+
+/// The diver's default turn-pressure rule; null = no rule (issue #3552).
+final plannerTurnPressureRuleProvider = Provider<domain.TurnPressureRule?>((
+  ref,
+) {
+  return ref.watch(settingsProvider.select((s) => s.plannerTurnPressureRule));
+});
+
+/// The diver's default turn-pressure fraction, only meaningful alongside
+/// [domain.TurnPressureRule.custom] (issue #3552).
+final plannerTurnPressureFractionProvider = Provider<double?>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.plannerTurnPressureFraction),
+  );
+});
+
+/// The diver's default air-break policy; null = no breaks (issue #3552).
+/// Built from the two Settings columns rather than stored as one, same
+/// shape as [AirBreakPolicy] itself: either both are set or neither is.
+final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
+  final o2Seconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakO2Seconds),
+  );
+  final breakSeconds = ref.watch(
+    settingsProvider.select((s) => s.plannerAirBreakBreakSeconds),
+  );
+  if (o2Seconds == null || breakSeconds == null) return null;
+  return AirBreakPolicy(o2Seconds: o2Seconds, breakSeconds: breakSeconds);
+});
+
+/// The diver's tank reserve-pressure default (issue #3552, follow-up to
+/// v304-307).
+final plannerReservePressureProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.plannerReservePressure));
 });
 
 /// The diver's passive-SCR ratio (Subsurface `pscr_ratio`, default 100).
@@ -3271,49 +3991,39 @@ final tissueVizModeProvider = Provider<TissueVizMode>((ref) {
   return ref.watch(settingsProvider.select((s) => s.tissueVizMode));
 });
 
-/// Runtime-scoped dive list view mode. Initialized from persisted setting,
-/// can be overridden by app bar toggle without changing the saved default.
+/// The dive list's view mode, as the diver left it (issue #3748).
 ///
-/// IMPORTANT: Uses `ref.read()` (not `ref.watch()`) to read the persisted
-/// default only once at creation time. If we used `ref.watch()`, any change
-/// to *any* setting would reset the runtime override back to the default,
-/// breaking the session-scoped toggle behavior.
-final diveListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.diveListViewMode;
+/// The list's own toggle and Settings > Appearance > Sections both save it
+/// through [SettingsNotifier.setDiveListViewMode], so this watches the saved
+/// value: it follows a diver switch and a change synced from another device.
+/// It watches only its own column, so a write to any other setting leaves
+/// it alone. The view modes below follow the same contract.
+final diveListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.diveListViewMode));
 });
 
-/// Runtime-scoped "group trips" toggle for the dive list (issue #1193).
-///
-/// Same contract as [diveListViewModeProvider] directly above, and for the
-/// same reason: seeded once with `ref.read` so a write to any other setting
-/// cannot stomp a session override.
-final diveListGroupTripsProvider = StateProvider<bool>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.groupTripsInDiveList;
+/// The dive list's "group trips" toggle (issue #1193), as the diver left it;
+/// same contract as [diveListViewModeProvider].
+final diveListGroupTripsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.groupTripsInDiveList));
 });
 
-final siteListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.siteListViewMode;
+final siteListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.siteListViewMode));
 });
 
-final tripListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.tripListViewMode;
+final tripListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.tripListViewMode));
 });
 
-final equipmentListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.equipmentListViewMode;
+final equipmentListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.equipmentListViewMode));
 });
 
-final buddyListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.buddyListViewMode;
+final buddyListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.buddyListViewMode));
 });
 
-final diveCenterListViewModeProvider = StateProvider<ListViewMode>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.diveCenterListViewMode;
+final diveCenterListViewModeProvider = Provider<ListViewMode>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.diveCenterListViewMode));
 });

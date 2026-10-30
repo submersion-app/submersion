@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
@@ -30,6 +31,7 @@ import 'package:submersion/features/connections/presentation/providers/saved_con
 import 'package:submersion/features/connections/presentation/share/connections_share_action.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_caption.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_caption_text.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
@@ -67,6 +69,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
   /// False until the first graph is laid out; that one never animates.
   bool _hadGraph = false;
+
+  /// The canvas caption's height, as it last reported it; 0 before then.
+  double _captionHeight = 0;
 
   /// The last graph shown, held while a different budget loads (a new family
   /// key has no previous value of its own), so the canvas never unmounts.
@@ -383,8 +388,21 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     if (graphAsync.hasValue) _lastGraph = graphAsync.value;
     // Built-in species and dive types read in the diver's language.
     final graph = held == null ? ConnectionGraph.empty : _localize(held, l10n);
+    // Who dives where loads only sites dived with a buddy, so with none of
+    // them, shown or hidden by the budget, it has nothing to say and shows
+    // the empty state. Sites without a line are there because the budget
+    // cut their buddies; they stay.
+    final shared = view.mapSharedWith.keys.toSet();
+    final nothingShared =
+        shared.isNotEmpty &&
+        graph.edges.isEmpty &&
+        !graph.nodes.any((n) => shared.contains(n.ref.kind)) &&
+        !shared.any((k) => (graph.hiddenByKind[k] ?? 0) > 0);
     final showCanvas =
-        held != null && !view.isAroundWithoutFocus && !graph.isEmpty;
+        held != null &&
+        !view.isAroundWithoutFocus &&
+        !graph.isEmpty &&
+        !nothingShared;
     final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
     final canvasGraph = _canvasGraphFor(
       graph,
@@ -417,9 +435,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     Widget canvasArea(double bottomInset) {
       // The strip sits 8 px down and grows with the reader's text size;
       // overlays start below it, or at the top when it has nothing to say.
-      final stripHeight = _insights.isEmpty
-          ? 0.0
-          : InsightStrip.heightOf(context) + 8;
+      // The caption sits 8 px down; the strip and overlays start below it.
+      final captionInset = _captionHeight == 0 ? 0.0 : _captionHeight + 8;
+      final stripHeight =
+          captionInset +
+          (_insights.isEmpty ? 0.0 : InsightStrip.heightOf(context) + 8);
       final belowStrip = stripHeight + (_insights.isEmpty ? 12 : 8);
       // Shown over the canvas, the tables and an empty played range alike.
       final timelineBar = Positioned(
@@ -456,6 +476,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           view: view,
           hasAnyDives: ref.watch(connectionsDateSpanProvider).value != null,
           hasActiveFilter: hasActiveFilter,
+          buddiesWithoutSites:
+              nothingShared &&
+              graph.nodes.any((n) => n.ref.kind == ConnectionKind.buddy),
         );
         if (view.isAroundWithoutFocus) return empty;
         // A played year can be empty; the pill stays so play can be paused.
@@ -496,6 +519,23 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         bottomInset: bottomInset + timelineInset,
         stripHeight: stripHeight,
         belowStrip: belowStrip,
+        caption: ConnectionsCaptionText.of(
+          l10n: l10n,
+          view: view,
+          graph: graph,
+          edges: display.edges,
+          savedMapNames: {
+            for (final m
+                in ref.watch(savedConnectionMapsProvider).value ?? const [])
+              m.id: m.name,
+          },
+        ),
+        captionInset: captionInset,
+        onCaptionHeight: (h) {
+          if (mounted && h != _captionHeight) {
+            setState(() => _captionHeight = h);
+          }
+        },
         highlight: view.highlight,
         groups: _groups,
         insights: _insights,

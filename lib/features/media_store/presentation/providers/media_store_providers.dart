@@ -4,13 +4,16 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_display_name.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -19,6 +22,8 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
+import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
+import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -27,6 +32,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
+import 'package:submersion/features/media_store/data/media_store_account_attach.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -35,12 +41,15 @@ import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
-import 'package:submersion/features/media_store/data/media_verify_service.dart';
+import 'package:submersion/features/media_store/data/orphan_delete_policy.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/data/platform_video_transcoder.dart';
+import 'package:submersion/features/media_store/domain/media_backup_status.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 
 /// Everything a configured media store needs at runtime. Built once per
 /// attach; disposed and rebuilt on connect/disconnect via provider
@@ -233,35 +242,24 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
   );
 });
 
-/// Runs a Verify Library sweep against the attached store, stamps the
-/// fleet-wide timestamp on success, and kicks a drain for any queued
-/// repairs (orphan-prevention spec 6.3). Throws StateError when no store
-/// is attached; the settings action only renders in the connected state.
-// no-tick: the value is a CLOSURE, not a query result. Every repository read
-// happens inside it at call time via ref.read, so there is no cached row that
-// could go stale.
-final mediaVerifyRunnerProvider =
-    Provider<Future<VerifyLibraryReport> Function()>((ref) {
-      return () async {
-        final runtime = await ref.read(mediaStoreRuntimeProvider.future);
-        if (runtime == null) {
-          throw StateError('no media store attached');
-        }
-        final service = MediaVerifyService(
-          store: runtime.store,
-          mediaRepository: ref.read(mediaRepositoryProvider),
-          queue: ref.read(mediaTransferQueueRepositoryProvider),
+/// Builds the cloud orphan delete policy as of now (storage GC design,
+/// safety rules). A factory rather than a value: the snapshot, the restore
+/// time and whether sync is set up all change between sweeps, and a sweep
+/// must judge by the state at its own start.
+// no-tick: the value is a CLOSURE; it reads SharedPreferences and the sync
+// backend at call time, so there is no cached row to go stale.
+final orphanDeletePolicyFactoryProvider =
+    Provider<OrphanDeletePolicy Function()>((ref) {
+      return () {
+        final syncProvider = ref.read(cloudStorageProviderProvider);
+        final prefs = ref.read(sharedPreferencesProvider);
+        return OrphanDeletePolicy(
+          now: DateTime.now(),
+          syncEnabled: syncProvider != null,
+          currentProviderId: syncProvider?.providerId,
+          snapshot: PeerSyncSnapshotStore(prefs).read(),
+          lastRestoreAt: StorageGcStore(prefs).lastRestoreAt,
         );
-        final report = await service.run();
-        // Drain queued repairs BEFORE stamping: a stamp failure (DB/sync)
-        // must not strand repairs the sweep just queued.
-        unawaited(runtime.worker?.drain());
-        final storesRepository = ref.read(mediaStoresRepositoryProvider);
-        final active = await storesRepository.getActive();
-        if (active != null) {
-          await storesRepository.stampLastSweep(active.id, DateTime.now());
-        }
-        return report;
       };
     });
 
@@ -316,6 +314,8 @@ final mediaBackfillServiceProvider = Provider<MediaBackfillService>(
   (ref) => MediaBackfillService(
     mediaRepository: ref.watch(mediaRepositoryProvider),
     queue: ref.watch(mediaTransferQueueRepositoryProvider),
+    attachState: ref.watch(mediaStoreAttachStateProvider),
+    stores: ref.watch(mediaStoresRepositoryProvider),
   ),
 );
 
@@ -408,36 +408,67 @@ final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
   }
 });
 
+/// The store this device is attached to, for readers that see stamps
+/// through it (issue #3482); null when detached or not yet known.
+final FutureProvider<String?> mediaAttachedStoreIdProvider =
+    FutureProvider<String?>((ref) async {
+      try {
+        return await ref.watch(mediaStoreAttachStateProvider).attachedStoreId();
+      } on Object {
+        return null;
+      }
+    });
+
 /// Call after any media store attach change (connect or disconnect).
 ///
-/// Three providers cache attachment state:
+/// Four providers cache attachment state:
 /// [attachedMediaObjectStoreProvider] holds the store adapter,
 /// [mediaStoreRuntimeProvider] holds the runtime built from it, and
 /// [mediaStoreAttachedProvider] holds the cheap
-/// boolean the tile badge reads. Refreshing only the runtime leaves the
+/// boolean the tile badge reads, and [mediaAttachedStoreIdProvider] the
+/// store id stamps are read through. Refreshing only the runtime leaves the
 /// badge answering from a stale cache, so a freshly attached store shows
 /// no not-backed-up badges until the app restarts, and a disconnected one
 /// keeps showing them. Invalidating both together is the whole point of
 /// this helper: keep new call sites from having to remember the second.
-void invalidateMediaStoreAttachment(WidgetRef ref) {
+void invalidateMediaStoreAttachment(WidgetRef ref) =>
+    invalidateMediaStoreAttachmentWith(ref.invalidate);
+
+/// [invalidateMediaStoreAttachment] through any invalidate, such as a
+/// container's, for a caller whose widget may be gone by the time an attach
+/// finishes.
+void invalidateMediaStoreAttachmentWith(
+  void Function(ProviderOrFamily provider) invalidate,
+) {
   // The adapter first: the runtime is built from it, so invalidating the
   // runtime alone would rebuild it around the old store, and a diagnostics
   // report would keep probing a store this device just disconnected from.
-  ref.invalidate(attachedMediaObjectStoreProvider);
-  ref.invalidate(mediaStoreRuntimeProvider);
-  ref.invalidate(mediaStoreAttachedProvider);
+  invalidate(attachedMediaObjectStoreProvider);
+  invalidate(mediaStoreRuntimeProvider);
+  invalidate(mediaStoreAttachedProvider);
+  invalidate(mediaAttachedStoreIdProvider);
 }
 
 final mediaStoresRepositoryProvider = Provider<MediaStoresRepository>(
   (ref) => MediaStoresRepository(),
 );
 
-/// Connect/test/disconnect flows for the Media Storage settings page.
+/// Attach and detach flows for the Photos & videos page.
 final mediaStoreServiceProvider = Provider<MediaStoreService>(
   (ref) => MediaStoreService(
     credentials: ref.watch(mediaStoreCredentialsStoreProvider),
     attachState: ref.watch(mediaStoreAttachStateProvider),
     storesRepository: ref.watch(mediaStoresRepositoryProvider),
+    mediaRepository: ref.watch(mediaRepositoryProvider),
+  ),
+);
+
+/// Sets up and moves photo copies through an account (issue #3482).
+final mediaStoreAccountAttachProvider = Provider<MediaStoreAccountAttach>(
+  (ref) => MediaStoreAccountAttach(
+    service: ref.watch(mediaStoreServiceProvider),
+    accounts: ref.watch(accountGroupServiceProvider),
+    registry: ref.watch(accountProviderRegistryProvider),
   ),
 );
 
@@ -453,6 +484,9 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
 // under a drain in flight.
 final FutureProvider<MediaObjectStore?> attachedMediaObjectStoreProvider =
     FutureProvider<MediaObjectStore?>((ref) async {
+      // Demo mode (issue #3708): no store, so no drain, verify or sweep ever
+      // compares the user's real store with the sample logbook.
+      if (DemoModeGate.instance.isActive) return null;
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;
@@ -518,6 +552,15 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       if (attachedId == null) return null;
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
+      // Fills in the account a store announced before descriptors recorded
+      // it, so other devices join it in its own folder. Best effort.
+      try {
+        await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
+      } on Object catch (e) {
+        LoggerService.forClass(
+          MediaStoreService,
+        ).warning('Could not record the media store account: $e');
+      }
 
       final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
       final resolver = MediaStoreResolver(store: store, cache: cache);
@@ -529,6 +572,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final mediaRepository = ref.watch(mediaRepositoryProvider);
       final policies = ref.watch(mediaStorePoliciesProvider);
       final network = NetworkStatusService();
+      final stores = ref.watch(mediaStoresRepositoryProvider);
       final pipeline = MediaUploadPipeline(
         mediaRepository: mediaRepository,
         queue: MediaTransferQueueRepository(),
@@ -537,6 +581,9 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         cache: cache,
         quality: ref.watch(mediaUploadQualityPolicyProvider),
         videoTranscoder: PlatformVideoTranscoder(),
+        storeId: attachedId,
+        takesOver: () async =>
+            takesOverStores(attachedId, (await stores.getActive())?.id),
       );
       final deleteProcessor = MediaDeleteProcessor(
         queue: MediaTransferQueueRepository(),
@@ -603,50 +650,6 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       ref.onDispose(worker.dispose);
       unawaited(worker.drain());
 
-      // Opportunistic Verify Library sweep (orphan-prevention spec 6.4):
-      // fleet-wide 30-day cadence on unmetered network only, fire-and-forget
-      // so a sweep problem can never break the runtime. The timestamp is
-      // synced, so one device's sweep satisfies every device's cadence.
-      unawaited(() async {
-        try {
-          final storesRepository = ref.read(mediaStoresRepositoryProvider);
-          final active = await storesRepository.getActive();
-          // No descriptor means nowhere to stamp last_sweep_at: without a
-          // bail-out the sweep would repeat on EVERY runtime construction
-          // with no fleet cadence guard. Leave the degraded state to the
-          // manual action (user-initiated, so unguarded repetition is fine).
-          if (active == null) return;
-          final kind = await network.current();
-          if (!shouldAutoVerify(
-            lastSweepAt: active.lastSweepAt,
-            network: kind,
-            now: DateTime.now(),
-          )) {
-            return;
-          }
-          final service = MediaVerifyService(
-            store: store,
-            mediaRepository: mediaRepository,
-            queue: ref.read(mediaTransferQueueRepositoryProvider),
-          );
-          final report = await service.run();
-          // Same ordering as the manual runner: repairs drain even when
-          // the fleet stamp fails.
-          unawaited(worker.drain());
-          await storesRepository.stampLastSweep(active.id, DateTime.now());
-          LoggerService.forClass(MediaVerifyService).info(
-            'Auto verify sweep: ${report.objectsChecked} checked, '
-            '${report.orphansRemoved} orphans removed, '
-            '${report.repairsQueued} repairs queued, '
-            '${report.sessionsAborted} sessions aborted',
-          );
-        } catch (e) {
-          LoggerService.forClass(
-            MediaVerifyService,
-          ).warning('Auto verify sweep failed', error: e);
-        }
-      }());
-
       return MediaStoreRuntime(
         storeId: attachedId,
         store: store,
@@ -679,16 +682,47 @@ final mediaStoreResolverProvider = Provider<MediaStoreResolver?>((ref) {
   return ref.watch(mediaStoreRuntimeProvider).value?.resolver;
 });
 
-/// Display hint for the connected store ("bucket @ host"), or null when
-/// this device has no store attached.
+/// Name of the connected store, or null when this device has no store
+/// attached: the nickname of the account it was attached through, else its
+/// display hint ("bucket @ host") with a well-known service's host named
+/// (issue #3522).
 final mediaStoreStatusHintProvider = FutureProvider<String?>((ref) async {
   final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
   if (runtime == null) return null;
   final storesRepository = ref.watch(mediaStoresRepositoryProvider);
-  ref.invalidateSelfWhen(storesRepository.watchStoresChanges());
+  final accounts = ref.watch(connectedAccountsRepositoryProvider);
+  ref
+    ..invalidateSelfWhen(storesRepository.watchStoresChanges())
+    // A rename ticks the roster.
+    ..invalidateSelfWhen(accounts.watchAccountsChanges());
   final active = await storesRepository.getActive();
-  return active?.displayHint ?? runtime.storeId;
+  if (active == null) return runtime.storeId;
+  return mediaStoreName(
+    active,
+    attachState: ref.watch(mediaStoreAttachStateProvider),
+    accounts: accounts,
+  );
 });
+
+/// The name [store] is shown under (issue #3522): the nickname of the
+/// account this device attached it through, else its display hint with a
+/// well-known service's host named. The nickname applies only while this
+/// device is attached to [store] itself: after another device switches
+/// stores, the account it attached through points somewhere else.
+Future<String> mediaStoreName(
+  MediaStoreDescriptor store, {
+  required MediaStoreAttachState attachState,
+  required ConnectedAccountsRepository accounts,
+}) async {
+  String? nickname;
+  if (await attachState.attachedStoreId() == store.id) {
+    final accountId = await attachState.attachedAccountId();
+    if (accountId != null) {
+      nickname = (await accounts.getById(accountId))?.nickname;
+    }
+  }
+  return accountDisplayName(label: store.displayHint, nickname: nickname);
+}
 
 /// Implementation behind mediaStoreEnqueueProvider: with a runtime
 /// attached, imports feed the queue and kick the worker; without one this

@@ -100,6 +100,7 @@ void main() {
                   onOpenInLightroom: () => calls.add('lightroom'),
                   onGoToDive: () => calls.add('go_to_dive'),
                   onReupload: (_) => calls.add('reupload'),
+                  onAdjustColor: () => calls.add('adjust_color'),
                 ),
               ],
             ),
@@ -152,6 +153,7 @@ void main() {
         'go_to_dive',
         'share',
         'info',
+        'adjust_color',
         'perdix',
         'species',
         'write_metadata',
@@ -172,6 +174,7 @@ void main() {
         'lightroom',
         'species',
         'info',
+        'adjust_color',
         'share',
         'reupload',
       ];
@@ -201,6 +204,7 @@ void main() {
         'lightroom',
         'species',
         'info',
+        'adjust_color',
         'reupload',
       ]);
 

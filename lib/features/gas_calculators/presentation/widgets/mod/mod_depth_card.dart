@@ -9,6 +9,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -134,9 +135,12 @@ class ModDepthCard extends ConsumerWidget {
                   row(l10n.gasCalculators_mod_rowEadd, [
                     for (final a in columns) value(depth(a.eaddMeters!)),
                   ]),
-                  row(l10n.gasCalculators_mod_rowDensity, [
-                    for (final a in columns) density(a),
-                  ]),
+                  row(
+                    l10n.gasCalculators_mod_rowDensity(
+                      formatGasTemperature(units, result.densityTemperature),
+                    ),
+                    [for (final a in columns) density(a)],
+                  ),
                 ],
               ],
             ),
@@ -179,6 +183,8 @@ class ModDepthCard extends ConsumerWidget {
       ref.read(densitySetpointProvider.notifier).state = inputs.setpointBar;
     }
     ref.read(densityWaterTypeProvider.notifier).state = inputs.waterType;
+    ref.read(densityTemperatureProvider.notifier).state =
+        result.densityTemperature;
     context.go('$kGasCalculatorsRoutePrefix/density');
   }
 }

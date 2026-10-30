@@ -58,6 +58,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 
 export 'package:submersion/core/services/export/models/blender_invoice_export_data.dart';
 export 'package:submersion/core/services/export/models/export_service_record.dart';
@@ -308,6 +309,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.generateDivePdfBytes(
     dives,
     dates: dates,
@@ -321,6 +323,7 @@ class ExportService {
     title: title,
     diveTypesById: diveTypesById,
     diveRolesById: diveRolesById,
+    gearArrangement: gearArrangement,
   );
 
   Future<String> exportDivesToPdf(
@@ -336,6 +339,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.exportDivesToPdf(
     dives,
     dates: dates,
@@ -349,6 +353,7 @@ class ExportService {
     title: title,
     diveTypesById: diveTypesById,
     diveRolesById: diveRolesById,
+    gearArrangement: gearArrangement,
   );
 
   Future<String?> saveDivesToPdfFile(
@@ -364,6 +369,7 @@ class ExportService {
     Uint8List? diverPhoto,
     Map<String, DiveTypeEntity> diveTypesById = const {},
     Map<String, DiveRole> diveRolesById = const {},
+    required EquipmentArrangement gearArrangement,
   }) => _pdf.saveDivesToPdfFile(
     dives,
     dates: dates,
@@ -377,6 +383,7 @@ class ExportService {
     title: title,
     diveTypesById: diveTypesById,
     diveRolesById: diveRolesById,
+    gearArrangement: gearArrangement,
   );
 
   Future<String?> savePdfBytesToFile(List<int> bytes, String fileName) =>
@@ -441,6 +448,8 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -455,6 +464,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    preDiveSectionsBySession: preDiveSectionsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
     diveTypesById: diveTypesById,
@@ -471,6 +481,8 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -485,6 +497,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    preDiveSectionsBySession: preDiveSectionsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
     diveTypesById: diveTypesById,
@@ -501,6 +514,8 @@ class ExportService {
     required DateFormatPreference dateFormat,
     List<PreDiveSession> preDiveSessions = const [],
     Map<String, List<PreDiveSessionItem>> preDiveItemsBySession = const {},
+    Map<String, List<PreDiveSessionSection>> preDiveSectionsBySession =
+        const {},
     Map<String, List<String>> componentNames = const {},
     List<ObservationExportRow> observationRows = const [],
     Map<String, DiveTypeEntity> diveTypesById = const {},
@@ -515,6 +530,7 @@ class ExportService {
     dateFormat: dateFormat,
     preDiveSessions: preDiveSessions,
     preDiveItemsBySession: preDiveItemsBySession,
+    preDiveSectionsBySession: preDiveSectionsBySession,
     componentNames: componentNames,
     observationRows: observationRows,
     diveTypesById: diveTypesById,

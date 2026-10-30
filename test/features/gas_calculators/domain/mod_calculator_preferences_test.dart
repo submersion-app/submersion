@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
@@ -17,6 +18,8 @@ void main() {
       expect(p.ocTec.o2Percent, 21);
       expect(p.ocTec.hePercent, 35);
       expect(p.minPpO2, 0.18);
+      expect(p.temperature, GasDensityTemperature.zeroC);
+      expect(p.checkTemperature, isFalse);
       expect(p.waterType, isNull);
       expect(p.overridesByDiver, isEmpty);
       expect(p.overridesFor('diver-1'), ModLimitOverrides.none);
@@ -62,6 +65,8 @@ void main() {
             mode: ModCalculatorMode.ccrTec,
             waterType: WaterType.fresh,
             minPpO2: 0.16,
+            temperature: GasDensityTemperature.twentyC,
+            checkTemperature: true,
           )
           .withOverrides(
             'diver-a',
@@ -95,6 +100,7 @@ void main() {
         'ocTec': {'o2Percent': 'x', 'hePercent': 20},
         'waterType': 42,
         'minPpO2': 0.5,
+        'temperature': 'lukewarm',
         'overrides': {
           'diver-a': {'workingPpO2': 9.9, 'decoPpO2': 1.5},
           'diver-b': 'not a map',
@@ -107,6 +113,8 @@ void main() {
       expect(decoded.ocTec.hePercent, 20);
       expect(decoded.waterType, isNull);
       expect(decoded.minPpO2, 0.18);
+      expect(decoded.temperature, GasDensityTemperature.zeroC);
+      expect(decoded.checkTemperature, isFalse);
       expect(decoded.overridesFor('diver-a').workingPpO2, isNull);
       expect(decoded.overridesFor('diver-a').decoPpO2, 1.5);
       // Nothing valid left: no entry at all.
@@ -135,6 +143,37 @@ void main() {
       }).overridesFor('d').flushPpO2;
       expect(flush(0.8), 0.8);
       expect(flush(0.4), isNull);
+    });
+
+    test('a stored temperature is restored, garbage falls back to zeroC', () {
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'temperature': 'twentyC',
+        }).temperature,
+        GasDensityTemperature.twentyC,
+      );
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'temperature': 'boiling',
+        }).temperature,
+        GasDensityTemperature.zeroC,
+      );
+    });
+
+    test('checkTemperature defaults to false and restores only a bool', () {
+      expect(ModCalculatorPreferences.fromJson({}).checkTemperature, isFalse);
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'checkTemperature': true,
+        }).checkTemperature,
+        isTrue,
+      );
+      expect(
+        ModCalculatorPreferences.fromJson({
+          'checkTemperature': 'yes',
+        }).checkTemperature,
+        isFalse,
+      );
     });
 
     test('helium is clamped to the room the oxygen leaves', () {

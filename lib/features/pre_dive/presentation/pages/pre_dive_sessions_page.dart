@@ -50,21 +50,26 @@ class PreDiveSessionsPage extends ConsumerWidget {
     final service = ref.read(preDiveExcelExportServiceProvider);
 
     try {
-      final itemsBySession = await ref
-          .read(preDiveSessionRepositoryProvider)
-          .getItemsForSessions([for (final session in sessions) session.id]);
+      final sessionIds = [for (final session in sessions) session.id];
+      final repository = ref.read(preDiveSessionRepositoryProvider);
+      final itemsBySession = await repository.getItemsForSessions(sessionIds);
+      final sectionsBySession = await repository.getSectionsForSessions(
+        sessionIds,
+      );
 
       switch (destination) {
         case ExportDestination.share:
           await service.exportToExcel(
             sessions: sessions,
             itemsBySession: itemsBySession,
+            sectionsBySession: sectionsBySession,
             dateFormat: dateFormat,
           );
         case ExportDestination.saveToFile:
           await service.saveToFile(
             sessions: sessions,
             itemsBySession: itemsBySession,
+            sectionsBySession: sectionsBySession,
             dateFormat: dateFormat,
           );
       }

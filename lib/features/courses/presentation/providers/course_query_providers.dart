@@ -6,6 +6,7 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/courses/query/course_filter_query.dart';
 import 'package:submersion/features/courses/query/course_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// The course list's filter (#2365): the status chips and the query.
 final courseFilterProvider = StateProvider<CourseFilterState>(
@@ -34,3 +35,13 @@ void setCourseQuery(WidgetRef ref, QueryNode? query) {
     clearQuery: query == null,
   );
 }
+
+/// The course a list returned to reopens and scrolls back to: the one last
+/// opened, while the list as filtered still shows it (#3301).
+final rememberedCourseIdProvider = Provider<AsyncValue<String?>>(
+  (ref) => rememberedListedId(
+    items: ref.watch(filteredCoursesProvider),
+    rememberedId: ref.watch(highlightedCourseIdProvider),
+    idOf: (course) => course.id,
+  ),
+);

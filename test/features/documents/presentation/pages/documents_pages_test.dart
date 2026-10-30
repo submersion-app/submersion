@@ -15,6 +15,7 @@ import 'package:submersion/features/documents/presentation/pages/documents_page.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/plain_header_title.dart';
 import '../../../../helpers/test_database.dart';
 
 Future<Document> _save(
@@ -83,6 +84,7 @@ void main() {
                 .asNameMap()[state.uri.queryParameters['type']],
             initialPersonalOnly:
                 state.uri.queryParameters['owner'] == 'personal',
+            headerTitle: plainHeaderTitle('Documents'),
           ),
           routes: [
             GoRoute(

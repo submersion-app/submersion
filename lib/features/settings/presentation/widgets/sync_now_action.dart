@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/adopt_replaced_library_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Run a sync, first handling the two gated cases: a replaced cloud library
 /// awaiting adoption, and the device's first library-combining contact with
@@ -15,6 +17,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// irreversible merge of two libraries, so it must not be bypassable by
 /// whichever surface the user happened to tap.
 Future<void> runSyncNow(BuildContext context, WidgetRef ref) async {
+  if (!demoSealGuard(context, DemoSealedFeature.sync)) {
+    return;
+  }
   final notifier = ref.read(syncStateProvider.notifier);
   final replaceInfo = await notifier.libraryReplaceInfo();
   if (replaceInfo != null) {

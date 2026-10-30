@@ -111,6 +111,8 @@ Widget buildTestTable({
   EntityTableCellMenuBuilder<TestEntity, TestField>? cellMenuBuilder,
   bool Function(TestField)? isColumnFiltered,
   bool Function(TestEntity, TestField)? hasCellMenu,
+  bool Function(TestEntity)? isEntityMuted,
+  Widget? Function(TestEntity, TestField)? cellTrailingBuilder,
   Locale? locale,
 }) {
   return testApp(
@@ -129,6 +131,8 @@ Widget buildTestTable({
       cellMenuBuilder: cellMenuBuilder,
       isColumnFiltered: isColumnFiltered,
       hasCellMenu: hasCellMenu,
+      isEntityMuted: isEntityMuted,
+      cellTrailingBuilder: cellTrailingBuilder,
     ),
   );
 }

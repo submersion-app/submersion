@@ -15,11 +15,11 @@ import 'package:submersion/features/media_store/domain/media_transfer_hold.dart'
 /// wiped and re-minted, or repointed, and this check deliberately does NOT
 /// resolve that on its own. Adopting the store the container happens to hold
 /// looked attractive for iCloud, where the container is fixed per Apple ID,
-/// but `media` rows carry no store id: their `remoteUploadedAt` stamps would
-/// survive an adoption and keep reading "backed up" while pointing at
-/// objects the new store never held. Spec section 13 makes adopt one of
-/// three GUIDED choices (adopt / rebuild / detach) for that reason. Until
-/// those exist, suspending and telling the user is the honest answer.
+/// but the folder may not be this logbook's at all, and what happens to the
+/// copies already made is the diver's call. Spec section 13 makes adopt one
+/// of three GUIDED choices (adopt / rebuild / detach) for that reason: this
+/// check suspends and remembers the mismatch, and the reconnect sheet
+/// ([MediaStoreReconnect], issue #2303) is the way out.
 class MediaStorePreflight {
   MediaStorePreflight({
     required MediaStoreAttachState attachState,

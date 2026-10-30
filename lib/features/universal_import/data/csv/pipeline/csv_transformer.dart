@@ -124,6 +124,14 @@ class CsvTransformer {
           continue;
         }
 
+        // MySSI's combined people cell keeps its leading whitespace: the run
+        // of tabs ending in an indent is what marks a lone dive centre
+        // (splitBuddyInstructorCenter, #3629).
+        if (col.targetField == 'buddyInstructorCenter') {
+          mapped[col.targetField] = row[colIdx];
+          continue;
+        }
+
         // Apply explicit transform if specified.
         if (col.transform != null) {
           final transformed = _applyTransform(
@@ -453,8 +461,19 @@ class CsvTransformer {
 
     // Numeric (double) fields that may need unit conversion.
     if (_isDoubleField(lower)) {
-      final parsed = _valueConverter.parseDouble(rawValue);
-      if (parsed == null) return null;
+      final measured = _valueConverter.parseMeasurement(
+        rawValue,
+        UnitDetector.unitTypeForField(lower),
+      );
+      if (measured == null) return null;
+      final parsed = measured.value;
+
+      // A unit written in the value itself ("35 ft") says more than the
+      // header does, so it wins.
+      final inlineUnit = measured.unit;
+      if (inlineUnit != null) {
+        return _valueConverter.convertUnit(parsed, inlineUnit);
+      }
 
       // Check if the source header has an imperial unit that needs conversion.
       final unitInfo = headerUnits[sourceColumnLower];

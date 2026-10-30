@@ -545,6 +545,14 @@ void main() {
       expect(ids(liveSeriesOf([reparse, edit])), ['a']);
     });
 
+    test('activation ranking is stable in both comparison directions', () {
+      final activated = series('a', activatedAt: 200, samples: span);
+      final neverActivated = series('z', samples: span);
+
+      expect(ids(liveSeriesOf([activated, neverActivated])), ['a']);
+      expect(ids(liveSeriesOf([neverActivated, activated])), ['a']);
+    });
+
     test('activation outranks the null-computer rule', () {
       // A downloaded original chosen again from history over its edit.
       final original = series(
@@ -555,6 +563,29 @@ void main() {
       );
       final edit = series('z', activatedAt: 200, samples: span);
       expect(ids(liveSeriesOf([original, edit])), ['a']);
+    });
+
+    test('equal activation falls back to null-computer first', () {
+      final downloaded = series(
+        'b',
+        computerId: 'c1',
+        activatedAt: 200,
+        samples: span,
+      );
+      final manual = series('a', activatedAt: 200, samples: span);
+      expect(ids(liveSeriesOf([downloaded, manual])), ['a']);
+    });
+
+    test('equal activation and same computer-kind fall back to id', () {
+      final olderId = series('a', activatedAt: 200, samples: span);
+      final newerId = series('z', activatedAt: 200, samples: span);
+      expect(ids(liveSeriesOf([olderId, newerId])), ['z']);
+    });
+
+    test('two never-activated file-imported generations fall back to id', () {
+      final original = series('a', samples: span);
+      final edit = series('z', samples: span);
+      expect(ids(liveSeriesOf([original, edit])), ['z']);
     });
 
     test('series over disjoint ranges are all kept, in input order', () {

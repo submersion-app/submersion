@@ -99,4 +99,30 @@ void main() {
     addTearDown(corrupt.dispose);
     expect(corrupt.all(), isEmpty);
   });
+
+  // Issue #3482 review: a new backend or a sync reset starts a new set of
+  // peers, so names learned before it must not keep saying "In step with".
+  test('clear forgets every name and emits the empty map', () async {
+    await store.record('dev-a', 'Old iPad');
+    final emitted = <Map<String, String>>[];
+    final sub = store.changes.listen(emitted.add);
+    addTearDown(sub.cancel);
+
+    await store.clear();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(store.all(), isEmpty);
+    expect(emitted, [<String, String>{}]);
+  });
+
+  test('clearing an empty store emits nothing', () async {
+    final emitted = <Map<String, String>>[];
+    final sub = store.changes.listen(emitted.add);
+    addTearDown(sub.cancel);
+
+    await store.clear();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(emitted, isEmpty);
+  });
 }

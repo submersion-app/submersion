@@ -415,5 +415,299 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 291) await reportProgress();
+    // v292: shared_libraries.removals_json (issue #3481). Column only, filled
+    // from the library's removal records at the next sync; re-asserted in
+    // beforeOpen through _assertSharedLibrarySchema.
+    if (from < 292) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 292) await reportProgress();
+    // v293: connected_accounts.location (issue #3482). Column only, written
+    // when a device saves or signs in to an S3 or WebDAV account;
+    // re-asserted in beforeOpen through _assertConnectedAccountsSchema.
+    if (from < 293) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 293) await reportProgress();
+    // v294: clears certifications.photo_front / photo_back wherever the
+    // v277 copy put the card in the documents store (issue #3502). Data
+    // step, rung only. 293 is claimed by the accounts work (#3482).
+    if (from < 294) {
+      await _clearCopiedCardPhotoColumns();
+    }
+    if (from < 294) await reportProgress();
+    // v295: connected_accounts.nickname (issue #3522). Column only, written
+    // when the diver renames an account; re-asserted in beforeOpen through
+    // _assertConnectedAccountsSchema.
+    if (from < 295) {
+      await _assertConnectedAccountsSchema();
+    }
+    if (from < 295) await reportProgress();
+    // v296: media.color_adjustment and diver_settings.auto_color_correction
+    // (issue #3520). Re-asserted in beforeOpen. Renumbered from 292,
+    // claimed first by #3481.
+    if (from < 296) {
+      await _assertColorCorrectionColumns();
+    }
+    if (from < 296) await reportProgress();
+
+    // v297: trip_checklist_sections + trip_checklist_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 297 (see database.dart).
+    if (from < 297) {
+      await _assertAndBackfillTripChecklistSections();
+    }
+    if (from < 297) await reportProgress();
+
+    // v298: checklist_template_sections + checklist_template_items.section_id,
+    // backfilled from category, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 298 (see database.dart).
+    if (from < 298) {
+      await _assertAndBackfillChecklistTemplateSections();
+    }
+    if (from < 298) await reportProgress();
+
+    // v299: pre_dive_checklist_template_sections +
+    // pre_dive_checklist_template_items.section_id, backfilled from
+    // section (non-built-in templates only; built-ins get stable ids via
+    // the seed, re-asserted in beforeOpen), which is then dropped (issue
+    // #3360). Raises minimumCompatibleSchemaVersion to 299 (see
+    // database.dart).
+    if (from < 299) {
+      await _assertAndBackfillPreDiveTemplateSections();
+    }
+    if (from < 299) await reportProgress();
+
+    // v300: pre_dive_session_sections + pre_dive_session_items.section_id,
+    // backfilled from section, which is then dropped (issue #3360). Raises
+    // minimumCompatibleSchemaVersion to 300 (see database.dart) -- the
+    // last of the four checklist-sections table groups.
+    if (from < 300) {
+      await _assertAndBackfillPreDiveSessionSections();
+    }
+    if (from < 300) await reportProgress();
+
+    // v301: logbook rules and their run history (issue #3513). Tables
+    // only; re-asserted in beforeOpen through _assertRuleSchema.
+    // Renumbered from 292, then 296, then 297 as main took each.
+    if (from < 301) {
+      await _assertRuleSchema();
+    }
+    if (from < 301) await reportProgress();
+
+    // v302: media_stores.account_id (issue #3482). Column only, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 302) await _assertMediaStoresAccountColumn();
+    if (from < 302) await reportProgress();
+
+    // v303: media.remote_store_id (issue #3482). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 303) await _assertMediaRemoteStoreColumn();
+    if (from < 303) await reportProgress();
+
+    // v304: diver_settings planner Setup-accordion global defaults (issue
+    // #3552). Columns only; re-asserted in beforeOpen through
+    // _assertPlannerDefaultColumns. Renumbered from 302 as #3482 shipped
+    // 302-303 first.
+    if (from < 304) {
+      await _assertPlannerDefaultColumns();
+    }
+    if (from < 304) await reportProgress();
+
+    // v305: dive_plans Setup-accordion columns created NOT NULL in the
+    // initial schema drop that constraint, so a plan can store "unset,
+    // follow Settings" (issue #3552). Table rebuild; re-asserted in
+    // beforeOpen through _assertDivePlanSetupFieldsNullable. Review focus:
+    // this rewrites dive_plans' stored schema in place - see the helper's
+    // doc comment for why it is safe (transactional, additive-only
+    // substitution of the targeted NOT NULL clauses). Renumbered from 303.
+    if (from < 305) {
+      await _assertDivePlanSetupFieldsNullable();
+    }
+    if (from < 305) await reportProgress();
+
+    // v306: dive_plan_missions battery_reserve_fraction and walk_speed_mps
+    // made nullable (issue #3552) - the DPV Team counterpart of v305.
+    // Table rebuild; re-asserted in beforeOpen through
+    // _assertDivePlanMissionFieldsNullable. Renumbered from 304.
+    if (from < 306) {
+      await _assertDivePlanMissionFieldsNullable();
+    }
+    if (from < 306) await reportProgress();
+
+    // v307: diver_settings air-break/turn-pressure defaults and
+    // dive_plans.air_breaks_explicitly_off (issue #3552, follow-up to
+    // v304-306). Additive columns only, re-asserted in beforeOpen through
+    // _assertAirBreaksTurnPressureDefaultColumns. Renumbered from 305.
+    if (from < 307) {
+      await _assertAirBreaksTurnPressureDefaultColumns();
+    }
+    if (from < 307) await reportProgress();
+
+    // v308: reserve pressure and gradient factors join the live-resolve
+    // group (issue #3552, follow-up to v304-307) - dive_plans columns made
+    // nullable (table rebuild), diver_settings gains the reserve-pressure
+    // default (gfLow/gfHigh already had one). Re-asserted in beforeOpen
+    // through _assertDivePlanReserveAndGfNullable. Renumbered from 306.
+    if (from < 308) {
+      await _assertDivePlanReserveAndGfNullable();
+    }
+    if (from < 308) await reportProgress();
+
+    // v309: media and document tags (issue #1970). Column-and-table rung, no
+    // backfill: existing tags stay off media and documents. Re-asserted in
+    // beforeOpen through _assertMediaAndDocumentTagSchema.
+    if (from < 309) {
+      await _assertTagScopeColumns();
+      await _assertMediaAndDocumentTagSchema();
+    }
+    if (from < 309) await reportProgress();
+
+    // v310: diver_settings.downloads_follow_computer_owner (issue #2050).
+    // Column only, on by default; re-asserted in beforeOpen. Renumbered from
+    // 309 as #3605 shipped 309 first.
+    if (from < 310) await _assertDownloadOwnerColumn();
+    if (from < 310) await reportProgress();
+
+    // v311: the profiles a trip or site is shared with when it is not
+    // shared with everyone (issue #2151). Table-only rung, no backfill;
+    // re-asserted in beforeOpen. Renumbered from 309 and 310, which #1970
+    // and #2050 took.
+    if (from < 311) {
+      await _assertTripSharesSchema();
+      await _assertSiteSharesSchema();
+    }
+    if (from < 311) await reportProgress();
+
+    // v312: dive_tanks.extra_regulator_ids (issue #3375). Column only, no
+    // backfill: a tank's single regulator stays the first. Re-asserted in
+    // beforeOpen through _assertTankExtraRegulatorIds. Renumbered from 310
+    // and 311 as #3611 and #2151 shipped them first.
+    if (from < 312) {
+      await _assertTankExtraRegulatorIds();
+    }
+    if (from < 312) await reportProgress();
+
+    // v313: dive_centers.is_permanently_closed (issue #3379). Column only, no
+    // backfill: every existing center stays open. Re-asserted in beforeOpen
+    // through _assertDiveCenterClosedColumn. Renumbered from 310 and 312,
+    // which #2050 and #3375 took.
+    if (from < 313) {
+      await _assertDiveCenterClosedColumn();
+    }
+    if (from < 313) await reportProgress();
+
+    // v314: cylinder_config_items.deco_switch_depth (issue #3567), the MOD
+    // set by hand on a saved cylinder. Column only, no backfill;
+    // re-asserted in beforeOpen. Renumbered from 304, which #3552 took.
+    if (from < 314) await _assertCylinderConfigItemModColumn();
+    if (from < 314) await reportProgress();
+
+    // v315: diver_settings.omit_unused_oc_gases (issue #3668). Column only,
+    // off by default; re-asserted in beforeOpen.
+    if (from < 315) await _assertOmitUnusedOcGasesColumn();
+    if (from < 315) await reportProgress();
+
+    // v316: one Equipment entry per dive computer and transmitter (issue
+    // #3676). transmitters.is_configured, re-asserted in beforeOpen; then
+    // every device gets its item (also run on every open), names and notes
+    // are aligned, serials seen in downloads are registered, and transmitter
+    // items join the dives that carry them. The last three are ladder-only:
+    // each acts on history once (device_gear_upgrade.dart). Renumbered from
+    // 315, which #3668 took.
+    if (from < 316) {
+      await _assertTransmitterConfiguredColumn();
+      await ensureDeviceGearLinks(this);
+      await alignComputerNamesAndNotes(this);
+      await registerUnassignedSerials(this);
+      await linkTransmitterGearToDives(this);
+    }
+    if (from < 316) await reportProgress();
+
+    // v317: a tank's last visual inspection and last hydro dates become its
+    // VIP and hydro clocks' baselines (issue #3662), where the clock has no
+    // baseline and no service of its kind. Data only, one time: from here
+    // on the equipment save writes them, and sync repeats it for tanks from
+    // peers below v317. 316 is held by PR #3685.
+    if (from < 317) await backfillTankInspectionBaselines();
+    if (from < 317) await reportProgress();
+
+    // v318: the computer tissue snapshot keeps only what has no dive column
+    // (issue #2555). Moves the CNS, OTU and deco model stored snapshots
+    // held into dives and the primary source where those are empty. New
+    // imports no longer write them, and SyncService runs the same move after
+    // applying a peer's rows, for a dive an older peer still sends in the
+    // old shape. 317 is #3662 (tank inspection baselines); 316 is held by
+    // PR #3685.
+    if (from < 318) await _moveComputerTissueScalars();
+    if (from < 318) await reportProgress();
+
+    // v319: per-O2-band deco ppO2 limits and the explicit MOD for 100% O2
+    // (issue #3580), Dive Planner only. diver_settings gains the toggles
+    // and band/depth values; dive_plans gains the matching per-plan
+    // overrides. Column only, both off by default; re-asserted in
+    // beforeOpen, which also covers a database already at 320.
+    if (from < 319) await _assertPpO2DecoBandColumns();
+    if (from < 319) await reportProgress();
+
+    // v320: the device-local nearby_peers table and the publish state's
+    // relay floor (issue #3731). 319 is held
+    // by PR #3726.
+    if (from < 320) await _assertNearbySchema();
+    if (from < 320) await reportProgress();
+
+    // v321: per-plan "explicitly off" flags for the bands and the
+    // explicit-depth override (issue #3580), so a plan can force either off
+    // regardless of the diver's Settings toggle. Column only, both off by
+    // default; re-asserted in beforeOpen, which also covers a database
+    // already at 323 (v321 and v322 sit below main's v323).
+    if (from < 321) await _assertPpO2DecoBandsExplicitlyOffColumns();
+    if (from < 321) await reportProgress();
+
+    // v322: hypercapnia-bailout phase for OC bailout during a CCR/SCR dive
+    // (issue #3743). diver_settings gains the toggle/factor/duration;
+    // dive_plans gains the matching per-plan overrides and "explicitly
+    // off" flag. Column only, both off by default; re-asserted in
+    // beforeOpen.
+    if (from < 322) await _assertHypercapniaBailoutColumns();
+    if (from < 322) await reportProgress();
+
+    // v323: diver_settings list arrangement columns and their sync clock
+    // (issue #3748); re-asserted in beforeOpen. 321 and 322 are held by
+    // PR #3726.
+    if (from < 323) await _assertListArrangementColumns();
+    if (from < 323) await reportProgress();
+
+    // v324: buddy card swap columns on buddies, certifications and divers
+    // (issue #3728).
+    if (from < 324) await _assertBuddyCardColumns();
+    if (from < 324) await reportProgress();
+
+    // v325: trips.parent_trip_id, the larger trip a side trip is part of
+    // (issue #3658). Column and index only, no backfill; re-asserted in
+    // beforeOpen. Renumbered from 323, which #3748 shipped first; #3728
+    // then shipped 324.
+    if (from < 325) await _assertTripParentColumn();
+    if (from < 325) await reportProgress();
+
+    // v326: people tagged on photos and videos (issue #1745). Table-only
+    // rung, no backfill; re-asserted in beforeOpen. Renumbered from 323 and
+    // 324, which #3748 and #3728 took; 325 is #3786's; 319, 321 and 322 are
+    // held by PR #3726.
+    if (from < 326) await _assertMediaPeopleSchema();
+    if (from < 326) await reportProgress();
+
+    // v327: adds the `pp_o2_*` deco band columns Drift reads and drops the
+    // ones the v319 and v321 rungs first added spelled `ppo2_*` (issue
+    // #3809). Every database that carries the misspelling is at v326 or
+    // below, so the drop runs once. The adds are also re-asserted in
+    // beforeOpen, but the rung does not lean on that: anything that reads
+    // these tables through Drift between here and the backstop would fail.
+    if (from < 327) {
+      await _assertPpO2DecoBandColumns();
+      await _assertPpO2DecoBandsExplicitlyOffColumns();
+      await _dropMisspelledPpO2DecoBandColumns();
+    }
+    if (from < 327) await reportProgress();
   }
 }

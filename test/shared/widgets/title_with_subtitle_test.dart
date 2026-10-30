@@ -7,6 +7,7 @@ Widget _inBox(
   double width,
   SubtitleText? subtitle, {
   double subtitleIndent = 0,
+  double subtitleGap = 0,
 }) => MaterialApp(
   home: Scaffold(
     body: Align(
@@ -17,6 +18,7 @@ Widget _inBox(
           title: const Text('Dives'),
           subtitle: subtitle,
           subtitleIndent: subtitleIndent,
+          subtitleGap: subtitleGap,
         ),
       ),
     ),
@@ -75,6 +77,31 @@ void main() {
       tester.getTopLeft(find.text('34 of 812 dives')).dx -
           tester.getTopLeft(find.text('Dives')).dx,
       8,
+    );
+  });
+
+  testWidgets('the subtitle sits flush under the title by default', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_inBox(400, _count));
+
+    expect(
+      tester.getTopLeft(find.text('34 of 812 dives')).dy,
+      tester.getBottomLeft(find.text('Dives')).dy,
+    );
+  });
+
+  // A title that ends in a line of its own, such as a section switch's
+  // underline, keeps the subtitle off it (#3663).
+  testWidgets('subtitleGap puts that much space above the subtitle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_inBox(400, _count, subtitleGap: 4));
+
+    expect(
+      tester.getTopLeft(find.text('34 of 812 dives')).dy -
+          tester.getBottomLeft(find.text('Dives')).dy,
+      4,
     );
   });
 

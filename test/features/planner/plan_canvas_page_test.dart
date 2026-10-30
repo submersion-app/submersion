@@ -27,6 +27,9 @@ import 'package:submersion/features/planner/presentation/widgets/contingency_chi
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/data/visibility/item_sharing.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
@@ -386,6 +389,25 @@ void main() {
     final diverId = await createDiver(tester, 'convert-diver');
     final ownerId = await createDiver(tester, 'site-owner');
     final siteId = await createSite(tester, ownerId: ownerId, isShared: true);
+
+    final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
+    expect(listed, hasLength(1));
+    expect(listed.single.site?.id, siteId);
+  });
+
+  testWidgets('convert keeps a site another diver shares with this diver by '
+      'name (issue #2151)', (tester) async {
+    final diverId = await createDiver(tester, 'convert-diver');
+    final ownerId = await createDiver(tester, 'site-owner');
+    final siteId = await createSite(tester, ownerId: ownerId);
+    await tester.runAsync(
+      () => ItemSharesRepository().setSharing(
+        SharedItemKind.site,
+        siteId,
+        ItemSharing(profileIds: {diverId}),
+        actingDiverId: ownerId,
+      ),
+    );
 
     final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
     expect(listed, hasLength(1));

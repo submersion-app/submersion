@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:submersion_transcoder/src/process_runner.dart';
 import 'package:submersion_transcoder/src/transcode_engine.dart';
@@ -35,6 +36,52 @@ class LinuxFfmpegEngine implements TranscodeEngine {
     ]);
     if (result.exitCode != 0) return null;
     return parseFfprobeJson(result.stdout);
+  }
+
+  @override
+  Future<List<Uint8List?>> extractFrames({
+    required File source,
+    required List<Duration> times,
+    int maxDimension = 160,
+    bool exact = false,
+  }) async {
+    if (times.isEmpty) return const [];
+    final dir = await Directory.systemTemp.createTemp('frames');
+    try {
+      final frames = <Uint8List?>[];
+      for (var i = 0; i < times.length; i++) {
+        final out = File.fromUri(dir.uri.resolve('frame_$i.jpg'));
+        final seconds = times[i].inMilliseconds / 1000;
+        final at = seconds.toStringAsFixed(3);
+        final result = await _runner.run('ffmpeg', [
+          '-v',
+          'error',
+          // Before -i: seeks to the keyframe and decodes on to the very frame
+          // (-accurate_seek is on by default), so it serves an exact pick as
+          // well. After -i it would decode the clip from its start.
+          '-ss',
+          at,
+          '-i',
+          source.path,
+          '-frames:v',
+          '1',
+          '-vf',
+          'scale=$maxDimension:$maxDimension:force_original_aspect_ratio=decrease',
+          '-q:v',
+          '4',
+          '-y',
+          out.path,
+        ]);
+        frames.add(
+          result.exitCode == 0 && await out.exists()
+              ? await out.readAsBytes()
+              : null,
+        );
+      }
+      return frames;
+    } finally {
+      await dir.delete(recursive: true);
+    }
   }
 
   @override

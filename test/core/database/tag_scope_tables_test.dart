@@ -45,7 +45,7 @@ void main() {
 
   test('equipment keeps its column, table and clockless links (v219)', () {
     expect(TagScope.equipment.table, same(equipmentTagScopeTable));
-    expect(tagScopeTables.last, same(equipmentTagScopeTable));
+    expect(tagScopeTables[2], same(equipmentTagScopeTable));
     expect(equipmentTagScopeTable.scopeColumn, 'applies_to_equipment');
     expect(equipmentTagScopeTable.junctionTable, 'equipment_tags');
     expect(equipmentTagScopeTable.parentColumn, 'equipment_id');

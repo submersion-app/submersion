@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/restore_source_missing_exception.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -285,6 +287,87 @@ void main() {
       ),
       throwsA(isA<sqlite3.SqliteException>()),
     );
+  });
+
+  test('reinitializeAtPath waits for a sync merging before it closes the '
+      'open database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(dbPath),
+    );
+    final original = DatabaseService.instance.database;
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    final otherPath = p.join(tempDir.path, 'other.db');
+    var reopened = false;
+    final reinit = DatabaseService.instance
+        .reinitializeAtPath(otherPath)
+        .then((_) => reopened = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(reopened, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+    expect(File(otherPath).existsSync(), isFalse);
+
+    merging.complete();
+    await sync;
+    await reinit;
+    expect(await DatabaseService.instance.databasePath, otherPath);
+  });
+
+  test('resetDatabase waits for a sync merging before it closes the '
+      'database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    final original = DatabaseService.instance.database;
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    var reset = false;
+    final resetting = DatabaseService.instance
+        .resetDatabase(backupPath: p.join(tempDir.path, 'pre-reset.db'))
+        .then((_) => reset = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(reset, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+
+    merging.complete();
+    await sync;
+    await resetting;
+    expect(DatabaseService.instance.databaseOrNull, isNot(same(original)));
+  });
+
+  test('restore waits for a sync merging before it touches the live '
+      'database (issue #3798)', () async {
+    addTearDown(SyncCoordinator.reset);
+    final defaultPath = p.join(tempDir.path, 'Submersion', 'submersion.db');
+    await DatabaseService.instance.initialize(
+      locationService: _FakeLocation(defaultPath),
+    );
+    final original = DatabaseService.instance.database;
+    final backupPath = p.join(tempDir.path, 'backup.db');
+    await DatabaseService.instance.backup(backupPath);
+    final merging = Completer<void>();
+    final sync = SyncCoordinator.run(() => merging.future);
+
+    var restored = false;
+    final restore = DatabaseService.instance
+        .restore(backupPath)
+        .then((_) => restored = true);
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(restored, isFalse);
+    expect(DatabaseService.instance.databaseOrNull, same(original));
+
+    merging.complete();
+    await sync;
+    await restore;
+    expect(DatabaseService.instance.databaseOrNull, isNot(same(original)));
   });
 
   test('restore closes strictly, copies the backup, and reopens', () async {

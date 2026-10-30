@@ -5,9 +5,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
-import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -150,24 +150,12 @@ class DensityInputCard extends ConsumerWidget {
               children: [
                 _Labelled(
                   label: l10n.gasCalculators_density_temperature,
-                  child: SegmentedButton<GasDensityTemperature>(
-                    segments: [
-                      for (final option in GasDensityTemperature.values)
-                        ButtonSegment(
-                          value: option,
-                          label: Text(
-                            units.formatTemperature(
-                              option.celsius,
-                              decimals: 0,
-                            ),
-                          ),
-                        ),
-                    ],
-                    selected: {temperature},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (selection) =>
+                  child: GasTemperatureSegmentedButton(
+                    units: units,
+                    selected: temperature,
+                    onChanged: (value) =>
                         ref.read(densityTemperatureProvider.notifier).state =
-                            selection.first,
+                            value,
                   ),
                 ),
                 _Labelled(

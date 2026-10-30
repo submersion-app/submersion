@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -21,7 +22,10 @@ final _trip = Trip(
 void main() {
   /// Opens the trip list's search page the way its app bar does, inside a
   /// router so a tapped result can navigate.
-  Future<void> openSearch(WidgetTester tester) async {
+  Future<void> openSearch(
+    WidgetTester tester, {
+    List<Override> extra = const [],
+  }) async {
     final router = GoRouter(
       routes: [
         GoRoute(
@@ -51,6 +55,7 @@ void main() {
         overrides: [
           ...await getBaseOverrides(),
           tripSearchProvider.overrideWith((ref, q) async => [_trip]),
+          ...extra,
         ],
       ),
     );
@@ -75,5 +80,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Red Sea Liveaboard'), findsOneWidget);
     expect(find.text('open search'), findsNothing);
+  });
+
+  testWidgets('a side trip found by search names its larger trip', (
+    tester,
+  ) async {
+    final egypt = Trip(
+      id: 'p',
+      name: 'Egypt 2026',
+      startDate: DateTime(2026, 2, 20),
+      endDate: DateTime(2026, 3, 10),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+    await openSearch(
+      tester,
+      extra: [parentTripProvider('t1').overrideWith((ref) async => egypt)],
+    );
+    expect(find.textContaining('Part of Egypt 2026'), findsOneWidget);
   });
 }

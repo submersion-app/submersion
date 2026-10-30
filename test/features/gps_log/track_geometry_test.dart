@@ -174,11 +174,15 @@ void main() {
 
   group('trackBounds', () {
     test('returns null for an empty track', () {
-      expect(trackBounds(const []), isNull);
+      expect(gpsTrackBounds(const []), isNull);
     });
 
     test('computes a simple bounding box', () {
-      final bounds = trackBounds([p(10.0, 20.0), p(12.0, 25.0), p(11.0, 22.0)]);
+      final bounds = gpsTrackBounds([
+        p(10.0, 20.0),
+        p(12.0, 25.0),
+        p(11.0, 22.0),
+      ]);
       expect(bounds!.minLat, 10.0);
       expect(bounds.maxLat, 12.0);
       expect(bounds.minLon, 20.0);
@@ -186,7 +190,7 @@ void main() {
     });
 
     test('collapses to a point for a single fix', () {
-      final bounds = trackBounds([p(5.0, -3.0)]);
+      final bounds = gpsTrackBounds([p(5.0, -3.0)]);
       expect(bounds!.minLat, 5.0);
       expect(bounds.maxLat, 5.0);
       expect(bounds.minLon, -3.0);
@@ -196,7 +200,7 @@ void main() {
     test('normalizes an antimeridian crossing to a narrow span', () {
       // 179.9 E to 179.9 W is 0.2 deg wide, not 359.8. The unwrapped
       // maxLon exceeds 180, which is what the camera fit expects.
-      final bounds = trackBounds([p(0.0, 179.9), p(0.0, -179.9)]);
+      final bounds = gpsTrackBounds([p(0.0, 179.9), p(0.0, -179.9)]);
       expect(bounds!.maxLon - bounds.minLon, closeTo(0.2, 1e-9));
       expect(bounds.minLon, closeTo(179.9, 1e-9));
       expect(bounds.maxLon, closeTo(180.1, 1e-9));
@@ -206,11 +210,22 @@ void main() {
       'does not unwrap a track that merely spans a wide longitude range',
       () {
         // A genuine 60 deg span must stay 60 deg, not get folded.
-        final bounds = trackBounds([p(0.0, -30.0), p(0.0, 30.0)]);
+        final bounds = gpsTrackBounds([p(0.0, -30.0), p(0.0, 30.0)]);
         expect(bounds!.minLon, -30.0);
         expect(bounds.maxLon, 30.0);
       },
     );
+
+    test('the generic form works over any point type via latOf/lonOf, not '
+        'just GpsTrackPoint (an underwater track\'s LatLng route reuses this '
+        'same antimeridian-safe extent -- see TrackCamera.forLatLngs)', () {
+      final bounds = trackBounds(
+        const [(10.0, 179.9), (0.0, -179.9)],
+        latOf: (t) => t.$1,
+        lonOf: (t) => t.$2,
+      );
+      expect(bounds!.maxLon - bounds.minLon, closeTo(0.2, 1e-9));
+    });
   });
 
   group('speedMpsBetween', () {

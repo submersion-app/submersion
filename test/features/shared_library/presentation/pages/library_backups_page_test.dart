@@ -26,6 +26,7 @@ import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/mock_file_picker_platform.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/shared_library_test_account.dart';
 
 final _manual = LibraryBackupRecord(
   backupId: 'b1',
@@ -53,6 +54,7 @@ final _auto = LibraryBackupRecord(
 
 SharedLibraryMembershipService _noMemberships() =>
     SharedLibraryMembershipService(
+      accountById: anyTestAccount,
       store: SharedLibraryStore(),
       transportFor: ({required account, required prefix}) =>
           throw UnimplementedError(),

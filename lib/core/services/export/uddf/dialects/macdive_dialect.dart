@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/dialects/nested_site_country.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dialect.dart';
 
 /// Normalizes UDDF files exported by MacDive into the canonical form
@@ -91,27 +92,8 @@ class MacDiveDialect extends UddfDialect {
 
   // Corrects element nesting and misplaced elements.
   void _fixStructure(XmlDocument doc) {
-    _fixSiteCountry(doc);
+    copyNestedSiteCountry(doc);
     _moveEquipmentUsed(doc);
-  }
-
-  // Copies <country> from geography/address/country to a direct child of
-  // each <site> element, where the parser expects it.
-  void _fixSiteCountry(XmlDocument doc) {
-    for (final site in doc.findAllElements('site')) {
-      final geo = site.findElements('geography').firstOrNull;
-      if (geo == null) continue;
-      final address = geo.findElements('address').firstOrNull;
-      if (address == null) continue;
-      final country = address.findElements('country').firstOrNull;
-      if (country == null) continue;
-      // Skip if <site> already has a direct <country> child (idempotency).
-      final hasDirectCountry = site.children.whereType<XmlElement>().any(
-        (child) => child.name.local == 'country',
-      );
-      if (hasDirectCountry) continue;
-      site.children.add(country.copy());
-    }
   }
 
   // Copies <equipmentused> from <informationafterdive> into

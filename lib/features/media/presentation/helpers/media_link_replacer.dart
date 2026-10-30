@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Picks a replacement file for [item] and routes the re-link through the
 /// repair engine.
@@ -39,6 +42,9 @@ Future<bool> replaceMediaLink(
   /// the pumps that dismiss the dialog, which deadlocks.
   Future<({String hash, int sizeBytes})> Function(File)? hashFile,
 }) async {
+  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
+    return false;
+  }
   // Read before the first await. The picker and the confirm dialog can both
   // outlive this widget, and touching ref afterwards throws once it is
   // disposed. Capturing here also means a repair the user already confirmed
@@ -89,6 +95,7 @@ Future<bool> replaceMediaLink(
 }
 
 Future<String?> _pickImagePath() async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
   final result = await FilePicker.pickFile(type: FileType.image);
   return result?.path;
 }

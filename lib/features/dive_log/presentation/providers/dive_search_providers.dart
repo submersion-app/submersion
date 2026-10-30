@@ -6,6 +6,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -42,20 +43,34 @@ final diveSearchBarVisibleProvider = Provider<bool>(
 );
 
 /// The jump-to-dive rows for [query]: the typed query ALONE over every dive
-/// of the diver, ignoring the list's other axes, newest first. A failure
+/// of the diver, ignoring the list's other axes, newest first. A query of
+/// only a number puts the dives with that number first (#3455). A failure
 /// hides the rows rather than surfacing an error over the list.
 final diveJumpResultsProvider = FutureProvider.autoDispose
     .family<List<DiveSummary>, QueryNode>((ref, query) async {
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDivesChanges());
+      final disabledRules = ref.watch(safetyReviewDisabledRulesProvider);
+      Future<List<DiveSummary>> fetch(QueryNode node) =>
+          repository.getDiveSummaries(
+            diverId: diverId,
+            filter: DiveFilterState(query: node),
+            limit: kDiveJumpResultLimit,
+            disabledSafetyRules: disabledRules,
+          );
       try {
-        return await repository.getDiveSummaries(
-          diverId: diverId,
-          filter: DiveFilterState(query: query),
-          limit: kDiveJumpResultLimit,
-          disabledSafetyRules: ref.watch(safetyReviewDisabledRulesProvider),
-        );
+        final number = bareDiveNumber(query);
+        if (number == null) return await fetch(query);
+        final (numbered, text) = await (
+          _numberedOrNone(fetch, number),
+          fetch(query),
+        ).wait;
+        final seen = {for (final d in numbered) d.id};
+        return [
+          ...numbered,
+          ...text.where((d) => !seen.contains(d.id)),
+        ].take(kDiveJumpResultLimit).toList();
       } catch (e, stackTrace) {
         _log.error(
           'Jump-to-dive query failed',
@@ -65,6 +80,20 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
         return const <DiveSummary>[];
       }
     });
+
+/// The dives numbered [number], or none when that lookup fails: the text
+/// matches still show, as they did before a number had rows of its own.
+Future<List<DiveSummary>> _numberedOrNone(
+  Future<List<DiveSummary>> Function(QueryNode node) fetch,
+  int number,
+) async {
+  try {
+    return await fetch(diveNumberQuery(number));
+  } catch (e, stackTrace) {
+    _log.error('Dive number lookup failed', error: e, stackTrace: stackTrace);
+    return const <DiveSummary>[];
+  }
+}
 
 /// Saves the whole dive search (#2773, spec 5.4) as one saved query under a
 /// name the diver gives; a provider so tests can stand in for the dialog

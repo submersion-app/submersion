@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show setEquals;
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
@@ -27,6 +29,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
@@ -39,6 +42,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_clone_se
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -55,6 +59,14 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
   /// clocks, sets and documents.
   final String? cloneFromId;
 
+  /// For a new item: the type the form starts on, as the Dive Computers and
+  /// Transmitters lists' "add by hand" asks for (issue #3676).
+  final EquipmentType? initialType;
+
+  /// For a new item: the serial the form starts with, as a transmitter
+  /// reached from its serial (an old "assign transmitter" link) hands over.
+  final String? initialSerial;
+
   const EquipmentEditPage({
     super.key,
     this.equipmentId,
@@ -63,6 +75,8 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
     this.onCancel,
     this.initialParentId,
     this.cloneFromId,
+    this.initialType,
+    this.initialSerial,
   });
 
   bool get isEditing => equipmentId != null;
@@ -139,6 +153,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       _initialCurrencyCode = ref.read(defaultCurrencyProvider);
       _purchaseCurrencyController.text = _initialCurrencyCode;
       _parentEquipmentId = widget.initialParentId;
+      if (widget.initialType case final type?) _selectedType = type;
+      if (widget.initialSerial case final serial?) {
+        _serialController.text = serial;
+      }
     }
     _nameController.addListener(_onFieldChanged);
     _brandController.addListener(_onFieldChanged);
@@ -257,7 +275,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       final tags = await ref.read(tagsForEquipmentProvider(sourceId).future);
       final own = [
         for (final t in tags)
-          if (diverId == null || t.diverId == null || t.diverId == diverId) t,
+          if (isOwnOrUnowned(ownerId: t.diverId, activeDiverId: diverId)) t,
       ];
       if (mounted && !_tagsTouched && own.isNotEmpty) {
         setState(() => _selectedTags = own);
@@ -442,6 +460,14 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   }
 
   Widget _buildForm(BuildContext context, EquipmentItem? existingEquipment) {
+    // A device's item keeps its type (issue #3676): the dive computer or
+    // transmitter behind it would otherwise point at a mask.
+    final editingId = widget.equipmentId;
+    final typeLocked =
+        editingId != null &&
+        // Locked until the lookup answers, so the field is never briefly
+        // editable on a device's item.
+        (ref.watch(equipmentHasDeviceProvider(editingId)).value ?? true);
     final body = Form(
       key: _formKey,
       child: ListView(
@@ -453,6 +479,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             decoration: InputDecoration(
               labelText: context.l10n.equipment_edit_typeLabel,
               prefixIcon: const Icon(Icons.category),
+              helperText: typeLocked
+                  ? context.l10n.equipment_edit_typeLockedHelper
+                  : null,
+              helperMaxLines: 2,
             ),
             items: [
               for (final type in EquipmentType.values.sortedByLocalizedName(
@@ -463,21 +493,23 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   child: Text(type.localizedName(context.l10n)),
                 ),
             ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedType = value;
-                  // A parent chosen for the old type may not hold the new
-                  // one (a computer holds a battery, never an O2 cell), and
-                  // the picker would show "none" while the stale id was
-                  // still written on save. Keep it only if it can: a host's
-                  // "Add part" starts on a type that holds nothing, and its
-                  // parent must survive the switch to a cell or battery.
-                  _parentEquipmentId = _validParentIdFor(value);
-                  _hasChanges = true;
-                });
-              }
-            },
+            onChanged: typeLocked
+                ? null
+                : (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedType = value;
+                        // A parent chosen for the old type may not hold the new
+                        // one (a computer holds a battery, never an O2 cell), and
+                        // the picker would show "none" while the stale id was
+                        // still written on save. Keep it only if it can: a host's
+                        // "Add part" starts on a type that holds nothing, and its
+                        // parent must survive the switch to a cell or battery.
+                        _parentEquipmentId = _validParentIdFor(value);
+                        _hasChanges = true;
+                      });
+                    }
+                  },
           ),
           const SizedBox(height: 16),
 
@@ -652,7 +684,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           const SizedBox(height: 24),
 
           // Notes
-          TextFormField(
+          MarkdownNotesField(
             controller: _notesController,
             decoration: InputDecoration(
               labelText: context.l10n.equipment_edit_notesLabel,
@@ -829,10 +861,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
                         context.l10n.equipment_edit_embeddedHeader_saveButton,
@@ -1277,6 +1306,18 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         );
         ref.invalidate(equipmentItemProvider(widget.equipmentId!));
         savedId = widget.equipmentId!;
+        // A transmitter item's serial feeds the gear-serial mismatch finding
+        // (issue #3367) on the dives its registry entries match; those
+        // findings are stored, so they are rescanned now.
+        if (existingEquipment?.serialNumber != equipment.serialNumber) {
+          logFailure(
+            ref
+                .read(transmitterRepositoryProvider)
+                .rescanDivesForTransmitterItem(savedId),
+            EquipmentEditPage,
+            'rescan dives for the transmitter item',
+          );
+        }
       } else {
         final newEquipment = await notifier.addEquipment(
           equipment,
@@ -1355,6 +1396,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(hidden),
+              persist: false,
               action: SnackBarAction(
                 label: show,
                 onPressed: () {

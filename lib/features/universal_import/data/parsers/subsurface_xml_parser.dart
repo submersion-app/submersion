@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_declared_site.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_gps.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_resolver.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_tag_vocabulary.dart';
@@ -88,7 +89,10 @@ class SubsurfaceXmlParser implements ImportParser {
     final resolver = SubsurfaceSiteResolver.of(
       declaredSites: divesitesElement == null
           ? const []
-          : _parseSites(divesitesElement),
+          : divesitesElement
+                .findElements('site')
+                .map(parseDeclaredSubsurfaceSite)
+                .toList(),
       dives: divesElement == null ? const [] : _diveElementsOf(divesElement),
     );
     if (resolver.sites.isNotEmpty) {
@@ -444,43 +448,6 @@ class SubsurfaceXmlParser implements ImportParser {
       if (profile.isNotEmpty) 'profile': profile,
       if (events.isNotEmpty) 'events': events,
     };
-  }
-
-  /// Reads every `<site>` verbatim, including the ones Subsurface left
-  /// unnamed. Deciding which of these are the same place is the folder's job:
-  /// dropping an unnamed site here would strand its dives with no coordinates
-  /// at all, which is how imported dives used to lose their location.
-  List<Map<String, dynamic>> _parseSites(XmlElement divesites) {
-    final sites = <Map<String, dynamic>>[];
-    for (final site in divesites.findElements('site')) {
-      final siteData = <String, dynamic>{};
-      final name = site.getAttribute('name')?.trim();
-      if (name != null && name.isNotEmpty) siteData['name'] = name;
-      final uuid = site.getAttribute('uuid')?.trim();
-      if (uuid != null && uuid.isNotEmpty) siteData['uddfId'] = uuid;
-      final coordinates = parseSubsurfaceGps(site.getAttribute('gps'));
-      if (coordinates != null) {
-        siteData['latitude'] = coordinates.$1;
-        siteData['longitude'] = coordinates.$2;
-      }
-      final description = site.getAttribute('description');
-      if (description != null && description.trim().isNotEmpty) {
-        siteData['description'] = description.trim();
-      }
-      for (final geo in site.findElements('geo')) {
-        final cat = geo.getAttribute('cat');
-        final value = geo.getAttribute('value');
-        if (value == null) continue;
-        if (cat == '2') siteData['country'] = value;
-        if (cat == '3') siteData['region'] = value;
-      }
-      final notes = site.findElements('notes').firstOrNull?.innerText;
-      if (notes != null && notes.trim().isNotEmpty) {
-        siteData['notes'] = notes.trim();
-      }
-      sites.add(siteData);
-    }
-    return sites;
   }
 
   Map<String, dynamic> _parseTrip(XmlElement trip) {

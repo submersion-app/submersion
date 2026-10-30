@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 /// The statistics card links each aggregate to the dive it was taken from
 /// (the anchor ids on [SiteDiveStatistics]), so these tests drive real taps
@@ -119,6 +120,25 @@ void main() {
 
       expect(find.text('DIVE_dive-deepest'), findsOneWidget);
     });
+
+    testWidgets(
+      'a linked statistic keeps its chevron beside the value (#3678)',
+      (tester) async {
+        await pumpPage(tester, siteStats: stats);
+        await tester.ensureVisible(find.text('Deepest Dive'));
+        await tester.pumpAndSettle();
+
+        final row = detailRowFor('Deepest Dive');
+        final chevron = find.descendant(
+          of: row,
+          matching: find.byIcon(Icons.chevron_right),
+        );
+        final value = find
+            .descendant(of: row, matching: find.byType(Text))
+            .last;
+        expect(tester.getTopLeft(chevron).dx, tester.getTopRight(value).dx + 4);
+      },
+    );
 
     testWidgets('the longest dive statistic opens that dive', (tester) async {
       await pumpPage(tester, siteStats: stats);

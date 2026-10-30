@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
@@ -354,6 +355,48 @@ void main() {
       expect(
         custom.read(modCalculatorInputsProvider).waterType,
         WaterType.fresh,
+      );
+    });
+
+    test('the gas temperature defaults to zeroC and is settable', () {
+      final container = _container(_FakeRepository());
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.zeroC,
+      );
+      container.read(modCalculatorNotifierProvider.notifier)
+        ..setCheckTemperature(true)
+        ..setTemperature(GasDensityTemperature.twentyC);
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.twentyC,
+      );
+      expect(
+        container.read(modCalculatorResultProvider).densityTemperature,
+        GasDensityTemperature.twentyC,
+      );
+    });
+
+    test('the chosen temperature only applies while its switch is on', () {
+      final container = _container(_FakeRepository());
+      final notifier = container.read(modCalculatorNotifierProvider.notifier)
+        ..setCheckTemperature(true)
+        ..setTemperature(GasDensityTemperature.twentyC)
+        ..setCheckTemperature(false);
+      // The choice is remembered for when the switch comes back on, but the
+      // hidden picker no longer drives the check.
+      expect(
+        container.read(modCalculatorNotifierProvider).temperature,
+        GasDensityTemperature.twentyC,
+      );
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.zeroC,
+      );
+      notifier.setCheckTemperature(true);
+      expect(
+        container.read(modCalculatorInputsProvider).temperature,
+        GasDensityTemperature.twentyC,
       );
     });
 

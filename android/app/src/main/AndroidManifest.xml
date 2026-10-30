@@ -28,10 +28,13 @@
          feature cannot run and the user cannot grant it (#2191). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
-    <!-- Bluetooth permissions for dive computer connectivity -->
+    <!-- Bluetooth permissions for dive computers and nearby sync -->
     <!-- Android 12+ (API 31+) permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Nearby sync advertises this device to the diver's other devices
+         (issue #3731). -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <!-- Legacy Bluetooth permissions for Android 11 and below -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
@@ -56,6 +59,8 @@
          must still install the app. NFC is a normal permission. -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
+    <!-- Buddy card tag emulation (issue #3728); optional like NFC itself. -->
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
 
     <!-- Notification permissions for gear maintenance reminders -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -90,13 +95,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Handle files shared via the Share sheet (single file) -->
+            <!-- Handle files shared via the Share sheet (single file). JSON
+                 covers a dive shared from the Suunto app (#3670). -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="application/octet-stream"/>
                 <data android:mimeType="application/xml"/>
+                <data android:mimeType="application/json"/>
                 <data android:mimeType="application/vnd.ant.fit"/>
                 <data android:mimeType="application/fit"/>
                 <data android:mimeType="application/zip"/>
@@ -112,6 +119,7 @@
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="application/octet-stream"/>
                 <data android:mimeType="application/xml"/>
+                <data android:mimeType="application/json"/>
                 <data android:mimeType="application/vnd.ant.fit"/>
                 <data android:mimeType="application/fit"/>
                 <data android:mimeType="application/zip"/>
@@ -125,9 +133,11 @@
                 <data android:scheme="content" android:mimeType="text/*"/>
                 <data android:scheme="content" android:mimeType="application/octet-stream"/>
                 <data android:scheme="content" android:mimeType="application/xml"/>
+                <data android:scheme="content" android:mimeType="application/json"/>
                 <data android:scheme="file" android:mimeType="text/*"/>
                 <data android:scheme="file" android:mimeType="application/octet-stream"/>
                 <data android:scheme="file" android:mimeType="application/xml"/>
+                <data android:scheme="file" android:mimeType="application/json"/>
                 <data android:scheme="content" android:mimeType="application/vnd.ant.fit"/>
                 <data android:scheme="content" android:mimeType="application/fit"/>
                 <data android:scheme="content" android:mimeType="application/zip"/>
@@ -145,6 +155,8 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
             <!-- The accepted custom-scheme forms, submersion://c?<payload> and
                  submersion://g?<payload>. -->
@@ -167,8 +179,23 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
+                <!-- Buddy cards (issue #3728): the card is in the fragment. -->
+                <data android:scheme="https" android:host="submersion.app" android:path="/b"/>
             </intent-filter>
         </activity>
+        <!-- Buddy card swap (issue #3728): while the swap screen is open the
+             phone presents the diver's card as an NFC tag (Type 4 NDEF). -->
+        <service
+            android:name=".CardEmulationService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice"/>
+        </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

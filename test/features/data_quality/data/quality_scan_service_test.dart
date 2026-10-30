@@ -162,7 +162,7 @@ void main() {
     });
 
     test('a library scan retires the finding once the transmitter is '
-        'registered', () async {
+        'set up', () async {
       await seedTransmitterDive('d1');
       final service = QualityScanService();
       await service.scanDives({'d1'}, now: DateTime.utc(2026, 7, 17));
@@ -180,6 +180,7 @@ void main() {
               createdAt: t,
               updatedAt: t,
               transmitterSerial: const Value('180777'),
+              volumeL: const Value(11.1),
             ),
           );
       await service.scanLibrary(now: DateTime.utc(2026, 7, 17));
@@ -187,6 +188,35 @@ void main() {
       final after = await unknownTransmitterFindings('d1');
       expect(after.where((f) => f.status == QualityStatus.open), isEmpty);
     });
+
+    for (final (name, configured, volume) in [
+      ('a configured transmitter with no cylinder', true, null),
+      ('an unconfigured transmitter', false, 11.1),
+    ]) {
+      test('$name keeps the finding (#3676)', () async {
+        await seedTransmitterDive('d1');
+        final t = DateTime.now().millisecondsSinceEpoch;
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.transmitters)
+            .insert(
+              TransmittersCompanion.insert(
+                id: 'tx1',
+                label: 'Transmitter 180777',
+                tankRole: 'backGas',
+                createdAt: t,
+                updatedAt: t,
+                transmitterSerial: const Value('180777'),
+                volumeL: Value(volume),
+                isConfigured: Value(configured),
+              ),
+            );
+
+        await QualityScanService().scanLibrary(now: DateTime.utc(2026, 7, 17));
+
+        expect(await unknownTransmitterFindings('d1'), hasLength(1));
+      });
+    }
 
     test(
       'a full library scan finds an unknown transmitter by itself',

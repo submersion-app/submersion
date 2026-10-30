@@ -191,4 +191,45 @@ void main() {
       expect(TankPresets.matchBySpecs(12.0, 200.0), isNull);
     });
   });
+
+  group('matchAnyBySpecs', () {
+    test('matches the metric steel presets that matchBySpecs skips', () {
+      // A 12 L / 200 bar cylinder imported without a material (#3686).
+      expect(TankPresets.matchAnyBySpecs(12.0, 200.0)?.name, 'steel12');
+      expect(TankPresets.matchAnyBySpecs(10.0, 200.0)?.name, 'steel10');
+      expect(TankPresets.matchAnyBySpecs(15.0, 200.0)?.name, 'steel15');
+    });
+
+    test('still matches rated presets, with the same tie-break', () {
+      expect(TankPresets.matchAnyBySpecs(11.1, 207.0)?.name, 'al80');
+      expect(TankPresets.matchAnyBySpecs(5.7, 206.843)?.name, 'al40');
+    });
+
+    test('a known material must agree with the preset', () {
+      expect(
+        TankPresets.matchAnyBySpecs(
+          12.0,
+          200.0,
+          material: TankMaterial.steel,
+        )?.name,
+        'steel12',
+      );
+      expect(
+        TankPresets.matchAnyBySpecs(
+          12.0,
+          200.0,
+          material: TankMaterial.aluminum,
+        ),
+        isNull,
+      );
+      expect(
+        TankPresets.matchAnyBySpecs(11.1, 207.0, material: TankMaterial.steel),
+        isNull,
+      );
+    });
+
+    test('returns null for non-matching specs', () {
+      expect(TankPresets.matchAnyBySpecs(12.0, 232.0), isNull);
+    });
+  });
 }

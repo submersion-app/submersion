@@ -34,8 +34,8 @@ class ConnectionsViewState extends Equatable {
 
   static final ConnectionsViewState initial = ConnectionsViewState(
     mode: ConnectionsMode.map,
-    mapSpec: ConnectionPresets.byId('circle')!.spec,
-    presetId: 'circle',
+    mapSpec: ConnectionPresets.byId(ConnectionPresets.startId)!.spec,
+    presetId: ConnectionPresets.startId,
   );
 
   final ConnectionsMode mode;
@@ -60,6 +60,18 @@ class ConnectionsViewState extends Equatable {
 
   bool get isAroundWithoutFocus =>
       mode == ConnectionsMode.around && focus == null;
+
+  /// The applied preset's [ConnectionPreset.sharedWith] in Map mode; empty
+  /// for a saved, edited or custom map and in Around mode.
+  Map<ConnectionKind, ConnectionKind> get mapSharedWith =>
+      mode == ConnectionsMode.map
+      ? ConnectionPresets.byId(presetId)?.sharedWith ?? const {}
+      : const {};
+
+  /// The page's starting map, keeping Around mode's centre, kinds and hops
+  /// and the highlight.
+  ConnectionsViewState toStart() =>
+      applyPreset(ConnectionPresets.byId(ConnectionPresets.startId)!);
 
   ConnectionsViewState applyPreset(ConnectionPreset preset) =>
       ConnectionsViewState(
@@ -233,7 +245,7 @@ class ConnectionsViewState extends Equatable {
       final a = ConnectionKind.fromName(parts[1]);
       final b = ConnectionKind.fromName(parts[2]);
       if (a != null && b != null) {
-        // Not editMap: a legacy pair must not mark Dive circle as edited.
+        // Not editMap: a legacy pair must not mark the start as edited.
         return initial.showMap(MapSpec.of({a, b}, {KindLink(a, b)}));
       }
     }

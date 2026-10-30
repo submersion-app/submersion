@@ -62,6 +62,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
           content: Text(
             context.l10n.diveCenters_snackbar_imported(center.name),
           ),
+          persist: false,
           action: SnackBarAction(
             label: context.l10n.diveCenters_action_view,
             onPressed: () {

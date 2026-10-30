@@ -30,9 +30,12 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/shared_items_fixture.dart';
+import '../../../../helpers/detail_row_finders.dart';
 
 void _setMobileTestSurfaceSize(WidgetTester tester) {
   tester.view.devicePixelRatio = 1.0;
@@ -255,6 +258,9 @@ void main() {
               // No active profile, as before sharing: every action is the owner's.
               validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               ...overrides,
+              itemSharesRepositoryProvider.overrideWithValue(
+                FakeItemShares.everyone([sharedSite.id]),
+              ),
               siteProvider(
                 sharedSite.id,
               ).overrideWith((ref) async => sharedSite),
@@ -762,6 +768,37 @@ void main() {
       parkingInfo: 'Free parking',
     );
 
+    testWidgets('Location values share one column beside the labels (#3678)', (
+      tester,
+    ) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteProvider(basicSite.id).overrideWith((_) async => basicSite),
+            siteDiveCountProvider(basicSite.id).overrideWith((_) async => 0),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SiteDetailPage(siteId: basicSite.id),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final column = detailValueLeft(tester, 'Country');
+      expect(detailValueLeft(tester, 'Region'), column);
+      // An empty field's "Not set" sits in the same column.
+      expect(detailValueLeft(tester, 'City'), column);
+      expect(
+        tester.getTopLeft(find.text('USA')).dx,
+        lessThan(tester.getTopRight(detailRowFor('Country')).dx / 2),
+      );
+    });
+
     testWidgets('displays basic info, description and notes', (tester) async {
       _setMobileTestSurfaceSize(tester);
       final overrides = await getBaseOverrides();
@@ -799,8 +836,8 @@ void main() {
           accessNotes: 'Walk in from the church parking lot',
           mooringNumber: 'M-12',
           parkingInfo: 'Free parking by the church',
-          entryMethod: EntryMethod.shore,
-          exitMethod: EntryMethod.boat,
+          entryMethods: [EntryMethod.shore],
+          exitMethods: [EntryMethod.boat],
         );
         _setMobileTestSurfaceSize(tester);
         final overrides = await getBaseOverrides();
@@ -827,8 +864,8 @@ void main() {
 
         final parkingY = topOf('Free parking by the church');
         final accessNotesY = topOf('Walk in from the church parking lot');
-        final entryY = topOf('Shore Entry');
-        final exitY = topOf('Boat Entry');
+        final entryY = topOf('Shore');
+        final exitY = topOf('Boat');
         final mooringY = topOf('M-12');
 
         expect(parkingY, lessThan(accessNotesY));

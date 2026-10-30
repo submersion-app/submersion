@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
 ///
@@ -153,11 +154,14 @@ class EquipmentSetListContent extends ConsumerWidget {
             // The count leads the description on one line rather than sitting
             // in a trailing chip: a ListTile lays trailing out at its natural
             // width first, and a chip there starves the set name (issue #2717).
-            final subtitleText = set.description.isEmpty
+            final description = markdownToPlainText(
+              set.description,
+            ).replaceAll('\n', ' ');
+            final subtitleText = description.isEmpty
                 ? itemCountText
                 : set.itemCount > 0
-                ? '$itemCountText · ${set.description}'
-                : set.description;
+                ? '$itemCountText · $description'
+                : description;
             return KeyboardListItem(
               navigationKey: set.id,
               child: Semantics(

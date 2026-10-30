@@ -197,7 +197,7 @@ void main() {
       );
       final before = await clocks();
       await Future<void>.delayed(const Duration(milliseconds: 2));
-      await repo.convertToCloudBacked([id]);
+      await repo.convertToCloudBacked([id], storeId: 'store-a');
       final after = await clocks();
       expect(later(after['row'], before['row']), isTrue);
       expect(after['verify'], after['row']);

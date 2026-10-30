@@ -219,13 +219,27 @@ re-entrant.
 ## Fastlane toolchain
 
 Each platform pins fastlane in a committed `Gemfile.lock` (`ios/`, `macos/`,
-`android/`), and the workflows install exactly that, on Ruby 3.2.
+`android/`), and the workflows install exactly that, on Ruby 3.4. Dependabot's
+monthly bundler update covers all three directories, and
+`scripts/check_dependabot_gemfiles.py` fails CI if a Gemfile it cannot parse
+or one outside those directories appears.
 
-No PR-time job installs these bundles. The lanes run only in `beta.yml`,
-`promote.yml` and `release.yml`, after merge, so a lockfile that will not
-install or a Fastfile option the locked fastlane no longer accepts first
-surfaces as a failed upload or promotion. Check a lockfile change locally
-before merging it.
+`ios/Gemfile` and `macos/Gemfile` also set a floor of activesupport 7.2.3.1,
+a security fix. cocoapods-core pulls activesupport in, and without the floor
+the resolver prefers minitest 6 and connection_pool 3, which hold activesupport
+on the vulnerable 7.2.3 (#3495).
+
+The lanes run only in `beta.yml`, `promote.yml` and `release.yml`, after
+merge. So a pull request that changes a platform's `Gemfile`, `Gemfile.lock` or
+`fastlane/` folder runs the `Fastlane bundle` jobs in `ci.yaml`: each installs
+that platform's bundle frozen, on the Ruby the lanes use and the runner the
+upload lanes use (macos-15 for iOS and macOS, ubuntu-latest for Android), and
+loads its Fastfile with `fastlane lanes`. That catches a lockfile that will not
+install and a Fastfile the locked fastlane cannot parse. It does not run a
+lane, so an option the new fastlane rejects at run time still first surfaces in
+a beta. `scripts/check_ruby_versions.py` fails CI when the workflows' setup-ruby
+steps disagree on the Ruby version, so the check and the lanes cannot drift
+apart.
 
 To move Android to a newer fastlane:
 
@@ -233,7 +247,7 @@ To move Android to a newer fastlane:
 cd android && bundle lock --update fastlane
 ```
 
-Resolve on Ruby 3.2 where you can. A newer Ruby can pick a dependency that
+Resolve on Ruby 3.4 where you can. A newer Ruby can pick a dependency that
 needs it, and the Linux runners will then fail to install the bundle. Keep
 `PLATFORMS` at `arm64-darwin`, `ruby` and `x86_64-linux`.
 

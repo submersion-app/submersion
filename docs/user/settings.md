@@ -186,58 +186,109 @@ warn about gear that falls due. See
 
 ## Manage
 
-The reusable lists and rules Submersion offers throughout the app:
+The reusable lists and rules Submersion offers throughout the app, grouped by
+where you'll run into them:
+
+**Equipment**
+
+| Item | What it manages |
+|------|-----------------|
+| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
+| **Transmitters** | Air-integration transmitters linked to cylinders |
+| **Weight Presets** | Reusable sets of weights for a dive |
+| **Service types** | The maintenance your gear needs, and how often |
+| **Locations** | Where your gear is kept, serviced or lent |
+| **Default equipment view** | Which statuses the Equipment list shows when no filter is set |
+
+**Dives**
 
 | Item | What it manages |
 |------|-----------------|
 | **Dive Types** | Your own dive types |
 | **Site Types** | Built-in and custom dive site types |
 | **Dive Roles** | Your own roles for buddies on a dive |
-| **Certification Agencies** | Your own agencies and certifications; see [Certifications and Courses](certifications-and-courses.md) |
-| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
-| **Transmitters** | Air-integration transmitters linked to cylinders |
-| **Weight Presets** | Reusable sets of weights for a dive |
+| **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
+
+**Planning**
+
+| Item | What it manages |
+|------|-----------------|
 | **Trimix Mixer** | Fill gases, conditions and billing defaults for the trimix blender |
-| **Service types** | The maintenance your gear needs, and how often |
+
+**Training**
+
+| Item | What it manages |
+|------|-----------------|
+| **Certification Agencies** | Your own agencies and certifications; see [Certifications and Courses](certifications-and-courses.md) |
 | **Certification currency** | Refresher and renewal rules |
-| **Locations** | Where your gear is kept, serviced or lent |
-| **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
+
+**Checklists**
+
+| Item | What it manages |
+|------|-----------------|
 | **Trip Checklist Templates** | Reusable to-do lists for trip planning |
 | **Pre-Dive Checklists** | Buddy checks, CCR build lists, gear packing |
-| **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
-| **Tags** | Manage, merge and delete tags |
+
+**Organization**
+
+| Item | What it manages |
+|------|-----------------|
 | **Saved Queries** | Rename, reorder and delete saved dive searches |
+| **Tags** | Manage, merge and delete tags |
+
+**Setup**
+
+| Item | What it manages |
+|------|-----------------|
+| **Setup assistant** | Revisit units, backups, sync and photos: the units step, then the four steps of [Set Up This Device](set-up-this-device.md) |
 
 ## Data
 
-### Backup & Sync
+The top of the page shows four status marks (Backups, Sync, Libraries and
+Photos) with a line for anything that needs attention. Under them, until you
+hide it or finish it, is the **Set up this device** card, which walks through
+an account, sync, backups and photo copies; see
+[Set Up This Device](set-up-this-device.md). Then comes a count of your dives,
+sites and photos.
+
+### Your data
+
+Each row says in one sentence where things stand, for example "Backed up
+3 hours ago, copy in Google Drive" or "In step with Eric's iPhone, 12m ago".
+A feature that is not set up shows a **Set up** action under its status,
+which opens that step of Set up this device.
 
 | Item | What it does |
 |------|--------------|
-| **Backup & Restore** | Back up and restore your whole log; see [Backup & Restore](backup-and-restore.md) |
-| **Database Cloud Sync** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
-| **Photos & Media** | Where photos come from, and where copies are kept; see [Media Sync](media-sync.md) |
-| **Connected Accounts** | The sign-ins used by sync, media storage and shared site libraries |
+| **Backups** | Back up and restore your whole log; see [Backups](backup-and-restore.md) |
+| **Sync between devices** | Keep your devices in step through cloud storage; see [Multi-Device Sync](multi-device-sync.md) |
+| **Photos & videos** | Where photos come from, and where copies are kept; see [Media Sync](media-sync.md) |
+| **Shared site libraries** | Dive sites kept together with other divers; see [Shared site libraries](shared-site-libraries.md) |
+| **Connected accounts** | The sign-ins used by sync, photo copies, backup copies and shared site libraries |
 
-### Storage
+### Advanced
 
 | Item | What it does |
 |------|--------------|
-| **Database Storage** | Where the database file lives: the app's default location or a folder you choose |
-| **Offline Maps** | Map tiles and 3D terrain data for use without a connection |
+| **Database storage** | Where the database file lives: the app's default location or a folder you choose |
+| **Offline maps** | Map tiles and 3D terrain data for use without a connection |
+| **Import options** | How incoming dive data is read (see below) |
+| **Data tools** | One-off repairs for imported data (see below) |
+| **Set up this device again** | Shown once the setup card is hidden or finished: reopens it from the first step |
 
-### Import
+**Import options**
 
 | Setting | What it does |
 |---------|--------------|
 | **Auto site matching** | How readily downloaded dives are matched to your existing sites: **Strict**, **Balanced** or **Relaxed** |
 | **Tank pressure at surfacing** | Read the end pressure from when you reached the surface, not from when the computer stopped recording |
+| **Tag imports automatically** | Start every new import with a tag naming its source and date |
 
-### Data Tools
+**Data tools**
 
 | Tool | What it does |
 |------|--------------|
-| **Fix Dive Times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
+| **Fix dive times** | Shift the times of imported dives, for example a batch that came in an hour out because the computer's clock was wrong |
 | **Link buddy names** | Turn buddy names on imported dives into buddy records |
 | **Retype gear marked Other** | Give imported gear the type its name states |
 | **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |
@@ -254,10 +305,19 @@ The reusable lists and rules Submersion offers throughout the app:
 
 ## Shared data
 
-With two or more diver profiles on the device, choose
-**Share new sites and trips by default**, or share everything you already have with
-**Share all my sites**, **Share all my trips** and **Share all my equipment...**. See
-[Diver Profile & Multi-Diver](diver-profile.md).
+With two or more diver profiles on the device:
+
+- **Share new sites and trips by default** shares every new site and trip with
+  everyone.
+- **Share all my sites...** and **Share all my trips...** ask who should see
+  everything you own: **Everyone**, or the profiles you tick. They only add
+  profiles; to change one site or trip later, edit it and tap **Shared with**.
+- **Share all my equipment...** shares your gear with the profiles you choose.
+- **Hidden from this profile** lists the shared sites and trips you removed from
+  your profile, with **Unhide** to bring each one back.
+
+See [Diver Profile & Multi-Diver](diver-profile.md) and
+[Sharing a trip with other profiles](trips.md#sharing-a-trip-with-other-profiles).
 
 ## Apple HealthKit
 
@@ -285,5 +345,5 @@ in the Health app. See [Dive Computers](dive-computer.md).
 
 - [Diver Profile & Multi-Diver](diver-profile.md): the profiles these settings belong to
 - [Dive Profiles & Deco](dive-profiles.md): how the decompression and overlay settings shape the chart
-- [Backup & Restore](backup-and-restore.md): protect your dive log
+- [Backups](backup-and-restore.md): protect your dive log
 - [Multi-Device Sync](multi-device-sync.md): keep every device in step

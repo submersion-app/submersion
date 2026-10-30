@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/shared/utils/byte_format.dart';
 
 void main() {
@@ -22,5 +23,14 @@ void main() {
 
   test('treats a negative size as zero rather than rendering it', () {
     expect(formatBytes(-1), '0 B');
+  });
+
+  test('writes the number and unit the way the active language does', () {
+    final previous = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previous);
+    Intl.defaultLocale = 'fr';
+
+    expect(formatBytes(1536), '1,5 Ko');
+    expect(formatBytes(1024 * 1024 * 1024), '1,00 Go');
   });
 }

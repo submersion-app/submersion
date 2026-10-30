@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_description_lookup.dart';
@@ -8,8 +9,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// `dive_type_display.dart` set for seeded built-in reference data.
 ///
 /// Nothing here touches what is stored: the `species` table keeps its English
-/// `common_name` and `description` because built-in rows are excluded from
-/// sync and the stored name is what UDDF export writes out.
+/// `common_name` and `description`, which is what sync and UDDF export carry.
+///
+/// A diver can edit a built-in species, so a translation applies only while a
+/// field still holds the catalog's English text (the rule `connection_labels`
+/// uses for dive types). Once a field differs, it is the diver's text and
+/// renders as stored in every locale (issue #3669). Each field is judged on
+/// its own, so renaming a species leaves its description translated.
 
 extension SpeciesCategoryDisplay on SpeciesCategory {
   /// Localized label for this category.
@@ -31,18 +37,28 @@ extension SpeciesCategoryDisplay on SpeciesCategory {
   };
 }
 
+final AppLocalizations _english = lookupAppLocalizations(const Locale('en'));
+
+/// Whether [stored] still holds [catalog], the catalog's English text for the
+/// field. False when there is no catalog text (a custom or unknown id).
+bool _isCatalogText(String? stored, String? catalog) =>
+    catalog != null && stored == catalog;
+
 extension SpeciesDisplay on Species {
-  /// Localized common name for a built-in species; the stored name for a
-  /// custom one.
+  /// Localized common name for an unedited built-in species; the stored name
+  /// for a renamed or custom one.
   ///
   /// The [isBuiltIn] guard matters: a diver's own species must render the
   /// text they typed, never a translation.
   String localizedCommonName(AppLocalizations l10n) =>
-      isBuiltIn ? (builtInSpeciesName(l10n, id) ?? commonName) : commonName;
+      isBuiltIn ? localizedSpeciesName(l10n, id, commonName) : commonName;
 
-  /// Localized description for a built-in species; the stored description for
-  /// a custom one. Null when the row has no description at all.
-  String? localizedDescription(AppLocalizations l10n) => isBuiltIn
+  /// Localized description for an unedited built-in species; the stored
+  /// description for an edited or custom one. Null when the row has no
+  /// description at all, including a built-in whose description was cleared.
+  String? localizedDescription(AppLocalizations l10n) =>
+      isBuiltIn &&
+          _isCatalogText(description, builtInSpeciesDescription(_english, id))
       ? (builtInSpeciesDescription(l10n, id) ?? description)
       : description;
 }
@@ -54,12 +70,15 @@ extension SpeciesDisplay on Species {
 /// flag to consult. Resolving on the id is safe anyway: custom species are
 /// created with a UUID v4 (`SpeciesRepository.createSpecies`), which can never
 /// match an `sp_` seed slug, so a custom row always falls through to
-/// [storedName].
+/// [storedName]. Every caller reads [storedName] from a live join on the
+/// `species` row, so a renamed built-in arrives here with the diver's name.
 String localizedSpeciesName(
   AppLocalizations l10n,
   String id,
   String storedName,
-) => builtInSpeciesName(l10n, id) ?? storedName;
+) => _isCatalogText(storedName, builtInSpeciesName(_english, id))
+    ? (builtInSpeciesName(l10n, id) ?? storedName)
+    : storedName;
 
 /// Repository search hits plus catalog rows whose *localized* name matches.
 ///

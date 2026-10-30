@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
+
+import '../../helpers/global_test_defaults.dart';
 
 /// Pumps a button that opens the sheet, recording whatever it returns.
 ///
@@ -285,5 +288,21 @@ void main() {
   testWidgets('no unit choice unless asked for', (tester) async {
     await _pumpCsvHost(tester, showCsvUnitsToggle: false);
     expect(find.text('My units'), findsNothing);
+  });
+
+  group('in demo mode (#3708)', () {
+    tearDown(applyGlobalTestDefaults);
+
+    testWidgets('shows the sealed note and offers no destination', (
+      tester,
+    ) async {
+      DemoModeGate.instance.debugActive = true;
+
+      final result = await _pumpSheetHost(tester);
+
+      expect(result(), isNull);
+      expect(find.text('Dive Log CSV'), findsNothing);
+      expect(find.text('Not available in demo mode'), findsOneWidget);
+    });
   });
 }

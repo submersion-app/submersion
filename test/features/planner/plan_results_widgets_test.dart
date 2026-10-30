@@ -585,4 +585,51 @@ void main() {
       );
     });
   });
+
+  group('planIssueMessage for no usable gas (issue #3741)', () {
+    const issue = PlanIssue(
+      type: PlanIssueType.noUsableGas,
+      severity: PlanIssueSeverity.alert,
+      message: 'Rock-bottom minimum of 120 bar leaves no usable gas',
+      segmentId: 'tank-1',
+      value: 120,
+      threshold: 100,
+    );
+
+    Future<String> render(WidgetTester tester, AppSettings settings) async {
+      late String message;
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          child: Builder(
+            builder: (context) {
+              message = planIssueMessage(
+                context,
+                issue,
+                UnitFormatter(settings),
+              );
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return message;
+    }
+
+    testWidgets('names the minimum gas and the fill in order', (tester) async {
+      expect(
+        await render(tester, const AppSettings()),
+        'Rock-bottom minimum of 120 bar leaves no usable gas in a '
+        '100 bar fill',
+      );
+    });
+
+    testWidgets('shows both pressures in the diver\'s units', (tester) async {
+      expect(
+        await render(tester, const AppSettings(pressureUnit: PressureUnit.psi)),
+        'Rock-bottom minimum of 1740 psi leaves no usable gas in a '
+        '1450 psi fill',
+      );
+    });
+  });
 }

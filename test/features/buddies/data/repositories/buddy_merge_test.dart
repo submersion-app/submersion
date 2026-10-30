@@ -571,4 +571,42 @@ void main() {
       expect(await repository.getBuddyById(buddyB.id), isNull);
     });
   });
+
+  test('undo restores the buddy card fields of both buddies (#3728)', () async {
+    final a = await repository.createBuddy(
+      domain.Buddy(
+        id: '',
+        name: 'Sam',
+        cardId: 'diver-sam',
+        socialHandle: '@sam',
+        cardDiveCount: 118,
+        cardReceivedAt: DateTime(2026, 10, 28),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final b = await repository.createBuddy(
+      domain.Buddy(
+        id: '',
+        name: 'Sammy',
+        cardId: 'diver-sammy',
+        cardDiveCount: 5,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final result = await repository.mergeBuddies(
+      mergedBuddy: a,
+      buddyIds: [a.id, b.id],
+    );
+    expect((await repository.getBuddyById(a.id))!.cardId, 'diver-sam');
+    await repository.undoMerge(result!.snapshot!);
+    final restoredA = (await repository.getBuddyById(a.id))!;
+    final restoredB = (await repository.getBuddyById(b.id))!;
+    expect(restoredA.cardId, 'diver-sam');
+    expect(restoredA.socialHandle, '@sam');
+    expect(restoredA.cardDiveCount, 118);
+    expect(restoredB.cardId, 'diver-sammy');
+    expect(restoredB.cardDiveCount, 5);
+  });
 }

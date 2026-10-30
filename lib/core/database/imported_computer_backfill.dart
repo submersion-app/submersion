@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/database/table_columns.dart';
 
 /// Register the dive computers that file-imported dives name, and attribute
 /// those dives to them (issue #1288).
@@ -36,10 +37,7 @@ Future<void> backfillImportedDiveComputers(DatabaseConnectionUser db) async {
   // every open, including minimal old-schema fixtures and databases caught
   // mid-upgrade. PRAGMA table_info returns empty for a missing table, so
   // probing the columns covers both cases.
-  Future<Set<String>> columnsOf(String table) async {
-    final rows = await db.customSelect("PRAGMA table_info('$table')").get();
-    return rows.map((c) => c.read<String>('name')).toSet();
-  }
+  Future<Set<String>> columnsOf(String table) => tableColumnNames(db, table);
 
   final diveCols = await columnsOf('dives');
   if (!diveCols.containsAll({
@@ -218,8 +216,7 @@ Future<void> backfillImportedDiveComputers(DatabaseConnectionUser db) async {
 /// Empty when the schema predates the deletion log, which also predates any
 /// delete it could have recorded.
 Future<Set<String>> _tombstonedComputerIds(DatabaseConnectionUser db) async {
-  final cols = await db.customSelect("PRAGMA table_info('deletion_log')").get();
-  final names = cols.map((c) => c.read<String>('name')).toSet();
+  final names = await tableColumnNames(db, 'deletion_log');
   if (!names.containsAll({'entity_type', 'record_id'})) return const {};
 
   final rows = await db

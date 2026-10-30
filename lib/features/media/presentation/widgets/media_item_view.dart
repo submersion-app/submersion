@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_tile_image_memo.dart';
+import 'package:submersion/features/media/presentation/widgets/color_corrected.dart';
 import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -74,6 +75,12 @@ class MediaItemView extends ConsumerStatefulWidget {
   /// viewer sets it; a grid tile has no room for buttons.
   final bool showAccessActions;
 
+  /// Called once with the decoded image's pixel size, for a caller that
+  /// lays something over the image by its aspect (the viewer's face boxes,
+  /// issue #1745). The size is the decode-bounded one, so only its aspect
+  /// is the original's.
+  final ValueChanged<Size>? onImageSize;
+
   const MediaItemView({
     super.key,
     required this.item,
@@ -81,6 +88,7 @@ class MediaItemView extends ConsumerStatefulWidget {
     this.targetSize,
     this.thumbnail = false,
     this.showAccessActions = false,
+    this.onImageSize,
   });
 
   @override
@@ -127,10 +135,63 @@ typedef _Resolution = ({
 class _MediaItemViewState extends ConsumerState<MediaItemView> {
   late Future<_Resolution> _future;
 
+  /// The item the last finished resolution was for. Rebuilt for another
+  /// item, the FutureBuilder keeps drawing the old answer until the new one
+  /// lands; that picture must not be analysed as the new item's colours.
+  String? _resolvedFor;
+
+  /// The image stream [MediaItemView.onImageSize] listens to, and its
+  /// listener, held so the listener is removed when the image changes or
+  /// the view goes away.
+  ImageStream? _sizeStream;
+  ImageStreamListener? _sizeListener;
+  String? _sizeReportedFor;
+
   @override
   void initState() {
     super.initState();
     _future = _resolve();
+  }
+
+  @override
+  void dispose() {
+    _stopSizeWatch();
+    super.dispose();
+  }
+
+  void _stopSizeWatch() {
+    final listener = _sizeListener;
+    if (listener != null) _sizeStream?.removeListener(listener);
+    _sizeStream = null;
+    _sizeListener = null;
+  }
+
+  /// Reports [provider]'s decoded size to [MediaItemView.onImageSize], once
+  /// per item.
+  void _watchSize(ImageProvider provider) {
+    final report = widget.onImageSize;
+    if (report == null || _sizeReportedFor == widget.item.id) return;
+    final stream = provider.resolve(ImageConfiguration.empty);
+    if (stream.key == _sizeStream?.key) return;
+    _stopSizeWatch();
+    final itemId = widget.item.id;
+    final listener = ImageStreamListener((info, _) {
+      if (!mounted || _sizeReportedFor == itemId) return;
+      _sizeReportedFor = itemId;
+      final size = Size(
+        info.image.width.toDouble(),
+        info.image.height.toDouble(),
+      );
+      // A cached image answers synchronously, inside this build; the caller
+      // may setState with the size, so it hears after the frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) report(size);
+      });
+      _stopSizeWatch();
+    }, onError: (_, _) => _stopSizeWatch());
+    _sizeStream = stream;
+    _sizeListener = listener;
+    stream.addListener(listener);
   }
 
   @override
@@ -146,10 +207,22 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   // imageData, sourceType, etc.), so deep equality on the item is the
   // correct cache key — it catches both identity changes and in-place
   // mutations of the same row.
+  //
+  // A colour adjustment saved on the row (issue #3520) changes the item and
+  // bumps updatedAt but not the pixels, so it is drawn without resolving
+  // the image again (which would flash a placeholder on every save).
   bool _inputsChanged(MediaItemView old) =>
-      old.item != widget.item ||
+      _resolutionInputs(old.item) != _resolutionInputs(widget.item) ||
       old.thumbnail != widget.thumbnail ||
       old.targetSize != widget.targetSize;
+
+  // The profile match does not choose the pixels either: a viewer page
+  // that hydrates a lean library row gains it a moment after opening.
+  static MediaItem _resolutionInputs(MediaItem item) => item.copyWith(
+    colorAdjustment: null,
+    enrichment: null,
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+  );
 
   /// Resolves and records the outcome.
   ///
@@ -162,7 +235,9 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   /// phase: it happens after [_resolveInner] has completed, which is well
   /// past that method's own opening yield.
   Future<_Resolution> _resolve() async {
+    final forId = widget.item.id;
     final resolution = await _resolveInner();
+    _resolvedFor = forId;
     // A grid tile can scroll out and be disposed while its resolution is
     // still in flight. Riverpod's WidgetRef.read asserts the element is still
     // mounted and throws StateError otherwise (flutter_riverpod
@@ -354,10 +429,35 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       cacheWidth: cacheWidth,
       file: file,
     );
+    return _correctedImage(
+      MediaTileImageMemo.providerFor(file, cacheWidth),
+      resolved: true,
+    );
+  }
+
+  /// [provider]'s image drawn with the item's colour correction (issue
+  /// #3520). Only the decoded frame goes through the filter: the broken-image
+  /// tile from [Image.errorBuilder] replaces the frame and is drawn as is.
+  ///
+  /// [resolved] marks [provider] as drawn from a resolution, which is this
+  /// item's only once one finished for it. Its colours are analysed only
+  /// then, and only once the frame has decoded: a tile flung past before it
+  /// draws asks for nothing.
+  Widget _correctedImage(ImageProvider provider, {required bool resolved}) {
+    _watchSize(provider);
+    final ownPixels = !resolved || _resolvedFor == widget.item.id;
     return Image(
-      image: MediaTileImageMemo.providerFor(file, cacheWidth),
+      image: provider,
       fit: widget.fit,
       errorBuilder: _imageError,
+      frameBuilder: (context, child, frame, synchronouslyLoaded) =>
+          ColorCorrected(
+            item: widget.item,
+            analysisSource: ownPixels && (frame != null || synchronouslyLoaded)
+                ? provider
+                : null,
+            child: child,
+          ),
     );
   }
 
@@ -439,11 +539,8 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
                   cacheWidth: cacheWidth,
                 );
           if (remembered != null) {
-            return Image(
-              image: remembered,
-              fit: widget.fit,
-              errorBuilder: _imageError,
-            );
+            // Remembered for this very item, so its pixels are its own.
+            return _correctedImage(remembered, resolved: false);
           }
           return _loading();
         }
@@ -479,16 +576,24 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
             // it a served original decodes at native size, and the viewers
             // keep a neighbour built either side of the current page.
             memCacheWidth: cacheWidth,
+            // Only the loaded image is colour corrected; the placeholder and
+            // the error tile below are drawn as they are (issue #3520). The
+            // builder is handed the package's unresized provider, so it is
+            // bounded here the same way memCacheWidth bounds the package's
+            // own decode (the same cache entry): drawing it as handed over
+            // would decode every original at full size.
+            imageBuilder: (context, provider) => _correctedImage(
+              ResizeImage.resizeIfNeeded(cacheWidth, null, provider),
+              resolved: true,
+            ),
             placeholder: (_, _) => _loading(),
             errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
               data: UnavailableData(kind: UnavailableKind.networkError),
             ),
           ),
-          BytesData(bytes: final b) => Image.memory(
-            b,
-            fit: widget.fit,
-            cacheWidth: cacheWidth,
-            errorBuilder: _imageError,
+          BytesData(bytes: final b) => _correctedImage(
+            ResizeImage.resizeIfNeeded(cacheWidth, null, MemoryImage(b)),
+            resolved: true,
           ),
           UnavailableData(kind: UnavailableKind.stillFetching) =>
             GestureDetector(

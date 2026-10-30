@@ -12,7 +12,7 @@ import 'package:submersion/features/media/domain/services/media_repair_types.dar
 ///
 /// One run per day. A stamp far in the future can only come from a broken
 /// clock, and must not suppress scanning until real time catches up -- same
-/// defense as the media store's `shouldAutoVerify`.
+/// defense as the storage cleanup's `isCadenceDue`.
 bool shouldAutoScan({required DateTime? lastScanAt, required DateTime now}) {
   if (lastScanAt == null) return true;
   if (lastScanAt.isAfter(now.add(const Duration(days: 1)))) return true;

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
@@ -44,6 +45,19 @@ void main() {
     gasConsumed: 4.0,
     segmentationType: SacSegmentationType.timeInterval,
   );
+
+  test('false on a rebreather dive, which has no SAC to explain (#3673)', () {
+    for (final mode in [DiveMode.ccr, DiveMode.scr]) {
+      expect(
+        sacSegmentsLackRecordedPressure(
+          noPressureAnalysis,
+          diveWith(const [startEndOnly]).copyWith(diveMode: mode),
+        ),
+        isFalse,
+        reason: mode.name,
+      );
+    }
+  });
 
   test('true when only start and end pressures were logged', () {
     expect(

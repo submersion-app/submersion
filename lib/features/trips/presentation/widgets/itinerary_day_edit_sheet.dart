@@ -8,6 +8,7 @@ import 'package:submersion/features/trips/presentation/providers/liveaboard_prov
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
 const _log = LoggerService('itineraryDayEditSheet');
 
@@ -247,7 +248,7 @@ class _ItineraryDayEditSheetState
             const SizedBox(height: 16),
 
             // Notes text field
-            TextFormField(
+            MarkdownNotesField(
               controller: _notesController,
               decoration: InputDecoration(
                 labelText: l10n.trips_itinerary_notes_label,

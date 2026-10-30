@@ -6,6 +6,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/contrast_ratio.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -46,7 +49,7 @@ final _testIncoming = IncomingDiveData(
 );
 
 /// Wraps the widget under test with all required providers stubbed out.
-Widget _buildCard({required DiveComparisonCard card}) {
+Widget _buildCard({required DiveComparisonCard card, ThemeData? theme}) {
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -54,6 +57,7 @@ Widget _buildCard({required DiveComparisonCard card}) {
       diveProfileProvider.overrideWith((ref, id) async => []),
     ],
     child: MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: SingleChildScrollView(child: card)),
@@ -931,5 +935,52 @@ void main() {
       // The widget should render without error even with data sources.
       expect(find.text('Skip'), findsOneWidget);
     });
+  });
+
+  // The selected action fills with primary, error, tertiary or a fixed
+  // green or orange. Its label was forced white, which dark themes' light
+  // role tones and the bright fixed hues leave at about 1.5 to 2.8:1.
+  group('DiveComparisonCard - selected action label contrast', () {
+    for (final theme in [submersionLight, submersionDark]) {
+      for (final action in [
+        DuplicateAction.skip,
+        DuplicateAction.importAsNew,
+        DuplicateAction.consolidate,
+        DuplicateAction.replaceSource,
+      ]) {
+        testWidgets('${action.name} reads in ${theme.brightness.name} mode', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            _buildCard(
+              theme: theme,
+              card: DiveComparisonCard(
+                incoming: _testIncoming,
+                existingDiveId: _existingDiveId,
+                matchScore: 0.95,
+                selectedAction: action,
+                onActionChanged: (_) {},
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final button = find.byType(FilledButton);
+          final fill = tester
+              .widget<FilledButton>(button)
+              .style!
+              .backgroundColor!
+              .resolve({})!;
+          final labels = tester.widgetList<Text>(
+            find.descendant(of: button, matching: find.byType(Text)),
+          );
+          // The title is held to AA; the smaller subtitle runs at 85%.
+          final title = labels.first.style!.color!;
+          expect(contrastRatio(title, fill), greaterThanOrEqualTo(4.5));
+          final subtitle = Color.alphaBlend(labels.last.style!.color!, fill);
+          expect(contrastRatio(subtitle, fill), greaterThanOrEqualTo(3.0));
+        });
+      }
+    }
   });
 }

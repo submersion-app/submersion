@@ -95,3 +95,57 @@ LatLngBounds? boundsForPoints(List<LatLng> points) {
   final east = (maxLng + lngPadding).clamp(-180.0, 180.0);
   return LatLngBounds(LatLng(south, west), LatLng(north, east));
 }
+
+/// A drawn download rectangle after [clampRegionToWorld].
+///
+/// [crossesDateLine] is true when the box straddles longitude 180: one
+/// download cannot cover it (the tile cache takes a plain bounding box), so
+/// the caller must not download it as drawn.
+typedef RegionBounds = ({
+  LatLng southWest,
+  LatLng northEast,
+  bool crossesDateLine,
+});
+
+/// A drawn download rectangle, moved into one copy of the world.
+///
+/// The region picker scrolls east and west without end, so a corner can sit
+/// at a longitude beyond +-180 (another copy of the world). The tile counter
+/// and the downloader need -180..180:
+/// - A box 360 degrees wide or more covers the whole world, so it becomes
+///   -180..180.
+/// - Otherwise whole worlds are subtracted so the west edge lands in
+///   [-180, 180). If the east edge is then past 180 the box straddles the date
+///   line: [RegionBounds.crossesDateLine] is set and the east edge is held to
+///   180. Nothing is dropped silently: the picker disables Select Region and
+///   says why.
+/// Latitudes are held to the web Mercator limit.
+RegionBounds clampRegionToWorld(LatLng southWest, LatLng northEast) {
+  const maxLat = 85.0511;
+  final south = southWest.latitude.clamp(-maxLat, maxLat).toDouble();
+  final north = northEast.latitude.clamp(-maxLat, maxLat).toDouble();
+  // The box as drawn: its first span runs from the west edge to the east edge
+  // or, past the date line, to 180; a second span means it straddles the line.
+  final spans = longitudeSpans(southWest.longitude, northEast.longitude);
+  return (
+    southWest: LatLng(south, spans.first.west),
+    northEast: LatLng(north, spans.first.east),
+    crossesDateLine: spans.length > 1,
+  );
+}
+
+/// The longitude spans, each inside -180..180, that a rectangle from [west] to
+/// [east] covers on the map.
+///
+/// The region picker keeps longitudes continuous past +-180 (the map repeats
+/// the world), but flutter_map's polygons accept only -180..180. A box 360
+/// degrees wide or more is the whole world; a box that straddles the date
+/// line is two spans, one on each side of it; anything else is one span.
+List<({double west, double east})> longitudeSpans(double west, double east) {
+  if (east - west >= 360) return [(west: -180, east: 180)];
+  final shift = ((west + 180) / 360).floor() * 360.0;
+  final spanWest = west - shift;
+  final spanEast = east - shift;
+  if (spanEast <= 180) return [(west: spanWest, east: spanEast)];
+  return [(west: spanWest, east: 180), (west: -180, east: spanEast - 360)];
+}

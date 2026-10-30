@@ -277,6 +277,8 @@ void main() {
         expect(result.matchConfidence, MatchConfidence.estimated);
         expect(result.depthMeters, 15.0);
         expect(result.temperatureCelsius, 20.0);
+        // Not outside the profile, so not a surface shot (issue #3520).
+        expect(result.timestampOffsetSeconds, isNull);
       });
 
       test('correctly calculates elapsed seconds from dive start', () {

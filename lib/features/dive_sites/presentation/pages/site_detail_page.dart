@@ -32,12 +32,14 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/duplicate_site_action.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
@@ -67,6 +69,11 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_edit_history_sheet.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -228,7 +235,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             kind: SharedItemKind.site,
             itemId: site.id,
             ownerId: site.diverId,
-            isShared: site.isShared,
           ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
@@ -277,6 +283,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
               ],
@@ -437,6 +444,13 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       site.id,
       canDestroy: canDestroy != false,
     );
+    // Remove only while the site reaches this profile (issue #2151).
+    final reachesHere = watchReachesHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      libraryId: site.sharedLibraryId,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -523,6 +537,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
                 openInConnectionsMenuItem(context),
+                duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 ..._libraryMenuItems(context, ref, site),
                 // Delete for the owner; another profile only removes the
@@ -549,7 +564,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   )
-                else if (canDestroy == false)
+                else if (canDestroy == false && reachesHere)
                   PopupMenuItem(
                     value: 'remove',
                     child: ListTile(
@@ -708,6 +723,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return;
+    }
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -757,6 +775,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     WidgetRef ref,
     DiveSite site,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.sharedLibrary)) {
+      return;
+    }
     final library = await pickLibraryToAddTo(
       context,
       ref,
@@ -803,6 +824,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       _displayOptionsMenu.open();
       return;
     }
+    if (action == kDuplicateSiteAction) {
+      await openDuplicateSite(context, ref, site.id);
+      return;
+    }
     if (action == 'remove') {
       await _removeFromProfile(context, ref, site);
       return;
@@ -833,7 +858,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
       final diverCount = divers.length;
-      final isSharedDelete = site.isShared && diverCount >= 2;
+      if (!context.mounted) return;
+      // Shared with everyone or with chosen profiles (issue #2151).
+      final shared = diverCount < 2
+          ? false
+          : await readSharedWithAnyone(
+              ref,
+              context,
+              SharedItemKind.site,
+              site.id,
+            );
+      if (shared == null) return;
+      final isSharedDelete = shared;
       // The other profiles' dives that lose the site (issue #2594).
       final others = isSharedDelete
           ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others
@@ -1088,15 +1124,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              hasDescription
-                  ? site.description
-                  : context.l10n.diveSites_detail_noDescription,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: hasDescription ? null : colorScheme.onSurfaceVariant,
-                fontStyle: hasDescription ? null : FontStyle.italic,
+            if (hasDescription)
+              MarkdownNotesView(site.description)
+            else
+              Text(
+                context.l10n.diveSites_detail_noDescription,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -1139,91 +1176,93 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.map, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_location,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              Icons.flag,
-              context.l10n.diveSites_detail_location_country,
-              site.country?.isNotEmpty == true
-                  ? site.country!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.country?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.place,
-              context.l10n.diveSites_detail_location_region,
-              site.region?.isNotEmpty == true
-                  ? site.region!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.region?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.location_city,
-              context.l10n.diveSites_detail_location_city,
-              site.city?.isNotEmpty == true
-                  ? site.city!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.city?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.landscape,
-              context.l10n.diveSites_detail_location_island,
-              site.island?.isNotEmpty == true
-                  ? site.island!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.island?.isNotEmpty != true,
-            ),
-            _buildDetailRow(
-              context,
-              Icons.waves,
-              context.l10n.diveSites_detail_location_bodyOfWater,
-              site.bodyOfWater?.isNotEmpty == true
-                  ? site.bodyOfWater!
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: site.bodyOfWater?.isNotEmpty != true,
-            ),
-            // What kind of place this is (issue #1765), beside the body of
-            // water it overlaps with: "Lake, Wreck".
-            _buildSiteTypesRow(context, ref, site),
-            _buildDetailRow(
-              context,
-              Icons.gps_fixed,
-              context.l10n.diveSites_detail_location_gpsCoordinates,
-              site.hasCoordinates
-                  ? coordinates
-                  : context.l10n.diveSites_detail_location_notSet,
-              isEmpty: !site.hasCoordinates,
-              onTap: site.hasCoordinates
-                  ? () {
-                      Clipboard.setData(ClipboardData(text: coordinates));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            context.l10n.diveSites_detail_coordinatesCopied,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.map, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.l10n.diveSites_detail_section_location,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildDetailRow(
+                context,
+                Icons.flag,
+                context.l10n.diveSites_detail_location_country,
+                site.country?.isNotEmpty == true
+                    ? site.country!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.country?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.place,
+                context.l10n.diveSites_detail_location_region,
+                site.region?.isNotEmpty == true
+                    ? site.region!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.region?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.location_city,
+                context.l10n.diveSites_detail_location_city,
+                site.city?.isNotEmpty == true
+                    ? site.city!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.city?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.landscape,
+                context.l10n.diveSites_detail_location_island,
+                site.island?.isNotEmpty == true
+                    ? site.island!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.island?.isNotEmpty != true,
+              ),
+              _buildDetailRow(
+                context,
+                Icons.waves,
+                context.l10n.diveSites_detail_location_bodyOfWater,
+                site.bodyOfWater?.isNotEmpty == true
+                    ? site.bodyOfWater!
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: site.bodyOfWater?.isNotEmpty != true,
+              ),
+              // What kind of place this is (issue #1765), beside the body of
+              // water it overlaps with: "Lake, Wreck".
+              _buildSiteTypesRow(context, ref, site),
+              _buildDetailRow(
+                context,
+                Icons.gps_fixed,
+                context.l10n.diveSites_detail_location_gpsCoordinates,
+                site.hasCoordinates
+                    ? coordinates
+                    : context.l10n.diveSites_detail_location_notSet,
+                isEmpty: !site.hasCoordinates,
+                onTap: site.hasCoordinates
+                    ? () {
+                        Clipboard.setData(ClipboardData(text: coordinates));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.l10n.diveSites_detail_coordinatesCopied,
+                            ),
+                            duration: const Duration(seconds: 2),
                           ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  : null,
-            ),
-          ],
+                        );
+                      }
+                    : null,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1268,33 +1307,25 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Label and value share one line rather than stacking. Both halves are
-    // flexible and the value may run to a second line before it ellipsizes,
-    // so a long value (a coordinate pair, a wrapped place name) degrades
-    // instead of overflowing.
-    final content = Padding(
+    // The value sits beside the label, on the card's label column (issue
+    // #3678), and may run to a second line before it ellipsizes, so a long
+    // value (a coordinate pair, a wrapped place name) degrades instead of
+    // overflowing.
+    final content = DetailRow(
+      icon: icon,
+      iconSize: 18,
+      iconColor: colorScheme.onSurfaceVariant,
+      label: label,
+      labelStyle: Theme.of(
+        context,
+      ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
           Flexible(
             child: Text(
               value,
-              textAlign: TextAlign.end,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -1336,8 +1367,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return (site.accessNotes != null && site.accessNotes!.isNotEmpty) ||
         (site.mooringNumber != null && site.mooringNumber!.isNotEmpty) ||
         (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) ||
-        site.entryMethod != null ||
-        site.exitMethod != null;
+        site.entryMethods.isNotEmpty ||
+        site.exitMethods.isNotEmpty;
   }
 
   /// The site's depth: what it is rated for, and what dives actually found.
@@ -1390,127 +1421,137 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     return Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.arrow_downward,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_depthRange,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (!hasDepthInfo)
-              Center(
-                child: Text(
-                  context.l10n.diveSites_detail_noDepthInfo,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              )
-            else
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  if (hasMinDepth)
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            context.l10n.diveSites_detail_depth_minimum,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${formatPrimary(site.minDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.secondary,
-                                ),
-                          ),
-                          Text(
-                            '${formatSecondary(site.minDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (hasMinDepth && hasMaxDepth)
-                    Container(
-                      height: 60,
-                      width: 1,
-                      color: colorScheme.outlineVariant,
-                    ),
-                  if (hasMaxDepth)
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            context.l10n.diveSites_detail_depth_maximum,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${formatPrimary(site.maxDepth!)} $primarySymbol',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                          ),
-                          Text(
-                            '${formatSecondary(site.maxDepth!)} $secondarySymbol',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Icon(
+                    Icons.arrow_downward,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.l10n.diveSites_detail_section_depthRange,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ],
               ),
-            if (hasReachedDepths) ...[
-              const Divider(height: 24),
-              Text(
-                context.l10n.diveSites_detail_depth_reachedHeading,
-                style: Theme.of(
+              const SizedBox(height: 12),
+              if (!hasDepthInfo)
+                Center(
+                  child: Text(
+                    context.l10n.diveSites_detail_noDepthInfo,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    if (hasMinDepth)
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              context.l10n.diveSites_detail_depth_minimum,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${formatPrimary(site.minDepth!)} $primarySymbol',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.secondary,
+                                  ),
+                            ),
+                            Text(
+                              '${formatSecondary(site.minDepth!)} $secondarySymbol',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (hasMinDepth && hasMaxDepth)
+                      Container(
+                        height: 60,
+                        width: 1,
+                        color: colorScheme.outlineVariant,
+                      ),
+                    if (hasMaxDepth)
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              context.l10n.diveSites_detail_depth_maximum,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${formatPrimary(site.maxDepth!)} $primarySymbol',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                            ),
+                            Text(
+                              '${formatSecondary(site.maxDepth!)} $secondarySymbol',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              if (hasReachedDepths) ...[
+                const Divider(height: 24),
+                Text(
+                  context.l10n.diveSites_detail_depth_reachedHeading,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
+                ),
+                _buildStatRow(
                   context,
-                ).textTheme.labelLarge?.copyWith(color: colorScheme.primary),
-              ),
-              _buildStatRow(
-                context,
-                Icons.arrow_downward,
-                context.l10n.diveSites_detail_stats_maxDepth,
-                stats.maxDepthReached == null
-                    ? context.l10n.diveSites_detail_stats_notAvailable
-                    : units.formatDepth(stats.maxDepthReached),
-                isEmpty: stats.maxDepthReached == null,
-                diveId: stats.deepestDiveId,
-              ),
-              _buildStatRow(
-                context,
-                Icons.arrow_upward,
-                context.l10n.diveSites_detail_stats_minDepth,
-                stats.minDepthReached == null
-                    ? context.l10n.diveSites_detail_stats_notAvailable
-                    : units.formatDepth(stats.minDepthReached),
-                isEmpty: stats.minDepthReached == null,
-                diveId: stats.shallowestDiveId,
-              ),
+                  Icons.arrow_downward,
+                  context.l10n.diveSites_detail_stats_maxDepth,
+                  stats.maxDepthReached == null
+                      ? context.l10n.diveSites_detail_stats_notAvailable
+                      : units.formatDepth(stats.maxDepthReached),
+                  isEmpty: stats.maxDepthReached == null,
+                  diveId: stats.deepestDiveId,
+                ),
+                _buildStatRow(
+                  context,
+                  Icons.arrow_upward,
+                  context.l10n.diveSites_detail_stats_minDepth,
+                  stats.minDepthReached == null
+                      ? context.l10n.diveSites_detail_stats_notAvailable
+                      : units.formatDepth(stats.minDepthReached),
+                  isEmpty: stats.minDepthReached == null,
+                  diveId: stats.shallowestDiveId,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -1596,47 +1637,53 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     Widget shell(List<Widget> statisticsRows) => Card(
       child: Padding(
         padding: _cardPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.scuba_diving, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.diveSites_detail_section_divesAtSite,
-                    style: Theme.of(context).textTheme.titleMedium,
+        child: DetailRowGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.scuba_diving,
+                    size: 20,
+                    color: colorScheme.primary,
                   ),
-                ),
-                // Career terrain is built from the dives at this site, so it
-                // belongs to this card rather than the page chrome.
-                // Unconditional, as it was in the app bar: it draws from dive
-                // profiles, not site coordinates.
-                IconButton(
-                  key: const ValueKey('siteCareerTerrainButton'),
-                  icon: const Icon(Icons.view_in_ar),
-                  tooltip: context.l10n.dive3d_career_title,
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => CareerTerrainPage(
-                        query: careerSiteQuery(site.id),
-                        title: site.name,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.l10n.diveSites_detail_section_divesAtSite,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  // Career terrain is built from the dives at this site, so it
+                  // belongs to this card rather than the page chrome.
+                  // Unconditional, as it was in the app bar: it draws from dive
+                  // profiles, not site coordinates.
+                  IconButton(
+                    key: const ValueKey('siteCareerTerrainButton'),
+                    icon: const Icon(Icons.view_in_ar),
+                    tooltip: context.l10n.dive3d_career_title,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => CareerTerrainPage(
+                          query: careerSiteQuery(site.id),
+                          title: site.name,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              countLine(),
+              ...statisticsRows,
+              if ((totalDiveCount ?? 0) > 0) ...[
+                const Divider(height: 16),
+                footer(),
               ],
-            ),
-            const SizedBox(height: 8),
-            countLine(),
-            ...statisticsRows,
-            if ((totalDiveCount ?? 0) > 0) ...[
-              const Divider(height: 16),
-              footer(),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -2052,24 +2099,32 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 Icons.info_outline,
                 context.l10n.diveSites_detail_access_accessNotes,
                 site.accessNotes!,
+                markdown: true,
               ),
             ],
-            if (site.entryMethod != null) ...[
+            if (site.entryMethods.isNotEmpty) ...[
               _buildAccessRow(
                 context,
                 Icons.login,
                 context.l10n.diveSites_detail_access_entryMethod,
-                site.entryMethod!.localizedName(context.l10n),
+                joinEntryMethodNames(
+                  site.entryMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             // Only when it differs: a mirrored exit repeats the entry row.
-            if (site.exitMethod != null &&
-                site.exitMethod != site.entryMethod) ...[
+            // Compared as sets, so the same methods in another order count
+            // as the same (issue #2054).
+            if (exitDiffersFromEntry(site.entryMethods, site.exitMethods)) ...[
               _buildAccessRow(
                 context,
                 Icons.logout,
                 context.l10n.diveSites_detail_access_exitMethod,
-                site.exitMethod!.localizedName(context.l10n),
+                joinEntryMethodNames(
+                  site.exitMethods,
+                  (m) => m.localizedName(context.l10n),
+                ),
               ),
             ],
             if (site.mooringNumber != null &&
@@ -2096,8 +2151,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     BuildContext context,
     IconData icon,
     String label,
-    String value,
-  ) {
+    String value, {
+    bool markdown = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
@@ -2133,7 +2189,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          if (markdown)
+            MarkdownNotesView(value)
+          else
+            Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -2217,13 +2276,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              hasNotes ? site.notes : context.l10n.diveSites_detail_noNotes,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: hasNotes ? null : colorScheme.onSurfaceVariant,
-                fontStyle: hasNotes ? null : FontStyle.italic,
+            if (hasNotes)
+              MarkdownNotesView(site.notes)
+            else
+              Text(
+                context.l10n.diveSites_detail_noNotes,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
           ],
         ),
       ),

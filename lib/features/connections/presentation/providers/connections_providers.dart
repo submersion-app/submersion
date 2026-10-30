@@ -40,6 +40,7 @@ final connectionGraphProvider = FutureProvider.autoDispose
         diverId: diverId,
         filter: filter,
         nodeBudget: nodeBudget,
+        sharedWith: view.mapSharedWith,
       );
     });
 

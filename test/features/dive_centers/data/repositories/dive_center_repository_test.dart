@@ -397,4 +397,23 @@ void main() {
     expect(cleared!.fillOpensAt, isNull);
     expect(cleared.fillClosesAt, isNull);
   });
+
+  test('isPermanentlyClosed round-trips (#3379)', () async {
+    final created = await repository.createDiveCenter(
+      createTestCenter(
+        name: 'Toucan Diving',
+      ).copyWith(isPermanentlyClosed: true),
+    );
+
+    final byId = await repository.getDiveCenterById(created.id);
+    expect(byId!.isPermanentlyClosed, isTrue);
+    final listed = await repository.getAllDiveCenters();
+    expect(listed.single.isPermanentlyClosed, isTrue);
+
+    await repository.updateDiveCenter(
+      byId.copyWith(isPermanentlyClosed: false),
+    );
+    final reopened = await repository.getDiveCenterById(created.id);
+    expect(reopened!.isPermanentlyClosed, isFalse);
+  });
 }

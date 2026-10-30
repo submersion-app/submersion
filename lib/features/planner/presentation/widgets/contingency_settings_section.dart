@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -22,24 +23,12 @@ class ContingencySettingsSection extends ConsumerStatefulWidget {
 
 class _ContingencySettingsSectionState
     extends ConsumerState<ContingencySettingsSection> {
-  late final TextEditingController _depthController;
-  late final TextEditingController _timeController;
   late final TextEditingController _fractionController;
 
   @override
   void initState() {
     super.initState();
     final state = ref.read(divePlanNotifierProvider);
-    final units = UnitFormatter(ref.read(settingsProvider));
-    _depthController = TextEditingController(
-      text: formatRoundedForInput(
-        units.convertDepth(state.deviationDepthDelta),
-        0,
-      ),
-    );
-    _timeController = TextEditingController(
-      text: formatDecimalForInput(state.deviationTimeMinutes.toDouble()),
-    );
     _fractionController = TextEditingController(
       text: formatRoundedForInput(state.turnPressureFraction ?? (1 / 3), 2),
     );
@@ -47,8 +36,6 @@ class _ContingencySettingsSectionState
 
   @override
   void dispose() {
-    _depthController.dispose();
-    _timeController.dispose();
     _fractionController.dispose();
     super.dispose();
   }
@@ -60,14 +47,26 @@ class _ContingencySettingsSectionState
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final l10n = context.l10n;
 
-    String ruleLabel(domain.TurnPressureRule? rule) => switch (rule) {
-      null => l10n.plannerCanvas_turnRule_none,
+    // domain.TurnPressureRule.off is the explicit "no tracking" choice
+    // (reuses the pre-existing "None" wording); a `null` rule is the unset
+    // state and shows the diver's Settings default instead (issue #3552),
+    // which may itself resolve to "None".
+    String concreteRuleLabel(domain.TurnPressureRule rule) => switch (rule) {
+      domain.TurnPressureRule.off => l10n.plannerCanvas_turnRule_none,
       domain.TurnPressureRule.allUsable =>
         l10n.plannerCanvas_turnRule_allUsable,
       domain.TurnPressureRule.halves => l10n.plannerCanvas_turnRule_halves,
       domain.TurnPressureRule.thirds => l10n.plannerCanvas_turnRule_thirds,
       domain.TurnPressureRule.custom => l10n.plannerCanvas_turnRule_custom,
     };
+    final settingsDefaultRule = ref.watch(plannerTurnPressureRuleProvider);
+    String ruleLabel(domain.TurnPressureRule? rule) => rule == null
+        ? l10n.divePlanner_label_defaultWithValue(
+            settingsDefaultRule == null
+                ? l10n.plannerCanvas_turnRule_none
+                : concreteRuleLabel(settingsDefaultRule),
+          )
+        : concreteRuleLabel(rule);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -82,48 +81,38 @@ class _ContingencySettingsSectionState
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: NumberField(
-                  controller: _depthController,
-                  decoration: InputDecoration(
-                    labelText:
-                        '${l10n.plannerCanvas_contingency_depthDelta} '
-                        '(${units.depthSymbol})',
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (read) {
-                    // Blank and unreadable text leave the plan alone.
-                    if (read is! NumberValue || read.value <= 0) return;
-                    final parsed = read.value;
-                    final factor = units.convertDepth(1.0);
-                    notifier.updateContingencies(
-                      depthDelta: factor > 0 ? parsed / factor : parsed,
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: NumberField(
-                  controller: _timeController,
-                  integer: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.plannerCanvas_contingency_timeDelta,
-                    isDense: true,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (read) {
-                    if (read is! NumberValue || read.value <= 0) return;
-                    notifier.updateContingencies(
-                      timeMinutes: read.value.toInt(),
-                    );
-                  },
-                ),
-              ),
-            ],
+          // One field per row, like every other PlanNumberField in the Setup
+          // accordion: pairing two in a Row (as this used to) overflows at
+          // the accordion's usual narrow widths - the field's fixed-width
+          // box and unit alone already approach the row's whole budget.
+          PlanNumberField(
+            label: l10n.plannerCanvas_contingency_depthDelta,
+            value: state.deviationDepthDelta != null
+                ? units.convertDepth(state.deviationDepthDelta!)
+                : null,
+            hintValue: units.convertDepth(
+              ref.watch(plannerDeviationDepthDeltaProvider),
+            ),
+            suffixText: units.depthSymbol,
+            min: 0,
+            onChanged: (value) => notifier.updateContingencies(
+              depthDelta: value != null ? units.depthToMeters(value) : null,
+              clearDepthDelta: value == null,
+            ),
+          ),
+          PlanNumberField(
+            label: l10n.plannerCanvas_contingency_timeDelta,
+            value: state.deviationTimeMinutes?.toDouble(),
+            hintValue: ref
+                .watch(plannerDeviationTimeMinutesProvider)
+                .toDouble(),
+            suffixText: l10n.divePlanner_label_minutesUnit,
+            isInteger: true,
+            min: 0,
+            onChanged: (value) => notifier.updateContingencies(
+              timeMinutes: value?.round(),
+              clearTimeMinutes: value == null,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -131,6 +120,7 @@ class _ContingencySettingsSectionState
               Expanded(
                 child: DropdownButtonFormField<domain.TurnPressureRule?>(
                   initialValue: state.turnPressureRule,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: l10n.plannerCanvas_contingency_turnRule,
                     isDense: true,
@@ -143,7 +133,10 @@ class _ContingencySettingsSectionState
                     ])
                       DropdownMenuItem(
                         value: rule,
-                        child: Text(ruleLabel(rule)),
+                        child: Text(
+                          ruleLabel(rule),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                   ],
                   onChanged: (rule) => rule == null

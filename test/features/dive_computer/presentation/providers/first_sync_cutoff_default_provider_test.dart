@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
-import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Regression coverage for the first-sync cutoff caching bug.
@@ -71,23 +69,17 @@ void main() {
       'first resolved value for the app lifetime', () async {
     await insertDiver('diver-1');
 
-    final diverIdNotifier = MockCurrentDiverIdNotifier();
-    await diverIdNotifier.setCurrentDiver('diver-1');
-    final container = ProviderContainer(
-      overrides: [
-        currentDiverIdProvider.overrideWith((ref) => diverIdNotifier),
-      ],
-    );
+    final container = ProviderContainer();
     addTearDown(container.dispose);
 
     // First watch, empty log: resolves to null. Simulates the first
     // connect attempt from the reported sequence.
     final sub1 = container.listen(
-      firstSyncCutoffDefaultProvider,
+      firstSyncCutoffDefaultProvider('diver-1'),
       (previous, next) {},
     );
     final firstResult = await container.read(
-      firstSyncCutoffDefaultProvider.future,
+      firstSyncCutoffDefaultProvider('diver-1').future,
     );
     expect(firstResult, isNull);
 
@@ -105,12 +97,12 @@ void main() {
     // Re-watching (the reconnect) must re-fetch from the database rather
     // than replay the stale cached null.
     final sub2 = container.listen(
-      firstSyncCutoffDefaultProvider,
+      firstSyncCutoffDefaultProvider('diver-1'),
       (previous, next) {},
     );
     addTearDown(sub2.close);
     final secondResult = await container.read(
-      firstSyncCutoffDefaultProvider.future,
+      firstSyncCutoffDefaultProvider('diver-1').future,
     );
 
     expect(
@@ -120,6 +112,39 @@ void main() {
           'A plain (non-autoDispose) FutureProvider would still be '
           'serving the stale cached null here, leaving the reconnect '
           'with no cutoff prompt until app restart.',
+    );
+  });
+  // Issue #2050: the default comes from the log the download will go to,
+  // which may be another profile's.
+  test("reads the given diver's newest dive, not another's", () async {
+    await insertDiver('bill');
+    await insertDiver('mitchell');
+    await insertDive('b1', 'bill', DateTime.utc(2026, 9, 1));
+    await insertDive('m1', 'mitchell', DateTime.utc(2026, 10, 1));
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(
+      await container.read(firstSyncCutoffDefaultProvider('mitchell').future),
+      DateTime.utc(2026, 10, 1),
+    );
+    expect(
+      await container.read(firstSyncCutoffDefaultProvider('bill').future),
+      DateTime.utc(2026, 9, 1),
+    );
+  });
+
+  test('has no default without a diver', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(
+      await container.read(firstSyncCutoffDefaultProvider('').future),
+      isNull,
+    );
+    expect(
+      await container.read(firstSyncCutoffDefaultProvider(null).future),
+      isNull,
     );
   });
 }

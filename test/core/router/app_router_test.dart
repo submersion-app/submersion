@@ -51,6 +51,9 @@ import 'package:submersion/features/trips/presentation/navigation/open_trip_list
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
+import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/core/router/shortcut_locations.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -223,6 +226,82 @@ void main() {
       expect(planning.tripId, 't1');
       expect(planning.initialSection, TripEditSection.planning);
       expect(build('/trips/t1/edit').initialSection, isNull);
+    });
+  });
+
+  group('buddy card preview (#3728)', () {
+    testWidgets('without its card the preview goes to the buddy list', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      final route = _findRouteByName(
+        router.configuration.routes,
+        'buddyCardPreview',
+      )!;
+      final redirect = route.redirect!(
+        capturedContext,
+        GoRouterState(
+          router.configuration,
+          uri: Uri.parse('/buddies/card'),
+          matchedLocation: '/buddies/card',
+          fullPath: '/buddies/card',
+          pathParameters: const {},
+          pageKey: const ValueKey('/buddies/card'),
+        ),
+      );
+      expect(await redirect, '/buddies');
+    });
+  });
+
+  group('site duplicate (#3575)', () {
+    test('openDuplicateSite pushes the newSite route', () {
+      // openDuplicateSite writes the path by hand; it must stay this route's.
+      expect(
+        _locationOfRoute(router.configuration.routes, 'newSite'),
+        '/sites/new',
+      );
+    });
+
+    testWidgets('newSite reads the site to duplicate from the URL', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      SiteEditPage build(String location) =>
+          _findRouteByName(router.configuration.routes, 'newSite')!.builder!(
+                capturedContext,
+                GoRouterState(
+                  router.configuration,
+                  uri: Uri.parse(location),
+                  matchedLocation: Uri.parse(location).path,
+                  fullPath: '/sites/new',
+                  pathParameters: const {},
+                  pageKey: ValueKey(location),
+                ),
+              )
+              as SiteEditPage;
+
+      expect(build('/sites/new?duplicateOf=s1').duplicateOfId, 's1');
+      expect(build('/sites/new').duplicateOfId, isNull);
     });
   });
 
@@ -1309,7 +1388,7 @@ void main() {
       '/trips',
       '/pre-dive-sessions/session-7',
       '/courses/c1',
-      '/settings/media-storage/transfers',
+      '/settings/photos-media/uploads',
       '/settings/backup',
       '/settings/cloud-sync',
       '/dives/quality',
@@ -2089,8 +2168,7 @@ void main() {
     const locations = [
       '/settings/backup',
       '/settings/cloud-sync',
-      '/settings/cloud-sync/s3-config',
-      '/settings/cloud-sync/webdav-config',
+      '/settings/cloud-sync/nearby-pair',
       '/settings/shared-libraries',
       '/settings/shared-libraries/connect?prefix=club',
       '/settings/shared-libraries/lib1',
@@ -2099,12 +2177,11 @@ void main() {
       '/settings/shared-libraries/lib1/backups',
       '/settings/shared-libraries/lib1/connection',
       '/settings/photos-media',
-      '/settings/photos-media/setup',
+      '/settings/photos-media/uploads',
       '/settings/media-sources',
       '/settings/media-sources/network-sources',
-      '/settings/media-storage',
-      '/settings/media-storage/transfers',
       '/settings/connected-accounts',
+      '/settings/connected-accounts/acct1',
       '/settings/storage',
       '/settings/storage-usage',
       '/settings/storage-usage/unrecognized-backups',
@@ -2113,6 +2190,11 @@ void main() {
       '/settings/link-buddy-names',
       '/settings/retype-other-gear',
       '/settings/data-quality',
+      '/settings/import-options',
+      '/settings/data-tools',
+      '/settings/setup',
+      '/settings/setup?step=sync',
+      '/settings/setup?again=true',
     ];
 
     testWidgets('each location builds the page its route builds', (
@@ -2149,6 +2231,49 @@ void main() {
         final pane = dataPanePage(uri);
         expect(pane, isNotNull, reason: location);
         expect(pane.runtimeType, routed.runtimeType, reason: location);
+      }
+    });
+
+    // Issue #3482 phase 4: Media Storage merged into Photos & videos. Old
+    // links and pushes still land somewhere real.
+    testWidgets('the old Media Storage routes redirect to Photos & videos', (
+      tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      for (final (from, to) in const [
+        ('/settings/media-storage', '/settings/photos-media'),
+        ('/settings/media-storage/transfers', '/settings/photos-media/uploads'),
+      ]) {
+        final uri = Uri.parse(from);
+        final match = router.configuration.findMatch(uri);
+        expect(match.isError, isFalse, reason: from);
+        final redirect = match.last.route.redirect;
+        expect(redirect, isNotNull, reason: from);
+        final target = await redirect!(
+          capturedContext,
+          GoRouterState(
+            router.configuration,
+            uri: uri,
+            matchedLocation: match.last.matchedLocation,
+            fullPath: match.fullPath,
+            pathParameters: match.pathParameters,
+            pageKey: ValueKey(from),
+          ),
+        );
+        expect(target, to, reason: from);
+        // A push inside the desktop pane lands on the same pages.
+        expect(dataPanePage(uri), isNotNull, reason: from);
       }
     });
 
@@ -2190,6 +2315,32 @@ void main() {
       ]) {
         expect(dataPanePage(Uri.parse(location)), isNull, reason: location);
       }
+    });
+  });
+
+  group('import wizards (#3554)', () {
+    test('every import wizard route asks before leaving a running import', () {
+      for (final name in const [
+        'universalImport',
+        'importFromCloudSuunto',
+        'importFromFileSuunto',
+        'importFromCloudGarmin',
+        'importFromCloudDivelogs',
+        'wearableImport',
+        'discoverDevice',
+        'computerDownload',
+      ]) {
+        final route = _findRouteByName(router.configuration.routes, name);
+        expect(route?.onExit, same(confirmLeaveRunningImport), reason: name);
+      }
+    });
+
+    test('the import wizard as a nav shortcut asks too', () {
+      final shortcut = _findRouteByPath(
+        router.configuration.routes,
+        '$kShortcutLocationPrefix/:id',
+      );
+      expect(shortcut?.onExit, isNotNull);
     });
   });
 }

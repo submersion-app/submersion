@@ -246,10 +246,12 @@ void main() {
     expect(mission().defaultCurrent!.speedMps, closeTo(0.5, 1e-9));
     expect(mission().defaultCurrent!.setsTowardDeg, 90);
 
-    // An emptied reserve is not reset to the default under the diver.
+    // An emptied reserve clears back to the diver's Settings default
+    // (issue #3552), the same hint-text pattern every other Setup field
+    // uses.
     await tester.enterText(box('Battery reserve'), '');
     await tester.pump();
-    expect(mission().batteryReserveFraction, 0.25);
+    expect(mission().batteryReserveFraction, isNull);
 
     // Typing 0 is how the diver says there is no default current.
     await tester.enterText(box('Default current'), '0');

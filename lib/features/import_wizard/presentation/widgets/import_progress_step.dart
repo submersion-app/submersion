@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The importing progress step of the import wizard.
@@ -96,22 +97,28 @@ class ImportProgressStep extends ConsumerWidget {
     );
   }
 
-  String _resolvePhaseText(BuildContext context, ImportPhase? phase) {
-    final l10n = context.l10n;
-    if (phase == null) return l10n.universalImport_label_importingEllipsis;
-    return switch (phase) {
-      ImportPhase.dives => l10n.settings_import_phase_dives,
-      ImportPhase.sites => l10n.settings_import_phase_sites,
-      ImportPhase.trips => l10n.settings_import_phase_trips,
-      ImportPhase.equipment => l10n.settings_import_phase_equipment,
-      ImportPhase.equipmentSets => l10n.settings_import_phase_equipmentSets,
-      ImportPhase.buddies => l10n.settings_import_phase_buddies,
-      ImportPhase.diveCenters => l10n.settings_import_phase_diveCenters,
-      ImportPhase.certifications => l10n.settings_import_phase_certifications,
-      ImportPhase.tags => l10n.settings_import_phase_tags,
-      ImportPhase.diveTypes => l10n.settings_import_phase_diveTypes,
-      ImportPhase.courses => l10n.settings_import_phase_courses,
-      ImportPhase.applyingTags => l10n.settings_import_phase_applyingTags,
-    };
-  }
+  String _resolvePhaseText(BuildContext context, ImportPhase? phase) =>
+      importPhaseLabel(context.l10n, phase);
+}
+
+/// The localized label for an import [phase]; a generic one before the
+/// first phase is known.
+String importPhaseLabel(AppLocalizations l10n, ImportPhase? phase) {
+  if (phase == null) return l10n.universalImport_label_importingEllipsis;
+  return switch (phase) {
+    ImportPhase.dives => l10n.settings_import_phase_dives,
+    ImportPhase.sites => l10n.settings_import_phase_sites,
+    ImportPhase.trips => l10n.settings_import_phase_trips,
+    ImportPhase.equipment => l10n.settings_import_phase_equipment,
+    ImportPhase.equipmentSets => l10n.settings_import_phase_equipmentSets,
+    ImportPhase.buddies => l10n.settings_import_phase_buddies,
+    ImportPhase.diveCenters => l10n.settings_import_phase_diveCenters,
+    ImportPhase.certifications => l10n.settings_import_phase_certifications,
+    ImportPhase.tags => l10n.settings_import_phase_tags,
+    ImportPhase.diveTypes => l10n.settings_import_phase_diveTypes,
+    ImportPhase.courses => l10n.settings_import_phase_courses,
+    ImportPhase.applyingTags => l10n.settings_import_phase_applyingTags,
+    ImportPhase.photos => l10n.settings_import_phase_photos,
+    ImportPhase.finishing => l10n.settings_import_phase_finishing,
+  };
 }

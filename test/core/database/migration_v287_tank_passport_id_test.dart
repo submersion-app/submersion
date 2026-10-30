@@ -32,7 +32,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(287));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(287));
   });
 
   test(

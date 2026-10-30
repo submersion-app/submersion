@@ -72,6 +72,21 @@ void main() {
     applyBaseFile: spyApplyBaseFile(applied),
   );
 
+  test('reports when the cloud listed each peer manifest', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+    final listing = await provider.listFiles(
+      folderId: folder,
+      namePattern: ChangesetLogLayout.manifestName(peerId),
+    );
+
+    final result = await pullAs('reader-device');
+
+    expect(result.peerManifestListedAt, {peerId: listing.single.modifiedTime});
+  });
+
   test(
     'streams the base to a temp file that exists during apply and is deleted '
     'after',

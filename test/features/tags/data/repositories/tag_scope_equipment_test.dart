@@ -149,6 +149,8 @@ void main() {
       TagScope.dives: 0,
       TagScope.sites: 0,
       TagScope.equipment: 2,
+      TagScope.media: 0,
+      TagScope.documents: 0,
     });
 
     final stat = (await repository.getTagStatistics()).singleWhere(
@@ -188,6 +190,8 @@ void main() {
       TagScope.dives: 0,
       TagScope.sites: 0,
       TagScope.equipment: 2,
+      TagScope.media: 0,
+      TagScope.documents: 0,
     });
   });
 

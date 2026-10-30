@@ -1,15 +1,20 @@
 import 'dart:io';
 
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -231,6 +236,62 @@ void main() {
       },
     );
 
+    test('names an unreadable file without calling it a safety copy when '
+        'there is no key', () async {
+      // Restore from file opts in for every file it is given, so the keyless
+      // message must fit any corrupt or foreign .db, not just a history row.
+      final path = p.join(tempDir.path, 'random.db');
+      await File(path).writeAsString('this is not a sqlite database');
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: preferences,
+      );
+
+      final result = await service.validateBackupFile(
+        path,
+        allowLiveDatabaseEncryption: true,
+      );
+
+      expect(result.error, BackupService.unreadableCopyNoKeyMessage);
+      expect(result.error, isNot(contains('safety copy')));
+    });
+
+    test('logs why the keyed open failed', () async {
+      // The message names no cause it cannot prove, so the real error must
+      // reach the diagnostic log.
+      final path = await writeEncryptedPreMigrationCopy('enc.db');
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(databaseKeyHex: 'ff' * 32),
+        preferences: preferences,
+      );
+      final logged = <String>[];
+      final sub = LoggerService.logStream.listen((e) => logged.add(e.message));
+      addTearDown(sub.cancel);
+
+      await service.validateBackupFile(path, allowLiveDatabaseEncryption: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(logged, contains(contains('file is not a database')));
+    });
+
+    test(
+      'names a key mismatch when the live key does not open the file',
+      () async {
+        final path = await writeEncryptedPreMigrationCopy('enc.db');
+        final service = BackupService(
+          dbAdapter: _FakeBackupDatabaseAdapter(databaseKeyHex: 'ff' * 32),
+          preferences: preferences,
+        );
+
+        final result = await service.validateBackupFile(
+          path,
+          allowLiveDatabaseEncryption: true,
+        );
+
+        expect(result.error, BackupService.lockedCopyWrongKeyMessage);
+      },
+    );
+
     test(
       'still rejects a corrupt plaintext .db when live encryption is allowed',
       () async {
@@ -251,6 +312,70 @@ void main() {
     );
   });
 
+  group('restoreFromFile with a protected safety copy (#3650)', () {
+    const passphrase = 'backup passphrase';
+
+    /// Wraps a SQLCipher safety copy in an `.sbe`, as "Encrypt existing
+    /// backups" does to every local backup, pre-update copies included.
+    Future<String> wrapAsSbe(String plainPath) async {
+      final mlk = SecretKey(List<int>.generate(32, (i) => (i * 7 + 3) % 256));
+      const keyId = '1b4e28ba-2fa1-11d2-883f-0016d3cca427';
+      final slots = KeyslotFile(
+        version: 1,
+        libraryKeyId: keyId,
+        slots: [
+          await Keyslots.createSlot(
+            type: 'passphrase',
+            secret: passphrase,
+            mlk: mlk,
+            kdf: const KdfParams(m: 1024, t: 3, p: 1),
+          ),
+        ],
+      );
+      final sbePath = p.join(tempDir.path, 'wrapped.sbe');
+      await BackupCrypto.encryptFile(
+        inPath: plainPath,
+        outPath: sbePath,
+        mlk: mlk,
+        libraryKeyId: keyId,
+        keyslotBytes: slots.toJsonBytes(),
+      );
+      return sbePath;
+    }
+
+    test('refuses a decrypted SQLCipher copy the live key does not open, '
+        'before any backup is made', () async {
+      final sbe = await wrapAsSbe(await writeEncryptedPreMigrationCopy('e.db'));
+      final adapter = _FakeBackupDatabaseAdapter(databaseKeyHex: 'ff' * 32);
+      final service = BackupService(
+        dbAdapter: adapter,
+        preferences: preferences,
+        syncRepository: _SpySyncRepository(),
+      );
+
+      await expectLater(
+        service.restoreFromFile(sbe, encryptionSecret: passphrase),
+        throwsA(isA<BackupException>()),
+      );
+      expect(adapter.restoreCallCount, 0);
+      expect(preferences.getHistory(), isEmpty);
+    });
+
+    test('restores a decrypted SQLCipher copy the live key opens', () async {
+      final sbe = await wrapAsSbe(await writeEncryptedPreMigrationCopy('e.db'));
+      final adapter = _FakeBackupDatabaseAdapter(databaseKeyHex: _liveKeyHex);
+      final service = BackupService(
+        dbAdapter: adapter,
+        preferences: preferences,
+        syncRepository: _SpySyncRepository(),
+      );
+
+      await service.restoreFromFile(sbe, encryptionSecret: passphrase);
+
+      expect(adapter.restoreCallCount, 1);
+    });
+  });
+
   group('restoreFromBackup', () {
     test('restores an encrypted pre-migration backup', () async {
       final path = await writeEncryptedPreMigrationCopy('enc.db');
@@ -262,6 +387,23 @@ void main() {
       );
 
       await service.restoreFromBackup(recordFor(path, BackupType.preMigration));
+
+      expect(adapter.restoreCallCount, 1);
+      expect(adapter.lastRestorePath, path);
+    });
+
+    test('restores an encrypted pre-downgrade backup', () async {
+      // The same raw copy of the live database as a pre-migration one, kept
+      // aside when a newer database was left behind (issue #3650).
+      final path = await writeEncryptedPreMigrationCopy('newer.db');
+      final adapter = _FakeBackupDatabaseAdapter(databaseKeyHex: _liveKeyHex);
+      final service = BackupService(
+        dbAdapter: adapter,
+        preferences: preferences,
+        syncRepository: _SpySyncRepository(),
+      );
+
+      await service.restoreFromBackup(recordFor(path, BackupType.preDowngrade));
 
       expect(adapter.restoreCallCount, 1);
       expect(adapter.lastRestorePath, path);

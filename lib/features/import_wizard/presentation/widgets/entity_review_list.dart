@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
+import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -1147,7 +1148,8 @@ class _ComparisonRow extends StatelessWidget {
 /// Action button for the entity comparison panel.
 ///
 /// Matches the dive comparison card's button style: [FilledButton] when
-/// selected (with color background + white text), [OutlinedButton] when not.
+/// selected (with color background and a label that reads on it),
+/// [OutlinedButton] when not.
 class _EntityActionButton extends StatelessWidget {
   final String label;
   final String subtitle;
@@ -1167,6 +1169,7 @@ class _EntityActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const minSize = Size(0, 48);
+    final onFill = isSelected ? foregroundOn(theme.colorScheme, color) : null;
 
     final child = Column(
       mainAxisSize: MainAxisSize.min,
@@ -1175,16 +1178,16 @@ class _EntityActionButton extends StatelessWidget {
           label,
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : null,
+            color: onFill,
           ),
         ),
         if (subtitle.isNotEmpty)
           Text(
             subtitle,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: isSelected
-                  ? Colors.white.withValues(alpha: 0.85)
-                  : theme.colorScheme.onSurfaceVariant,
+              color:
+                  onFill?.withValues(alpha: 0.85) ??
+                  theme.colorScheme.onSurfaceVariant,
               fontSize: 10,
             ),
           ),
@@ -1197,7 +1200,7 @@ class _EntityActionButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           minimumSize: minSize,
           backgroundColor: color,
-          foregroundColor: Colors.white,
+          foregroundColor: onFill,
         ),
         child: child,
       );

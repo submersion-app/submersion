@@ -80,6 +80,7 @@ class FitImportParser implements ImportParser {
     if (dive.decoModel != null) diveData['decoAlgorithm'] = dive.decoModel;
     if (dive.gfLow != null) diveData['gradientFactorLow'] = dive.gfLow;
     if (dive.gfHigh != null) diveData['gradientFactorHigh'] = dive.gfHigh;
+    if (dive.cnsStart != null) diveData['cnsStart'] = dive.cnsStart;
     if (dive.cnsEnd != null) diveData['cnsEnd'] = dive.cnsEnd;
     if (dive.otu != null) diveData['otu'] = dive.otu;
     if (dive.computerTissue != null) {

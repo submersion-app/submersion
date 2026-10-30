@@ -643,6 +643,39 @@ class NavTrackRepository {
     }
   }
 
+  /// Sets or clears [routeId]'s device/equipment after it has already been
+  /// saved -- the import review screen (`NavTrackEquipmentPickerSheet`'s
+  /// only other call site) can only set this once, at import time; this is
+  /// the detail page's "Change device" entry point for doing it afterward.
+  /// Both fields clear together: [equipmentId] null with no [deviceName]
+  /// means "no equipment chosen", the same as the import path.
+  Future<void> setEquipment(
+    String routeId, {
+    String? equipmentId,
+    String? deviceName,
+  }) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.navTracks,
+      )..where((t) => t.id.equals(routeId))).write(
+        NavTracksCompanion(
+          equipmentId: Value(equipmentId),
+          deviceName: Value(deviceName),
+          updatedAt: Value(now),
+        ),
+      );
+      await _markPending(routeId, now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set equipment on nav track $routeId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Ids of every route currently linked to [diveId].
   ///
   /// Call this BEFORE the dive row is deleted and pass the result to

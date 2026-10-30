@@ -7,10 +7,12 @@ import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/deco/deco_ppo2_limits.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -20,10 +22,13 @@ import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
+    show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
 
@@ -35,6 +40,32 @@ import 'package:submersion/core/deco/scr_calculator.dart';
 class PlanEngineConfig extends Equatable {
   final double ppO2Working;
   final double ppO2Deco;
+
+  /// Per-O2-band deco ppO2 limits and the explicit MOD for 100% O2 (issue
+  /// #3580), the diver's Settings defaults layered with this plan's own
+  /// overrides (see [resolvedFor]). Off by default: [ppO2Deco] alone keeps
+  /// governing every deco gas until the diver turns one on. Use
+  /// [decoLimits] to resolve a specific gas's limit; these raw fields exist
+  /// so [copyWith]/[resolvedFor] can merge them the same way as every
+  /// other field here.
+  final bool ppO2DecoBandsEnabled;
+  final double ppO2DecoBand1;
+  final double ppO2DecoBand2;
+  final double ppO2DecoBand3;
+  final bool maxO2DepthEnabled;
+  final double maxO2DepthMeters;
+
+  /// Hypercapnia-bailout phase (issue #3743): an elevated RMV for
+  /// [hypercapniaMinutes] at the start of an OC bailout, a multiplier on
+  /// [sacBottom] (issue #3552's "a plan's own value always wins" diver
+  /// default). Off by default. Resolved per plan through
+  /// [hypercapniaEnabledFor]/[hypercapniaAmvFor]/[hypercapniaSecondsFor],
+  /// not a plain `?? this.x` merge - matches [airBreaksFor]'s
+  /// "explicit off wins" shape, since the per-plan override
+  /// ([domain.DivePlan.hypercapniaAmv]) is an absolute rate, not a factor.
+  final bool hypercapniaEnabled;
+  final double hypercapniaFactor;
+  final int hypercapniaMinutes;
 
   /// Diluent MOD limit: the ppO2 a CCR plan's diluent may reach on a flush,
   /// from the diver's "ppO2 limits CCR" Settings. Unlike [ppO2Working] and
@@ -102,9 +133,71 @@ class PlanEngineConfig extends Equatable {
   /// from `gasModelProvider` (issue #828).
   final GasModel gasModel;
 
+  // Planner Setup-accordion global defaults (issue #3552). Resolved through
+  // descentRateFor/ascentRateFor/etc below, the same shape as
+  // setpointLowFor/setpointHighFor - a plan's own value always wins, these
+  // apply only where the plan's field is null.
+  final double descentRate;
+  final double ascentRate;
+  final double intermediateAscentRate;
+  final double shallowAscentRate;
+  final double finalAscentRate;
+  final double lastStopDepth;
+  final int gasSwitchStopSeconds;
+  final double sacBottom;
+  final double sacDeco;
+
+  /// Multiplier on [sacBottom] for the stressed/bailout SAC rate (issue
+  /// #3552) - resolved per plan through [sacStressedFor], not a plain
+  /// config field read directly, since the plan's own [sacStressed]
+  /// override is an absolute rate, not a factor.
+  final double sacStressedFactor;
+  final int problemSolvingMinutes;
+  final double deviationDepthDelta;
+  final int deviationTimeMinutes;
+
+  /// The diver's default turn-pressure rule/fraction and air-break policy
+  /// (issue #3552, follow-up to v304-306). Nullable, unlike the fields
+  /// above: "no rule"/"no policy" is itself a legitimate default, matching
+  /// today's behaviour for a diver who has not opted in to one. Resolved
+  /// per plan through [turnPressureRuleFor]/[turnPressureFractionFor]/
+  /// [airBreaksFor], not a plain `?? this.x` merge, because a plan's own
+  /// `TurnPressureRule.off` / [domain.DivePlan.airBreaksExplicitlyOff] must
+  /// win even though it resolves to the same "no tracking" outcome as an
+  /// unset config.
+  final domain.TurnPressureRule? turnPressureRule;
+  final double? turnPressureFraction;
+  final AirBreakPolicy? airBreakPolicy;
+
+  /// Gradient factors (0-100) and tank reserve pressure (bar) - previously
+  /// snapshot-on-create, now live-resolve like every other Setup field
+  /// (issue #3552, follow-up to v304-307). Merged through the plain
+  /// `?? this.x` [copyWith]/[resolvedFor] pattern, same as sacBottom/sacDeco:
+  /// a plan's own value always wins, there is no "explicit off" concept to
+  /// a gradient factor or a reserve margin.
+  final int gfLow;
+  final int gfHigh;
+  final double reservePressure;
+
+  /// The diver's DPV mission defaults (issue #3552): the fraction of
+  /// scooter burn time kept in reserve, and the shore-exit walking speed in
+  /// m/s. A mission's own value wins; MissionEngine.compute resolves an
+  /// unset one against these before any mission service reads it.
+  final double batteryReserveFraction;
+  final double walkSpeedMps;
+
   const PlanEngineConfig({
     this.ppO2Working = 1.4,
     this.ppO2Deco = 1.6,
+    this.ppO2DecoBandsEnabled = false,
+    this.ppO2DecoBand1 = 1.6,
+    this.ppO2DecoBand2 = 1.6,
+    this.ppO2DecoBand3 = 1.6,
+    this.maxO2DepthEnabled = false,
+    this.maxO2DepthMeters = 6.0,
+    this.hypercapniaEnabled = false,
+    this.hypercapniaFactor = 4.0,
+    this.hypercapniaMinutes = 5,
     this.ccrDiluentModPpO2 = 1.6,
     this.ccrSetpointLow = domain.DivePlan.specSetpointLow,
     this.ccrSetpointHigh = domain.DivePlan.specSetpointHigh,
@@ -123,12 +216,42 @@ class PlanEngineConfig extends Equatable {
     this.pscrRatio = 100.0,
     this.cnsMethod = CnsCalculationMethod.shearwater,
     this.gasModel = GasModel.real,
+    this.descentRate = 18.0,
+    this.ascentRate = 9.0,
+    this.intermediateAscentRate = 6.0,
+    this.shallowAscentRate = 3.0,
+    this.finalAscentRate = 1.0,
+    this.lastStopDepth = 3.0,
+    this.gasSwitchStopSeconds = 0,
+    this.sacBottom = 15.0,
+    this.sacDeco = 15.0,
+    this.sacStressedFactor = 2.5,
+    this.problemSolvingMinutes = 2,
+    this.deviationDepthDelta = 5.0,
+    this.deviationTimeMinutes = 5,
+    this.turnPressureRule,
+    this.turnPressureFraction,
+    this.airBreakPolicy,
+    this.gfLow = 50,
+    this.gfHigh = 85,
+    this.reservePressure = 50.0,
+    this.batteryReserveFraction = kDefaultBatteryReserveFraction,
+    this.walkSpeedMps = kDefaultWalkSpeedMps,
   });
 
   @override
   List<Object?> get props => [
     ppO2Working,
     ppO2Deco,
+    ppO2DecoBandsEnabled,
+    ppO2DecoBand1,
+    ppO2DecoBand2,
+    ppO2DecoBand3,
+    maxO2DepthEnabled,
+    maxO2DepthMeters,
+    hypercapniaEnabled,
+    hypercapniaFactor,
+    hypercapniaMinutes,
     ccrDiluentModPpO2,
     ccrSetpointLow,
     ccrSetpointHigh,
@@ -147,11 +270,41 @@ class PlanEngineConfig extends Equatable {
     pscrRatio,
     cnsMethod,
     gasModel,
+    descentRate,
+    ascentRate,
+    intermediateAscentRate,
+    shallowAscentRate,
+    finalAscentRate,
+    lastStopDepth,
+    gasSwitchStopSeconds,
+    sacBottom,
+    sacDeco,
+    sacStressedFactor,
+    problemSolvingMinutes,
+    deviationDepthDelta,
+    deviationTimeMinutes,
+    turnPressureRule,
+    turnPressureFraction,
+    airBreakPolicy,
+    gfLow,
+    gfHigh,
+    reservePressure,
+    batteryReserveFraction,
+    walkSpeedMps,
   ];
 
   PlanEngineConfig copyWith({
     double? ppO2Working,
     double? ppO2Deco,
+    bool? ppO2DecoBandsEnabled,
+    double? ppO2DecoBand1,
+    double? ppO2DecoBand2,
+    double? ppO2DecoBand3,
+    bool? maxO2DepthEnabled,
+    double? maxO2DepthMeters,
+    bool? hypercapniaEnabled,
+    double? hypercapniaFactor,
+    int? hypercapniaMinutes,
     double? ccrDiluentModPpO2,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
@@ -170,10 +323,43 @@ class PlanEngineConfig extends Equatable {
     double? pscrRatio,
     CnsCalculationMethod? cnsMethod,
     GasModel? gasModel,
+    double? descentRate,
+    double? ascentRate,
+    double? intermediateAscentRate,
+    double? shallowAscentRate,
+    double? finalAscentRate,
+    double? lastStopDepth,
+    int? gasSwitchStopSeconds,
+    double? sacBottom,
+    double? sacDeco,
+    double? sacStressedFactor,
+    int? problemSolvingMinutes,
+    double? deviationDepthDelta,
+    int? deviationTimeMinutes,
+    domain.TurnPressureRule? turnPressureRule,
+    bool clearTurnPressureRule = false,
+    double? turnPressureFraction,
+    bool clearTurnPressureFraction = false,
+    AirBreakPolicy? airBreakPolicy,
+    bool clearAirBreakPolicy = false,
+    int? gfLow,
+    int? gfHigh,
+    double? reservePressure,
+    double? batteryReserveFraction,
+    double? walkSpeedMps,
   }) {
     return PlanEngineConfig(
       ppO2Working: ppO2Working ?? this.ppO2Working,
       ppO2Deco: ppO2Deco ?? this.ppO2Deco,
+      ppO2DecoBandsEnabled: ppO2DecoBandsEnabled ?? this.ppO2DecoBandsEnabled,
+      ppO2DecoBand1: ppO2DecoBand1 ?? this.ppO2DecoBand1,
+      ppO2DecoBand2: ppO2DecoBand2 ?? this.ppO2DecoBand2,
+      ppO2DecoBand3: ppO2DecoBand3 ?? this.ppO2DecoBand3,
+      maxO2DepthEnabled: maxO2DepthEnabled ?? this.maxO2DepthEnabled,
+      maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
+      hypercapniaEnabled: hypercapniaEnabled ?? this.hypercapniaEnabled,
+      hypercapniaFactor: hypercapniaFactor ?? this.hypercapniaFactor,
+      hypercapniaMinutes: hypercapniaMinutes ?? this.hypercapniaMinutes,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
@@ -193,38 +379,184 @@ class PlanEngineConfig extends Equatable {
       pscrRatio: pscrRatio ?? this.pscrRatio,
       cnsMethod: cnsMethod ?? this.cnsMethod,
       gasModel: gasModel ?? this.gasModel,
+      descentRate: descentRate ?? this.descentRate,
+      ascentRate: ascentRate ?? this.ascentRate,
+      intermediateAscentRate:
+          intermediateAscentRate ?? this.intermediateAscentRate,
+      shallowAscentRate: shallowAscentRate ?? this.shallowAscentRate,
+      finalAscentRate: finalAscentRate ?? this.finalAscentRate,
+      lastStopDepth: lastStopDepth ?? this.lastStopDepth,
+      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
+      sacBottom: sacBottom ?? this.sacBottom,
+      sacDeco: sacDeco ?? this.sacDeco,
+      sacStressedFactor: sacStressedFactor ?? this.sacStressedFactor,
+      problemSolvingMinutes:
+          problemSolvingMinutes ?? this.problemSolvingMinutes,
+      deviationDepthDelta: deviationDepthDelta ?? this.deviationDepthDelta,
+      deviationTimeMinutes: deviationTimeMinutes ?? this.deviationTimeMinutes,
+      turnPressureRule: clearTurnPressureRule
+          ? null
+          : (turnPressureRule ?? this.turnPressureRule),
+      turnPressureFraction: clearTurnPressureFraction
+          ? null
+          : (turnPressureFraction ?? this.turnPressureFraction),
+      airBreakPolicy: clearAirBreakPolicy
+          ? null
+          : (airBreakPolicy ?? this.airBreakPolicy),
+      gfLow: gfLow ?? this.gfLow,
+      gfHigh: gfHigh ?? this.gfHigh,
+      reservePressure: reservePressure ?? this.reservePressure,
+      batteryReserveFraction:
+          batteryReserveFraction ?? this.batteryReserveFraction,
+      walkSpeedMps: walkSpeedMps ?? this.walkSpeedMps,
     );
   }
 
   /// Merges this app-wide config with [plan]'s per-plan gas-option
   /// overrides. A set plan value always wins; an unset (null) one falls back
-  /// to this config unchanged.
-  ///
-  /// `sacFactor` and `bestMixEndMeters` have no global-settings source today
-  /// (they are plain defaulted fields, not nullable overrides), so they
-  /// always replace [buddyFactor] and [bestMixEndMeters] for this plan.
-  /// Every other field, [endLimitMeters] (the diver's Settings END limit)
-  /// included, carries over through [copyWith], so a field added later
-  /// cannot silently fall back to its default here (issue #2640).
+  /// to this config unchanged. Every field, [endLimitMeters] (the diver's
+  /// Settings END limit) included, carries over through [copyWith], so a
+  /// field added later cannot silently fall back to its default here (issue
+  /// #2640). `sacFactor`/`bestMixEndMeters` (-> [buddyFactor]/
+  /// [bestMixEndMeters]) used to be plain defaulted `DivePlan` fields with
+  /// no global source, always replacing the config's own value; since issue
+  /// #3552 gave them one, a `null` plan value (now possible) resolves to
+  /// the diver's Settings the same way every other field here already does.
   PlanEngineConfig resolvedFor(domain.DivePlan plan) {
     return copyWith(
       ppO2Working: plan.ppO2Bottom,
       ppO2Deco: plan.ppO2Deco,
+      ppO2DecoBand1: plan.ppO2DecoBand1,
+      ppO2DecoBand2: plan.ppO2DecoBand2,
+      ppO2DecoBand3: plan.ppO2DecoBand3,
+      ppO2DecoBandsEnabled: resolveDecoLayerEnabled(
+        settingsEnabled: ppO2DecoBandsEnabled,
+        explicitlyOff: plan.ppO2DecoBandsExplicitlyOff,
+        hasCustomValue: hasCustomDecoBands(
+          plan.ppO2DecoBand1,
+          plan.ppO2DecoBand2,
+          plan.ppO2DecoBand3,
+        ),
+      ),
+      maxO2DepthMeters: plan.maxO2DepthMeters,
+      maxO2DepthEnabled: resolveDecoLayerEnabled(
+        settingsEnabled: maxO2DepthEnabled,
+        explicitlyOff: plan.maxO2DepthExplicitlyOff,
+        hasCustomValue: plan.maxO2DepthMeters != null,
+      ),
       o2Narcotic: plan.o2Narcotic,
       bestMixEndMeters: plan.bestMixEndMeters,
       buddyFactor: plan.sacFactor,
+      descentRate: plan.descentRate,
+      ascentRate: plan.ascentRate,
+      intermediateAscentRate: plan.intermediateAscentRate,
+      shallowAscentRate: plan.shallowAscentRate,
+      finalAscentRate: plan.finalAscentRate,
+      lastStopDepth: plan.lastStopDepth,
+      gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      sacBottom: plan.sacBottom,
+      sacDeco: plan.sacDeco,
+      problemSolvingMinutes: plan.problemSolvingMinutes,
+      deviationDepthDelta: plan.deviationDepthDelta,
+      deviationTimeMinutes: plan.deviationTimeMinutes,
+      gfLow: plan.gfLow,
+      gfHigh: plan.gfHigh,
+      reservePressure: plan.reservePressure,
     );
   }
+
+  /// This config's deco ppO2 limits as a [DecoPpO2Limits] (issue #3580),
+  /// for [tank_mod.dart]'s MOD/switch-depth resolution. Call on a
+  /// [resolvedFor] config so a plan's per-band overrides are already
+  /// merged in.
+  DecoPpO2Limits get decoLimits => DecoPpO2Limits(
+    flat: ppO2Deco,
+    bandsEnabled: ppO2DecoBandsEnabled,
+    band1: ppO2DecoBand1,
+    band2: ppO2DecoBand2,
+    band3: ppO2DecoBand3,
+    explicitO2DepthEnabled: maxO2DepthEnabled,
+    explicitO2DepthMeters: maxO2DepthMeters,
+  );
 
   /// [plan]'s low (shallow) setpoint: its own value when set, else the
   /// diver's [ccrSetpointLow] (issue #2801).
   double setpointLowFor(domain.DivePlan plan) =>
       plan.setpointLow ?? ccrSetpointLow;
 
+  /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
+  /// override when set, else [sacBottom] (already resolved against this
+  /// plan - call this on a [resolvedFor] config) times the diver's
+  /// [sacStressedFactor] (issue #3552; was a hardcoded 2.5x of the plan's
+  /// raw `sacBottom`, see [domain.DivePlan.sacStressedEffective]).
+  double sacStressedFor(domain.DivePlan plan) =>
+      plan.sacStressed ?? sacBottom * sacStressedFactor;
+
+  /// Whether [plan]'s OC bailout uses a hypercapnia phase at all (issue
+  /// #3743): true when either per-plan override
+  /// ([domain.DivePlan.hypercapniaAmv]/[domain.DivePlan.hypercapniaMinutes])
+  /// is set (an explicit "Custom" choice), else the diver's Settings
+  /// [hypercapniaEnabled] toggle, unless
+  /// [domain.DivePlan.hypercapniaExplicitlyOff] forces it off regardless -
+  /// same "explicit off wins" shape as [airBreaksFor].
+  bool hypercapniaEnabledFor(domain.DivePlan plan) {
+    if (plan.hypercapniaExplicitlyOff) return false;
+    if (plan.hypercapniaAmv != null || plan.hypercapniaMinutes != null) {
+      return true;
+    }
+    return hypercapniaEnabled;
+  }
+
+  /// [plan]'s hypercapnia-bailout AMV in L/min, or null when
+  /// [hypercapniaEnabledFor] is false: its own [domain.DivePlan.hypercapniaAmv]
+  /// override when set, else [sacBottom] (already resolved against this
+  /// plan - call this on a [resolvedFor] config) times the diver's
+  /// [hypercapniaFactor] - same "absolute override, else a factor of
+  /// bottom SAC" shape as [sacStressedFor].
+  double? hypercapniaAmvFor(domain.DivePlan plan) {
+    if (!hypercapniaEnabledFor(plan)) return null;
+    return plan.hypercapniaAmv ?? sacBottom * hypercapniaFactor;
+  }
+
+  /// [plan]'s hypercapnia-bailout phase duration in seconds from the
+  /// bailout instant, or null when [hypercapniaEnabledFor] is false.
+  int? hypercapniaSecondsFor(domain.DivePlan plan) {
+    if (!hypercapniaEnabledFor(plan)) return null;
+    return (plan.hypercapniaMinutes ?? hypercapniaMinutes) * 60;
+  }
+
   /// [plan]'s high (deep) setpoint: its own value when set, else the
   /// diver's [ccrSetpointHigh] (issue #2801).
   double setpointHighFor(domain.DivePlan plan) =>
       plan.setpointHigh ?? ccrSetpointHigh;
+
+  /// [plan]'s turn-pressure rule: its own value when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no rule).
+  /// Never merged through [copyWith]'s plain `?? this.x`: the plan's own
+  /// [domain.TurnPressureRule.off] must win even when the config's default
+  /// is already null, and the two look identical to `??`.
+  domain.TurnPressureRule? turnPressureRuleFor(domain.DivePlan plan) =>
+      plan.turnPressureRule ?? turnPressureRule;
+
+  /// [plan]'s turn-pressure fraction, only meaningful when
+  /// [turnPressureRuleFor] resolves to [domain.TurnPressureRule.custom].
+  /// Taken from the same source as the rule: a plan that sets its own rule
+  /// uses its own fraction (null = the 1/3 the Setup field shows), and a
+  /// plan following the Settings rule uses the Settings fraction, never a
+  /// leftover fraction from an earlier plan-level Custom.
+  double? turnPressureFractionFor(domain.DivePlan plan) =>
+      plan.turnPressureRule != null
+      ? plan.turnPressureFraction
+      : turnPressureFraction;
+
+  /// [plan]'s air-break policy: `null` when [domain.DivePlan.airBreaksExplicitlyOff]
+  /// is set (explicit "off", wins regardless of the diver's default), else
+  /// the plan's own [domain.DivePlan.airBreaks] when set, else the diver's
+  /// Settings default (issue #3552), which may itself be null (no breaks).
+  AirBreakPolicy? airBreaksFor(domain.DivePlan plan) {
+    if (plan.airBreaksExplicitlyOff) return null;
+    return plan.airBreaks ?? airBreakPolicy;
+  }
 }
 
 /// Setpoint in force at [depth]: the segment's per-segment override if set,
@@ -366,13 +698,18 @@ class PlanEngine {
     }
     final isCcr = plan.mode == domain.PlanMode.ccr;
     final environment = environmentFor(plan);
-    final policy = policyFor(plan);
+    final policy = _policyFor(plan);
     final model = BuhlmannGf(
-      gfLow: plan.gfLow / 100.0,
-      gfHigh: plan.gfHigh / 100.0,
+      gfLow: config.gfLow / 100.0,
+      gfHigh: config.gfHigh / 100.0,
       environment: environment,
       policy: policy,
     );
+    // Deliberately flat (issue #3580 scope cut, see PlanCalculatorService's
+    // matching comment): O2ToxicityCalculator is a general-purpose, widely
+    // shared utility, used here only for CNS/OTU accumulation, not for the
+    // deco ppO2 critical/warning PlanIssue check below, which IS band-aware
+    // (config.decoLimits.ppO2For).
     final o2Calc = O2ToxicityCalculator(
       ppO2WarningThreshold: config.ppO2Working,
       ppO2CriticalThreshold: config.ppO2Deco,
@@ -385,8 +722,11 @@ class PlanEngine {
         List<PlanSegment>.from(plan.segments)
           ..sort((a, b) => a.order.compareTo(b.order)),
         plan,
+        descentRate: config.descentRate,
+        ascentRate: config.ascentRate,
       ),
       plan,
+      gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
     // Waypoints carry only a target depth, so the profile they describe -
     // start depths, phases, rates - is resolved once here, and everything
@@ -419,7 +759,7 @@ class PlanEngine {
         ? scrAscentPlanFor(
             segments.isEmpty ? const GasMix() : segments.last.gasMix,
           )
-        : ascentPlanFor(plan.tanks);
+        : _ascentPlanFor(plan.tanks, environment);
 
     var state = startState ?? model.initial();
     var runtime = 0;
@@ -772,7 +1112,7 @@ class PlanEngine {
       );
     }
 
-    final policy = policyFor(plan);
+    final policy = _policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
@@ -925,7 +1265,7 @@ class PlanEngine {
                 tank.role != TankRole.bailout &&
                 remaining != null &&
                 used > 0 &&
-                remaining < plan.reservePressure,
+                remaining < config.reservePressure,
           );
         }(),
     ];
@@ -954,10 +1294,15 @@ class PlanEngine {
       liters[id] = (liters[id] ?? 0) + amount;
     }
 
+    // Reads sacBottom/sacDeco/problemSolvingMinutes from [config] (issue
+    // #3552), not [plan] directly: by this point [config] is already
+    // resolvedFor this plan, so an unset field already carries the diver's
+    // Settings default. sacFactor has no absolute global value of its own -
+    // it always resolves through config.buddyFactor (see resolvedFor).
     for (final leg in legs) {
       final sac = switch (leg.phase) {
-        SegmentPhase.descent || SegmentPhase.level => plan.sacBottom,
-        SegmentPhase.ascent || SegmentPhase.stop => plan.sacDecoEffective,
+        SegmentPhase.descent || SegmentPhase.level => config.sacBottom,
+        SegmentPhase.ascent || SegmentPhase.stop => config.sacDeco,
       };
       charge(
         leg.tankId,
@@ -970,7 +1315,7 @@ class PlanEngine {
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
-    if (plan.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
+    if (config.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
       String? bottomTankId;
       for (final leg in legs) {
         if (leg.endDepth >= plan.maxDepth - 0.1 ||
@@ -980,15 +1325,15 @@ class PlanEngine {
       }
       charge(
         bottomTankId,
-        plan.sacBottom *
-            plan.sacFactor *
-            plan.problemSolvingMinutes *
+        config.sacBottom *
+            config.buddyFactor *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(plan.maxDepth),
       );
     }
 
     // Computed ascent: travel legs and stops on the deco SAC.
-    final policy = policyFor(plan);
+    final policy = _policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (var i = 0; i < stops.length; i++) {
@@ -1023,7 +1368,7 @@ class PlanEngine {
           final gas = ascentPlan.gasForDepth(legDepth);
           charge(
             _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-            plan.sacDecoEffective *
+            config.sacDeco *
                 (subSeconds / 60.0) *
                 environment.pressureAtDepth((legDepth + legTo) / 2.0),
           );
@@ -1033,7 +1378,7 @@ class PlanEngine {
         final legAvg = (depth + stop.depthMeters) / 2.0;
         charge(
           stop.tankId,
-          plan.sacDecoEffective *
+          config.sacDeco *
               (legSeconds / 60.0) *
               environment.pressureAtDepth(legAvg),
         );
@@ -1042,7 +1387,7 @@ class PlanEngine {
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
         stop.tankId,
-        plan.sacDecoEffective * (primarySeconds / 60.0) * stopPressure,
+        config.sacDeco * (primarySeconds / 60.0) * stopPressure,
       );
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
@@ -1055,7 +1400,7 @@ class PlanEngine {
             : stop.tankId;
         charge(
           breakTankId,
-          plan.sacDecoEffective * (stop.airBreakSeconds / 60.0) * stopPressure,
+          config.sacDeco * (stop.airBreakSeconds / 60.0) * stopPressure,
         );
       }
       depth = stop.depthMeters;
@@ -1070,7 +1415,7 @@ class PlanEngine {
       final gas = ascentPlan.gasForDepth(depth);
       charge(
         _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
-        plan.sacDecoEffective *
+        config.sacDeco *
             (legSeconds / 60.0) *
             environment.pressureAtDepth(depth / 2.0),
       );
@@ -1111,6 +1456,8 @@ class PlanEngine {
                   hePercent: tank.gasMix.he,
                   model: config.gasModel,
                 );
+          final minGas = _minGasFor(plan, tank, environment);
+          final turn = _turnPressureFor(plan, tank, minGasBar: minGas.bar);
           return PlanTankUsage(
             tankId: tank.id,
             litersUsed: used,
@@ -1121,31 +1468,61 @@ class PlanEngine {
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
             reserveViolation:
-                remaining != null && remaining < plan.reservePressure,
-            turnPressureBar: _turnPressureFor(plan, tank),
-            minGasBar: _minGasFor(plan, tank, environment),
+                remaining != null && remaining < config.reservePressure,
+            turnPressureBar: turn.bar,
+            minGasBar: minGas.bar,
+            turnPressureGap: turn.gap,
+            minGasGap: minGas.gap,
           );
         }(),
     ];
   }
 
   /// Turn pressure per the plan's rule; bottom tanks with a start pressure
-  /// only. `usable = start - reserve`; turn when the rule's fraction of the
-  /// usable gas is consumed.
-  double? _turnPressureFor(domain.DivePlan plan, DiveTank tank) {
-    final rule = plan.turnPressureRule;
-    final start = tank.startPressure;
-    if (rule == null || start == null || tank.role != TankRole.backGas) {
-      return null;
+  /// only. `usable = start - max(reserve, minGasBar)`; turn when the rule's
+  /// fraction of the usable gas is consumed. Flooring at [minGasBar] (the
+  /// cylinder's rock bottom, null where it does not apply) means no rule
+  /// ever turns with less than the plan's own emergency exit needs (#3741);
+  /// a rock bottom at or above the fill leaves nothing usable, so the turn
+  /// is the fill itself.
+  ///
+  /// Reads the rule/fraction from [config] (issue #3552), not [plan]
+  /// directly: by this point [config] is already resolvedFor this plan,
+  /// so an unset plan field already carries the diver's Settings default.
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603); any other cylinder gets neither. A missing rule comes first:
+  /// a start pressure alone would still leave the turn blank.
+  ({double? bar, PlanGasLimitGap? gap}) _turnPressureFor(
+    domain.DivePlan plan,
+    DiveTank tank, {
+    required double? minGasBar,
+  }) {
+    if (tank.role != TankRole.backGas) return (bar: null, gap: null);
+    final rule = config.turnPressureRuleFor(plan);
+    if (rule == null || rule == domain.TurnPressureRule.off) {
+      return (bar: null, gap: PlanGasLimitGap.noTurnRule);
     }
-    final usable = (start - plan.reservePressure).clamp(0.0, start);
+    final start = tank.startPressure;
+    if (start == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
+    }
+    final floor = math.max(
+      config.reservePressure,
+      minGasBar ?? config.reservePressure,
+    );
+    final usable = (start - floor).clamp(0.0, start);
     final fraction = switch (rule) {
+      domain.TurnPressureRule.off => 0.0, // unreachable, handled above
       domain.TurnPressureRule.allUsable => 1.0,
       domain.TurnPressureRule.halves => 0.5,
       domain.TurnPressureRule.thirds => 1.0 / 3.0,
-      domain.TurnPressureRule.custom => plan.turnPressureFraction ?? 1.0 / 3.0,
+      domain.TurnPressureRule.custom =>
+        config.turnPressureFractionFor(plan) ?? 1.0 / 3.0,
     };
-    return start - usable * fraction;
+    // A plan file or a stored row can carry any custom fraction; outside
+    // [0, 1] the turn would land under the floor or above the fill.
+    return (bar: start - usable * fraction.clamp(0.0, 1.0), gap: null);
   }
 
   /// Rock-bottom minimum gas: a stressed, buddy-shared emergency exit from
@@ -1157,30 +1534,40 @@ class PlanEngine {
   /// explicit override, or bottom SAC x2.5 by default); [config]'s
   /// `buddyFactor` is resolved from the plan's own `sacFactor` by [compute]
   /// before this runs, so it always reflects that plan's Gas options.
-  double? _minGasFor(
+  ///
+  /// A back gas it cannot compute for carries the missing input as `gap`
+  /// (#3603). A loop plan, any other cylinder, or a plan with no depth yet
+  /// gets neither: minimum gas does not apply there.
+  ({double? bar, PlanGasLimitGap? gap}) _minGasFor(
     domain.DivePlan plan,
     DiveTank tank,
     DiveEnvironment environment,
   ) {
-    if (plan.mode == domain.PlanMode.ccr) return null;
-    if (tank.role != TankRole.backGas || tank.startPressure == null) {
-      return null;
-    }
     final maxDepth = plan.maxDepth;
-    if (maxDepth <= 0) return null;
-    final sac = plan.sacStressedEffective * config.buddyFactor;
+    if (plan.mode == domain.PlanMode.ccr ||
+        tank.role != TankRole.backGas ||
+        maxDepth <= 0) {
+      return (bar: null, gap: null);
+    }
+    if (tank.startPressure == null) {
+      return (bar: null, gap: PlanGasLimitGap.noStartPressure);
+    }
+    final volume = tank.volume ?? 11.0;
+    if (volume <= 0) return (bar: null, gap: PlanGasLimitGap.noVolume);
+    // config.sacStressedFor/sacBottom/problemSolvingMinutes (issue #3552):
+    // config is already resolvedFor this plan at this point.
+    final sac = config.sacStressedFor(plan) * config.buddyFactor;
     final ascentMinutes =
-        policyFor(
+        _policyFor(
           plan,
         ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
         60.0;
     final liters =
         sac *
-            plan.problemSolvingMinutes *
+            config.problemSolvingMinutes *
             environment.pressureAtDepth(maxDepth) +
         sac * ascentMinutes * environment.pressureAtDepth(maxDepth / 2.0);
-    final volume = tank.volume ?? 11.0;
-    return volume > 0 ? liters / volume : null;
+    return (bar: liters / volume, gap: null);
   }
 
   List<PlanIssue> _computeIssues(
@@ -1212,6 +1599,8 @@ class PlanEngine {
       );
     }
 
+    // Built once per call, not per leg: the getter constructs a new object.
+    final decoLimits = config.decoLimits;
     for (var i = 0; i < legs.length; i++) {
       final leg = legs[i];
       final segment = leg.segment;
@@ -1222,8 +1611,37 @@ class PlanEngine {
           : leg.endDepth;
       final fO2 = segment.gasMix.o2 / 100.0;
       final fHe = segment.gasMix.he / 100.0;
+      // The deco ceiling for THIS segment's own gas (issue #3580): its
+      // band when bands are on, the ppO2 at the explicit depth for a gas
+      // under that setting, otherwise the flat ppO2Deco, same as before.
+      // Only used for display here - the breach check itself goes through
+      // decoCeilingBreachedFor, which compares depth directly for an
+      // explicit-depth gas instead of this (environment-aware) ppO2 against
+      // outcome.maxPpO2 (the flat-model one), a mismatch a Copilot review
+      // caught disagreeing in salt water/at altitude.
+      //
+      // A loop segment's ppO2 follows the setpoint, not its diluent's O2
+      // fraction, so those per-gas layers (OC deco gas limits) do not apply
+      // there: it keeps the flat ppO2Deco, as before.
+      final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
+      final segmentDecoPpO2 = segmentIsLoop
+          ? config.ppO2Deco
+          : decoCeilingPpO2For(
+              segment.gasMix,
+              decoLimits,
+              environment: environment,
+            );
+      final decoCeilingBreached = segmentIsLoop
+          ? outcome.maxPpO2 > config.ppO2Deco
+          : decoCeilingBreachedFor(
+              segment.gasMix,
+              decoLimits,
+              depthMeters: deeperEnd,
+              actualPpO2: outcome.maxPpO2,
+              environment: environment,
+            );
 
-      if (outcome.maxPpO2 > config.ppO2Deco) {
+      if (decoCeilingBreached) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.ppO2Critical,
@@ -1234,7 +1652,7 @@ class PlanEngine {
             atDepth: deeperEnd,
             segmentId: segment.id,
             value: outcome.maxPpO2,
-            threshold: config.ppO2Deco,
+            threshold: segmentDecoPpO2,
           ),
         );
       } else if (outcome.maxPpO2 > config.ppO2Working) {
@@ -1408,15 +1826,32 @@ class PlanEngine {
             severity: PlanIssueSeverity.alert,
             message:
                 'Tank ends below the '
-                '${plan.reservePressure.toStringAsFixed(0)} bar reserve',
+                '${config.reservePressure.toStringAsFixed(0)} bar reserve',
             segmentId: usage.tankId,
             value: remaining,
-            threshold: plan.reservePressure,
+            threshold: config.reservePressure,
           ),
         );
       }
       final minGas = usage.minGasBar;
-      if (minGas != null && remaining > 0 && remaining < minGas) {
+      final start = usage.startPressure;
+      // A fill at or under rock bottom always ends under it too, so the
+      // no-usable-gas alert stands in for the ends-below-minimum one.
+      if (minGas != null && start != null && minGas >= start) {
+        issues.add(
+          PlanIssue(
+            type: PlanIssueType.noUsableGas,
+            severity: PlanIssueSeverity.alert,
+            message:
+                'Rock-bottom minimum of ${minGas.toStringAsFixed(0)} bar '
+                'leaves no usable gas in a '
+                '${start.toStringAsFixed(0)} bar fill',
+            segmentId: usage.tankId,
+            value: minGas,
+            threshold: start,
+          ),
+        );
+      } else if (minGas != null && remaining > 0 && remaining < minGas) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.minGasViolation,
@@ -1454,6 +1889,7 @@ class PlanEngine {
       );
     }
 
+    issues.addAll(_modOverrideIssues(plan.tanks, environment));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
   }
@@ -1475,25 +1911,30 @@ class PlanEngine {
     );
   }
 
-  /// The schedule policy a plan describes. Public so the Dive Lab times the
-  /// ascent legs it synthesises with the same rates the engine scheduled.
+  /// The schedule policy a plan describes.
   ///
   /// Derived rather than passed around: the ascent legs of a computed
   /// schedule are measured in several places (profile sampling, gas charging,
   /// stop runtimes, rock-bottom), and every one of them has to agree with the
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
-  SchedulePolicy policyFor(domain.DivePlan plan) => SchedulePolicy(
-    lastStopDepth: plan.lastStopDepth,
-    ascentRate: plan.ascentRate,
-    intermediateAscentRate: plan.intermediateAscentRate,
-    shallowAscentRate: plan.shallowAscentRate,
-    finalAscentRate: plan.finalAscentRate,
-    descentRate: plan.descentRate,
-    gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+  ///
+  /// Reads the Deco/Rates/air-breaks fields from [config] (issue #3552),
+  /// not [plan] directly, because by the time this runs [config] is
+  /// already [PlanEngineConfig.resolvedFor] this plan - its own value
+  /// where set, the diver's Settings otherwise. `plan` is still needed for
+  /// [domain.DivePlan.stopMinimums], which has no global default.
+  SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
+    lastStopDepth: config.lastStopDepth,
+    ascentRate: config.ascentRate,
+    intermediateAscentRate: config.intermediateAscentRate,
+    shallowAscentRate: config.shallowAscentRate,
+    finalAscentRate: config.finalAscentRate,
+    descentRate: config.descentRate,
+    gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     // A plan is read against a watch: stops end on whole minutes.
     snapStopsToWholeMinutes: true,
-    airBreaks: plan.airBreaks,
+    airBreaks: config.airBreaksFor(plan),
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
@@ -1508,27 +1949,98 @@ class PlanEngine {
     return FixedAscentGas(fN2: gas.pN2, fHe: gas.pHe);
   }
 
-  /// The open-circuit ascent gas plan for [tanks]: the richest eligible mix
-  /// at each depth under the deco ppO2. Public so the Dive Lab synthesises
-  /// the same gas switches the engine schedules.
-  AscentGasPlan ascentPlanFor(List<DiveTank> tanks) {
+  /// The schedule policy [compute] derives for [plan], for code that
+  /// retraces its schedule: the Dive Lab times its synthesized ascent with
+  /// the same legs the engine scheduled. Resolves [config] against the plan
+  /// first, as [compute] does, so a plan's own rates win and an unset one
+  /// falls back to the diver's Settings.
+  SchedulePolicy schedulePolicyFor(domain.DivePlan plan) =>
+      PlanEngine(config: config.resolvedFor(plan))._policyFor(plan);
+
+  /// The open-circuit ascent gas plan [compute] builds for [plan], with its
+  /// config resolved, its cylinder roles resolved and its water applied, so
+  /// the Dive Lab synthesizes the same gas switches the engine schedules.
+  AscentGasPlan ocAscentPlanFor(domain.DivePlan plan) {
+    final resolved = const TankRoleResolver().apply(plan);
+    return PlanEngine(
+      config: config.resolvedFor(plan),
+    )._ascentPlanFor(resolved.tanks, environmentFor(resolved));
+  }
+
+  /// Each gas joins the ascent at its cylinder's MOD (issue #3567): the one
+  /// the diver set, or the switch depth for its role's limit at this plan's
+  /// limits, measured in [environment], the water the schedule's ppO2 is
+  /// computed in (issue #3566, see [gasSwitchDepthMeters]).
+  /// [tanks] carry resolved roles: [compute] applies TankRoleResolver first.
+  AscentGasPlan _ascentPlanFor(
+    List<DiveTank> tanks,
+    DiveEnvironment environment,
+  ) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
     return OptimalOcAscentGas(
       maxPpO2: config.ppO2Deco,
-      gases: [
-        for (final tank in tanks)
-          AvailableGas(
-            fN2: (100.0 - tank.gasMix.o2 - tank.gasMix.he) / 100.0,
-            fHe: tank.gasMix.he / 100.0,
-            maxPpO2Mod: O2ToxicityCalculator.calculateMod(
-              tank.gasMix.o2 / 100.0,
-              maxPpO2: config.ppO2Deco,
-            ),
-          ),
-      ],
+      gases: ascentGasesFor(
+        tanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.decoLimits,
+        environment: environment,
+        diluentPpO2: config.ccrDiluentModPpO2,
+      ),
     );
+  }
+
+  /// A MOD set by hand deeper than its cylinder's limit allows is the
+  /// diver's call, and the plan uses it, but it is reported (issue #3567):
+  /// critical above the deco limit, a warning above the bottom limit. The
+  /// ppO2 is measured in [environment], as the schedule's is, so the issue
+  /// agrees with the table line the gas is breathed on.
+  List<PlanIssue> _modOverrideIssues(
+    List<DiveTank> tanks,
+    DiveEnvironment environment,
+  ) {
+    final issues = <PlanIssue>[];
+    final decoLimits = config.decoLimits;
+    for (final tank in tanks) {
+      final check = modOverrideCheck(
+        tank,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: decoLimits,
+        diluentPpO2: config.ccrDiluentModPpO2,
+        environment: environment,
+      );
+      if (check == null || !check.exceedsLimit) continue;
+      // Critical when the override's ppO2 breaches the deco ceiling for a
+      // gas of this O2% (issue #3580: per-band, or the ppO2 at the
+      // explicit depth for a gas under that setting, not always the flat
+      // ppO2Deco) -- even for a bottom-role tank, which can still breach
+      // it on a sufficiently deep hand-set MOD. A bottom-role tank under
+      // that ceiling is a warning (it already exceeded its own, lower,
+      // bottom limit to get here at all). decoCeilingPpO2For, not
+      // check.limitPpO2: that is whatever limit THIS tank's own role
+      // calls for (bottom or deco), not necessarily the deco ceiling.
+      final isCritical =
+          check.ppO2 >
+          decoCeilingPpO2For(tank.gasMix, decoLimits, environment: environment);
+      issues.add(
+        PlanIssue(
+          type: isCritical
+              ? PlanIssueType.ppO2Critical
+              : PlanIssueType.ppO2High,
+          severity: isCritical
+              ? PlanIssueSeverity.critical
+              : PlanIssueSeverity.warning,
+          message:
+              'ppO2 ${check.ppO2.toStringAsFixed(2)} bar at the MOD set on '
+              '${tank.name ?? tank.gasMix.name} exceeds its limit',
+          atDepth: tank.decoSwitchDepth,
+          value: check.ppO2,
+          threshold: check.limitPpO2,
+        ),
+      );
+    }
+    return issues;
   }
 
   List<PlanStop> _mapStops(
@@ -1539,7 +2051,7 @@ class PlanEngine {
     int segmentsRuntime,
   ) {
     final stops = <PlanStop>[];
-    final policy = policyFor(plan);
+    final policy = _policyFor(plan);
     var arrival = segmentsRuntime;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
@@ -1834,7 +2346,7 @@ class PlanEngine {
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final travel = policyFor(plan).ascentSeconds(
+      final travel = _policyFor(plan).ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),

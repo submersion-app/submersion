@@ -87,10 +87,10 @@ void main() {
 
   test('labels and routes cover every feature and level', () {
     expect(DataFeature.values.map((f) => dataFeatureLabel(l10n, f)), [
-      'Backup',
+      'Backups',
       'Sync',
       'Libraries',
-      'Media',
+      'Photos',
     ]);
     expect(HealthLevel.values.map((l) => healthLevelLabel(l10n, l)), [
       'Failing',

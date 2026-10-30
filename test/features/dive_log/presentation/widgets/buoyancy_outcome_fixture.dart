@@ -14,6 +14,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
   double peakLiftDemandKg = 3.0,
   double? wingLiftCapacityKg,
   double verdictNet = 1.8,
+  List<TwinTankInput> tanks = const [],
 }) {
   final env = DiveEnvironment.forConditions(waterType: WaterType.salt);
   final input = TwinInput(
@@ -21,7 +22,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
       TwinProfileSample(timestamp: 0, depthM: 0),
       TwinProfileSample(timestamp: 60, depthM: 5),
     ],
-    tanks: const [],
+    tanks: tanks,
     suit: const TwinSuitInput(
       kind: TwinSuitKind.wetsuit,
       anchorKg: 3.0,

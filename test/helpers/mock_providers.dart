@@ -1,4 +1,7 @@
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:http/http.dart' as http;
@@ -44,7 +47,9 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/data/data_facts_repository.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
@@ -57,6 +62,12 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
+import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
+
+import '../support/fake_nearby_link_manager.dart';
 
 typedef Override = riverpod.Override;
 
@@ -238,6 +249,32 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
   @override
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async => state = state.copyWith(
+    ppO2DecoBandsEnabled: bandsEnabled,
+    ppO2DecoBand1: band1,
+    ppO2DecoBand2: band2,
+    ppO2DecoBand3: band3,
+    maxO2DepthEnabled: maxO2DepthEnabled,
+    maxO2DepthMeters: maxO2DepthMeters,
+  );
+  @override
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async => state = state.copyWith(
+    plannerHypercapniaEnabled: enabled,
+    plannerHypercapniaFactor: factor,
+    plannerHypercapniaMinutes: minutes,
+  );
+  @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
@@ -383,6 +420,92 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPlannerDescentRate(double value) async =>
+      state = state.copyWith(plannerDescentRate: value);
+  @override
+  Future<void> setPlannerAscentRate(double value) async =>
+      state = state.copyWith(plannerAscentRate: value);
+  @override
+  Future<void> setPlannerIntermediateAscentRate(double value) async =>
+      state = state.copyWith(plannerIntermediateAscentRate: value);
+  @override
+  Future<void> setPlannerShallowAscentRate(double value) async =>
+      state = state.copyWith(plannerShallowAscentRate: value);
+  @override
+  Future<void> setPlannerFinalAscentRate(double value) async =>
+      state = state.copyWith(plannerFinalAscentRate: value);
+  @override
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async =>
+      state = state.copyWith(plannerGasSwitchStopSeconds: value);
+  @override
+  Future<void> setPlannerSacBottom(double value) async =>
+      state = state.copyWith(plannerSacBottom: value);
+  @override
+  Future<void> setPlannerSacDeco(double value) async =>
+      state = state.copyWith(plannerSacDeco: value);
+  @override
+  Future<void> setPlannerSacStressedFactor(double value) async =>
+      state = state.copyWith(plannerSacStressedFactor: value);
+  @override
+  Future<void> setPlannerBuddyFactor(double value) async =>
+      state = state.copyWith(plannerBuddyFactor: value);
+  @override
+  Future<void> setPlannerProblemSolvingMinutes(int value) async =>
+      state = state.copyWith(plannerProblemSolvingMinutes: value);
+  @override
+  Future<void> setPlannerBestMixEndMeters(double value) async =>
+      state = state.copyWith(plannerBestMixEndMeters: value);
+  @override
+  Future<void> setPlannerDeviationDepthDelta(double value) async =>
+      state = state.copyWith(plannerDeviationDepthDelta: value);
+  @override
+  Future<void> setPlannerDeviationTimeMinutes(int value) async =>
+      state = state.copyWith(plannerDeviationTimeMinutes: value);
+  @override
+  Future<void> setPlannerBatteryReserveFraction(double value) async =>
+      state = state.copyWith(plannerBatteryReserveFraction: value);
+  @override
+  Future<void> setPlannerWalkSpeedMps(double value) async =>
+      state = state.copyWith(plannerWalkSpeedMps: value);
+  @override
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async => state = state.copyWith(
+    plannerTurnPressureRule: value,
+    clearPlannerTurnPressureRule: value == null,
+  );
+  @override
+  Future<void> setPlannerTurnPressureFraction(double? value) async =>
+      state = state.copyWith(
+        plannerTurnPressureFraction: value,
+        clearPlannerTurnPressureFraction: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakO2Seconds: value,
+        clearPlannerAirBreakO2Seconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakBreakSeconds: value,
+        clearPlannerAirBreakBreakSeconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async => state = state.copyWith(
+    plannerAirBreakO2Seconds: o2Seconds,
+    clearPlannerAirBreakO2Seconds: o2Seconds == null,
+    plannerAirBreakBreakSeconds: breakSeconds,
+    clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+  );
+  @override
+  Future<void> setPlannerReservePressure(double value) async =>
+      state = state.copyWith(plannerReservePressure: value);
+  @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);
   @override
@@ -481,6 +604,12 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setTrimTankPressureAtSurfacing(bool value) async =>
       state = state.copyWith(trimTankPressureAtSurfacing: value);
   @override
+  Future<void> setDownloadsFollowComputerOwner(bool value) async =>
+      state = state.copyWith(downloadsFollowComputerOwner: value);
+  @override
+  Future<void> setOmitUnusedOcGases(bool value) async =>
+      state = state.copyWith(omitUnusedOcGases: value);
+  @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
   @override
@@ -497,6 +626,14 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
   @override
   Future<void> setAutoTagImports(bool value) async =>
       state = state.copyWith(autoTagImports: value);
@@ -694,6 +831,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
   @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
+  @override
   Future<void> acceptPlanningDisclaimer() async =>
       state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
   @override
@@ -791,6 +931,8 @@ Dive createTestDiveWithBottomTime({
 /// because Riverpod refuses to override the same family twice in one
 /// container.
 Future<List<Override>> getBaseOverrides({
+  NearbyLinkManager? nearbyLinkManager,
+  DemoPackage? demoPackage,
   MockSettingsNotifier? settingsNotifier,
   http.Client? weatherHttpClient,
   PreDiveSession? linkedPreDiveSession,
@@ -804,12 +946,22 @@ Future<List<Override>> getBaseOverrides({
   List<FeatureHealth>? dataHealth,
   DataFacts dataFacts = DataFacts.empty,
   DateTime? lastSync,
-  int syncedDevices = 1,
+  List<String> syncPeerNames = const [],
+  String? backupCloudAccountLabel,
+  String? attachedStoreHint,
+  bool? mediaStoreAttachedHere = false,
+  List<String> accountLabels = const [],
+  int accountsNeedingSignIn = 0,
+  int sharedLibraryCount = 0,
+  DateTime? sharedLibraryLastSync,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
+    // No sample logbook is reachable unless a test says so: the real manifest
+    // fetch would reach the network (demo mode, issue #3708).
+    demoAvailabilityProvider.overrideWith((ref) async => demoPackage),
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) =>
@@ -831,6 +983,10 @@ Future<List<Override>> getBaseOverrides({
     nfcTagServiceProvider.overrideWithValue(
       nfcTagService ?? const UnsupportedNfcTagService(),
     ),
+    // Nor the Bluetooth radio the nearby link runs (issue #3731).
+    nearbyLinkManagerProvider.overrideWithValue(
+      nearbyLinkManager ?? FakeNearbyLinkManager(),
+    ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // Settings > Data health (#3390, #3394) reads live sync, backup, library
     // and media state plus the database file; pages under test get a quiet,
@@ -848,7 +1004,22 @@ Future<List<Override>> getBaseOverrides({
     ),
     dataFactsProvider.overrideWith((ref) async => dataFacts),
     lastSyncTimeProvider.overrideWithValue(lastSync),
-    syncedDeviceCountProvider.overrideWithValue(syncedDevices),
+    // The Data page row subtitles (#3482) read the sync account, the
+    // attached store, the account roster and the joined libraries; stub
+    // their leaf inputs so pages under test never reach a database.
+    syncPeerNamesProvider.overrideWithValue(syncPeerNames),
+    lastBackupCloudAccountLabelProvider.overrideWith(
+      (ref) async => backupCloudAccountLabel,
+    ),
+    attachedStoreHintProvider.overrideWith((ref) async => attachedStoreHint),
+    mediaStoreAttachedHereProvider.overrideWithValue(mediaStoreAttachedHere),
+    accountLabelsProvider.overrideWith((ref) async => accountLabels),
+    accountSignInsNeededProvider.overrideWithValue(accountsNeedingSignIn),
+    libraryHealthSettledProvider.overrideWithValue(true),
+    sharedLibrarySummaryProvider.overrideWithValue((
+      count: sharedLibraryCount,
+      lastSync: sharedLibraryLastSync,
+    )),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub
     // it with a static count so widget tests don't leave a pending timer.
     openQualityFindingsCountProvider.overrideWith((ref) => Stream.value(0)),

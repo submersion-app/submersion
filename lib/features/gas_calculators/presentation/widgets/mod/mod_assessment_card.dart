@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -87,6 +88,7 @@ List<ModAssessment> modAssessments(
       );
     }
     final density = formatFixedForDisplay(a.densityGPerL ?? 0, 2);
+    final temp = formatGasTemperature(units, result.densityTemperature);
     switch (a.densityLevel) {
       case GasDensityLevel.warn:
         add(
@@ -94,6 +96,7 @@ List<ModAssessment> modAssessments(
           l10n.gasCalculators_mod_densityWarn(
             where,
             density,
+            temp,
             formatFixedForDisplay(gasDensityWarnGPerL, 1),
           ),
         );
@@ -103,6 +106,7 @@ List<ModAssessment> modAssessments(
           l10n.gasCalculators_mod_densityCritical(
             where,
             density,
+            temp,
             formatFixedForDisplay(gasDensityCriticalGPerL, 1),
           ),
         );

@@ -17,6 +17,8 @@ import 'package:submersion/features/planner/presentation/widgets/plan_name_dialo
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Present the saved-plans picker as a modal bottom sheet.
 Future<void> showSavedPlansSheet(BuildContext context) {
@@ -174,6 +176,9 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
   }
 
   Future<void> _importPlan(BuildContext context, WidgetRef ref) async {
+    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) {
+      return;
+    }
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final router = GoRouter.of(context);

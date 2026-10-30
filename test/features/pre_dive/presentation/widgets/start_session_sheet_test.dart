@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_dro
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
@@ -35,6 +36,11 @@ class _FakeTemplateRepo implements PreDiveTemplateRepository {
   Future<List<PreDiveChecklistTemplateItem>> getItemsForTemplate(
     String templateId,
   ) async => itemsByTemplate[templateId] ?? const [];
+
+  @override
+  Future<List<PreDiveChecklistTemplateSection>> getSectionsForTemplate(
+    String templateId,
+  ) async => const [];
 
   @override
   Future<void> updateItemEquipment(String itemId, String? equipmentId) async {
@@ -60,6 +66,7 @@ class _FakeSessionRepo implements PreDiveSessionRepository {
   Future<PreDiveSession> startSession({
     required PreDiveChecklistTemplate template,
     required List<PreDiveSessionItem> items,
+    List<PreDiveSessionSection> sections = const [],
     String? diverId,
     String? diveId,
     String? tripId,

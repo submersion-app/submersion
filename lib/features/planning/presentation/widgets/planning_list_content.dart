@@ -39,13 +39,20 @@ class PlanningListContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final tools = planningToolsOf(context);
-    final recentPlans =
-        ref.watch(divePlanSummariesProvider).valueOrNull?.take(3).toList() ??
-        const [];
+    // Desktop split view already shows every saved plan, grouped and
+    // sortable, in the detail pane's default content (PlanningSummaryWidget)
+    // beside this list. The row would only duplicate that, so it is a
+    // narrow-window-only entry point (issue #3551).
+    final showPlannedDivesRow = onToolSelected == null;
+    final recentPlans = showPlannedDivesRow
+        ? ref.watch(divePlanSummariesProvider).valueOrNull?.take(3).toList() ??
+              const []
+        : const <DivePlanSummary>[];
 
     final list = KeyboardListNavigator(
       keys: [
         kDivePlannerToolId,
+        if (showPlannedDivesRow) kPlannedDivesToolId,
         for (final plan in recentPlans) _planNavKey(plan.id),
         for (final tool in tools) tool.id,
       ],
@@ -66,6 +73,10 @@ class PlanningListContent extends ConsumerWidget {
           PlanningTile.select(context, _plannerTool(context), null);
           return;
         }
+        if (id == kPlannedDivesToolId) {
+          PlanningTile.select(context, _plannedDivesTool(context), null);
+          return;
+        }
         final plan = recentPlans
             .where((p) => _planNavKey(p.id) == id)
             .firstOrNull;
@@ -82,7 +93,11 @@ class PlanningListContent extends ConsumerWidget {
       child: ListView(
         children: [
           const SizedBox(height: 8),
-          _PlannerSection(recentPlans: recentPlans),
+          const _PlannerSection(),
+          if (showPlannedDivesRow) ...[
+            const SizedBox(height: 8),
+            _PlannedDivesSection(recentPlans: recentPlans),
+          ],
           const SizedBox(height: 8),
           _SectionLabel(context.l10n.planning_section_tools),
           ...List.generate(tools.length * 2 - 1, (index) {
@@ -155,6 +170,18 @@ PlanningTool _plannerTool(BuildContext context) => PlanningTool(
   subtitle: context.l10n.planning_card_divePlanner_subtitle,
 );
 
+/// The full planned-dives list's row, which also always opens as a full
+/// page (its own sort/grouping controls and a potentially long list do not
+/// fit usefully beside a 440px master pane).
+PlanningTool _plannedDivesTool(BuildContext context) => PlanningTool(
+  id: kPlannedDivesToolId,
+  icon: Icons.event_note,
+  color: Theme.of(context).colorScheme.primary,
+  title: context.l10n.planning_summary_savedPlans,
+  subtitle: context.l10n.planning_card_savedPlans_subtitle,
+  presentation: PlanningToolPresentation.pushedPage,
+);
+
 /// The keyboard stop for the recent saved plan [planId].
 String _planNavKey(String planId) => 'plan:$planId';
 
@@ -183,11 +210,31 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// The planner front and center: a tool row just like the others (the whole
-/// row opens the planner), with the three most recently touched saved plans
-/// beneath it.
-class _PlannerSection extends ConsumerWidget {
-  const _PlannerSection({required this.recentPlans});
+/// The planner front and center: a tool row just like the others, the whole
+/// row opening the planner. Its recent-plans preview lives in
+/// [_PlannedDivesSection] instead, so the same plans are not listed twice.
+class _PlannerSection extends StatelessWidget {
+  const _PlannerSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyboardListItem(
+      navigationKey: kDivePlannerToolId,
+      child: PlanningTile(
+        tool: _plannerTool(context),
+        // Never routed into the pane, even in split view: the planner has
+        // its own three-pane layout and needs the full window.
+        onToolSelected: null,
+      ),
+    );
+  }
+}
+
+/// The planned-dives list's own row, with the three most recently touched
+/// saved plans beneath it as a preview; the full, grouped and sortable list
+/// lives on the page it opens (issue #3551).
+class _PlannedDivesSection extends ConsumerWidget {
+  const _PlannedDivesSection({required this.recentPlans});
 
   /// The plans to list, the same ones the list's keyboard cursor walks.
   final List<DivePlanSummary> recentPlans;
@@ -195,40 +242,36 @@ class _PlannerSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final recent = recentPlans;
 
     return Column(
       children: [
         KeyboardListItem(
-          navigationKey: kDivePlannerToolId,
+          navigationKey: kPlannedDivesToolId,
           child: PlanningTile(
-            tool: _plannerTool(context),
-            // Never routed into the pane, even in split view: the planner has
-            // its own three-pane layout and needs the full window.
+            tool: _plannedDivesTool(context),
             onToolSelected: null,
           ),
         ),
-        if (recent.isNotEmpty)
-          for (final summary in recent)
-            KeyboardListItem(
-              navigationKey: _planNavKey(summary.id),
-              child: ListTile(
-                contentPadding: const EdgeInsets.only(left: 76, right: 16),
-                dense: true,
-                leading: const Icon(Icons.route, size: 20),
-                title: Text(summary.name),
-                subtitle: Text(
-                  [
-                    if (summary.maxDepth != null)
-                      units.formatDepth(summary.maxDepth!),
-                    if (summary.runtimeSeconds != null)
-                      '${(summary.runtimeSeconds! / 60).ceil()}′',
-                    summary.mode.name.toUpperCase(),
-                  ].join(' · '),
-                ),
-                onTap: () => _openPlan(context, summary.id),
+        for (final summary in recentPlans)
+          KeyboardListItem(
+            navigationKey: _planNavKey(summary.id),
+            child: ListTile(
+              contentPadding: const EdgeInsets.only(left: 76, right: 16),
+              dense: true,
+              leading: const Icon(Icons.route, size: 20),
+              title: Text(summary.name),
+              subtitle: Text(
+                [
+                  if (summary.maxDepth != null)
+                    units.formatDepth(summary.maxDepth!),
+                  if (summary.runtimeSeconds != null)
+                    '${(summary.runtimeSeconds! / 60).ceil()}′',
+                  summary.mode.name.toUpperCase(),
+                ].join(' · '),
               ),
+              onTap: () => _openPlan(context, summary.id),
             ),
+          ),
       ],
     );
   }

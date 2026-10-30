@@ -370,12 +370,16 @@ void main() {
         updatedAt: DateTime.now(),
       ),
     );
+    final section = await repo.createSection(
+      templateId: created.id,
+      title: 'Gear',
+    );
     await repo.saveItems(created.id, [
       ChecklistTemplateItem(
         id: '',
         templateId: created.id,
         title: 'Wetsuit',
-        category: 'Gear',
+        sectionId: section.id,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -386,10 +390,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The category subtitle renders for items with a category.
+    // The section header renders above its items.
     expect(find.text('Gear'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.delete_outline));
+    // The section's own delete icon comes first, the item's last.
+    await tester.tap(find.byIcon(Icons.delete_outline).last);
     await tester.pumpAndSettle();
 
     expect(find.text('Wetsuit'), findsNothing);
@@ -400,7 +405,7 @@ void main() {
     expect(await repo.getItemsForTemplate(created.id), isEmpty);
   });
 
-  testWidgets('the item dialog carries over category, notes, and due '
+  testWidgets('the item dialog carries over its section, notes, and due '
       'offset fields', (tester) async {
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
@@ -408,13 +413,25 @@ void main() {
     await tester.pumpWidget(testApp(child: const ChecklistTemplateEditPage()));
     await tester.pumpAndSettle();
 
+    // A section must exist before it can be picked in the item dialog --
+    // sections are managed via the editor's own "Add section", not typed
+    // free text in the item dialog.
+    await tester.tap(find.widgetWithText(TextButton, 'Add section'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'New section'),
+      'Bookings',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
     await tester.tap(find.widgetWithText(TextButton, 'Add item'));
     await tester.pumpAndSettle();
     await tester.enterText(dialogTitleField(), 'Book flights');
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Category'),
-      'Bookings',
-    );
+    await tester.tap(find.text('No section'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bookings').last);
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Notes'),
       'window seat',
@@ -427,7 +444,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Bookings'), findsOneWidget);
+    expect(find.text('Book flights'), findsOneWidget);
 
     // Re-open the item to confirm the fields round-tripped.
     await tester.tap(find.text('Book flights'));

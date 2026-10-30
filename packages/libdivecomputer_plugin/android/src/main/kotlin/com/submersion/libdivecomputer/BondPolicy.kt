@@ -12,18 +12,52 @@ package com.submersion.libdivecomputer
 // Submersion blocks Shearwater Cloud from connecting until the user
 // unpairs the computer in Android Bluetooth settings (issue #910).
 //
+// Cressi's Bluetooth adapter did not complete a pairing in issue #422: the
+// bond sat out its whole 30 s wait and the version read that followed
+// failed, while Subsurface and every other Submersion backend, none of
+// which bond, download the same computer.
+//
+// The Pelagic i330R family (Apeks DSX, Aqualung i330R and i330R Console)
+// authenticates inside its own protocol instead: libdivecomputer asks the
+// computer for access, the computer shows a six-digit code, and the user
+// types it into Submersion's PIN dialog (DC_IOCTL_BLE_GET_PINCODE).
+// createBond() raised Android's system pairing dialog asking for a
+// four-digit PIN the computer never shows, and held the download for up
+// to 30 seconds before libdivecomputer could ask for access at all
+// (issue #3546). Exempted by product, not vendor: the Aqualung computers
+// in the Oceanic Atom2 family keep the bond.
+//
 // Skipping the proactive bond cannot strand a download: if a device does
 // demand encryption mid-session, the Android stack pairs transparently
 // during the first encrypted GATT operation (see
 // BleIoStream.connectAndDiscover).
 object BondPolicy {
-    private val vendorsWithoutProactiveBond = setOf("shearwater")
+    private val vendorsWithoutProactiveBond = setOf("shearwater", "cressi")
 
-    // vendor is the libdivecomputer descriptor vendor string
-    // (DiscoveredDevice.vendor), e.g. "Shearwater" for Petrel, Perdix,
-    // Teric, Nerd, Peregrine, and Tern models.
-    fun requiresProactiveBond(vendor: String): Boolean =
-        vendor.trim().lowercase() !in vendorsWithoutProactiveBond
+    // (vendor, product) pairs, lowercased, as libdivecomputer's
+    // descriptor.c spells them for DC_FAMILY_PELAGIC_I330R. BondPolicyTest
+    // reads descriptor.c and fails if a product joins or leaves that family.
+    internal val productsWithoutProactiveBond = setOf(
+        "apeks" to "dsx",
+        "aqualung" to "i330r",
+        "aqualung" to "i330r console",
+    )
+
+    // vendor and product are the libdivecomputer descriptor strings
+    // (DiscoveredDevice.vendor / .product), e.g. "Shearwater" for Petrel,
+    // Perdix, Teric, Nerd, Peregrine, and Tern models, or "Apeks" / "DSX".
+    fun requiresProactiveBond(vendor: String, product: String): Boolean {
+        val v = vendor.trim().lowercase()
+        val p = product.trim().lowercase()
+        return v !in vendorsWithoutProactiveBond &&
+            (v to p) !in productsWithoutProactiveBond
+    }
+
+    // The download path's entry point. It reads the descriptor product,
+    // never the advertised BLE name (DiscoveredDevice.name), which carries
+    // a serial suffix and would match no exemption.
+    fun requiresProactiveBond(device: DiscoveredDevice): Boolean =
+        requiresProactiveBond(device.vendor, device.product)
 
     // Whether a proactive bond that did not complete should end the
     // download. It never should, for any vendor.

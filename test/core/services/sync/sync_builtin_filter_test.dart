@@ -9,9 +9,10 @@ import '../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../helpers/test_database.dart';
 
 /// Built-in catalog rows (species, dive types, field presets) are re-seeded
-/// identically on every device and are immutable, so they must NOT sync:
-/// shipping them only risks cross-device ID collisions and payload bloat.
-/// User-created rows in the same tables must still sync.
+/// identically on every device, so an untouched one must NOT sync: shipping
+/// it only risks cross-device ID collisions and payload bloat. User-created
+/// rows in the same tables must still sync, and so must a built-in species
+/// the diver edited (issue #3669).
 void main() {
   group('Built-in catalog rows are excluded from sync', () {
     late FakeCloudStorageProvider cloud;
@@ -59,6 +60,35 @@ void main() {
         isNot(contains('sp_builtin_1')),
         reason: 'built-in species must not be exported',
       );
+    });
+
+    test('a built-in species the diver edited is exported', () async {
+      final serializer = SyncDataSerializer();
+
+      // Every edit path stamps an hlc; the seed never does.
+      await serializer.upsertRecord('species', {
+        'id': 'sp_edited_1',
+        'commonName': 'Honeycomb Cowfish',
+        'category': 'fish',
+        'isBuiltIn': true,
+        'hlc': '001700000000000:000000:device-a',
+      });
+      await serializer.upsertRecord('species', {
+        'id': 'sp_untouched_1',
+        'commonName': 'Whale Shark',
+        'category': 'shark',
+        'isBuiltIn': true,
+      });
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await buildService().performSync();
+
+      final payload = await cloudBasePayload(cloud, deviceId);
+      final byId = {for (final s in payload!.data.species) s['id']: s};
+
+      expect(byId['sp_edited_1']?['commonName'], 'Honeycomb Cowfish');
+      expect(byId['sp_edited_1']?['isBuiltIn'], isTrue);
+      expect(byId.keys, isNot(contains('sp_untouched_1')));
     });
 
     test(

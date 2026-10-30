@@ -8,6 +8,7 @@ import 'package:submersion/features/trips/domain/services/day_plan_progress.dart
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_plan_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
 /// The plan part of a story day card, on every day: the itinerary notes, the
 /// planned dives (as progress once the day has come), and, for a day ahead,
@@ -62,7 +63,10 @@ class TripStoryDayPlan extends StatelessWidget {
       spacing: 6,
       children: [
         if (notes.isNotEmpty)
-          Text(notes, style: Theme.of(context).textTheme.bodySmall),
+          MarkdownNotesView(
+            notes,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         if (progress != null) DayPlanLine(progress: progress),
         if (site != null && hasHistory)
           _HistoryPills(siteName: site, units: units),

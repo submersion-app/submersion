@@ -14,6 +14,7 @@ import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
+import 'package:submersion/core/database/tables/tag_tables.dart';
 
 /// Photos and media files (also used for signatures)
 class Media extends Table {
@@ -85,6 +86,11 @@ class Media extends Table {
   TextColumn get compressedLevel => text().nullable()();
   IntColumn get compressedSizeBytes => integer().nullable()();
   IntColumn get remoteCompressedUploadedAt => integer().nullable()();
+  // The store the three remote_*_uploaded_at stamps refer to (v303, issue
+  // #3482). Null for stamps from before stores were recorded: those count
+  // for the attached store until a switch claims them for the store they
+  // were made in.
+  TextColumn get remoteStoreId => text().nullable()();
   // Media section Phase 1 (v140): kept-in-library marker. Dormant until the
   // Phase 2 link-management UI sets it; the orphan sweep will exclude rows
   // where it is true. Synced with the row like every other media column.
@@ -102,6 +108,10 @@ class Media extends Table {
 
   /// 'large' or 'tile' (issue #1039); null follows the category default.
   TextColumn get displaySize => text().nullable()();
+  // v296: the diver's hand colour adjustment for this photo or video, as
+  // ColorAdjustment JSON (issue #3520); null is none. Display-only: it is
+  // applied when the item is drawn and never written into the file.
+  TextColumn get colorAdjustment => text().nullable()();
   // v189: equipment attachment (issue #1517). Invoices, receipts and warranty
   // paperwork linked to a piece of gear, so an insurance claim after lost
   // luggage, theft or fire has the proof attached to the item it covers.
@@ -347,6 +357,10 @@ class MediaStores extends Table {
   // v136: epoch millis of the last completed Verify Library sweep on ANY
   // device (fleet-wide cadence; orphan-prevention spec 6.4).
   IntColumn get lastSweepAt => integer().nullable()();
+  // v302: the connected_accounts row the store lives on (issue #3482), so a
+  // second device holding that account attaches with nothing to type. Null
+  // for a store announced before it was recorded.
+  TextColumn get accountId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -365,6 +379,36 @@ class ConnectedAccounts extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// v293: secret-free JSON describing where an S3 or WebDAV row points,
+  /// including its own folder (AccountLocation), so a second device signs
+  /// in by typing only the secret (issue #3482). Null for OAuth kinds and
+  /// for rows written before v293.
+  TextColumn get location => text().nullable()();
+
+  /// v295: the short name the diver gave the account (issue #3522). Null
+  /// until they choose one; the account then reads as its label with a
+  /// well-known service's host replaced by the service's name.
+  TextColumn get nickname => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Junction table for a media item's tags (many-to-many, v309, issue #1970),
+/// the twin of [EquipmentTags]. Surrogate uuid primary key, so a re-inserted
+/// pair never collides with its predecessor's tombstone (#347); the
+/// (media_id, tag_id) unique index lives in tag_uniqueness.dart.
+class MediaTags extends Table {
+  TextColumn get id => text()();
+  TextColumn get mediaId =>
+      text().references(Media, #id, onDelete: KeyAction.cascade)();
+  TextColumn get tagId =>
+      text().references(Tags, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  /// This link's own clock, stamped when it is marked pending.
+  TextColumn get hlc => text().nullable()();
 }

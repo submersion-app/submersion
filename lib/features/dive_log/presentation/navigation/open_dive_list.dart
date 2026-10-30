@@ -6,6 +6,7 @@ import 'package:submersion/core/router/list_return_scope.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
 
 /// What a pushed dive list puts back when it goes away: the dive-list filter
 /// and highlighted dive that were in place before it opened.
@@ -14,19 +15,38 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 /// the filter: it is global, and a table-mode list under the pushed one
 /// replays it into its own URL once uncovered (#3292).
 class DiveListReturn implements ListReturn {
-  const DiveListReturn({required this.filter, required this.highlightedDiveId});
+  const DiveListReturn({
+    required this.filter,
+    required this.highlightedDiveId,
+    this.closedPaneDiveId,
+  });
 
   final DiveFilterState filter;
   final String? highlightedDiveId;
+
+  /// The dive whose pane the tab had emptied, if any (see
+  /// [closedPaneRecordProvider]). Put back so what the diver opens or empties
+  /// in the pushed list does not decide whether the tab reopens its pane when
+  /// returned to (#3301).
+  final String? closedPaneDiveId;
 
   @override
   VoidCallback bindRestore(WidgetRef ref) {
     final filterController = ref.read(diveFilterProvider.notifier);
     final highlightController = ref.read(highlightedDiveIdProvider.notifier);
+    final closedPanesController = ref.read(closedPaneRecordProvider.notifier);
     return () {
       if (filterController.mounted) filterController.state = filter;
       if (highlightController.mounted) {
         highlightController.state = highlightedDiveId;
+      }
+      if (closedPanesController.mounted) {
+        final closed = {...closedPanesController.state}
+          ..remove(RecordListSection.dives);
+        final id = closedPaneDiveId;
+        closedPanesController.state = id == null
+            ? closed
+            : {...closed, RecordListSection.dives: id};
       }
     };
   }
@@ -57,6 +77,9 @@ void openDiveList(
   final returnTo = DiveListReturn(
     filter: ref.read(diveFilterProvider),
     highlightedDiveId: ref.read(highlightedDiveIdProvider),
+    closedPaneDiveId: ref.read(
+      closedPaneRecordProvider,
+    )[RecordListSection.dives],
   );
   ref.read(diveFilterProvider.notifier).state = filter;
   context.push(location, extra: returnTo);

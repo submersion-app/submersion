@@ -16,7 +16,7 @@ PlanOutcome computeOutcomeForState(
   final engine = PlanEngine(config: config);
   return engine.compute(
     divePlanFromState(state),
-    startState: startStateForPlan(state),
+    startState: startStateForPlan(state, config: config),
   );
 }
 
@@ -24,12 +24,20 @@ PlanOutcome computeOutcomeForState(
 /// compartments off-gassed over the surface interval, or null for a fresh
 /// diver. Every engine run that stands in for this plan (the live outcome,
 /// contingencies, the range table, the bailout picture) starts here.
-TissueState? startStateForPlan(DivePlanState state) {
+///
+/// Reads gfLow/gfHigh from [state], falling back to [config] (issue #3552,
+/// follow-up to v304-307) when the plan has not overridden them - the same
+/// resolution PlanEngineConfig.resolvedFor applies for the engine run
+/// itself, kept in sync here so the seed and the schedule agree.
+TissueState? startStateForPlan(
+  DivePlanState state, {
+  required PlanEngineConfig config,
+}) {
   return seededTissueState(
     compartments: state.initialTissueState,
     surfaceInterval: state.surfaceInterval,
-    gfLow: state.gfLow / 100.0,
-    gfHigh: state.gfHigh / 100.0,
+    gfLow: (state.gfLow ?? config.gfLow) / 100.0,
+    gfHigh: (state.gfHigh ?? config.gfHigh) / 100.0,
     // Match the engine: altitude <= 0 is unset (legacy 1.0 bar), so the seed
     // is off-gassed at the same surface pressure the plan is computed at.
     environment: DiveEnvironment.forConditions(

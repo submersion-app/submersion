@@ -10,6 +10,8 @@ import 'package:submersion/core/services/shared_library/site_detacher.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
 /// Moves sites into and out of a shared site library (issue #2567): push converts
 /// a personal site in place, delete stamps the tombstone and detaches the
@@ -61,6 +63,7 @@ class SharedSitePublisher {
     required String libraryId,
     required String diverId,
   }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
     // As in the UI: only an editor or owner adds sites.
     final memberId = await _editorMemberId(diverId, libraryId);
     final row = await (_db.select(
@@ -120,10 +123,12 @@ class SharedSitePublisher {
   Future<void> deleteFromLibrary({
     required String siteId,
     required String diverId,
-  }) =>
-      // Behind any library sync in flight, whose pull of this site would
-      // otherwise overwrite the tombstone.
-      SyncCoordinator.run(() => _deleteFromLibrary(siteId, diverId));
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
+    return // Behind any library sync in flight, whose pull of this site would
+    // otherwise overwrite the tombstone.
+    SyncCoordinator.run(() => _deleteFromLibrary(siteId, diverId));
+  }
 
   Future<void> _deleteFromLibrary(String siteId, String diverId) async {
     final row = await (_db.select(
@@ -155,8 +160,13 @@ class SharedSitePublisher {
   /// Wins a deleted site back: `deleted` is clocked false under the member
   /// and the next sync re-pulls the document (its fields still live in the
   /// library) and uploads the merged result.
-  Future<void> undelete({required String siteId, required String diverId}) =>
-      SyncCoordinator.run(() => _undelete(siteId, diverId));
+  Future<void> undelete({
+    required String siteId,
+    required String diverId,
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sharedLibrary);
+    return SyncCoordinator.run(() => _undelete(siteId, diverId));
+  }
 
   Future<void> _undelete(String siteId, String diverId) async {
     final existing = await _store.getSiteState(siteId);

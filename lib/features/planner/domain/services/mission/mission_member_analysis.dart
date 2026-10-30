@@ -68,7 +68,11 @@ class MissionMemberAnalysis {
       );
       if (!battery.withinReserve(
         burnFraction: roundTrip,
-        reserveFraction: mission.batteryReserveFraction,
+        // MissionEngine.compute resolves an unset reserve against the
+        // diver's Settings before calling here (issue #3552); the spec
+        // constant only covers a direct caller that skipped it.
+        reserveFraction:
+            mission.batteryReserveFraction ?? kDefaultBatteryReserveFraction,
       )) {
         factor = MissionBindingFactor.battery;
       } else if (!own.survivable) {

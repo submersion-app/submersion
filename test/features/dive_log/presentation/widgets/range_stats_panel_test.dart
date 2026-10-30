@@ -248,19 +248,19 @@ void main() {
       ],
     };
 
-    testWidgets('a rebreather reads SAC from the diluent alone', (
+    testWidgets('a rebreather shows neither SAC nor RMV (#3673)', (
       tester,
     ) async {
       await pumpGas(
         tester,
         tanks: ccrTanks,
         tankPressures: ccrPressures,
-        display: GasConsumptionDisplay.sac,
         isRebreather: true,
       );
 
-      // Diluent alone: 50 bar over 5 min at 2 bar ambient.
-      expect(find.text('5.0 bar/min'), findsOneWidget);
+      // The diluent and oxygen drops are not a breathing rate.
+      expect(find.text('SAC'), findsNothing);
+      expect(find.text('RMV'), findsNothing);
     });
 
     testWidgets('open circuit adds every breathed cylinder to SAC', (

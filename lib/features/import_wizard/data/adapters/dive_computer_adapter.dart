@@ -38,14 +38,22 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
+import 'package:submersion/features/import_wizard/domain/models/diver_import_outcome.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_target_choice.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
+import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 
 part 'dive_computer_adapter_connections.dart';
 part 'dive_computer_adapter_import_steps.dart';
+part 'dive_computer_adapter_target.dart';
 
 // ---------------------------------------------------------------------------
 // Bridge providers
@@ -78,7 +86,8 @@ final dcAdapterDownloadCanAdvanceProvider = StateProvider<bool>((ref) => false);
 ///
 /// **Quick download (known computer)** -- [knownComputer] is provided.
 /// One acquisition step: Download (auto-scans for the known device).
-class DiveComputerAdapter implements ImportSourceAdapter {
+class DiveComputerAdapter
+    implements ImportSourceAdapter, RetargetableImportAdapter {
   static final _log = LoggerService.forClass(DiveComputerAdapter);
 
   DiveComputerAdapter({
@@ -93,7 +102,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     bool forceFullDownload = false,
     PlannedDiveFillService? fillService,
     DiveComputerConnectionRepository? connectionRepository,
-  }) : _importService = importService,
+    Future<bool> Function()? followComputerOwner,
+    DiverNameLookup? diverName,
+    String? bindEquipmentId,
+    TransmitterAutoRegistrar? transmitterRegistrar,
+    TransmitterGearLinker? transmitterGearLinker,
+    TransmitterRepository? transmitterRepository,
+  }) : _bindEquipmentId = bindEquipmentId,
+       _importService = importService,
+       _transmitterRegistrar = transmitterRegistrar,
+       _transmitterGearLinker = transmitterGearLinker,
+       _transmitterRepository = transmitterRepository,
        _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
@@ -106,7 +125,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
              importService: importService,
              consolidation: consolidationService,
            ),
-       _diverId = diverId,
+       _activeDiverId = diverId,
+       _followComputerOwner = followComputerOwner,
+       _diverName = diverName,
        _knownComputer = knownComputer,
        _ref = ref,
        _forceFullDownload = forceFullDownload,
@@ -126,9 +147,71 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       _connectionRepository ??
       _ref?.read(diveComputerConnectionRepositoryProvider);
 
+  /// The hand-added Dive Computer item "Connect and download" started from
+  /// (issue #3676): a device seen for the first time is created on it.
+  final String? _bindEquipmentId;
+
+  /// The other item the discovered device already stands for, when it is not
+  /// [_bindEquipmentId]'s. The device stays where it is and the summary says
+  /// so; it is never rebound silently.
+  String? _boundToOtherItemId;
+  String? get boundToOtherItemId => _boundToOtherItemId;
+
+  void _noteItemOf(DiveComputer existing) {
+    final bind = _bindEquipmentId;
+    final item = existing.equipmentId;
+    if (bind != null && item != null && item != bind) {
+      _boundToOtherItemId = item;
+    }
+  }
+
+  /// The transmitter seams of a download (issue #3676): each new serial gets
+  /// its item, every transmitter joins its dives, and the notice asks about
+  /// each one not set up. Read from [_ref] when not given; absent in a bare
+  /// test, which then registers nothing.
+  final TransmitterAutoRegistrar? _transmitterRegistrar;
+  final TransmitterGearLinker? _transmitterGearLinker;
+  final TransmitterRepository? _transmitterRepository;
+  TransmitterAutoRegistrar? get _registrar =>
+      _transmitterRegistrar ?? _ref?.read(transmitterAutoRegistrarProvider);
+  TransmitterGearLinker? get _gearLinker =>
+      _transmitterGearLinker ?? _ref?.read(transmitterGearLinkerProvider);
+  TransmitterRepository? get _transmitters =>
+      _transmitterRepository ?? _ref?.read(transmitterRepositoryProvider);
+
   /// Fills planned dives from downloads (issue #2002).
   final PlannedDiveFillService _fillService;
-  final String _diverId;
+
+  /// The profile that was active when the download started. A computer seen
+  /// for the first time is registered to it.
+  final String _activeDiverId;
+
+  /// Whether a computer owned by another profile defaults to that profile
+  /// (issue #2050); the diver's "Add downloads to the computer's owner",
+  /// read from [_ref]'s settings when not given. Read when the target is
+  /// resolved, so a wizard opened before settings load still honours it.
+  final Future<bool> Function()? _followComputerOwner;
+
+  /// Looks up a profile's name; read from [_ref] when not given.
+  final DiverNameLookup? _diverName;
+
+  /// The profile chosen for this download, or null for the active profile.
+  String? _chosenDiverId;
+
+  /// The computer's owner when it is another existing profile; see
+  /// [DiveComputerAdapterTarget.resolveTarget].
+  String? _ownerDiverId;
+
+  /// Profile names already looked up, standing in when a later lookup fails.
+  final Map<String, String> _diverNames = {};
+
+  /// Send this download to [diverId]. The computer's owner does not change.
+  @override
+  Future<void> setTargetDiver(String diverId) async {
+    _chosenDiverId = diverId;
+    await _lookUpDiverName(diverId);
+  }
+
   final DiveComputer? _knownComputer;
   final WidgetRef? _ref;
   final bool _forceFullDownload;
@@ -244,15 +327,17 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
-    if (_diverId.isNotEmpty && await _resolveByLocalConnection(device)) {
+    if (_activeDiverId.isNotEmpty && await _resolveByLocalConnection(device)) {
       return;
     }
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
-      if (_diverId.isEmpty) return;
-      final existing = await _computerRepository.findByBluetoothAddress(
-        device.address,
-        diverId: _diverId,
+      if (_activeDiverId.isEmpty) return;
+      final existing = await _findAcrossProfiles(
+        (diverId) => _computerRepository.findByBluetoothAddress(
+          device.address,
+          diverId: diverId,
+        ),
       );
       if (existing != null) {
         _computer = existing;
@@ -335,7 +420,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       _resolvedByAddress = false;
     }
 
-    if (computer != null) {
+    if (computer case final known?) {
+      _noteItemOf(known);
       await _recordDirectConnection(device, serialNumber);
       return;
     }
@@ -351,11 +437,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // either side is compatible, so a computer first registered by a file
     // import is found here too.
     if (normalizedSerial?.isNotEmpty == true) {
-      var existing = await _computerRepository.findByHardwareIdentity(
-        manufacturer: normalizedManufacturer,
-        model: normalizedModel,
-        serialNumber: normalizedSerial!,
-        diverId: _diverId,
+      var existing = await _findAcrossProfiles(
+        (diverId) => _computerRepository.findByHardwareIdentity(
+          manufacturer: normalizedManufacturer,
+          model: normalizedModel,
+          serialNumber: normalizedSerial!,
+          diverId: diverId,
+        ),
       );
       // A build before issue #422 saved the computer under the model it was
       // scanned as; find that record rather than creating a duplicate.
@@ -363,11 +451,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           hasReported &&
           scannedModel?.isNotEmpty == true &&
           scannedModel != normalizedModel) {
-        existing = await _computerRepository.findByHardwareIdentity(
-          manufacturer: normalizedManufacturer,
-          model: scannedModel!,
-          serialNumber: normalizedSerial,
-          diverId: _diverId,
+        existing = await _findAcrossProfiles(
+          (diverId) => _computerRepository.findByHardwareIdentity(
+            manufacturer: normalizedManufacturer,
+            model: scannedModel!,
+            serialNumber: normalizedSerial!,
+            diverId: diverId,
+          ),
         );
       }
       if (existing != null) {
@@ -383,6 +473,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
+        _noteItemOf(rebound);
         await _recordDirectConnection(device, normalizedSerial);
         return;
       }
@@ -399,7 +490,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
               (hasReported
                   ? '${device.manufacturer} $reported'
                   : device.displayName),
-          diverId: _diverId,
+          diverId: _activeDiverId,
           manufacturer: device.manufacturer,
           model: hasReported ? reported : device.model,
         ).copyWith(
@@ -407,6 +498,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           firmwareVersion: firmwareVersion,
           connectionType: connectionTypeStr,
           bluetoothAddress: device.address,
+          equipmentId: _bindEquipmentId,
         );
 
     _computer = await _computerRepository.createComputer(newComputer);
@@ -420,10 +512,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   @override
   void resetState() {
     _sinceCutoff = null;
+    _chosenDiverId = null;
+    _ownerDiverId = null;
     _downloadInterrupted = false;
     _deliversOldestFirst = false;
     _pendingComputerSave = null;
     _computerSaveError = null;
+    _boundToOtherItemId = null;
     _pendingClockSyncStatus = null;
     final ref = _ref;
     if (ref == null) return;
@@ -573,6 +668,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // (contained segments, cross-computer consolidation) on that id. A
     // failure here is left for performImport to report.
     await _retryPendingComputerSave();
+    await resolveTarget();
 
     final items = _downloadedDives.map(_diveToEntityItem).toList();
 
@@ -603,6 +699,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           autoSkipIndices: autoSkip.isEmpty ? null : autoSkip,
         ),
       },
+      targetChoice: _targetChoice,
     );
   }
 
@@ -617,14 +714,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // Prefetch the source-key map once for the whole download; the
     // fingerprint pass in detectDuplicate scans it per dive.
     final sourceKeysCache = await _diveRepository.getSourceKeysByDiveId(
-      diverId: _diverId,
+      diverId: targetDiverId,
     );
 
     for (var i = 0; i < _downloadedDives.length; i++) {
       final dive = _downloadedDives[i];
       final result = await _importService.detectDuplicate(
         dive,
-        diverId: _diverId,
+        diverId: targetDiverId,
         computerId: computer?.id,
         sourceKeysCache: sourceKeysCache,
       );
@@ -652,7 +749,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // becomes a fill. An empty diver id means an unscoped library, where
     // every planned dive is a candidate.
     final planned = await _diveRepository.getPlannedDives(
-      diverId: _diverId.isEmpty ? null : _diverId,
+      diverId: targetDiverId.isEmpty ? null : targetDiverId,
     );
     if (planned.isNotEmpty) {
       final unmatched = [
@@ -677,8 +774,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       }
     }
 
-    return ImportBundle(
-      source: bundle.source,
+    return bundle.copyWith(
       groups: {
         ...bundle.groups,
         ImportEntityType.dives: EntityGroup(
@@ -798,6 +894,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // source-replaced); skipped duplicates never count toward a notice.
     final writtenDives = <DownloadedDive>[];
     final importedDiveIds = <String>[];
+    // Dives already in the log that a download was merged into.
+    final updatedExistingDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -863,6 +961,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
               writtenDives.add(dive);
+              updatedExistingDiveIds.add(matchResult.diveId);
             case _ConsolidateOutcome.keptStandalone:
               // The fold refused, but the download survived as its own dive,
               // so it counts as imported. Reporting it as skipped would hide
@@ -895,7 +994,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             conflict,
             ConflictResolution.replaceSource,
             comp.id,
-            diverId: _diverId,
+            diverId: targetDiverId,
             descriptorVendor: _descriptorVendor,
             descriptorProduct: _descriptorProduct,
             descriptorModel: _descriptorModel,
@@ -903,6 +1002,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
           );
           updated++;
           writtenDives.add(dive);
+          updatedExistingDiveIds.add(matchResult.diveId);
         }
       } else {
         // Import as new dive. Use importSingleDiveAsNew to bypass the
@@ -911,7 +1011,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         final diveId = await _importService.importSingleDiveAsNew(
           dive,
           computerId: comp.id,
-          diverId: _diverId,
+          diverId: targetDiverId,
           descriptorVendor: _descriptorVendor,
           descriptorProduct: _descriptorProduct,
           descriptorModel: _descriptorModel,
@@ -946,6 +1046,8 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final unmatched = _importService.unmatchedTransmitterSerials;
+    final needingSetup = await _registerTransmitters(unmatched, writtenDives);
+    final needsSetupDives = _divesCarrying(needingSetup, writtenDives);
     // A fill skips the import service, so its own outcome says whether it
     // kept a role read off a transmitter's name.
     final nameRoleDives =
@@ -959,6 +1061,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       diveRepository: _diveRepository,
       importedDiveIds: importedDiveIds,
     );
+    final diverOutcomes = await _diverOutcomes(importedDiveIds);
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
       consolidatedCount: consolidated,
@@ -966,12 +1069,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       filledCount: filled,
       fillOutcomes: fillOutcomes,
       skippedCount: skipped,
-      importedDiveIds: importedDiveIds,
+      // "View Dives" and the quality count work in the active profile, so a
+      // download sent to another profile reports its dives only through
+      // diverOutcomes, as a multi-profile file import does (issue #2050).
+      importedDiveIds: diverOutcomes.isEmpty ? importedDiveIds : const [],
+      updatedExistingDiveIds: updatedExistingDiveIds,
+      diverOutcomes: diverOutcomes,
       notices: [
-        if (unmatched.isNotEmpty && writtenDives.isNotEmpty)
+        // Counted over this download's dives: a transmitter not set up that
+        // none of them carries is the inbox's to raise, not this summary's.
+        if (needsSetupDives > 0)
           ImportNotice(
             kind: ImportNoticeKind.unknownTransmitter,
-            count: _divesCarrying(unmatched, writtenDives),
+            count: needsSetupDives,
+          ),
+        if (_boundToOtherItemId case final other?)
+          ImportNotice(
+            kind: ImportNoticeKind.deviceBelongsToOtherItem,
+            count: 1,
+            targetId: other,
           ),
         if (nameRoleDives > 0)
           ImportNotice(
@@ -981,6 +1097,37 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         ?numberConflict,
       ],
     );
+  }
+
+  /// Registers each serial no registry row knows, puts every transmitter in
+  /// this download on its dives, and returns the serials the notice asks
+  /// about: new ones and any not set up (issue #3676). Best-effort: a failure
+  /// leaves the download imported and falls back to the unmatched serials.
+  Future<List<String>> _registerTransmitters(
+    List<String> unmatched,
+    List<DownloadedDive> written,
+  ) async {
+    final diverId = targetDiverId.isEmpty ? null : targetDiverId;
+    try {
+      // Every serial this download wrote, not just the import service's
+      // unmatched ones: a planned-dive fill skips that service. The
+      // registrar skips serials it already knows.
+      final seen = {
+        for (final dive in written)
+          for (final tank in dive.tanks)
+            ?normalizeTransmitterSerial(tank.transmitterSerial),
+      };
+      if (seen.isNotEmpty) {
+        await _registrar?.registerNewSerials(seen, diverId: diverId);
+        await _gearLinker?.linkSerials(seen, diverId: diverId);
+      }
+      final notSetUp =
+          await _transmitters?.serialsNeedingSetup(diverId) ?? const {};
+      return {...unmatched, ...notSetUp}.toList();
+    } catch (e) {
+      _log.warning('Transmitter registration failed (non-fatal): $e');
+      return unmatched;
+    }
   }
 
   /// How many of the dives this run wrote carry an unmatched serial. Skipped

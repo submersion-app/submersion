@@ -6,6 +6,7 @@ class DiverImportOutcome {
     required this.isNew,
     required this.isActive,
     this.diveIds = const [],
+    this.siteIds = const [],
   });
 
   final String diverId;
@@ -21,6 +22,9 @@ class DiverImportOutcome {
   /// Dives the import created in this profile.
   final List<String> diveIds;
 
+  /// Sites the import created in this profile (#3513).
+  final List<String> siteIds;
+
   /// This outcome without the dives consolidation folded into others.
   DiverImportOutcome withoutDives(Set<String> removed) => DiverImportOutcome(
     diverId: diverId,
@@ -31,5 +35,6 @@ class DiverImportOutcome {
       for (final id in diveIds)
         if (!removed.contains(id)) id,
     ],
+    siteIds: siteIds,
   );
 }

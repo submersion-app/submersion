@@ -317,6 +317,83 @@ void main() {
     }
   });
 
+  group('sections (#3360)', () {
+    // startSession mints a fresh id for a section whose id arrives blank
+    // (same as it does for items), so an item referencing a section by id
+    // must be given that section's REAL id upfront -- a non-blank id here,
+    // not the empty placeholder other drafts leave for the repository to
+    // fill in.
+    domain.PreDiveSessionSection sectionDraft(String title, {int order = 0}) =>
+        domain.PreDiveSessionSection(
+          id: 'section-${title.toLowerCase()}',
+          sessionId: '',
+          title: title,
+          sortOrder: order,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+    test('startSession persists sections and links items to them', () async {
+      final section = sectionDraft('Assembly');
+      final session = await repository.startSession(
+        template: template(),
+        sections: [section],
+        items: [draft('A').copyWith(sectionId: section.id)],
+      );
+
+      final sections = await repository.getSectionsForSession(session.id);
+      expect(sections.single.title, 'Assembly');
+      final items = await repository.getItemsForSession(session.id);
+      expect(items.single.sectionId, sections.single.id);
+    });
+
+    test(
+      'a session with no sections has none, items stay unsectioned',
+      () async {
+        final session = await start();
+        expect(await repository.getSectionsForSession(session.id), isEmpty);
+        final items = await repository.getItemsForSession(session.id);
+        expect(items.every((i) => i.sectionId == null), isTrue);
+      },
+    );
+
+    test(
+      'getSectionsForSessions returns sections grouped by session id',
+      () async {
+        final section = sectionDraft('Cells');
+        final s1 = await repository.startSession(
+          template: template(),
+          sections: [section],
+          items: const [],
+        );
+        final s2 = await start();
+
+        final grouped = await repository.getSectionsForSessions([s1.id, s2.id]);
+
+        expect(grouped[s1.id]!.single.title, 'Cells');
+        expect(grouped.containsKey(s2.id), isFalse);
+      },
+    );
+
+    test('deleteSession also tombstones its sections', () async {
+      final section = sectionDraft('Assembly');
+      final session = await repository.startSession(
+        template: template(),
+        sections: [section],
+        items: const [],
+      );
+      final sections = await repository.getSectionsForSession(session.id);
+
+      await repository.deleteSession(session.id);
+
+      expect(await repository.getSectionsForSession(session.id), isEmpty);
+      expect(
+        await tombstoneCount('preDiveSessionSections', sections.single.id),
+        1,
+      );
+    });
+  });
+
   group('cell linearity persistence (#986)', () {
     domain.PreDiveSessionItem linearityDraft({
       required String id,

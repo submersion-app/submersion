@@ -209,6 +209,7 @@ class PlanNumberFieldState extends State<PlanNumberField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final row = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -229,6 +230,11 @@ class PlanNumberFieldState extends State<PlanNumberField> {
                     vertical: 8,
                   ),
                   hintText: _seed(widget.hintValue),
+                  // Tinted to read as "this is the Settings default, not
+                  // your value" at a glance (issue #3552) - the hint only
+                  // ever shows while the box is empty, so no typed value is
+                  // ever recolored by this.
+                  hintStyle: TextStyle(color: theme.colorScheme.primary),
                   // A bare red border: the row has no space for a message and
                   // an error line would shift every row below it.
                   errorText: _outOfRange || _unreadable ? '' : null,
@@ -257,7 +263,6 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     // unreadable: swapping the root widget would remount the field and close
     // its input connection mid-typing. The rows below shift only for as long
     // as the diver has something to fix.
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

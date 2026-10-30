@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sort_sheet_layout.dart';
 import 'package:submersion/features/equipment/presentation/widgets/group_by_location_switch.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Opens the Equipment page's sort sheet.
@@ -57,16 +59,26 @@ class EquipmentListSortSheet extends ConsumerWidget {
         ref.watch(equipmentArrangementProvider).typeOrder !=
             EquipmentTypeOrder.none;
 
-    // Reads the sort as it is NOW rather than the `sort` this build saw: the
-    // sheet stays open, and two taps before the next frame would otherwise
-    // both start from the same snapshot, the second undoing the first.
+    // Builds on the saved sort as it is when the change applies rather than
+    // the `sort` this build saw: the sheet stays open, and two taps before
+    // the save lands would otherwise both start from the same snapshot, the
+    // second undoing the first. Saved for the diver (issue #3748). The
+    // change can run after the sheet is closed (it waits for the diver's
+    // settings to load), so it must not touch this widget's ref.
     void updateSort({EquipmentSortField? field, SortDirection? direction}) {
-      final notifier = ref.read(equipmentSortProvider.notifier);
-      final current = notifier.state;
-      notifier.state = SortState(
-        field: field ?? current.field,
-        direction: direction ?? current.direction,
-      );
+      ref.read(settingsProvider.notifier).updateListArrangements((saved) {
+        final current =
+            decodeSortState(saved.equipmentSort, EquipmentSortField.values) ??
+            equipmentStartingSort;
+        return saved.copyWith(
+          equipmentSort: encodeSortState(
+            SortState(
+              field: field ?? current.field,
+              direction: direction ?? current.direction,
+            ),
+          ),
+        );
+      });
     }
 
     return EquipmentSortSheetLayout<EquipmentSortField>(

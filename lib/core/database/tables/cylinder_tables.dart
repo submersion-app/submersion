@@ -56,6 +56,11 @@ class CylinderConfigItems extends Table {
   RealColumn get o2Percent => real().withDefault(const Constant(21.0))();
   RealColumn get hePercent => real().withDefault(const Constant(0.0))();
   RealColumn get defaultStartPressureBar => real().nullable()();
+
+  /// MOD in metres set by hand (v314, issue #3567); null means the default
+  /// for the cylinder's role. Named after dive_plan_tanks.deco_switch_depth,
+  /// where a plan tank picked from it carries it.
+  RealColumn get decoSwitchDepth => real().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
@@ -130,6 +135,12 @@ class Transmitters extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// Whether the diver configured this entry (v316, issue #3676). An entry
+  /// the app creates for a serial it saw in a download starts false, and the
+  /// registry matcher ignores it until the diver saves it, so its placeholder
+  /// name and guessed role never reach a tank.
+  BoolColumn get isConfigured => boolean().withDefault(const Constant(true))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

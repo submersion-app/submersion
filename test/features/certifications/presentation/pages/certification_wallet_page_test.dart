@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
@@ -12,7 +14,9 @@ import 'package:submersion/features/certification_agencies/domain/entities/custo
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_grouping_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_grid.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_share_sheet.dart';
@@ -235,6 +239,84 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('new'), findsOneWidget);
+    });
+
+    // #3359: the wallet gets its own entry point into the shared sort sheet,
+    // which here (unlike the list's phone/compact bars) also carries the
+    // grouping control.
+    testWidgets('the sort button opens the sort sheet with grouping and the '
+        'view switch', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(overrides: baseOverrides()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Sort'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Group by'), findsOneWidget);
+      expect(find.text('List'), findsOneWidget);
+      // Appears twice: the AppBar title and the view switch's own radio
+      // label share the same English string.
+      expect(find.text('Certification Wallet'), findsNWidgets(2));
+    });
+
+    // #3359: today the wallet ignores sort/grouping entirely; this is the
+    // behavior change the issue's Part 2 asks for.
+    testWidgets('orders cards by the shared sort state, not insertion order', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: [
+            ...baseOverrides(
+              certifications: [
+                _makeCert(id: 'b', name: 'Bbb Cert'),
+                _makeCert(id: 'a', name: 'Aaa Cert'),
+              ],
+            ),
+            certificationSortProvider.overrideWith(
+              (ref) => const SortState(
+                field: CertificationSortField.name,
+                direction: SortDirection.descending,
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final titles = tester
+          .widgetList<CertificationEcard>(find.byType(CertificationEcard))
+          .map((card) => card.certification.id)
+          .toList();
+      expect(titles, ['a', 'b']);
+    });
+
+    // #3359: grouping must reach the wallet too (card order only -- no
+    // group headers in the grid, a stretch goal left for later).
+    testWidgets('orders cards by the shared grouping state', (tester) async {
+      await tester.pumpWidget(
+        _buildTestWidget(
+          overrides: [
+            ...baseOverrides(
+              certifications: [
+                _makeCert(id: 'ssi', agency: CertificationAgency.ssi.name),
+                _makeCert(id: 'padi', agency: CertificationAgency.padi.name),
+              ],
+            ),
+            certificationGroupByProvider.overrideWith(
+              (ref) => CertificationGroupBy.agency,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final ids = tester
+          .widgetList<CertificationEcard>(find.byType(CertificationEcard))
+          .map((card) => card.certification.id)
+          .toList();
+      // PADI sorts alphabetically before SSI.
+      expect(ids, ['padi', 'ssi']);
     });
 
     testWidgets('shows the error state with a retry button', (tester) async {

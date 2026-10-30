@@ -99,13 +99,55 @@ void main() {
     final g = await _load(spy, budget: 4, hops: 2);
     // Hop 1 alone outranks the budget, so hop 2 could never be kept and
     // is not fetched at all.
-    final discovery = spy.edgeCalls.where((c) => c.$2 == null);
-    expect(discovery, [(1, null)], reason: 'only the focus is expanded');
+    expect(spy.neighbourReads, 1, reason: 'only the focus is expanded');
     final whole = await _load(ConnectionsReader(d), budget: 1000, hops: 2);
     expect(
       g.nodes.map((n) => n.ref).toSet(),
       whole.trimmed(4, keep: _focus).nodes.map((n) => n.ref).toSet(),
     );
+  });
+
+  for (final n in [100, 1000, 10000]) {
+    test('a star of $n reads no more than the budget can keep', () async {
+      final d = DatabaseService.instance.database;
+      await seedStar(d, (_) => 1, n);
+      final spy = SpyReader(d);
+      final g = await _load(spy, budget: 80, hops: 3);
+      expect(g.nodes, hasLength(80));
+      expect(g.hiddenNodeCount, n + 1 - 80);
+      expect(g.hiddenByKind, {ConnectionKind.buddy: n + 1 - 80});
+      const margin = 80 * 2 + 1; // Twice the budget for ties, plus the focus.
+      expect(
+        spy.nodeRowCounts.fold(0, (sum, rows) => sum + rows),
+        lessThanOrEqualTo(margin),
+      );
+      expect(spy.edgeRowCount, lessThanOrEqualTo(margin));
+    });
+  }
+
+  test('a link to a missing entity takes no place in a capped read', () async {
+    final d = DatabaseService.instance.database;
+    await seedStar(d, (_) => 1, 10);
+    // Busier than any real neighbour, so it would rank first if it counted.
+    await d.customStatement('PRAGMA foreign_keys = OFF');
+    for (var i = 0; i < 3; i++) {
+      await d.customStatement(
+        "INSERT INTO dive_buddies (id, dive_id, buddy_id, role, created_at) "
+        "VALUES ('ghost-$i', 'd$i', 'ghost', 'buddy', 0)",
+      );
+    }
+    await d.customStatement('PRAGMA foreign_keys = ON');
+    final g = await _load(ConnectionsReader(d), budget: 2);
+    expect(g.nodes.map((n) => n.ref), isNot(contains(_b('ghost'))));
+    expect(g.hiddenNodeCount, 9, reason: '11 real buddies, 2 shown');
+  });
+
+  test('a hop that fills the budget reads each kind once', () async {
+    final d = DatabaseService.instance.database;
+    await seedStar(d, (_) => 1, 200);
+    final spy = SpyReader(d);
+    await _load(spy, budget: 80, hops: 3);
+    expect(spy.neighbourReads, 1, reason: 'one enabled kind, one hop');
   });
 
   test('a hop is still discovered while the budget has room', () async {

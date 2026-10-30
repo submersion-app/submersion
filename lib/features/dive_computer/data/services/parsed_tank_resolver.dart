@@ -152,6 +152,7 @@ _ResolvedCylinders _resolveCylinders(
 }) {
   final gasMixes = parsed.gasMixes;
   final gasIndexToTankIndex = <int, int>{};
+  final isUnusedOcGas = _unusedOcGasTest(parsed);
 
   // No tank records: one pressureless cylinder per gas mix. Gauge (bottom-timer)
   // dives are the exception -- they log depth+time only, so stay tankless rather
@@ -175,6 +176,7 @@ _ResolvedCylinders _resolveCylinders(
           o2Percent: g.o2Percent,
           hePercent: g.hePercent,
           role: roles[i],
+          unusedOcGas: isUnusedOcGas(i),
         ),
       );
     }
@@ -277,6 +279,7 @@ _ResolvedCylinders _resolveCylinders(
         o2Percent: gasMixes[i].o2Percent,
         hePercent: gasMixes[i].hePercent,
         role: unclaimedRoles[i],
+        unusedOcGas: isUnusedOcGas(i),
       ),
     );
   }
@@ -336,11 +339,15 @@ String _inferRole(int? usage, double o2Percent) {
     case 2: // DC_USAGE_DILUENT
       return TankRole.diluent.name;
   }
-  if (o2Percent >= _decoMinO2Percent) {
-    return TankRole.deco.name;
-  }
-  return TankRole.backGas.name;
+  return openCircuitGasRole(o2Percent);
 }
+
+/// The open-circuit role (as its `.name`) for a gas with no usage tag: deco at
+/// [_decoMinO2Percent] O2 or more, back gas below it. Before #2319 this was
+/// also the role of every pressureless gas on a rebreather dive, so a re-parse
+/// can tell that importer's guess from a role the diver chose (issue #3668).
+String openCircuitGasRole(double o2Percent) =>
+    o2Percent >= _decoMinO2Percent ? TankRole.deco.name : TankRole.backGas.name;
 
 /// Role for each gas in [indices] (positions into [gasMixes]) that has no
 /// transmitter: every gas on a tankless dive, or the gases left unclaimed by
@@ -432,6 +439,22 @@ Map<int, String> _inferSensorlessRoles(
   }
 
   return roles;
+}
+
+/// Whether the gas at a gas-list index is an unused open-circuit gas on
+/// [parsed] (issue #3668): a rebreather dive, a gas with no usage tag, and
+/// never breathed. Nothing is unused when the computer reported no per-sample
+/// gas at all, since then "never breathed" cannot be told from "not logged",
+/// nor when it tagged no gas as a diluent: many parsers (Atomics, Halcyon,
+/// Oceanic, Suunto D9 and more) leave the loop gas untagged, and one that
+/// logs a gas only at a switch would make the diluent itself look unused.
+bool Function(int gasIndex) _unusedOcGasTest(pigeon.ParsedDive parsed) {
+  final onTheLoop = parsed.diveMode == 'ccr' || parsed.diveMode == 'scr';
+  if (!onTheLoop) return (_) => false;
+  if (!parsed.gasMixes.any((g) => g.usage == 2)) return (_) => false;
+  final breathed = {for (final b in breathedGasSequence(parsed)) b.gasIndex};
+  if (breathed.isEmpty) return (_) => false;
+  return (i) => !_hasReportedUsage(parsed.gasMixes[i]) && !breathed.contains(i);
 }
 
 /// Whether the computer tagged [gas] with a usage that fixes its role

@@ -7,6 +7,7 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/cloud_storage/git/git_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -25,8 +26,11 @@ import 'package:submersion/core/services/sync/established_provider_store.dart';
 /// An anchor is a row something actually points at. There are at most two:
 /// the sync account (`sync_metadata.sync_account_id`) and the media store
 /// account (`media_store_account_id`). Each is migrated to the canonical id
-/// derived from its own config. Every other non-Lightroom row is referenced
-/// by nothing and its keychain blob is a copy, so it is deleted.
+/// derived from its own config. Every other random-id (legacy) row is a copy
+/// nothing points at, so it is deleted. A row at a deterministic id is never
+/// a duplicate, whether or not this device anchors it: a shared library's
+/// folder, a server added and not used yet, another device's account
+/// (issue #3482).
 ///
 /// Runs on every launch rather than behind a done flag, so it also heals
 /// rows that arrive later from a device still on an older build. It performs
@@ -95,7 +99,9 @@ class AccountDeduplicator {
     // Everything else is inert: nothing points at it, and its credentials
     // blob is a copy of an anchor's.
     for (final account in candidates) {
-      if (keep.contains(account.id)) continue;
+      if (keep.contains(account.id) || isDeterministicAccountId(account.id)) {
+        continue;
+      }
       // The established marker gates sync's first-contact check, so it
       // carries only onto the SYNC canonical id. The media anchor plays no
       // part in that gate and must not inherit the marker.
@@ -114,6 +120,10 @@ class AccountDeduplicator {
     if (id == null) return null;
     final row = await _accounts.getById(id);
     if (row == null || row.kind == AccountKind.adobeLightroom) return null;
+    // A deterministic row is canonical for its own config: the legacy blob
+    // may name another row (a switch cut short before the account was
+    // persisted), and adopting onto that would overwrite a live row.
+    if (isDeterministicAccountId(row.id)) return row.id;
 
     final canonical = await _canonicalIdFor(row, _syncS3);
     if (canonical == null || canonical == row.id) return row.id;
@@ -136,6 +146,7 @@ class AccountDeduplicator {
     if (id == null) return null;
     final row = await _accounts.getById(id);
     if (row == null || row.kind == AccountKind.adobeLightroom) return null;
+    if (isDeterministicAccountId(row.id)) return row.id;
 
     final canonical = await _canonicalIdFor(row, _mediaS3);
     if (canonical == null || canonical == row.id) return row.id;
@@ -171,6 +182,15 @@ class AccountDeduplicator {
         naturalKey: webdavNaturalKey(config),
       );
     }
+    if (row.kind == AccountKind.git) {
+      // Like WebDAV: the per-account blob is the repository and branch.
+      final config = decodeGitConfig(await _credentials.read(row.id));
+      if (config == null) return null;
+      return accountIdFor(
+        kind: AccountKind.git,
+        naturalKey: gitNaturalKey(config),
+      );
+    }
     final key = naturalKeyForKind(row.kind);
     return key == null ? null : accountIdFor(kind: row.kind, naturalKey: key);
   }
@@ -192,6 +212,13 @@ class AccountDeduplicator {
       label: row.label,
       accountIdentifier: row.accountIdentifier,
     );
+    // A name the diver gave the legacy row survives the collapse (issue
+    // #3522), unless the canonical row already carries one of its own.
+    final nickname = row.nickname;
+    if (nickname != null &&
+        (await _accounts.getById(canonicalId))?.nickname == null) {
+      await _accounts.setNickname(canonicalId, nickname);
+    }
     if (_established.contains(row.id)) {
       await _established.add(canonicalId);
     }

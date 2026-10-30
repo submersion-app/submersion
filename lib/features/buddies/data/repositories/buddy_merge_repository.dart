@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_card_columns.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/media/data/repositories/media_people_buddy_merge.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 /// Snapshot of a DiveBuddies junction row for undo.
 class DiveBuddySnapshot {
@@ -75,11 +78,15 @@ class BuddyMergeSnapshot {
     this.roleRows = const [],
     this.roleDiveIds = const [],
     this.documentOriginalBuddyIds = const {},
+    this.mediaPeople = const MediaPeopleMergeSnapshot(),
   });
 
   /// Document id -> the buddy it was filed under before the merge
   /// (issue #2613).
   final Map<String, String> documentOriginalBuddyIds;
+
+  /// The duplicates' people tags moved to the survivor (issue #1745).
+  final MediaPeopleMergeSnapshot mediaPeople;
 }
 
 /// Result from a buddy merge operation.
@@ -127,6 +134,14 @@ class BuddyMergeRepository {
       isFavorite: row.isFavorite,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      // Buddy card fields (issue #3728) ride through the snapshot, so an
+      // undone merge restores them.
+      cardId: row.cardId,
+      socialHandle: row.socialHandle,
+      cardDiveCount: row.cardDiveCount,
+      cardDivingSince: BuddyCardColumns.divingSince(row.cardDivingSince),
+      cardLastDive: BuddyCardColumns.lastDive(row.cardLastDive),
+      cardReceivedAt: BuddyCardColumns.receivedAt(row.cardReceivedAt),
     );
   }
 
@@ -238,6 +253,7 @@ class BuddyMergeRepository {
       final repointedOwnerCerts = <CertificationOwnerSnapshot>[];
       // Document id -> the duplicate buddy it was filed under (#2613).
       final documentOwners = <String, String>{};
+      var mediaPeople = const MediaPeopleMergeSnapshot();
 
       await _db.transaction(() async {
         // Update survivor with merged fields
@@ -416,6 +432,26 @@ class BuddyMergeRepository {
           ),
         );
 
+        // Their people tags move to the survivor, and albums filtered on a
+        // duplicate follow (issue #1745). Before the delete, whose cascade
+        // would drop the tags untombstoned.
+        mediaPeople = await repointMediaPeopleForMerge(
+          _db,
+          _syncRepository,
+          fromBuddyIds: duplicateIds,
+          toBuddyId: survivorId,
+          now: now,
+        );
+        mediaPeople = mediaPeople.withAlbumFilters(
+          await repointSmartAlbumBuddies(
+            _db,
+            _syncRepository,
+            fromBuddyIds: duplicateIds,
+            toBuddyId: survivorId,
+            now: now,
+          ),
+        );
+
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
@@ -466,6 +502,7 @@ class BuddyMergeRepository {
           roleRows: roleRows,
           roleDiveIds: roleDiveIds,
           documentOriginalBuddyIds: documentOwners,
+          mediaPeople: mediaPeople,
         ),
       );
     } catch (e, stackTrace) {
@@ -501,7 +538,7 @@ class BuddyMergeRepository {
           await _db
               .into(_db.buddies)
               .insert(
-                BuddiesCompanion(
+                BuddyCardColumns.of(buddy).copyWith(
                   id: Value(buddy.id),
                   diverId: Value(buddy.diverId),
                   linkedDiverId: Value(buddy.linkedDiverId),
@@ -586,6 +623,14 @@ class BuddyMergeRepository {
           );
         }
 
+        // 5a. People tags back to the re-created buddies (issue #1745).
+        await undoMediaPeopleMerge(
+          _db,
+          _syncRepository,
+          snapshot.mediaPeople,
+          now: now,
+        );
+
         // 5b. Put documents back under the re-created buddies (#2613).
         await DocumentRepository().restoreOwners(
           DocumentOwnerKind.buddy,
@@ -644,6 +689,8 @@ class BuddyMergeRepository {
             for (final cert in certs) cert.id,
         ]);
         await documents.deleteForOwners(DocumentOwnerKind.buddy, ids);
+        // Their people tags too (issue #1745).
+        await MediaPeopleRepository().deleteForBuddies(ids);
         for (final certs in certsByBuddy.values) {
           for (final cert in certs) {
             await (_db.delete(
@@ -677,7 +724,7 @@ class BuddyMergeRepository {
 
   Future<void> _updateBuddyRow(domain.Buddy buddy, int now) async {
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
-      BuddiesCompanion(
+      BuddyCardColumns.of(buddy).copyWith(
         diverId: Value(buddy.diverId),
         linkedDiverId: Value(buddy.linkedDiverId),
         name: Value(buddy.name),

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
@@ -1722,6 +1723,48 @@ void main() {
       expect(await service.hasRawData('dive-1'), isTrue);
       expect(await service.hasRawData('dive-2'), isFalse);
       expect(await service.hasRawData('dive-nonexistent'), isFalse);
+    });
+
+    test('a transmitter serial a re-parse brings in gets its Transmitter '
+        'item (#3676)', () async {
+      // The registrar works on the app database; this file's service has its
+      // own, so register it for the test and put the singleton back after.
+      DatabaseService.instance.setTestDatabase(db);
+      addTearDown(DatabaseService.instance.resetForTesting);
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 200.0,
+              endPressureBar: 100.0,
+              transmitterSerial: 333333,
+            ),
+          ],
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+        ),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final rows = await db.select(db.transmitters).get();
+      expect(rows.map((r) => r.transmitterSerial), ['333333']);
+      expect(rows.single.isConfigured, isFalse);
+      expect(rows.single.transmitterEquipmentId, isNotNull);
     });
 
     test('DiveTanks carry-over: the order fallback never takes another '

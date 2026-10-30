@@ -4,6 +4,21 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 
 /// Who may delete or hide a shared trip or site (issue #2594).
 void main() {
+  group('isOwnOrUnowned', () {
+    test('holds for the active profile\'s own and for ownerless items', () {
+      expect(isOwnOrUnowned(ownerId: 'me', activeDiverId: 'me'), isTrue);
+      expect(isOwnOrUnowned(ownerId: null, activeDiverId: 'me'), isTrue);
+    });
+
+    test('fails for another profile\'s item', () {
+      expect(isOwnOrUnowned(ownerId: 'them', activeDiverId: 'me'), isFalse);
+    });
+
+    test('holds for everything when no profile is active', () {
+      expect(isOwnOrUnowned(ownerId: 'them', activeDiverId: null), isTrue);
+    });
+  });
+
   group('canDestroySharedItem', () {
     test('the owner may', () {
       expect(canDestroySharedItem(ownerId: 'a', activeDiverId: 'a'), isTrue);

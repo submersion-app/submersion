@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_edits.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "Plan as DPV mission": turns the mission on with a starter route and one
@@ -49,7 +50,7 @@ class MissionToggleRow extends ConsumerWidget {
               legId: uuid.v4(),
               memberId: uuid.v4(),
               memberName: l10n.plannerMission_team_defaultName(1),
-              sacBottom: plan.sacRate,
+              sacBottom: plan.sacRate ?? ref.read(plannerSacBottomProvider),
             ),
           );
           return;

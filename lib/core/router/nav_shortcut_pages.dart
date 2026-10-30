@@ -39,6 +39,7 @@ import 'package:submersion/features/settings/presentation/pages/diver_profile_hu
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 
 /// Builds a shortcut's page from the alias location's query parameters.
 typedef NavShortcutPageBuilder = Widget Function(Map<String, String> query);
@@ -110,6 +111,11 @@ GoRoute navShortcutRoute({Map<String, NavShortcutPageBuilder>? pages}) {
     path: '$kShortcutLocationPrefix/:id',
     redirect: (context, state) =>
         resolved.containsKey(state.pathParameters['id']) ? null : kRootLocation,
+    // The import wizard as a shortcut asks before leaving a running import,
+    // as it does under Transfer.
+    onExit: (context, state) => state.pathParameters['id'] == 'import-wizard'
+        ? confirmLeaveRunningImport(context, state)
+        : true,
     pageBuilder: (context, state) {
       final id = state.pathParameters['id']!;
       final page = resolved[id]!(state.uri.queryParameters);

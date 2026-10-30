@@ -357,6 +357,96 @@ void main() {
       expect(container.read(settingsProvider).defaultCurrency, 'ISK');
     });
 
+    test('setPpO2DecoBandsConfig stores all six values in a single write '
+        '(issue #3580)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setPpO2DecoBandsConfig(
+        bandsEnabled: true,
+        band1: 1.3,
+        band2: 1.4,
+        band3: 1.5,
+        maxO2DepthEnabled: true,
+        maxO2DepthMeters: 7.0,
+      );
+
+      final s = container.read(settingsProvider);
+      expect(s.ppO2DecoBandsEnabled, isTrue);
+      expect(s.ppO2DecoBand1, closeTo(1.3, 1e-9));
+      expect(s.ppO2DecoBand2, closeTo(1.4, 1e-9));
+      expect(s.ppO2DecoBand3, closeTo(1.5, 1e-9));
+      expect(s.maxO2DepthEnabled, isTrue);
+      expect(s.maxO2DepthMeters, closeTo(7.0, 1e-9));
+    });
+
+    test('setPlannerHypercapniaConfig clamps and snaps its inputs '
+        '(issue #3743)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setPlannerHypercapniaConfig(
+        enabled: true,
+        factor: 0.2,
+        minutes: -3,
+      );
+      var s = container.read(settingsProvider);
+      expect(s.plannerHypercapniaEnabled, isTrue);
+      expect(s.plannerHypercapniaFactor, 1.0);
+      expect(s.plannerHypercapniaMinutes, 1);
+
+      await notifier.setPlannerHypercapniaConfig(
+        enabled: true,
+        factor: 4.3,
+        minutes: 99,
+      );
+      s = container.read(settingsProvider);
+      expect(s.plannerHypercapniaFactor, 4.5);
+      expect(s.plannerHypercapniaMinutes, 15);
+    });
+
+    test(
+      'setPpO2DecoBandsConfig snaps off-grid band/depth values (issue #3580)',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+        final notifier = container.read(settingsProvider.notifier);
+
+        await notifier.setPpO2DecoBandsConfig(
+          bandsEnabled: false,
+          band1: 0.5,
+          band2: 2.0,
+          band3: 1.37,
+          maxO2DepthEnabled: false,
+          maxO2DepthMeters: 1.0,
+        );
+
+        final s = container.read(settingsProvider);
+        // Bands clamp to 1.2-1.6 and snap to the 0.1 bar grid (issue #3580
+        // spec: "a slider from 1.2 to 1.6 in 0.1 steps").
+        expect(s.ppO2DecoBand1, closeTo(1.2, 1e-9));
+        expect(s.ppO2DecoBand2, closeTo(1.6, 1e-9));
+        expect(s.ppO2DecoBand3, closeTo(1.4, 1e-9));
+        // The explicit depth clamps to 3-9 m and snaps to the 0.5 m grid.
+        expect(s.maxO2DepthMeters, closeTo(3.0, 1e-9));
+
+        await notifier.setPpO2DecoBandsConfig(
+          bandsEnabled: false,
+          band1: 1.2,
+          band2: 1.2,
+          band3: 1.2,
+          maxO2DepthEnabled: false,
+          maxO2DepthMeters: 20.0,
+        );
+        expect(
+          container.read(settingsProvider).maxO2DepthMeters,
+          closeTo(9.0, 1e-9),
+        );
+      },
+    );
+
     test('sets showDetailsPaneSites to true', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -491,6 +581,46 @@ void main() {
       }
     }
 
+    test('switching to psi moves an untouched reserve to 500 psi', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+      expect(container.read(settingsProvider).plannerReservePressure, 50.0);
+
+      await notifier.setPressureUnit(PressureUnit.psi);
+      expect(
+        container.read(settingsProvider).plannerReservePressure,
+        closeTo(PressureUnit.psi.convert(500, PressureUnit.bar), 1e-9),
+      );
+
+      await notifier.setMetric();
+      expect(container.read(settingsProvider).plannerReservePressure, 50.0);
+    });
+
+    test('a reserve the diver set survives a unit switch', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+      await notifier.setPlannerReservePressure(40.0);
+
+      await notifier.setImperial();
+      expect(container.read(settingsProvider).plannerReservePressure, 40.0);
+    });
+
+    test('planner rate defaults clamp to the per-plan rate band', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await notifier.setPlannerAscentRate(300);
+      expect(
+        container.read(settingsProvider).plannerAscentRate,
+        kPlannerRateMaxMetersPerMinute,
+      );
+      await notifier.setPlannerFinalAscentRate(0.1);
+      expect(
+        container.read(settingsProvider).plannerFinalAscentRate,
+        kPlannerRateMinMetersPerMinute,
+      );
+    });
+
     test('setShowProfilePanelInTableView toggles value', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -515,6 +645,17 @@ void main() {
       expect(container.read(settingsProvider).showDiveFigure, isFalse);
       await container.read(settingsProvider.notifier).setShowDiveFigure(true);
       expect(container.read(settingsProvider).showDiveFigure, isTrue);
+    });
+
+    test('setAutoColorCorrection toggles value', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).autoColorCorrection, isFalse);
+      await container
+          .read(settingsProvider.notifier)
+          .setAutoColorCorrection(true);
+      expect(container.read(settingsProvider).autoColorCorrection, isTrue);
     });
 
     test('acceptPlanningDisclaimer persists the confirmation', () async {

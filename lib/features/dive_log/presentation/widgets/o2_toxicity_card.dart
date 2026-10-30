@@ -2,11 +2,29 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Fill and label of the solid WARNING / CRITICAL badge.
+///
+/// Critical takes the theme's error pair; warning takes the amber status
+/// accent, whose onAccent flips with brightness. A fixed white label read at
+/// about 2:1 on orange and on the light error tone of dark themes.
+({Color fill, Color label}) _badgeColors(
+  BuildContext context, {
+  required bool critical,
+}) {
+  if (critical) {
+    final scheme = Theme.of(context).colorScheme;
+    return (fill: scheme.error, label: scheme.onError);
+  }
+  final warn = StatusColors.of(context).warn;
+  return (fill: warn.accent, label: warn.onAccent);
+}
 
 /// Card displaying oxygen toxicity information (CNS% and OTU).
 class O2ToxicityCard extends StatelessWidget {
@@ -82,6 +100,10 @@ class O2ToxicityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final badge = _badgeColors(
+      context,
+      critical: _cnsCritical || _ppO2Critical,
+    );
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,9 +134,7 @@ class O2ToxicityCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: _cnsCritical || _ppO2Critical
-                          ? colorScheme.error
-                          : Colors.orange,
+                      color: badge.fill,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -122,7 +142,7 @@ class O2ToxicityCard extends StatelessWidget {
                           ? context.l10n.diveLog_detail_badge_critical
                           : context.l10n.diveLog_detail_badge_warning,
                       style: textTheme.labelSmall?.copyWith(
-                        color: Colors.white,
+                        color: badge.label,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -528,6 +548,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
   ) {
     final isCritical = exposure.cnsCritical || exposure.ppO2Critical;
     final isWarning = exposure.cnsWarning || exposure.ppO2Warning;
+    final badge = _badgeColors(context, critical: isCritical);
 
     return Row(
       children: [
@@ -557,7 +578,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: isCritical ? colorScheme.error : Colors.orange,
+                color: badge.fill,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -565,7 +586,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
                     ? context.l10n.diveLog_detail_badge_critical
                     : context.l10n.diveLog_detail_badge_warning,
                 style: textTheme.labelSmall?.copyWith(
-                  color: Colors.white,
+                  color: badge.label,
                   fontWeight: FontWeight.bold,
                   fontSize: 10,
                 ),

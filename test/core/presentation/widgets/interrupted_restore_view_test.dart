@@ -54,14 +54,14 @@ void main() {
     expect(
       find.text(
         'The file in its place now is kept, not deleted. You can restore or '
-        'delete it later in Backup & Restore in Settings.',
+        'delete it later under Settings > Data > Backups.',
       ),
       findsOneWidget,
     );
     expect(
       find.text(
         'Your previous dive log is kept, not deleted. You can restore or '
-        'delete it later in Backup & Restore in Settings.',
+        'delete it later under Settings > Data > Backups.',
       ),
       findsOneWidget,
     );

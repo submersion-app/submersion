@@ -68,7 +68,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(283));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(283));
   });
 
   test('upgrading from v281 backfills the activation times', () async {

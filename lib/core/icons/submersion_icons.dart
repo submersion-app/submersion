@@ -136,4 +136,10 @@ abstract final class SubmersionIcons {
     0xe91c,
     fontFamily: fontFamily,
   );
+
+  /// A DIN first stage seen side-on.
+  static const IconData firstStage = IconData(0xe91d, fontFamily: fontFamily);
+
+  /// A second stage seen face-on.
+  static const IconData secondStage = IconData(0xe91e, fontFamily: fontFamily);
 }

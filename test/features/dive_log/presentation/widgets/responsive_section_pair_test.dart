@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
+import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 
 void main() {
   Widget host({required double width}) {
@@ -173,5 +175,56 @@ void main() {
         lessThan(tester.getCenter(find.text('STACKED SECOND')).dy),
       );
     });
+  });
+
+  testWidgets('switching modes drops detail rows cleanly (issue #3724)', (
+    tester,
+  ) async {
+    // The macOS window the assertion was seen in: 1280x860 logical.
+    await tester.binding.setSurfaceSize(const Size(1280, 860));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    // A detail card as the dive detail page builds one: labels of different
+    // widths, the widest first, so the column narrows as the card's rows
+    // leave one by one.
+    Widget card(String tag) => Card(
+      child: DetailRowGroup(
+        child: Column(
+          children: [
+            DetailRow.text(label: 'Surface interval', value: '$tag-1'),
+            DetailRow.text(label: 'Dive type', value: '$tag-2'),
+            DetailRow.text(label: 'Mode', value: '$tag-3'),
+          ],
+        ),
+      ),
+    );
+    Widget pairAt(double width) => MaterialApp(
+      home: Scaffold(
+        body: Align(
+          alignment: AlignmentDirectional.topStart,
+          child: SizedBox(
+            width: width,
+            child: ResponsiveSectionPair(first: card('a'), second: card('b')),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(pairAt(1000));
+    expect(tester.takeException(), isNull);
+
+    // Narrower than the pair's 700 px row width: its LayoutBuilder rebuilds
+    // during layout and replaces both cards with their stacked copies.
+    await tester.pumpWidget(pairAt(600));
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(pairAt(1000));
+    expect(tester.takeException(), isNull);
+    for (final tag in ['a', 'b']) {
+      expect(
+        tester.getTopLeft(find.text('$tag-1')).dx,
+        tester.getTopLeft(find.text('$tag-3')).dx,
+      );
+    }
   });
 }

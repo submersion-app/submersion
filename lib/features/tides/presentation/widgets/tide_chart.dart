@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/tide/entities/tide_prediction.dart';
@@ -698,6 +699,10 @@ class _TideChartState extends State<TideChart> {
     if (widget.extremes == null || widget.extremes!.isEmpty) {
       return [];
     }
+    // The ring punches the dot out of the curve, so it takes the colour
+    // behind the chart (usually its card): a fixed white glared on a dark
+    // chart.
+    final ring = backdropColorOf(context);
 
     // Filter extremes within visible range
     final visibleExtremes = widget.extremes!
@@ -720,7 +725,7 @@ class _TideChartState extends State<TideChart> {
               radius: 6,
               color: color,
               strokeWidth: 2,
-              strokeColor: Colors.white,
+              strokeColor: ring,
             );
           },
         ),

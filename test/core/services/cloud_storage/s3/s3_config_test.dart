@@ -191,6 +191,23 @@ void main() {
     });
   });
 
+  // Issue #3482: the endpoint is synced with the account, so keys or a token
+  // inside it would travel to every device.
+  test('an endpoint carrying keys or a query is rejected', () {
+    expect(
+      minio().copyWith(endpoint: 'https://AKIA:secret@nas.home').validate(),
+      isNotNull,
+    );
+    expect(
+      minio().copyWith(endpoint: 'https://nas.home?token=x').validate(),
+      isNotNull,
+    );
+    expect(
+      minio().copyWith(endpoint: 'https://nas.home#x').validate(),
+      isNotNull,
+    );
+  });
+
   group('S3Config JSON round-trip', () {
     test('toJson/fromJson preserves every field', () {
       final config = S3Config(

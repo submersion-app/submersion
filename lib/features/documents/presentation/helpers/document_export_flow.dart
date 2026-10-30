@@ -20,6 +20,8 @@ import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_export_progress_dialog.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_export_sheet.dart';
+import 'package:submersion/features/tags/data/repositories/tag_link_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -73,9 +75,20 @@ Future<void> _exportAllDocuments(
   );
   if (destination == null || !context.mounted) return;
 
+  final tagsByDocument = await TagLinkRepository(
+    TagScope.documents,
+  ).getTagsByItem();
   final inputs = [
     for (final e in entries)
-      _input(l10n, e, await repo.getPages(e.document.id, withBytes: false)),
+      _input(
+        l10n,
+        e,
+        await repo.getPages(e.document.id, withBytes: false),
+        tagNames: [
+          for (final t in tagsByDocument[e.document.id] ?? const <Tag>[])
+            t.name,
+        ],
+      ),
   ];
   if (!context.mounted) return;
   final password = await showDocumentExportSheet(
@@ -184,8 +197,9 @@ Future<void> _exportAllDocuments(
 ArchiveDocumentInput _input(
   AppLocalizations l10n,
   DocumentListEntry entry,
-  List<DocumentPage> pages,
-) {
+  List<DocumentPage> pages, {
+  List<String> tagNames = const [],
+}) {
   final doc = entry.document;
   final String? record;
   if (doc.owner.isPersonal) {
@@ -199,6 +213,7 @@ ArchiveDocumentInput _input(
     kindFolder: documentOwnerKindLabel(l10n, doc.owner.kind),
     recordFolder: record,
     pages: pages,
+    tagNames: tagNames,
   );
 }
 
@@ -231,6 +246,7 @@ ManifestLabels _manifest(AppLocalizations l10n) => ManifestLabels(
     l10n.documents_export_manifest_page,
     l10n.documents_export_manifest_side,
     l10n.documents_export_manifest_path,
+    l10n.documents_export_manifest_tags,
   ],
   type: (t) => documentTypeLabel(l10n, t),
   kind: (k) => documentOwnerKindLabel(l10n, k),

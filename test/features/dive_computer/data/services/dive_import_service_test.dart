@@ -94,9 +94,8 @@ void main() {
 
   group('computer tissue', () {
     const snapshot = ComputerTissueSnapshot(
-      algorithm: 'Suunto Fused2 RGBM',
       start: ComputerTissueState(n2Bar: [0.79, 0.79]),
-      end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+      end: ComputerTissueState(n2Bar: [0.9, 1.1]),
     );
     final dive = DownloadedDive(
       fingerprint: 'fp-tissue',
@@ -1498,8 +1497,8 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            defaultTankPresetForImports: () async => al80,
-            transmitterMatcherForImports: () async =>
+            defaultTankPresetForImports: (_) async => al80,
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1527,8 +1526,8 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            defaultTankPresetForImports: () async => al80,
-            transmitterMatcherForImports: () async =>
+            defaultTankPresetForImports: (_) async => al80,
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1546,7 +1545,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async => throw StateError('db'),
+          transmitterMatcherForImports: (_) async => throw StateError('db'),
         );
 
         final result = await service.importDives(
@@ -1558,11 +1557,37 @@ void main() {
         expect(importedTanks().single.role, isNot('oxygenSupply'));
       });
 
+      test('both loaders receive the diver the dive is imported for', () async {
+        final tankDivers = <String?>[];
+        final matcherDivers = <String?>[];
+        service = DiveImportService(
+          repository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          defaultTankPresetForImports: (diverId) async {
+            tankDivers.add(diverId);
+            return null;
+          },
+          transmitterMatcherForImports: (diverId) async {
+            matcherDivers.add(diverId);
+            return const TransmitterMatcher.empty();
+          },
+        );
+
+        await service.importSingleDiveAsNew(
+          diveWithSerialTank('180777'),
+          computerId: computer.id,
+          diverId: 'mitchell',
+        );
+
+        expect(tankDivers, ['mitchell']);
+        expect(matcherDivers, ['mitchell']);
+      });
+
       test('a reset clears serials from an earlier run', () async {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async =>
+          transmitterMatcherForImports: (_) async =>
               TransmitterMatcher.fromEntries([entry()]),
         );
         await service.importSingleDiveAsNew(
@@ -1580,7 +1605,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          transmitterMatcherForImports: () async =>
+          transmitterMatcherForImports: (_) async =>
               TransmitterMatcher.fromEntries([entry()]),
         );
         await service.importSingleDiveAsNew(
@@ -1602,7 +1627,7 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            transmitterMatcherForImports: () async =>
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([entry()]),
           );
 
@@ -1628,7 +1653,7 @@ void main() {
           service = DiveImportService(
             repository: mockComputerRepo,
             diveRepository: mockDiveRepo,
-            transmitterMatcherForImports: () async =>
+            transmitterMatcherForImports: (_) async =>
                 TransmitterMatcher.fromEntries([
                   Transmitter(
                     id: 'e2',
@@ -1724,7 +1749,7 @@ void main() {
         service = DiveImportService(
           repository: mockComputerRepo,
           diveRepository: mockDiveRepo,
-          defaultTankPresetForImports: () async => al80,
+          defaultTankPresetForImports: (_) async => al80,
         );
 
         await service.importDives(
@@ -1746,7 +1771,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async => null,
+        defaultTankPresetForImports: (_) async => null,
       );
 
       await service.importDives(
@@ -1770,7 +1795,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async => al80,
+        defaultTankPresetForImports: (_) async => al80,
       );
 
       await service.importSingleDiveAsNew(
@@ -1786,7 +1811,7 @@ void main() {
       service = DiveImportService(
         repository: mockComputerRepo,
         diveRepository: mockDiveRepo,
-        defaultTankPresetForImports: () async {
+        defaultTankPresetForImports: (_) async {
           loads++;
           return al80;
         },
@@ -1909,6 +1934,7 @@ void main() {
           bottomTimeSeconds: anyNamed('bottomTimeSeconds'),
           surfaceIntervalSeconds: anyNamed('surfaceIntervalSeconds'),
           waterType: anyNamed('waterType'),
+          cnsStart: anyNamed('cnsStart'),
           cnsEnd: anyNamed('cnsEnd'),
           otu: anyNamed('otu'),
         ),
@@ -1929,6 +1955,7 @@ void main() {
           bottomTimeSeconds: 3600,
           surfaceIntervalSeconds: 5400,
           waterType: WaterType.salt,
+          cnsStart: 2.0,
           cnsEnd: 14.0,
           otu: 38.0,
         ),
@@ -1963,12 +1990,13 @@ void main() {
           bottomTimeSeconds: captureAnyNamed('bottomTimeSeconds'),
           surfaceIntervalSeconds: captureAnyNamed('surfaceIntervalSeconds'),
           waterType: captureAnyNamed('waterType'),
+          cnsStart: captureAnyNamed('cnsStart'),
           cnsEnd: captureAnyNamed('cnsEnd'),
           otu: captureAnyNamed('otu'),
         ),
       ).captured;
 
-      expect(captured, [3600, 5400, WaterType.salt, 14.0, 38.0]);
+      expect(captured, [3600, 5400, WaterType.salt, 2.0, 14.0, 38.0]);
     });
   });
 

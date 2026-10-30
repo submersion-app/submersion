@@ -18,6 +18,8 @@ import 'package:submersion/features/connections/domain/views/highlight_mode.dart
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
@@ -25,6 +27,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -61,6 +64,7 @@ Future<ProviderContainer> _pump(
   FutureOr<ConnectionGraph> Function(Ref ref, int budget)? graph,
   List<Override> extra = const [],
   List<SavedConnectionMap> savedMaps = const [],
+  Locale? locale,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -96,6 +100,7 @@ Future<ProviderContainer> _pump(
       ],
       child: MaterialApp.router(
         routerConfig: router,
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
@@ -118,6 +123,145 @@ void main() {
     expect(find.byKey(const ValueKey('connections-panel')), findsOneWidget);
     expect(find.text('Whole map'), findsOneWidget);
     expect(find.byKey(const ValueKey('connections-sheet')), findsNothing);
+  });
+
+  group('caption', () {
+    NodeRef s(String id) => NodeRef(ConnectionKind.site, id);
+    final islands = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3),
+        ConnectionNode(ref: s('s1'), label: 'Reef', diveCount: 2),
+        ConnectionNode(ref: s('s2'), label: 'Wall', diveCount: 1),
+      ],
+      edges: const [],
+    );
+
+    for (final (name, size) in [('desktop', _desktop), ('phone', _phone)]) {
+      testWidgets('$name: names the map above the overlays', (tester) async {
+        await _pump(tester, size: size);
+        await tester.pump(const Duration(milliseconds: 50));
+        final caption = find.byKey(const ValueKey('connections-caption'));
+        expect(caption, findsOneWidget);
+        expect(
+          find.descendant(of: caption, matching: find.text('Who dives where')),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .getTopLeft(find.byKey(const ValueKey('connections-hidden-chip')))
+              .dy,
+          greaterThanOrEqualTo(tester.getBottomLeft(caption).dy),
+        );
+      });
+    }
+
+    testWidgets('Who dives where with buddies but no sites says so', (
+      tester,
+    ) async {
+      final buddiesOnly = ConnectionGraph(
+        nodes: [ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3)],
+        edges: const [],
+      );
+      await _pump(tester, graph: (_, _) => buddiesOnly);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsOneWidget);
+      expect(
+        find.textContaining('None of your dives with a buddy has a site'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('Who dives where with no buddies shows the buddies message', (
+      tester,
+    ) async {
+      await _pump(tester, graph: (_, _) => ConnectionGraph.empty);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsOneWidget);
+      expect(find.textContaining('No buddies are linked'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('sites whose buddies the budget cut still show', (
+      tester,
+    ) async {
+      // Every site on this map was dived with a buddy; no line means the
+      // budget dropped those buddies, so the map and its chip stay.
+      await _pump(tester, graph: (_, _) => islands);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sites the budget hid keep the map, not the empty state', (
+      tester,
+    ) async {
+      final sitesHidden = ConnectionGraph(
+        nodes: [ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3)],
+        edges: const [],
+        hiddenNodeCount: 4,
+        hiddenByKind: const {ConnectionKind.site: 4},
+      );
+      await _pump(tester, graph: (_, _) => sitesHidden);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(find.byType(HiddenNodesChip), findsOneWidget);
+    });
+
+    testWidgets('other maps keep their islands', (tester) async {
+      final c = await _pump(tester, graph: (_, _) => islands);
+      await c
+          .read(connectionsViewProvider.notifier)
+          .update((v) => v.applyPreset(ConnectionPresets.byId('circle')!));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(ConnectionsEmptyState), findsNothing);
+      expect(
+        find.byKey(const ValueKey('connections-canvas-paint')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('phone, large text: every overlay sits below the caption', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await _pump(tester, size: _phone);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump();
+      final captionBottom = tester
+          .getBottomLeft(find.byKey(const ValueKey('connections-caption')))
+          .dy;
+      final strip = find.byKey(const ValueKey('connections-insights'));
+      expect(tester.getTopLeft(strip).dy, greaterThanOrEqualTo(captionBottom));
+      final stripBottom = tester.getBottomLeft(find.byType(InsightStrip)).dy;
+      expect(
+        tester.getTopLeft(find.byType(ConnectionsLegend)).dy,
+        greaterThanOrEqualTo(stripBottom),
+      );
+      expect(
+        tester.getTopLeft(find.byType(HiddenNodesChip)).dy,
+        greaterThanOrEqualTo(stripBottom),
+      );
+    });
+
+    testWidgets('the tables carry no caption', (tester) async {
+      final c = await _pump(tester);
+      await c
+          .read(connectionsDisplayProvider.notifier)
+          .update((d) => d.copyWith(view: ConnectionsViewKind.matrix));
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byKey(const ValueKey('connections-caption')), findsNothing);
+    });
   });
 
   testWidgets('phone: canvas and the panel in a sheet', (tester) async {
@@ -159,12 +303,12 @@ void main() {
     expect(find.byKey(const ValueKey('entity-search')), findsOneWidget);
   });
 
-  testWidgets('an empty buddy map keeps the panel and points at Data Tools', (
+  testWidgets('an empty buddy map keeps the panel and points at Data tools', (
     tester,
   ) async {
     await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
     expect(find.byKey(const ValueKey('connections-panel')), findsOneWidget);
-    expect(find.textContaining('Data Tools'), findsOneWidget);
+    expect(find.textContaining('Data tools'), findsOneWidget);
   });
 
   testWidgets('an empty result under a filter blames the filter', (
@@ -502,16 +646,20 @@ void main() {
     }
   });
 
-  testWidgets('a built-in species shows its translated name', (tester) async {
-    const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
+  const shark = NodeRef(ConnectionKind.species, 'sp_whale_shark');
+
+  Future<void> pumpSharkSelected(
+    WidgetTester tester, {
+    required String stored,
+    Locale? locale,
+  }) async {
     final c = await _pump(
       tester,
+      locale: locale,
       graph: (ref, budget) => ConnectionGraph(
         nodes: [
           ConnectionNode(ref: _b('jane'), label: 'Jane', diveCount: 3),
-          // A stored name unlike the English translation proves the label
-          // comes from the catalog, not the row.
-          const ConnectionNode(ref: shark, label: 'WS', diveCount: 2),
+          ConnectionNode(ref: shark, label: stored, diveCount: 2),
         ],
         edges: [
           ConnectionEdge(
@@ -528,8 +676,26 @@ void main() {
       shark,
     );
     await tester.pumpAndSettle();
-    expect(find.text('Whale Shark'), findsWidgets);
-    expect(find.text('WS'), findsNothing);
+  }
+
+  testWidgets('a built-in species shows its translated name', (tester) async {
+    await pumpSharkSelected(
+      tester,
+      stored: 'Whale Shark',
+      locale: const Locale('de'),
+    );
+    expect(find.text('Walhai'), findsWidgets);
+    expect(find.text('Whale Shark'), findsNothing);
+  });
+
+  // Issue #3669: a stored name unlike the catalog's English text is the
+  // diver's own rename, and must win over the catalog name.
+  testWidgets('a renamed built-in species shows the diver name', (
+    tester,
+  ) async {
+    await pumpSharkSelected(tester, stored: 'WS');
+    expect(find.text('WS'), findsWidgets);
+    expect(find.text('Whale Shark'), findsNothing);
   });
 
   testWidgets('Retry after a failed first load asks again', (tester) async {
@@ -900,7 +1066,7 @@ void main() {
     await tester.pump();
     expect(painter().frame.settled, isTrue);
   });
-  testWidgets('with no insight tiles the overlays sit at the top', (
+  testWidgets('with no insight tiles the overlays sit below the caption', (
     tester,
   ) async {
     // Entities that share no dives: nothing for the strip to say.
@@ -912,12 +1078,19 @@ void main() {
       edges: const [],
       hiddenNodeCount: 3,
     );
-    await _pump(tester, graph: (ref, budget) => loners);
+    final c = await _pump(tester, graph: (ref, budget) => loners);
+    // Dive circle keeps islands; Who dives where would show the empty state.
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((v) => v.applyPreset(ConnectionPresets.byId('circle')!));
+    await tester.pump(const Duration(milliseconds: 50));
+    // The caption reports its height after its first frame.
+    await tester.pump();
     expect(find.byKey(const ValueKey('insight-mostConnected')), findsNothing);
-    final canvasTop = tester
-        .getTopLeft(find.byKey(const ValueKey('connections-canvas-paint')))
+    final captionBottom = tester
+        .getBottomLeft(find.byKey(const ValueKey('connections-caption')))
         .dy;
     final chipTop = tester.getTopLeft(find.byType(HiddenNodesChip)).dy;
-    expect(chipTop - canvasTop, 12);
+    expect(chipTop - captionBottom, 12);
   });
 }

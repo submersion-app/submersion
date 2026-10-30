@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/services/export/uddf/dialects/divemate_dialect.dart';
 import 'package:submersion/core/services/export/uddf/dialects/macdive_dialect.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dialect.dart';
 
@@ -16,6 +17,7 @@ class UddfNormalizer {
   /// Registered dialects in detection order. More specific detectors first.
   static final List<UddfDialect> _dialects = [
     MacDiveDialect(),
+    DiveMateDialect(),
     // Add new dialects here (e.g. ShearwaterDialect(), SubsurfaceDialect()).
   ];
 

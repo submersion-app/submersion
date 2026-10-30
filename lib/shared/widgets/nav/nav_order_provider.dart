@@ -25,7 +25,7 @@ final movableNavIdsProvider = Provider<List<String>>((ref) => movableNavIds);
 /// count within a build.
 int currentPhonePrimarySlotCount(WidgetRef ref, Size viewSize) {
   final alwaysHideLabels =
-      ref.watch(navAlwaysHideLabelsProvider).value ?? false;
+      ref.watch(navAlwaysHideLabelsPhoneProvider).value ?? false;
   final availableCount = ref.watch(movableNavIdsProvider).length;
   final baseWidth = viewSize.width < viewSize.height
       ? viewSize.width

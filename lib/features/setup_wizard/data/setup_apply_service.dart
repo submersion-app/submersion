@@ -1,7 +1,6 @@
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -11,7 +10,21 @@ final setupApplyServiceProvider = Provider<SetupApplyService>(
   (ref) => SetupApplyService(ref),
 );
 
-/// Persists a completed wizard draft.
+/// What Finish did on first run (spec 6.6).
+enum FirstRunApply {
+  /// Created the diver from the Profile name and the Units.
+  created,
+
+  /// The device already holds a diver, brought by a downloaded library:
+  /// nothing was written, and the library's divers keep their units.
+  keptExisting,
+
+  /// No diver and no name to create one with: the Profile step is needed.
+  needsName,
+}
+
+/// Persists a completed wizard draft: the profile and the units. The Set up
+/// this device steps write their own choices on their own buttons.
 ///
 /// First-run ordering is load-bearing: the diver's settings row must hold
 /// the draft from the moment the diver exists. The SettingsNotifier can
@@ -29,14 +42,17 @@ class SetupApplyService {
   /// preferred first. The first diver's place names start in the language
   /// the app itself resolves to, so a German install does not store
   /// "Germany" (issue #3111).
-  Future<void> applyFirstRun(
+  Future<FirstRunApply> applyFirstRun(
     SetupWizardDraft draft, {
     Iterable<String> deviceLanguageCodes = const [],
   }) async {
-    final name = draft.name.trim();
-    if (name.isEmpty) {
-      throw ArgumentError('Diver name must not be empty');
+    // A library downloaded in the set up steps brought its divers; a wizard
+    // quit after an upload and rerun has none, and gets one here.
+    if (await _ref.read(diverRepositoryProvider).getDiverCount() > 0) {
+      return FirstRunApply.keptExisting;
     }
+    final name = draft.name.trim();
+    if (name.isEmpty) return FirstRunApply.needsName;
     final settings = draft.settings.copyWith(
       placeNameLanguage: PlaceNameLanguage.forAppLocale(
         draft.settings.locale,
@@ -64,8 +80,7 @@ class SetupApplyService {
     await _ref
         .read(currentDiverIdProvider.notifier)
         .setCurrentDiver(newDiver.id);
-
-    await _applyBackupChoices(draft);
+    return FirstRunApply.created;
   }
 
   Future<void> applySettingsMode(SetupWizardDraft draft) async {
@@ -87,19 +102,5 @@ class SetupApplyService {
     await notifier.setThemePresetId(s.themePresetId);
     await notifier.setMapStyle(s.mapStyle);
     await notifier.setLocale(s.locale);
-
-    await _applyBackupChoices(draft);
-  }
-
-  Future<void> _applyBackupChoices(SetupWizardDraft draft) async {
-    final backup = _ref.read(backupSettingsProvider.notifier);
-    await backup.setEnabled(draft.backupEnabled);
-    if (draft.backupEnabled) {
-      await backup.setFrequency(draft.backupFrequency);
-    }
-    // Apply the cloud-copy choice in both directions so re-entry can turn it
-    // off. The flag is inert without a configured provider, so writing it is
-    // safe even when none is connected.
-    await backup.setCloudBackupEnabled(draft.cloudBackupEnabled);
   }
 }

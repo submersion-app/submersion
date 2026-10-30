@@ -4,25 +4,16 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/logger_service.dart';
 
-/// SharedPreferences key holding the last sweep's epoch millis.
+/// When a file was last written or created, for the sweeps' age checks.
 ///
-/// Per-device by nature, so it lives in prefs rather than a synced column:
-/// what this device has cleaned off its own disk is not news to a peer.
-const String kScratchSweepStampKey = 'storage_scratch_sweep_last_run_ms';
-
-/// Whether a scratch sweep is due. One run per day.
-///
-/// A stamp far in the future can only come from a broken clock, and must not
-/// suppress sweeping until real time catches up: the same defence as
-/// `shouldAutoScan` and `shouldAutoVerify`.
-bool shouldSweepScratch({
-  required DateTime? lastSweptAt,
-  required DateTime now,
-}) {
-  if (lastSweptAt == null) return true;
-  if (lastSweptAt.isAfter(now.add(const Duration(days: 1)))) return true;
-  return now.difference(lastSweptAt) >= const Duration(days: 1);
-}
+/// The modification time alone is not enough: File.copy keeps the source's
+/// modification time on Apple platforms (and Windows), so a copy made a
+/// minute ago (a restore copy, an upload's staging copy) can look as old as
+/// the file it came from. The status change time is set when the copy is
+/// made (on Windows it is the creation time), so the later of the two is
+/// when this file last changed here.
+DateTime lastTouched(FileStat stat) =>
+    stat.changed.isAfter(stat.modified) ? stat.changed : stat.modified;
 
 /// What one sweep pass reclaimed.
 class ScratchSweepReport {
@@ -80,11 +71,14 @@ class StorageScratchSweep {
   StorageScratchSweep({
     required Future<Directory> Function() temporaryDirectory,
     required Future<Directory> Function() supportDirectory,
+    DateTime Function(FileStat stat) touchedAt = lastTouched,
   }) : _temporaryDirectory = temporaryDirectory,
-       _supportDirectory = supportDirectory;
+       _supportDirectory = supportDirectory,
+       _touchedAt = touchedAt;
 
   final Future<Directory> Function() _temporaryDirectory;
   final Future<Directory> Function() _supportDirectory;
+  final DateTime Function(FileStat stat) _touchedAt;
   final _log = LoggerService.forClass(StorageScratchSweep);
 
   /// Long enough that an import or a staged write in flight is never caught.
@@ -101,8 +95,9 @@ class StorageScratchSweep {
   static const String _appDir = 'Submersion';
 
   /// Throws on an I/O failure the caller should see; individual unreadable
-  /// entries are skipped rather than aborting the pass.
-  Future<ScratchSweepReport> run({DateTime? now}) async {
+  /// entries are skipped rather than aborting the pass. A [dryRun] counts
+  /// what the pass would reclaim and deletes nothing.
+  Future<ScratchSweepReport> run({DateTime? now, bool dryRun = false}) async {
     final at = now ?? DateTime.now();
     final temp = await _temporaryDirectory();
     final support = await _supportDirectory();
@@ -115,21 +110,34 @@ class StorageScratchSweep {
       Directory(p.join(temp.path, 'picked')),
       pickedMaxAge,
       at,
+      dryRun,
     );
     report += await _sweep(
       appPath(['media_cache', 'staging']),
       stagingMaxAge,
       at,
+      dryRun,
     );
     report += await _sweep(
       appPath(['media_cache', 'transcode']),
       transcodeMaxAge,
       at,
+      dryRun,
     );
-    report += await _sweep(appPath(['video_thumbnails']), thumbnailMaxAge, at);
-    report += await _sweep(appPath(['pdf_thumbnails']), thumbnailMaxAge, at);
+    report += await _sweep(
+      appPath(['video_thumbnails']),
+      thumbnailMaxAge,
+      at,
+      dryRun,
+    );
+    report += await _sweep(
+      appPath(['pdf_thumbnails']),
+      thumbnailMaxAge,
+      at,
+      dryRun,
+    );
 
-    if (!report.isEmpty) {
+    if (!report.isEmpty && !dryRun) {
       _log.info(
         'Scratch sweep reclaimed ${report.bytesReclaimed} bytes '
         'across ${report.filesDeleted} files',
@@ -144,6 +152,7 @@ class StorageScratchSweep {
     Directory dir,
     Duration maxAge,
     DateTime now,
+    bool dryRun,
   ) async {
     if (!await dir.exists()) return ScratchSweepReport.empty;
 
@@ -156,12 +165,12 @@ class StorageScratchSweep {
       if (entity is! File) continue;
       try {
         final stat = await entity.stat();
-        if (!stat.modified.isBefore(cutoff)) continue;
+        if (!_touchedAt(stat).isBefore(cutoff)) continue;
         final size = stat.size;
-        await entity.delete();
+        if (!dryRun) await entity.delete();
         files++;
         bytes += size;
-        emptied.addAll(_ancestorsWithin(dir, entity.parent));
+        if (!dryRun) emptied.addAll(_ancestorsWithin(dir, entity.parent));
       } on FileSystemException {
         // Skip an entry that vanished or is unreadable. A file being written
         // right now is exactly the case worth losing rather than fighting.

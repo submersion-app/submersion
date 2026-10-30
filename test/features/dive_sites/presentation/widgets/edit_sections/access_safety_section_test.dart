@@ -47,8 +47,8 @@ void main() {
           mooringNumberController: mooringNumber,
           parkingInfoController: parkingInfo,
           hazardsController: hazards,
-          entryMethod: EntryMethod.shore,
-          exitMethod: EntryMethod.boat,
+          entryMethods: const [EntryMethod.shore],
+          exitMethods: const [EntryMethod.boat],
           onEntryMethodChanged: (_) {},
           onExitMethodChanged: (_) {},
         ),
@@ -86,4 +86,12 @@ void main() {
       }
     },
   );
+
+  testWidgets('access notes edit as Markdown, other rows stay plain (#3683)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Bold'), findsOneWidget);
+  });
 }

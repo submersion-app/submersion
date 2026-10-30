@@ -3,6 +3,9 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain
+    show TurnPressureRule;
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -31,6 +34,7 @@ import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/pages/records_page.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
@@ -53,6 +57,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   Future<void> get settingsLoaded async {}
+
+  @override
+  Future<void> toggleGroupTripsInDiveList() async =>
+      state = state.copyWith(groupTripsInDiveList: !state.groupTripsInDiveList);
+
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async =>
+      state = state.copyWith(listArrangements: change(state.listArrangements));
 
   @override
   Future<void> setAccentNavIcons(bool value) async =>
@@ -252,6 +266,32 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
   @override
+  Future<void> setPpO2DecoBandsConfig({
+    required bool bandsEnabled,
+    required double band1,
+    required double band2,
+    required double band3,
+    required bool maxO2DepthEnabled,
+    required double maxO2DepthMeters,
+  }) async => state = state.copyWith(
+    ppO2DecoBandsEnabled: bandsEnabled,
+    ppO2DecoBand1: band1,
+    ppO2DecoBand2: band2,
+    ppO2DecoBand3: band3,
+    maxO2DepthEnabled: maxO2DepthEnabled,
+    maxO2DepthMeters: maxO2DepthMeters,
+  );
+  @override
+  Future<void> setPlannerHypercapniaConfig({
+    required bool enabled,
+    required double factor,
+    required int minutes,
+  }) async => state = state.copyWith(
+    plannerHypercapniaEnabled: enabled,
+    plannerHypercapniaFactor: factor,
+    plannerHypercapniaMinutes: minutes,
+  );
+  @override
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
@@ -381,6 +421,92 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDecoStopIncrement(double value) async =>
       state = state.copyWith(decoStopIncrement: value);
   @override
+  Future<void> setPlannerDescentRate(double value) async =>
+      state = state.copyWith(plannerDescentRate: value);
+  @override
+  Future<void> setPlannerAscentRate(double value) async =>
+      state = state.copyWith(plannerAscentRate: value);
+  @override
+  Future<void> setPlannerIntermediateAscentRate(double value) async =>
+      state = state.copyWith(plannerIntermediateAscentRate: value);
+  @override
+  Future<void> setPlannerShallowAscentRate(double value) async =>
+      state = state.copyWith(plannerShallowAscentRate: value);
+  @override
+  Future<void> setPlannerFinalAscentRate(double value) async =>
+      state = state.copyWith(plannerFinalAscentRate: value);
+  @override
+  Future<void> setPlannerGasSwitchStopSeconds(int value) async =>
+      state = state.copyWith(plannerGasSwitchStopSeconds: value);
+  @override
+  Future<void> setPlannerSacBottom(double value) async =>
+      state = state.copyWith(plannerSacBottom: value);
+  @override
+  Future<void> setPlannerSacDeco(double value) async =>
+      state = state.copyWith(plannerSacDeco: value);
+  @override
+  Future<void> setPlannerSacStressedFactor(double value) async =>
+      state = state.copyWith(plannerSacStressedFactor: value);
+  @override
+  Future<void> setPlannerBuddyFactor(double value) async =>
+      state = state.copyWith(plannerBuddyFactor: value);
+  @override
+  Future<void> setPlannerProblemSolvingMinutes(int value) async =>
+      state = state.copyWith(plannerProblemSolvingMinutes: value);
+  @override
+  Future<void> setPlannerBestMixEndMeters(double value) async =>
+      state = state.copyWith(plannerBestMixEndMeters: value);
+  @override
+  Future<void> setPlannerDeviationDepthDelta(double value) async =>
+      state = state.copyWith(plannerDeviationDepthDelta: value);
+  @override
+  Future<void> setPlannerDeviationTimeMinutes(int value) async =>
+      state = state.copyWith(plannerDeviationTimeMinutes: value);
+  @override
+  Future<void> setPlannerBatteryReserveFraction(double value) async =>
+      state = state.copyWith(plannerBatteryReserveFraction: value);
+  @override
+  Future<void> setPlannerWalkSpeedMps(double value) async =>
+      state = state.copyWith(plannerWalkSpeedMps: value);
+  @override
+  Future<void> setPlannerTurnPressureRule(
+    domain.TurnPressureRule? value,
+  ) async => state = state.copyWith(
+    plannerTurnPressureRule: value,
+    clearPlannerTurnPressureRule: value == null,
+  );
+  @override
+  Future<void> setPlannerTurnPressureFraction(double? value) async =>
+      state = state.copyWith(
+        plannerTurnPressureFraction: value,
+        clearPlannerTurnPressureFraction: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakO2Seconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakO2Seconds: value,
+        clearPlannerAirBreakO2Seconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) async =>
+      state = state.copyWith(
+        plannerAirBreakBreakSeconds: value,
+        clearPlannerAirBreakBreakSeconds: value == null,
+      );
+  @override
+  Future<void> setPlannerAirBreakPolicy({
+    int? o2Seconds,
+    int? breakSeconds,
+  }) async => state = state.copyWith(
+    plannerAirBreakO2Seconds: o2Seconds,
+    clearPlannerAirBreakO2Seconds: o2Seconds == null,
+    plannerAirBreakBreakSeconds: breakSeconds,
+    clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+  );
+  @override
+  Future<void> setPlannerReservePressure(double value) async =>
+      state = state.copyWith(plannerReservePressure: value);
+  @override
   Future<void> setPscrRatio(double value) async =>
       state = state.copyWith(pscrRatio: value);
   @override
@@ -478,6 +604,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setTrimTankPressureAtSurfacing(bool value) async =>
       state = state.copyWith(trimTankPressureAtSurfacing: value);
+  @override
+  Future<void> setDownloadsFollowComputerOwner(bool value) async =>
+      state = state.copyWith(downloadsFollowComputerOwner: value);
+  @override
+  Future<void> setOmitUnusedOcGases(bool value) async =>
+      state = state.copyWith(omitUnusedOcGases: value);
   @override
   Future<void> setCardColorGradientPreset(String preset) async =>
       state = state.copyWith(cardColorGradientPreset: preset);
@@ -635,6 +767,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
+  @override
+  Future<void> setAutoColorCorrection(bool value) async =>
+      state = state.copyWith(autoColorCorrection: value);
   @override
   Future<void> acceptPlanningDisclaimer() async =>
       state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
