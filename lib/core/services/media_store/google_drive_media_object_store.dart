@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 /// Google Drive-backed media object store (design spec section 8.2), raw
@@ -461,6 +463,19 @@ class GoogleDriveMediaObjectStore
   ) async {
     try {
       return await http.Response.fromStream(await client.send(request));
+    } on gauth.AccessDeniedException catch (e) {
+      // The auth client raises this itself for a response carrying
+      // www-authenticate, so Google's rejections never arrive as a status. A
+      // 401 is put back into one for [_send]'s refresh; reported as a failure
+      // to reach Drive it was retried forever and never refreshed.
+      if (isMissingDriveScope(e)) {
+        throw MediaStoreException(
+          googleDriveAccessNotAllowed,
+          kind: MediaStoreErrorKind.auth,
+          cause: e,
+        );
+      }
+      return http.Response(e.message, 401);
     } on Exception catch (e) {
       throw MediaStoreException(
         'Could not reach Google Drive',

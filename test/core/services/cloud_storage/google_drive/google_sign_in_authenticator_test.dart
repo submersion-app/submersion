@@ -93,16 +93,23 @@ class _FakePlatform extends GoogleSignInPlatform
   @override
   bool authorizationRequiresUserInteraction() => false;
 
-  /// How many times a scope authorization was requested. One per installed
-  /// client, so it counts clients without reaching into the authenticator.
+  /// How many times a scope authorization was requested without a prompt.
+  /// One per installed client, so it counts clients without reaching into the
+  /// authenticator.
   int authorizationCalls = 0;
+
+  /// Whether the account's grant really includes the requested scope. Mirrors
+  /// the iOS and macOS plugin: only the non-prompting path checks the granted
+  /// scopes, and the prompting path returns whatever token consent produced.
+  bool scopeGranted = true;
 
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
   ) async {
+    if (params.request.promptIfUnauthorized) return authorizationToken;
     authorizationCalls++;
-    return authorizationToken;
+    return scopeGranted ? authorizationToken : null;
   }
 
   @override
@@ -232,6 +239,29 @@ void main() {
 
       expect(auth.authClient, isNotNull);
       expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('refuses a consent that left the Drive box unticked', () async {
+      // Google's consent page gives Drive a checkbox of its own, and the
+      // sign-in still succeeds without it. Installing that token left the
+      // account reading as signed in while every Drive call failed with
+      // insufficient_scope (#3835).
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'diver@example.com',
+      );
+      platform.scopeGranted = false;
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having((e) => e.message, 'message', contains('Google Drive box'))
+              .having((e) => e.cause, 'cause', isNull),
+        ),
+      );
+
+      expect(auth.authClient, isNull);
+      expect(await auth.userEmail, isNull);
     });
 
     test('maps user cancellation to a CloudStorageException', () async {

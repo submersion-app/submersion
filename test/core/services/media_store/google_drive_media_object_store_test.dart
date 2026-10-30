@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -442,6 +443,95 @@ void main() {
         ),
       ),
     );
+  });
+
+  // The clients production hands this store are googleapis_auth clients, which
+  // raise AccessDeniedException themselves for any response carrying
+  // www-authenticate. Google sends that header on these rejections, so the
+  // store never sees their status.
+  group('a rejection raised by the real auth client', () {
+    http.Client rejecting(int status, String challenge) =>
+        gauth.authenticatedClient(
+          MockClient(
+            (_) async => http.Response(
+              '',
+              status,
+              headers: {'www-authenticate': challenge},
+            ),
+          ),
+          gauth.AccessCredentials(
+            gauth.AccessToken(
+              'Bearer',
+              'token',
+              DateTime.now().toUtc().add(const Duration(hours: 1)),
+            ),
+            null,
+            const [],
+          ),
+        );
+
+    final expired = rejecting(401, 'Bearer error="invalid_token"');
+    final noDriveScope = rejecting(403, 'Bearer error="insufficient_scope"');
+
+    test('refreshes an expired token and retries the request', () async {
+      http.Client current = expired;
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      expect(await store.head('smv1/objects/aa/x.jpg'), isNull);
+      expect(rejectedClients, [same(expired)]);
+    });
+
+    test('reports an expired token nothing could refresh as auth', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async => false,
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+    });
+
+    test('asks for Drive access when the token lacks the scope', () async {
+      var refreshes = 0;
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => noDriveScope,
+        onAuthRejected: (_) async {
+          refreshes++;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Google Drive box'),
+              ),
+        ),
+      );
+      expect(refreshes, 0);
+    });
   });
 
   group('an expired access token', () {

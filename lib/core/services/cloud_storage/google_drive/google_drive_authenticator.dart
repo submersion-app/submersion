@@ -42,7 +42,8 @@ abstract class GoogleDriveAuthenticator {
   /// Sign out and clear stored credentials.
   Future<void> signOut();
 
-  /// Called after an API 401: drop the (stale or revoked) client state so
-  /// the next attemptSilentAuth() rebuilds from scratch.
+  /// Called after Drive rejects the sign-in: drop the (stale, revoked or
+  /// under-scoped) client state so the next attemptSilentAuth() rebuilds from
+  /// scratch.
   Future<void> handleAuthFailure();
 }

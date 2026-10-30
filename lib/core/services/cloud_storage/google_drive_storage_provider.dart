@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
@@ -185,6 +186,9 @@ class GoogleDriveStorageProvider
   /// again. Missing that case left the dead token in place, failing every
   /// sync with a generic listing error (issue #2332).
   ///
+  /// A token Drive refuses for lacking the Drive scope is the one rejection
+  /// not retried, since a refresh cannot add a scope; see [_noDriveAccess].
+  ///
   /// A retry rejected the same way means the fresh authorization is no good
   /// either. It is reported as the same sign-in-again error rather than the
   /// raw Drive error, which told the diver only "invalid credentials", and
@@ -195,6 +199,7 @@ class GoogleDriveStorageProvider
     try {
       return await operation();
     } catch (e) {
+      if (isMissingDriveScope(e)) throw await _noDriveAccess(e, client);
       if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
       if (!await _reauthorize(client)) {
@@ -204,12 +209,32 @@ class GoogleDriveStorageProvider
       try {
         return await operation();
       } catch (retryError) {
+        if (isMissingDriveScope(retryError)) {
+          throw await _noDriveAccess(retryError, retryClient);
+        }
         if (!_isAuthRejection(retryError)) rethrow;
         _log.warning('Drive rejected the re-authorized sign-in: $retryError');
         await _dropRejectedAuth(retryClient);
         throw _signInExpired(retryError);
       }
     }
+  }
+
+  /// Drops a grant Drive refused for lacking the Drive scope and returns the
+  /// error that asks for it.
+  ///
+  /// Dropping it turns a sign-in that can never sync into "not signed in",
+  /// which offers the sign-in again. Left in place, the account read as
+  /// signed in while sync, repair and wipe all failed on the raw 403, with
+  /// nothing on screen pointing at the Drive box (#3835). No cause on the
+  /// error: displayMessage appends it, and it is that raw header.
+  Future<CloudStorageException> _noDriveAccess(
+    Object refusal,
+    http.Client? client,
+  ) async {
+    _log.warning('Drive refused a sign-in without Drive access: $refusal');
+    await _dropRejectedAuth(client);
+    return const CloudStorageException(googleDriveAccessNotAllowed);
   }
 
   /// Replaces [rejected] with a freshly authorized client, sharing one
@@ -247,7 +272,11 @@ class GoogleDriveStorageProvider
     return rejected != null && current != null && !identical(current, rejected);
   }
 
+  /// The auth client raises [gauth.AccessDeniedException] for a real 401
+  /// before the Drive API sees it (see [isMissingDriveScope]), so that is the
+  /// form an expired token takes in production.
   static bool _isAuthRejection(Object e) =>
+      e is gauth.AccessDeniedException ||
       (e is drive.DetailedApiRequestError && e.status == 401) ||
       _isRevokedGrant(e);
 
@@ -758,6 +787,7 @@ class GoogleDriveStorageProvider
       // as "file not found" (which would create a duplicate).
       rethrow;
     } catch (e) {
+      if (_isAuthRejection(e)) rethrow;
       _log.warning('Failed to find file: $filename - $e');
       return null;
     }
