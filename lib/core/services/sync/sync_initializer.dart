@@ -251,7 +251,7 @@ class SyncInitializer {
 
   /// Record a nonce this install's own manifest on [providerId] carries, or is
   /// about to. A nonce already held moves up rather than taking a second slot,
-  /// so a resumed publish and a heartbeat cost the ring nothing.
+  /// so a resumed publish retrying its manifest costs the ring nothing.
   Future<void> recordUploadNonce(String nonce, String providerId) async {
     final nonces = [
       nonce,

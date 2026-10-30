@@ -123,8 +123,9 @@ class ResumableBasePublishStore {
 
   final Future<Directory> Function() _directory;
 
-  /// How recently an unreferenced export must have been touched to be spared
-  /// as "probably still being written" rather than swept as an orphan.
+  /// How recently an export no publish here will resume must have been touched
+  /// to be spared as "probably still in flight" rather than swept: one with no
+  /// sidecar, or one recorded under another device id.
   static const Duration _orphanGrace = Duration(minutes: 5);
 
   Future<Directory> get directory => _directory();

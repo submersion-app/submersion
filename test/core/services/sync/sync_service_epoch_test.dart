@@ -949,6 +949,7 @@ void main() {
         expect(result.isSuccess, isTrue);
         final deviceId = await SyncRepository().getDeviceId();
         final manifest = await ownManifest(cloud, deviceId);
+        // An empty ring reads nothing as foreign, which would prove nothing.
         await initializer.recordUploadNonce(
           'another-of-ours',
           cloud.providerId,

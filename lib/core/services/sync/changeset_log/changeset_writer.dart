@@ -166,8 +166,7 @@ class ChangesetWriter {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Every publish, not only a base: this is also the sweep that reclaims
-    // exports nothing will resume, and an ordinary publish may be the last
-    // chance to for months.
+    // exports nothing will resume, and the next base may be months away.
     final resumed = await _resumable.find(
       providerId: providerId,
       deviceId: deviceId,
