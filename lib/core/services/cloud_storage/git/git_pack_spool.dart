@@ -40,7 +40,8 @@ Future<List<GitObjectId>> readSpooledPack(
   GitObjectStore store, {
   Directory? directory,
   int inMemoryLimit = kGitInMemoryObjectLimit,
-  @visibleForTesting int offIsolateMinBytes = kOffIsolateMinBytes,
+  @visibleForTesting
+  int offIsolateMinBytes = kOffIsolateMinBytes ~/ kCompressedCostFactor,
   @visibleForTesting OffIsolateRunner offIsolateRunner = isolateRun,
 }) async {
   final dir = directory ?? defaultGitSpoolDirectory;

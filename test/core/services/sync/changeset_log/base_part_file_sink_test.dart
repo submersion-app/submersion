@@ -10,30 +10,7 @@ import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
-/// Counts what a transfer does to its hasher, and fails on request.
-class _RecordingHasher implements BasePartHasher {
-  _RecordingHasher({this.failOnPart, this.failOnFinish = false});
-
-  final int? failOnPart;
-  final bool failOnFinish;
-  int added = 0;
-  int disposals = 0;
-
-  @override
-  Future<String> addPart(Uint8List part) async {
-    if (added++ == failOnPart) throw BasePartHasherException('worker died');
-    return BaseChunker.checksum(part);
-  }
-
-  @override
-  Future<String> finish() async {
-    if (failOnFinish) throw BasePartHasherException('worker died');
-    return 'sha256:whole';
-  }
-
-  @override
-  Future<void> dispose() async => disposals++;
-}
+import '../../../../helpers/recording_base_part_hasher.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -334,7 +311,7 @@ void main() {
     test('a hasher failure is an interruption', () async {
       final failing = BasePartFileSink(
         tempDirProvider: () async => dir,
-        openHasher: (_) async => _RecordingHasher(failOnPart: 0),
+        openHasher: (_) async => RecordingBasePartHasher(failOnPart: 0),
       );
       await expectLater(
         assembling((_) async => part, using: failing),
@@ -352,7 +329,7 @@ void main() {
     test('a hasher that fails on finish is an interruption', () async {
       final failing = BasePartFileSink(
         tempDirProvider: () async => dir,
-        openHasher: (_) async => _RecordingHasher(failOnFinish: true),
+        openHasher: (_) async => RecordingBasePartHasher(failOnFinish: true),
       );
       await expectLater(
         assembling(
@@ -363,6 +340,16 @@ void main() {
         throwsA(isA<BaseFetchInterrupted>()),
       );
       expect(dir.listSync(), isEmpty);
+    });
+
+    test('a temp dir that cannot be resolved is an interruption', () async {
+      final noDir = BasePartFileSink(
+        tempDirProvider: () async => throw const FileSystemException('no dir'),
+      );
+      await expectLater(
+        assembling((_) async => part, using: noDir),
+        throwsA(isA<BaseFetchInterrupted>()),
+      );
     });
 
     test('a temp file that cannot be written is an interruption', () async {
@@ -398,7 +385,7 @@ void main() {
     test('no whole-file digest was promised, so none is computed', () async {
       final finishFails = BasePartFileSink(
         tempDirProvider: () async => dir,
-        openHasher: (_) async => _RecordingHasher(failOnFinish: true),
+        openHasher: (_) async => RecordingBasePartHasher(failOnFinish: true),
       );
       expect(
         await assembling((_) async => part, using: finishFails),
@@ -445,7 +432,7 @@ void main() {
         tempDirProvider: () async => dir,
         openHasher: (firstPartBytes) async {
           opened.add(firstPartBytes);
-          return _RecordingHasher();
+          return RecordingBasePartHasher();
         },
       );
       await sized.assemble(
@@ -468,7 +455,7 @@ void main() {
       ),
     ]) {
       test('$name releases the hasher', () async {
-        final hasher = _RecordingHasher();
+        final hasher = RecordingBasePartHasher();
         final recording = BasePartFileSink(
           tempDirProvider: () async => dir,
           openHasher: (_) async => hasher,
@@ -492,7 +479,7 @@ void main() {
         tempDirProvider: () async => dir,
         openHasher: (_) async {
           opens++;
-          return _RecordingHasher();
+          return RecordingBasePartHasher();
         },
       );
       await recording.assemble(

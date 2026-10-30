@@ -58,7 +58,12 @@ class BasePartFileSink {
     required Future<Uint8List?> Function(int index) downloadPart,
     void Function(int downloaded, int total)? onPartDownloaded,
   }) async {
-    final dir = await _tempDir();
+    final Directory dir;
+    try {
+      dir = await _tempDir();
+    } catch (e, st) {
+      Error.throwWithStackTrace(BaseFetchInterrupted(e), st);
+    }
     final path = basePartTempPath(dir.path, name, _uuid.v4());
     final file = File(path);
     final out = file.openWrite();

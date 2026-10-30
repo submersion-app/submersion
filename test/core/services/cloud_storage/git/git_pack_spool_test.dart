@@ -134,6 +134,18 @@ void main() {
       }
     });
 
+    test('a pack past the compressed threshold reads on a worker', () async {
+      final pack = _fixture('full.pack');
+      expect(pack.length, lessThan(kOffIsolateMinBytes * 2));
+      await readSpooledPack(
+        _pieces(pack, 333),
+        store,
+        directory: spool,
+        offIsolateRunner: counting,
+      );
+      expect(hops, 1);
+    });
+
     test('a pack under the threshold reads here', () async {
       final pack = _fixture('full.pack');
       await readSpooledPack(

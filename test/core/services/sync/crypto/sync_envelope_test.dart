@@ -384,6 +384,26 @@ void main() {
       expect(hops, 2, reason: 'AES-GCM and inflate');
     });
 
+    test('inflates off-isolate once the blob could unpack large', () async {
+      // Between the thresholds: small enough that gzip stays here, and a blob
+      // the 256 KiB bar alone would have inflated on this isolate.
+      final plain = Uint8List.sublistView(compressible, 0, 200 * 1024);
+      final sealed = await seal(plain);
+      final blob = sealed.length - 49;
+      expect(blob, greaterThan(kOffIsolateMinBytes ~/ kCompressedCostFactor));
+      expect(blob, lessThan(kOffIsolateMinBytes));
+
+      var hops = 0;
+      await open(
+        sealed,
+        offIsolateRunner: <R>(work) async {
+          hops++;
+          return Isolate.run(work);
+        },
+      );
+      expect(hops, 2, reason: 'AES-GCM and inflate');
+    });
+
     test('stays on this isolate below the threshold', () async {
       var hops = 0;
       Future<R> counting<R>(FutureOr<R> Function() work) {

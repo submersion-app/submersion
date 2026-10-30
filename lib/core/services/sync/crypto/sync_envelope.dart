@@ -193,7 +193,7 @@ abstract final class SyncEnvelope {
         return await _inflatedOffIsolate(
           payload,
           maxPlaintextBytes,
-          offIsolateMinBytes,
+          offIsolateMinBytes ~/ kCompressedCostFactor,
           offIsolateRunner,
         );
       } on BoundedInflateException catch (e) {

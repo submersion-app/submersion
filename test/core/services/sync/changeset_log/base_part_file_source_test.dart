@@ -8,26 +8,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_part_file_sourc
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
-/// Counts what a transfer does to its hasher, and fails on request.
-class _RecordingHasher implements BasePartHasher {
-  _RecordingHasher({this.failOnPart});
-
-  final int? failOnPart;
-  int added = 0;
-  int disposals = 0;
-
-  @override
-  Future<String> addPart(Uint8List part) async {
-    if (added++ == failOnPart) throw BasePartHasherException('worker died');
-    return 'sha256:part$added';
-  }
-
-  @override
-  Future<String> finish() async => 'sha256:whole';
-
-  @override
-  Future<void> dispose() async => disposals++;
-}
+import '../../../../helpers/recording_base_part_hasher.dart';
 
 Future<String> _fileOf(int length) async {
   final dir = await Directory.systemTemp.createTemp('src_hasher');
@@ -185,7 +166,7 @@ void main() {
 
     test('a skipped part is still hashed', () async {
       final path = await _fileOf(1000);
-      final hasher = _RecordingHasher();
+      final hasher = RecordingBasePartHasher();
 
       final res = await BasePartFileSource(
         path,
@@ -199,20 +180,24 @@ void main() {
 
     test('the digests it returns are the ones reported', () async {
       final path = await _fileOf(300);
+      final data = await File(path).readAsBytes();
 
       final res = await BasePartFileSource(
         path,
         partSize: 256,
-        openHasher: (_) async => _RecordingHasher(),
+        openHasher: (_) async => RecordingBasePartHasher(),
       ).uploadAll((i, bytes) async {});
 
-      expect(res.partChecksums, ['sha256:part1', 'sha256:part2']);
+      expect(
+        res.partChecksums,
+        BaseChunker.slice(data, partSize: 256).map(BaseChunker.checksum),
+      );
       expect(res.wholeChecksum, 'sha256:whole');
     });
 
     test('a hasher failure stops the transfer before its upload', () async {
       final path = await _fileOf(1000);
-      final hasher = _RecordingHasher(failOnPart: 1);
+      final hasher = RecordingBasePartHasher(failOnPart: 1);
       final uploaded = <int>[];
 
       await expectLater(
@@ -230,7 +215,7 @@ void main() {
 
     test('a failed upload still releases the hasher', () async {
       final path = await _fileOf(1000);
-      final hasher = _RecordingHasher();
+      final hasher = RecordingBasePartHasher();
 
       await expectLater(
         BasePartFileSource(
@@ -248,7 +233,7 @@ void main() {
 
     test('a finished transfer releases the hasher', () async {
       final path = await _fileOf(1000);
-      final hasher = _RecordingHasher();
+      final hasher = RecordingBasePartHasher();
 
       await BasePartFileSource(
         path,
@@ -269,7 +254,7 @@ void main() {
           partSize: 256,
           openHasher: (firstPartBytes) async {
             opened.add(firstPartBytes);
-            return _RecordingHasher();
+            return RecordingBasePartHasher();
           },
         ).uploadAll((i, bytes) async {});
 
@@ -280,7 +265,7 @@ void main() {
     test('an empty file opens for no bytes and yields one part', () async {
       final path = await _fileOf(0);
       final opened = <int>[];
-      final hasher = _RecordingHasher();
+      final hasher = RecordingBasePartHasher();
 
       final res = await BasePartFileSource(
         path,
