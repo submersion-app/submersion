@@ -210,24 +210,6 @@ void main() {
     expect(find.byIcon(Icons.edit_note), findsNothing);
   });
 
-  for (final status in [
-    ResolutionStatus.unavailable,
-    ResolutionStatus.accessDenied,
-  ]) {
-    testWidgets('a photo that resolves as ${status.name} on this device '
-        'reports it and never calls native', (tester) async {
-      await pump(tester, item(), resolution: ResolutionResult(status: status));
-      await openDialog(tester);
-
-      expect(
-        find.text('Cannot write metadata - media not linked to library'),
-        findsOneWidget,
-      );
-      expect(find.text('Write Dive Data to Photo'), findsNothing);
-      expect(nativeCalls, isEmpty);
-    });
-  }
-
   testWidgets('the confirmation dialog opens before anything is written', (
     tester,
   ) async {
@@ -262,15 +244,52 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+  testWidgets('a photo missing from this device reports it and never calls '
+      'native', (tester) async {
+    await pump(
+      tester,
+      item(),
+      resolution: const ResolutionResult(status: ResolutionStatus.unavailable),
+    );
+    await openDialog(tester);
+    await confirmWrite(tester);
+
+    expect(
+      find.text('Cannot write metadata - media not linked to library'),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(nativeCalls, isEmpty);
+  });
+
+  testWidgets('lost library access is named and never calls native', (
+    tester,
+  ) async {
+    // accessDenied says nothing about the photo, so "not linked" would be
+    // the wrong thing to tell someone who only has to grant access again.
+    await pump(
+      tester,
+      item(),
+      resolution: const ResolutionResult(status: ResolutionStatus.accessDenied),
+    );
+    await openDialog(tester);
+    await confirmWrite(tester);
+
+    expect(find.text('No photo library access'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(nativeCalls, isEmpty);
+  });
+
   testWidgets('a resolution failure is reported and never calls native', (
     tester,
   ) async {
     await pump(tester, item(), resolutionError: StateError('cache is gone'));
     await openDialog(tester);
+    await confirmWrite(tester);
 
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.textContaining('cache is gone'), findsOneWidget);
-    expect(find.text('Write Dive Data to Photo'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(nativeCalls, isEmpty);
   });
 

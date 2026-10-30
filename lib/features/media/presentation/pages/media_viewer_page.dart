@@ -889,27 +889,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     final l10n = context.l10n;
     debugPrint('[MediaViewerPage] _writeMetadataToPhoto called');
 
-    // The stored platformAssetId belongs to the device that linked the photo.
-    // Sent as is from any other device, it names a different photo or none.
-    final ResolutionResult resolution;
-    try {
-      resolution = await ref
-          .read(assetResolutionServiceProvider)
-          .resolveAssetId(item);
-    } catch (e) {
-      debugPrint('[MediaViewerPage] Could not resolve asset: $e');
-      _showError(
-        l10n.media_photoViewer_failedToWriteMetadataError(e.toString()),
-      );
-      return;
-    }
-    if (!mounted) return;
-    final assetId = resolution.localAssetId;
-    if (resolution.status == ResolutionStatus.unavailable || assetId == null) {
-      _showError(l10n.media_photoViewer_cannotWriteMetadata);
-      return;
-    }
-
     final settings = ref.read(settingsProvider);
 
     // Get dive site name for the metadata (items without a dive link have
@@ -962,6 +941,24 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     debugPrint('[MediaViewerPage] Loading dialog shown, calling service...');
 
     try {
+      // The stored platformAssetId belongs to the device that linked the
+      // photo. Sent as is from any other device, it names a different photo
+      // or none. Resolved under the spinner: on a device that has not seen
+      // this photo yet, it searches the gallery.
+      final resolution = await ref
+          .read(assetResolutionServiceProvider)
+          .resolveAssetId(item);
+      final assetId = resolution.localAssetId;
+      if (resolution.status != ResolutionStatus.resolved || assetId == null) {
+        dismissLoadingDialog();
+        _showError(
+          resolution.status == ResolutionStatus.accessDenied
+              ? l10n.media_unavailablePlaceholder_accessDenied
+              : l10n.media_photoViewer_cannotWriteMetadata,
+        );
+        return;
+      }
+
       final metadata = DiveMediaMetadata.fromMediaItem(
         item,
         siteName: siteName,
