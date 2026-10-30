@@ -8,3 +8,6 @@
 /// Lives in core rather than on the repository so the presentation layer can
 /// reference it without importing data-layer implementation details.
 const int kDiveSearchResultLimit = 100;
+
+/// Rows the dive picker reads at a time, while listing and while searching.
+const int kDivePickerPageSize = 50;
