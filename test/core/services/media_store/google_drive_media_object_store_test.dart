@@ -507,12 +507,20 @@ void main() {
       );
     });
 
-    test('asks for Drive access when the token lacks the scope', () async {
-      var refreshes = 0;
+    final asksForTheDriveBox = isA<MediaStoreException>()
+        .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+        .having((e) => e.message, 'message', contains('Google Drive box'));
+
+    test('drops a grant without Drive access and does not retry', () async {
+      final rejectedClients = <http.Client>[];
+      var supplied = 0;
       final store = GoogleDriveMediaObjectStore(
-        clientSupplier: () async => noDriveScope,
-        onAuthRejected: (_) async {
-          refreshes++;
+        clientSupplier: () async {
+          supplied++;
+          return noDriveScope;
+        },
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
           return true;
         },
         apiBase: 'https://fake.googleapis.test',
@@ -520,17 +528,23 @@ void main() {
 
       await expectLater(
         store.head('smv1/objects/aa/x.jpg'),
-        throwsA(
-          isA<MediaStoreException>()
-              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
-              .having(
-                (e) => e.message,
-                'message',
-                contains('Google Drive box'),
-              ),
-        ),
+        throwsA(asksForTheDriveBox),
       );
-      expect(refreshes, 0);
+      expect(rejectedClients, [same(noDriveScope)]);
+      expect(supplied, 1);
+    });
+
+    test('still asks for Drive access if dropping the grant fails', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => noDriveScope,
+        onAuthRejected: (_) async => throw Exception('token store locked'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(asksForTheDriveBox),
+      );
     });
   });
 

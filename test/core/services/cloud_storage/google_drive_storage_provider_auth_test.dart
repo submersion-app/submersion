@@ -497,9 +497,12 @@ void main() {
         ];
         drive_.failuresRemaining = 1;
 
+        // A folder id skips the sync folder query, so the rejection lands on
+        // the name lookup itself.
         final result = await provider.uploadFile(
           Uint8List.fromList([1, 2]),
           'ssv1.dev.manifest.json',
+          folderId: 'folder-7',
         );
 
         expect(result.fileId, 'existing-9');

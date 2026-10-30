@@ -31,7 +31,9 @@ class GoogleDriveMediaObjectStore
   /// owner can refresh the token; it answers whether a fresh client is now
   /// available, and the request is then retried once. Without it an expired
   /// token failed every transfer as an auth error until something else
-  /// replaced the client (#3602).
+  /// replaced the client (#3602). It also hears of a client refused for
+  /// lacking the Drive scope, so that grant is dropped, but that request is
+  /// not retried: a refresh cannot add a scope.
   GoogleDriveMediaObjectStore({
     required Future<http.Client?> Function() clientSupplier,
     Future<bool> Function(http.Client rejected)? onAuthRejected,
@@ -469,6 +471,7 @@ class GoogleDriveMediaObjectStore
       // 401 is put back into one for [_send]'s refresh; reported as a failure
       // to reach Drive it was retried forever and never refreshed.
       if (isMissingDriveScope(e)) {
+        await _dropRefusedGrant(client);
         throw MediaStoreException(
           googleDriveAccessNotAllowed,
           kind: MediaStoreErrorKind.auth,
@@ -482,6 +485,17 @@ class GoogleDriveMediaObjectStore
         kind: MediaStoreErrorKind.transient,
         cause: e,
       );
+    }
+  }
+
+  /// Reports [client] so its grant is dropped and the account reads as not
+  /// signed in, which offers the sign-in again. Best effort: the refusal is
+  /// the error to report whether or not the drop worked.
+  Future<void> _dropRefusedGrant(http.Client client) async {
+    try {
+      await _onAuthRejected?.call(client);
+    } on Exception {
+      // The caller reports the refusal itself.
     }
   }
 
