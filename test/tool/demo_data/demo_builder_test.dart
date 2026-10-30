@@ -50,7 +50,11 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Future<DemoBuildOutput> build({Directory? root, List<Object>? seeders}) {
+  Future<DemoBuildOutput> build({
+    Directory? root,
+    List<Object>? seeders,
+    Set<String> refusedNames = const {},
+  }) {
     final folder = (root ?? dir).path;
     return DemoBuilder().build(
       shapes: syntheticShapes(),
@@ -60,6 +64,7 @@ void main() {
       anchor: DateTime(2026, 10, 1),
       outDir: p.join(folder, 'out'),
       seeders: seeders?.cast(),
+      refusedNames: refusedNames,
     );
   }
 
@@ -112,16 +117,7 @@ void main() {
     );
 
     test('no value in the published database names a build folder', () async {
-      // The database as the zip carries it, opened from a copy.
-      final entry = ZipDecoder()
-          .decodeBytes(built.zip.readAsBytesSync())
-          .files
-          .firstWhere((f) => f.name == 'submersion_demo.db');
-      final copy = File(p.join(dir.path, 'published.db'))
-        ..writeAsBytesSync(entry.content);
-      final db = AppDatabase(
-        NativeDatabase(copy, setup: registerAppSqlFunctions),
-      );
+      final db = _publishedDatabase(built, dir);
       addTearDown(db.close);
 
       final paths = await db
@@ -136,15 +132,7 @@ void main() {
     });
 
     test('each photo is taken during its dive, on the same clock', () async {
-      final entry = ZipDecoder()
-          .decodeBytes(built.zip.readAsBytesSync())
-          .files
-          .firstWhere((f) => f.name == 'submersion_demo.db');
-      final copy = File(p.join(dir.path, 'published.db'))
-        ..writeAsBytesSync(entry.content);
-      final db = AppDatabase(
-        NativeDatabase(copy, setup: registerAppSqlFunctions),
-      );
+      final db = _publishedDatabase(built, dir);
       addTearDown(db.close);
 
       final rows = await db
@@ -163,20 +151,12 @@ void main() {
     });
 
     test('a refused name never reaches the logbook', () async {
-      final names = await _buddyNames(built);
+      final names = await _buddyNames(built, dir);
       final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
 
-      final again = await DemoBuilder().build(
-        shapes: syntheticShapes(),
-        photosDir: p.join(dir.path, 'photos'),
-        photos: photos,
-        seed: 7,
-        anchor: DateTime(2026, 10, 1),
-        outDir: p.join(dir.path, 'out2'),
-        refusedNames: {refused},
-      );
+      final again = await build(refusedNames: {refused});
 
-      expect(await _buddyNames(again), isNot(contains(refused)));
+      expect(await _buddyNames(again, dir), isNot(contains(refused)));
     }, timeout: wholeBuild);
   });
 
@@ -188,8 +168,7 @@ void main() {
       throwsA(isA<DemoBuildRefused>()),
     );
 
-    // A logbook is thousands of commits, and on a busy disk the syncs were
-    // most of a build's time (issue #3814).
+    // Issue #3814: why these two are set is in the builder.
     expect(probe.synchronous, 0);
     expect(probe.journalMode, 'memory');
   });
@@ -303,15 +282,21 @@ class _CommitProbe implements DemoSeeder {
   }
 }
 
-/// The buddies' names in a built package's database.
-Future<List<String>> _buddyNames(DemoBuildOutput out) async {
+/// The database as a built package's zip carries it, opened from a copy in
+/// [folder].
+AppDatabase _publishedDatabase(DemoBuildOutput out, Directory folder) {
   final entry = ZipDecoder()
       .decodeBytes(out.zip.readAsBytesSync())
       .files
       .firstWhere((f) => f.name == 'submersion_demo.db');
-  final copy = File(p.join(out.zip.parent.path, 'names.db'))
+  final copy = File(p.join(folder.path, 'published.db'))
     ..writeAsBytesSync(entry.content);
-  final db = AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+  return AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+}
+
+/// The buddies' names in a built package's database.
+Future<List<String>> _buddyNames(DemoBuildOutput out, Directory folder) async {
+  final db = _publishedDatabase(out, folder);
   try {
     final rows = await db.customSelect('SELECT name FROM buddies').get();
     return [for (final r in rows) r.read<String>('name')];
