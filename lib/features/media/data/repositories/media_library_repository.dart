@@ -32,6 +32,9 @@ class MediaLibraryRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   static final _log = LoggerService.forClass(MediaLibraryRepository);
 
+  /// Rows in one [getPage] unless the caller asks for more.
+  static const int pageSize = 60;
+
   /// The library's date key: COALESCE(taken_at, created_at).
   ///
   /// This serves the fromDate/toDate FILTER BOUNDS and, when the active sort
@@ -313,7 +316,7 @@ class MediaLibraryRepository {
     MediaLibraryFilter filter = MediaLibraryFilter.none,
     SortState<MediaSortField> sort = kDefaultMediaSort,
     MediaLibraryCursor? after,
-    int limit = 60,
+    int limit = pageSize,
   }) async {
     try {
       final m = _db.media;
@@ -605,8 +608,8 @@ class MediaLibraryRepository {
 
   /// Emits whenever the media table, or a photo's tags, change (a tag edit
   /// can move a row into or out of a tag-filtered library, issue #1970).
-  /// Deliberately coarse: consumers reload page one rather than patching
-  /// rows (per the Media section spec's invalidation-storm avoidance).
+  /// Deliberately coarse: consumers re-read rather than patching rows (per
+  /// the Media section spec's invalidation-storm avoidance).
   ///
   /// Built on `tableUpdates`, exactly like [MediaRepository.watchMediaChanges],
   /// and NOT on a watched COUNT query. A Drift query stream delivers its
@@ -632,12 +635,19 @@ class MediaLibraryRepository {
       )
       .debounce(MediaRepository.changeTickDebounce);
 
-  /// [watchMediaChanges] plus the trips table, for the library grid: its trip
-  /// filter takes in the trip's side trips, so linking or unlinking one
-  /// changes the page without a media row being written (issue #3658).
+  /// [watchMediaChanges] plus the tables only the library grid's filters
+  /// read, so a row leaves or joins the page without a media row being
+  /// written: `media_species` is the species filter's EXISTS, and `trips`
+  /// holds the side-trip links its trip filter takes in (issue #3658).
   Stream<void> watchLibraryChanges() => _db
       .tableUpdates(
-        TableUpdateQuery.onAllTables([_db.media, _db.mediaTags, _db.trips]),
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.mediaTags,
+          _db.mediaPeople,
+          _db.mediaSpecies,
+          _db.trips,
+        ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
 }

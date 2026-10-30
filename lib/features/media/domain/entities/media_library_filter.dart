@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -231,16 +232,19 @@ class MediaLibraryFilter {
 /// expression, because a NULL key makes the keyset predicate (`key < ?`)
 /// evaluate to NULL, which is falsy, and silently truncates the result set at
 /// the first NULL row.
-class MediaLibraryCursor {
+class MediaLibraryCursor extends Equatable {
   const MediaLibraryCursor({required this.sortKey, required this.id});
 
   final Object sortKey;
   final String id;
+
+  @override
+  List<Object?> get props => [sortKey, id];
 }
 
 /// One library row: the media item plus denormalized dive header fields for
 /// the by-dive and timeline groupers.
-class MediaLibraryEntry {
+class MediaLibraryEntry extends Equatable {
   const MediaLibraryEntry({
     required this.item,
     this.diveNumber,
@@ -252,6 +256,9 @@ class MediaLibraryEntry {
   final int? diveNumber;
   final DateTime? diveDateTime;
   final String? siteName;
+
+  @override
+  List<Object?> get props => [item, diveNumber, diveDateTime, siteName];
 }
 
 /// One page of library results. [nextCursor] is null on the last page.
