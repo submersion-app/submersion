@@ -15,6 +15,9 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
 
   /// Total uploadFile calls, including the ones that threw.
   int uploadCount = 0;
+
+  /// When set, every download throws this.
+  CloudStorageException? downloadFailure;
   FakeCloudStorageProvider({this.providerId = 's3', this.listLagCalls = 0});
 
   @override
@@ -89,6 +92,7 @@ class FakeCloudStorageProvider implements CloudStorageProvider {
 
   @override
   Future<Uint8List> downloadFile(String fileId) async {
+    if (downloadFailure case final failure?) throw failure;
     final data = _files[fileId];
     if (data == null) {
       throw CloudStorageException('Fake: not found: $fileId');

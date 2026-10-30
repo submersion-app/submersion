@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_failure_store.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -13,6 +15,18 @@ import '../../../../helpers/test_database.dart';
 /// The real SyncNotifier persists the outcome of each sync attempt for
 /// Settings > Data health (issues #3390, #3394), so a failure is still shown
 /// after a restart and a later success clears it.
+class _RefusedSyncService extends Fake implements SyncService {
+  @override
+  void setProgressCallback(SyncProgressCallback? callback) {}
+
+  @override
+  Future<bool> isSyncAvailable() async => true;
+
+  @override
+  Future<SyncResult> performSync() async =>
+      throw const CloudAccessRefusedException('refused');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -57,14 +71,45 @@ void main() {
     expect(container.read(syncFailureProvider)?.kind, SyncFailureKind.network);
   });
 
-  test('a sign-in failure is recorded as other', () async {
+  test('a signed-out provider is recorded as a sign-in failure', () async {
     cloud.authenticated = false;
     final container = await makeContainer();
 
     await container.read(syncStateProvider.notifier).performSync();
 
-    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.other);
+    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
   });
+
+  test('a refused cloud call is recorded as a sign-in failure', () async {
+    cloud
+      ..failLists = true
+      ..readException = const CloudAccessRefusedException('refused');
+    final container = await makeContainer();
+
+    await container.read(syncStateProvider.notifier).performSync();
+
+    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
+    expect(SyncFailureStore(prefs).last?.message, 'refused');
+  });
+
+  test(
+    'a refusal thrown out of the sync service is a sign-in failure',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          localeProvider.overrideWithValue('en'),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWithValue(cloud),
+          syncServiceProvider.overrideWithValue(_RefusedSyncService()),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(syncStateProvider.notifier).performSync();
+
+      expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
+    },
+  );
 
   test('success clears a stored failure', () async {
     await SyncFailureStore(prefs).record(

@@ -125,6 +125,35 @@ void main() {
     );
   });
 
+  test('a sign-in failure reads as signed out, failing', () {
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(hours: 5),
+          lastFailure: failure(kind: SyncFailureKind.auth),
+        ),
+      ),
+      HealthLevel.failing,
+      HealthReason.syncSignedOut,
+    );
+  });
+
+  test('a later good sync clears a sign-in failure', () {
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(minutes: 5),
+          lastFailure: failure(
+            kind: SyncFailureKind.auth,
+            ago: const Duration(hours: 1),
+          ),
+        ),
+      ),
+      HealthLevel.healthy,
+      HealthReason.ok,
+    );
+  });
+
   test('network failure with sync 2 days ago is healthy', () {
     expectHealth(
       eval(

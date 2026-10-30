@@ -1,8 +1,9 @@
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 
 /// Whether a failed sync was the network (normal offline life on a
-/// liveaboard) or something else.
-enum SyncFailureKind { network, other }
+/// liveaboard), the account being signed out or refused (issue #3811), or
+/// something else.
+enum SyncFailureKind { network, auth, other }
 
 /// The last failed sync attempt, persisted so it survives a restart.
 class SyncFailureRecord {
@@ -88,7 +89,7 @@ FeatureHealth evaluateSyncHealth(SyncHealthInputs i, DateTime now) {
       health(HealthLevel.failing, HealthReason.syncNeedsPassphrase),
     if (i.awaitingAdoption)
       health(HealthLevel.failing, HealthReason.syncAwaitingAdoption),
-    if (!i.authenticated)
+    if (!i.authenticated || currentFailure?.kind == SyncFailureKind.auth)
       health(HealthLevel.failing, HealthReason.syncSignedOut),
     if (currentFailure != null && currentFailure.kind == SyncFailureKind.other)
       health(

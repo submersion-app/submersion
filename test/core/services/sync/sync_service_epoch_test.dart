@@ -337,6 +337,18 @@ void main() {
     // must still halt the sync, but under their own message: blaming the
     // marker sends the user hunting for a corrupt file that does not exist
     // (issue #2332).
+    test('a refused read returns authError with its message', () async {
+      cloud = _EpochListFailCloud(
+        const CloudAccessRefusedException('Dropbox authorization expired.'),
+      );
+      cloud.operationLog.clear();
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.message, 'Dropbox authorization expired.');
+    });
+
     test('a cloud error reading the marker halts with the provider message, '
         'not an unreadable marker', () async {
       cloud = _EpochListFailCloud(

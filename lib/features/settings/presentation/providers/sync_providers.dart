@@ -1784,12 +1784,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
           message: message,
           progress: null,
         );
-        await _recordSyncFailure(
-          result.status == SyncResultStatus.networkError
-              ? SyncFailureKind.network
-              : SyncFailureKind.other,
-          message,
-        );
+        await _recordSyncFailure(switch (result.status) {
+          SyncResultStatus.networkError => SyncFailureKind.network,
+          SyncResultStatus.authError => SyncFailureKind.auth,
+          _ => SyncFailureKind.other,
+        }, message);
         if (!mounted) return false;
       }
     } catch (e) {
@@ -1803,7 +1802,12 @@ class SyncNotifier extends StateNotifier<SyncState> {
         message: message,
         progress: null,
       );
-      await _recordSyncFailure(SyncFailureKind.other, message);
+      await _recordSyncFailure(
+        e is CloudStorageException && e.accessRefused
+            ? SyncFailureKind.auth
+            : SyncFailureKind.other,
+        message,
+      );
       if (!mounted) return false;
     }
 

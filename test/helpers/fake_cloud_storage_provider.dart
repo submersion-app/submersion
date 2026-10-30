@@ -64,6 +64,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [downloadFile] throws, modelling a transient read failure.
   bool failDownloads = false;
 
+  /// Thrown instead of the default when [failDownloads] or [failLists] is
+  /// set, for a test that needs a particular failure.
+  CloudStorageException? readException;
+
   /// Ordered log of cloud operations, for asserting protocol order (e.g.
   /// "marker written before wipe"). File ids equal filenames in this fake.
   /// Entries: `upload:<name>`, `delete:<name>`, `list`.
@@ -152,7 +156,8 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   Future<Uint8List> downloadFile(String fileId) async {
     if (hangOperations || hangDownloads) return _hang<Uint8List>();
     if (failDownloads) {
-      throw const CloudStorageException('download failed (test)');
+      throw readException ??
+          const CloudStorageException('download failed (test)');
     }
     final f = _files[fileId];
     if (f == null) {
@@ -181,7 +186,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     operationLog.add('list');
     if (hangOperations) return _hang<List<CloudFileInfo>>();
     if (failLists) {
-      throw const CloudStorageException('list failed (test)');
+      throw readException ?? const CloudStorageException('list failed (test)');
     }
     return _files.entries
         .where((e) => namePattern == null || e.key.contains(namePattern))

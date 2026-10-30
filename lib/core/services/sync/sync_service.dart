@@ -1072,6 +1072,12 @@ class SyncService {
       // toString carries the underlying cause the message omits, which is
       // what a user's diagnostics need to tell an outage from a sign-in.
       _log.warning('Sync failed: $e');
+      if (e.accessRefused) {
+        return SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+        );
+      }
       return SyncResult(
         status: SyncResultStatus.networkError,
         message: _causedByTimeout(e)
