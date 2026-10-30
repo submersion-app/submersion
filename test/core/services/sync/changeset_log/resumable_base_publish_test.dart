@@ -572,6 +572,71 @@ void main() {
       expect(reported, isEmpty);
     });
 
+    test('a heartbeat reports no nonce', () async {
+      final heartbeating = ChangesetWriter(
+        SyncDataSerializer(),
+        ChangesetCodec(SyncDataSerializer()),
+        PublishStateStore(DatabaseService.instance.database),
+        compactionByteRatio: 1000.0,
+        compactionMaxChangesets: 1 << 30,
+        heartbeatMaxAgeMillis: -1,
+        resumableStore: store,
+      );
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publish();
+      final repo = SyncRepository();
+      await repo.clearPendingRecords();
+      final reported = <String>[];
+
+      final result = await heartbeating.publish(
+        provider: provider,
+        deviceId: await repo.getDeviceId(),
+        folderId: folder,
+        deletions: const [],
+        uploadNonce: 'unused',
+        onManifestNonce: (n) async => reported.add(n),
+      );
+
+      expect(result.kind, ChangesetWriteKind.heartbeat);
+      expect(
+        reported,
+        isEmpty,
+        reason:
+            'it re-carries a nonce it read back; claiming that one could '
+            'launder a twin\'s upload as our own',
+      );
+    });
+
+    test('an ordinary publish reclaims an abandoned export', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publish();
+      final path = await writeExport('old-identity.json', 50);
+      final old = record(
+        dataPath: path,
+        byteLength: 50,
+        providerId: provider.providerId,
+        deviceId: 'old-id',
+      );
+      await store.save(old);
+      await File(
+        old.sidecarPath,
+      ).setLastModified(DateTime.now().subtract(const Duration(hours: 1)));
+      await SyncRepository().clearPendingRecords();
+
+      final result = await publish();
+
+      expect(result.kind, ChangesetWriteKind.noop);
+      expect(
+        await File(path).exists(),
+        isFalse,
+        reason: 'the next base publish may be months away',
+      );
+    });
+
     test('a resumed manifest is dated by its export, not the retry', () async {
       // Peers read updatedAt as "everything this device had by then is
       // published"; a photo added between the export and the retry is not

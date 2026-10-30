@@ -234,8 +234,8 @@ class ResumableBasePublishStore {
     }
   }
 
-  /// Whether [file] has gone untouched for [_orphanGrace]. A file that cannot
-  /// be read reports false: when in doubt, nothing here gets deleted.
+  /// Whether [file] has gone untouched for [_orphanGrace]. A stat that throws
+  /// reports false: when in doubt, nothing here gets deleted.
   static Future<bool> _outlivedGrace(File file) async {
     final cutoff = DateTime.now().subtract(_orphanGrace);
     try {

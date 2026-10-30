@@ -95,8 +95,9 @@ class ChangesetWriter {
     /// Awaited with the nonce a manifest carries, before that manifest is
     /// uploaded. Twin detection trusts a nonce only once it has heard of it,
     /// and only this writer knows which one lands: [uploadNonce] is not it when
-    /// a resumed base keeps the nonce it was exported with, or a heartbeat
-    /// keeps the previous one, and a publish with nothing to say writes none.
+    /// a resumed base keeps the nonce it was exported with. A publish with
+    /// nothing to say writes none, and a heartbeat reports none: it re-carries
+    /// a nonce it read back and never minted.
     Future<void> Function(String nonce)? onManifestNonce,
   }) async {
     final providerId = provider.providerId;
@@ -164,18 +165,21 @@ class ChangesetWriter {
     final newSeq = knownHeadSeq + 1;
     final now = DateTime.now().millisecondsSinceEpoch;
 
+    // Every publish, not only a base: this is also the sweep that reclaims
+    // exports nothing will resume, and an ordinary publish may be the last
+    // chance to for months.
+    final resumed = await _resumable.find(
+      providerId: providerId,
+      deviceId: deviceId,
+      epochId: epochId,
+    );
+
     if (!hasBase && !adoptedNoBase) {
       // Resume an export a previous attempt wrote but never finished
       // uploading, before spending a whole re-export on it. A wiped backend
       // forces the entire library out as one base, and on a phone that is
       // minutes of upload; restarting it from part 0 every time the app
       // reopened is why the reporter's sync never converged (#1032).
-      final resumed = await _resumable.find(
-        providerId: providerId,
-        deviceId: deviceId,
-        epochId: epochId,
-      );
-
       // Stream the base to a temp file and slice-upload it, so a large library
       // is never materialized in RAM (#358 write side). Do NOT call
       // exportChangeset(null) here -- that is the OOM path.
@@ -349,13 +353,7 @@ class ChangesetWriter {
           schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
-        await _writeManifest(
-          provider,
-          folderId,
-          deviceId,
-          beat,
-          onManifestNonce,
-        );
+        await _writeManifest(provider, folderId, deviceId, beat, null);
         return ChangesetWriteResult(
           ChangesetWriteKind.heartbeat,
           ownManifest.headSeq,
