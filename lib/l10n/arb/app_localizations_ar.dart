@@ -30126,6 +30126,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_profile_avgDescent => 'متوسط النزول';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'جارٍ تحليل الغطسات: $analyzed من $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => 'غوصات تخفيف الضغط';
 
   @override

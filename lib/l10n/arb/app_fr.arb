@@ -8503,6 +8503,7 @@
   "insights_profile_ascentDescent_title": "Vitesses moyennes de remontée et de descente",
   "insights_profile_avgAscent": "Remontée moy.",
   "insights_profile_avgDescent": "Descente moy.",
+  "insights_profile_deco_analyzing": "Analyse des plongées : {analyzed} sur {total}",
   "insights_profile_deco_decoDives": "Plongées déco",
   "insights_profile_deco_decoLabel": "Déco",
   "insights_profile_deco_decoRate": "Taux déco",

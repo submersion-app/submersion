@@ -29749,6 +29749,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_profile_avgDescent => 'Átl. lesüllyedés';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Merülések elemzése: $analyzed / $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => 'Dekó merülések';
 
   @override

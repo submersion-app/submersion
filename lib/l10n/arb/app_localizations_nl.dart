@@ -29700,6 +29700,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_profile_avgDescent => 'Gem. afdaling';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Duiken analyseren: $analyzed van $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => 'Decoduiken';
 
   @override

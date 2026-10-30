@@ -8604,6 +8604,7 @@
   "insights_profile_ascentDescent_title": "Gemiddelde opstijg- & afdalingssnelheden",
   "insights_profile_avgAscent": "Gem. opstijging",
   "insights_profile_avgDescent": "Gem. afdaling",
+  "insights_profile_deco_analyzing": "Duiken analyseren: {analyzed} van {total}",
   "insights_profile_deco_decoDives": "Decoduiken",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Decopercentage",

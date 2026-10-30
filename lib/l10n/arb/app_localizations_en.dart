@@ -29398,6 +29398,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_profile_avgDescent => 'Avg Descent';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Analyzing dives: $analyzed of $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => 'Deco Dives';
 
   @override

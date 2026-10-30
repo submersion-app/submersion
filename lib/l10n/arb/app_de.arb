@@ -8737,6 +8737,7 @@
   "insights_profile_ascentDescent_title": "Durchschnittliche Aufstiegs- & Abstiegsraten",
   "insights_profile_avgAscent": "Durchschn. Aufstieg",
   "insights_profile_avgDescent": "Durchschn. Abstieg",
+  "insights_profile_deco_analyzing": "Tauchgänge werden analysiert: {analyzed} von {total}",
   "insights_profile_deco_decoDives": "Deko-Tauchgänge",
   "insights_profile_deco_decoLabel": "Deko",
   "insights_profile_deco_decoRate": "Deko-Rate",

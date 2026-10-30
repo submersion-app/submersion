@@ -28188,6 +28188,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_profile_avgDescent => '平均下降';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return '正在分析潜水：$analyzed / $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => '减压潜水';
 
   @override

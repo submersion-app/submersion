@@ -29895,6 +29895,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_profile_avgDescent => 'Descida Média';
 
   @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'A analisar mergulhos: $analyzed de $total';
+  }
+
+  @override
   String get insights_profile_deco_decoDives => 'Mergulhos Deco';
 
   @override

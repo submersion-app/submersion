@@ -8604,6 +8604,7 @@
   "insights_profile_ascentDescent_title": "Taxas Médias de Subida e Descida",
   "insights_profile_avgAscent": "Subida Média",
   "insights_profile_avgDescent": "Descida Média",
+  "insights_profile_deco_analyzing": "A analisar mergulhos: {analyzed} de {total}",
   "insights_profile_deco_decoDives": "Mergulhos Deco",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Taxa Deco",

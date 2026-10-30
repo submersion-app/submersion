@@ -8778,6 +8778,7 @@
   "insights_profile_ascentDescent_title": "平均上升与下降速率",
   "insights_profile_avgAscent": "平均上升",
   "insights_profile_avgDescent": "平均下降",
+  "insights_profile_deco_analyzing": "正在分析潜水：{analyzed} / {total}",
   "insights_profile_deco_decoDives": "减压潜水",
   "insights_profile_deco_decoLabel": "减压",
   "insights_profile_deco_decoRate": "减压速率",

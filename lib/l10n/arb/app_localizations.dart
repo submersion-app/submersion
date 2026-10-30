@@ -47994,6 +47994,12 @@ abstract class AppLocalizations {
   /// **'Avg Descent'**
   String get insights_profile_avgDescent;
 
+  /// No description provided for @insights_profile_deco_analyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing dives: {analyzed} of {total}'**
+  String insights_profile_deco_analyzing(int analyzed, int total);
+
   /// No description provided for @insights_profile_deco_decoDives.
   ///
   /// In en, this message translates to:

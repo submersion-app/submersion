@@ -8499,6 +8499,7 @@
   "insights_profile_ascentDescent_title": "Velocità medie di risalita e discesa",
   "insights_profile_avgAscent": "Risalita media",
   "insights_profile_avgDescent": "Discesa media",
+  "insights_profile_deco_analyzing": "Analisi delle immersioni: {analyzed} di {total}",
   "insights_profile_deco_decoDives": "Immersioni deco",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Percentuale deco",

@@ -8604,6 +8604,7 @@
   "insights_profile_ascentDescent_title": "Velocidades promedio de ascenso y descenso",
   "insights_profile_avgAscent": "Ascenso prom.",
   "insights_profile_avgDescent": "Descenso prom.",
+  "insights_profile_deco_analyzing": "Analizando inmersiones: {analyzed} de {total}",
   "insights_profile_deco_decoDives": "Inmersiones deco",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Tasa deco",

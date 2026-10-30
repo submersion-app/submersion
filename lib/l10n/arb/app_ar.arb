@@ -8604,6 +8604,7 @@
   "insights_profile_ascentDescent_title": "متوسط معدلات الصعود والنزول",
   "insights_profile_avgAscent": "متوسط الصعود",
   "insights_profile_avgDescent": "متوسط النزول",
+  "insights_profile_deco_analyzing": "جارٍ تحليل الغطسات: {analyzed} من {total}",
   "insights_profile_deco_decoDives": "غوصات تخفيف الضغط",
   "insights_profile_deco_decoLabel": "تخفيف الضغط",
   "insights_profile_deco_decoRate": "معدل تخفيف الضغط",

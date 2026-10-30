@@ -8604,6 +8604,7 @@
   "insights_profile_ascentDescent_title": "קצבי עלייה וירידה ממוצעים",
   "insights_profile_avgAscent": "עלייה ממוצעת",
   "insights_profile_avgDescent": "ירידה ממוצעת",
+  "insights_profile_deco_analyzing": "מנתח צלילות: {analyzed} מתוך {total}",
   "insights_profile_deco_decoDives": "צלילות דקו",
   "insights_profile_deco_decoLabel": "דקו",
   "insights_profile_deco_decoRate": "שיעור דקו",

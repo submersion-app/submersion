@@ -8503,6 +8503,7 @@
   "insights_profile_ascentDescent_title": "Átlagos felszállási és lesüllyedési sebesség",
   "insights_profile_avgAscent": "Átl. felszállás",
   "insights_profile_avgDescent": "Átl. lesüllyedés",
+  "insights_profile_deco_analyzing": "Merülések elemzése: {analyzed} / {total}",
   "insights_profile_deco_decoDives": "Dekó merülések",
   "insights_profile_deco_decoLabel": "Dekó",
   "insights_profile_deco_decoRate": "Dekó arány",

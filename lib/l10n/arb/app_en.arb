@@ -17028,6 +17028,7 @@
   "insights_profile_ascentDescent_title": "Average Ascent & Descent Rates",
   "insights_profile_avgAscent": "Avg Ascent",
   "insights_profile_avgDescent": "Avg Descent",
+  "insights_profile_deco_analyzing": "Analyzing dives: {analyzed} of {total}",
   "insights_profile_deco_decoDives": "Deco Dives",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Deco Rate",
@@ -17399,6 +17400,16 @@
       },
       "topCount": {
         "type": "Object"
+      }
+    }
+  },
+  "@insights_profile_deco_analyzing": {
+    "placeholders": {
+      "analyzed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
     }
   },
