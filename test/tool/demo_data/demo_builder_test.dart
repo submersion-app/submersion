@@ -68,8 +68,8 @@ void main() {
     );
   }
 
-  // One whole logbook, for the tests that only read what a build produced.
-  // setUpAll has twelve minutes, where a test has two.
+  // One whole logbook, shared by the tests that start from what a build
+  // produced. setUpAll has twelve minutes, where a test has two.
   group('from one build', () {
     late Directory builtDir;
     late DemoBuildOutput built;
