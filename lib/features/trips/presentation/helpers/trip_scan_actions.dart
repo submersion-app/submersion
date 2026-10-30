@@ -77,14 +77,21 @@ Future<void> scanGalleryForTripPhotos(
       return;
     }
 
-    final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
+    // From the repository, not mediaForTripProvider: nothing on the trip page
+    // watches that provider, so it could dispose mid-read.
+    final linked = await ref
+        .read(tripMediaRepositoryProvider)
+        .getMediaForTrip(
+          tripId,
+          diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+        );
 
     final photoPickerService = ref.read(photoPickerServiceProvider);
     final result = await TripMediaScanner.scanGalleryForTrip(
       dives: dives,
       tripStartDate: trip.startDate,
       tripEndDate: trip.endDate,
-      linked: [for (final items in mediaByDive.values) ...items],
+      linked: linked,
       linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
       photoPickerService: photoPickerService,
     );
@@ -168,7 +175,7 @@ Future<void> _importPhotos(
     }
 
     ref.invalidate(mediaForTripProvider(tripId));
-    ref.invalidate(mediaCountForTripProvider(tripId));
+    ref.invalidate(tripMediaPreviewProvider(tripId));
     ref.invalidate(flatMediaListForTripProvider(tripId));
 
     loading.dismiss(); // Dismiss progress.

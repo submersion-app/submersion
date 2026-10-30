@@ -11,6 +11,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_media_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -74,6 +75,17 @@ class _GrantedPicker implements PhotoPickerService {
 }
 
 /// Trip repository whose candidate lookup returns nothing.
+class _FixedTripMediaRepository extends TripMediaRepository {
+  final List<MediaItem> items;
+  _FixedTripMediaRepository(this.items);
+
+  @override
+  Future<List<MediaItem>> getMediaForTrip(
+    String tripId, {
+    String? diverId,
+  }) async => items;
+}
+
 class _NoCandidatesRepo extends TripRepository {
   @override
   Future<List<DiveCandidate>> findCandidateDivesForTrip({
@@ -269,7 +281,10 @@ void main() {
       tester,
       [
         divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
-        mediaForTripProvider('trip-1').overrideWith((ref) async => {}),
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository(const []),
+        ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         photoPickerServiceProvider.overrideWithValue(_DeniedPicker()),
       ],
       (context, ref) =>
@@ -305,11 +320,10 @@ void main() {
       tester,
       [
         divesForTripProvider('trip-1').overrideWith((ref) async => [dive]),
-        mediaForTripProvider('trip-1').overrideWith(
-          (ref) async => {
-            dive: [row],
-          },
+        tripMediaRepositoryProvider.overrideWithValue(
+          _FixedTripMediaRepository([row]),
         ),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         photoPickerServiceProvider.overrideWithValue(_GrantedPicker([photo])),
         linkedGalleryAssetsProvider.overrideWithValue(
           LinkedGalleryAssets(

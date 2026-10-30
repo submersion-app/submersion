@@ -140,7 +140,7 @@ class TripItineraryTab extends ConsumerWidget {
         tripId: tripId,
         isLiveaboard: trip?.isLiveaboard ?? false,
         kind: tripDayKind(day.date, now),
-        media: storyDay?.media ?? const [],
+        photoCount: storyDay?.photoCount ?? 0,
         sightings: storyDay?.sightings ?? const [],
         storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
         bottomGap: bottomGap,

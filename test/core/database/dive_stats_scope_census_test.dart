@@ -19,6 +19,7 @@ const _censusFiles = <String>[
   'lib/features/buddies/data/repositories/buddy_repository.dart',
   'lib/features/dive_sites/data/repositories/site_repository_impl.dart',
   'lib/features/trips/data/repositories/trip_repository.dart',
+  'lib/features/trips/data/repositories/trip_media_repository.dart',
   'lib/features/dive_centers/data/repositories/dive_center_repository.dart',
   'lib/features/tags/data/repositories/tag_repository.dart',
   'lib/features/dive_types/data/repositories/dive_type_repository.dart',

@@ -191,7 +191,7 @@ class TripGalleryPage extends ConsumerWidget {
 
       // Invalidate trip-level providers
       ref.invalidate(mediaForTripProvider(tripId));
-      ref.invalidate(mediaCountForTripProvider(tripId));
+      ref.invalidate(tripMediaPreviewProvider(tripId));
       ref.invalidate(flatMediaListForTripProvider(tripId));
 
       if (!context.mounted) return;

@@ -7,9 +7,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+TripMediaPreview _preview(List<MediaItem> media, {int? total}) {
+  return TripMediaPreview(
+    byDiveId: {
+      'dive-1': DiveMediaPreview(
+        items: media,
+        mediaCount: total ?? media.length,
+        photoCount: total ?? media.length,
+      ),
+    },
+  );
+}
 
 void main() {
   group('TripPhotoSection', () {
@@ -20,8 +33,8 @@ void main() {
             mediaCountForTripProvider('empty-trip').overrideWith((ref) {
               return Future.value(0);
             }),
-            flatMediaListForTripProvider('empty-trip').overrideWith((ref) {
-              return Future.value(<MediaItem>[]);
+            tripMediaPreviewProvider('empty-trip').overrideWith((ref) {
+              return Future.value(TripMediaPreview.empty);
             }),
           ],
           child: const MaterialApp(
@@ -50,8 +63,8 @@ void main() {
             mediaCountForTripProvider('test-trip').overrideWith((ref) {
               return Future.value(3);
             }),
-            flatMediaListForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value(testMedia);
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
+              return Future.value(_preview(testMedia));
             }),
             // Mock thumbnail provider to return placeholder bytes
             assetThumbnailProvider('asset-1').overrideWith((ref) {
@@ -88,8 +101,8 @@ void main() {
             mediaCountForTripProvider('empty-trip').overrideWith((ref) {
               return Future.value(0);
             }),
-            flatMediaListForTripProvider('empty-trip').overrideWith((ref) {
-              return Future.value(<MediaItem>[]);
+            tripMediaPreviewProvider('empty-trip').overrideWith((ref) {
+              return Future.value(TripMediaPreview.empty);
             }),
           ],
           child: MaterialApp(
@@ -126,8 +139,8 @@ void main() {
             mediaCountForTripProvider('test-trip').overrideWith((ref) {
               return Future.value(1);
             }),
-            flatMediaListForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value(testMedia);
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
+              return Future.value(_preview(testMedia));
             }),
             assetThumbnailProvider('asset-1').overrideWith((ref) {
               return Future.value(_createPlaceholderImage());
@@ -156,8 +169,8 @@ void main() {
             mediaCountForTripProvider('test-trip').overrideWith((ref) {
               return Future.value(1);
             }),
-            flatMediaListForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value(testMedia);
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
+              return Future.value(_preview(testMedia));
             }),
             assetThumbnailProvider('asset-1').overrideWith((ref) {
               return Future.value(_createPlaceholderImage());
@@ -185,8 +198,8 @@ void main() {
             mediaCountForTripProvider('test-trip').overrideWith((ref) {
               return Future.value(8);
             }),
-            flatMediaListForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value(testMedia);
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
+              return Future.value(_preview(testMedia));
             }),
             // Override thumbnail provider for first 5 assets
             assetThumbnailProvider('asset-1').overrideWith((ref) {
@@ -222,7 +235,7 @@ void main() {
     testWidgets('shows loading indicator while fetching', (tester) async {
       // Use Completers that never complete to keep the providers in loading state
       final countCompleter = Completer<int>();
-      final listCompleter = Completer<List<MediaItem>>();
+      final listCompleter = Completer<TripMediaPreview>();
 
       await tester.pumpWidget(
         ProviderScope(
@@ -230,7 +243,7 @@ void main() {
             mediaCountForTripProvider('test-trip').overrideWith((ref) {
               return countCompleter.future;
             }),
-            flatMediaListForTripProvider('test-trip').overrideWith((ref) {
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
               return listCompleter.future;
             }),
           ],
@@ -246,6 +259,44 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('the more tile counts the whole trip, not the preview', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final preview = [
+        for (var i = 0; i < tripMediaPreviewLimit; i++)
+          MediaItem(
+            id: 'media-$i',
+            mediaType: MediaType.photo,
+            takenAt: now.add(Duration(minutes: i)),
+            createdAt: now,
+            updatedAt: now,
+          ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            mediaCountForTripProvider('test-trip').overrideWith((ref) {
+              return Future.value(40);
+            }),
+            tripMediaPreviewProvider('test-trip').overrideWith((ref) {
+              return Future.value(_preview(preview, total: 40));
+            }),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: TripPhotoSection(tripId: 'test-trip')),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('+35'), findsOneWidget);
+      expect(find.text('40'), findsOneWidget);
     });
   });
 }

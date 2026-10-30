@@ -5,6 +5,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
@@ -63,7 +64,7 @@ TripStory buildTripStory({
   required Trip trip,
   required List<Dive> dives,
   required List<ItineraryDay> itineraryDays,
-  required Map<String, List<MediaItem>> mediaByDiveId,
+  required Map<String, DiveMediaPreview> mediaByDiveId,
   required Map<String, List<Sighting>> sightingsByDiveId,
   required List<TripChecklistItem> checklistItems,
   required DateTime today,
@@ -131,11 +132,18 @@ TripStory buildTripStory({
 
     final media = <MediaItem>[];
     final sightings = <Sighting>[];
+    var mediaCount = 0;
+    var photoCount = 0;
     for (final dive in dayDives) {
-      media.addAll(mediaByDiveId[dive.id] ?? const []);
+      final preview = mediaByDiveId[dive.id];
+      if (preview != null) {
+        media.addAll(preview.items);
+        mediaCount += preview.mediaCount;
+        photoCount += preview.photoCount;
+      }
       sightings.addAll(sightingsByDiveId[dive.id] ?? const []);
     }
-    media.sort((a, b) => a.takenAt.compareTo(b.takenAt));
+    media.sort(compareMediaChronologically);
 
     final kind = tripDayKind(date, todayDate);
 
@@ -146,7 +154,9 @@ TripStory buildTripStory({
         kind: kind,
         itineraryDay: itineraryDay,
         dives: dayDives,
-        media: media,
+        media: media.take(tripMediaPreviewLimit).toList(),
+        mediaCount: mediaCount,
+        photoCount: photoCount,
         sightings: sightings,
       ),
     );
