@@ -112,6 +112,23 @@ void main() {
     expect(find.text('Deco Dives'), findsNothing);
   });
 
+  testWidgets(
+    'shows the dives left out of the rate as soon as they are known',
+    (tester) async {
+      await pumpPage(
+        tester,
+        progress: (
+          stats: (decoCount: 0, noDecoCount: 0, unknownCount: 5),
+          analyzed: 0,
+          total: 40,
+        ),
+      );
+
+      expect(find.textContaining('5 dives have no recorded'), findsOneWidget);
+      expect(find.text('Analyzing dives: 0 of 40'), findsOneWidget);
+    },
+  );
+
   testWidgets('falls back to the spinner before the scan has finished', (
     tester,
   ) async {

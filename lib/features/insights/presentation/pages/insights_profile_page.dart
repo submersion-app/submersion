@@ -243,7 +243,7 @@ class InsightsProfilePage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (stats.decoCount + stats.noDecoCount > 0) ...[
+        if (stats.decoCount + stats.noDecoCount + stats.unknownCount > 0) ...[
           _buildDecoBreakdown(context, stats),
           const SizedBox(height: 16),
         ],

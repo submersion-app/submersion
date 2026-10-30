@@ -306,14 +306,21 @@ void main() {
     'a lookback analysis invalidated mid-load does not strand the pass',
     () async {
       final twoHours = const Duration(hours: 2).inMilliseconds;
-      // Named so the later dive runs first and the lookback hits the earlier one.
-      await insertDive('a-later', at: now + twoHours);
-      await insertBareProfile('a-later', 18, 30);
-      await insertDive('b-earlier');
-      await insertBareProfile('b-earlier', 18, 30);
+      await insertDive('later', at: now + twoHours);
+      await insertBareProfile('later', 18, 30);
+      // A recorded deco signal keeps this dive out of the pass, so the only
+      // reader of its analysis is the later dive's lookback.
+      await insertDive('earlier');
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'earlier',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 9.0, decoType: 2, ceiling: 9.0),
+        ],
+        now: now,
+      );
       final (depths, times) = _square(18, 30);
       final previous = ProfileAnalysisService().analyze(
-        diveId: 'b-earlier',
+        diveId: 'earlier',
         depths: depths,
         timestamps: times,
       );
@@ -323,7 +330,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           ...(await getBaseOverrides()),
-          profileAnalysisProvider('b-earlier').overrideWith((ref) async {
+          profileAnalysisProvider('earlier').overrideWith((ref) async {
             if (!started.isCompleted) started.complete();
             await gate.future;
             return previous.copyWith(
@@ -338,7 +345,7 @@ void main() {
 
       final result = container.read(decoObligationStatsProvider.future);
       await started.future.timeout(const Duration(seconds: 5));
-      container.invalidate(profileAnalysisProvider('b-earlier'));
+      container.invalidate(profileAnalysisProvider('earlier'));
       await pumpEventQueue();
       gate.complete();
 
@@ -421,14 +428,15 @@ void main() {
     });
 
     test('a dive that yields nothing counts as unknown, not pending', () async {
-      await insertDive('deep');
-      await insertBareProfile('deep', 40, 25);
-      await insertDive('empty');
-      await insertBareProfile('empty', 18, 30);
+      await insertDive('one');
+      await insertBareProfile('one', 40, 25);
+      await insertDive('two');
+      await insertBareProfile('two', 18, 30);
       final container = ProviderContainer(
         overrides: [
           ...(await getBaseOverrides()),
-          profileAnalysisProvider('deep').overrideWith((ref) async => null),
+          profileAnalysisProvider('one').overrideWith((ref) async => null),
+          profileAnalysisProvider('two').overrideWith((ref) async => null),
         ].cast(),
       );
       addTearDown(container.dispose);
