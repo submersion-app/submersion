@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in again mockups</title>
+<style>
+  :root { --bg-primary: #fff; --bg-secondary: #f4f5f7; --text-primary: #1a1a1a;
+          --text-secondary: #666; --border: #ddd; }
+  body { font-family: system-ui, sans-serif; margin: 24px auto; max-width: 720px;
+         padding: 0 16px; color: var(--text-primary); background: var(--bg-primary); }
+  .card, .mockup { border: 1px solid var(--border); border-radius: 12px;
+                   margin: 16px 0; overflow: hidden; }
+  .card-body, .mockup-body { padding: 12px; }
+  .mockup-header { padding: 8px 12px; font-size: 13px; color: var(--text-secondary); }
+  .subtitle { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<h2>Where should "Sign in again" live?</h2>
+<p class="subtitle">Google Drive refused access. Both options run the same action: sign in, then sync. The Backups line works the same way when a cloud copy fails for this reason.</p>
+
+<style>
+  .ph { background: var(--bg-secondary, #f4f5f7); border-radius: 12px; padding: 12px; font-size: 13px; color: var(--text-primary, #1a1a1a); }
+  .ph h5 { margin: 0 0 8px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-secondary, #666); }
+  .tick, .bad, .warn { display: inline-block; width: 16px; height: 16px; border-radius: 50%; text-align: center; line-height: 16px; color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+  .tick { background: #2e8b57; } .bad { background: #c0392b; } .warn { background: #d68910; }
+  .strip { display: flex; justify-content: space-around; text-align: center; font-size: 11px; margin-bottom: 8px; }
+  .strip div span { display: block; margin: 0 auto 4px; }
+  .line { display: flex; align-items: center; gap: 8px; padding: 6px 2px; }
+  .line .t { flex: 1; }
+  .btn { border: 0; background: none; color: #1565c0; font-weight: 600; font-size: 13px; padding: 2px 4px; cursor: default; }
+  .fbtn { border: 0; background: #1565c0; color: #fff; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 18px; cursor: default; }
+  .card2 { background: var(--bg-primary, #fff); border: 1px solid var(--border, #ddd); border-radius: 12px; padding: 12px; margin-top: 8px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row .t { flex: 1; }
+  .ico { font-size: 22px; }
+  .sm { font-size: 12px; color: var(--text-secondary, #666); }
+  .banner { background: #fdecea; color: #611a15; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .banner .acts { text-align: right; margin-top: 4px; }
+  .gap { height: 10px; }
+</style>
+
+<div class="cards">
+  <div class="card" data-choice="inline">
+    <div class="card-image">
+      <div class="ph">
+        <h5>Settings &gt; Data</h5>
+        <div class="strip">
+          <div><span class="warn">!</span>Backup</div>
+          <div><span class="bad">!</span>Sync</div>
+          <div><span class="tick">&#10003;</span>Libraries</div>
+          <div><span class="tick">&#10003;</span>Photos</div>
+        </div>
+        <div class="line"><span class="bad">!</span><span class="t">Sync paused: sign in again</span><button class="btn">Sign in again</button></div>
+        <div class="line"><span class="warn">!</span><span class="t">Last backup did not reach the cloud</span><button class="btn">Sign in again</button></div>
+        <div class="gap"></div>
+        <h5>Cloud Sync</h5>
+        <div class="card2">
+          <div class="row"><span class="ico">&#9729;</span><div class="t"><b>Sign-in needed</b><div class="sm">Google Drive needs you to sign in again.</div></div><span>&#8250;</span></div>
+          <div style="margin-top:10px"><button class="fbtn">Sign in again</button></div>
+          <div class="sm" style="margin-top:8px">Last synced: yesterday, 18:04</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. On the error itself (my pick)</h3>
+      <p>The button sits on the line or card that shows the problem. Nothing new on the page, and the rest of the card still opens Troubleshoot Sync.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="banner">
+    <div class="card-image">
+      <div class="ph">
+        <h5>Settings &gt; Data</h5>
+        <div class="banner">
+          <b>Google Drive needs you to sign in again</b>
+          <div class="sm" style="color:#611a15">Sync and backups are paused until you do.</div>
+          <div class="acts"><button class="btn" style="color:#611a15">Sign in again</button></div>
+        </div>
+        <div class="strip">
+          <div><span class="warn">!</span>Backup</div>
+          <div><span class="bad">!</span>Sync</div>
+          <div><span class="tick">&#10003;</span>Libraries</div>
+          <div><span class="tick">&#10003;</span>Photos</div>
+        </div>
+        <div class="line"><span class="bad">!</span><span class="t">Sync paused: sign in again</span></div>
+        <div class="line"><span class="warn">!</span><span class="t">Last backup did not reach the cloud</span></div>
+        <div class="gap"></div>
+        <h5>Cloud Sync</h5>
+        <div class="banner">
+          <b>Google Drive needs you to sign in again</b>
+          <div class="acts"><button class="btn" style="color:#611a15">Sign in again</button></div>
+        </div>
+        <div class="card2">
+          <div class="row"><span class="ico">&#9729;</span><div class="t"><b>Sync error</b><div class="sm">Google Drive needs you to sign in again.</div></div><span>&#8250;</span></div>
+          <div class="sm" style="margin-top:8px">Last synced: yesterday, 18:04</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. One banner at the top</h3>
+      <p>One action per account, even if sync and backup both failed. Louder, but it repeats what the strip and card already say, and it's a new piece of page furniture.</p>
+    </div>
+  </div>
+</div>
+
+<hr>
+<h2>Signing in with a different account</h2>
+<p class="subtitle">The wrong account is refused before any of it is kept, so nothing can sync into it. The diver's existing state stays as it was.</p>
+
+<style>
+  .scrim { background: rgba(0,0,0,.45); border-radius: 12px; padding: 34px 16px; display: flex; justify-content: center; }
+  .dlg { background: var(--bg-primary, #fff); color: var(--text-primary, #1a1a1a); border-radius: 24px; padding: 22px; max-width: 340px; font-size: 14px; line-height: 1.45; }
+  .dlg h4 { margin: 0 0 10px; font-size: 19px; font-weight: 500; }
+  .dlg p { margin: 0 0 10px; }
+  .acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; align-items: center; }
+  .tb { border: 0; background: none; color: #1565c0; font-weight: 600; font-size: 13px; cursor: default; }
+  .fb { border: 0; background: #1565c0; color: #fff; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 18px; cursor: default; }
+  .flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; font-size: 13px; }
+  .step { border: 1px solid var(--border, #ddd); border-radius: 10px; padding: 10px; }
+  .step b { display: block; margin-bottom: 4px; }
+  @media (max-width: 640px) { .flow { grid-template-columns: 1fr; } }
+</style>
+
+<div class="mockup">
+  <div class="mockup-header">Dialog after signing in as the wrong account</div>
+  <div class="mockup-body">
+    <div class="scrim">
+      <div class="dlg">
+        <h4>That's a different account</h4>
+        <p>Sync uses <b>diver@example.com</b>, but you signed in as <b>other@example.com</b>.</p>
+        <p>Nothing was synced, and other@example.com was not connected.</p>
+        <div class="acts">
+          <button class="tb">Not now</button>
+          <button class="fb">Sign in again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow">
+  <div class="step"><b>Same account</b>Sign-in finishes, sync runs straight away, and the error clears.</div>
+  <div class="step"><b>Cancelled</b>Nothing changes. The error and its button stay where they were.</div>
+  <div class="step"><b>Sign-in fails</b>The existing red message appears, as it does on the account page today.</div>
+</div>
+</body>
+</html>
