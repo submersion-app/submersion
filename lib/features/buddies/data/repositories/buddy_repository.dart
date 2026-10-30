@@ -494,10 +494,10 @@ class BuddyRepository {
   /// junction, in batched [getBuddiesForDives] queries.
   ///
   /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
-  /// junction unloaded (only `getAllDives` hydrates it), when the caller shows
-  /// or exports the people on them (#3039). The ids are bound in runs of
-  /// [chunkSize], since a whole trip or a large export selection has no upper
-  /// bound and each id is one SQL variable.
+  /// junction unloaded (`getAllDives` and `getDivesByIdsWithoutSamples` hydrate
+  /// it), when the caller shows or exports the people on them (#3039). The ids
+  /// are bound in runs of [chunkSize], since a whole trip or a large export
+  /// selection has no upper bound and each id is one SQL variable.
   Future<List<dive_domain.Dive>> withBuddies(
     List<dive_domain.Dive> dives, {
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,

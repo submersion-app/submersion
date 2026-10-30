@@ -42,8 +42,8 @@ timings run SQLite on the test isolate, not on the app's background isolate, and
 are not from a phone. The statement and byte columns hold on any device; read
 the milliseconds as a ratio.
 
-The 10-dive Overview reads lower than its Dives tab because the benchmark reads
-the Dives tab first and warms the page cache.
+The 10-dive Overview reads lower than its Dives tab. The benchmark reads the Dives
+tab first, which may warm the page cache, but that was not measured.
 
 ## The rows were not metadata only
 

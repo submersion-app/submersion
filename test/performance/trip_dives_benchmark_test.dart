@@ -1,7 +1,6 @@
 @Tags(['performance'])
 library;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -25,6 +24,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+
+import '../helpers/drift_statement_log.dart';
 
 /// Issue #3831: what a trip screen waits for, by the size of the trip.
 ///
@@ -50,6 +51,7 @@ void main() {
       if (work.existsSync()) work.deleteSync(recursive: true);
     });
 
+    var isOpen = false;
     AppDatabase open(String path, {bool log = false}) {
       final db = AppDatabase(
         NativeDatabase(
@@ -59,13 +61,19 @@ void main() {
         ),
       );
       DatabaseService.instance.setTestDatabase(db);
+      isOpen = true;
       return db;
     }
 
     Future<void> close() async {
+      if (!isOpen) return;
+      isOpen = false;
       await DatabaseService.instance.database.close();
       DatabaseService.instance.resetForTesting();
     }
+
+    // A failure partway through still puts the database back.
+    addTearDown(close);
 
     // The old body of divesForTripProvider.
     Future<List<domain.Dive>> legacyRead() async {
@@ -128,11 +136,11 @@ void main() {
 
       open(path, log: true);
       final ids = await TripRepository().getDiveIdsForTrip(tripId);
-      final legacyStatements = await _statementsOf(legacyRead);
-      final leanStatements = await _statementsOf(
+      final legacyStatements = await statementsOf(legacyRead);
+      final leanStatements = await statementsOf(
         () => DiveRepository().getDivesByIdsWithoutSamples(ids),
       );
-      final leanBlobReads = leanStatements.where(_readsSeriesBlob).length;
+      final leanBlobReads = leanStatements.where(readsSeriesBlob).length;
       await close();
 
       expect(leanBlobReads, 0, reason: 'decoded a series on a $size-dive trip');
@@ -160,25 +168,6 @@ void main() {
       '${rows.join('\n')}',
     );
   });
-}
-
-/// Recognises a read of a series blob: drift's full row read of either table,
-/// or a named blob column. The same check as the statement test beside the
-/// repository.
-bool _readsSeriesBlob(String statement) => RegExp(
-  r'SELECT \* FROM "(dive_profile_series|tank_pressure_series)"'
-  r'|\bsamples\b',
-).hasMatch(statement);
-
-Future<List<String>> _statementsOf(Future<void> Function() read) async {
-  final logged = <String>[];
-  await runZoned(
-    read,
-    zoneSpecification: ZoneSpecification(
-      print: (self, parent, zone, line) => logged.add(line),
-    ),
-  );
-  return logged.where((line) => line.startsWith('Drift: Sent')).toList();
 }
 
 /// Blob bytes across every series of every dive: what a detail read of the

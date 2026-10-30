@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as tags;
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Issue #3831: trip screens list dives, so they read them without decoding
@@ -432,24 +431,6 @@ void main() {
   });
 
   group('what it costs', () {
-    /// One recorded dive-series read, however it is spelled: drift's full
-    /// row read of either table, or a named blob column.
-    final readsSamples = RegExp(
-      r'SELECT \* FROM "(dive_profile_series|tank_pressure_series)"'
-      r'|\bsamples\b',
-    );
-
-    Future<List<String>> statementsOf(Future<void> Function() read) async {
-      final logged = <String>[];
-      await runZoned(
-        read,
-        zoneSpecification: ZoneSpecification(
-          print: (self, parent, zone, line) => logged.add(line),
-        ),
-      );
-      return logged.where((l) => l.startsWith('Drift: Sent')).toList();
-    }
-
     setUp(() async {
       db = AppDatabase(
         NativeDatabase.memory(
@@ -481,9 +462,9 @@ void main() {
       );
       final full = await statementsOf(() => repository.getDivesByIds(ids));
 
-      expect(lean.where(readsSamples.hasMatch), isEmpty);
+      expect(lean.where(readsSeriesBlob), isEmpty);
       // The matcher still recognises the read it is there to forbid.
-      expect(full.where(readsSamples.hasMatch), isNotEmpty);
+      expect(full.where(readsSeriesBlob), isNotEmpty);
     });
 
     test('costs the same statements for 12 dives as for 1', () async {
@@ -530,8 +511,8 @@ void main() {
       );
 
       expect(
-        mixed.where(readsSamples.hasMatch).length,
-        alone.where(readsSamples.hasMatch).length,
+        mixed.where(readsSeriesBlob).length,
+        alone.where(readsSeriesBlob).length,
       );
     });
   });
