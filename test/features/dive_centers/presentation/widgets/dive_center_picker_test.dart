@@ -86,6 +86,46 @@ void main() {
     }
   }
 
+  group('with no create callback', () {
+    Future<void> pumpNoCreate(
+      WidgetTester tester,
+      List<DiveCenter> centers,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            allDiveCentersProvider.overrideWith((ref) async => centers),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: DiveCenterPickerSheet(
+            scrollController: ScrollController(),
+            selectedCenter: null,
+            onCenterSelected: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the header offers no new center', (tester) async {
+      await pumpNoCreate(tester, [
+        DiveCenter(
+          id: 'c',
+          name: 'Reef',
+          notes: '',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ]);
+      expect(find.byIcon(Icons.add), findsNothing);
+    });
+
+    testWidgets('the empty state offers no new center', (tester) async {
+      await pumpNoCreate(tester, const []);
+      expect(find.byIcon(Icons.add), findsNothing);
+    });
+  });
+
   testWidgets('a site puts its nearby centers first, nearest at the top', (
     tester,
   ) async {

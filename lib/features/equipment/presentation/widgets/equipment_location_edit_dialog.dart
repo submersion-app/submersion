@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
@@ -46,6 +50,10 @@ class _EquipmentLocationEditDialogState
   late final TextEditingController _name;
   late final TextEditingController _notes;
   late EquipmentLocationKind _kind;
+
+  /// Held while the kind changes, so a mistaken change loses nothing; only
+  /// a Dive center place saves it.
+  String? _centerId;
   bool _saving = false;
 
   @override
@@ -56,6 +64,7 @@ class _EquipmentLocationEditDialogState
     );
     _notes = TextEditingController(text: widget.existing?.notes ?? '');
     _kind = widget.existing?.kind ?? EquipmentLocationKind.storage;
+    _centerId = widget.existing?.diveCenterId;
   }
 
   @override
@@ -75,6 +84,55 @@ class _EquipmentLocationEditDialogState
     );
   }
 
+  /// Choosing among the diver's saved centers only: one not saved yet can
+  /// be typed as a name now and linked later.
+  Future<void> _pickCenter(DiveCenter? current) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, scrollController) => DiveCenterPickerSheet(
+        scrollController: scrollController,
+        selectedCenter: current,
+        onCenterSelected: (center) {
+          Navigator.of(sheetContext).pop();
+          setState(() {
+            _centerId = center.id;
+            if (_name.text.trim().isEmpty) _name.text = center.name;
+          });
+        },
+      ),
+    ),
+  );
+
+  Widget _centerField(AppLocalizations l10n) {
+    final id = _centerId;
+    final center = id == null
+        ? null
+        : ref.watch(diveCenterByIdProvider(id)).value;
+    return InkWell(
+      key: const ValueKey('equipment_location_center'),
+      onTap: () => _pickCenter(center),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: l10n.equipment_locations_savedCenterLabel,
+          suffixIcon: id == null
+              ? const Icon(Icons.arrow_drop_down)
+              : IconButton(
+                  key: const ValueKey('equipment_location_center_clear'),
+                  icon: const Icon(Icons.clear),
+                  tooltip: l10n.equipment_locations_savedCenterClear,
+                  onPressed: () => setState(() => _centerId = null),
+                ),
+        ),
+        child: Text(center?.name ?? l10n.equipment_locations_savedCenterNone),
+      ),
+    );
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
@@ -83,18 +141,24 @@ class _EquipmentLocationEditDialogState
     final failed = context.l10n.common_error_tryAgain;
     try {
       final existing = widget.existing;
+      final centerId = _kind == EquipmentLocationKind.diveCenter
+          ? _centerId
+          : null;
       final EquipmentLocation saved;
       if (existing == null) {
         saved = await repo.createLocation(
           diverId: await ref.read(validatedCurrentDiverIdProvider.future),
           name: _name.text,
           kind: _kind,
+          diveCenterId: centerId,
           notes: _notes.text,
         );
       } else {
         saved = existing.copyWith(
           name: _name.text.trim(),
           kind: _kind,
+          diveCenterId: centerId,
+          clearDiveCenterId: centerId == null,
           notes: _notes.text.trim(),
         );
         await repo.updateLocation(saved);
@@ -165,6 +229,10 @@ class _EquipmentLocationEditDialogState
                 ],
                 onChanged: (k) => setState(() => _kind = k ?? _kind),
               ),
+              if (_kind == EquipmentLocationKind.diveCenter) ...[
+                const SizedBox(height: 16),
+                _centerField(l10n),
+              ],
               const SizedBox(height: 16),
               MarkdownNotesField(
                 key: const ValueKey('equipment_location_notes'),
