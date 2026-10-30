@@ -25,11 +25,12 @@ typedef SeriesReduction<R> = ({R result, List<String> unreadableSeriesIds});
 
 /// The fewest stored samples worth handing to another isolate.
 ///
-/// The hand-off copies the blobs and waits an event-loop turn. Measured in a
-/// release build on an M-series Mac, a 4,000-sample dive across two series
-/// costs 6 ms to decode and merge, while an 80-sample one costs 0.1 ms against
-/// 0.15 ms through an isolate, so a dive this short finishes sooner where it
-/// is.
+/// The hand-off copies the blobs and waits an event-loop turn, so it always
+/// takes longer overall; what it buys is a UI isolate that keeps painting.
+/// Measured in a release build on an M-series Mac, a 4,000-sample dive across
+/// two series costs 6 ms to decode and merge, and 580 samples 0.7 ms. Below
+/// this limit a read stalls the UI isolate for about 0.3 ms, which is not
+/// worth the extra wait even on a slower phone.
 const int kInlineSeriesSampleLimit = 256;
 
 /// Decodes [rows] and runs [reduce] over the series that read, on this

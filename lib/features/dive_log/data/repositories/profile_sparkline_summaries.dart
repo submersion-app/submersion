@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
-import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
@@ -53,27 +52,22 @@ SparklineSummaries summarizeSparklines(
   List<DiveProfileSeriesRow> rows, {
   required int maxSamples,
 }) {
-  final byDive = <String, List<ProfileSeries>>{};
-  final unreadable = <String>[];
-  for (final row in rows) {
-    final ProfileSeries series;
-    try {
-      series = decodeProfileSeriesRow(row);
-    } on ProfileSeriesCodecException {
-      unreadable.add(row.id);
-      continue;
+  final reduction = reduceSeriesRows(rows, (series) {
+    final byDive = <String, List<ProfileSeries>>{};
+    for (final s in series) {
+      byDive.putIfAbsent(s.diveId, () => []).add(s);
     }
-    byDive.putIfAbsent(row.diveId, () => []).add(series);
-  }
-  return (
-    byDive: {
+    return {
       for (final entry in byDive.entries)
         entry.key: _downsample([
           for (final p in mergeSeriesPoints(_sparklineSeries(entry.value)))
             DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
         ], maxSamples),
-    },
-    unreadableSeriesIds: unreadable,
+    };
+  });
+  return (
+    byDive: reduction.result,
+    unreadableSeriesIds: reduction.unreadableSeriesIds,
   );
 }
 
