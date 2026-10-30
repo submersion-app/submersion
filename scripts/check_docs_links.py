@@ -200,6 +200,7 @@ USER_HOME = "README.md"
 USER_SIDEBAR = "_sidebar.md"
 USER_HOW_TO_INDEX = "how-to-guides.md"
 USER_HOW_TO_PREFIX = "how-to-"
+SCREENSHOT_MARKER = "<!-- screenshot:"
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$")
 # docsify rebases Markdown links and images onto its base path, but not raw
 # HTML, so a relative <a href> or <img src> works on GitHub and breaks on the
@@ -311,6 +312,13 @@ def check_user_docs(root):
                 f"{os.path.join(USER_DOCS, name)}: not linked from {USER_HOW_TO_INDEX}, "
                 "so the How-To Guides index misses it"
             )
+        if is_guide:
+            for number, line in _unfenced_lines(pages[name]):
+                if SCREENSHOT_MARKER in line:
+                    failures.append(
+                        f"{os.path.join(USER_DOCS, name)}:{number}: screenshot marker "
+                        "left in; replace it with the captured image"
+                    )
 
     slugs = {name: _heading_slugs(text) for name, text in pages.items()}
     for name, text in sorted(pages.items()):

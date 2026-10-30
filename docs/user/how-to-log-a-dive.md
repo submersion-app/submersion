@@ -32,11 +32,11 @@ The first time, your device asks for permission to use Bluetooth. Allow it.
 
    For a USB computer, plug in the cable, switch to the **USB Cable** tab, and pick your model from the list (search by manufacturer or model).
 
-<!-- screenshot: images/how-to/log-a-dive/02-scan.png: the scan step listing a dive computer with its Supported badge and signal bars; mac; maintainer's computer in Bluetooth mode -->
+![The scan step listing a dive computer with its Supported badge](images/how-to/log-a-dive/02-scan.png)
 
 3. Check the name in **Device Name**, or give it one you will recognise, then tap **Connect & Download**.
 
-<!-- screenshot: images/how-to/log-a-dive/03-confirm.png: the confirm step with Device Name, Recognized Device and Connect & Download; mac; maintainer's computer -->
+![The confirm step with Device Name, Recognized Device and Connect & Download](images/how-to/log-a-dive/03-confirm.png)
 
 4. Some computers show a code on their screen and ask for it. When **PIN Code Required** appears, type the code into **PIN Code** and tap **Submit**.
 
@@ -46,7 +46,7 @@ The first time, your device asks for permission to use Bluetooth. Allow it.
 
 The download starts. A percentage counts up, and **Downloaded Dives** fills in as each dive arrives.
 
-<!-- screenshot: images/how-to/log-a-dive/04-downloading.png: the download step with the progress percentage, before any dive rows appear; mac; maintainer's computer -->
+![The download step with the progress percentage, before any dive rows appear](images/how-to/log-a-dive/04-downloading.png)
 
 Stay on this screen until it finishes. If you switch to another part of the app, Submersion asks first, because leaving cancels the download.
 
