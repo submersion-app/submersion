@@ -424,8 +424,8 @@ void main() {
       expect(connected, SetUpConnect.connected);
     });
 
-    testWidgets('waits for the sync account write a first selection starts, '
-        'rather than reading no account yet', (tester) async {
+    testWidgets('waits for the sync account write that a first selection '
+        'starts, rather than reading no account yet', (tester) async {
       String? syncId;
       final write = Completer<void>();
       final (context, ref) = await pumpHost(
