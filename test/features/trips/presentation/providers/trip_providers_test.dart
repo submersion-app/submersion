@@ -354,6 +354,56 @@ void main() {
       final dives = await container.read(divesForTripProvider(trip.id).future);
       expect(dives.single.resolvedBuddyNames, 'Ana Reyes');
     });
+
+    test('divesForTripProvider lists the active diver\'s dives, side trips '
+        'included and newest first, without reading their samples '
+        '(#3831)', () async {
+      Future<Diver> diver(String name) => diverRepo.createDiver(
+        Diver(
+          id: '',
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      final me = await diver('Me');
+      final other = await diver('Other');
+      await prefs.setString(currentDiverIdKey, me.id);
+
+      final trip = await tripRepo.createTrip(_makeTrip(name: 'Larger'));
+      final sideTrip = await tripRepo.createTrip(_makeTrip(name: 'Side'));
+      await db.customStatement(
+        'UPDATE trips SET parent_trip_id = ? WHERE id = ?',
+        [trip.id, sideTrip.id],
+      );
+
+      Future<Dive> dive(String tripId, String diverId, int day) =>
+          diveRepo.createDive(
+            Dive(
+              id: '',
+              diverId: diverId,
+              tripId: tripId,
+              dateTime: DateTime.utc(2024, 1, day),
+              runtime: const Duration(minutes: 50),
+              waterTemp: 26,
+              profile: const [
+                DiveProfilePoint(timestamp: 0, depth: 0),
+                DiveProfilePoint(timestamp: 3000, depth: 0),
+              ],
+            ),
+          );
+      final first = await dive(trip.id, me.id, 1);
+      final onSideTrip = await dive(sideTrip.id, me.id, 2);
+      await dive(trip.id, other.id, 3);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final dives = await container.read(divesForTripProvider(trip.id).future);
+
+      expect(dives.map((d) => d.id), [onSideTrip.id, first.id]);
+      expect(dives.map((d) => d.profile), everyElement(isEmpty));
+    });
   });
 
   group('tripWithStatsProvider reactivity', () {

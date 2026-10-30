@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -97,6 +99,40 @@ void main() {
   }
 
   group('findCandidateDivesForTrip', () {
+    test('reads the candidates without their samples, since the assignment '
+        'dialog only lists them (#3831)', () async {
+      final startDate = DateTime(2024, 6, 1);
+      final endDate = DateTime(2024, 6, 7);
+      await insertTrip(id: tripId, startDate: startDate, endDate: endDate);
+      await insertDive(
+        id: 'recorded',
+        dateTime: DateTime(2024, 6, 3),
+        dId: diverId,
+      );
+      await db.customStatement(
+        'UPDATE dives SET water_temp = 26, runtime = 3000, max_depth = 18 '
+        'WHERE id = ?',
+        ['recorded'],
+      );
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'recorded',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 3000, depth: 0),
+        ],
+      );
+
+      final candidates = await repository.findCandidateDivesForTrip(
+        tripId: tripId,
+        startDate: startDate,
+        endDate: endDate,
+        diverId: diverId,
+      );
+
+      expect(candidates.single.dive.maxDepth, 18);
+      expect(candidates.single.dive.profile, isEmpty);
+    });
+
     test('returns unassigned dives within trip date range', () async {
       final startDate = DateTime(2024, 6, 1);
       final endDate = DateTime(2024, 6, 7);

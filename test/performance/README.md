@@ -70,6 +70,7 @@ Profile points are generated every 2 seconds of dive time (matching real dive co
 | `dive_repository_perf_test.dart` | Dive CRUD and pagination benchmarks |
 | `site_repository_perf_test.dart` | Site query and search benchmarks |
 | `profile_loading_perf_test.dart` | Profile loading and batch downsampling benchmarks |
+| `trip_dives_benchmark_test.dart` | What a trip screen waits for at 10, 50 and 200 dives, before and after the sample-free read (issue #3831) |
 
 ## Adding New Benchmarks
 
