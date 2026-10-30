@@ -93,8 +93,10 @@ first five rows in the order of its list: dives and trips newest first,
 equipment active first, the rest by name.
 
 **See all.** A source with a list applies the same query to that list, clears
-its other filters, and pushes it, so Back returns to the results. Chips on the
-list show the search and clear it. A source with no list expands in place; those
+its other filters, and pushes it, so Back returns to the results, unless that
+list was already under the search page, when the app walks back to it. The
+Training tabs replace the stack instead, because both share one constant page
+key. Chips on the list show the search and clear it. A source with no list expands in place; those
 tables are small, so they load every match.
 
 **Equipment.** The list hides retired and sold gear by default but search finds
@@ -112,7 +114,7 @@ names, as the species lists do.
 ## 6. Reaching it
 
 - **Route:** `/search`, inside the shell, so navigation stays visible.
-- **Navigation:** a `search` destination after Trips, which diver can move like
+- **Navigation:** a `search` destination after Trips, which a diver can move like
   any other. Existing phone bottom bars do not change: it lands first in More,
   where it can be pinned. A diver with a saved order finds it at the end.
 - **Keyboard:** Cmd/Ctrl+K, from anywhere, listed in the shortcuts help.

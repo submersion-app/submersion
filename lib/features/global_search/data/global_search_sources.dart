@@ -119,7 +119,9 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
   GlobalSearchSource(
     kind: GlobalSearchKind.dives,
     entity: diveQueryEntity,
-    titleSql: '(SELECT s.name FROM dive_sites s WHERE s.id = r0.site_id)',
+    titleSql:
+        '(SELECT COALESCE(NULLIF(TRIM(s.name), \'\'), NULLIF(TRIM(r0.name), \'\')) '
+        'FROM (SELECT 1) LEFT JOIN dive_sites s ON s.id = r0.site_id)',
     dateSql: 'COALESCE(r0.entry_time, r0.dive_date_time)',
     depthSql: 'r0.max_depth',
     numberSql: 'r0.dive_number',

@@ -38,8 +38,9 @@ class GlobalSearchHit {
   final GlobalSearchKind kind;
   final String id;
 
-  /// Null when the record has no name of its own, such as a dive with no
-  /// site or an unnamed track; its row then leads with [date].
+  /// Null when the record has no name of its own, such as a dive with
+  /// neither a site nor a name, or an unnamed track; its row then leads with
+  /// [date].
   final String? title;
 
   /// The row's supporting text, each already trimmed and non-empty.
@@ -59,6 +60,7 @@ class GlobalSearchSection {
     required this.total,
     required this.hits,
     required this.query,
+    required this.hasList,
   });
 
   final GlobalSearchKind kind;
@@ -69,4 +71,8 @@ class GlobalSearchSection {
 
   /// The query this section ran, which See all hands to its list.
   final QueryNode query;
+
+  /// Whether See all opens a list. Without one, [hits] holds every match
+  /// and the section expands in place.
+  final bool hasList;
 }

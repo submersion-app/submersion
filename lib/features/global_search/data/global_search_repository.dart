@@ -27,30 +27,22 @@ class GlobalSearchRepository {
     ];
     final limit = source.previewLimit;
 
+    // The window counts every match before LIMIT applies, so one scan answers
+    // both the total and the preview.
     final rows = await _db
         .customSelect(
-          'SELECT ${_columns(source)} $from ORDER BY ${source.orderBy}'
+          'SELECT ${_columns(source)}, COUNT(*) OVER () AS total $from '
+          'ORDER BY ${source.orderBy}'
           '${limit == null ? '' : ' LIMIT $limit'}',
           variables: variables,
         )
         .get();
-    final hits = rows.map((row) => _hit(source, row)).toList();
-    // A preview short of its limit is every match, so only a full one needs
-    // counting.
-    final total = limit == null || hits.length < limit
-        ? hits.length
-        : (await _db
-                  .customSelect(
-                    'SELECT COUNT(*) AS n $from',
-                    variables: variables,
-                  )
-                  .getSingle())
-              .read<int>('n');
     return GlobalSearchSection(
       kind: source.kind,
-      total: total,
-      hits: hits,
+      total: rows.isEmpty ? 0 : rows.first.read<int>('total'),
+      hits: rows.map((row) => _hit(source, row)).toList(),
       query: run.query,
+      hasList: source.hasList,
     );
   }
 

@@ -43,6 +43,13 @@ GlobalSearchSection _section(
   kind: kind,
   total: total ?? count,
   query: _query,
+  hasList: !const {
+    GlobalSearchKind.equipmentSets,
+    GlobalSearchKind.documents,
+    GlobalSearchKind.divePlans,
+    GlobalSearchKind.gpsTracks,
+    GlobalSearchKind.underwaterRoutes,
+  }.contains(kind),
   hits: [
     for (var i = 0; i < count; i++)
       GlobalSearchHit(kind: kind, id: 'id$i', title: '$prefix $i'),
@@ -202,6 +209,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Hit 6'), findsOneWidget);
     expect(find.text('See all 7'), findsNothing);
+  });
+
+  testWidgets('a new search starts with its sections collapsed', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        (text) async => [
+          GlobalSearchSection(
+            kind: GlobalSearchKind.documents,
+            total: 7,
+            hasList: false,
+            query: TextNode([text]),
+            hits: _section(GlobalSearchKind.documents, 7).hits,
+          ),
+        ],
+      ),
+    );
+    await _search(tester, 'one');
+    await tester.tap(find.text('See all 7'));
+    await tester.pumpAndSettle();
+    expect(find.text('See all 7'), findsNothing);
+
+    await _search(tester, 'two');
+    expect(find.text('See all 7'), findsOneWidget);
   });
 
   testWidgets('Esc clears the field and keeps the caret in it', (tester) async {

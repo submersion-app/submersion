@@ -290,6 +290,23 @@ void main() {
       expect(section.hits.single.number, 500);
     });
 
+    test('a dive with no site leads with its own name', () async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd1',
+              diverId: const Value('me'),
+              name: const Value('Night shakedown'),
+              diveDateTime: 1000,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      final section = await search(GlobalSearchKind.dives, 'shakedown');
+      expect(section.hits.single.title, 'Night shakedown');
+    });
+
     test('a blank detail is dropped', () async {
       await db.customStatement(
         "INSERT INTO dive_sites (id, diver_id, name, region, country, "

@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
-import 'package:submersion/features/global_search/data/global_search_sources.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
@@ -110,7 +109,6 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
   }
 
   Widget _results(BuildContext context, List<GlobalSearchSection> sections) {
-    final hasList = {for (final s in kGlobalSearchSources) s.kind: s.hasList};
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
       itemCount: sections.length,
@@ -120,10 +118,11 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _kMaxResultsWidth),
             child: GlobalSearchSectionView(
-              key: ValueKey(section.kind),
+              // Per search, so an expanded section does not outlive it.
+              key: ValueKey((section.kind, section.query)),
               section: section,
               onOpen: _open,
-              onSeeAll: hasList[section.kind]!
+              onSeeAll: section.hasList
                   ? () => openGlobalSearchList(
                       context,
                       ref,

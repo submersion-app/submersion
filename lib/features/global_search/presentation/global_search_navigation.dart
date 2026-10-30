@@ -1,9 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/router/training_locations.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
 import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
@@ -38,11 +40,13 @@ String globalSearchHitLocation(GlobalSearchHit hit) => switch (hit.kind) {
 };
 
 /// Opens [kind]'s list narrowed to [query], its other filters cleared so its
-/// chips show exactly this search, with this page left underneath.
+/// chips show exactly this search.
 ///
 /// Dives and trips use their pushed lists, which put the previous filter
 /// back on the way out (#3292, #3350). The others have no such list: their
-/// chips stay up, and clear the search there.
+/// chips stay up, and clear the search there. Back returns to the results
+/// unless that list was already under them, in which case the app walks back
+/// to it. The Training tabs replace the stack instead: see [_openTrainingTab].
 ///
 /// Only called for a kind with a list; the rest expand in place.
 void openGlobalSearchList(
@@ -79,12 +83,12 @@ void openGlobalSearchList(
     case GlobalSearchKind.certifications:
       ref.read(certificationAttentionFilterProvider.notifier).state = false;
       ref.read(certificationQueryProvider.notifier).state = query;
-      open('/certifications');
+      _openTrainingTab(context, TrainingTab.certifications);
     case GlobalSearchKind.courses:
       ref.read(courseFilterProvider.notifier).state = CourseFilterState(
         query: query,
       );
-      open('/courses');
+      _openTrainingTab(context, TrainingTab.courses);
     case GlobalSearchKind.species:
       ref.read(speciesCatalogQueryProvider.notifier).state = query;
       open('/species/manage');
@@ -96,3 +100,8 @@ void openGlobalSearchList(
       throw StateError('$kind has no list to open');
   }
 }
+
+/// Both Training tabs build one host under one constant page key (#3437), so
+/// pushing one over the other would put that key on the stack twice.
+void _openTrainingTab(BuildContext context, TrainingTab tab) =>
+    context.go(tab.path);
