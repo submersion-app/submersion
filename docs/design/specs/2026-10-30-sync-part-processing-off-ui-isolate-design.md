@@ -154,6 +154,8 @@ The threshold is one named constant. Below it the work takes roughly 3 ms or les
 on the measured host, and the isolate spawn buys nothing. It also keeps small
 manifests, changesets and markers on the calling isolate and in the calling zone.
 The value is the designer's call and may change if profiling argues otherwise.
+Pure Dart AES-GCM costs about eight times as much per byte, some 60 ms per MiB, so
+the envelope gives it one eighth of the threshold.
 
 ### Part hasher
 

@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:meta/meta.dart';
-
 /// Below this many bytes the CPU work this helper is used for takes a few
 /// milliseconds at most, so an isolate buys nothing. It also keeps small
 /// manifests, changesets and markers on the calling isolate and in its zone.
@@ -10,7 +8,8 @@ const int kOffIsolateMinBytes = 256 * 1024;
 
 typedef OffIsolateRunner = Future<R> Function<R>(FutureOr<R> Function() work);
 
-Future<R> _isolateRun<R>(FutureOr<R> Function() work) => Isolate.run(work);
+/// [Isolate.run] as a value, for callers that pass a test seam through.
+Future<R> isolateRun<R>(FutureOr<R> Function() work) => Isolate.run(work);
 
 /// Runs [work] in a one-shot isolate when [bytes] reaches [minBytes], and
 /// inline otherwise, so CPU-heavy work on a large payload does not stall the
@@ -31,7 +30,7 @@ Future<T> runOffIsolate<T>(
   required int bytes,
   int minBytes = kOffIsolateMinBytes,
   bool Function(Object error)? isExpected,
-  @visibleForTesting OffIsolateRunner runner = _isolateRun,
+  OffIsolateRunner runner = isolateRun,
 }) async {
   if (bytes < minBytes) return work();
   try {
