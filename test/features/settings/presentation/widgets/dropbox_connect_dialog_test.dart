@@ -63,6 +63,8 @@ void main() {
     bool openResult = true,
     List<bool>? openResultQueue,
     Object? openThrows,
+    String? expectedAccount,
+    ValueChanged<String>? onDifferentAccount,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -84,6 +86,8 @@ void main() {
                 context: context,
                 builder: (_) => DropboxConnectDialog(
                   provider: p,
+                  expectedAccount: expectedAccount,
+                  onDifferentAccount: onDifferentAccount,
                   openUri: (uri) async {
                     opened?.add(uri);
                     if (openThrows != null) throw openThrows;
@@ -103,6 +107,25 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('another account closes the dialog without a connect error', (
+    tester,
+  ) async {
+    final other = <String>[];
+    await pumpDialog(
+      tester,
+      provider(happyMock()),
+      expectedAccount: 'someone@example.com',
+      onDifferentAccount: other.add,
+    );
+
+    await tester.enterText(find.byType(TextField), 'the-code');
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+
+    expect(other, ['d@example.com']);
+    expect(find.text('Connect Dropbox'), findsNothing);
+  });
 
   testWidgets('opens the authorize URL on launch and again via Reopen '
       'browser', (tester) async {

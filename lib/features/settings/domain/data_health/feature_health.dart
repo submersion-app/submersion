@@ -85,6 +85,11 @@ class FeatureHealth extends Equatable {
   List<Object?> get props => [feature, level, reason, when, count, name];
 }
 
+/// Whether [health] is one that signing in again would fix (issue #3811).
+bool offersSignInAgain(FeatureHealth health) =>
+    health.reason == HealthReason.syncSignedOut ||
+    health.reason == HealthReason.backupCloudSignIn;
+
 /// The most severe of [candidates]; ties go to the earliest. With none, the
 /// feature is healthy.
 FeatureHealth pickHealth(DataFeature feature, List<FeatureHealth> candidates) {

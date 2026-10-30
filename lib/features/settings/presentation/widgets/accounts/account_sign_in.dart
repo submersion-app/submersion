@@ -7,7 +7,9 @@ import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_store.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
@@ -39,22 +41,39 @@ Future<bool> canSignInOnThisBuild(
 /// 7.6): Google and Dropbox their OAuth flows, an own server its form with
 /// only the secret to type. iCloud has none (the Apple ID manages it) and
 /// returns false. True when the account is signed in afterwards.
+///
+/// With [expectedAccount], a Google or Dropbox sign-in to another account is
+/// refused before anything of it is kept: false, with the account it was
+/// handed to [onDifferentAccount] (issue #3811).
 Future<bool> signInToGroup(
   BuildContext context,
   WidgetRef ref,
   AccountGroup group, {
   WebDavCheck? webdavCheck,
+  String? expectedAccount,
+  ValueChanged<String>? onDifferentAccount,
 }) async {
   final container = ProviderScope.containerOf(context, listen: false);
   final bool ok;
   switch (group.kind) {
     case AccountKind.googledrive:
-      ok = await _signInGoogle(context, ref);
+      ok = await _signInGoogle(
+        context,
+        ref,
+        expectedAccount: expectedAccount,
+        onDifferentAccount: onDifferentAccount,
+      );
       if (ok) {
         await _recordIdentity(ref, group.rows.first, AccountKind.googledrive);
       }
     case AccountKind.dropbox:
-      ok = await _signInDropbox(context, ref, group.rows.first.id);
+      ok = await _signInDropbox(
+        context,
+        ref,
+        group.rows.first.id,
+        expectedAccount: expectedAccount,
+        onDifferentAccount: onDifferentAccount,
+      );
       if (ok) await _recordIdentity(ref, group.rows.first, AccountKind.dropbox);
     case AccountKind.s3 || AccountKind.webdav:
       ok =
@@ -201,7 +220,12 @@ Future<void> _recordIdentity(
   }
 }
 
-Future<bool> _signInGoogle(BuildContext context, WidgetRef ref) async {
+Future<bool> _signInGoogle(
+  BuildContext context,
+  WidgetRef ref, {
+  String? expectedAccount,
+  ValueChanged<String>? onDifferentAccount,
+}) async {
   final provider = ref.read(
     cloudStorageProviderForProvider(CloudProviderType.googledrive),
   );
@@ -212,9 +236,16 @@ Future<bool> _signInGoogle(BuildContext context, WidgetRef ref) async {
       context,
       provider,
       CloudProviderType.googledrive,
+      // `is` rather than a cast: tests stand in other providers here.
+      signIn: provider is GoogleDriveStorageProvider
+          ? () => provider.authenticateAs(expectedAccount)
+          : null,
     );
     return true;
   } on CloudAuthCancelled {
+    return false;
+  } on CloudAccountMismatchException catch (e) {
+    onDifferentAccount?.call(e.signedInAs);
     return false;
   } catch (e, stack) {
     _log.warning('Google sign-in failed', error: e, stackTrace: stack);
@@ -238,11 +269,18 @@ Future<bool> _signInGoogle(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<bool> _connectDropbox(BuildContext context, WidgetRef ref) async {
+Future<bool> _connectDropbox(
+  BuildContext context,
+  WidgetRef ref, {
+  String? expectedAccount,
+  ValueChanged<String>? onDifferentAccount,
+}) async {
   final connected = await showDialog<bool>(
     context: context,
     builder: (_) => DropboxConnectDialog(
       provider: ref.read(dropboxStorageProviderInstanceProvider),
+      expectedAccount: expectedAccount,
+      onDifferentAccount: onDifferentAccount,
     ),
   );
   ref.invalidate(dropboxAuthDataProvider);
@@ -252,9 +290,17 @@ Future<bool> _connectDropbox(BuildContext context, WidgetRef ref) async {
 Future<bool> _signInDropbox(
   BuildContext context,
   WidgetRef ref,
-  String accountId,
-) async {
-  if (!await _connectDropbox(context, ref)) return false;
+  String accountId, {
+  String? expectedAccount,
+  ValueChanged<String>? onDifferentAccount,
+}) async {
+  final connected = await _connectDropbox(
+    context,
+    ref,
+    expectedAccount: expectedAccount,
+    onDifferentAccount: onDifferentAccount,
+  );
+  if (!connected) return false;
   await ref
       .read(accountCredentialsStoreProvider)
       .rekeyFromLegacy(

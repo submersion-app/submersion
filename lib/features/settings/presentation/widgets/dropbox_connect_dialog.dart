@@ -16,10 +16,21 @@ import 'package:submersion/shared/utils/browser_launch.dart';
 ///
 /// [openUri] is injectable for widget tests; production uses [openInBrowser].
 class DropboxConnectDialog extends StatefulWidget {
-  const DropboxConnectDialog({required this.provider, this.openUri, super.key});
+  const DropboxConnectDialog({
+    required this.provider,
+    this.openUri,
+    this.expectedAccount,
+    this.onDifferentAccount,
+    super.key,
+  });
 
   final DropboxStorageProvider provider;
   final Future<bool> Function(Uri uri)? openUri;
+
+  /// The account this sign-in must be; another closes the dialog with false
+  /// after telling [onDifferentAccount] which it was (issue #3811).
+  final String? expectedAccount;
+  final ValueChanged<String>? onDifferentAccount;
 
   @override
   State<DropboxConnectDialog> createState() => _DropboxConnectDialogState();
@@ -131,8 +142,14 @@ class _DropboxConnectDialogState extends State<DropboxConnectDialog> {
       _errorText = null;
     });
     try {
-      await widget.provider.completeAuthorization(code);
+      await widget.provider.completeAuthorization(
+        code,
+        expectedAccount: widget.expectedAccount,
+      );
       if (mounted) Navigator.of(context).pop(true);
+    } on CloudAccountMismatchException catch (e) {
+      widget.onDifferentAccount?.call(e.signedInAs);
+      if (mounted) Navigator.of(context).pop(false);
     } on CloudStorageException catch (e) {
       // The dialog is barrier-dismissible; the exchange can outlive this
       // State.
