@@ -1163,6 +1163,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ChartViewport get _viewport => _viewportNotifier.value;
 
   set _viewport(ChartViewport value) {
+    // ChartViewport has no ==, and a pan held against the plot's edge clamps
+    // to a new instance of the same window.
+    if (value.sameWindowAs(_viewport)) return;
     _viewportNotifier.value = value;
     _zoomNotifier.value = value.zoom;
   }
@@ -1447,8 +1450,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   final ChartSeriesCache<LineChartBarData> _flatBarsCache =
       ChartSeriesCache<LineChartBarData>();
 
-  // Per-group cache signatures, computed once per build in the legend-sync
-  // pass and consumed by the chart assembly (see _barsCache).
+  // Per-group cache signatures, computed by _syncBarSignatures each time the
+  // plot rebuilds and consumed by the chart assembly (see _barsCache).
   String _baseSig = '';
   String _sacSig = '';
   String _ascentSig = '';
@@ -2704,10 +2707,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     UnitFormatter units,
   ) {
     // _hoverRightAxisMetric wins over the persisted preference here for the
-    // same reason as in build() -- so the plot rect (and so the gesture math
+    // same reason as in _buildChart -- so the plot rect (and so the gesture math
     // keyed on it) never disagrees with what the axis is showing this frame.
-    // Still ref.read, per the note just below: this runs from gesture
-    // callbacks too, outside build.
+    // Still ref.read: this runs from gesture callbacks too, outside build.
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
     final effectiveRightAxisMetric =
@@ -2720,7 +2722,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         : null;
     final hasRightAxisName =
         effectiveRightAxisMetric != null && rightAxisRange != null;
-    final hasGasStrip = _hasGasStrip;
 
     const border = DiveProfileChart._plotBorderWidth;
     return (
@@ -2741,7 +2742,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       bottom:
           DiveProfileChart._bottomAxisNameSize +
           DiveProfileChart._bottomTickReservedSize +
-          (hasGasStrip ? DiveProfileChart.gasTimelineHeight : 0) +
+          (_hasGasStrip ? DiveProfileChart.gasTimelineHeight : 0) +
           (_hasSafetyLane ? DiveProfileChart.safetyLaneHeight : 0) +
           border,
     );
@@ -3769,8 +3770,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         : null;
     _rightAxisSelectorActive = effectiveRightAxisMetric != null;
 
-    final hasSacData = widget.sacCurve != null && widget.sacCurve!.isNotEmpty;
-
     final combinedSig = _sigOf([
       _baseSig,
       _sacSig,
@@ -3838,8 +3837,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }),
         ..._barsCache.series('sac', _sacSig, () {
           // SAC curve line (if showing)
-          final sacLines =
-              (_showSac && hasSacData && minSac != null && maxSac != null)
+          final sacLines = (_showSac && minSac != null && maxSac != null)
               ? [_buildSacLine(metricBand, minSac, maxSac)]
               : const <LineChartBarData>[];
           return _tagAll(sacLines, ProfileRightAxisMetric.sac);

@@ -247,6 +247,35 @@ void main() {
       expect(profile.reads, lessThan(profile.length));
     });
 
+    testWidgets('a pan held against the edge does not rebuild it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+      await _wheelZoom(tester, clicks: 10);
+
+      final drag = await tester.createGesture(kind: PointerDeviceKind.touch);
+      await drag.down(_chartCenter(tester));
+      await tester.pump();
+      for (var i = 0; i < 12; i++) {
+        await drag.moveBy(const Offset(120, 0));
+        await tester.pump();
+      }
+      expect(_chartData(tester).minX, 0);
+
+      final plot = tester.widget<LineChart>(find.byType(LineChart).first);
+      for (var i = 0; i < 3; i++) {
+        await drag.moveBy(const Offset(40, 0));
+        await tester.pump();
+        expect(
+          tester.widget<LineChart>(find.byType(LineChart).first),
+          same(plot),
+        );
+      }
+      await drag.up();
+      await tester.pump();
+    });
+
     testWidgets('mouse hover', (tester) async {
       await tester.pumpWidget(_buildChart());
       await tester.pumpAndSettle();
@@ -354,6 +383,41 @@ void main() {
             .widget<ProfileCursorTooltip>(find.byType(ProfileCursorTooltip))
             .extraHeadroomAbove,
         tester.getSize(find.byType(DiveProfileLegend)).height,
+      );
+    });
+  });
+
+  group('what a pan frame skips still follows the data', () {
+    List<double> rightAxisTicks(WidgetTester tester) => [
+      for (final title in tester.widgetList<SideTitleWidget>(
+        find.byType(SideTitleWidget),
+      ))
+        if (title.meta.axisSide == AxisSide.right)
+          double.parse((title.child as Text).data!),
+    ];
+
+    testWidgets('the right axis rescales for a new profile', (tester) async {
+      await tester.pumpWidget(_buildChart());
+      await tester.pumpAndSettle();
+      expect(
+        rightAxisTicks(tester).reduce((a, b) => a > b ? a : b),
+        lessThan(25),
+      );
+
+      final warmer = [
+        for (final point in _profile())
+          DiveProfilePoint(
+            timestamp: point.timestamp,
+            depth: point.depth,
+            temperature: point.temperature! + 15,
+          ),
+      ];
+      await tester.pumpWidget(_buildChart(profile: warmer));
+      await tester.pumpAndSettle();
+
+      expect(
+        rightAxisTicks(tester).reduce((a, b) => a > b ? a : b),
+        greaterThan(30),
       );
     });
   });
