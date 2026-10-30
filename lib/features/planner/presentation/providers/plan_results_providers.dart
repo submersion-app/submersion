@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart'
     show DivePlanState;
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -61,6 +62,8 @@ List<LostGasOutcome> computeLostGas(
   ).lostGas(plan, startState: startState);
 }
 
+const _log = LoggerService('PlanResults');
+
 /// Thrown by a computation that a newer edit replaced while it settled.
 /// Nothing ever sees it: Riverpod drops what a replaced build produces.
 class _Superseded implements Exception {
@@ -97,8 +100,13 @@ Future<PlanBackgroundResult<T>> _settled<T>(
     await Future<void>.delayed(settle);
     if (!ref.mounted) throw const _Superseded();
   }
-  final value = await runner.run(computation, plan, startState, config);
-  return PlanBackgroundResult(planId: plan.id, value: value);
+  try {
+    final value = await runner.run(computation, plan, startState, config);
+    return PlanBackgroundResult(planId: plan.id, value: value);
+  } catch (e, st) {
+    _log.error('Could not compute a plan result', error: e, stackTrace: st);
+    rethrow;
+  }
 }
 
 /// Whether the current plan may have a bailout picture, for anything that
@@ -114,10 +122,13 @@ final planMayHaveBailoutProvider = Provider<bool>((ref) {
 /// Worst-case bailout for the current loop plan. Off the UI isolate: this is
 /// a full open-circuit schedule at every sampled point of the plan.
 final planBailoutProvider =
-    FutureProvider<PlanBackgroundResult<BailoutOutcome?>>(
-      (ref) => _settled(ref, computeBailout),
-      retry: (_, _) => null,
-    );
+    FutureProvider<PlanBackgroundResult<BailoutOutcome?>>((ref) {
+      if (ref.watch(planMayHaveBailoutProvider)) {
+        return _settled(ref, computeBailout);
+      }
+      final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
+      return PlanBackgroundResult(planId: planId, value: null);
+    }, retry: (_, _) => null);
 
 /// The classic slate range table (depth x time variants) for the current
 /// plan. Off the UI isolate: this is 25 engine runs.
@@ -222,6 +233,12 @@ planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
   // round again until all of them are for the plan as it stands.
   while (true) {
     final asked = _engineInputs(read(divePlanNotifierProvider));
+    // Reading each one starts it, so any nothing is watching run side by side
+    // rather than settling one after another below.
+    read(planDeviationsProvider);
+    read(planLostGasProvider);
+    read(planRangeTableProvider);
+    read(planBailoutProvider);
     final deviations = await read(planDeviationsProvider.future);
     final lostGas = await read(planLostGasProvider.future);
     final rangeTable = await read(planRangeTableProvider.future);

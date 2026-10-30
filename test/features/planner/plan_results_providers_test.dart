@@ -439,6 +439,39 @@ void main() {
     expect(view.status, PlanResultStatus.calculating);
   });
 
+  test('a plan the gate rejects runs no bailout', () async {
+    final runner = _CountingRunner();
+    final container = makeContainer(runner: runner);
+    load(container, _ordinaryOc());
+    container.listen(planBailoutProvider, (_, _) {});
+
+    final bailout = await container.read(planBailoutProvider.future);
+
+    expect(bailout.value, isNull);
+    expect(runner.runs, isEmpty);
+  });
+
+  test('a slate starts every unwatched result at once', () async {
+    final runner = HeldPlanResultRunner();
+    final container = makeContainer(runner: runner);
+    load(container, _ccrWithBailout());
+    container.read(contingenciesExpandedProvider.notifier).state = true;
+
+    final slate = planSlateResults(container.read);
+    await wait(Duration.zero);
+    expect(runner.held.map((run) => run.computation).toSet(), {
+      computeDeviations,
+      computeLostGas,
+      computeRangeTable,
+      computeBailout,
+    });
+
+    for (final run in [...runner.held]) {
+      run.finish();
+    }
+    await slate;
+  });
+
   test('collapsed contingencies run nothing', () async {
     final runner = _CountingRunner();
     final container = makeContainer(runner: runner);
@@ -685,6 +718,7 @@ void main() {
       expect(results.deviations, isEmpty);
       expect(results.lostGas, isEmpty);
       expect(results.rangeTable, isNotNull);
+      expect(results.bailout, isNull);
     });
   });
 

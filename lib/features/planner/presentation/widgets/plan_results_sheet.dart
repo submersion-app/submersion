@@ -345,24 +345,26 @@ class PlanResultsSheet extends ConsumerWidget {
     }
 
     final rows = [
-      for (final deviation in deviations.value ?? const <DeviationOutcome>[])
-        row(
-          key: deviation.key,
-          label: deviationLabel(deviation.key),
-          selected: selectedDeviation == deviation.key,
-          onSelect: () => toggleDeviation(deviation.key),
-          outcome: deviation.outcome,
-        ),
-      for (final lost in lostGas.value ?? const <LostGasOutcome>[])
-        row(
-          key: lost.tank.id,
-          label: context.l10n.plannerCanvas_contingency_lostGas(
-            lost.tank.gasMix.name,
+      if (expanded)
+        for (final deviation in deviations.value ?? const <DeviationOutcome>[])
+          row(
+            key: deviation.key,
+            label: deviationLabel(deviation.key),
+            selected: selectedDeviation == deviation.key,
+            onSelect: () => toggleDeviation(deviation.key),
+            outcome: deviation.outcome,
           ),
-          selected: selectedLostGasTankId == lost.tank.id,
-          onSelect: () => toggleLostGas(lost.tank.id),
-          outcome: lost.outcome,
-        ),
+      if (expanded)
+        for (final lost in lostGas.value ?? const <LostGasOutcome>[])
+          row(
+            key: lost.tank.id,
+            label: context.l10n.plannerCanvas_contingency_lostGas(
+              lost.tank.gasMix.name,
+            ),
+            selected: selectedLostGasTankId == lost.tank.id,
+            onSelect: () => toggleLostGas(lost.tank.id),
+            outcome: lost.outcome,
+          ),
     ];
     final status = combinePlanResultStatus(deviations.status, lostGas.status);
 
