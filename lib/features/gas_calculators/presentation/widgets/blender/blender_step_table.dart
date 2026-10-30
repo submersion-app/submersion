@@ -140,12 +140,22 @@ class BlenderStepTable extends StatelessWidget {
   ) {
     final direction = Directionality.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
+    final locale = Localizations.maybeLocaleOf(context);
+    final boldText = MediaQuery.boldTextOf(context);
 
     double measure(String text, TextStyle? style, {required bool oneLine}) {
       final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
+        // The bold weight and locale `Text` applies itself: a column measured
+        // without them comes up short, and a cell that short clips its value.
+        text: TextSpan(
+          text: text,
+          style: boldText
+              ? style?.merge(const TextStyle(fontWeight: FontWeight.bold))
+              : style,
+        ),
         textDirection: direction,
         textScaler: textScaler,
+        locale: locale,
       )..layout();
       final width = oneLine
           ? painter.maxIntrinsicWidth

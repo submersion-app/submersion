@@ -90,7 +90,7 @@ void main() {
     expect(find.text('Fill procedure'), findsNothing);
   });
 
-  testWidgets('a trimix target produces a Tx fill procedure', (tester) async {
+  testWidgets('a trimix target shows its mix in the procedure', (tester) async {
     final ref = await _pump(tester);
 
     ref.read(blenderTargetMixProvider.notifier).state = const GasMix(
