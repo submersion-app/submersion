@@ -306,19 +306,19 @@ def check_user_docs(root):
 
     indexed = _linked_pages(pages.get(USER_HOW_TO_INDEX, ""))
     for name in sorted(pages):
-        is_guide = name.startswith(USER_HOW_TO_PREFIX) and name != USER_HOW_TO_INDEX
-        if is_guide and name not in indexed:
+        if not name.startswith(USER_HOW_TO_PREFIX) or name == USER_HOW_TO_INDEX:
+            continue
+        if name not in indexed:
             failures.append(
                 f"{os.path.join(USER_DOCS, name)}: not linked from {USER_HOW_TO_INDEX}, "
                 "so the How-To Guides index misses it"
             )
-        if is_guide:
-            for number, line in _unfenced_lines(pages[name]):
-                if SCREENSHOT_MARKER in line:
-                    failures.append(
-                        f"{os.path.join(USER_DOCS, name)}:{number}: screenshot marker "
-                        "left in; replace it with the captured image"
-                    )
+        for number, line in _unfenced_lines(pages[name]):
+            if SCREENSHOT_MARKER in line:
+                failures.append(
+                    f"{os.path.join(USER_DOCS, name)}:{number}: screenshot marker "
+                    "left in; replace it with the captured image"
+                )
 
     slugs = {name: _heading_slugs(text) for name, text in pages.items()}
     for name, text in sorted(pages.items()):

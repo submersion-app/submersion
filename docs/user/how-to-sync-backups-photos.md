@@ -91,7 +91,7 @@ If you started from **Settings > Data**, the last screen is **This phone is set 
 
 ## On your second device
 
-Your computer joins the same library by choosing the same Google account.
+Your computer joins the same library by choosing the same Google account. Finish your first device first: tap **Get started** there and give it a few seconds to sync, because your diver profile is uploaded at that point.
 
 ### 1. Choose your existing data
 
@@ -121,7 +121,7 @@ Your diver profile comes down with the library, so you do not create a new one o
 
 Leave both backup switches on and tap **Next**.
 
-On **Photos on every device**, **Use the photo copies in** Google Drive is already on, with **Same account. Nothing to type.** underneath. Tap **Next**, then **Get started** on **You're all set**.
+On **Photos on every device**, **Use the photo copies in** Google Drive is already on, with **Same account. Nothing to type.** underneath. **Upload photos added here automatically** is on too, so photos you attach on this device are copied as well. Tap **Next**, then **Get started** on **You're all set**.
 
 ![Photos on every device on a later device, with Use the photo copies in Google Drive on and Same account. Nothing to type.](images/how-to/sync-backups-photos/08-use-photo-copies.png)
 
@@ -132,7 +132,7 @@ On either device, open **Settings > Data**. Under **Your data** you should see:
 | Row | What it says |
 |-----|--------------|
 | **Sync between devices** | **Synced just now** at first; once both devices have synced, something like **In step with iPhone, 2m ago** |
-| **Backups** | **Not backed up yet** until the first scheduled backup runs, then something like **Backed up 2h ago, copy in Google Drive** |
+| **Backups** | **Not backed up yet** until the first scheduled backup runs, then something like **Backed up 2h ago, copy in Google Drive** (the picture below is from a device that already had a backup) |
 | **Photos & videos** | **Copies kept in Google Drive** (or **Copies are not kept in the cloud** if you skipped photos) |
 | **Connected accounts** | Google Drive |
 

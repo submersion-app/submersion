@@ -36,7 +36,7 @@ guide, apart from an explicit "do this first" link.
     Subsurface, Shearwater Cloud, Diving Log, Garmin Connect, Suunto, divelogs.de
     and DAN DiveCloud.
 - A real screenshot for every step a reader needs to see, captured from the app
-  running on demo data and inserted by the builder.
+  running on the sample logbook and inserted by the builder.
 - A new "How-To Guides" section in the user guide's sidebar, so the guides go
   live on submersion.app/guide when the PR merges.
 
@@ -67,9 +67,9 @@ guide, apart from an explicit "do this first" link.
 
 ## Anti-goals
 
-- **A real person's data in a screenshot.** A dev build on the maintainer's Mac
-  shares the installed app's data folder. Every capture uses the demo-mode
-  logbook (see Screenshots), never `~/Documents/Submersion`. No real names,
+- **A real person's data in a screenshot.** Every capture uses the sample
+  logbook (see Screenshots) or a fresh test logbook, never
+  `~/Documents/Submersion`. No real names,
   e-mail addresses, bucket names, keys, account IDs or home dive sites appear in
   any image or in the text.
 - **Guessed labels.** A step that names a button that does not exist, or names it
@@ -229,7 +229,7 @@ this guide is its first written explanation; the builder confirms the actual
 recording, permission and matching flow from the code before writing.
 
 Screenshots: the recording is a pre-recorded boat route played back as the iOS
-Simulator's location, and the matched dives come from the demo logbook. The
+Simulator's location, and the matched dives come from the sample logbook. The
 "download the dive computer" step links to the dive logging guide rather than
 showing a real download (builder's call).
 
@@ -244,7 +244,7 @@ gear, conditions, photos), ending at a complete dive and its profile. Links to
 Screenshots: the scan, pairing and download-progress screens come from the
 maintainer's real computer. The download review shows real dives, so it gets no
 screenshot (maintainer's choice). From "open the new dive" on, the steps are shown
-on a dive from the demo logbook, introduced as "your dive will look like this"
+on a dive from the sample logbook, introduced as "your dive will look like this"
 (builder's call, so no real dive appears).
 
 ### Customizing the Display (`how-to-customize-display.md`)
@@ -300,9 +300,8 @@ files.
 
 All screenshots are captured and inserted by the builder (maintainer's request).
 
-- **Data:** the demo-mode logbook being built in a separate session. It is not
-  ready yet. Until it is, each place an image goes holds a marker in the
-  guide's existing placeholder form:
+- **Data:** the published sample logbook. Until an image was captured, each
+  place it goes held a marker in the guide's existing placeholder form:
   `<!-- screenshot: images/how-to/<guide-slug>/<nn>-<name>.png: what it shows, which device, which state -->`.
   The markers are the shot list for capture.
 - **Devices:** the macOS app window for most guides; the iOS Simulator for the
@@ -325,7 +324,7 @@ All screenshots are captured and inserted by the builder (maintainer's request).
 - **First run:** the setup guide's first-device part starts in the first-run
   wizard, so it is captured from a fresh, empty data folder (never
   `~/Documents/Submersion`). Its second-device part, where a device already has
-  dives, uses the demo logbook.
+  dives, uses the sample logbook.
 - **Demo mode does not allow it (as built):** phase 2 assumed demo mode would
   keep its logbook apart while still allowing sync, backups, photo copies, a
   shared library, file imports and a dive computer download. As merged, demo
@@ -333,7 +332,7 @@ All screenshots are captured and inserted by the builder (maintainer's request).
   (release `demo-data`) as an ordinary logbook through `SUBMERSION_DB_PATH` on
   macOS, and copied into the app container on the iOS Simulator.
 - **Migration imports:** Submersion's import wizard run on sample files for each
-  format. Where the demo data does not include one, the builder uses a fixture
+  format. Where the sample data does not include one, the builder uses a fixture
   file from `test/` or builds a small sample, never the maintainer's own export.
 - Before inserting, every image is checked for personal data (the anti-goal
   above).
@@ -344,7 +343,7 @@ One PR, held open until the screenshots are in (maintainer's choice):
 
 1. Phase 1: the spec, plan, all thirteen guides with screenshot markers, the
    index page and the sidebar section. The PR opens as a **draft**.
-2. Phase 2, once demo mode is merged (the maintainer says when): capture every
+2. Phase 2, once the sample logbook is available (the maintainer says when): capture every
    marked shot, replace each marker with the image, re-check every label on
    screen, and mark the PR ready for review.
 
@@ -370,8 +369,7 @@ the guides:
 - Shared libraries gained **Remove from library**, which the library guide uses.
 
 Every guide's flow is traced from the merged code before it is written; none of
-the tracing started before the pause is reused. Phase 2 still waits for demo
-mode, which has not merged.
+the tracing started before the pause is reused.
 
 ## Constraints
 

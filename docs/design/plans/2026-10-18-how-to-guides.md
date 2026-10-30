@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - No em dashes, and no en dashes as prose punctuation, anywhere (guides, plan, commits, PR). Scan every file before committing with the **dash scan**: `perl -CSD -ne 'print "$ARGV:$.: $_" if /[\x{2013}\x{2014}]/; close ARGV if eof' <files>` (prints nothing when clean).
-- No mention of Claude, Claude Code or Anthropic in any committed text, commit message or PR text.
+- No tool attribution in any committed text, commit message or PR text.
 - Guides are flat files in `docs/user/` named `how-to-*.md`; the index is `docs/user/how-to-guides.md`.
 - Images live in `docs/user/images/how-to/<guide-slug>/<nn>-<what-it-shows>.png`, `<nn>` two digits in step order. `<guide-slug>` is the page name without `how-to-` and `.md` (for `how-to-sync-backups-photos.md` it is `sync-backups-photos`).
 - Phase 1 screenshot marker, one per image, on its own line where the image will go:
