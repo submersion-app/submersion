@@ -34,7 +34,7 @@ Open **Settings > Appearance**. The first group holds the settings that change t
 
 You chose metric or imperial units when you first set up Submersion. To change them, open **Settings > Units**.
 
-<!-- screenshot: images/how-to/customize-display/03-units.png: Settings > Units with Quick Select (Metric, Imperial, Custom), the Individual Units list and Time & Date Format; mac; demo logbook -->
+![Settings > Units with Quick Select (Metric, Imperial, Custom) and the Individual Units list](images/how-to/customize-display/03-units.png)
 
 **Switch everything at once.** Under **Quick Select**, tap **Metric** or **Imperial**. Depth, temperature, pressure, volume, weight, altitude and distance all change together.
 
@@ -46,7 +46,7 @@ You chose metric or imperial units when you first set up Submersion. To change t
 
 The Dashboard is the **Home** screen. To choose what it shows, open **Settings > Appearance**, then under **Sections** tap **Home**.
 
-<!-- screenshot: images/how-to/customize-display/04-home-screen.png: Home screen settings with Home cards (drag handles and switches) above Status chips; mac; demo logbook -->
+![Home screen settings with Home cards, their drag handles and switches](images/how-to/customize-display/04-home-screen.png)
 
 **Choose and order the cards.** Under **Home cards**, turn a card's switch off to hide it, and drag the handle beside a card to move it up or down. Some cards, such as **Milestones** and **On this day**, hide themselves while they have nothing to show.
 
@@ -66,9 +66,9 @@ You can try a different layout straight from the dive list, then make your choic
 - **Dive List Fields** chooses what each layout shows. The page opens on the **Table** layout; switch **View Mode** to **Detailed** or **Compact** first if that is the one you use. In **Table**, add, remove, reorder and pin columns, and save your arrangement as a **Preset**.
 - **Color cards by** tints each dive card by **Depth**, **Duration** or **Temperature**, so your deepest or longest dives stand out at a glance. Pick a colour range from the swatches that appear.
 
-<!-- screenshot: images/how-to/customize-display/05-dives-appearance.png: Dives Appearance with Dives List View, Dive List Fields and Color cards by set to Depth with gradient swatches; mac; demo logbook -->
+![Dives Appearance with Dives List View, Dive List Fields and Color cards by set to Depth with gradient swatches](images/how-to/customize-display/05-dives-appearance.png)
 
-<!-- screenshot: images/how-to/customize-display/06-colored-list.png: the Dives list in Detailed view with cards coloured by depth; mac; demo logbook -->
+![The Dives list in Detailed view with cards coloured by depth](images/how-to/customize-display/06-colored-list.png)
 
 ## 5. Navigation
 

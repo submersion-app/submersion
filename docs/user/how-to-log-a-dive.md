@@ -21,7 +21,7 @@ You need:
 2. In the sheet that opens, tap **Import from Computer**. The **Dive Computers** page opens.
 3. Tap **Find Computers**. (Once you have a computer saved, use **Add Computer**, then **Find Computers**, to add another.)
 
-<!-- screenshot: images/how-to/log-a-dive/01-add-dive-sheet.png: the Add Dive sheet with Log Dive Manually, Plan a dive, Import from Computer, Scan Paper Log and Start pre-dive checklist; mac; demo logbook -->
+![The Add Dive sheet with Log Dive Manually, Plan a dive, Import from Computer, Scan Paper Log and Start pre-dive checklist](images/how-to/log-a-dive/01-add-dive-sheet.png)
 
 The first time, your device asks for permission to use Bluetooth. Allow it.
 
@@ -67,23 +67,23 @@ Tap one of the new dives to open **Dive Details**. You already see its depth, ti
 
 The rest of this guide fills in one dive. Your dive will look something like this one.
 
-<!-- screenshot: images/how-to/log-a-dive/05-dive-details-before.png: Dive Details for a freshly downloaded dive with the hero header and Dive Profile, and no site; mac; demo logbook dive -->
+![Dive Details for a freshly downloaded dive with the hero header and Dive Profile, and no site](images/how-to/log-a-dive/05-dive-details-before.png)
 
 Tap **Edit dive** (the pencil) to open **Edit Dive**. Only **The Dive** is open at first; tap any other section to open it.
 
 ## 6. Add the site
 
-In **The Dive**, tap **Add site**. **Select Dive Site** lists your sites, with the ones nearest the dive under **Nearby**. Tap one, or tap **New Dive Site** to create it.
+In **The Dive**, tap **Add site**. **Select Dive Site** lists your sites. **Nearby** shows the ones closest to the dive's GPS position or, if the dive has none, to where you are now. Tap one, or tap **New Dive Site** to create it.
 
-<!-- screenshot: images/how-to/log-a-dive/06-select-site.png: Select Dive Site with the search field, the Nearby section and New Dive Site; mac; demo logbook dive -->
+![Select Dive Site with the search field, the Nearby section and New Dive Site](images/how-to/log-a-dive/06-select-site.png)
 
 Picking a site can also fill in the water type and entry method you used there before.
 
 ## 7. Add your buddies
 
-Open **Buddies** and tap **Add**. In **Select Buddies**, tick the people you dived with, or tap **Add New Buddy** for someone new, then tap **Done**. Tap a buddy afterwards to give them a role, such as dive guide or instructor.
+Open **Buddies** and tap **Add**. In **Select Buddies**, tap someone you dived with, choose their role, such as **Buddy**, **Dive Guide** or **Instructor**, and tap **Done**. Do the same for each person, or tap **Add New Buddy** for someone new. Then tap **Done** on **Select Buddies**.
 
-<!-- screenshot: images/how-to/log-a-dive/07-buddies.png: Select Buddies with a buddy ticked, Add New Buddy and Done; mac; demo logbook dive -->
+![Select Buddies with a buddy ticked, Add New Buddy and Done](images/how-to/log-a-dive/07-buddies.png)
 
 ## 8. Add gas and gear
 
@@ -93,13 +93,13 @@ Open **Gas & Gear**:
 - Under **Equipment**, tap **Use Set** to add a saved set of your usual gear in one go, or **Add** to pick items one by one. Each item then counts this dive towards its service history.
 - Fill in **Weight** if you track it.
 
-<!-- screenshot: images/how-to/log-a-dive/08-gas-gear.png: the Gas & Gear section open, with a tank and the Equipment list using a set; mac; demo logbook dive -->
+![The Gas & Gear section open, with a tank and the Equipment list using a set](images/how-to/log-a-dive/08-gas-gear.png)
 
 ## 9. Add the conditions
 
 Open **Conditions**. If the dive has a site with a location, **Fetch Weather** fills in the weather for that place and time. Then add what you noticed: **Visibility**, **Current Strength**, **Surface Conditions**, **Entry Method** and the rest.
 
-<!-- screenshot: images/how-to/log-a-dive/09-conditions.png: the Conditions section with Fetch Weather and visibility and current filled in; mac; demo logbook dive -->
+![The Conditions section with Fetch Weather and visibility and current filled in](images/how-to/log-a-dive/09-conditions.png)
 
 ## 10. Rate it and save
 
@@ -114,13 +114,13 @@ Photos are added on **Dive Details**, not on the edit page. In **Photos & Video*
 
 Submersion links to your photos where they are; it never copies or moves them. To see them on your other devices too, see [Set Up Sync, Backups and Photos](how-to-sync-backups-photos.md).
 
-<!-- screenshot: images/how-to/log-a-dive/10-photos.png: the Photos & Video section on Dive Details with linked photos and the Scan gallery for photos and Add photo or video buttons; mac; demo logbook dive -->
+![The Photos & Video section on Dive Details with linked photos and the Scan gallery for photos and Add photo or video buttons](images/how-to/log-a-dive/10-photos.png)
 
 ## Check it worked
 
 Open the dive again. **Dive Details** now shows the site in its header, then the **Dive Profile**, the cylinders, your buddies, equipment, conditions and photos.
 
-<!-- screenshot: images/how-to/log-a-dive/11-dive-details-after.png: Dive Details for the finished dive with site, profile, buddies, equipment and photos; mac; demo logbook dive -->
+![Dive Details for the finished dive with the site in its header and the Dive Profile](images/how-to/log-a-dive/11-dive-details-after.png)
 
 ## If something goes wrong
 
