@@ -134,6 +134,7 @@ AccountGroup _group({
   AccountKind kind = AccountKind.googledrive,
   String? identifier = 'diver@example.com',
   bool syncs = true,
+  bool holdsCopy = false,
 }) {
   final at = DateTime.utc(2026);
   final row = ConnectedAccount(
@@ -151,7 +152,10 @@ AccountGroup _group({
     identifier: identifier,
     rows: [row],
     status: AccountStatus.needsSignIn,
-    usages: [if (syncs) const AccountUsage(AccountUsageKind.databaseSync)],
+    usages: [
+      if (syncs) const AccountUsage(AccountUsageKind.databaseSync),
+      if (holdsCopy) const AccountUsage(AccountUsageKind.backupCopy),
+    ],
     usagesKnown: true,
     locations: const {},
     roles: const {},
@@ -575,6 +579,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await done, isTrue);
+  });
+
+  group('a sign-in from anywhere, for the backup copy', () {
+    Future<bool> flagAfterSignIn(
+      WidgetTester tester,
+      AccountGroup group,
+      BackupCopyTarget copy,
+    ) async {
+      await BackupPreferences(prefs).setLastCloudCopyNeedsSignIn(true);
+      final host = await pumpHost(tester, group: group, copy: copy);
+      final done = signInToGroup(host.$1, host.$2, group);
+      await tester.pumpAndSettle();
+      await done;
+      return host.$2.read(backupSettingsProvider).lastCloudCopyNeedsSignIn;
+    }
+
+    testWidgets('clears the flag when the copy follows this account', (
+      tester,
+    ) async {
+      final group = _group();
+
+      expect(
+        await flagAfterSignIn(tester, group, CopyFollowsSync(group)),
+        isFalse,
+      );
+    });
+
+    testWidgets('clears the flag when the copy is pinned to this account', (
+      tester,
+    ) async {
+      final group = _group(syncs: false, holdsCopy: true);
+
+      expect(
+        await flagAfterSignIn(
+          tester,
+          group,
+          CopyToAccount(group, group.rows.first),
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('leaves it when the copy goes to another account', (
+      tester,
+    ) async {
+      expect(
+        await flagAfterSignIn(
+          tester,
+          _group(),
+          CopyFollowsSync(_group(kind: AccountKind.dropbox)),
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('a sign-in from anywhere', () {

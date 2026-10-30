@@ -14,6 +14,8 @@ import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_auth_stor
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/git_config_page.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -113,9 +115,34 @@ Future<bool> signInToGroup(
   }
   if (ok) {
     _refresh(container);
+    await _clearBackupSignInNeed(container, group);
     await _refreshSyncAfterSignIn(container, group);
   }
   return ok;
+}
+
+/// The stored reason a backup copy failed no longer holds once its account
+/// is signed in, from wherever. Best effort: a sign-in has already succeeded,
+/// and the next backup overwrites the flag anyway.
+Future<void> _clearBackupSignInNeed(
+  ProviderContainer container,
+  AccountGroup group,
+) async {
+  const copyUses = {AccountUsageKind.databaseSync, AccountUsageKind.backupCopy};
+  if (!group.usages.any((u) => copyUses.contains(u.kind))) return;
+  try {
+    final target = await container.read(backupCopyTargetProvider.future);
+    if (backupCopyGroupOf(target)?.key != group.key) return;
+    await container
+        .read(backupSettingsProvider.notifier)
+        .clearCloudCopyNeedsSignIn();
+  } catch (e, stack) {
+    _log.warning(
+      'Could not clear the backup sign-in flag',
+      error: e,
+      stackTrace: stack,
+    );
+  }
 }
 
 /// What sync knows about signing in, which Data health reads: the failure on

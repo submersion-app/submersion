@@ -121,6 +121,14 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     refresh();
   }
 
+  /// Signing in again answered the refusal the last copy met (issue #3811).
+  /// The copy is still missing until a backup makes one.
+  Future<void> clearCloudCopyNeedsSignIn() async {
+    await _prefs.setLastCloudCopyNeedsSignIn(false);
+    if (!mounted) return;
+    state = state.copyWith(lastCloudCopyNeedsSignIn: false);
+  }
+
   /// Records a failed scheduled backup for Settings > Data health.
   Future<void> recordScheduledFailure(String message) async {
     final at = DateTime.now();

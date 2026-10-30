@@ -119,7 +119,8 @@ first and which the account's status reflects.
 
 - A failed copy records why, in a new `lastCloudCopyNeedsSignIn` preference
   written beside `lastCloudCopyMissing`. Every backup overwrites both.
-- It is set only when the upload failed with `accessRefused`.
+- It is set only when the upload failed with `accessRefused`, and cleared by a
+  sign-in to the copy's account from anywhere, as well as by the next backup.
 - `_getOrCreateCloudBackupFolder` must let the reason out for the upload path.
   Its other callers keep their behaviour.
 - `HealthReason` gains `backupCloudSignIn`, level attention. It applies while
