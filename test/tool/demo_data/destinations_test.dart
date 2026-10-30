@@ -116,15 +116,19 @@ void main() {
     );
   });
 
-  test('seven Caribbean destinations, each a trip destination', () {
+  test('eleven Caribbean destinations, each a trip destination', () {
     expect(caribbeanDestinations, {
+      'belize',
       'bonaire',
+      'cayman',
       'curacao',
       'cozumel',
       'dominican',
       'guadeloupe',
+      'roatan',
       'san-andres',
       'santa-marta',
+      'turks-caicos',
     });
     final keys = {for (final d in tripDestinations) d.key};
     expect(keys, containsAll(caribbeanDestinations));

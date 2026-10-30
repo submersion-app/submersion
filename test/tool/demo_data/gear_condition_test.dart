@@ -48,8 +48,29 @@ void main() {
       expect(await ruleIds(), containsAll(_planned));
     });
 
-    test('findings are still raised after the demo date shift', () async {
-      final now = ctx.anchor.add(const Duration(days: 23));
+    test('findings ship with a logbook opened soon after its build', () async {
+      // Within six weeks the dates stay as built, so the findings pass would
+      // see no change and write nothing: the shipped findings must survive.
+      final before = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+
+      await DemoDatabasePreparer().prepare(
+        ctx.db,
+        now: ctx.anchor.add(const Duration(days: 23)),
+        photosDir: ctx.photosDir,
+        deviceId: null,
+      );
+
+      final after = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+      expect(after.read<int>('m'), before.read<int>('m'));
+      expect(await ruleIds(), containsAll(_planned));
+    });
+
+    /// Opens the logbook on [now], then raises the findings afresh.
+    Future<void> openOn(DateTime now) async {
       await DemoDatabasePreparer().prepare(
         ctx.db,
         now: now,
@@ -68,7 +89,35 @@ void main() {
         ),
         thresholds: ExposureThresholds.defaults,
       );
+    }
 
+    test('findings are still raised after the demo date shift', () async {
+      // Eighty days on, past the six weeks in which the logbook keeps its
+      // dates (and its seasons), so the dates move by weeks.
+      await openOn(ctx.anchor.add(const Duration(days: 80)));
+
+      expect(await ruleIds(), containsAll(_planned));
+    });
+
+    test('findings are still raised after a whole-year shift', () async {
+      // A year and twenty days after the newest dive, the logbook moves by
+      // 52 weeks to keep its seasons; fitted parts' install dates move too.
+      final latest = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+      final newest = DateTime.fromMillisecondsSinceEpoch(
+        latest.read<int>('m'),
+        isUtc: true,
+      );
+      await openOn(newest.add(const Duration(days: 364 + 20)));
+
+      final after = await ctx.db
+          .customSelect('SELECT MAX(dive_date_time) AS m FROM dives')
+          .getSingle();
+      expect(
+        after.read<int>('m') - latest.read<int>('m'),
+        const Duration(days: 364).inMilliseconds,
+      );
       expect(await ruleIds(), containsAll(_planned));
     });
   });

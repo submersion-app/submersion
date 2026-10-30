@@ -113,4 +113,38 @@ void main() {
       }
     },
   );
+
+  test('demoShiftFor keeps the seasons when whole years land the latest dive '
+      'within six weeks', () {
+    final now = DateTime(2026, 10, 26, 12);
+    for (final (latest, years) in [
+      // A year and 26 days old: back a year to late September.
+      (DateTime(2025, 10, 1, 9), 1),
+      // Opened 25 days after its build: dates stay as built.
+      (DateTime(2026, 10, 1, 9), 0),
+      // Three years and five weeks old.
+      (DateTime(2023, 9, 25, 9), 3),
+    ]) {
+      final shift = demoShiftFor(latestDive: latest, now: now);
+      final shifted = latest.add(shift);
+      // Whole 52-week years keep every weekday and drift a season by only a
+      // day or so a year.
+      expect(shift, Duration(days: 364 * years), reason: '$latest');
+      expect(
+        calendarDaysBetween(shifted, now),
+        inInclusiveRange(7, 42),
+        reason: '$latest',
+      );
+      expect(shifted.weekday, latest.weekday, reason: '$latest');
+    }
+  });
+
+  test('demoShiftFor shifts by weeks once whole years would leave the latest '
+      'dive over six weeks back', () {
+    final now = DateTime(2026, 10, 26, 12);
+    final latest = DateTime(2026, 9, 13, 9); // 43 days back.
+    final shifted = latest.add(demoShiftFor(latestDive: latest, now: now));
+
+    expect(calendarDaysBetween(shifted, now), inInclusiveRange(7, 13));
+  });
 }
