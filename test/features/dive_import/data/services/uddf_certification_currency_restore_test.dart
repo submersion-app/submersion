@@ -12,6 +12,7 @@ import 'package:submersion/features/certifications/domain/entities/currency_even
 import 'package:submersion/features/certifications/domain/entities/currency_pref.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -297,6 +298,51 @@ void main() {
 
     expect(await currency.getAllPrefs(), isEmpty);
     expect(await currency.getAllEvents(), isEmpty);
+  });
+
+  test('a linked certification stays on the course it belongs to', () async {
+    // Linking a certification moves it, and courses have no dedup, so a
+    // re-import must not strip it from the original for the twin (#3852).
+    final original = await CourseRepository().createCourse(
+      Course(
+        id: 'original-course',
+        diverId: _diverId,
+        name: 'Full Cave',
+        agency: _sourceCert.agency,
+        startDate: _then,
+        createdAt: _then,
+        updatedAt: _then,
+      ),
+    );
+    final existing = await CertificationRepository().createCertification(
+      _sourceCert.copyWith(id: 'existing-cert', diverId: _diverId),
+    );
+    await CourseRepository().setCourseCertifications(original.id, [
+      existing.id,
+    ]);
+
+    await UddfEntityImporter().import(
+      data: const UddfImportResult(
+        courses: [
+          {
+            'name': 'Full Cave',
+            'uddfId': 'file-course',
+            'certificationRefs': ['file-cert'],
+          },
+        ],
+      ),
+      selections: const UddfImportSelections(courses: {0}),
+      repositories: _repositories(),
+      diverId: _diverId,
+      preResolvedCertificationIds: {'file-cert': existing.id},
+    );
+
+    expect(
+      (await CertificationRepository().getCertificationById(
+        existing.id,
+      ))!.courseId,
+      original.id,
+    );
   });
 
   test('without the repository the import still succeeds', () async {

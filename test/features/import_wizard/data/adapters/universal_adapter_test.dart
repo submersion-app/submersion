@@ -4429,82 +4429,84 @@ void main() {
         },
       );
 
-      testWidgets(
-        '${action.name} on a duplicate trip links the dive to the existing '
-        'trip (#3852)',
-        (tester) async {
-          final payload = ImportPayload(
-            entities: {
-              ui.ImportEntityType.trips: [
-                {'name': 'Belize Trip', 'uddfId': 'trip-1'},
-              ],
-              ui.ImportEntityType.dives: [
-                {
-                  'dateTime': DateTime(2026, 3, 15, 10, 0),
-                  'maxDepth': 20.0,
-                  'runtime': const Duration(minutes: 30),
-                  'tripRef': 'trip-1',
-                },
-              ],
-            },
-          );
+      // The dive falls outside the existing trip's dates, so only an explicit
+      // link can put it there; a skipped trip of that name may be another
+      // year's (#2618).
+      final linksTrip = action == DuplicateAction.consolidate;
+      testWidgets('${action.name} on a duplicate trip at other dates '
+          '${linksTrip ? 'links the dive to it' : 'leaves the dive out'} '
+          '(#3852)', (tester) async {
+        final payload = ImportPayload(
+          entities: {
+            ui.ImportEntityType.trips: [
+              {'name': 'Belize Trip', 'uddfId': 'trip-1'},
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime(2026, 3, 15, 10, 0),
+                'maxDepth': 20.0,
+                'runtime': const Duration(minutes: 30),
+                'tripRef': 'trip-1',
+              },
+            ],
+          },
+        );
 
-          final existingTrip = Trip(
-            id: 'existing-trip',
-            name: 'Belize Trip',
-            startDate: DateTime(2026, 3, 1),
-            endDate: DateTime(2026, 3, 7),
-            createdAt: _now,
-            updatedAt: _now,
-          );
+        final existingTrip = Trip(
+          id: 'existing-trip',
+          name: 'Belize Trip',
+          startDate: DateTime(2026, 3, 1),
+          endDate: DateTime(2026, 3, 7),
+          createdAt: _now,
+          updatedAt: _now,
+        );
 
-          final mockDiveRepo = MockDiveRepository();
-          when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
-          when(mockDiveRepo.createDive(any)).thenAnswer(
-            (invocation) async => invocation.positionalArguments[0] as Dive,
-          );
+        final mockDiveRepo = MockDiveRepository();
+        when(mockDiveRepo.getAllDives()).thenAnswer((_) async => <Dive>[]);
+        when(mockDiveRepo.createDive(any)).thenAnswer(
+          (invocation) async => invocation.positionalArguments[0] as Dive,
+        );
 
-          final mockTripRepo = MockTripRepository();
+        final mockTripRepo = MockTripRepository();
 
-          final mockTankPresetRepo = MockTankPresetRepository();
-          when(
-            mockTankPresetRepo.getPresetById(any),
-          ).thenAnswer((_) async => null);
+        final mockTankPresetRepo = MockTankPresetRepository();
+        when(
+          mockTankPresetRepo.getPresetById(any),
+        ).thenAnswer((_) async => null);
 
-          await _runWithAdapter(
-            tester,
-            overrides: _fullOverrides(
-              payload: payload,
-              diver: _testDiver(),
-              existingTrips: [existingTrip],
-              mockDiveRepo: mockDiveRepo,
-              mockTripRepo: mockTripRepo,
-              mockTankPresetRepo: mockTankPresetRepo,
-            ),
-            callback: (adapter) async {
-              final checked = await adapter.checkDuplicates(
-                await adapter.buildBundle(),
-              );
-              await adapter.performImport(
-                checked,
-                {
-                  wizard.ImportEntityType.trips: {0},
-                  wizard.ImportEntityType.dives: {0},
-                },
-                {
-                  wizard.ImportEntityType.trips: {0: action},
-                },
-              );
+        await _runWithAdapter(
+          tester,
+          overrides: _fullOverrides(
+            payload: payload,
+            diver: _testDiver(),
+            existingTrips: [existingTrip],
+            mockDiveRepo: mockDiveRepo,
+            mockTripRepo: mockTripRepo,
+            mockTankPresetRepo: mockTankPresetRepo,
+          ),
+          callback: (adapter) async {
+            final checked = await adapter.checkDuplicates(
+              await adapter.buildBundle(),
+            );
+            await adapter.performImport(
+              checked,
+              {
+                wizard.ImportEntityType.trips: {0},
+                wizard.ImportEntityType.dives: {0},
+              },
+              {
+                wizard.ImportEntityType.trips: {0: action},
+              },
+            );
 
-              verifyNever(mockTripRepo.createTrip(any));
-              final dive =
-                  verify(mockDiveRepo.createDive(captureAny)).captured.single
-                      as Dive;
-              expect(dive.tripId, 'existing-trip');
-            },
-          );
-        },
-      );
+            verifyNever(mockTripRepo.createTrip(any));
+            final dive =
+                verify(mockDiveRepo.createDive(captureAny)).captured.single
+                    as Dive;
+            expect(dive.tripId, linksTrip ? 'existing-trip' : isNull);
+          },
+        );
+      });
 
       testWidgets(
         '${action.name} on a duplicate certification links the course to the '
@@ -4538,6 +4540,9 @@ void main() {
           );
 
           final mockCertificationRepo = MockCertificationRepository();
+          when(
+            mockCertificationRepo.getCertificationById('existing-cert'),
+          ).thenAnswer((_) async => existingCert);
 
           final mockCourseRepo = MockCourseRepository();
           when(mockCourseRepo.createCourse(any)).thenAnswer(

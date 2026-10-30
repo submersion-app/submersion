@@ -788,8 +788,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     // existing-id seeds for the importer's id mappings.
     Map<String, String> preResolvedIdsFor(
       wizard.ImportEntityType type,
-      List<Map<String, dynamic>> items,
-    ) {
+      List<Map<String, dynamic>> items, {
+      bool linkOnSkip = true,
+    }) {
       final matches = bundle.groups[type]?.entityMatches;
       if (matches == null || matches.isEmpty) return const {};
       final actions = duplicateActions[type] ?? const {};
@@ -804,9 +805,8 @@ class UniversalAdapter implements ImportSourceAdapter {
         // the entity IS imported: its import stage overwrites the mapping
         // with the newly created id.
         final links =
-            action == null ||
-            action == DuplicateAction.skip ||
-            action == DuplicateAction.consolidate;
+            action == DuplicateAction.consolidate ||
+            (linkOnSkip && (action == null || action == DuplicateAction.skip));
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
@@ -872,9 +872,13 @@ class UniversalAdapter implements ImportSourceAdapter {
         wizard.ImportEntityType.diveCenters,
         uddfData.diveCenters,
       ),
+      // A trip matches on its name alone, so a skipped one may be another
+      // year's trip of that name: only an explicit link overrides the
+      // placement by date a dive whose trip was not imported gets (#2618).
       preResolvedTripIds: preResolvedIdsFor(
         wizard.ImportEntityType.trips,
         uddfData.trips,
+        linkOnSkip: false,
       ),
       preResolvedCertificationIds: preResolvedIdsFor(
         wizard.ImportEntityType.certifications,

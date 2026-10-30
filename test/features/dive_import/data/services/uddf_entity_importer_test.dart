@@ -2646,6 +2646,15 @@ void main() {
 
     test('preResolvedCertificationIds links a course to the existing '
         'certification of a skipped duplicate (#3852)', () async {
+      when(mockCertificationRepo.getCertificationById(any)).thenAnswer(
+        (_) async => Certification(
+          id: 'existing-cert-1',
+          name: 'Open Water',
+          agency: CertificationAgency.padi.name,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
       when(mockCourseRepo.createCourse(any)).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Course,
       );
