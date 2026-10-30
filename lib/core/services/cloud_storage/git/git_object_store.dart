@@ -172,6 +172,16 @@ final class _MemoryObjectWriter implements GitObjectWriter {
 final class FileGitObjectStore implements GitObjectStore {
   FileGitObjectStore(this.root, {this.maxBytes = _defaultMaxBytes});
 
+  /// A store for a worker isolate to read and write through while another
+  /// store on [root] owns it. It skips the scan, which takes seconds on a full
+  /// cache and would run once per pack, because [_entryFor] finds any object
+  /// it is asked for. Its index covers only what it has touched, so it must
+  /// not [trim]: eviction belongs to the owning store, which adopts what this
+  /// one wrote as it is asked for.
+  FileGitObjectStore.unindexed(this.root) : maxBytes = _defaultMaxBytes {
+    _index = Future.value({});
+  }
+
   /// Test seam: replaces [File.rename] when an object file moves into place,
   /// so a test can lose the race to a concurrent put on purpose. Production
   /// leaves this null.

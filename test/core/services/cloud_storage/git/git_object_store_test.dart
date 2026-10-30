@@ -273,6 +273,56 @@ void main() {
     );
   });
 
+  group('FileGitObjectStore.unindexed', () {
+    test('reads what another store wrote', () async {
+      final dir = tempDirForTest('git_store_');
+      final blob = _blob('from the main store');
+      await FileGitObjectStore(dir).put(blob);
+
+      final worker = FileGitObjectStore.unindexed(dir);
+
+      expect(await worker.has(blob.id), isTrue);
+      expect((await worker.get(blob.id))!.body, blob.body);
+    });
+
+    test('does not scan its directory', () async {
+      final dir = tempDirForTest('git_store_');
+      // A stale temp file, which a store's first scan sweeps away.
+      final stale = File(p.join(dir.path, 'ab', 'cdef.3c4d.tmp'))
+        ..createSync(recursive: true)
+        ..setLastModifiedSync(DateTime.now().subtract(const Duration(days: 1)));
+
+      await FileGitObjectStore.unindexed(dir).put(_blob('anything'));
+
+      expect(stale.existsSync(), isTrue);
+    });
+
+    test('a store that has scanned adopts what it wrote', () async {
+      final dir = tempDirForTest('git_store_');
+      final main = FileGitObjectStore(dir);
+      final blob = _blob('from a worker');
+      expect(await main.has(blob.id), isFalse);
+
+      await FileGitObjectStore.unindexed(dir).put(blob);
+
+      expect((await main.get(blob.id))!.body, blob.body);
+    });
+
+    test('what it wrote counts toward the main store bound', () async {
+      final dir = tempDirForTest('git_store_');
+      final main = FileGitObjectStore(dir, maxBytes: 100);
+      final kept = _blob('small');
+      await main.put(kept);
+      final large = _blob('from a worker', pad: 1000);
+
+      await FileGitObjectStore.unindexed(dir).put(large);
+      expect(await main.has(large.id), isTrue);
+      await main.trim();
+
+      expect(await main.has(large.id), isFalse);
+    });
+  });
+
   group('FileGitObjectStore streaming object API', () {
     test('create writes in chunks and open reads sync and async', () async {
       final dir = tempDirForTest('git_store_');
