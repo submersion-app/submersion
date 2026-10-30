@@ -85,30 +85,15 @@ void main() {
       expect(find.byIcon(Icons.history), findsOneWidget);
       expect(find.textContaining('Edit: Profile editor'), findsOneWidget);
 
-      // Tap history icon to open revision menu
+      // Tap revision selector to open revision menu
       await tester.tap(find.byIcon(Icons.history));
       await tester.pumpAndSettle();
 
       // Verify alternative revision is shown in menu
       expect(find.text('Computer Import'), findsOneWidget);
 
-      // Select different revision by tapping on the menu item widget
-      final computerImportFinder = find.ancestor(
-        of: find.text('Computer Import'),
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget.runtimeType.toString() == 'CheckedPopupMenuItem<String>',
-        ),
-      );
-      if (computerImportFinder.evaluate().isEmpty) {
-        // Fallback: try to tap the text with warnIfMissed: false
-        await tester.tap(
-          find.text('Computer Import').last,
-          warnIfMissed: false,
-        );
-      } else {
-        await tester.tap(computerImportFinder);
-      }
+      // Select different revision.
+      await tester.tap(find.text('Computer Import').last);
       await tester.pumpAndSettle();
 
       // Verify setActiveProfileSeries was called

@@ -42,7 +42,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Trim Mode'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
     expect(find.text('Trim profile endpoints'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Trim End'), findsOneWidget);
 

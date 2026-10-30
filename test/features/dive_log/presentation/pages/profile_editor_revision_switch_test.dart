@@ -78,7 +78,7 @@ void main() {
       expect(find.byIcon(Icons.history), findsOneWidget);
       expect(find.textContaining('Edit: Profile editor'), findsOneWidget);
 
-      // Tap history icon to open revision menu
+      // Tap revision selector to open revision menu
       await tester.tap(find.byIcon(Icons.history));
       await tester.pumpAndSettle();
 

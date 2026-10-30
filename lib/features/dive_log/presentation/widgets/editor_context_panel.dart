@@ -17,6 +17,8 @@ class EditorContextPanel extends StatefulWidget {
   final int? outlierCount;
   final ({int start, int end})? selectedRange;
   final bool hasWaypoints;
+  final VoidCallback? onDeleteProfile;
+  final bool canDeleteProfile;
 
   const EditorContextPanel({
     super.key,
@@ -25,6 +27,8 @@ class EditorContextPanel extends StatefulWidget {
     this.outlierCount,
     this.selectedRange,
     this.hasWaypoints = false,
+    this.onDeleteProfile,
+    this.canDeleteProfile = false,
   });
 
   @override
@@ -287,7 +291,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          context.l10n.diveLog_profileEditor_trimMode,
+          context.l10n.common_action_delete,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         Padding(
@@ -300,10 +304,22 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           ),
         ),
         const SizedBox(height: 12),
-        FilledButton.tonalIcon(
-          onPressed: () => widget.notifier.trimEndZeros(),
-          icon: const Icon(Icons.content_cut, size: 18),
-          label: Text(context.l10n.diveLog_profileEditor_trimEnd),
+        Row(
+          children: [
+            FilledButton.tonalIcon(
+              onPressed: () => widget.notifier.trimEndZeros(),
+              icon: const Icon(Icons.content_cut, size: 18),
+              label: Text(context.l10n.diveLog_profileEditor_trimEnd),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              onPressed: widget.canDeleteProfile
+                  ? widget.onDeleteProfile
+                  : null,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('Profil löschen'),
+            ),
+          ],
         ),
       ],
     );
