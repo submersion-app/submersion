@@ -158,14 +158,16 @@ class _DiveRequirementTile extends ConsumerWidget {
             trailing: IconButton(
               tooltip: context.l10n.courses_action_unlinkDive,
               icon: const Icon(Icons.link_off, size: 18),
-              onPressed: () async {
-                await ref
+              onPressed: () => logFailure(
+                ref
                     .read(courseRequirementRepositoryProvider)
                     .unlinkDive(
                       requirementId: requirement.id,
                       diveId: dive.diveId,
-                    );
-              },
+                    ),
+                _DiveRequirementTile,
+                'unlink the dive',
+              ),
             ),
           ),
         if (!satisfied)
@@ -187,14 +189,16 @@ class _DiveRequirementTile extends ConsumerWidget {
                       for (final dive in suggestions)
                         ActionChip(
                           label: Text(_diveLabel(dive, units)),
-                          onPressed: () async {
-                            await ref
+                          onPressed: () => logFailure(
+                            ref
                                 .read(courseRequirementRepositoryProvider)
                                 .linkDive(
                                   requirementId: requirement.id,
                                   diveId: dive.diveId,
-                                );
-                          },
+                                ),
+                            _DiveRequirementTile,
+                            'credit the suggested dive',
+                          ),
                         ),
                     ],
                   ),
