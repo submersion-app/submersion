@@ -224,16 +224,16 @@ List<ActiveLegendEntry> activeLegendEntries(
     l10n.diveLog_legend_label_decoStops,
     ProfileMetricColors.decoStops,
   );
-  String ceilingLabel(bool calculated) => calculated
-      ? l10n.diveLog_legend_label_ceilingCalculated
-      : l10n.diveLog_legend_label_ceiling;
   addPerSource(
     LegendMetric.ceiling,
     config.hasCeilingCurve,
     state.showCeiling,
-    ceilingLabel(config.labelCeilingAsCalculated),
+    ceilingLegendLabel(context, calculated: config.labelCeilingAsCalculated),
     palette.colorOf(ProfileMetric.ceiling),
-    overlayLabel: (overlay) => ceilingLabel(overlay.labelCeilingAsCalculated),
+    overlayLabel: (overlay) => ceilingLegendLabel(
+      context,
+      calculated: overlay.labelCeilingAsCalculated,
+    ),
   );
   addPerSource(
     LegendMetric.ndl,

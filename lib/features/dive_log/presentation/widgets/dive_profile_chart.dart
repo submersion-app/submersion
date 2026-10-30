@@ -1984,6 +1984,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    String ceilingRowLabel(bool calculated) => calculated
+        ? l10n.diveLog_legend_label_ceilingCalculated
+        : l10n.diveLog_tooltip_ceiling;
+
     // Ceiling (always shown once enabled, even where the curve has no data
     // for this sample -- a toggled-on row disappearing entirely reads as the
     // toggle having silently failed, issue #2228 follow-up).
@@ -1991,9 +1995,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final ceiling = _curveValueAt(widget.ceilingCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
-          label: widget.labelCeilingAsCalculated
-              ? l10n.diveLog_legend_label_ceilingCalculated
-              : l10n.diveLog_tooltip_ceiling,
+          label: ceilingRowLabel(widget.labelCeilingAsCalculated),
           value: ceiling != null && ceiling > 0
               ? units.formatDepth(ceiling)
               : '-',
@@ -2008,10 +2010,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final curve = overlay.analysis?.ceilingCurve;
         if (idx == null || curve == null || idx >= curve.length) continue;
         final ceiling = curve[idx];
-        final label =
-            overlay.analysis?.computerStopsWithCalculatedCeiling ?? false
-            ? l10n.diveLog_legend_label_ceilingCalculated
-            : l10n.diveLog_tooltip_ceiling;
+        final label = ceilingRowLabel(
+          overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
+        );
         rows.add(
           TooltipRow(
             label: '$label · ${overlay.name}',

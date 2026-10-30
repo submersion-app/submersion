@@ -394,9 +394,14 @@ class ChartOptionsDialog extends StatelessWidget {
         // stops above.
         buildToggleItem(
           context,
-          label: config.labelCeilingAsCalculated
-              ? context.l10n.diveLog_legend_label_ceilingCalculated
-              : context.l10n.diveLog_legend_label_ceiling,
+          // The row toggles every source's ceiling, so any one of them
+          // drawn against computer stops earns the label.
+          label: ceilingLegendLabel(
+            context,
+            calculated:
+                config.labelCeilingAsCalculated ||
+                config.overlays.any((o) => o.labelCeilingAsCalculated),
+          ),
           color: palette.colorOf(ProfileMetric.ceiling),
           isEnabled: legendState.showCeiling,
           onTap: legendNotifier.toggleCeiling,

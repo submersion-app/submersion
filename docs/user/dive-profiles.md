@@ -140,7 +140,7 @@ axis, and the line is labelled **Ceiling (calc)** to say so. The computer's band
 can sit at 6 m while the line clears at 3 m, or the line can show no obligation
 under a band, if your computer uses a different algorithm or conservatism. To
 compare like with like, switch **Deco stops** to **Calc**, or turn **Ceiling**
-off to see only what your computer showed you.
+off to leave only your computer's stops.
 
 ## Event markers
 

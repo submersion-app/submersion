@@ -17,7 +17,10 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Widget _dialog({required bool labelCeilingAsCalculated}) => ProviderScope(
+Widget _dialog({
+  required bool labelCeilingAsCalculated,
+  List<LegendOverlaySource> overlays = const [],
+}) => ProviderScope(
   overrides: [settingsProvider.overrideWith((ref) => _StubSettingsNotifier())],
   child: MaterialApp(
     locale: const Locale('en'),
@@ -28,6 +31,7 @@ Widget _dialog({required bool labelCeilingAsCalculated}) => ProviderScope(
         config: ProfileLegendConfig(
           hasCeilingCurve: true,
           labelCeilingAsCalculated: labelCeilingAsCalculated,
+          overlays: overlays,
         ),
         anchorOffset: const Offset(300, 0),
         anchorSize: const Size(40, 40),
@@ -50,6 +54,24 @@ void main() {
     await tester.tap(find.text('Ceiling (calc)'));
     await tester.pumpAndSettle();
     expect(container.read(profileLegendProvider).showCeiling, isFalse);
+  });
+
+  testWidgets('an overlaid source earns the label too', (tester) async {
+    await tester.pumpWidget(
+      _dialog(
+        labelCeilingAsCalculated: false,
+        overlays: const [
+          LegendOverlaySource(
+            name: 'Teric',
+            metrics: {LegendMetric.ceiling},
+            labelCeilingAsCalculated: true,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ceiling (calc)'), findsOneWidget);
   });
 
   testWidgets('the row stays plain otherwise', (tester) async {
