@@ -159,10 +159,20 @@ When in doubt, include a screenshot.
 
 ### How to add them
 
-Drag the images into the PR description on github.com. GitHub hosts them and
-puts the Markdown in for you. `gh` and the REST API cannot upload images, so a
-PR opened from the command line needs its screenshots added in the browser
-afterwards. Treat that PR as not ready for review until they are there.
+In the browser, drag the images into the PR description on github.com. GitHub
+hosts them and puts the Markdown in for you.
+
+`gh` and the REST API cannot upload images, so a PR opened from the command line
+attaches them through a secret gist instead, one gist per PR because a gist has
+no folders:
+
+1. `gh gist create` a short text file naming the PR, then `gh gist clone` it.
+2. Copy the images in, commit and push.
+3. Embed them in the description with raw URLs pinned to that commit:
+   `https://gist.githubusercontent.com/<owner>/<gist id>/raw/<commit>/<file>`
+
+Deleting the gist breaks the images, so keep it. Treat a PR as not ready for
+review until its screenshots are there.
 
 A filled-out section looks like this:
 
