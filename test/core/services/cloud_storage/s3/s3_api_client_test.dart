@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -149,6 +150,41 @@ void main() {
         seen.url.toString(),
         'http://nas.local:9000/dive-sync/sub%20dir/submersion_sync_%C4%81.json',
       );
+    });
+  });
+
+  group('hashing a request body', () {
+    // sha256sum of 300 KiB of zeros.
+    const largeBodyHash =
+        '7818f5542a0404157573be6cffc0e0c8e68ce3c0f5d17d07ccdd9313fb700baf';
+
+    Future<(http.Request, int)> sendBody(int length) async {
+      late http.Request seen;
+      var hops = 0;
+      final mock = MockClient((request) async {
+        seen = request;
+        return http.Response('', 200);
+      });
+      await S3ApiClient(
+        minioConfig(),
+        httpClient: mock,
+        hashRunner: <R>(work) async {
+          hops++;
+          return Isolate.run(work);
+        },
+      ).putObject('k', Uint8List(length));
+      return (seen, hops);
+    }
+
+    test('a large body is hashed on another isolate', () async {
+      final (request, hops) = await sendBody(300 * 1024);
+      expect(hops, 1);
+      expect(request.headers['x-amz-content-sha256'], largeBodyHash);
+    });
+
+    test('a small body is hashed here', () async {
+      final (_, hops) = await sendBody(16);
+      expect(hops, 0);
     });
   });
 

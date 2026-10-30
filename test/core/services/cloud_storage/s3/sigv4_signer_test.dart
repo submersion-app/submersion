@@ -210,6 +210,36 @@ AWS4-HMAC-SHA256
     });
   });
 
+  test('a payload hash computed earlier signs as if computed here', () {
+    Map<String, String> sign({String? payloadHash}) => SigV4Signer.sign(
+      method: 'PUT',
+      host: 'examplebucket.s3.amazonaws.com',
+      canonicalUri: '/part',
+      payload: const [1, 2, 3],
+      payloadHash: payloadHash,
+      accessKeyId: awsAccessKey,
+      secretAccessKey: awsSecretKey,
+      region: 'us-east-1',
+      requestTime: DateTime.utc(2013, 5, 24),
+    );
+    expect(sign(payloadHash: SigV4Signer.hexSha256(const [1, 2, 3])), sign());
+  });
+
+  test('a given payload hash is what gets signed', () {
+    final signed = SigV4Signer.sign(
+      method: 'PUT',
+      host: 'examplebucket.s3.amazonaws.com',
+      canonicalUri: '/part',
+      payload: const [1, 2, 3],
+      payloadHash: 'abc123',
+      accessKeyId: awsAccessKey,
+      secretAccessKey: awsSecretKey,
+      region: 'us-east-1',
+      requestTime: DateTime.utc(2013, 5, 24),
+    );
+    expect(signed['x-amz-content-sha256'], 'abc123');
+  });
+
   // AWS worked example "Get bucket (list objects)": GET /?max-keys=2&prefix=J
   group('signing with query parameters (AWS list objects vector)', () {
     test('sign produces the documented signature', () {
