@@ -71,6 +71,10 @@ class _MediaLibraryGroupedListState
   MediaGroupedGridTable? _table;
   List<MediaGridSection> _sections = const [];
 
+  /// Whether a wheel zoom has already put the offset where it belongs for the
+  /// layout on its way.
+  bool _zoomPlacedOffset = false;
+
   @override
   void didUpdateWidget(MediaLibraryGroupedList oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -102,6 +106,22 @@ class _MediaLibraryGroupedListState
         heightChangeAbove: heightChangeAbove,
       ),
     );
+    _zoomPlacedOffset = true;
+  }
+
+  /// Holds the cell at the top edge there as [next] replaces [previous]. An
+  /// exact table has no estimates to absorb a change in height above the
+  /// viewport, so with the offset left alone, entering selection or resizing
+  /// the pane would throw the view somewhere else. Run from the layout builder,
+  /// so the first frame at the new layout is already in place.
+  void _keepPlace(MediaGroupedGridTable? previous, MediaGroupedGridTable next) {
+    final zoomed = _zoomPlacedOffset;
+    _zoomPlacedOffset = false;
+    final position = _position;
+    if (zoomed || previous == null) return;
+    if (position == null || !position.hasPixels) return;
+    if (!previous.hasSameCellsAs(next)) return;
+    position.correctPixels(next.offsetOf(previous.placeAt(position.pixels)));
   }
 
   String _diveHeaderLabel(
@@ -193,12 +213,14 @@ class _MediaLibraryGroupedListState
         listEquals(_sections, sections)) {
       return previous;
     }
-    _sections = sections;
-    return _table = MediaGroupedGridTable.build(
+    final next = MediaGroupedGridTable.build(
       sections: sections,
       columns: widget.columns,
       paneWidth: paneWidth,
     );
+    _keepPlace(previous, next);
+    _sections = sections;
+    return _table = next;
   }
 
   @override
