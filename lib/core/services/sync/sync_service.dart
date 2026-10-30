@@ -5666,7 +5666,8 @@ class SyncService {
   /// deltas). Skips a device whose base parts are not all present or whose base
   /// fails its checksum (a publish still in flight -> retry next adopt). A
   /// fetch that was interrupted is not that: it says nothing about the cloud,
-  /// so [BaseFetchInterrupted] propagates and the caller aborts.
+  /// so the failure propagates, as [BaseFetchInterrupted] for a base and as
+  /// itself for a manifest or changeset, and the caller aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.
