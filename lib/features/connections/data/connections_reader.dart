@@ -67,6 +67,33 @@ class ConnectionsReader {
     return _edgeRows(kind, kind, q);
   }
 
+  /// [edges] between the entities of [kindA] and [kindB] in [kept], taking
+  /// [edgesAmong] for a pair of one kind.
+  Future<List<ConnectionEdge>> edgesWithin(
+    ConnectionKind kindA,
+    ConnectionKind kindB,
+    Map<ConnectionKind, Set<String>> kept, {
+    required String? diverId,
+    required DiveFilterState filter,
+    int minShared = 1,
+  }) => kindA == kindB
+      ? edgesAmong(
+          kindA,
+          kept[kindA]!,
+          diverId: diverId,
+          filter: filter,
+          minShared: minShared,
+        )
+      : edges(
+          kindA,
+          kindB,
+          diverId: diverId,
+          filter: filter,
+          restrictA: kept[kindA],
+          restrictB: kept[kindB],
+          minShared: minShared,
+        );
+
   Future<List<ConnectionEdge>> _edgeRows(
     ConnectionKind kindA,
     ConnectionKind kindB,
@@ -139,7 +166,8 @@ class ConnectionsReader {
     ];
   }
 
-  /// How many entities of [kind] have a dive in scope.
+  /// How many entities of [kind] have a dive in scope, limited to
+  /// [neighboursOf] when given.
   Future<int> nodeCount(
     ConnectionKind kind, {
     required String? diverId,

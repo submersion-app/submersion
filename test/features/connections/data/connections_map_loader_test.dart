@@ -50,6 +50,22 @@ void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
 
+  test('a link within one kind honours the minimum shared dives', () async {
+    final d = DatabaseService.instance.database;
+    await seedStar(d, (i) => i, 4);
+    final g = await MapLoader(ConnectionsReader(d)).load(
+      MapSpec(
+        kinds: {ConnectionKind.buddy},
+        links: {KindLink(ConnectionKind.buddy, ConnectionKind.buddy)},
+        minSharedDives: 3,
+      ),
+      diverId: 'me',
+      filter: const DiveFilterState(),
+      nodeBudget: 80,
+    );
+    expect(g.edges.map((e) => e.weight).toSet(), {3, 4});
+  });
+
   test('edge queries run only among the entities the budget keeps', () async {
     final d = DatabaseService.instance.database;
     await seedStar(d, (i) => i, 10);

@@ -306,7 +306,7 @@ void main() {
       expect(r.params, ['me', '%tur%', 5]);
     });
 
-    test('neighboursOf joins each frontier kind under the dive scope', () {
+    test('neighboursOf unions each frontier kind under one dive scope', () {
       final r = buildNodeSql(
         kind: ConnectionKind.buddy,
         diverId: 'me',
@@ -324,11 +324,11 @@ void main() {
       expect(r.sql, contains(' UNION '));
       expect(
         'd.diver_id = ?'.allMatches(r.sql),
-        hasLength(3),
-        reason: 'the count and both frontier arms are each scoped',
+        hasLength(2),
+        reason: 'the count and the neighbours are scoped once each',
       );
       expect(r.sql, contains('nb.entity_id NOT IN (?)'));
-      expect(r.params, ['me', 'me', 'f', 'f', 'me', 's1', 's2', 'f', 160]);
+      expect(r.params, ['me', 'f', 's1', 's2', 'me', 'f', 160]);
     });
 
     test('neighboursOf with an empty frontier matches nothing', () {
@@ -355,7 +355,7 @@ void main() {
         ),
       );
       expect(r.sql, contains('m.entity_id IN (SELECT nb.entity_id'));
-      expect(r.params, ['me', 'me', 's1', 'f']);
+      expect(r.params, ['me', 's1', 'me', 'f']);
     });
 
     test('escapeLike escapes the LIKE metacharacters', () {

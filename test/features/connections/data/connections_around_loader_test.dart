@@ -125,6 +125,23 @@ void main() {
     });
   }
 
+  test('a link to a missing entity takes no place in a capped read', () async {
+    final d = DatabaseService.instance.database;
+    await seedStar(d, (_) => 1, 10);
+    // Busier than any real neighbour, so it would rank first if it counted.
+    await d.customStatement('PRAGMA foreign_keys = OFF');
+    for (var i = 0; i < 3; i++) {
+      await d.customStatement(
+        "INSERT INTO dive_buddies (id, dive_id, buddy_id, role, created_at) "
+        "VALUES ('ghost-$i', 'd$i', 'ghost', 'buddy', 0)",
+      );
+    }
+    await d.customStatement('PRAGMA foreign_keys = ON');
+    final g = await _load(ConnectionsReader(d), budget: 2);
+    expect(g.nodes.map((n) => n.ref), isNot(contains(_b('ghost'))));
+    expect(g.hiddenNodeCount, 9, reason: '11 real buddies, 2 shown');
+  });
+
   test('a hop that fills the budget reads each kind once', () async {
     final d = DatabaseService.instance.database;
     await seedStar(d, (_) => 1, 200);

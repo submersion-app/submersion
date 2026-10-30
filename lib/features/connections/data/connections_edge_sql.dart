@@ -82,10 +82,8 @@ ORDER BY weight DESC, source ASC, target ASC''';
 /// hundred edges. Kits repeat, so this finds each distinct set of [ids] on a
 /// dive once, and enumerates the pairs of one sample dive per set.
 ///
-/// Sets compare by their joined ids, so equal strings mean equal members
-/// whatever order they were joined in: the sort inside only helps equal sets
-/// to meet. It stays in the subquery because SQLCipher builds may predate
-/// `group_concat(... ORDER BY ...)`. `char(31)` is a separator no id holds.
+/// Sets compare by their sorted, joined ids; `char(31)` is a separator no id
+/// holds.
 ({String sql, List<Object?> params}) buildSameKindEdgeSql({
   required ConnectionKind kind,
   required Iterable<String> ids,
@@ -114,8 +112,9 @@ WITH m AS MATERIALIZED (
   WHERE ${where.join(' AND ')}
 ),
 sets AS (
-  SELECT dive_id, MIN(t) AS t, group_concat(entity_id, char(31)) AS members
-  FROM (SELECT dive_id, entity_id, t FROM m ORDER BY dive_id, entity_id)
+  SELECT dive_id, MIN(t) AS t,
+         group_concat(entity_id, char(31) ORDER BY entity_id) AS members
+  FROM m
   GROUP BY dive_id
 ),
 kits AS (

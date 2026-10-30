@@ -37,7 +37,7 @@ class AroundLoader {
     required int nodeBudget,
   }) async {
     final enabled = kinds.toList()..sort((a, b) => a.index.compareTo(b.index));
-    final cap = nodeBudget > 0 ? nodeBudget * 2 : null;
+    final cap = budgetReach(nodeBudget);
     final placed = <ConnectionKind, Set<String>>{
       focus.kind: {focus.id},
     };
@@ -45,12 +45,18 @@ class AroundLoader {
     var frontier = <ConnectionKind, Set<String>>{
       focus.kind: {focus.id},
     };
-    final nodes = await _reader.nodes(
+    final focusRows = await _reader.nodes(
       focus.kind,
       diverId: diverId,
       filter: filter,
       onlyIds: {focus.id},
     );
+    final focusNode =
+        (focusRows.isEmpty
+                ? await _reader.labelOnly(focus, diverId: diverId)
+                : focusRows.single)
+            .copyWith(hop: 0);
+    final reached = <ConnectionNode>[];
 
     bool budgetFull() =>
         nodeBudget > 0 && totals.values.fold(0, (a, b) => a + b) >= nodeBudget;
@@ -75,7 +81,7 @@ class AroundLoader {
           neighboursOf: neighbours,
         );
         if (rows.isEmpty) continue;
-        final found = cap != null && rows.length >= cap
+        final total = cap != null && rows.length >= cap
             ? await _reader.nodeCount(
                 kind,
                 diverId: diverId,
@@ -83,20 +89,18 @@ class AroundLoader {
                 neighboursOf: neighbours,
               )
             : rows.length;
-        totals[kind] = (totals[kind] ?? 0) + found;
-        nodes.addAll(rows.map((n) => n.copyWith(hop: hop)));
+        totals[kind] = (totals[kind] ?? 0) + total;
+        reached.addAll(rows.map((n) => n.copyWith(hop: hop)));
         next[kind] = {for (final n in rows) n.ref.id};
         placed.putIfAbsent(kind, () => {}).addAll(next[kind]!);
       }
       frontier = next;
     }
 
-    nodes.sort(_byKindThenBusiest);
-    if (!nodes.any((n) => n.ref == focus)) {
-      nodes.insert(0, await _reader.labelOnly(focus, diverId: diverId));
-    }
-    final focusAt = nodes.indexWhere((n) => n.ref == focus);
-    nodes[focusAt] = nodes[focusAt].copyWith(hop: 0);
+    // A focus with no dive in scope has no place among the counts: it leads.
+    final nodes = focusRows.isEmpty
+        ? [focusNode, ...reached..sort(_byKindThenBusiest)]
+        : ([focusNode, ...reached]..sort(_byKindThenBusiest));
 
     // Cut to the budget before the chord pass (see nodesWithinBudget), so
     // chord work is bounded by the budget, not by the size of the log.
@@ -109,21 +113,13 @@ class AroundLoader {
     for (var i = 0; i < keptKinds.length; i++) {
       for (var j = i; j < keptKinds.length; j++) {
         edges.addAll(
-          i == j
-              ? await _reader.edgesAmong(
-                  keptKinds[i],
-                  keptIds[keptKinds[i]]!,
-                  diverId: diverId,
-                  filter: filter,
-                )
-              : await _reader.edges(
-                  keptKinds[i],
-                  keptKinds[j],
-                  diverId: diverId,
-                  filter: filter,
-                  restrictA: keptIds[keptKinds[i]],
-                  restrictB: keptIds[keptKinds[j]],
-                ),
+          await _reader.edgesWithin(
+            keptKinds[i],
+            keptKinds[j],
+            keptIds,
+            diverId: diverId,
+            filter: filter,
+          ),
         );
       }
     }

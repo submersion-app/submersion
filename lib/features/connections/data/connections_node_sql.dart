@@ -48,37 +48,41 @@ class NeighboursOf {
 }
 
 /// The WHERE term limiting `m.entity_id` of [kind] to [neighbours], with its
-/// params. Each frontier kind joins its own dives, so an entity reached from
-/// two kinds is still one row.
+/// params. The frontier's dives are one union, so an entity reached from two
+/// kinds is still one row and the scope binds once however many kinds it has.
 ({String sql, List<Object?> params}) _neighbourTerm(
   ConnectionKind kind,
   NeighboursOf neighbours, {
   required String? diverId,
   required DiveFilterState filter,
 }) {
-  final excluded = neighbours.exclude.isEmpty
-      ? ''
-      : ' AND nb.entity_id NOT IN (${placeholders(neighbours.exclude.length)})';
-  final arms = <String>[];
-  final params = <Object?>[];
-  for (final MapEntry(key: from, value: ids) in neighbours.frontier.entries) {
-    // The scope is built beside the SQL that embeds it, so the census sees
-    // both in one chunk.
-    final scope = diveScopeSql(diverId: diverId, filter: filter);
-    arms.add(
-      'SELECT nb.entity_id FROM dives d '
-      'JOIN (${membershipSql(from)}) na ON na.dive_id = d.id '
+  final frontierDives = [
+    for (final MapEntry(key: from, value: ids) in neighbours.frontier.entries)
+      'SELECT dive_id FROM (${membershipSql(from)}) '
+          'WHERE entity_id IN (${placeholders(ids.length)})',
+  ];
+  if (frontierDives.isEmpty) return (sql: '0 = 1', params: const []);
+  // The scope is built beside the SQL that embeds it, so the census sees
+  // both in one chunk.
+  final scope = diveScopeSql(diverId: diverId, filter: filter);
+  final where = [
+    ...scope.clauses,
+    if (neighbours.exclude.isNotEmpty)
+      'nb.entity_id NOT IN (${placeholders(neighbours.exclude.length)})',
+  ];
+  final sql =
+      'm.entity_id IN (SELECT nb.entity_id FROM dives d '
+      'JOIN (${frontierDives.join(' UNION ')}) na ON na.dive_id = d.id '
       'JOIN (${membershipSql(kind)}) nb ON nb.dive_id = d.id '
-      'WHERE ${scope.clauses.join(' AND ')} '
-      'AND na.entity_id IN (${placeholders(ids.length)})$excluded',
-    );
-    params
-      ..addAll(scope.params)
-      ..addAll(ids)
-      ..addAll(neighbours.exclude);
-  }
-  if (arms.isEmpty) return (sql: '0 = 1', params: const []);
-  return (sql: 'm.entity_id IN (${arms.join(' UNION ')})', params: params);
+      'WHERE ${where.join(' AND ')})';
+  return (
+    sql: sql,
+    params: [
+      for (final ids in neighbours.frontier.values) ...ids,
+      ...scope.params,
+      ...neighbours.exclude,
+    ],
+  );
 }
 
 /// Every entity of [kind] with at least one dive in scope, with its own
