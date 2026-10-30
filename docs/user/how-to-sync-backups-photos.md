@@ -97,7 +97,7 @@ Your computer joins the same library by choosing the same Google account.
 
 On **Welcome to Submersion**, tap **I have existing Submersion data**, then **Connect cloud sync**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/06-bring-your-data.png: Bring your data with Restore a backup file, Connect cloud sync and Open an existing folder; mac; fresh install -->
+![Bring your data with Restore a backup file, Connect cloud sync and Open an existing folder](images/how-to/sync-backups-photos/06-bring-your-data.png)
 
 ### 2. Sign in to the same Google account
 

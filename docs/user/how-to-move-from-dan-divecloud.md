@@ -35,7 +35,7 @@ You need:
 2. Tap **Select Files** and choose the ZIP. On a computer you can also drag it onto the Submersion window.
 3. Submersion opens the ZIP and lists the files it found. Tap **Next**.
 
-<!-- screenshot: images/how-to/move-from-dan-divecloud/01-files-ready.png: the triage list with the number of files ready to import; mac; sample DiveCloud ZIP -->
+![The triage list with the number of files ready to import](images/how-to/move-from-dan-divecloud/01-files-ready.png)
 
 ## 3. Save your photos
 
@@ -43,7 +43,7 @@ The ZIP carries your photos. Click **Choose where to save photos...** and pick a
 
 On a phone or tablet, tap **Skip photos**. Dives import as normal; run the import again on a computer to add the photos.
 
-<!-- screenshot: images/how-to/move-from-dan-divecloud/02-photos.png: the Photos step with the bundled photo count and Choose where to save photos...; mac; sample DiveCloud ZIP -->
+![The Photos step with the bundled photo count and Choose where to save photos...](images/how-to/move-from-dan-divecloud/02-photos.png)
 
 ## 4. Review and import
 
@@ -53,7 +53,7 @@ The review screen lists your **Dives** and **Sites**. Everything new is ticked.
 
 Tap **Import Selected**.
 
-<!-- screenshot: images/how-to/move-from-dan-divecloud/03-review.png: the review step on the Dives tab with Import Selected; mac; sample DiveCloud ZIP -->
+![The review step on the Dives tab with Import Selected](images/how-to/move-from-dan-divecloud/03-review.png)
 
 ## Check it worked
 

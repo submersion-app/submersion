@@ -42,7 +42,7 @@ You need:
 2. Tap **Select Files** and choose the copy of `dive_data.db`. On a computer you can also drag it onto the Submersion window.
 3. Submersion recognises the file as a Shearwater Cloud database. Tap **Next**.
 
-<!-- screenshot: images/how-to/move-from-shearwater-cloud/01-confirm-source.png: Confirm Source showing a detected Shearwater Cloud database; mac; sample Shearwater Cloud database -->
+![Confirm Source showing a detected Shearwater Cloud database](images/how-to/move-from-shearwater-cloud/01-confirm-source.png)
 
 ## 3. Review and import
 
@@ -53,7 +53,7 @@ The review screen lists your **Dives** and **Sites**. Everything new is ticked.
 
 Tap **Import Selected**.
 
-<!-- screenshot: images/how-to/move-from-shearwater-cloud/02-review.png: the review step on the Dives tab with the Sites tab and Import Selected; mac; sample Shearwater Cloud database -->
+![The review step on the Dives tab with the Sites tab and Import Selected](images/how-to/move-from-shearwater-cloud/02-review.png)
 
 ## Check it worked
 

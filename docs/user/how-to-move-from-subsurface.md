@@ -38,7 +38,7 @@ If your logbook is a local `.ssrf` file, you can import that file directly inste
 2. Tap **Select Files** and choose the file you exported. On a computer you can also drag the file onto the Submersion window; on a phone you can share it to Submersion from your Files app.
 3. Submersion recognises the file as Subsurface XML. Tap **Next**.
 
-<!-- screenshot: images/how-to/move-from-subsurface/01-confirm-source.png: Confirm Source showing a detected Subsurface XML file; mac; sample Subsurface log -->
+![Confirm Source showing a detected Subsurface XML file](images/how-to/move-from-subsurface/01-confirm-source.png)
 
 ## 3. Link your photos
 
@@ -46,7 +46,7 @@ If your Subsurface dives have pictures, Submersion asks where they are. Click **
 
 On a phone or tablet, tap **Skip photos**. Dives import as normal, and you can link photos later or run the import again on a computer.
 
-<!-- screenshot: images/how-to/move-from-subsurface/02-photos.png: the Photos step with the referenced photo count and the match summary after choosing a folder; mac; sample Subsurface log -->
+![The Photos step with the referenced photo count and the match summary after choosing a folder](images/how-to/move-from-subsurface/02-photos.png)
 
 ## 4. Review and import
 
@@ -57,7 +57,7 @@ The review screen has a tab for each kind of record: **Dives**, **Sites**, **Bud
 
 Tap **Import Selected**.
 
-<!-- screenshot: images/how-to/move-from-subsurface/03-review.png: the review step on the Dives tab with the Trips and Sites tabs and Import Selected; mac; sample Subsurface log -->
+![The review step on the Dives tab with the Trips and Sites tabs and Import Selected](images/how-to/move-from-subsurface/03-review.png)
 
 ## Check it worked
 

@@ -47,7 +47,7 @@ Your whole logbook is one SQLite database file.
 2. Tap **Select Files** and choose the database file. On a computer you can also drag it onto the Submersion window.
 3. Submersion recognises the file as a Diving Log logbook. Tap **Next**.
 
-<!-- screenshot: images/how-to/move-from-diving-log/01-confirm-source.png: Confirm Source showing a detected Diving Log database; mac; sample Diving Log database -->
+![Confirm Source showing a detected Diving Log database](images/how-to/move-from-diving-log/01-confirm-source.png)
 
 ## 3. Link your photos
 
@@ -60,11 +60,12 @@ On a phone or tablet, tap **Skip photos**. Dives import as normal; run the impor
 The review screen has a tab for each kind of record: **Dives**, **Sites**, **Buddies**, **Equipment**, **Trips**, **Certifications** and more. Everything new is ticked.
 
 - Any dive that looks like one already in Submersion is listed under **Potential Duplicates** or **Possible Duplicates**. Choose **Skip**, **Import as New** or **Consolidate** for each before importing.
+- Dive types such as **Boat** and **Shore** match ones Submersion already has, so they are listed under **Dive Types**, even in an empty logbook. Tap the **Dive Types** tab and choose **Skip all**.
 - Tap **Options** to keep Diving Log's dive numbers (**Retain source dive numbers**).
 
 Tap **Import Selected**.
 
-<!-- screenshot: images/how-to/move-from-diving-log/02-review.png: the review step on the Dives tab with the Sites, Buddies, Equipment, Trips and Certifications tabs; mac; sample Diving Log database -->
+![The review step on the Dives tab with the Sites, Buddies, Equipment, Trips and Certifications tabs](images/how-to/move-from-diving-log/02-review.png)
 
 ## Check it worked
 

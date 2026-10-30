@@ -43,7 +43,7 @@ You need:
 2. Click **Select Files**, choose `MacDive.sqlite`, and open it. (You can also drag the file onto the Submersion window.)
 3. Submersion recognises the file as a MacDive SQLite file. Click **Next**.
 
-<!-- screenshot: images/how-to/move-from-macdive/01-confirm-source.png: Confirm Source showing a detected MacDive SQLite file; mac; sample MacDive database -->
+![Confirm Source showing a detected MacDive SQLite file](images/how-to/move-from-macdive/01-confirm-source.png)
 
 ## 3. Choose where each diver's dives go
 
@@ -57,24 +57,25 @@ Submersion links to photos where they are; it never copies them. So if you plan 
 
 If you would rather link your photos later, click **Skip photos**.
 
-<!-- screenshot: images/how-to/move-from-macdive/02-photos.png: the Photos step with the photo count, Choose photo folder... and Skip photos; mac; sample MacDive database -->
+![The Photos step with the photo count, Choose photo folder... and Skip photos](images/how-to/move-from-macdive/02-photos.png)
 
 ## 5. Review and import
 
 The review screen has a tab for each kind of record: **Dives**, **Sites**, **Buddies**, **Equipment**, **Certifications** and more. Everything new is ticked.
 
 - If any dive looks like one already in Submersion, it is listed under **Potential Duplicates** or **Possible Duplicates**. Choose **Skip**, **Import as New** or **Consolidate** for each; **Import Selected** stays greyed out until you have.
+- Dive types such as **Boat** and **Shore** match ones Submersion already has, so they are listed under **Dive Types**, even in an empty logbook. Click the **Dive Types** tab and choose **Skip all**.
 - Click **Options** to keep MacDive's dive numbers (**Retain source dive numbers**) and to change the tag Submersion adds to everything from this import.
 
 Click **Import Selected**.
 
-<!-- screenshot: images/how-to/move-from-macdive/03-review.png: the review step on the Dives tab with the other entity tabs, Options and Import Selected; mac; sample MacDive database -->
+![The review step on the Dives tab with the other entity tabs, Options and Import Selected](images/how-to/move-from-macdive/03-review.png)
 
 ## Check it worked
 
 When **Successfully Imported** appears, the summary counts each kind of record, and **Import notes** explains anything that needs your attention. Click **View Dives** to see the imported dives.
 
-<!-- screenshot: images/how-to/move-from-macdive/04-summary.png: the summary with Successfully Imported, per-type counts and View Dives; mac; sample MacDive database -->
+![The summary with Successfully Imported, per-type counts and View Dives](images/how-to/move-from-macdive/04-summary.png)
 
 Open a few dives and check their profile, site and buddies. If some dives have GPS but no site, the summary offers a button such as **Match 3 dives to sites**.
 
