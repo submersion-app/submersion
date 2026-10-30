@@ -178,12 +178,15 @@ void main() {
       await dive('mine', 'T', diverId: 'me');
       await dive('theirs', 'T', diverId: 'buddy');
       await media('m1', 'mine');
+      await media('v1', 'mine', fileType: 'video');
       await media('m2', 'theirs');
 
       final scoped = await repository.getPreview('T', diverId: 'me');
       final everyone = await repository.getPreview('T');
 
       expect(scoped.byDiveId.keys, ['mine']);
+      expect(scoped.byDiveId['mine']!.mediaCount, 2);
+      expect(scoped.byDiveId['mine']!.photoCount, 1);
       expect(everyone.byDiveId.keys, unorderedEquals(['mine', 'theirs']));
     });
 

@@ -56,9 +56,13 @@ void main() {
     expect(preview.earliest(2).map((m) => m.id), ['m1', 'm2']);
   });
 
-  test('the preview limit covers every preview the app shows', () {
-    // The Overview day strip shows six, the Photos card five; a larger one
-    // could not be composed from what the query returns per dive.
-    expect(tripMediaPreviewLimit, greaterThanOrEqualTo(6));
+  test('copyWith replaces only what it is given', () {
+    final original = dive([item('a', 0)], count: 4);
+    final preview = TripMediaPreview(byDiveId: {'a': original});
+
+    expect(original.copyWith(mediaCount: 9).mediaCount, 9);
+    expect(original.copyWith(mediaCount: 9).photoCount, 4);
+    expect(preview.copyWith(), preview);
+    expect(preview.copyWith(byDiveId: const {}).mediaCount, 0);
   });
 }

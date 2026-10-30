@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
@@ -14,6 +16,14 @@ import 'package:submersion/features/trips/domain/entities/trip_media_preview.dar
 class TripMediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(TripMediaRepository);
+
+  /// Writes to the one table [getPreview] reads. Narrower than
+  /// [MediaRepository.watchMediaChanges] on purpose: opening a photo backfills
+  /// its enrichment, which no preview shows but which would recompose the
+  /// whole trip story.
+  Stream<void> watchPreviewChanges() => _db
+      .tableUpdates(TableUpdateQuery.onTable(_db.media))
+      .debounce(MediaRepository.changeTickDebounce);
 
   /// The earliest [tripMediaPreviewLimit] items of each dive, with the counts
   /// of everything on it, so the row count is capped by the dives however

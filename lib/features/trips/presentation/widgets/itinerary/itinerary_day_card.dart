@@ -36,9 +36,9 @@ class ItineraryDayCard extends ConsumerWidget {
   /// the plan reads as a plan or as progress.
   final TripStoryDayKind kind;
 
-  /// The day's photo count and sightings, from the trip story. Empty while
-  /// the story loads or when it failed: they only add a line, never gate the
-  /// card.
+  /// The day's photo count and sightings, from the trip story. Zero and empty
+  /// while the story loads or when it failed: they only add a line, never
+  /// gate the card.
   final int photoCount;
   final List<Sighting> sightings;
 

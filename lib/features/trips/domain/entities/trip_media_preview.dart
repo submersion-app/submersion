@@ -32,6 +32,18 @@ class DiveMediaPreview extends Equatable {
     required this.photoCount,
   });
 
+  DiveMediaPreview copyWith({
+    List<MediaItem>? items,
+    int? mediaCount,
+    int? photoCount,
+  }) {
+    return DiveMediaPreview(
+      items: items ?? this.items,
+      mediaCount: mediaCount ?? this.mediaCount,
+      photoCount: photoCount ?? this.photoCount,
+    );
+  }
+
   @override
   List<Object?> get props => [items, mediaCount, photoCount];
 }
@@ -44,6 +56,10 @@ class TripMediaPreview extends Equatable {
   const TripMediaPreview({this.byDiveId = const {}});
 
   static const empty = TripMediaPreview();
+
+  TripMediaPreview copyWith({Map<String, DiveMediaPreview>? byDiveId}) {
+    return TripMediaPreview(byDiveId: byDiveId ?? this.byDiveId);
+  }
 
   /// Every media item on the trip.
   int get mediaCount =>

@@ -128,6 +128,24 @@ void main() {
       expect((await sub.read()).mediaCount, 1);
     });
 
+    test('an enrichment write does not re-read it', () async {
+      await media('m1', 'd1', 1000);
+      final c = container();
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      await sub.read();
+
+      await db.customInsert(
+        'INSERT INTO media_enrichment (id, media_id, dive_id, created_at) '
+        "VALUES ('e1', 'm1', 'd1', 0)",
+        updates: {db.mediaEnrichment},
+      );
+      await _tickSettled();
+      await sub.read();
+
+      expect(repository.previews, 1);
+    });
+
     test('an unrelated dive detail write does not re-read it', () async {
       final c = container();
       final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});

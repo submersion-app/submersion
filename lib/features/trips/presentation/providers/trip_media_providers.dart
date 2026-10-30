@@ -14,14 +14,14 @@ final tripMediaRepositoryProvider = Provider<TripMediaRepository>((ref) {
 /// What the Overview and Photos previews show: each dive's earliest items and
 /// the true counts, without loading the trip's gallery.
 ///
-/// Re-read on a media write (the tick also covers enrichment and species tags)
-/// and, through [diveIdsForTripProvider], whenever the trip's dives change. A
-/// deleted dive clears its media's dive_id by cascade without Drift seeing a
-/// write to `media`, so that second source is load-bearing.
+/// Re-read on a write to `media` and, through [diveIdsForTripProvider],
+/// whenever the trip's dives change. A deleted dive clears its media's dive_id
+/// by cascade without Drift seeing a write to `media`, so that second source
+/// is load-bearing.
 final tripMediaPreviewProvider =
     FutureProvider.family<TripMediaPreview, String>((ref, tripId) async {
       ref.invalidateSelfWhen(
-        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+        ref.watch(tripMediaRepositoryProvider).watchPreviewChanges(),
       );
       final diveIds = await ref.watch(diveIdsForTripProvider(tripId).future);
       if (diveIds.isEmpty) return TripMediaPreview.empty;
@@ -70,8 +70,7 @@ final flatMediaListForTripProvider = FutureProvider.autoDispose
 
       final allMedia = mediaByDive.values.expand((list) => list).toList();
 
-      // Sort by takenAt (chronological)
-      allMedia.sort((a, b) => a.takenAt.compareTo(b.takenAt));
+      allMedia.sort(compareMediaChronologically);
 
       return allMedia;
     });
