@@ -363,7 +363,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   static const double _bottomTickReservedSize = 22.0;
 
   /// Optional key for exporting the chart as an image.
-  /// When provided, wraps the chart in a RepaintBoundary for screenshot capture.
+  /// Names the plot's RepaintBoundary, which is always there, for screenshot
+  /// capture.
   final GlobalKey? exportKey;
 
   /// Optional playback cursor timestamp in seconds.
