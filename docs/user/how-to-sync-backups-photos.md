@@ -51,7 +51,7 @@ Once you are signed in, Submersion moves on to the next step by itself.
 
 Leave **Keep devices in step automatically** on. It syncs a few seconds after each change, when you open the app and when you come back to it. Tap **Turn on sync**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/03-turn-on-sync.png: Dives on every device with the no-library message, Keep devices in step automatically switched on and the Turn on sync button; iphone; signed in to Google Drive -->
+![Dives on every device with the no-library message, Keep devices in step automatically switched on and the Turn on sync button](images/how-to/sync-backups-photos/03-turn-on-sync.png)
 
 A progress bar shows while your library uploads. It takes a few seconds for a new logbook, longer for a big one.
 
@@ -66,7 +66,7 @@ On **A backup that survives a lost phone**, leave both switches on:
 
 Tap **Next**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/04-backups.png: A backup that survives a lost phone with Back up automatically and Also keep a copy in Google Drive both on; iphone; after turning on sync -->
+![A backup that survives a lost phone with Back up automatically and Also keep a copy in Google Drive both on](images/how-to/sync-backups-photos/04-backups.png)
 
 You can change the schedule, how many backups are kept, and password protection later under **Settings > Data > Backups**.
 
@@ -81,7 +81,7 @@ On **Photos on every device**, turn on **Keep photo copies in** Google Drive. Tw
 
 Tap **Next**. If you would rather not keep photo copies, tap **Skip**; you can turn them on later under **Settings > Data > Photos & videos**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/05-photos.png: Photos on every device with Keep photo copies in Google Drive on, and Upload new photos automatically and Use cellular data below it; iphone; after backups -->
+![Photos on every device with Keep photo copies in Google Drive on, and Upload new photos automatically and Use cellular data below it](images/how-to/sync-backups-photos/05-photos.png)
 
 ### 6. Finish
 
@@ -107,7 +107,7 @@ On **Where should Submersion keep your data?**, tap **Google Drive** and sign in
 
 **Dives on every device** now says it found your library in Google Drive, when it last changed and on which device. Because this computer has no dives yet, the library is simply downloaded. Leave **Keep devices in step automatically** on and tap **Download library**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/07-download-library.png: Dives on every device with Found your library in Google Drive, the no-dives-here line and the Download library button; mac; signed in to the same Google account -->
+![Dives on every device with Found your library in Google Drive, the no-dives-here line and the Download library button](images/how-to/sync-backups-photos/07-download-library.png)
 
 Your diver profile comes down with the library, so you do not create a new one on this device.
 
@@ -123,7 +123,7 @@ Leave both backup switches on and tap **Next**.
 
 On **Photos on every device**, **Use the photo copies in** Google Drive is already on, with **Same account. Nothing to type.** underneath. Tap **Next**, then **Get started** on **You're all set**.
 
-<!-- screenshot: images/how-to/sync-backups-photos/08-use-photo-copies.png: Photos on every device on a later device, with Use the photo copies in Google Drive on and Same account. Nothing to type.; mac; after downloading the library -->
+![Photos on every device on a later device, with Use the photo copies in Google Drive on and Same account. Nothing to type.](images/how-to/sync-backups-photos/08-use-photo-copies.png)
 
 ## Check it worked
 
@@ -136,7 +136,7 @@ On either device, open **Settings > Data**. Under **Your data** you should see:
 | **Photos & videos** | **Copies kept in Google Drive** (or **Copies are not kept in the cloud** if you skipped photos) |
 | **Connected accounts** | Google Drive |
 
-<!-- screenshot: images/how-to/sync-backups-photos/09-your-data.png: Settings > Data with the Your data rows showing sync, backups, photos and connected accounts set up; mac; both devices set up -->
+![Settings > Data with the Your data rows showing sync, backups, photos and connected accounts set up](images/how-to/sync-backups-photos/09-your-data.png)
 
 Now log or edit a dive on one device. Within a few seconds it appears on the other.
 
