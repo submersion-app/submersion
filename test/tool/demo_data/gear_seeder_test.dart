@@ -62,15 +62,20 @@ void main() {
           1,
           reason: cell,
         );
-        // The install date is the item's own created date, which the demo
-        // date shift moves with the dives; an installed_date attribute would
-        // not move, and the condition program would read the wrong dives.
+        // The install date is recorded as the app records it, an
+        // installed_date attribute, which the demo date shift moves with
+        // the dives, and as the item's created date.
+        final installed = await ctx.db
+            .customSelect(
+              'SELECT value_num AS v FROM equipment_attributes '
+              "WHERE equipment_id = ? AND attr_key = 'installed_date'",
+              variables: [Variable.withString(id(cell))],
+            )
+            .get();
+        expect(installed, hasLength(1), reason: cell);
         expect(
-          await count(
-            "SELECT 1 FROM equipment_attributes WHERE equipment_id = '${id(cell)}' "
-            "AND attr_key = 'installed_date'",
-          ),
-          0,
+          installed.single.read<double>('v'),
+          ctx.timeline.boughtOn(cell)!.millisecondsSinceEpoch.toDouble(),
           reason: cell,
         );
         final created = await ctx.db

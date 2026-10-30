@@ -22,6 +22,9 @@ mkdir -p "$3"
 out="$(abs "$3")"
 
 cd "$repo"
+# Start from the published manifest, so the merge keeps the packages older
+# apps still need. A failed fetch stops the build.
+python3 scripts/demo_data/fetch_published_manifest.py "$out"
 DEMO_PACK_SHAPES="$shapes" \
 DEMO_PACK_PHOTOS="$photos" \
 DEMO_PACK_OUT="$out" \
