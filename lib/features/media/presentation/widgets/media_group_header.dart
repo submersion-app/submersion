@@ -108,13 +108,24 @@ class MediaGroupHeaderMeasurer {
     final inherited = DefaultTextStyle.of(context);
     final textTheme = Theme.of(context).textTheme;
     final bold = MediaQuery.boldTextOf(context);
+    final lineHeight = MediaQuery.maybeLineHeightScaleFactorOverrideOf(context);
+    final letterSpacing = MediaQuery.maybeLetterSpacingOverrideOf(context);
+    final wordSpacing = MediaQuery.maybeWordSpacingOverrideOf(context);
     TextStyle resolve(MediaGroupHeaderKind kind) {
       final style = inherited.style.merge(
         MediaGroupHeaderSpec.themeStyleOf(kind, textTheme),
       );
-      return bold
-          ? style.merge(const TextStyle(fontWeight: FontWeight.bold))
-          : style;
+      return (bold
+              ? style.merge(const TextStyle(fontWeight: FontWeight.bold))
+              : style)
+          // The platform's text spacing settings, last, as `Text` applies them.
+          .merge(
+            TextStyle(
+              height: lineHeight,
+              letterSpacing: letterSpacing,
+              wordSpacing: wordSpacing,
+            ),
+          );
     }
 
     return MediaGroupHeaderMeasurer._(

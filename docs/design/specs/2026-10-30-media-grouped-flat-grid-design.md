@@ -146,9 +146,13 @@ offset is corrected before the viewport lays out, as the wheel path does now; a 
 change arrives during layout through a `LayoutBuilder`, which is still before the
 viewport's own layout. The end of the list stays the physics' to clamp.
 
-This applies only when the same cells are in both tables. Paging appends after the
-viewport, so it moves nothing above it. A table change that alters which cells exist
-above the top edge leaves the offset alone, as today's list has no better answer there.
+This applies only when the same cells are in both tables. Paging normally appends after
+the viewport, so it moves nothing above it. The exception is By dive, where the Unlinked
+group stays last: a page can insert dive groups above it, so a diver reading Unlinked
+near the end sees the view move when a page lands. Today's list is disturbed at the same
+moment, because the row index it holds starts to mean a different row, so that stays as
+it is. Any table change that alters which cells exist above the top edge leaves the
+offset alone.
 
 The wheel path keeps its own anchor, because it holds the thumbnail under the cursor
 rather than the top edge.

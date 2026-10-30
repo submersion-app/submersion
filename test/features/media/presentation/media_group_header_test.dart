@@ -16,6 +16,9 @@ void main() {
     double width = 320,
     TextScaler textScaler = TextScaler.noScaling,
     TextDirection direction = TextDirection.ltr,
+    double? lineHeightOverride,
+    double? letterSpacingOverride,
+    double? wordSpacingOverride,
   }) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
@@ -27,7 +30,12 @@ void main() {
         child: Directionality(
           textDirection: direction,
           child: MediaQuery(
-            data: MediaQueryData(textScaler: textScaler),
+            data: MediaQueryData(
+              textScaler: textScaler,
+              lineHeightScaleFactorOverride: lineHeightOverride,
+              letterSpacingOverride: letterSpacingOverride,
+              wordSpacingOverride: wordSpacingOverride,
+            ),
             child: Align(
               alignment: Alignment.topLeft,
               child: SizedBox(
@@ -111,6 +119,34 @@ void main() {
           tester,
           spec,
           direction: TextDirection.rtl,
+        );
+        expect(measured, drawn);
+      });
+
+      // The platform's text spacing settings, which `Text` applies itself.
+      testWidgets('with a line height override', (tester) async {
+        final (drawn, measured) = await compare(
+          tester,
+          spec,
+          lineHeightOverride: 2,
+        );
+        expect(measured, drawn);
+      });
+
+      testWidgets('with a letter spacing override', (tester) async {
+        final (drawn, measured) = await compare(
+          tester,
+          spec,
+          letterSpacingOverride: 4,
+        );
+        expect(measured, drawn);
+      });
+
+      testWidgets('with a word spacing override', (tester) async {
+        final (drawn, measured) = await compare(
+          tester,
+          spec,
+          wordSpacingOverride: 40,
         );
         expect(measured, drawn);
       });
