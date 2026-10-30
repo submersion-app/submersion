@@ -150,7 +150,9 @@ Rules:
 - **The helper and the classes it serves stay free of Flutter imports,** so the
   profiling harness can use `dart compile exe`.
 
-The threshold is one named constant. Below it the work takes roughly 3 ms or less
+Inflate and pack reading are judged on compressed bytes, though they cost what
+the output costs, so they use the threshold divided by `kCompressedCostFactor`,
+8. The threshold is one named constant. Below it the work takes roughly 3 ms or less
 on the measured host, and the isolate spawn buys nothing. It also keeps small
 manifests, changesets and markers on the calling isolate and in the calling zone.
 The value is the designer's call and may change if profiling argues otherwise.
@@ -255,8 +257,10 @@ The callers then behave like this:
 - **`ChangesetReader`:** catches `BaseFetchInterrupted` around `_fetchBaseToFile`
   and handles it exactly as it handles null today, so pull's behaviour and its
   reported `incompletePeerDeviceIds` do not change.
-- **`_collectEpochBaseSources`:** deletes the temp files it has already
-  assembled, then lets the exception propagate. Adopt and the fence end as a sync
+- **`_collectEpochBaseSources`:** treats a manifest it could not fetch the same
+  way, while one the cloud holds but this device cannot use still skips the
+  device. On any failure it deletes the temp files it has already assembled, then
+  lets the exception propagate. Adopt and the fence end as a sync
   error, the markers and local state are untouched, and the next sync retries.
 - **Replace-join:** `prepareReplaceJoin` must turn it into a failed attempt that
   changes nothing, not an uncaught error. Its existing handling of a failed

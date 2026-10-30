@@ -577,6 +577,25 @@ void main() {
       );
     });
 
+    test('a dropped manifest read does not read as no library', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await seedPeerLog(cloud, 'peer-1', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 2),
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final manifest = ChangesetLogLayout.manifestName('peer-1');
+      cloud.failDownloadsWhere = (id) => id.endsWith(manifest);
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+
     test('a device that cannot be fetched aborts the whole refill', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),

@@ -5717,11 +5717,20 @@ class SyncService {
         if (excludeDeviceIds.contains(deviceId)) continue;
         final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
         if (manifestFile == null) continue;
+        // A manifest the cloud holds but this device cannot use skips the
+        // device. One that could not be fetched says nothing about it, so,
+        // like a base, it aborts the collection below.
+        final Uint8List manifestBytes;
+        try {
+          manifestBytes = await provider.downloadFile(manifestFile.id);
+        } on EnvelopeCorruptException {
+          continue;
+        } on SyncEncryptionRequired {
+          continue;
+        }
         SyncManifest manifest;
         try {
-          manifest = SyncManifest.fromBytes(
-            await provider.downloadFile(manifestFile.id),
-          );
+          manifest = SyncManifest.fromBytes(manifestBytes);
         } catch (_) {
           continue;
         }
