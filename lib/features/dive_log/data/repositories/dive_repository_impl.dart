@@ -21,6 +21,7 @@ import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/features/dive_log/domain/entities/tank_shared_compute
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_scrubber_entry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
@@ -3699,6 +3701,35 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load dive summaries by id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// One page of the dive picker, for a sheet that only names and dates a
+  /// dive (see [divePickerRows]). Pass the last row's cursor for the next page.
+  Future<List<DivePickerRow>> getDivePickerRows({
+    String? diverId,
+    String query = '',
+    DiveSummaryCursor? cursor,
+    int limit = kDivePickerPageSize,
+  }) async {
+    try {
+      return await PerfTimer.measure(
+        'getDivePickerRows',
+        () => divePickerRows(
+          _db,
+          diverId: diverId,
+          query: query,
+          cursor: cursor,
+          limit: limit,
+        ),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive picker rows',
         error: e,
         stackTrace: stackTrace,
       );
