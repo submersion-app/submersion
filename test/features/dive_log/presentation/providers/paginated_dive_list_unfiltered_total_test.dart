@@ -295,6 +295,27 @@ void main() {
       );
     });
 
+    test('keeps the count on screen through a tick', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      await tableCount(container);
+      final seen = <ListEntryCount?>[];
+      final sub = container.listen(
+        diveTableCountProvider,
+        (_, next) => seen.add(next),
+      );
+      addTearDown(sub.close);
+
+      await DiveRepository().createDive(
+        Dive(id: 'd', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
+      );
+      await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
+
+      expect(seen, [const ListEntryCount.unfiltered(4)]);
+    });
+
     test('hides the count while another diver\'s loads', () async {
       final other = await DiverRepository().createDiver(
         Diver(
