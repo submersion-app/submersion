@@ -950,21 +950,16 @@ void _invalidateOnServiceLedgerChanges(Ref ref) {
   );
 }
 
-/// Evaluates every enabled clock on [item] at this moment. [siblings] is the
-/// active gear list when the caller already has it, so the parent and
-/// children lookups cost no query per item.
+/// Evaluates every enabled clock on [item] at this moment.
 Future<List<ServiceClockStatus>> _evaluateClocksFor(
   Ref ref,
-  EquipmentItem item, {
-  List<ServiceKind>? kinds,
-  List<EquipmentItem>? siblings,
-}) async {
+  EquipmentItem item,
+) async {
   final schedules = await ref
       .watch(serviceScheduleRepositoryProvider)
       .getSchedulesForEquipment(item.id);
   if (schedules.isEmpty) return const [];
-  final allKinds =
-      kinds ?? await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  final allKinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
   final records = await ref
       .watch(serviceRecordRepositoryProvider)
       .getRecordsForEquipment(item.id);
@@ -980,7 +975,7 @@ Future<List<ServiceClockStatus>> _evaluateClocksFor(
   // part's dives stop at its successor.
   final exposure = await ref
       .watch(equipmentRepositoryProvider)
-      .getItemExposure(item, siblings: siblings);
+      .getItemExposure(item);
   final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
   return _evaluateLoaded(
     item,
@@ -1032,6 +1027,69 @@ List<ServiceClockStatus> _evaluateLoaded(
   );
 }
 
+/// Every evaluated clock on [items], keyed by equipment id, in a fixed number
+/// of statements however many items there are. [schedulesById] is the
+/// caller's schedule read; an item without an entry is absent. Registers only
+/// the invalidation input that depends on which gear has clocks: the caller
+/// chooses the rest, because a list-wide provider cannot afford the dive
+/// detail stream a single item can.
+Future<Map<String, List<ServiceClockStatus>>> _evaluateScheduledItems(
+  Ref ref,
+  List<EquipmentItem> items,
+  Map<String, List<ServiceSchedule>> schedulesById,
+) async {
+  final scheduled = [
+    for (final item in items)
+      if (schedulesById.containsKey(item.id)) item,
+  ];
+  if (scheduled.isEmpty) return const {};
+  // A transmitter's dives include the tanks that carried its registered
+  // serials, and assigning a serial writes only the registry.
+  if (scheduled.any((i) => i.type == EquipmentType.transmitter)) {
+    ref.invalidateSelfWhen(
+      ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
+    );
+  }
+
+  final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  final kindsById = {for (final k in kinds) k.id: k};
+  final recordsById = await ref
+      .watch(serviceRecordRepositoryProvider)
+      .getRecordsForEquipmentIds([for (final i in scheduled) i.id]);
+  final exposures = await ref
+      .watch(equipmentRepositoryProvider)
+      .getItemExposures(scheduled);
+  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
+  final thresholds = ref.watch(exposureThresholdsProvider);
+  final now = DateTime.now();
+
+  return {
+    for (final item in scheduled)
+      item.id: _evaluateLoaded(
+        item,
+        schedules: schedulesById[item.id]!,
+        kindsById: kindsById,
+        records: recordsById[item.id] ?? const [],
+        exposure: exposures[item.id]!,
+        thresholds: thresholds,
+        dueSoonWindowDays: window,
+        now: now,
+      ),
+  };
+}
+
+/// [_evaluateScheduledItems] for gear already loaded: reads [items]' schedules
+/// once, so gear with no clock costs nothing past that read.
+Future<Map<String, List<ServiceClockStatus>>> _evaluateItems(
+  Ref ref,
+  List<EquipmentItem> items,
+) async {
+  final schedulesById = await ref
+      .watch(serviceScheduleRepositoryProvider)
+      .getSchedulesForEquipmentIds([for (final i in items) i.id]);
+  return _evaluateScheduledItems(ref, items, schedulesById);
+}
+
 /// Every evaluated clock on the gear named by [ids], keyed by equipment id,
 /// in a fixed number of statements however many ids there are. Unlike
 /// [activeEquipmentClocksProvider], retired and spare gear is evaluated
@@ -1058,36 +1116,7 @@ Future<Map<String, List<ServiceClockStatus>>> evaluateServiceClocksForIds(
       .getSchedulesForEquipmentIds(ids);
   if (schedulesById.isEmpty) return const {};
   final items = await repository.getEquipmentByIds(schedulesById.keys.toList());
-  if (items.isEmpty) return const {};
-  if (items.any((i) => i.type == EquipmentType.transmitter)) {
-    ref.invalidateSelfWhen(
-      ref.watch(transmitterRepositoryProvider).watchTransmittersChanges(),
-    );
-  }
-
-  final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
-  final kindsById = {for (final k in kinds) k.id: k};
-  final recordsById = await ref
-      .watch(serviceRecordRepositoryProvider)
-      .getRecordsForEquipmentIds([for (final i in items) i.id]);
-  final exposures = await repository.getItemExposures(items);
-  final window = await ref.watch(serviceDueSoonWindowDaysProvider.future);
-  final thresholds = ref.watch(exposureThresholdsProvider);
-  final now = DateTime.now();
-
-  return {
-    for (final item in items)
-      item.id: _evaluateLoaded(
-        item,
-        schedules: schedulesById[item.id]!,
-        kindsById: kindsById,
-        records: recordsById[item.id] ?? const [],
-        exposure: exposures[item.id]!,
-        thresholds: thresholds,
-        dueSoonWindowDays: window,
-        now: now,
-      ),
-  };
+  return _evaluateScheduledItems(ref, items, schedulesById);
 }
 
 /// All evaluated clocks for one equipment item (detail page).
@@ -1117,12 +1146,13 @@ typedef EquipmentClocks = ({
   List<ServiceClockStatus> statuses,
 });
 
-/// Evaluates the clocks of every active gear item exactly once. Both
-/// [dueClocksProvider] (badges/dashboard/trip) and
-/// [equipmentServiceUrgencyProvider] (sort/table columns) derive from this, so
-/// a screen watching both pays the per-item DB evaluation (schedules + records
-/// + usage + window) a single time instead of twice. Invalidate THIS provider
-/// (not the derived ones) to force a re-evaluation after schedule/kind edits.
+/// Evaluates the clocks of every active gear item exactly once, in one batch
+/// whose statements do not grow with the item count. Both [dueClocksProvider]
+/// (badges/dashboard/trip) and [equipmentServiceUrgencyProvider] (sort/table
+/// columns) derive from this, so a screen watching both pays the evaluation
+/// (schedules + records + usage + window) a single time instead of twice.
+/// Invalidate THIS provider (not the derived ones) to force a re-evaluation
+/// after schedule/kind edits.
 final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
   ref,
 ) async {
@@ -1142,18 +1172,10 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
   _invalidateOnServiceLedgerChanges(ref);
 
   final items = await repository.getActiveEquipment(diverId: validatedDiverId);
-  final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
+  final statuses = await _evaluateItems(ref, items);
   return [
     for (final item in items)
-      (
-        item: item,
-        statuses: await _evaluateClocksFor(
-          ref,
-          item,
-          kinds: kinds,
-          siblings: items,
-        ),
-      ),
+      (item: item, statuses: statuses[item.id] ?? const []),
   ];
 });
 
@@ -1232,23 +1254,15 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     final items = await repository.getActiveEquipment(
       diverId: validatedDiverId,
     );
-    final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
-    final alerts = <DueClock>[];
-    // Siblings stay the whole list: exposure reads them, trip or not.
-    for (final item in gearOnTrip(items, onTrip)) {
-      final statuses = await _evaluateClocksFor(
-        ref,
-        item,
-        kinds: kinds,
-        siblings: items,
-      );
-      alerts.addAll([
-        for (final s in statuses)
+    final packed = gearOnTrip(items, onTrip);
+    final statuses = await _evaluateItems(ref, packed);
+    final alerts = <DueClock>[
+      for (final item in packed)
+        for (final s in statuses[item.id] ?? const <ServiceClockStatus>[])
           if (s.severity == ServiceClockSeverity.overdue ||
               (s.dueDate != null && s.dueDate!.isBefore(trip.endDate)))
             (item: item, status: s),
-      ]);
-    }
+    ];
     alerts.sort((a, b) {
       final ad = a.status.dueDate, bd = b.status.dueDate;
       if (ad == null && bd == null) return 0;

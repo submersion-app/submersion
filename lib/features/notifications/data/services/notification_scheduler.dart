@@ -7,6 +7,8 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
@@ -83,13 +85,14 @@ class NotificationScheduler {
     // Clean up expired records first
     await _scheduledNotificationRepository.deleteExpired();
 
+    final evaluated = await _evaluateClocks(
+      items: items,
+      kindsById: kindsById,
+      settings: settings,
+    );
     final statusesByItem = <String, List<ServiceClockStatus>>{};
     for (final item in items) {
-      final statuses = await _evaluateClocks(
-        item: item,
-        kindsById: kindsById,
-        settings: settings,
-      );
+      final statuses = evaluated[item.id] ?? const <ServiceClockStatus>[];
       statusesByItem[item.id] = statuses;
       await _reconcileUsageReminders(item: item, statuses: statuses);
       for (final status in statuses) {
@@ -113,23 +116,47 @@ class NotificationScheduler {
     _log.info('Notification scheduling complete');
   }
 
-  /// Evaluate an item's clocks with the shared engine.
-  Future<List<ServiceClockStatus>> _evaluateClocks({
-    required EquipmentItem item,
+  /// [items]' clocks keyed by equipment id, an item without one absent. The
+  /// reads are batched, so they do not grow with the item count.
+  Future<Map<String, List<ServiceClockStatus>>> _evaluateClocks({
+    required List<EquipmentItem> items,
     required Map<String, ServiceKind> kindsById,
     required AppSettings settings,
   }) async {
-    final schedules = await _serviceScheduleRepository.getSchedulesForEquipment(
-      item.id,
-    );
-    if (schedules.isEmpty) return const [];
-    final records = await _serviceRecordRepository.getRecordsForEquipment(
-      item.id,
-    );
+    final schedulesById = await _serviceScheduleRepository
+        .getSchedulesForEquipmentIds([for (final i in items) i.id]);
+    final scheduled = [
+      for (final item in items)
+        if (schedulesById.containsKey(item.id)) item,
+    ];
+    final recordsById = await _serviceRecordRepository
+        .getRecordsForEquipmentIds([for (final i in scheduled) i.id]);
     // The repository's one wiring, shared with the in-app clocks, so a
     // reminder fires on exactly the usage the clock shows: fitted parts
     // only, and a replaced part's dives stop at its successor.
-    final exposure = await _equipmentRepository.getItemExposure(item);
+    final exposures = await _equipmentRepository.getItemExposures(scheduled);
+    return {
+      for (final item in scheduled)
+        item.id: _evaluateLoaded(
+          item: item,
+          schedules: schedulesById[item.id]!,
+          records: recordsById[item.id] ?? const [],
+          exposure: exposures[item.id]!,
+          kindsById: kindsById,
+          settings: settings,
+        ),
+    };
+  }
+
+  /// Evaluate one item's loaded inputs with the shared engine.
+  List<ServiceClockStatus> _evaluateLoaded({
+    required EquipmentItem item,
+    required List<ServiceSchedule> schedules,
+    required List<ServiceRecord> records,
+    required ItemExposure exposure,
+    required Map<String, ServiceKind> kindsById,
+    required AppSettings settings,
+  }) {
     final usage = exposure.samples;
     final classifier = ExposureClassifier(
       thresholds: exposureThresholdsFromSettings(settings),
@@ -436,12 +463,12 @@ class NotificationScheduler {
 
     // Reschedule based on current settings
     final kinds = await _serviceKindRepository.getAllKinds();
-    final statuses = await _evaluateClocks(
-      item: item,
+    final evaluated = await _evaluateClocks(
+      items: [item],
       kindsById: {for (final k in kinds) k.id: k},
       settings: globalSettings,
     );
-    for (final status in statuses) {
+    for (final status in evaluated[item.id] ?? const <ServiceClockStatus>[]) {
       await _scheduleForClock(
         item: item,
         status: status,

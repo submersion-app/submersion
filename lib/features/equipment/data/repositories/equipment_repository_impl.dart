@@ -1406,23 +1406,11 @@ class EquipmentRepository {
   /// growing with its successor's dives. [fittedChildren] leaves out parts
   /// retired or sold (even with isActive left true), which must not switch
   /// the parent's battery cycles off.
-  ///
-  /// [siblings] is the active gear list when the caller already has it, so
-  /// the parent and children lookups cost no query per item.
-  Future<ItemExposure> getItemExposure(
-    EquipmentItem item, {
-    List<EquipmentItem>? siblings,
-  }) async {
+  Future<ItemExposure> getItemExposure(EquipmentItem item) async {
     final parentId = item.parentEquipmentId;
-    final parent = parentId == null
-        ? null
-        : siblings?.where((s) => s.id == parentId).firstOrNull ??
-              await getEquipmentById(parentId);
+    final parent = parentId == null ? null : await getEquipmentById(parentId);
     final fittedChildren = [
-      for (final c
-          in siblings != null
-              ? siblings.where((s) => s.parentEquipmentId == item.id)
-              : await getChildEquipment(item.id))
+      for (final c in await getChildEquipment(item.id))
         if (c.isFitted) c,
     ];
     final isRebreather =
