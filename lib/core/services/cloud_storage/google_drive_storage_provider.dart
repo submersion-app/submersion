@@ -283,7 +283,9 @@ class GoogleDriveStorageProvider
   static CloudStorageException _signInExpired(Object cause) =>
       CloudStorageException(
         'Google Drive sign-in expired. Please sign in again.',
-        cause,
+        // That exception's text is the raw challenge header, which
+        // displayMessage would append. [_run] has already logged it.
+        cause is gauth.AccessDeniedException ? null : cause,
       );
 
   /// True when [e] is Google's token endpoint refusing the refresh token

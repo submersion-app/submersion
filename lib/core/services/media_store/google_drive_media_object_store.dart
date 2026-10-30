@@ -475,7 +475,7 @@ class GoogleDriveMediaObjectStore
           cause: e,
         );
       }
-      return http.Response(e.message, 401);
+      return http.Response('', 401);
     } on Exception catch (e) {
       throw MediaStoreException(
         'Could not reach Google Drive',

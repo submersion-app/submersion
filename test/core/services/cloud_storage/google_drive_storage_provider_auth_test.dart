@@ -164,6 +164,20 @@ class _FakeDrive {
 
 const _folderQueryKey = "mimeType = 'application/vnd.google-apps.folder'";
 
+/// [base] behind the googleapis_auth client production publishes.
+http.Client _authorized(http.Client base) => gauth.authenticatedClient(
+  base,
+  gauth.AccessCredentials(
+    gauth.AccessToken(
+      'Bearer',
+      'token',
+      DateTime.now().toUtc().add(const Duration(hours: 1)),
+    ),
+    null,
+    const [],
+  ),
+);
+
 void main() {
   late _FakeDrive drive_;
   late _FakeAuthenticator auth;
@@ -426,20 +440,7 @@ void main() {
   // never takes.
   group('rejections raised by the real auth client', () {
     setUp(() {
-      auth = _FakeAuthenticator(
-        gauth.authenticatedClient(
-          drive_.client(),
-          gauth.AccessCredentials(
-            gauth.AccessToken(
-              'Bearer',
-              'token',
-              DateTime.now().toUtc().add(const Duration(hours: 1)),
-            ),
-            null,
-            const [],
-          ),
-        ),
-      );
+      auth = _FakeAuthenticator(_authorized(drive_.client()));
       provider = GoogleDriveStorageProvider(authenticator: auth);
     });
 
@@ -465,9 +466,9 @@ void main() {
           provider.listFiles(namePattern: 'ssv1.'),
           throwsA(
             isA<CloudStorageException>().having(
-              (e) => e.message,
-              'message',
-              contains('sign in'),
+              (e) => e.displayMessage,
+              'displayMessage',
+              allOf(contains('sign in'), isNot(contains('www-authenticate'))),
             ),
           ),
         );
@@ -539,7 +540,7 @@ void main() {
         // Re-authorizing an expired token can come back with less than the
         // old grant had, so the retry needs the same classification.
         var calls = 0;
-        final client = gauth.authenticatedClient(
+        final client = _authorized(
           MockClient((request) async {
             calls++;
             return http.Response(
@@ -552,15 +553,6 @@ void main() {
               },
             );
           }),
-          gauth.AccessCredentials(
-            gauth.AccessToken(
-              'Bearer',
-              'token',
-              DateTime.now().toUtc().add(const Duration(hours: 1)),
-            ),
-            null,
-            const [],
-          ),
         );
         auth = _FakeAuthenticator(client);
         provider = GoogleDriveStorageProvider(authenticator: auth);
