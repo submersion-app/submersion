@@ -20092,16 +20092,117 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'No logged dives yet';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'No profile data on that dive — surface interval set without tissue seeding';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'Dive $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Add a dive';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Remove Dive $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'Dive $letter and its changes will be removed from the series.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'Dive $letter has warnings';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Dive details';
+
+  @override
+  String get plannerSeries_diveName => 'Dive name';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Dive $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Logged dive $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Stop following';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Carried into $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS at the end';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive ended $time ago.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Follow';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Surface interval';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Surface interval $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'Enter a time as h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minutes less';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minutes more';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Fill $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Fill all tanks';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'A series of dives can\'t be saved yet';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'A series of dives can\'t be converted to logged dives yet';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'A replan can\'t follow another dive';
 
   @override
   String get plannerCanvas_follow_title => 'Follow a dive';
@@ -52959,6 +53060,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Plan repetitive dive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

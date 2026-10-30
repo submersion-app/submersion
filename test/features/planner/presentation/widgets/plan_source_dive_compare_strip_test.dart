@@ -36,6 +36,7 @@ PlanOutcome _outcome() {
     otuTotal: 20,
     issues: [],
     endTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
+    surfacedTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
     tissueTimeline: [],
     ceilingTrace: [],
   );

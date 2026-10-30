@@ -32448,12 +32448,6 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String plannerCanvas_export_failed(String error);
 
-  /// No description provided for @plannerCanvas_follow_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Following {name}'**
-  String plannerCanvas_follow_chip(String name);
-
   /// No description provided for @plannerCanvas_follow_empty.
   ///
   /// In en, this message translates to:
@@ -32465,6 +32459,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data on that dive — surface interval set without tissue seeding'**
   String get plannerCanvas_follow_noTissues;
+
+  /// The planned dive's letter within its series: A, B, C
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter}'**
+  String plannerSeries_dive(String letter);
+
+  /// No description provided for @plannerSeries_addDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a dive'**
+  String get plannerSeries_addDive;
+
+  /// No description provided for @plannerSeries_removeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Dive {letter}'**
+  String plannerSeries_removeDive(String letter);
+
+  /// No description provided for @plannerSeries_removeDive_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter} and its changes will be removed from the series.'**
+  String plannerSeries_removeDive_message(String letter);
+
+  /// No description provided for @plannerSeries_hasIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter} has warnings'**
+  String plannerSeries_hasIssues(String letter);
+
+  /// No description provided for @plannerSeries_diveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive details'**
+  String get plannerSeries_diveDetails;
+
+  /// No description provided for @plannerSeries_diveName.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive name'**
+  String get plannerSeries_diveName;
+
+  /// A named planned dive: its letter in the series, then the diver's name for it
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter}: {name}'**
+  String plannerSeries_diveNamed(String letter, String name);
+
+  /// A logged dive shown in the planner series bar, by its dive number, name or date
+  ///
+  /// In en, this message translates to:
+  /// **'Logged dive {label}'**
+  String plannerSeries_loggedDive(String label);
+
+  /// No description provided for @plannerSeries_openInLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive log'**
+  String get plannerSeries_openInLog;
+
+  /// No description provided for @plannerSeries_stopFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following'**
+  String get plannerSeries_stopFollowing;
+
+  /// Heading over what a logged dive passes on to the dive after it
+  ///
+  /// In en, this message translates to:
+  /// **'Carried into {dive}'**
+  String plannerSeries_carriedInto(String dive);
+
+  /// No description provided for @plannerSeries_endCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at the end'**
+  String get plannerSeries_endCns;
+
+  /// No description provided for @plannerSeries_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get plannerSeries_otu;
+
+  /// Offer to follow the most recent logged dive: its name or number, then h:mm since it ended
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} ended {time} ago.'**
+  String plannerSeries_followPrompt(String dive, String time);
+
+  /// A logged dive by its number in the log
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String plannerSeries_loggedDiveNumber(int number);
+
+  /// No description provided for @plannerSeries_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get plannerSeries_follow;
+
+  /// No description provided for @plannerSeries_surfaceInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get plannerSeries_surfaceInterval;
+
+  /// Tooltip on the surface interval mark between two planned dives; time is h:mm
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval {time}'**
+  String plannerSeries_surfaceIntervalValue(String time);
+
+  /// No description provided for @plannerSeries_surfaceInterval_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a time as h:mm'**
+  String get plannerSeries_surfaceInterval_invalid;
+
+  /// No description provided for @plannerSeries_surfaceInterval_decrease.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes less'**
+  String get plannerSeries_surfaceInterval_decrease;
+
+  /// No description provided for @plannerSeries_surfaceInterval_increase.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes more'**
+  String get plannerSeries_surfaceInterval_increase;
+
+  /// The tank's name or gas, such as EAN32
+  ///
+  /// In en, this message translates to:
+  /// **'Fill {tank}'**
+  String plannerSeries_fill(String tank);
+
+  /// No description provided for @plannerSeries_fillAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill all tanks'**
+  String get plannerSeries_fillAll;
+
+  /// No description provided for @plannerSeries_saveUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A series of dives can\'t be saved yet'**
+  String get plannerSeries_saveUnavailable;
+
+  /// No description provided for @plannerSeries_convertUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A series of dives can\'t be converted to logged dives yet'**
+  String get plannerSeries_convertUnavailable;
+
+  /// No description provided for @plannerSeries_followUnavailableInReplan.
+  ///
+  /// In en, this message translates to:
+  /// **'A replan can\'t follow another dive'**
+  String get plannerSeries_followUnavailableInReplan;
 
   /// No description provided for @plannerCanvas_follow_title.
   ///
@@ -85064,6 +85220,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replan this dive'**
   String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_planRepetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan repetitive dive'**
+  String get diveLog_detail_menu_planRepetitive;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.
   ///

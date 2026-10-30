@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/widgets/tank_mod_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -78,6 +79,20 @@ class PlanTankList extends ConsumerWidget {
                 ),
               ],
             ),
+            // A later dive of a repetitive series starts its tanks where
+            // the dive before left them (issue #3565). On its own line: the
+            // header has no room for it in the editor pane.
+            if (ref.watch(seriesFillPressuresProvider).isNotEmpty)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.local_gas_station_outlined),
+                  label: Text(context.l10n.plannerSeries_fillAll),
+                  onPressed: () => ref
+                      .read(planSeriesNotifierProvider.notifier)
+                      .fillAllTanks(),
+                ),
+              ),
             const SizedBox(height: 8),
 
             // Saved tanks, collapsed by default: a bar that opens into the
@@ -170,6 +185,7 @@ class PlanTankList extends ConsumerWidget {
   ) {
     final isCcr = planState.mode == PlanMode.ccr;
     final limits = _modLimits(planState, units);
+    final fillable = ref.watch(seriesFillPressuresProvider);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -185,7 +201,7 @@ class PlanTankList extends ConsumerWidget {
           decoPpO2: limits.deco,
           diluentPpO2: limits.diluent,
         );
-        return PlanTankChip(
+        final chip = PlanTankChip(
           tank: tank,
           role: role,
           units: units,
@@ -203,6 +219,27 @@ class PlanTankList extends ConsumerWidget {
                     .read(divePlanNotifierProvider.notifier)
                     .removeTank(tank.id)
               : null,
+        );
+        if (!fillable.containsKey(tank.id)) return chip;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: chip),
+            IconButton(
+              // Compact, so a typical tank chip keeps its full detail line
+              // beside it in the 320 px editor pane.
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.local_gas_station_outlined),
+              tooltip: context.l10n.plannerSeries_fill(
+                (tank.name?.isNotEmpty ?? false)
+                    ? tank.name!
+                    : tank.gasMix.name,
+              ),
+              onPressed: () => ref
+                  .read(planSeriesNotifierProvider.notifier)
+                  .fillTank(tank.id),
+            ),
+          ],
         );
       }).toList(),
     );

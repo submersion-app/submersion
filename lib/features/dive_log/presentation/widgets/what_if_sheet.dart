@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -11,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/dive_to_plan_converter.dart';
+import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -208,7 +208,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
-    context.push('/planning/dive-planner');
+    openDivePlanner(context);
   }
 }
 

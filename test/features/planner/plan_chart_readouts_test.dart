@@ -108,27 +108,4 @@ void main() {
     );
     expect(cns.style?.color, Colors.orange);
   });
-
-  testWidgets('following pill shows under runtime and clears on tap', (
-    tester,
-  ) async {
-    await tester.pumpWidget(harness());
-    seed(tester, depth: 30, time: 20);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(PlanChartReadouts)),
-    );
-    container
-        .read(divePlanNotifierProvider.notifier)
-        .setFollowedDive(
-          diveId: 'missing-dive',
-          surfaceInterval: const Duration(hours: 1),
-        );
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Following'), findsOneWidget);
-    await tester.tap(find.textContaining('Following'));
-    await tester.pumpAndSettle();
-    expect(container.read(divePlanNotifierProvider).sourceDiveId, isNull);
-    expect(find.textContaining('Following'), findsNothing);
-  });
 }

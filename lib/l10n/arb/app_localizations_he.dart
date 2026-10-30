@@ -19943,16 +19943,117 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'עוקב אחרי $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'צלילה $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'הוספת צלילה';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'הסרת צלילה $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'צלילה $letter והשינויים בה יוסרו מהסדרה.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'בצלילה $letter יש אזהרות';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'פרטי הצלילה';
+
+  @override
+  String get plannerSeries_diveName => 'שם הצלילה';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'צלילה $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'צלילה מתועדת $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_stopFollowing => 'הפסקת מעקב';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'מועבר אל $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS בסוף';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive הסתיימה לפני $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'מעקב';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'מרווח שטח';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'מרווח שטח $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'יש להזין זמן בתבנית ש:דד';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 דקות פחות';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 דקות יותר';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'מילוי $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'מילוי כל המכלים';
+
+  @override
+  String get plannerSeries_saveUnavailable => 'עדיין לא ניתן לשמור סדרת צלילות';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
@@ -52656,6 +52757,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'תכנון מחדש של צלילה זו';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'תכנון צלילה חוזרת';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

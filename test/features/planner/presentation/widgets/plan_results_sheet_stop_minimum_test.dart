@@ -43,6 +43,7 @@ PlanOutcome _outcomeWithStop() {
     otuTotal: 5,
     issues: [],
     endTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
+    surfacedTissue: BuhlmannState(compartments: [], gfLowCeilingAnchor: 0),
     tissueTimeline: [],
     ceilingTrace: [],
   );

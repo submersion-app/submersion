@@ -356,6 +356,11 @@ class PlanOutcome {
   final BuhlmannState endTissue;
   final List<(int runtimeSeconds, BuhlmannState state)> tissueTimeline;
 
+  /// Tissue state on reaching the surface: [endTissue] carried through the
+  /// computed ascent, its stops and their air breaks. What a later dive of a
+  /// series starts from.
+  final BuhlmannState surfacedTissue;
+
   /// The deco ceiling sampled at a fixed 30-second interval (see
   /// `PlanEngine.ceilingSampleSeconds`) across the whole dive (user segments
   /// plus the computed ascent and stops), so the chart can draw it as the
@@ -381,6 +386,7 @@ class PlanOutcome {
     required this.issues,
     required this.endTissue,
     required this.tissueTimeline,
+    required this.surfacedTissue,
     required this.ceilingTrace,
     this.authoredDecoSeconds = 0,
   });

@@ -20371,16 +20371,117 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Folgt $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Noch keine geloggten Tauchgänge';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Keine Profildaten für diesen Tauchgang — Oberflächenpause ohne Gewebesättigung übernommen';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'Tauchgang $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Tauchgang hinzufügen';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Tauchgang $letter entfernen';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'Tauchgang $letter und seine Änderungen werden aus der Serie entfernt.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'Tauchgang $letter hat Warnungen';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Tauchgangsdetails';
+
+  @override
+  String get plannerSeries_diveName => 'Name des Tauchgangs';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Tauchgang $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Geloggter Tauchgang $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Im Logbuch öffnen';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Nicht mehr folgen';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Übertragen auf $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS am Ende';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive endete vor $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Folgen';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Oberflächenpause';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Oberflächenpause $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'Zeit als h:mm eingeben';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 Minuten weniger';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 Minuten mehr';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '$tank füllen';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Alle Flaschen füllen';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Eine Tauchgangsserie kann noch nicht gespeichert werden';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'Eine Neuplanung kann keinem anderen Tauchgang folgen';
 
   @override
   String get plannerCanvas_follow_title => 'Einem Tauchgang folgen';
@@ -53695,6 +53796,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Diesen Tauchgang neu planen';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Wiederholungstauchgang planen';
 
   @override
   String get plannerCanvas_sourceCompare_title =>

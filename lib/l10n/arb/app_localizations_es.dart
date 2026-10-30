@@ -20386,16 +20386,118 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Siguiendo $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Aún no hay inmersiones registradas';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Sin datos de perfil en esa inmersión — intervalo en superficie establecido sin saturación de tejidos';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'Inmersión $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Añadir una inmersión';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Eliminar la inmersión $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'La inmersión $letter y sus cambios se eliminarán de la serie.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'La inmersión $letter tiene advertencias';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Detalles de la inmersión';
+
+  @override
+  String get plannerSeries_diveName => 'Nombre de la inmersión';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Inmersión $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Inmersión registrada $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Abrir en el registro';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Dejar de seguir';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Se traslada a $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS al final';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive terminó hace $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Inmersión #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Seguir';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Intervalo en superficie';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Intervalo en superficie $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Introduce una duración como h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minutos menos';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minutos más';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Llenar $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Llenar todas las botellas';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Todavía no se puede guardar una serie de inmersiones';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Todavía no se puede convertir una serie de inmersiones en inmersiones registradas';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una replanificación no puede seguir otra inmersión';
 
   @override
   String get plannerCanvas_follow_title => 'Seguir una inmersión';
@@ -53863,6 +53965,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Replanificar esta inmersión';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Planificar inmersión sucesiva';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. inmersión original';

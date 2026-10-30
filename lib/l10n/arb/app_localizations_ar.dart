@@ -20687,16 +20687,116 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'يتبع $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
+
+  @override
+  String plannerSeries_dive(String letter) {
+    return 'الغطسة $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'إضافة غطسة';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'إزالة الغطسة $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'ستُزال الغطسة $letter وتغييراتها من السلسلة.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'الغطسة $letter بها تحذيرات';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'تفاصيل الغطسة';
+
+  @override
+  String get plannerSeries_diveName => 'اسم الغطسة';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'الغطسة $letter: $name';
+  }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'غطسة مسجلة $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'ينتقل إلى $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS في النهاية';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return 'انتهت $dive منذ $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'الغطسة #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'متابعة';
+
+  @override
+  String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'الفاصل السطحي $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'أدخل المدة بصيغة س:دد';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => 'أقل بـ 15 دقيقة';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'ملء $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
+
+  @override
+  String get plannerSeries_saveUnavailable => 'لا يمكن حفظ سلسلة غطسات بعد';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+
+  @override
+  String get plannerSeries_followUnavailableInReplan =>
+      'لا يمكن لإعادة التخطيط اتباع غطسة أخرى';
 
   @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
@@ -54468,6 +54568,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'إعادة تخطيط هذه الغطسة';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'تخطيط غطسة متكررة';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';

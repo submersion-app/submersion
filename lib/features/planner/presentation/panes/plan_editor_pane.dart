@@ -9,10 +9,11 @@ import 'package:submersion/features/planner/presentation/mission/mission_toggle_
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The editing column of Mission Control: tanks and segments always visible,
-/// everything else in the Setup accordion.
+/// The editing column of Mission Control: the dive's details, tanks and
+/// segments always visible, everything else in the Setup accordion.
 ///
 /// Tanks come first because a segment's tank dropdown can only offer
 /// cylinders that already exist, so authoring the profile before the gas
@@ -59,6 +60,7 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
+        const PlanDiveDetailsCard(),
         const PlanTankList(),
         const SizedBox(height: 12),
         const MissionToggleRow(),
