@@ -71,10 +71,12 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 - **Touched none of them:** delete the Screenshots section.
 - **Opening the PR with `gh`:** it cannot upload images, so capture the
   screenshots yourself and attach them through a secret gist, without being
-  asked and without handing the files to the maintainer. Use one gist per PR,
-  because a gist has no folders and a shared one would collide on file names.
-  `gh gist create` a short text file, `gh gist clone` it, add the images, push,
-  then embed them in the description with raw URLs pinned to that gist commit:
+  asked and without handing the files to the maintainer. Each author keeps one
+  gist for this project, described `PR screenshots: submersion-app/submersion`:
+  find it with `gh gist list --limit 1000`, or `gh gist create` it from a short
+  text file if there is none. `gh gist clone` it, add the images as
+  `<pr>-<nn>-<screen>-<state>.png` because a gist has no folders, push, then
+  embed them in the description with raw URLs pinned to that gist commit:
   `https://gist.githubusercontent.com/<owner>/<gist id>/raw/<commit>/<file>`.
   Do not tick "No visible UI change" to get past a missing screenshot.
 
