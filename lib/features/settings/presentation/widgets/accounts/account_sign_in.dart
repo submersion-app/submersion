@@ -65,17 +65,22 @@ Future<bool> signInToGroup(
         onDifferentAccount: onDifferentAccount,
       );
       if (ok) {
-        await _recordIdentity(ref, group.rows.first, AccountKind.googledrive);
+        await _recordIdentity(
+          container,
+          group.rows.first,
+          AccountKind.googledrive,
+        );
       }
     case AccountKind.dropbox:
       ok = await _signInDropbox(
         context,
-        ref,
         group.rows.first.id,
         expectedAccount: expectedAccount,
         onDifferentAccount: onDifferentAccount,
       );
-      if (ok) await _recordIdentity(ref, group.rows.first, AccountKind.dropbox);
+      if (ok) {
+        await _recordIdentity(container, group.rows.first, AccountKind.dropbox);
+      }
     case AccountKind.s3 || AccountKind.webdav:
       ok =
           await showOwnServerPage(
@@ -154,23 +159,23 @@ Future<ConnectedAccount?> addAccountRow(
           AccountKind.googledrive,
           l10n.settings_cloudSync_provider_googleDrive,
         );
-        await _recordIdentity(ref, row, AccountKind.googledrive);
+        await _recordIdentity(container, row, AccountKind.googledrive);
       }
     case AccountKindOffer.dropbox:
-      final kept = await _connectDropbox(context, ref);
+      final kept = await _connectDropbox(context);
       if (kept) {
         row = await ensure(
           AccountKind.dropbox,
           l10n.settings_cloudSync_provider_dropbox_title,
         );
-        await ref
+        await container
             .read(accountCredentialsStoreProvider)
             .rekeyFromLegacy(
               legacyKey: DropboxAuthStore.storageKey,
               accountId: row.id,
               overwrite: true,
             );
-        await _recordIdentity(ref, row, AccountKind.dropbox);
+        await _recordIdentity(container, row, AccountKind.dropbox);
       }
     case AccountKindOffer.icloud:
       final availability = await ref.read(iCloudAvailabilityProvider.future);
@@ -214,22 +219,25 @@ Future<ConnectedAccount?> addAccountRow(
 /// Records which account the diver signed in to (the Google address, the
 /// Dropbox account), shown under the account's name as the provider tiles
 /// showed it, so two Google accounts can be told apart. Best effort.
+///
+/// Takes the container, as the Dropbox helpers do: the widget that started a
+/// sign-in can be gone by the time it finishes, and with it its WidgetRef.
 Future<void> _recordIdentity(
-  WidgetRef ref,
+  ProviderContainer container,
   ConnectedAccount row,
   AccountKind kind,
 ) async {
   try {
     final provider = kind == AccountKind.googledrive
-        ? ref.read(
+        ? container.read(
             cloudStorageProviderForProvider(CloudProviderType.googledrive),
           )
-        : ref.read(dropboxStorageProviderInstanceProvider);
+        : container.read(dropboxStorageProviderInstanceProvider);
     final email = (await provider.getUserEmail())?.trim();
     if (email == null || email.isEmpty || email == row.accountIdentifier) {
       return;
     }
-    await ref
+    await container
         .read(connectedAccountsRepositoryProvider)
         .updateLabels(row.id, accountIdentifier: email);
   } catch (e, stack) {
@@ -291,38 +299,37 @@ Future<bool> _signInGoogle(
 }
 
 Future<bool> _connectDropbox(
-  BuildContext context,
-  WidgetRef ref, {
+  BuildContext context, {
   String? expectedAccount,
   ValueChanged<String>? onDifferentAccount,
 }) async {
+  final container = ProviderScope.containerOf(context, listen: false);
   final connected = await showDialog<bool>(
     context: context,
     builder: (_) => DropboxConnectDialog(
-      provider: ref.read(dropboxStorageProviderInstanceProvider),
+      provider: container.read(dropboxStorageProviderInstanceProvider),
       expectedAccount: expectedAccount,
       onDifferentAccount: onDifferentAccount,
     ),
   );
-  ref.invalidate(dropboxAuthDataProvider);
+  container.invalidate(dropboxAuthDataProvider);
   return connected == true;
 }
 
 Future<bool> _signInDropbox(
   BuildContext context,
-  WidgetRef ref,
   String accountId, {
   String? expectedAccount,
   ValueChanged<String>? onDifferentAccount,
 }) async {
+  final container = ProviderScope.containerOf(context, listen: false);
   final connected = await _connectDropbox(
     context,
-    ref,
     expectedAccount: expectedAccount,
     onDifferentAccount: onDifferentAccount,
   );
   if (!connected) return false;
-  await ref
+  await container
       .read(accountCredentialsStoreProvider)
       .rekeyFromLegacy(
         legacyKey: DropboxAuthStore.storageKey,

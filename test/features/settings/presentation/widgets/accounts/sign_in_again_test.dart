@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -66,6 +69,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
 
   @override
   Future<bool> attemptSilentAuth() async => authClient != null;
+
+  @override
+  bool get lastSilentAuthThrew => false;
 
   @override
   Future<String?> get userEmail async => signsInAs;
@@ -209,6 +215,7 @@ void main() {
     AccountGroup? group,
     BackupCopyTarget copy = const NoCopy(),
     DropboxStorageProvider? dropbox,
+    ValueListenable<bool>? hostShown,
   }) async {
     final account = group ?? _group();
     final drive = GoogleDriveStorageProvider(authenticator: authenticator);
@@ -229,17 +236,25 @@ void main() {
           backupCopyTargetProvider.overrideWith((ref) async => copy),
           syncStateProvider.overrideWith((ref) => sync),
           backupOperationProvider.overrideWith((ref) => backup),
+          accountCredentialsStoreProvider.overrideWithValue(
+            AccountCredentialsStore(storage: InMemoryKeychain()),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Consumer(
-            builder: (c, r, _) {
-              context = c;
-              ref = r;
-              return const Scaffold();
-            },
+          home: ValueListenableBuilder<bool>(
+            valueListenable: hostShown ?? ValueNotifier(true),
+            builder: (_, shown, _) => shown
+                ? Consumer(
+                    builder: (c, r, _) {
+                      context = c;
+                      ref = r;
+                      return const Scaffold();
+                    },
+                  )
+                : const Scaffold(),
           ),
         ),
       ),
@@ -533,6 +548,33 @@ void main() {
     await done;
 
     expect(sync.refreshStateCalls, 0);
+  });
+
+  testWidgets('a Dropbox sign-in finishes if its host goes away', (
+    tester,
+  ) async {
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    final group = _group(
+      kind: AccountKind.dropbox,
+      identifier: 'other@example.com',
+    );
+    final host = await pumpHost(
+      tester,
+      group: group,
+      dropbox: _dropbox(),
+      hostShown: shown,
+    );
+
+    final done = signInToGroup(host.$1, host.$2, group);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'the-code');
+    shown.value = false;
+    await tester.pump();
+    await tester.tap(find.text('Connect'));
+    await tester.pumpAndSettle();
+
+    expect(await done, isTrue);
   });
 
   group('a sign-in from anywhere', () {
