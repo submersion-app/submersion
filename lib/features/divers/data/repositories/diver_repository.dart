@@ -919,21 +919,14 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
-        // Fills on other divers' trips made at this diver's centers, and
-        // places standing for them: the centers go with the library below,
-        // so clear and stage those links now; the schema's SET NULL reaches
-        // no peer.
+        // Fills on other divers' trips made at this diver's centers: the
+        // centers go with the library below, so clear and stage those links
+        // now; the schema's SET NULL reaches no peer.
         final centerIds = await _idsOf(
           'SELECT id FROM dive_centers WHERE diver_id = ?',
           [id],
         );
         await clearTripCylinderEventCenterLinks(
-          _db,
-          _syncRepository,
-          centerIds,
-          now: DateTime.now().millisecondsSinceEpoch,
-        );
-        await clearEquipmentLocationCenterLinks(
           _db,
           _syncRepository,
           centerIds,
@@ -952,6 +945,13 @@ class DiverRepository {
           _db,
           _syncRepository,
           id,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        // After the retirement, so only places that survive are staged.
+        await clearEquipmentLocationCenterLinks(
+          _db,
+          _syncRepository,
+          centerIds,
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverLibrarySteps);

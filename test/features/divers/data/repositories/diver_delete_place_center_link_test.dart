@@ -83,6 +83,14 @@ void main() {
     },
   );
 
+  test('a place deleted with its diver is never queued for sync', () async {
+    await insertPlace('unused', diverId: 'gone');
+
+    await DiverRepository().deleteDiverWithReassignment('gone');
+
+    expect(await isPending('unused'), isFalse);
+  });
+
   test('a place surviving its diver goes to the heir, unlinked', () async {
     await insertPlace('kept', diverId: 'gone');
     await db
