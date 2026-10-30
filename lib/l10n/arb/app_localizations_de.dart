@@ -16186,6 +16186,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_location_kind_storage => 'Lager';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Tauchcenter';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Servicewerkstatt';
 
   @override
@@ -16414,6 +16417,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Art';
+
+  @override
+  String get equipment_locations_savedCenterLabel =>
+      'Gespeichertes Tauchcenter';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Keines';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Gespeichertes Tauchcenter entfernen';
 
   @override
   String get equipment_locations_notesLabel => 'Notizen';
@@ -53786,6 +53800,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Geben Sie 0 bis 100 ein';
+
+  @override
+  String get diveCenters_gearHere_title => 'Eigene Ausrüstung hier';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Leihausrüstung';

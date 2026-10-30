@@ -60,6 +60,19 @@ void main() {
     expect([for (final s in sections) s.itemCount], [1, 1, 1, 1]);
   });
 
+  test('a dive center heading sits between storage and service shop', () {
+    final center = place('center', 'Reef', EquipmentLocationKind.diveCenter);
+    final sections = arrange(items, {
+      'reg': shop,
+      'bcd': center,
+      'fins': garage,
+    });
+    expect(
+      [for (final s in sections) s.location?.id],
+      ['garage', 'center', 'shop', null],
+    );
+  });
+
   test('archived place still heads its items', () {
     final sections = arrange(items, locationOf);
     expect(sections.first.location!.isArchived, isTrue);

@@ -21,7 +21,8 @@ class EquipmentLocations extends Table {
   TextColumn get diverId => text().nullable().references(Divers, #id)();
   TextColumn get name => text()();
 
-  /// An `EquipmentLocationKind` name: storage, serviceShop, person, other.
+  /// An `EquipmentLocationKind` name: storage, diveCenter, serviceShop,
+  /// person, other.
   TextColumn get kind => text().withDefault(const Constant('other'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isArchived => boolean().withDefault(const Constant(false))();

@@ -17,6 +17,13 @@ void main() {
       );
       expect(EquipmentLocationKind.fromName(null), EquipmentLocationKind.other);
     });
+
+    test('diveCenter comes right after storage', () {
+      expect(EquipmentLocationKind.values.take(2), [
+        EquipmentLocationKind.storage,
+        EquipmentLocationKind.diveCenter,
+      ]);
+    });
   });
 
   group('compareMovesNewestFirst', () {

@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 /// order is the heading order when the Equipment page groups by location.
 enum EquipmentLocationKind {
   storage,
+  diveCenter,
   serviceShop,
   person,
   other;
@@ -18,8 +19,8 @@ enum EquipmentLocationKind {
   }
 }
 
-/// One of a diver's named places where gear can be: a shelf, a shop, a
-/// friend. Archived places leave the picker but stay in history.
+/// One of a diver's named places where gear can be: a shelf, a dive center,
+/// a shop, a friend. Archived places leave the picker but stay in history.
 class EquipmentLocation extends Equatable {
   final String id;
   final String? diverId;

@@ -16195,6 +16195,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_location_kind_storage => 'Arrumação';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Centro de mergulho';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Oficina de manutenção';
 
   @override
@@ -16422,6 +16425,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Tipo';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Centro de mergulho salvo';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Nenhum';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Remover centro de mergulho salvo';
 
   @override
   String get equipment_locations_notesLabel => 'Notas';
@@ -53902,6 +53915,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Insira um valor de 0 a 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'Seu equipamento aqui';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Equipamento alugado';

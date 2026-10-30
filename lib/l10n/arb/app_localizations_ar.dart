@@ -16423,6 +16423,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_kind_storage => 'تخزين';
 
   @override
+  String get equipment_location_kind_diveCenter => 'مركز غوص';
+
+  @override
   String get equipment_location_kind_serviceShop => 'ورشة صيانة';
 
   @override
@@ -16670,6 +16673,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'النوع';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'مركز غوص محفوظ';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'لا شيء';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'إزالة مركز الغوص المحفوظ';
 
   @override
   String get equipment_locations_notesLabel => 'ملاحظات';
@@ -54557,6 +54569,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'أدخل قيمة من 0 إلى 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'معداتك هنا';
 
   @override
   String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';

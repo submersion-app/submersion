@@ -66,6 +66,25 @@ void main() {
     }
   });
 
+  test('a dive center offers Active only from In Service, Loaned Out or '
+      'Lost, so gear left there keeps its status', () {
+    for (final status in statuses) {
+      final expected =
+          {
+            EquipmentStatus.inService,
+            EquipmentStatus.loaned,
+            EquipmentStatus.lost,
+          }.contains(status)
+          ? EquipmentStatus.active
+          : null;
+      expect(
+        offeredStatusAfterMove(EquipmentLocationKind.diveCenter, status),
+        expected,
+        reason: status.name,
+      );
+    }
+  });
+
   test('other and no location offer nothing', () {
     for (final status in statuses) {
       expect(
