@@ -114,6 +114,7 @@ final siteQueryEntity = QueryEntity(
     // that also takes `:none`/`:any` (the sheet's "has coordinates").
     const QueryField(
       key: 'coordinates',
+      aliases: ['gps'],
       type: FieldType.bool,
       ops: {QueryOp.eq, QueryOp.neq, QueryOp.isEmpty, QueryOp.isSet},
       sql: '({r}.latitude IS NOT NULL AND {r}.longitude IS NOT NULL)',

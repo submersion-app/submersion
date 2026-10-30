@@ -33,15 +33,15 @@ Future<ConditionNode?> pickCondition(
   final op = opsFor(target).first;
   if (pick.isRelation) {
     final rel = target.terminalRelation!;
-    final ref = await showQueryRefPicker(
+    return showQueryConditionPicker(
       buildContext,
       editor: context,
-      kind: rel.target,
+      path: pick.path,
+      relation: rel,
+      op: op,
       title: strings.pickRef.replaceAll('{name}', context.labels.relation(rel)),
       searchHint: strings.pickRefSearch,
     );
-    if (ref == null) return null;
-    return ConditionNode(pick.path, op, ref);
   }
   return ConditionNode(pick.path, op, defaultValueFor(target, op, context));
 }
@@ -126,11 +126,23 @@ class QueryConditionRow extends StatelessWidget {
             for (final op in ops)
               DropdownMenuItem(value: op, child: Text(context.labels.op(op))),
           ],
-          onChanged: (op) {
+          onChanged: (op) async {
             if (op == null || op == condition.op) return;
-            final next = _valueFor(op, target);
-            // A relation needs a pick the diver has not made: keep the row.
-            if (op.takesValue && next == null) return;
+            var next = _valueFor(op, target);
+            // A relation needs a pick the diver has not made: ask for it,
+            // and keep the row if they back out.
+            if (op.takesValue && next == null) {
+              if (rel == null) return;
+              final ref = await showQueryRefPicker(
+                buildContext,
+                editor: context,
+                kind: rel.target,
+                title: strings.pickRef.replaceAll('{name}', label),
+                searchHint: strings.pickRefSearch,
+              );
+              if (ref == null) return;
+              next = op == QueryOp.inList ? ListValue([ref]) : ref;
+            }
             onChanged(ConditionNode(condition.path, op, next));
           },
         ),

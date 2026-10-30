@@ -134,6 +134,8 @@ Use the filter icon to narrow the list by:
 - Has GPS coordinates (yes / no)
 - Has logged dives (yes / no)
 
+The filter also takes a written query: `gps is blank` lists the sites with no GPS location.
+
 Use the sort icon to order by name, rating, difficulty, max depth, dive count, or when you last dived there.
 
 ## Importing sites

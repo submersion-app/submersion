@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
-import 'package:submersion/core/query/domain/query_value.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
+import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 
 /// The rows a ref picker can offer: the resolver's rows when it can list
@@ -35,6 +36,45 @@ Future<RefValue?> showQueryRefPicker(
   ),
 );
 
+/// Pick what a new condition on [relation] at [path] says: a row of its
+/// target under [op], or that the relation holds nothing or something
+/// (#3810). A presence test names no row, so it cannot wait behind the pick:
+/// a diver with no trips has nothing to pick at all. Returns null when
+/// dismissed.
+Future<ConditionNode?> showQueryConditionPicker(
+  BuildContext context, {
+  required QueryEditorContext editor,
+  required FieldPath path,
+  required QueryRelation relation,
+  required QueryOp op,
+  required String title,
+  required String searchHint,
+}) async {
+  final picked = await showModalBottomSheet<Object>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => _RefPickerSheet(
+      entries: _entriesOf(editor, relation.target),
+      title: title,
+      searchHint: searchHint,
+      selected: const {},
+      multi: false,
+      doneLabel: null,
+      presence: {
+        for (final presence in const [QueryOp.isEmpty, QueryOp.isSet])
+          presence:
+              '${editor.labels.relation(relation)} '
+              '${editor.labels.op(presence)}',
+      },
+    ),
+  );
+  return switch (picked) {
+    final RefValue ref => ConditionNode(path, op, ref),
+    final QueryOp presence => ConditionNode(path, presence, null),
+    _ => null,
+  };
+}
+
 /// Pick several rows of [kind]; returns null when dismissed.
 Future<List<RefValue>?> showQueryRefMultiPicker(
   BuildContext context, {
@@ -65,6 +105,7 @@ class _RefPickerSheet extends StatefulWidget {
     required this.selected,
     required this.multi,
     required this.doneLabel,
+    this.presence = const {},
   });
 
   final List<RefValue> entries;
@@ -73,6 +114,10 @@ class _RefPickerSheet extends StatefulWidget {
   final Set<String> selected;
   final bool multi;
   final String? doneLabel;
+
+  /// Rows above the entries, by the operator each pops instead of a row. A
+  /// search leaves them in place: they are not among the names it filters.
+  final Map<QueryOp, String> presence;
 
   @override
   State<_RefPickerSheet> createState() => _RefPickerSheetState();
@@ -89,6 +134,7 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
       for (final r in widget.entries)
         if (search.isEmpty || r.label.toLowerCase().contains(search)) r,
     ];
+    final presence = widget.presence.entries.toList();
     // Lifted by the keyboard inset: the search field autofocuses, and the
     // multi picker's Done bar sits at the bottom of the sheet.
     return Padding(
@@ -120,9 +166,21 @@ class _RefPickerSheetState extends State<_RefPickerSheet> {
             Expanded(
               child: ListView.builder(
                 controller: scrollController,
-                itemCount: shown.length,
+                itemCount: presence.length + shown.length,
                 itemBuilder: (context, i) {
-                  final r = shown[i];
+                  if (i < presence.length) {
+                    final row = ListTile(
+                      title: Text(presence[i].value),
+                      onTap: () => Navigator.of(context).pop(presence[i].key),
+                    );
+                    return i == presence.length - 1
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [row, const Divider(height: 1)],
+                          )
+                        : row;
+                  }
+                  final r = shown[i - presence.length];
                   final on = _selected.contains(r.id);
                   return widget.multi
                       ? CheckboxListTile(
