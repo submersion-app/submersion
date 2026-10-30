@@ -16,6 +16,8 @@ import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 
+import '../../../helpers/google_auth_client.dart';
+
 /// Exercises the provider through the [GoogleDriveAuthenticator] seam: auth
 /// delegation, the 401 retry, and error mapping. The transfer paths that take
 /// a file path are covered separately in
@@ -163,20 +165,6 @@ class _FakeDrive {
 }
 
 const _folderQueryKey = "mimeType = 'application/vnd.google-apps.folder'";
-
-/// [base] behind the googleapis_auth client production publishes.
-http.Client _authorized(http.Client base) => gauth.authenticatedClient(
-  base,
-  gauth.AccessCredentials(
-    gauth.AccessToken(
-      'Bearer',
-      'token',
-      DateTime.now().toUtc().add(const Duration(hours: 1)),
-    ),
-    null,
-    const [],
-  ),
-);
 
 void main() {
   late _FakeDrive drive_;
@@ -454,7 +442,7 @@ void main() {
   // never takes.
   group('rejections raised by the real auth client', () {
     setUp(() {
-      auth = _FakeAuthenticator(_authorized(drive_.client()));
+      auth = _FakeAuthenticator(googleAuthClient(drive_.client()));
       provider = GoogleDriveStorageProvider(authenticator: auth);
     });
 
@@ -557,7 +545,7 @@ void main() {
         // Re-authorizing an expired token can come back with less than the
         // old grant had, so the retry needs the same classification.
         var calls = 0;
-        final client = _authorized(
+        final client = googleAuthClient(
           MockClient((request) async {
             calls++;
             return http.Response(

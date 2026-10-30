@@ -10,6 +10,7 @@ import 'package:submersion/core/services/media_store/google_drive_media_object_s
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 import '../../../helpers/fake_drive_server.dart';
+import '../../../helpers/google_auth_client.dart';
 import '../../../helpers/revocable_client.dart';
 import 'media_object_store_contract.dart';
 
@@ -454,7 +455,7 @@ void main() {
       int status,
       String challenge, {
       void Function()? onSend,
-    }) => gauth.authenticatedClient(
+    }) => googleAuthClient(
       MockClient((_) async {
         onSend?.call();
         return http.Response(
@@ -463,15 +464,6 @@ void main() {
           headers: {'www-authenticate': challenge},
         );
       }),
-      gauth.AccessCredentials(
-        gauth.AccessToken(
-          'Bearer',
-          'token',
-          DateTime.now().toUtc().add(const Duration(hours: 1)),
-        ),
-        null,
-        const [],
-      ),
     );
 
     final expired = rejecting(401, 'Bearer error="invalid_token"');
@@ -507,6 +499,64 @@ void main() {
           isA<MediaStoreException>()
               .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
               .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+    });
+
+    test('reports a refresh token Google refused as auth', () async {
+      // The desktop client refreshes on the first request after the access
+      // token expires, so a revoked grant fails there with invalid_grant.
+      // Read as a failure to reach Drive, it was retried and never dropped.
+      final revoked = MockClient(
+        (_) async => throw gauth.ServerRequestFailedException(
+          'Failed to obtain access credentials.',
+          statusCode: 400,
+          responseContent: {'error': 'invalid_grant'},
+        ),
+      );
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => revoked,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          return false;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(rejectedClients, [same(revoked)]);
+    });
+
+    test('still treats any other refresh failure as transient', () async {
+      final outage = MockClient(
+        (_) async => throw gauth.ServerRequestFailedException(
+          'Failed to obtain access credentials.',
+          statusCode: 503,
+          responseContent: 'unavailable',
+        ),
+      );
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => outage,
+        onAuthRejected: (_) async => fail('an outage is not a rejection'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.transient,
+          ),
         ),
       );
     });

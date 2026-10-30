@@ -26,3 +26,14 @@ const googleDriveAccessNotAllowed =
 bool isMissingDriveScope(Object error) =>
     error is gauth.AccessDeniedException &&
     error.message.contains('insufficient_scope');
+
+/// True when [error] is Google's token endpoint refusing the refresh token
+/// itself (revoked, expired, or issued to another client). Any other
+/// token-endpoint failure, a 5xx or a malformed response, is an outage
+/// rather than a dead grant and must not sign the user out.
+bool isRevokedDriveGrant(Object error) =>
+    error is gauth.ServerRequestFailedException &&
+    switch (error.responseContent) {
+      {'error': 'invalid_grant'} => true,
+      _ => false,
+    };

@@ -492,6 +492,9 @@ class GoogleDriveMediaObjectStore
       }
       return http.Response('', 401);
     } on Exception catch (e) {
+      // The desktop client refreshes before it sends, so a dead grant fails
+      // here. It goes the same way as a 401: nothing else ever drops it.
+      if (isRevokedDriveGrant(e)) return http.Response('', 401);
       throw MediaStoreException(
         'Could not reach Google Drive',
         kind: MediaStoreErrorKind.transient,

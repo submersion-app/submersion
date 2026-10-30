@@ -182,8 +182,8 @@ class GoogleDriveStorageProvider
   /// The desktop authenticator's auto-refreshing client already handles
   /// hourly expiry itself. A revoked or expired refresh token reaches here
   /// not as a 401 but as the refresh's own failure, an OAuth `invalid_grant`
-  /// ([_isRevokedGrant]); its handleAuthFailure() clears the token store, so
-  /// the retry's attemptSilentAuth() fails and the user is asked to sign in
+  /// ([isRevokedDriveGrant]); its handleAuthFailure() clears the token store,
+  /// so the retry's attemptSilentAuth() fails and the user is asked to sign in
   /// again. Missing that case left the dead token in place, failing every
   /// sync with a generic listing error (issue #2332).
   ///
@@ -279,7 +279,7 @@ class GoogleDriveStorageProvider
   static bool _isAuthRejection(Object e) =>
       e is gauth.AccessDeniedException ||
       (e is drive.DetailedApiRequestError && e.status == 401) ||
-      _isRevokedGrant(e);
+      isRevokedDriveGrant(e);
 
   static CloudStorageException _signInExpired(Object cause) =>
       CloudStorageException(
@@ -288,17 +288,6 @@ class GoogleDriveStorageProvider
         // displayMessage would append. [_run] has already logged it.
         cause is gauth.AccessDeniedException ? null : cause,
       );
-
-  /// True when [e] is Google's token endpoint refusing the refresh token
-  /// itself (revoked, expired, or issued to another client). Any other
-  /// token-endpoint failure, a 5xx or a malformed response, is an outage
-  /// rather than a dead grant and must not sign the user out.
-  static bool _isRevokedGrant(Object e) =>
-      e is gauth.ServerRequestFailedException &&
-      switch (e.responseContent) {
-        {'error': 'invalid_grant'} => true,
-        _ => false,
-      };
 
   /// Maps a Drive error to a CloudStorageException with an actionable
   /// message where one exists (quota); otherwise a generic wrapper.
