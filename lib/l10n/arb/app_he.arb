@@ -1854,6 +1854,7 @@
   "courses_action_editRequirement": "ערוך דרישה",
   "courses_action_exportTrainingLog": "ייצא יומן אימונים",
   "courses_action_markCompleted": "סמן כהושלם",
+  "courses_action_chooseDive": "בחר צלילה",
   "courses_action_unlinkDive": "בטל קישור צלילה",
   "courses_action_moreOptions": "אפשרויות נוספות",
   "courses_action_retry": "נסה שוב",
@@ -1911,6 +1912,17 @@
   "courses_requirement_kind_checklist": "פריט לסימון",
   "courses_requirement_kind_dive": "דרישת צלילה",
   "courses_requirement_suggestions": "צלילות מוצעות",
+  "courses_requirement_allDives": "כל הצלילות",
+  "courses_requirement_noDives": "אין צלילות לקישור",
+  "courses_requirement_noDivesMatch": "אין צלילות התואמות ל-\"{query}\"",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "חיפוש צלילות",
   "courses_requirements_empty": "עקוב אחר צלילות הרפתקה, דרישות קדם ופריטים לסימון עבור קורס זה.",
   "courses_requirements_progress": "{satisfied} מתוך {total} הושלמו",
   "courses_section_details": "פרטי הקורס",

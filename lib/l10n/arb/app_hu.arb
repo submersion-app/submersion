@@ -1854,6 +1854,7 @@
   "courses_action_editRequirement": "Követelmény szerkesztése",
   "courses_action_exportTrainingLog": "Képzési napló exportálása",
   "courses_action_markCompleted": "Megjelölés befejezettként",
+  "courses_action_chooseDive": "Merülés választása",
   "courses_action_unlinkDive": "Merülés leválasztása",
   "courses_action_moreOptions": "További lehetőségek",
   "courses_action_retry": "Újra",
@@ -1911,6 +1912,17 @@
   "courses_requirement_kind_checklist": "Kipipálandó elem",
   "courses_requirement_kind_dive": "Merülési követelmény",
   "courses_requirement_suggestions": "Javasolt merülések",
+  "courses_requirement_allDives": "Összes merülés",
+  "courses_requirement_noDives": "Nincs kapcsolható merülés",
+  "courses_requirement_noDivesMatch": "Nincs a következőre illeszkedő merülés: „{query}”",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Merülések keresése",
   "courses_requirements_empty": "Kövesd nyomon a kalandmerüléseket, előfeltételeket és kipipálandó elemeket ehhez a tanfolyamhoz.",
   "courses_requirements_progress": "{satisfied} / {total} teljesítve",
   "courses_section_details": "Tanfolyam részletei",

@@ -5577,6 +5577,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_markCompleted => 'סמן כהושלם';
 
   @override
+  String get courses_action_chooseDive => 'בחר צלילה';
+
+  @override
   String get courses_action_unlinkDive => 'בטל קישור צלילה';
 
   @override
@@ -5766,6 +5769,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'צלילות מוצעות';
+
+  @override
+  String get courses_requirement_allDives => 'כל הצלילות';
+
+  @override
+  String get courses_requirement_noDives => 'אין צלילות לקישור';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'אין צלילות התואמות ל-\"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'חיפוש צלילות';
 
   @override
   String get courses_requirements_empty =>

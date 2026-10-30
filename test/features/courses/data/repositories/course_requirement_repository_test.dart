@@ -8,7 +8,13 @@ import 'package:submersion/features/courses/domain/entities/course_requirement.d
 
 import '../../../../helpers/test_database.dart';
 
-Future<void> _seedDiverAndCourse({int startDate = 5000}) async {
+/// One day in the epoch milliseconds course and dive dates are stored in.
+const _day = Duration.millisecondsPerDay;
+
+Future<void> _seedDiverAndCourse({
+  int startDate = 5000,
+  int? completionDate,
+}) async {
   final db = DatabaseService.instance.database;
   await db.customStatement(
     "INSERT INTO divers (id, name, created_at, updated_at) "
@@ -16,8 +22,9 @@ Future<void> _seedDiverAndCourse({int startDate = 5000}) async {
   );
   await db.customStatement(
     "INSERT INTO courses (id, diver_id, name, agency, start_date, "
-    "created_at, updated_at) "
-    "VALUES ('course-1', 'diver-1', 'AOW', 'padi', $startDate, 1000, 1000)",
+    "completion_date, created_at, updated_at) "
+    "VALUES ('course-1', 'diver-1', 'AOW', 'padi', $startDate, "
+    "${completionDate ?? 'NULL'}, 1000, 1000)",
   );
 }
 
@@ -392,6 +399,132 @@ void main() {
       expect(ids, isNot(contains('other-diver')));
       expect(ids, isNot(contains('linked')));
       expect(suggested.first.linkId, isNull);
+    });
+
+    // The course dates are what a diver remembers an old course by, so a
+    // completed course ranks on them rather than on how recent a dive is.
+    test('a completed course ranks dives by distance from its dates, '
+        'before and after', () async {
+      await _seedDiverAndCourse(
+        startDate: 50 * _day,
+        completionDate: 52 * _day,
+      );
+
+      await _seedDive('in-course', dateTime: 51 * _day);
+      await _seedDive('just-after', dateTime: 54 * _day);
+      await _seedDive('just-before', dateTime: 48 * _day);
+      await _seedDive('months-before', dateTime: 10 * _day);
+      await _seedDive('years-after', dateTime: 900 * _day);
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'in-course',
+        'just-after',
+        'just-before',
+        'months-before',
+        'years-after',
+      ]);
+    });
+
+    test('a completed course is not crowded out by later dives', () async {
+      await _seedDiverAndCourse(
+        startDate: 50 * _day,
+        completionDate: 52 * _day,
+      );
+
+      await _seedDive('in-course', dateTime: 51 * _day);
+      for (var i = 0; i < 12; i++) {
+        await _seedDive('later-$i', dateTime: (500 + i) * _day);
+      }
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested, hasLength(10));
+      expect(suggested.first.diveId, 'in-course');
+    });
+
+    // The date picker stores midnight, so without counting the whole day an
+    // afternoon dive on the last day would rank as outside the course.
+    test('a dive on the completion day counts as inside the course', () async {
+      await _seedDiverAndCourse(
+        startDate: 50 * _day,
+        completionDate: 52 * _day,
+      );
+
+      await _seedDive('last-day-afternoon', dateTime: 52 * _day + 15 * 3600000);
+      await _seedDive('hour-before-start', dateTime: 50 * _day - 3600000);
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'last-day-afternoon',
+        'hour-before-start',
+      ]);
+    });
+
+    test('a completed course lists dives assigned to it first', () async {
+      await _seedDiverAndCourse(
+        startDate: 50 * _day,
+        completionDate: 52 * _day,
+      );
+
+      await _seedDive('near', dateTime: 53 * _day + 1);
+      await _seedDive(
+        'assigned-far',
+        dateTime: 900 * _day,
+        courseId: 'course-1',
+      );
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), ['assigned-far', 'near']);
+    });
+  });
+
+  group('getCreditableDives', () {
+    test('lists every uncredited dive of the diver, newest first', () async {
+      await _seedDiverAndCourse(startDate: 5000);
+
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('diver-2', 'Other', 1000, 1000)",
+      );
+
+      await _seedDive('before-start', dateTime: 4000);
+      await _seedDive('after-start', dateTime: 6000);
+      await _seedDive('other-diver', dateTime: 7000, diverId: 'diver-2');
+      await _seedDive('linked', dateTime: 8000);
+
+      final req = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'Deep adventure dive',
+        kind: RequirementKind.dive,
+      );
+      await repository.linkDive(requirementId: req.id, diveId: 'linked');
+
+      final creditable = await repository.getCreditableDives('course-1');
+
+      expect(creditable.map((s) => s.diveId).toList(), [
+        'after-start',
+        'before-start',
+      ]);
+    });
+
+    test('is not capped the way suggestions are', () async {
+      await _seedDiverAndCourse();
+      for (var i = 0; i < 12; i++) {
+        await _seedDive('dive-$i', dateTime: 9000 + i);
+      }
+
+      final creditable = await repository.getCreditableDives('course-1');
+
+      expect(creditable, hasLength(12));
+    });
+
+    test('is empty for a course that no longer exists', () async {
+      expect(await repository.getCreditableDives('missing'), isEmpty);
     });
   });
 

@@ -1879,6 +1879,7 @@
   "courses_action_editRequirement": "Anforderung bearbeiten",
   "courses_action_exportTrainingLog": "Ausbildungsprotokoll exportieren",
   "courses_action_markCompleted": "Als abgeschlossen markieren",
+  "courses_action_chooseDive": "Tauchgang wählen",
   "courses_action_unlinkDive": "Tauchgang trennen",
   "courses_action_moreOptions": "Weitere Optionen",
   "courses_action_retry": "Wiederholen",
@@ -1936,6 +1937,17 @@
   "courses_requirement_kind_checklist": "Checklistenpunkt",
   "courses_requirement_kind_dive": "Tauchgangsanforderung",
   "courses_requirement_suggestions": "Vorgeschlagene Tauchgänge",
+  "courses_requirement_allDives": "Alle Tauchgänge",
+  "courses_requirement_noDives": "Keine Tauchgänge zum Verknüpfen",
+  "courses_requirement_noDivesMatch": "Keine Tauchgänge für „{query}“",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Tauchgänge suchen",
   "courses_requirements_empty": "Verfolgen Sie Adventure-Tauchgänge, Voraussetzungen und Checklistenpunkte für diesen Kurs.",
   "courses_requirements_progress": "{satisfied} von {total} abgeschlossen",
   "courses_section_details": "Kursdetails",

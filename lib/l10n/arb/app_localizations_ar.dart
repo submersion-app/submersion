@@ -5801,6 +5801,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_markCompleted => 'وضع علامة كمكتمل';
 
   @override
+  String get courses_action_chooseDive => 'اختيار غطسة';
+
+  @override
   String get courses_action_unlinkDive => 'إلغاء ربط الغطسة';
 
   @override
@@ -5991,6 +5994,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'غطسات مقترحة';
+
+  @override
+  String get courses_requirement_allDives => 'كل الغطسات';
+
+  @override
+  String get courses_requirement_noDives => 'لا توجد غطسات للربط';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'لا توجد غطسات تطابق \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'البحث في الغطسات';
 
   @override
   String get courses_requirements_empty =>

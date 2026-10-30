@@ -42,6 +42,19 @@ final suggestedDivesProvider =
       return repository.getSuggestedDives(courseId);
     });
 
+/// Every dive the diver could still credit to this course, for the dive
+/// picker. Same subscriptions as [suggestedDivesProvider]; disposed with the
+/// picker, because nothing else reads the whole logbook this way.
+final creditableDivesProvider = FutureProvider.autoDispose
+    .family<List<RequirementDiveSummary>, String>((ref, courseId) async {
+      final repository = ref.watch(courseRequirementRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchRequirementsChanges());
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return repository.getCreditableDives(courseId);
+    });
+
 /// One in-progress course with its requirement progress.
 typedef ActiveCourseProgress = ({Course course, CourseProgress progress});
 

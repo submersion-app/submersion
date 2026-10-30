@@ -1941,6 +1941,7 @@
   "courses_action_editRequirement": "编辑要求",
   "courses_action_exportTrainingLog": "导出训练日志",
   "courses_action_markCompleted": "标记为已完成",
+  "courses_action_chooseDive": "选择潜水记录",
   "courses_action_unlinkDive": "取消关联潜水",
   "courses_action_moreOptions": "更多选项",
   "courses_action_retry": "重试",
@@ -1998,6 +1999,17 @@
   "courses_requirement_kind_checklist": "核对项",
   "courses_requirement_kind_dive": "潜水要求",
   "courses_requirement_suggestions": "建议的潜水",
+  "courses_requirement_allDives": "全部潜水",
+  "courses_requirement_noDives": "没有可关联的潜水",
+  "courses_requirement_noDivesMatch": "没有与“{query}”匹配的潜水",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "搜索潜水",
   "courses_requirements_empty": "跟踪此课程的探险潜水、先决条件和核对项。",
   "courses_requirements_progress": "{satisfied}/{total} 已完成",
   "courses_section_details": "课程详情",
