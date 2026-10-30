@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -12,9 +14,11 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/test_database.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
@@ -32,6 +36,31 @@ class _UnavailableResolver implements MediaSourceResolver {
   }) => resolve(item);
   @override
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
+}
+
+/// Answers every resolution with [result], or with the row's own id when
+/// [result] is null, which is what the linking device gets.
+class _FixedResolution extends AssetResolutionService {
+  _FixedResolution(this.result, {this.error})
+    : super(
+        cacheRepository: LocalAssetCacheRepository(),
+        photoPickerService: FakePhotoPickerService(),
+      );
+
+  final ResolutionResult? result;
+
+  /// Thrown instead of answering, when set.
+  final Object? error;
+
+  @override
+  Future<ResolutionResult> resolveAssetId(MediaItem item) async {
+    if (error case final error?) throw error;
+    return result ??
+        ResolutionResult(
+          localAssetId: item.platformAssetId,
+          status: ResolutionStatus.resolved,
+        );
+  }
 }
 
 /// The write-metadata action only appears once the item carries enrichment
@@ -93,12 +122,20 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pump(WidgetTester tester, MediaItem media) async {
+  Future<void> pump(
+    WidgetTester tester,
+    MediaItem media, {
+    ResolutionResult? resolution,
+    Object? resolutionError,
+  }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             sharedPreferencesProvider.overrideWithValue(prefs),
+            assetResolutionServiceProvider.overrideWithValue(
+              _FixedResolution(resolution, error: resolutionError),
+            ),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
                 MediaSourceType.platformGallery: _UnavailableResolver(),
@@ -156,20 +193,40 @@ void main() {
     expect(find.byIcon(Icons.edit_note), findsNothing);
   });
 
-  testWidgets('media not in the library reports it and never calls native', (
+  testWidgets('the action is hidden for media with no library asset '
+      '(issue #3808)', (tester) async {
+    // A Files tab pick, a cloud-backed row or a linked URL has no photo in
+    // any library to write to, so offering the action can only end in an
+    // error message.
+    await pump(tester, item(platformAssetId: null));
+    expect(find.byIcon(Icons.edit_note), findsNothing);
+  });
+
+  testWidgets('the action is hidden where there is no native writer', (
     tester,
   ) async {
-    await pump(tester, item(platformAssetId: null));
-
-    await tester.tap(find.byIcon(Icons.edit_note));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Cannot write metadata - media not linked to library'),
-      findsOneWidget,
-    );
-    expect(nativeCalls, isEmpty);
+    MetadataWriteService.debugSupportedOverride = false;
+    await pump(tester, item());
+    expect(find.byIcon(Icons.edit_note), findsNothing);
   });
+
+  for (final status in [
+    ResolutionStatus.unavailable,
+    ResolutionStatus.accessDenied,
+  ]) {
+    testWidgets('a photo that resolves as ${status.name} on this device '
+        'reports it and never calls native', (tester) async {
+      await pump(tester, item(), resolution: ResolutionResult(status: status));
+      await openDialog(tester);
+
+      expect(
+        find.text('Cannot write metadata - media not linked to library'),
+        findsOneWidget,
+      );
+      expect(find.text('Write Dive Data to Photo'), findsNothing);
+      expect(nativeCalls, isEmpty);
+    });
+  }
 
   testWidgets('the confirmation dialog opens before anything is written', (
     tester,
@@ -203,6 +260,37 @@ void main() {
     expect(find.text('Dive data written to photo'), findsOneWidget);
     // The modal spinner must not outlive the write.
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('a resolution failure is reported and never calls native', (
+    tester,
+  ) async {
+    await pump(tester, item(), resolutionError: StateError('cache is gone'));
+    await openDialog(tester);
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('cache is gone'), findsOneWidget);
+    expect(find.text('Write Dive Data to Photo'), findsNothing);
+    expect(nativeCalls, isEmpty);
+  });
+
+  testWidgets('a synced photo is written through this device\'s asset id', (
+    tester,
+  ) async {
+    // The row's platformAssetId belongs to the device that linked it. Sent
+    // as is, it names some other photo here, or nothing at all.
+    await pump(
+      tester,
+      item(platformAssetId: 'id-from-another-device'),
+      resolution: const ResolutionResult(
+        localAssetId: 'id-on-this-device',
+        status: ResolutionStatus.resolved,
+      ),
+    );
+    await openDialog(tester);
+    await confirmWrite(tester);
+
+    expect(nativeCalls.single.arguments['assetId'], 'id-on-this-device');
   });
 
   testWidgets('a native refusal is reported as a failure', (tester) async {
