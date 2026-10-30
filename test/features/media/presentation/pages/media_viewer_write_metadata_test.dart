@@ -280,6 +280,27 @@ void main() {
     expect(nativeCalls, isEmpty);
   });
 
+  testWidgets('a photo outside a limited selection is named as such', (
+    tester,
+  ) async {
+    // Library access is granted here, so the same words the viewer's own
+    // placeholder uses apply, not "no access".
+    await pump(
+      tester,
+      item(),
+      resolution: const ResolutionResult(
+        status: ResolutionStatus.accessDenied,
+        limitedAccess: true,
+      ),
+    );
+    await openDialog(tester);
+    await confirmWrite(tester);
+
+    expect(find.text('Not in your allowed photos'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(nativeCalls, isEmpty);
+  });
+
   testWidgets('a resolution failure is reported and never calls native', (
     tester,
   ) async {

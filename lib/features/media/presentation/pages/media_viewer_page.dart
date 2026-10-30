@@ -951,11 +951,13 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       final assetId = resolution.localAssetId;
       if (resolution.status != ResolutionStatus.resolved || assetId == null) {
         dismissLoadingDialog();
-        _showError(
-          resolution.status == ResolutionStatus.accessDenied
-              ? l10n.media_unavailablePlaceholder_accessDenied
-              : l10n.media_photoViewer_cannotWriteMetadata,
-        );
+        _showError(switch (resolution.status) {
+          ResolutionStatus.accessDenied when resolution.limitedAccess =>
+            l10n.media_unavailablePlaceholder_limitedAccess,
+          ResolutionStatus.accessDenied =>
+            l10n.media_unavailablePlaceholder_accessDenied,
+          _ => l10n.media_photoViewer_cannotWriteMetadata,
+        });
         return;
       }
 
