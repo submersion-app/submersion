@@ -13,6 +13,8 @@ void main() {
     DateTime? lastScheduledFailureAt,
     bool cloudBackupEnabled = true,
     bool lastCloudCopyMissing = false,
+    bool lastCloudCopyNeedsSignIn = false,
+    bool copyAccountNeedsSignIn = false,
     bool hasCustomLocation = false,
     bool syncConfigured = false,
     bool noBackup = false,
@@ -25,6 +27,8 @@ void main() {
     lastScheduledFailureAt: lastScheduledFailureAt,
     cloudBackupEnabled: cloudBackupEnabled,
     lastCloudCopyMissing: lastCloudCopyMissing,
+    lastCloudCopyNeedsSignIn: lastCloudCopyNeedsSignIn,
+    copyAccountNeedsSignIn: copyAccountNeedsSignIn,
     hasCustomLocation: hasCustomLocation,
     syncConfigured: syncConfigured,
   );
@@ -135,6 +139,92 @@ void main() {
       HealthLevel.attention,
       HealthReason.backupCloudCopyMissing,
     );
+  });
+
+  group('a cloud copy that needs a sign-in', () {
+    BackupHealthInputs missing({
+      bool autoEnabled = true,
+      bool flag = true,
+      bool accountSignedOut = false,
+      DateTime? lastBackupAt,
+      DateTime? lastScheduledFailureAt,
+      bool lastCloudCopyMissing = true,
+    }) => inputs(
+      autoEnabled: autoEnabled,
+      lastCloudCopyMissing: lastCloudCopyMissing,
+      lastCloudCopyNeedsSignIn: flag,
+      copyAccountNeedsSignIn: accountSignedOut,
+      lastBackupAt: lastBackupAt,
+      lastScheduledFailureAt: lastScheduledFailureAt,
+    );
+
+    test('reads as signIn from the stored flag', () {
+      expectHealth(
+        evaluateBackupHealth(missing(), now),
+        HealthLevel.attention,
+        HealthReason.backupCloudSignIn,
+      );
+    });
+
+    test('reads as signIn from the account being signed out', () {
+      expectHealth(
+        evaluateBackupHealth(missing(flag: false, accountSignedOut: true), now),
+        HealthLevel.attention,
+        HealthReason.backupCloudSignIn,
+      );
+    });
+
+    test('beats automatic backups being off', () {
+      expectHealth(
+        evaluateBackupHealth(missing(autoEnabled: false), now),
+        HealthLevel.attention,
+        HealthReason.backupCloudSignIn,
+      );
+    });
+
+    test('beats an overdue backup', () {
+      expectHealth(
+        evaluateBackupHealth(
+          missing(lastBackupAt: now.subtract(const Duration(days: 60))),
+          now,
+        ),
+        HealthLevel.attention,
+        HealthReason.backupCloudSignIn,
+      );
+    });
+
+    test('a failed backup still beats it', () {
+      final failedAt = now.subtract(const Duration(hours: 1));
+      expectHealth(
+        evaluateBackupHealth(missing(lastScheduledFailureAt: failedAt), now),
+        HealthLevel.failing,
+        HealthReason.backupFailed,
+      );
+    });
+
+    test('needs a missing copy', () {
+      expect(
+        evaluateBackupHealth(
+          missing(lastCloudCopyMissing: false, accountSignedOut: true),
+          now,
+        ).reason,
+        isNot(HealthReason.backupCloudSignIn),
+      );
+    });
+
+    test('needs the cloud copy to be on', () {
+      expect(
+        evaluateBackupHealth(
+          inputs(
+            cloudBackupEnabled: false,
+            lastCloudCopyMissing: true,
+            lastCloudCopyNeedsSignIn: true,
+          ),
+          now,
+        ).reason,
+        isNot(HealthReason.backupCloudSignIn),
+      );
+    });
   });
 
   test('no cloud, no sync, no custom location is noOffDeviceCopy', () {

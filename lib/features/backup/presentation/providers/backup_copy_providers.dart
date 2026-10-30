@@ -40,6 +40,24 @@ final class NoCopy extends BackupCopyTarget {
   const NoCopy();
 }
 
+/// The account [target] sends the copy to, or null when it goes nowhere.
+AccountGroup? backupCopyGroupOf(BackupCopyTarget? target) => switch (target) {
+  CopyFollowsSync(:final group) => group,
+  CopyToAccount(:final group) => group,
+  _ => null,
+};
+
+/// The sign-in state of the row the copy goes through. A group's own status
+/// is its worst row's, and a folder only a library uses must not read as the
+/// copy needing a sign-in.
+AccountStatus? backupCopyStatusOf(BackupCopyTarget? target) => switch (target) {
+  CopyFollowsSync(:final group?) =>
+    group.statusOf(group.syncRowHere?.id) ?? group.status,
+  CopyToAccount(:final group, :final row) =>
+    group.statusOf(row.id) ?? group.status,
+  _ => null,
+};
+
 /// The row the copy is pinned to while the copy is on; null while it
 /// follows sync or is off. A pin left from before the copy was turned off
 /// never counts.

@@ -63,8 +63,8 @@ String healthReasonText(
     HealthReason.backupFailed => l10n.dataHealth_backup_failed(ago()),
     HealthReason.backupOverdue => l10n.dataHealth_backup_overdue(ago()),
     HealthReason.backupNever => l10n.dataHealth_backup_never,
-    HealthReason.backupCloudCopyMissing =>
-      l10n.dataHealth_backup_cloudCopyMissing,
+    HealthReason.backupCloudCopyMissing ||
+    HealthReason.backupCloudSignIn => l10n.dataHealth_backup_cloudCopyMissing,
     HealthReason.backupNoOffDeviceCopy =>
       l10n.dataHealth_backup_noOffDeviceCopy,
     HealthReason.syncOff => l10n.dataHealth_sync_off,

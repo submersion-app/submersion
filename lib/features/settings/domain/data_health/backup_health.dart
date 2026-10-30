@@ -10,6 +10,8 @@ class BackupHealthInputs {
     required this.lastScheduledFailureAt,
     required this.cloudBackupEnabled,
     required this.lastCloudCopyMissing,
+    required this.lastCloudCopyNeedsSignIn,
+    required this.copyAccountNeedsSignIn,
     required this.hasCustomLocation,
     required this.syncConfigured,
   });
@@ -20,6 +22,12 @@ class BackupHealthInputs {
   final DateTime? lastScheduledFailureAt;
   final bool cloudBackupEnabled;
   final bool lastCloudCopyMissing;
+
+  /// The server refused the last copy.
+  final bool lastCloudCopyNeedsSignIn;
+
+  /// The copy's account reads as signed out on this device.
+  final bool copyAccountNeedsSignIn;
 
   /// A backup folder the diver chose. Counted as a copy off this device:
   /// the app cannot tell a NAS or synced folder from a local one.
@@ -44,8 +52,18 @@ FeatureHealth evaluateBackupHealth(BackupHealthInputs i, DateTime now) {
     when: at,
   );
 
+  // Ahead of "automatic backups are off": a diver who backs up by hand would
+  // otherwise never be offered the sign-in that gets the copy working.
+  final copySignIn =
+      i.cloudBackupEnabled &&
+      i.lastCloudCopyMissing &&
+      (i.lastCloudCopyNeedsSignIn || i.copyAccountNeedsSignIn);
+
   if (!i.autoEnabled) {
-    return health(HealthLevel.attention, HealthReason.backupAutoOff);
+    return health(
+      HealthLevel.attention,
+      copySignIn ? HealthReason.backupCloudSignIn : HealthReason.backupAutoOff,
+    );
   }
 
   final lastBackup = i.lastBackupAt;
@@ -56,11 +74,13 @@ FeatureHealth evaluateBackupHealth(BackupHealthInputs i, DateTime now) {
     if (failedAt != null &&
         (lastBackup == null || failedAt.isAfter(lastBackup)))
       health(HealthLevel.failing, HealthReason.backupFailed, at: failedAt),
+    if (copySignIn)
+      health(HealthLevel.attention, HealthReason.backupCloudSignIn),
     if (lastBackup == null)
       health(HealthLevel.attention, HealthReason.backupNever)
     else if (now.difference(lastBackup) > periods)
       health(HealthLevel.attention, HealthReason.backupOverdue, at: lastBackup),
-    if (i.cloudBackupEnabled && i.lastCloudCopyMissing)
+    if (i.cloudBackupEnabled && i.lastCloudCopyMissing && !copySignIn)
       health(HealthLevel.attention, HealthReason.backupCloudCopyMissing),
     if (!i.cloudBackupEnabled && !i.syncConfigured && !i.hasCustomLocation)
       health(HealthLevel.attention, HealthReason.backupNoOffDeviceCopy),

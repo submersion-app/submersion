@@ -1,8 +1,10 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -34,6 +36,14 @@ const _mediaNotSetUp = FeatureHealth(
 
 final backupHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
   final settings = ref.watch(backupSettingsProvider);
+  // Reading the copy's account probes every account, so only while a copy is
+  // missing. Read here, in the foreground: the scheduled backup's isolate
+  // has no Google session even on a healthy account.
+  final copyMissing =
+      settings.cloudBackupEnabled && settings.lastCloudCopyMissing;
+  final copyStatus = copyMissing
+      ? backupCopyStatusOf(ref.watch(backupCopyTargetProvider).value)
+      : null;
   return evaluateBackupHealth(
     BackupHealthInputs(
       autoEnabled: settings.enabled,
@@ -42,6 +52,8 @@ final backupHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
       lastScheduledFailureAt: settings.lastScheduledFailureAt,
       cloudBackupEnabled: settings.cloudBackupEnabled,
       lastCloudCopyMissing: settings.lastCloudCopyMissing,
+      lastCloudCopyNeedsSignIn: settings.lastCloudCopyNeedsSignIn,
+      copyAccountNeedsSignIn: copyStatus == AccountStatus.needsSignIn,
       hasCustomLocation: settings.backupLocation != null,
       syncConfigured: ref.watch(isSyncEnabledProvider),
     ),

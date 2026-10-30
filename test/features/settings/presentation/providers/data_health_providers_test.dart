@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/features/settings/presentation/providers/pending_setup_items_provider.dart';
@@ -15,6 +18,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/sync/sync_failure_store.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
@@ -46,6 +50,61 @@ void main() {
       addTearDown(c.dispose);
       return c;
     }
+
+    AccountGroup copyGroup(AccountStatus status) => AccountGroup(
+      key: 'googledrive',
+      kind: AccountKind.googledrive,
+      label: 'Google Drive',
+      rows: const [],
+      status: status,
+      usages: const [],
+      locations: const {},
+      roles: const {},
+      usagesKnown: true,
+      address: '',
+      usageRoles: const {},
+      rowStatuses: const {},
+    );
+
+    Future<FeatureHealth> healthWithCopyOn(AccountStatus status) async {
+      final backup = BackupPreferences(prefs);
+      await backup.setEnabled(true);
+      await backup.setCloudBackupEnabled(true);
+      await backup.setLastCloudCopyMissing(true);
+      await backup.setLastBackupTime(
+        DateTime.now().subtract(const Duration(hours: 2)),
+      );
+      final c = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          isSyncEnabledProvider.overrideWithValue(false),
+          backupCopyTargetProvider.overrideWith(
+            (ref) async => CopyFollowsSync(copyGroup(status)),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      final sub = c.listen(backupHealthProvider, (_, _) {});
+      addTearDown(sub.close);
+      await c.read(backupCopyTargetProvider.future);
+      return c.read(backupHealthProvider);
+    }
+
+    test('a signed-out copy account asks for a sign-in', () async {
+      expect(
+        (await healthWithCopyOn(AccountStatus.needsSignIn)).reason,
+        HealthReason.backupCloudSignIn,
+      );
+    });
+
+    test('a signed-in account does not, whatever failed the copy', () async {
+      // The scheduled backup's isolate has no Google session, so the copy
+      // can be missing on an account that is perfectly healthy here.
+      expect(
+        (await healthWithCopyOn(AccountStatus.signedIn)).reason,
+        HealthReason.backupCloudCopyMissing,
+      );
+    });
 
     test('backup health follows backupSettings', () async {
       final backup = BackupPreferences(prefs);

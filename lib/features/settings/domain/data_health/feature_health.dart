@@ -35,6 +35,9 @@ enum HealthReason {
   backupOverdue,
   backupNever,
   backupCloudCopyMissing,
+
+  /// The cloud copy is missing, and signing in again would help (#3811).
+  backupCloudSignIn,
   backupNoOffDeviceCopy,
   syncCustomFolder,
   syncOff,

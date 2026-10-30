@@ -48,9 +48,18 @@ void main() {
         expect(value, isEmpty, reason: reason.name);
       } else {
         expect(value, isNotEmpty, reason: reason.name);
+        // The same words on purpose: its Sign in again button says the rest.
+        if (reason == HealthReason.backupCloudSignIn) continue;
         expect(seen.add(value), isTrue, reason: '${reason.name} repeats');
       }
     }
+  });
+
+  test('a copy needing a sign-in reads as the missing copy', () {
+    expect(
+      text(HealthReason.backupCloudSignIn),
+      text(HealthReason.backupCloudCopyMissing),
+    );
   });
 
   test('times read as relative ages', () {
