@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_symbol.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_pane_navigator.dart';
@@ -35,7 +38,13 @@ class DataHealthStrip extends ConsumerWidget {
           ),
         ),
         if (lines.isNotEmpty) const SizedBox(height: 12),
-        for (final h in lines) _AttentionLine(h, now: now),
+        // Signing in removes the line, so the action runs from here.
+        for (final h in lines)
+          _AttentionLine(
+            h,
+            now: now,
+            onSignInAgain: (group) => signInAgain(context, ref, group),
+          ),
       ],
     );
   }
@@ -82,30 +91,57 @@ class _Item extends StatelessWidget {
 }
 
 class _AttentionLine extends StatelessWidget {
-  const _AttentionLine(this.health, {required this.now});
+  const _AttentionLine(
+    this.health, {
+    required this.now,
+    required this.onSignInAgain,
+  });
 
   final FeatureHealth health;
   final DateTime now;
+  final ValueChanged<AccountGroup> onSignInAgain;
+
+  /// Logical width, at normal text size, below which a Sign in again button
+  /// goes under the text.
+  static const double _minWidthBeside = 300;
 
   @override
   Widget build(BuildContext context) {
+    final text = Text(
+      healthReasonText(context.l10n, health, now),
+      style: Theme.of(context).textTheme.bodyMedium,
+    );
+    final button = offersSignInAgain(health)
+        ? SignInAgainButton(feature: health.feature, onPressed: onSignInAgain)
+        : null;
     return InkWell(
       key: const Key('dataHealth_attentionLine'),
       borderRadius: BorderRadius.circular(8),
       onTap: () => context.pushSettingsPage(dataFeatureRoute(health.feature)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-        child: Row(
-          children: [
-            HealthSymbol(level: health.level, size: 16),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                healthReasonText(context.l10n, health, now),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Beside the text while it fits, under it on a narrow phone at
+            // large text, where the button would leave the text no room.
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final beside = constraints.maxWidth / textScale >= _minWidthBeside;
+            return Row(
+              children: [
+                HealthSymbol(level: health.level, size: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: button == null || beside
+                      ? text
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [text, button],
+                        ),
+                ),
+                if (button != null && beside) button,
+              ],
+            );
+          },
         ),
       ),
     );

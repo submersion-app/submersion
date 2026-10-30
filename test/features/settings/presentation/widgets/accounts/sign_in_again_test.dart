@@ -30,20 +30,20 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/test_database.dart';
 import '../../../../../support/fake_keychain_storage.dart';
 
 class _FakeAuthenticator implements GoogleDriveAuthenticator {
-  _FakeAuthenticator({this.signsInAs = 'diver@example.com'});
-
-  String signsInAs;
+  String signsInAs = 'diver@example.com';
   Object? error;
   int calls = 0;
   Completer<void>? gate;
@@ -456,6 +456,73 @@ void main() {
     await Future.wait([first, second]);
 
     expect(authenticator.calls, 1);
+    expect(sync.performSyncCalls, 1);
+  });
+
+  testWidgets('the retry still runs once the line that offered it is gone', (
+    tester,
+  ) async {
+    authenticator.gate = Completer<void>();
+    final group = _group();
+    final health = StateProvider<List<FeatureHealth>>(
+      (ref) => const [
+        FeatureHealth(
+          feature: DataFeature.sync,
+          level: HealthLevel.failing,
+          reason: HealthReason.syncSignedOut,
+        ),
+      ],
+    );
+    final drive = GoogleDriveStorageProvider(authenticator: authenticator);
+    late ProviderContainer container;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          localeProvider.overrideWithValue('en'),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          cloudStorageProviderProvider.overrideWithValue(drive),
+          cloudStorageProviderForProvider(
+            CloudProviderType.googledrive,
+          ).overrideWithValue(drive),
+          accountGroupsProvider.overrideWith((ref) async => [group]),
+          backupCopyTargetProvider.overrideWith((ref) async => const NoCopy()),
+          googleDriveAvailableProvider.overrideWith((ref) async => true),
+          syncStateProvider.overrideWith((ref) => sync),
+          backupOperationProvider.overrideWith((ref) => backup),
+          dataHealthProvider.overrideWith((ref) => ref.watch(health)),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Consumer(
+            builder: (context, ref, _) {
+              container = ProviderScope.containerOf(context);
+              return const Scaffold(body: DataHealthStrip());
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign in again'));
+    await tester.pump();
+
+    // The sign-in lands: health clears, and the line and its button go.
+    container.read(health.notifier).state = const [
+      FeatureHealth(
+        feature: DataFeature.sync,
+        level: HealthLevel.healthy,
+        reason: HealthReason.ok,
+      ),
+    ];
+    await tester.pump();
+    expect(find.text('Sign in again'), findsNothing);
+
+    authenticator.gate!.complete();
+    await tester.pumpAndSettle();
+
     expect(sync.performSyncCalls, 1);
   });
 

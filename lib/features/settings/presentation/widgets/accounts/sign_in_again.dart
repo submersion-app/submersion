@@ -62,7 +62,8 @@ Future<bool> _signIn(
   WidgetRef ref,
   AccountGroup group,
 ) async {
-  while (context.mounted) {
+  while (true) {
+    if (!context.mounted) return false;
     String? differentAccount;
     final signedIn = await signInToGroup(
       context,
@@ -81,7 +82,6 @@ Future<bool> _signIn(
     );
     if (!tryAgain) return false;
   }
-  return false;
 }
 
 Future<bool> _showDifferentAccountDialog(

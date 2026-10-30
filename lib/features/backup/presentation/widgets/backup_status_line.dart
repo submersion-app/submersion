@@ -4,9 +4,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/data_row_status_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_row_status_text.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_health/health_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The backup or restore running now, or the one that just finished.
@@ -59,23 +63,37 @@ class BackupStatusLine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(backupSettingsProvider);
     final destination = settings.lastBackupDestination;
+    final health = ref.watch(backupHealthProvider);
     final status = backupsRowStatus(
-      health: ref.watch(backupHealthProvider),
+      health: health,
       lastBackup: settings.lastBackupTime,
       destination: destination,
       cloudAccountLabel: destination == LastBackupDestination.cloud
           ? ref.watch(lastBackupCloudAccountLabelProvider).value
           : null,
     );
-    final failed = status.kind == DataRowStatusKind.backupsFailed;
+    final needsSignIn = health.reason == HealthReason.backupCloudSignIn;
+    final failed =
+        status.kind == DataRowStatusKind.backupsFailed || needsSignIn;
     final theme = Theme.of(context);
+    final now = DateTime.now();
     return ListTile(
       key: const Key('backup-status-line'),
       leading: Icon(
         failed ? Icons.error_outline : Icons.history,
         color: failed ? theme.colorScheme.error : null,
       ),
-      title: Text(dataRowStatusText(context.l10n, status, DateTime.now())),
+      title: Text(
+        needsSignIn
+            ? healthReasonText(context.l10n, health, now)
+            : dataRowStatusText(context.l10n, status, now),
+      ),
+      trailing: needsSignIn
+          ? SignInAgainButton(
+              feature: DataFeature.backup,
+              onPressed: (group) => signInAgain(context, ref, group),
+            )
+          : null,
     );
   }
 }
