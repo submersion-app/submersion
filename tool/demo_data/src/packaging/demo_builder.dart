@@ -68,6 +68,17 @@ class DemoBuilder {
   }) async {
     final work = Directory.systemTemp.createTempSync('demo_pack');
     try {
+      final catalog = Catalog.load(catalogDir);
+      final plan = StoryPlanner(
+        Random(seed),
+        catalog,
+        refusedNames: refusedNames,
+      ).plan(anchor: anchor);
+      final library = ShapeLibrary(shapes, Random(seed));
+      final short = shapeShortfalls(plan, library.shapes);
+      if (short.isNotEmpty) {
+        throw DemoBuildRefused('not enough dive shapes: ${short.join('; ')}');
+      }
       final dbPath = p.join(work.path, 'submersion_demo.db');
       // A working copy that a failed build just starts again, so the disk sync
       // SQLite does for each of the seeders' commits buys nothing, and on a
@@ -85,19 +96,6 @@ class DemoBuilder {
         ),
       );
       DatabaseService.instance.setTestDatabase(db);
-      final catalog = Catalog.load(catalogDir);
-      final plan = StoryPlanner(
-        Random(seed),
-        catalog,
-        refusedNames: refusedNames,
-      ).plan(anchor: anchor);
-      final library = ShapeLibrary(shapes, Random(seed));
-      final short = shapeShortfalls(plan, library.shapes);
-      if (short.isNotEmpty) {
-        await db.close();
-        DatabaseService.instance.resetForTesting();
-        throw DemoBuildRefused('not enough dive shapes: ${short.join('; ')}');
-      }
       final ctx = DemoSeedContext(
         db: db,
         plan: plan,
