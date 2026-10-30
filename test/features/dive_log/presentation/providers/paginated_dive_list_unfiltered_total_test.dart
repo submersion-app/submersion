@@ -322,6 +322,30 @@ void main() {
       expect(seen, [const ListEntryCount.unfiltered(4)]);
     });
 
+    test('keeps the count on screen through a filter table tick', () async {
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
+      container.read(diveFilterProvider.notifier).state = const DiveFilterState(
+        buddyNameFilter: 'Ann',
+      );
+      await tableCount(container);
+      final seen = <ListEntryCount?>[];
+      final sub = container.listen(
+        diveTableCountProvider,
+        (_, next) => seen.add(next),
+      );
+      addTearDown(sub.close);
+
+      await DiveRepository().createDive(
+        Dive(id: 'd', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
+      );
+      await until(() => seen.isNotEmpty && seen.last != null);
+
+      expect(seen, [const ListEntryCount.filtered(shown: 0, total: 4)]);
+    });
+
     test('hides the count while another diver\'s loads', () async {
       final other = await DiverRepository().createDiver(
         Diver(
