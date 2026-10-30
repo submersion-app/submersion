@@ -14,9 +14,9 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import '../../../helpers/test_database.dart';
 import '../data/repositories/species_photo_fixtures.dart';
 
-class _AllDiversNotifier extends StateNotifier<String?>
+class _ViewingDiverNotifier extends StateNotifier<String?>
     implements CurrentDiverIdNotifier {
-  _AllDiversNotifier() : super(null);
+  _ViewingDiverNotifier(super.diverId);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -30,11 +30,17 @@ void main() {
 
   late ProviderContainer container;
 
+  /// The active diver the notifier builds with; null shows every diver's.
+  String? viewingDiver;
+
   setUp(() async {
     await setUpTestDatabase();
+    viewingDiver = null;
     container = ProviderContainer(
       overrides: [
-        currentDiverIdProvider.overrideWith((ref) => _AllDiversNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => _ViewingDiverNotifier(viewingDiver),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -175,6 +181,117 @@ void main() {
       await settleWrite();
 
       expect(ids(), isEmpty);
+    });
+  });
+
+  group('a write to what a filter names', () {
+    setUp(() async {
+      await seed(2);
+    });
+
+    Future<void> load(MediaLibraryFilter filter) async {
+      container.read(mediaLibraryFilterProvider.notifier).state = filter;
+      await notifier().loadFirstPage();
+    }
+
+    Future<void> insertTag(String id) {
+      final db = DatabaseService.instance.database;
+      return db
+          .into(db.tags)
+          .insert(
+            TagsCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+              appliesToMedia: const Value(true),
+            ),
+          );
+    }
+
+    test('deleting a selected tag no link names drops the facet', () async {
+      await insertTag('unused');
+      await load(const MediaLibraryFilter(tagIds: {'unused'}));
+      expect(ids(), isEmpty);
+
+      final db = DatabaseService.instance.database;
+      await (db.delete(db.tags)..where((t) => t.id.equals('unused'))).go();
+      await settleWrite();
+
+      expect(ids(), ['m000', 'm001']);
+    });
+
+    test('a selected tag arriving later applies the facet', () async {
+      // An album can name a tag this device has not synced yet.
+      await load(const MediaLibraryFilter(tagIds: {'later'}));
+      expect(ids(), ['m000', 'm001']);
+
+      await insertTag('later');
+      await settleWrite();
+
+      expect(ids(), isEmpty);
+    });
+
+    test('deleting a selected buddy no photo names drops the facet', () async {
+      await insertTestBuddy(id: 'alex', name: 'Alex');
+      await load(const MediaLibraryFilter(buddyIds: {'alex'}));
+      expect(ids(), isEmpty);
+
+      final db = DatabaseService.instance.database;
+      await (db.delete(db.buddies)..where((t) => t.id.equals('alex'))).go();
+      await settleWrite();
+
+      expect(ids(), ['m000', 'm001']);
+    });
+
+    test('a selected buddy arriving later applies the facet', () async {
+      await load(const MediaLibraryFilter(buddyIds: {'later'}));
+      expect(ids(), ['m000', 'm001']);
+
+      await insertTestBuddy(id: 'later', name: 'Later');
+      await settleWrite();
+
+      expect(ids(), isEmpty);
+    });
+
+    test('a selected buddy moving to another diver drops the facet', () async {
+      viewingDiver = 'A';
+      await insertTestDiver('A');
+      await insertTestDiver('B');
+      await insertTestBuddy(id: 'alex', name: 'Alex', diverId: 'A');
+      await MediaPeopleRepository().addTag(mediaId: 'm000', buddyId: 'alex');
+      await load(const MediaLibraryFilter(buddyIds: {'alex'}));
+      expect(ids(), ['m000']);
+
+      final db = DatabaseService.instance.database;
+      await (db.update(db.buddies)..where((t) => t.id.equals('alex'))).write(
+        const BuddiesCompanion(diverId: Value('B')),
+      );
+      await settleWrite();
+
+      expect(ids(), ['m000', 'm001']);
+    });
+
+    test('a new default diver changes who Me names', () async {
+      await insertTestDiver('A');
+      await insertTestDiver('B');
+      final people = MediaPeopleRepository();
+      await people.addTag(mediaId: 'm000', diverId: 'A');
+      await people.addTag(mediaId: 'm001', diverId: 'B');
+      final db = DatabaseService.instance.database;
+      Future<void> setDefault(String id, bool isDefault) =>
+          (db.update(db.divers)..where((t) => t.id.equals(id))).write(
+            DiversCompanion(isDefault: Value(isDefault)),
+          );
+      await setDefault('A', true);
+      await load(const MediaLibraryFilter(includeMe: true));
+      expect(ids(), ['m000']);
+
+      await setDefault('A', false);
+      await setDefault('B', true);
+      await settleWrite();
+
+      expect(ids(), ['m001']);
     });
   });
 

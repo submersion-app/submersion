@@ -638,9 +638,11 @@ class MediaLibraryRepository {
   /// [watchMediaChanges] plus the tables only the library grid reads, so a
   /// row leaves, joins or changes on the page without a media row being
   /// written: `media_species` is the species filter's EXISTS, `trips` holds
-  /// the side-trip links its trip filter takes in (issue #3658), and `dives`
-  /// and `dive_sites` give the trip and site filters and each row's dive
-  /// header.
+  /// the side-trip links its trip filter takes in (issue #3658), `dives` and
+  /// `dive_sites` give the trip and site filters and each row's dive header,
+  /// and `tags`, `buddies` and `divers` decide whether a facet applies at all
+  /// and who Me names. Deleting a tag or buddy already ticks through its
+  /// cascade; these catch one arriving late or changing owner.
   Stream<void> watchLibraryChanges() => _db
       .tableUpdates(
         TableUpdateQuery.onAllTables([
@@ -651,6 +653,9 @@ class MediaLibraryRepository {
           _db.trips,
           _db.dives,
           _db.diveSites,
+          _db.tags,
+          _db.buddies,
+          _db.divers,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
