@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -194,3 +195,30 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   if (picture != null) return buildBailoutCanvasSeries(picture);
   return ref.watch(planLiveCanvasSeriesProvider);
 });
+
+/// Everything background a slate prints. Awaited, never read as it stands, so
+/// a slate cannot carry figures for an older revision. A failure throws:
+/// no slate is better than one with a section silently missing.
+///
+/// Awaited in turn, and each future taken only when its turn comes, so that a
+/// later result failing first is not an error nobody is listening to.
+Future<
+  ({
+    List<DeviationOutcome> deviations,
+    List<LostGasOutcome> lostGas,
+    RangeTable? rangeTable,
+    BailoutOutcome? bailout,
+  })
+>
+planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
+  final deviations = await read(planDeviationsProvider.future);
+  final lostGas = await read(planLostGasProvider.future);
+  final rangeTable = await read(planRangeTableProvider.future);
+  final bailout = await read(planBailoutProvider.future);
+  return (
+    deviations: deviations.value,
+    lostGas: lostGas.value,
+    rangeTable: rangeTable.value,
+    bailout: bailout.value,
+  );
+}

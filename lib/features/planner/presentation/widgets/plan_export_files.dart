@@ -59,21 +59,15 @@ Future<PlanExportFile> planSlateExport(
   final state = ref.read(divePlanNotifierProvider);
   // The plan's own values, else the diver's Settings defaults (#3552).
   final resolved = ref.read(resolvedPlanEngineConfigProvider);
-  // Awaited, not read: a slate never carries figures for an older revision.
-  // All four come in before building, so a failure stops the export rather
-  // than leaving a section silently missing.
-  final deviations = ref.read(planDeviationsProvider.future);
-  final lostGas = ref.read(planLostGasProvider.future);
-  final rangeTable = ref.read(planRangeTableProvider.future);
-  final bailout = ref.read(planBailoutProvider.future);
+  final results = await planSlateResults(ref.read);
   final bytes = await const PlanSlatePdfService().buildSlate(
     plan: divePlanFromState(state),
     outcome: ref.read(planOutcomeProvider),
     localization: localization,
-    deviations: (await deviations).value,
-    lostGas: (await lostGas).value,
-    rangeTable: (await rangeTable).value,
-    bailout: (await bailout).value,
+    deviations: results.deviations,
+    lostGas: results.lostGas,
+    rangeTable: results.rangeTable,
+    bailout: results.bailout,
     units: UnitFormatter(ref.read(settingsProvider)),
     labels: labels,
     deviationDepthDelta: resolved.deviationDepthDelta,

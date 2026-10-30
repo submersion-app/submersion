@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -15,6 +13,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
+import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
     show
@@ -579,6 +578,68 @@ void main() {
       final chart = container.read(planChartBailoutProvider);
       expect(chart.picture, isNull);
       expect(chart.status, isNull);
+    });
+  });
+
+  group('planSlateResults', () {
+    test('a slate straight after an edit carries the new figures', () async {
+      final container = makeContainer(
+        runner: _CountingRunner(),
+        settle: const Duration(milliseconds: 20),
+      );
+      load(container, _ccrWithBailout());
+      container.read(contingenciesExpandedProvider.notifier).state = true;
+      listenToAll(container);
+      final before = await planSlateResults(container.read);
+
+      editBottomTime(container, 2400);
+      final after = await planSlateResults(container.read);
+
+      final state = container.read(divePlanNotifierProvider);
+      final config = container.read(planEngineConfigProvider);
+      final plan = planForEngine(state);
+      final table = computeRangeTable(plan, null, config)!;
+      final bailout = computeBailout(plan, null, config)!;
+      final deviations = computeDeviations(plan, null, config);
+
+      int runtime(RangeTable table) => table.baseCell!.outcome.runtimeSeconds;
+      expect(runtime(after.rangeTable!), runtime(table));
+      expect(runtime(after.rangeTable!), isNot(runtime(before.rangeTable!)));
+      expect(
+        after.bailout!.worstCase.litersRequired,
+        bailout.worstCase.litersRequired,
+      );
+      expect(
+        after.deviations.first.outcome.runtimeSeconds,
+        deviations.first.outcome.runtimeSeconds,
+      );
+    });
+
+    test('a failed result fails the slate', () async {
+      final runner = HeldPlanResultRunner();
+      final container = makeContainer(runner: runner);
+      load(container, _ccrWithBailout());
+      listenToAll(container);
+      await wait(Duration.zero);
+
+      final slate = planSlateResults(container.read);
+      expect(runner.held, hasLength(2));
+      runner.held[0].finish();
+      runner.held[1].fail(StateError('engine'));
+
+      await expectLater(slate, throwsStateError);
+    });
+
+    test('collapsed contingencies stay out of the slate', () async {
+      final container = makeContainer(runner: _CountingRunner());
+      load(container, _multiGasDeco());
+      listenToAll(container);
+
+      final results = await planSlateResults(container.read);
+
+      expect(results.deviations, isEmpty);
+      expect(results.lostGas, isEmpty);
+      expect(results.rangeTable, isNotNull);
     });
   });
 
