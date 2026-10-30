@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
 
 typedef BasePartUploadResult = ({
   int partCount,
@@ -18,12 +18,18 @@ typedef BasePartUploadResult = ({
 /// download). Each part is handed to [uploadAll]'s callback in order; the
 /// returned checksums use the same `sha256:<hex>` convention as the manifest
 /// fields, so a reader's verification against the manifest can only fail on real
-/// transport corruption.
+/// transport corruption. The hashing runs on a worker isolate for a large base,
+/// so it does not stall the isolate that called sync (issue #3829).
 class BasePartFileSource {
-  BasePartFileSource(this.path, {this.partSize = BaseChunker.defaultPartSize});
+  BasePartFileSource(
+    this.path, {
+    this.partSize = BaseChunker.defaultPartSize,
+    BasePartHasherOpener openHasher = openBasePartHasher,
+  }) : _openHasher = openHasher;
 
   final String path;
   final int partSize;
+  final BasePartHasherOpener _openHasher;
 
   /// Number of parts [path] will be sliced into, without reading it.
   ///
@@ -65,18 +71,17 @@ class BasePartFileSource {
     bool Function(int index)? skipPart,
   }) async {
     final raf = await File(path).open();
-    final digestSink = _DigestSink();
-    final whole = sha256.startChunkedConversion(digestSink);
     final partChecksums = <String>[];
+    BasePartHasher? hasher;
     try {
       final length = await raf.length();
       final total = partCountFor(length, partSize: partSize);
+      final parts = hasher = await _openHasher(min(length, partSize));
       var index = 0;
       if (length == 0) {
         // Mirror BaseChunker.slice(empty) == [Uint8List(0)]: one empty part.
         final empty = Uint8List(0);
-        whole.add(empty);
-        partChecksums.add(BaseChunker.checksum(empty));
+        partChecksums.add(await parts.addPart(empty));
         if (skipPart?.call(0) != true) await upload(0, empty);
         index = 1;
         onPartUploaded?.call(index, total);
@@ -84,34 +89,21 @@ class BasePartFileSource {
         for (var off = 0; off < length; off += partSize) {
           final n = (off + partSize < length) ? partSize : length - off;
           final buf = await raf.read(n);
-          whole.add(buf);
-          partChecksums.add(BaseChunker.checksum(buf));
+          partChecksums.add(await parts.addPart(buf));
           if (skipPart?.call(index) != true) await upload(index, buf);
           index++;
           onPartUploaded?.call(index, total);
         }
       }
-      whole.close();
       return (
         partCount: index,
-        wholeChecksum: 'sha256:${digestSink.value}',
+        wholeChecksum: await parts.finish(),
         partChecksums: partChecksums,
         byteLength: length,
       );
     } finally {
+      await hasher?.dispose();
       await raf.close();
     }
   }
-}
-
-/// Minimal `Sink<Digest>` capturing the digest emitted at close (mirrors the one
-/// in base_part_file_sink.dart; crypto does not export AccumulatorSink).
-class _DigestSink implements Sink<Digest> {
-  Digest? value;
-
-  @override
-  void add(Digest data) => value = data;
-
-  @override
-  void close() {}
 }
