@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -17,32 +16,10 @@ import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
+import '../../helpers/main_scaffold_stubs.dart';
+
 const _screen = Size(390, 844);
 const _keyboard = 330.0;
-
-class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
-    implements UpdateStatusNotifier {
-  _StubUpdateStatusNotifier() : super(const UpToDate());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _StubDownloadNotifier extends StateNotifier<DownloadState>
-    implements DownloadNotifier {
-  _StubDownloadNotifier() : super(const DownloadState());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _StubSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _StubSettingsNotifier() : super(const AppSettings());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 /// A page on the shell navigator with its own Scaffold, as every edit form
 /// has.
@@ -91,9 +68,11 @@ Future<void> _pumpShell(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         updateServiceProvider.overrideWith((ref) async => null),
-        updateStatusProvider.overrideWith((ref) => _StubUpdateStatusNotifier()),
-        downloadNotifierProvider.overrideWith((ref) => _StubDownloadNotifier()),
-        settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+        updateStatusProvider.overrideWith((ref) => StubUpdateStatusNotifier()),
+        downloadNotifierProvider.overrideWith((ref) => StubDownloadNotifier()),
+        settingsProvider.overrideWith(
+          (ref) => StubSettingsNotifier(const AppSettings()),
+        ),
         demoModeActiveProvider.overrideWithValue(demo),
       ],
       child: MaterialApp.router(
@@ -110,6 +89,14 @@ Future<void> _pumpShell(
 MediaQueryData _pageQuery(WidgetTester tester) =>
     MediaQuery.of(tester.element(find.byType(_Page)));
 
+void _expectKeyboardClearedOnce(WidgetTester tester) {
+  expect(
+    tester.getRect(find.byKey(_Page.bodyKey)).bottom,
+    _screen.height - _keyboard,
+  );
+  expect(_pageQuery(tester).viewInsets.bottom, 0);
+}
+
 void main() {
   group('a shell page and the keyboard (#3784)', () {
     testWidgets('the keyboard takes its height off the page only once', (
@@ -117,11 +104,7 @@ void main() {
     ) async {
       await _pumpShell(tester, const _Page(), keyboard: _keyboard);
 
-      expect(
-        tester.getRect(find.byKey(_Page.bodyKey)).bottom,
-        _screen.height - _keyboard,
-      );
-      expect(_pageQuery(tester).viewInsets.bottom, 0);
+      _expectKeyboardClearedOnce(tester);
     });
 
     testWidgets('so does a page that hides the shell chrome', (tester) async {
@@ -131,20 +114,14 @@ void main() {
       )!.requestHidden(tester);
       await tester.pumpAndSettle();
 
-      expect(
-        tester.getRect(find.byKey(_Page.bodyKey)).bottom,
-        _screen.height - _keyboard,
-      );
-      expect(_pageQuery(tester).viewInsets.bottom, 0);
+      expect(find.byType(NavigationBar), findsNothing);
+      _expectKeyboardClearedOnce(tester);
     });
 
     testWidgets('so does a page below the demo strip', (tester) async {
       await _pumpShell(tester, const _Page(), keyboard: _keyboard, demo: true);
 
-      expect(
-        tester.getRect(find.byKey(_Page.bodyKey)).bottom,
-        _screen.height - _keyboard,
-      );
+      _expectKeyboardClearedOnce(tester);
     });
 
     testWidgets('the formatting bar of long notes stays on screen', (
