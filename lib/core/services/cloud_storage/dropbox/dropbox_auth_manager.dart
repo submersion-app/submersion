@@ -135,6 +135,7 @@ class DropboxAuthManager {
     final signedInAs = email ?? displayName;
     if (!isSameAccount(expectedAccount, signedInAs)) {
       _pendingVerifier = null;
+      await _revokeRefused(tokens['access_token'] as String);
       throw CloudAccountMismatchException(signedInAs!);
     }
 
@@ -148,6 +149,17 @@ class DropboxAuthManager {
     _cacheAccessToken(tokens);
     _log.info('Dropbox connected');
     return auth;
+  }
+
+  /// Ends the token of an account that was refused, so that account's list of
+  /// connected apps does not keep Submersion. Best effort: the app keeps
+  /// nothing of it either way.
+  Future<void> _revokeRefused(String token) async {
+    try {
+      await _http.post(_revokeUri, headers: {'Authorization': 'Bearer $token'});
+    } on Exception catch (e) {
+      _log.warning('Dropbox token revoke failed (ignored): $e');
+    }
   }
 
   /// A currently valid access token, refreshing through the stored refresh

@@ -135,6 +135,52 @@ void main() {
         expect((await store.load())!.refreshToken, 'rt-existing');
       });
 
+      test('the refused token is revoked, not left live', () async {
+        final revoked = <String?>[];
+        final m = manager(
+          MockClient((request) async {
+            if (request.url.path == '/oauth2/token') return tokenResponse();
+            if (request.url.path == '/2/auth/token/revoke') {
+              revoked.add(request.headers['Authorization']);
+              return http.Response('null', 200);
+            }
+            return accountResponse();
+          }),
+        );
+        m.beginAuthorization();
+
+        await expectLater(
+          m.completeAuthorization(
+            'the-code',
+            expectedAccount: 'someone@example.com',
+          ),
+          throwsA(isA<CloudAccountMismatchException>()),
+        );
+
+        expect(revoked, ['Bearer at-1']);
+      });
+
+      test('a revoke that fails changes nothing', () async {
+        final m = manager(
+          MockClient((request) async {
+            if (request.url.path == '/oauth2/token') return tokenResponse();
+            if (request.url.path == '/2/auth/token/revoke') {
+              throw http.ClientException('offline');
+            }
+            return accountResponse();
+          }),
+        );
+        m.beginAuthorization();
+
+        await expectLater(
+          m.completeAuthorization(
+            'the-code',
+            expectedAccount: 'someone@example.com',
+          ),
+          throwsA(isA<CloudAccountMismatchException>()),
+        );
+      });
+
       test('the same account connects', () async {
         final m = manager(connects());
         m.beginAuthorization();

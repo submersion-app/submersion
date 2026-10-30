@@ -205,7 +205,9 @@ runs where the account first becomes known, before any session is stored:
   authorized, so it has no Drive client to reach.
 - **Dropbox:** in `DropboxAuthManager.completeAuthorization`, comparing
   `email ?? displayName`, before `_store.save`. The dialog that hosts it returns
-  the mismatch rather than showing it as a connect failure.
+  the mismatch rather than showing it as a connect failure. The refused token is
+  revoked, best effort. Google's is not: its revoke ends the account's whole
+  grant, which would sign out another device using that account on purpose.
 
 Rules:
 

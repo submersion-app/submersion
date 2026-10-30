@@ -178,6 +178,9 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
       }
       final email = _emailFromIdToken(credentials.idToken);
       if (!isSameAccount(expectedAccount, email)) {
+        // Not revoked, unlike Dropbox: Google's revoke ends the account's
+        // whole grant to this app, which would sign out another device that
+        // uses that account on purpose.
         _log.warning('Google consent returned a different account');
         throw CloudAccountMismatchException(email!);
       }
