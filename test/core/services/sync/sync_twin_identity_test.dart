@@ -236,6 +236,10 @@ void main() {
       final service = buildService();
       final first = await service.performSync();
       expect(first.isSuccess, isTrue);
+      final published = await ownManifest(
+        cloud,
+        await repository.getDeviceId(),
+      );
 
       // Sync 2 has a NEW change to publish, but the upload fails outright, so
       // no manifest carries its nonce and the ring must not hold it.
@@ -245,6 +249,10 @@ void main() {
       cloud.failUploads = true;
       final second = await service.performSync();
       expect(second.isSuccess, isFalse);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getStringList('sync_upload_nonces_${cloud.providerId}'), [
+        published!.uploadNonce,
+      ]);
 
       // Sync 3 sees the own manifest still carrying N1 (the failed upload never
       // replaced it). N1 must still be recognized as ours -- no false twin.
@@ -415,7 +423,7 @@ void main() {
       // More idle syncs than the ring holds entries. Each publishes nothing,
       // so the manifest keeps the base upload's nonce; none of them may take
       // a ring slot, or that live nonce would be evicted and the device would
-      // read its own manifest as a foreign twin (#733) -- minting a fresh
+      // read its own manifest as a foreign twin (#733), minting a fresh
       // identity and re-uploading a full base every few idle syncs, forever.
       for (var i = 1; i <= 9; i++) {
         final result = await service.performSync();
@@ -530,6 +538,44 @@ void main() {
           'nonce-a',
           'nonce-b',
         ]);
+      },
+    );
+
+    test(
+      'an emptied ring relearns the live nonce, so a twin still shows',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-relearn'),
+        );
+        expect((await buildService().performSync()).isSuccess, isTrue);
+        final deviceId = await repository.getDeviceId();
+
+        SharedPreferences.setMockInitialValues({});
+        final service = SyncService(
+          syncRepository: repository,
+          serializer: SyncDataSerializer(),
+          cloudProvider: cloud,
+          syncInitializer: SyncInitializer(
+            syncRepository: repository,
+            prefs: await SharedPreferences.getInstance(),
+          ),
+        );
+
+        // Idle, so nothing it publishes would refill the ring.
+        expect((await service.performSync()).adoptedFreshIdentity, isFalse);
+
+        await seedPeerManifest(
+          cloud,
+          deviceId,
+          uploadNonce: 'minted-by-a-twin',
+        );
+        final result = await service.performSync();
+
+        expect(
+          result.adoptedFreshIdentity,
+          isTrue,
+          reason: 'lost prefs must not switch twin detection off for good',
+        );
       },
     );
 

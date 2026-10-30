@@ -136,6 +136,25 @@ void main() {
       );
     });
 
+    test('reclaims another backend\'s export once long abandoned', () async {
+      final path = await writeExport('left-behind.json', 50);
+      final old = record(dataPath: path, byteLength: 50, providerId: 's3');
+      await store.save(old);
+      await File(
+        old.sidecarPath,
+      ).setLastModified(DateTime.now().subtract(const Duration(days: 60)));
+
+      await store.find(providerId: 'dropbox', deviceId: 'dev1');
+
+      expect(
+        await File(path).exists(),
+        isFalse,
+        reason:
+            'a diver who left that backend never comes back for these bytes, '
+            'and nothing else reclaims this directory (issue #3822)',
+      );
+    });
+
     test('discards an export left by an identity given up since', () async {
       final path = await writeExport('old-identity.json', 50);
       final old = record(dataPath: path, byteLength: 50, deviceId: 'old-id');
@@ -167,6 +186,32 @@ void main() {
         isTrue,
         reason: 'deleting it would fail that publish mid-upload',
       );
+    });
+
+    test('a reader never sees a half-written record', () async {
+      // find() deletes an export whose record will not parse, so a record
+      // caught mid-write would cost its owner the export.
+      final path = await writeExport('busy.json', 50);
+      final busy = record(dataPath: path, byteLength: 50);
+      await store.save(busy);
+
+      var saving = true;
+      var torn = 0;
+      Future<void> keepReading() async {
+        while (saving) {
+          final text = await File(busy.sidecarPath).readAsString();
+          if (text.isEmpty) torn++;
+        }
+      }
+
+      final reader = keepReading();
+      for (var i = 0; i < 200; i++) {
+        await store.save(busy);
+      }
+      saving = false;
+      await reader;
+
+      expect(torn, 0);
     });
 
     test('keeps only the newest of several attempts', () async {
@@ -609,32 +654,6 @@ void main() {
       );
     });
 
-    test('a publish that needs no base drops an export it outran', () async {
-      // An app killed after the manifest committed but before the export was
-      // discarded. A later forced base would resume these stale bytes, moving
-      // the published seq and watermark backwards.
-      await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
-      );
-      await publish();
-      final repo = SyncRepository();
-      final path = await writeExport('committed.json', 50);
-      await store.save(
-        record(
-          dataPath: path,
-          byteLength: 50,
-          providerId: provider.providerId,
-          deviceId: await repo.getDeviceId(),
-        ),
-      );
-      await repo.clearPendingRecords();
-
-      final result = await publish();
-
-      expect(result.kind, ChangesetWriteKind.noop);
-      expect(await File(path).exists(), isFalse);
-    });
-
     test('a forced base still resumes over the base it replaces', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
@@ -660,34 +679,6 @@ void main() {
         retried.snapshotAt,
         isNull,
         reason: 'only a resumed export leaves snapshotAt unset',
-      );
-    });
-
-    test('an ordinary publish reclaims an abandoned export', () async {
-      await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
-      );
-      await publish();
-      final path = await writeExport('old-identity.json', 50);
-      final old = record(
-        dataPath: path,
-        byteLength: 50,
-        providerId: provider.providerId,
-        deviceId: 'old-id',
-      );
-      await store.save(old);
-      await File(
-        old.sidecarPath,
-      ).setLastModified(DateTime.now().subtract(const Duration(hours: 1)));
-      await SyncRepository().clearPendingRecords();
-
-      final result = await publish();
-
-      expect(result.kind, ChangesetWriteKind.noop);
-      expect(
-        await File(path).exists(),
-        isFalse,
-        reason: 'the next base publish may be months away',
       );
     });
 

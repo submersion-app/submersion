@@ -846,7 +846,7 @@ class SyncService {
         // library == the adopted epoch the peers already published, so there
         // is nothing to say. Skip the publish entirely. Once a local change
         // exists, the writer publishes it as a small changeset against the
-        // adopted watermark -- never a redundant full base (#358).
+        // adopted watermark, never a redundant full base (#358).
         _log.info('Skipping publish after adopt (no local changes yet)');
       } else {
         publishAttempted = true;

@@ -165,25 +165,18 @@ class ChangesetWriter {
     final newSeq = knownHeadSeq + 1;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // Every publish, not only a base: this is also the sweep that reclaims
-    // exports nothing will resume, and the next base may be months away.
-    final resumed = await _resumable.find(
-      providerId: providerId,
-      deviceId: deviceId,
-      epochId: epochId,
-    );
-    final publishingBase = !hasBase && !adoptedNoBase;
-    // Nothing is waiting on this export: its publish committed before the app
-    // could discard it, or whatever forced the base has passed. Left in place,
-    // a later base would resume it and move the published log backwards.
-    if (resumed != null && !publishingBase) await _resumable.discard(resumed);
-
-    if (publishingBase) {
+    if (!hasBase && !adoptedNoBase) {
       // Resume an export a previous attempt wrote but never finished
       // uploading, before spending a whole re-export on it. A wiped backend
       // forces the entire library out as one base, and on a phone that is
       // minutes of upload; restarting it from part 0 every time the app
       // reopened is why the reporter's sync never converged (#1032).
+      final resumed = await _resumable.find(
+        providerId: providerId,
+        deviceId: deviceId,
+        epochId: epochId,
+      );
+
       // Stream the base to a temp file and slice-upload it, so a large library
       // is never materialized in RAM (#358 write side). Do NOT call
       // exportChangeset(null) here -- that is the OOM path.
@@ -309,6 +302,8 @@ class ChangesetWriter {
         rethrow;
       }
     }
+
+    await _reclaimExports(providerId, deviceId, epochId);
 
     // Changeset: reuse the base fields from the (authoritative) own manifest;
     // only headSeq / publishedHlcHigh advance. In the adopted mode there is no
@@ -600,6 +595,30 @@ class ChangesetWriter {
     );
     await _pruneSupersededBelow(provider, folderId, deviceId, compSeq);
     return compSeq;
+  }
+
+  /// Clear the exports a publish with no base of its own leaves unused. The
+  /// next base may be months away, so this cannot wait for one, and an export
+  /// of this device's still on disk has been outrun: its publish committed
+  /// before the app could discard it, or whatever forced the base has passed.
+  /// A later base resuming it would move the published log backwards.
+  ///
+  /// Best-effort: housekeeping must not fail a publish that needed no export.
+  Future<void> _reclaimExports(
+    String providerId,
+    String deviceId,
+    String? epochId,
+  ) async {
+    try {
+      final outrun = await _resumable.find(
+        providerId: providerId,
+        deviceId: deviceId,
+        epochId: epochId,
+      );
+      if (outrun != null) await _resumable.discard(outrun);
+    } catch (_) {
+      // The next publish sweeps again.
+    }
   }
 
   /// Best-effort: pruning is a post-commit optimization -- the fresh base and

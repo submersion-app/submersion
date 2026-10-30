@@ -128,13 +128,21 @@ class ResumableBasePublishStore {
   /// sidecar, or one recorded under another device id.
   static const Duration _orphanGrace = Duration(minutes: 5);
 
+  /// How long an export parked under another backend waits for the diver to
+  /// come back to it, before it counts as left behind.
+  static const Duration _otherBackendGrace = Duration(days: 30);
+
   Future<Directory> get directory => _directory();
 
   /// Record [publish], overwriting any previous record for its data file.
+  ///
+  /// Through a rename, so [find] cannot catch a half-written record and delete
+  /// the export as corrupt. A temp file a crash strands has no sidecar, so
+  /// [_pruneUnreferencedExports] reclaims it.
   Future<void> save(ResumableBasePublish publish) async {
-    await File(
-      publish.sidecarPath,
-    ).writeAsString(jsonEncode(publish.toJson()), flush: true);
+    final temp = File('${publish.sidecarPath}.tmp');
+    await temp.writeAsString(jsonEncode(publish.toJson()), flush: true);
+    await temp.rename(publish.sidecarPath);
   }
 
   /// The resumable publish for [providerId]/[deviceId] under [epochId], or null
@@ -144,8 +152,9 @@ class ResumableBasePublishStore {
   /// accumulate: a sidecar whose data file is gone or the wrong size (the OS
   /// purged or truncated it), one stamped with a different epoch, one left by a
   /// device id this install has since given up (twin split, Reset Sync State),
-  /// one whose record will not parse, and -- via [_pruneUnreferencedExports] --
-  /// an export with no sidecar at all.
+  /// one left under another backend for [_otherBackendGrace], one whose record
+  /// will not parse, and (via [_pruneUnreferencedExports]) an export with no
+  /// sidecar at all.
   Future<ResumableBasePublish?> find({
     required String providerId,
     required String deviceId,
@@ -177,7 +186,12 @@ class ResumableBasePublishStore {
       }
 
       referenced.add(record.dataPath);
-      if (record.providerId != providerId) continue;
+      if (record.providerId != providerId) {
+        if (await _outlivedGrace(entity, grace: _otherBackendGrace)) {
+          await discard(record);
+        }
+        continue;
+      }
       if (record.deviceId != deviceId) {
         if (await _outlivedGrace(entity)) await discard(record);
         continue;
@@ -235,10 +249,13 @@ class ResumableBasePublishStore {
     }
   }
 
-  /// Whether [file] has gone untouched for [_orphanGrace]. A stat that throws
-  /// reports false: when in doubt, nothing here gets deleted.
-  static Future<bool> _outlivedGrace(File file) async {
-    final cutoff = DateTime.now().subtract(_orphanGrace);
+  /// Whether [file] has gone untouched for [grace]. A stat that throws reports
+  /// false: when in doubt, nothing here gets deleted.
+  static Future<bool> _outlivedGrace(
+    File file, {
+    Duration grace = _orphanGrace,
+  }) async {
+    final cutoff = DateTime.now().subtract(grace);
     try {
       return !(await file.stat()).modified.isAfter(cutoff);
     } catch (_) {
