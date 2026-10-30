@@ -115,6 +115,38 @@ void main() {
       expect(dive2['buddyRefs'], unorderedEquals(['Alice', 'Bob']));
     });
 
+    test('trims buddy names and drops blank ones (#3871)', () async {
+      final dir = Directory.systemTemp.createTempSync('msp_trim_');
+      addTearDown(() {
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
+      });
+      final path = p.join(dir.path, 'msp_trim.sqlite');
+      final file = buildSyntheticMacDiveDb(path);
+      final db = sqlite3.sqlite3.open(path);
+      db.execute(
+        "INSERT INTO ZBUDDY (Z_PK, ZNAME, ZUUID) VALUES "
+        "(3, ' Alice ', 'buddy-uuid-3'), (4, '   ', 'buddy-uuid-4');",
+      );
+      db.execute(
+        'INSERT INTO Z_1RELATIONSHIPDIVE '
+        '(Z_1RELATIONSHIPBUDDIES, Z_5RELATIONSHIPDIVE) VALUES (3, 2), (4, 2);',
+      );
+      db.close();
+
+      final payload = await const MacDiveSqliteParser().parse(
+        Uint8List.fromList(await file.readAsBytes()),
+      );
+
+      final names = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['name']);
+      expect(names, unorderedEquals(['Alice', 'Bob']));
+      final dive2 = payload
+          .entitiesOf(ImportEntityType.dives)
+          .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-2');
+      expect(dive2['buddyRefs'], unorderedEquals(['Alice', 'Bob']));
+    });
+
     test('returns error payload on totally invalid bytes', () async {
       final garbage = Uint8List.fromList(const [0, 1, 2, 3, 4]);
       final payload = await const MacDiveSqliteParser().parse(garbage);

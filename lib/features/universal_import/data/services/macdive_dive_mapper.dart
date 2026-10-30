@@ -809,8 +809,8 @@ class MacDiveDiveMapper {
     // person: a second entity could never be linked to a dive.
     final seen = <String>{};
     for (final b in logbook.buddiesByPk.values) {
-      final name = b.name;
-      if (name == null || name.isEmpty || !seen.add(name)) continue;
+      final name = _buddyName(b);
+      if (name == null || !seen.add(name)) continue;
       out.add({
         'name': name,
         'uddfId': name,
@@ -818,6 +818,12 @@ class MacDiveDiveMapper {
       });
     }
     return out;
+  }
+
+  /// The name [buddy] is imported and referenced under, or null for none.
+  static String? _buddyName(MacDiveRawBuddy? buddy) {
+    final name = buddy?.name?.trim() ?? '';
+    return name.isEmpty ? null : name;
   }
 
   static List<Map<String, dynamic>> _buildTagMaps(MacDiveRawLogbook logbook) {
@@ -1009,9 +1015,7 @@ class MacDiveDiveMapper {
     // count them a second time (issue #3871).
     final buddyPks = logbook.diveToBuddyPks[d.pk] ?? const <int>[];
     final buddyRefs = <String>{
-      for (final bpk in buddyPks)
-        if ((logbook.buddiesByPk[bpk]?.name ?? '').isNotEmpty)
-          logbook.buddiesByPk[bpk]!.name!,
+      for (final bpk in buddyPks) ?_buddyName(logbook.buddiesByPk[bpk]),
     };
     if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs.toList();
 
