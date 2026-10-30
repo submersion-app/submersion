@@ -365,6 +365,36 @@ void main() {
       expect(dir.listSync(), isEmpty);
     });
 
+    test('a temp file that cannot be written is an interruption', () async {
+      final unwritable = BasePartFileSink(
+        tempDirProvider: () async => Directory(p.join(dir.path, 'gone')),
+      );
+      await expectLater(
+        assembling((_) async => part, using: unwritable),
+        throwsA(
+          isA<BaseFetchInterrupted>().having(
+            (e) => e.cause,
+            'cause',
+            isA<FileSystemException>(),
+          ),
+        ),
+      );
+    });
+
+    test('a missing part stays a null if the temp file fails too', () async {
+      final unwritable = BasePartFileSink(
+        tempDirProvider: () async => Directory(p.join(dir.path, 'gone')),
+      );
+      expect(
+        await assembling(
+          (i) async => i == 0 ? part : null,
+          using: unwritable,
+          partCount: 2,
+        ),
+        isNull,
+      );
+    });
+
     test('no whole-file digest was promised, so none is computed', () async {
       final finishFails = BasePartFileSink(
         tempDirProvider: () async => dir,

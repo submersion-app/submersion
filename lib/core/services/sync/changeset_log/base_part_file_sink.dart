@@ -15,8 +15,8 @@ import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 /// Distinct from its null result on purpose. Pull is additive, so it can treat
 /// both as "retry next sync". Adopt and the retirement fence are delete-all
 /// refills, and they read "nothing assembled" as "no readable library": the
-/// fence then deletes the epoch marker and republishes from local. A dropped
-/// connection must not be able to say that.
+/// fence then drops the device's retirement marker and republishes from local.
+/// A dropped connection must not be able to say that.
 class BaseFetchInterrupted implements Exception {
   BaseFetchInterrupted(this.cause);
 
@@ -101,6 +101,14 @@ class BasePartFileSink {
 
     try {
       await out.close();
+    } catch (e, st) {
+      // A failed write surfaces here, as a local fault. The cloud's copy
+      // having already failed stays the answer, so this cannot upgrade a null.
+      if (ok) {
+        interruption = e;
+        interruptionStack = st;
+      }
+      ok = false;
     } finally {
       await hasher?.dispose();
     }

@@ -176,8 +176,12 @@ final class FileGitObjectStore implements GitObjectStore {
   /// store on [root] owns it. It skips the scan, which takes seconds on a full
   /// cache and would run once per pack, because [_entryFor] finds any object
   /// it is asked for. Its index covers only what it has touched, so it must
-  /// not [trim]: eviction belongs to the owning store, which adopts what this
-  /// one wrote as it is asked for.
+  /// not [trim]: eviction belongs to the owning store, which has to be asked
+  /// about what this one wrote (see `readSpooledPack`). The recency of what it
+  /// reads does not reach that store either, so a trim there can take a delta
+  /// base from under a read. An open handle outlives that where the platform
+  /// allows deleting an open file; elsewhere the delete fails and the file
+  /// stays until a later scan counts it.
   FileGitObjectStore.unindexed(this.root) : maxBytes = _defaultMaxBytes {
     _index = Future.value({});
   }

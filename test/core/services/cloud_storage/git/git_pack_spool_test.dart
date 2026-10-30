@@ -88,7 +88,7 @@ void main() {
       );
     });
 
-    test('a corrupt pack is reported, not retried', () async {
+    test('a corrupt pack is reported from the worker', () async {
       final corrupt = Uint8List.fromList(_fixture('full.pack'));
       corrupt[corrupt.length ~/ 2] ^= 0xff;
       await expectLater(read(corrupt), throwsA(isA<GitException>()));
@@ -103,6 +103,25 @@ void main() {
       final files = store.root.listSync(recursive: true).whereType<File>();
       expect(files.where((f) => f.path.endsWith('.tmp')), isEmpty);
       expect(files, hasLength(ids.toSet().length));
+    });
+
+    test('what a worker stored counts toward the store bound', () async {
+      final bounded = FileGitObjectStore(
+        tempDirForTest('git_store_'),
+        maxBytes: 1024,
+      );
+      expect(await bounded.has(GitObjectId.zero), isFalse);
+
+      final ids = await readSpooledPack(
+        _pieces(_fixture('full.pack'), 333),
+        bounded,
+        directory: spool,
+        offIsolateMinBytes: 0,
+      );
+      await bounded.trim();
+
+      final left = bounded.root.listSync(recursive: true).whereType<File>();
+      expect(left.length, lessThan(ids.toSet().length));
     });
 
     test('a failed isolate reads here instead', () async {

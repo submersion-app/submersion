@@ -5712,65 +5712,65 @@ class SyncService {
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
     final selfDeviceId = await _syncRepository.getDeviceId();
-    for (final deviceId in deviceIds) {
-      if (excludeDeviceIds.contains(deviceId)) continue;
-      final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
-      if (manifestFile == null) continue;
-      SyncManifest manifest;
-      try {
-        manifest = SyncManifest.fromBytes(
-          await provider.downloadFile(manifestFile.id),
-        );
-      } catch (_) {
-        continue;
-      }
-      // Recorded unconditionally: the manifest parsed, so a missing name is
-      // the peer's current state and clears any name it published before.
-      //
-      // Never for this device, though. Unlike a pull, this scan reads every
-      // manifest in the folder including its own, and PeerDeviceNameStore
-      // documents that this device is not in it: the device identity
-      // service already knows its own name, and a self entry would show up
-      // as a peer to anything that lists the map.
-      //
-      // Guarded on its own: nothing above catches here, so a failed
-      // preferences write would abort the whole scan and with it the
-      // library adoption, over optional metadata.
-      if (deviceId != selfDeviceId) {
+    try {
+      for (final deviceId in deviceIds) {
+        if (excludeDeviceIds.contains(deviceId)) continue;
+        final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
+        if (manifestFile == null) continue;
+        SyncManifest manifest;
         try {
-          await _peerNames?.record(deviceId, manifest.deviceName);
-        } catch (e) {
-          _log.warning(
-            'Could not record the name for peer $deviceId',
-            error: e,
+          manifest = SyncManifest.fromBytes(
+            await provider.downloadFile(manifestFile.id),
           );
+        } catch (_) {
+          continue;
         }
-      }
-      if (manifest.epochId != epochId) continue;
-      final baseSeq = manifest.baseSeq;
-      if (baseSeq == null) continue;
-      // Compatibility-floor filter, the adopt-side twin of the one in
-      // ChangesetReader.pull: a manifest's schemaVersion is its writer's
-      // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
-      // check because a base-less peer contributes nothing to adopt either
-      // way (pull holds its changesets on its own).
-      final peerSchema = manifest.schemaVersion;
-      if (peerSchema != null && peerSchema > AppDatabase.currentSchemaVersion) {
-        newerSchemaPeerDeviceIds.add(deviceId);
-        final name = manifest.deviceName;
-        if (name != null && name.isNotEmpty) {
-          newerSchemaPeerNames[deviceId] = name;
+        // Recorded unconditionally: the manifest parsed, so a missing name is
+        // the peer's current state and clears any name it published before.
+        //
+        // Never for this device, though. Unlike a pull, this scan reads every
+        // manifest in the folder including its own, and PeerDeviceNameStore
+        // documents that this device is not in it: the device identity
+        // service already knows its own name, and a self entry would show up
+        // as a peer to anything that lists the map.
+        //
+        // Guarded on its own: nothing above catches here, so a failed
+        // preferences write would abort the whole scan and with it the
+        // library adoption, over optional metadata.
+        if (deviceId != selfDeviceId) {
+          try {
+            await _peerNames?.record(deviceId, manifest.deviceName);
+          } catch (e) {
+            _log.warning(
+              'Could not record the name for peer $deviceId',
+              error: e,
+            );
+          }
         }
-        continue;
-      }
-      // Once any peer is held the collection is void: keep scanning manifests
-      // only to name every held peer, and fetch no more bases.
-      if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
-      final partCount = manifest.basePartCount ?? 0;
-      if (partCount <= 0) continue;
-      final String? path;
-      try {
-        path = await _baseSink.assemble(
+        if (manifest.epochId != epochId) continue;
+        final baseSeq = manifest.baseSeq;
+        if (baseSeq == null) continue;
+        // Compatibility-floor filter, the adopt-side twin of the one in
+        // ChangesetReader.pull: a manifest's schemaVersion is its writer's
+        // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
+        // check because a base-less peer contributes nothing to adopt either
+        // way (pull holds its changesets on its own).
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null &&
+            peerSchema > AppDatabase.currentSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(deviceId);
+          final name = manifest.deviceName;
+          if (name != null && name.isNotEmpty) {
+            newerSchemaPeerNames[deviceId] = name;
+          }
+          continue;
+        }
+        // Once any peer is held the collection is void: keep scanning manifests
+        // only to name every held peer, and fetch no more bases.
+        if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
+        final partCount = manifest.basePartCount ?? 0;
+        if (partCount <= 0) continue;
+        final path = await _baseSink.assemble(
           name: 'ssv1_adopt_${deviceId}_$baseSeq',
           partCount: partCount,
           wholeChecksum: manifest.baseChecksum,
@@ -5782,35 +5782,38 @@ class SyncService {
             return provider.downloadFile(pf.id);
           },
         );
-      } on BaseFetchInterrupted {
-        // Nothing here says this device's base is unusable, and both callers
-        // are delete-all-refill: going on without it would drop its rows, and
-        // an empty set would read as "no library". Abort; the next sync retries.
-        for (final assembled in baseFilePaths) {
-          await _baseSink.deleteQuietly(assembled);
+        // Base incomplete/corrupt: skip this device.
+        if (path == null) continue;
+        baseFilePaths.add(path);
+        baseExportedAt.add(await _readBaseExportedAt(path));
+        // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
+        // first gap) so adopt can record it as this peer's cursor -- otherwise the
+        // next sync cold-starts and re-downloads the whole base we just applied.
+        var appliedThrough = baseSeq;
+        for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
+          final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
+          if (cf == null) break;
+          changesets.add(
+            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
+          );
+          appliedThrough = seq;
         }
-        rethrow;
+        cursors.add((
+          deviceId: deviceId,
+          baseSeq: baseSeq,
+          appliedThrough: appliedThrough,
+        ));
       }
-      if (path == null) continue; // base incomplete/corrupt -> skip this device
-      baseFilePaths.add(path);
-      baseExportedAt.add(await _readBaseExportedAt(path));
-      // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-      // first gap) so adopt can record it as this peer's cursor -- otherwise the
-      // next sync cold-starts and re-downloads the whole base we just applied.
-      var appliedThrough = baseSeq;
-      for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
-        final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
-        if (cf == null) break;
-        changesets.add(
-          _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
-        );
-        appliedThrough = seq;
+    } catch (_) {
+      // BaseFetchInterrupted says nothing about this device's base, and both
+      // callers are delete-all-refill: going on without it would drop its
+      // rows, and an empty set would read as "no library". So it, like any
+      // other failure here, aborts the collection. The temp files assembled so
+      // far are not the caller's to delete until this returns.
+      for (final path in baseFilePaths) {
+        await _baseSink.deleteQuietly(path);
       }
-      cursors.add((
-        deviceId: deviceId,
-        baseSeq: baseSeq,
-        appliedThrough: appliedThrough,
-      ));
+      rethrow;
     }
     if (newerSchemaPeerDeviceIds.isNotEmpty) {
       for (final path in baseFilePaths) {

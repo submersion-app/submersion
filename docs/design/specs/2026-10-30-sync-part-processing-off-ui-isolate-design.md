@@ -319,8 +319,9 @@ cache and would run once per pack. A new constructor, for example
 `_entryFor` already adopts files by `stat`, so reads and writes behave the same
 without the scan.
 
-Eviction stays with the main store. It adopts new objects on first use, so its
-size accounting stays correct, and only it runs `trim`.
+Eviction stays with the main store, and only it runs `trim`. It is asked about
+every object in the pack as soon as the read returns, which adopts them, so its
+size accounting stays correct even when a session reads only one of them.
 
 ### Comments to update
 

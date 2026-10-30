@@ -616,6 +616,33 @@ void main() {
       expect(await SyncDataSerializer().fetchRecord('dives', 'lib-1'), isNull);
     });
 
+    test('a changeset that cannot be fetched leaves no temp files', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
+      );
+      await publishOwnLog(cloud, 'cs-peer', epochId: 'e1');
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'lib-2', diveNumber: 2),
+      );
+      await publishOwnLog(cloud, 'cs-peer', epochId: 'e1');
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final names = [for (final f in await cloud.listFiles()) f.name];
+      expect(names.where((n) => n.contains('.cs.')), isNotEmpty);
+      cloud.failDownloadsWhere = (id) => id.contains('.cs.');
+      final tempDir = await resolveSyncTempDir();
+
+      final result = await service.adoptReplacedLibrary();
+
+      expect(result.isSuccess, isFalse);
+      expect([
+        for (final f in tempDir.listSync())
+          if (p.basename(f.path).startsWith('ssv1_adopt_cs-peer')) f.path,
+      ], isEmpty);
+    });
+
     test('a base gone from the cloud still skips only that device', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),

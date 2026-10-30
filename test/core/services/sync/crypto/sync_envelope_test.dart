@@ -447,7 +447,7 @@ void main() {
       );
     });
 
-    test('a failed authentication does not rerun inline', () async {
+    test('a failed authentication stops before any inflate', () async {
       final sealed = await seal(compressible);
       sealed[sealed.length ~/ 2] ^= 0xff;
       var hops = 0;

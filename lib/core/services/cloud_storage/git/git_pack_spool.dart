@@ -70,7 +70,7 @@ Future<List<GitObjectId>> readSpooledPack(
     if (store is! FileGitObjectStore || length < offIsolateMinBytes) {
       return await readPackFile(file, store, inMemoryLimit: inMemoryLimit);
     }
-    return await _readPackOffIsolate(
+    final ids = await _readPackOffIsolate(
       file.path,
       store.root.path,
       inMemoryLimit,
@@ -78,6 +78,13 @@ Future<List<GitObjectId>> readSpooledPack(
       offIsolateMinBytes,
       offIsolateRunner,
     );
+    // Asking is what makes the owning store count an object it did not write.
+    // Left until a session wants it, a fetch of a whole branch would sit
+    // outside the store's bound until the next launch rescans.
+    for (final id in ids) {
+      await store.has(id);
+    }
+    return ids;
   } finally {
     try {
       await file.delete();
