@@ -109,6 +109,16 @@ Future<PlanBackgroundResult<T>> _settled<T>(
   }
 }
 
+/// A background result that needs no calculating: what [_settled] would come
+/// to, for a plan that has nothing to compute.
+PlanBackgroundResult<T> _nothingToCompute<T>(Ref ref, T value) {
+  final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
+  return PlanBackgroundResult(planId: planId, value: value);
+}
+
+bool _hasSegments(Ref ref) =>
+    ref.watch(divePlanNotifierProvider.select((s) => s.segments.isNotEmpty));
+
 /// Whether the current plan may have a bailout picture, for anything that
 /// must hold its place while [planBailoutProvider] computes.
 final planMayHaveBailoutProvider = Provider<bool>((ref) {
@@ -126,17 +136,16 @@ final planBailoutProvider =
       if (ref.watch(planMayHaveBailoutProvider)) {
         return _settled(ref, computeBailout);
       }
-      final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
-      return PlanBackgroundResult(planId: planId, value: null);
+      return _nothingToCompute(ref, null);
     }, retry: (_, _) => null);
 
 /// The classic slate range table (depth x time variants) for the current
 /// plan. Off the UI isolate: this is 25 engine runs.
 final planRangeTableProvider =
-    FutureProvider<PlanBackgroundResult<RangeTable?>>(
-      (ref) => _settled(ref, computeRangeTable),
-      retry: (_, _) => null,
-    );
+    FutureProvider<PlanBackgroundResult<RangeTable?>>((ref) {
+      if (_hasSegments(ref)) return _settled(ref, computeRangeTable);
+      return _nothingToCompute(ref, null);
+    }, retry: (_, _) => null);
 
 /// Deviation (deeper/longer/both) outcomes for the current plan. The full
 /// deviation + lost-gas tables (3 engine runs + one per deco/stage tank) are
@@ -144,22 +153,20 @@ final planRangeTableProvider =
 /// sheet costs nothing.
 final planDeviationsProvider =
     FutureProvider<PlanBackgroundResult<List<DeviationOutcome>>>((ref) {
-      if (ref.watch(contingenciesExpandedProvider)) {
+      if (ref.watch(contingenciesExpandedProvider) && _hasSegments(ref)) {
         return _settled(ref, computeDeviations);
       }
-      final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
-      return PlanBackgroundResult(planId: planId, value: const []);
+      return _nothingToCompute(ref, const []);
     }, retry: (_, _) => null);
 
 /// Lost-gas outcomes for the current OC plan, gated as
 /// [planDeviationsProvider] is.
 final planLostGasProvider =
     FutureProvider<PlanBackgroundResult<List<LostGasOutcome>>>((ref) {
-      if (ref.watch(contingenciesExpandedProvider)) {
+      if (ref.watch(contingenciesExpandedProvider) && _hasSegments(ref)) {
         return _settled(ref, computeLostGas);
       }
-      final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
-      return PlanBackgroundResult(planId: planId, value: const []);
+      return _nothingToCompute(ref, const []);
     }, retry: (_, _) => null);
 
 /// What the chart does about the bailout picture: [picture] to draw in place
@@ -229,10 +236,15 @@ Future<
   })
 >
 planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
-  // An edit during the wait can land after some of these resolved, so go
-  // round again until all of them are for the plan as it stands.
+  // Everything these results depend on. Any of it can change during the wait,
+  // after some have resolved, so go round again until all of them agree.
+  (Object, PlanEngineConfig, bool) inputs() => (
+    _engineInputs(read(divePlanNotifierProvider)),
+    read(planEngineConfigProvider),
+    read(contingenciesExpandedProvider),
+  );
   while (true) {
-    final asked = _engineInputs(read(divePlanNotifierProvider));
+    final asked = inputs();
     // Reading each one starts it, so any nothing is watching run side by side
     // rather than settling one after another below.
     read(planDeviationsProvider);
@@ -243,10 +255,9 @@ planSlateResults(T Function<T>(ProviderListenable<T> provider) read) async {
     final lostGas = await read(planLostGasProvider.future);
     final rangeTable = await read(planRangeTableProvider.future);
     final bailout = await read(planBailoutProvider.future);
-    final state = read(divePlanNotifierProvider);
-    if (_engineInputs(state) != asked) continue;
+    if (inputs() != asked) continue;
     return (
-      state: state,
+      state: read(divePlanNotifierProvider),
       outcome: read(planOutcomeProvider),
       deviations: deviations.value,
       lostGas: lostGas.value,

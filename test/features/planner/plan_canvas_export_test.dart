@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/data/services/plan_file_names.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -217,6 +218,11 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+    // A blank plan has nothing to wait for, so this needs a real one.
+    ProviderScope.containerOf(tester.element(find.byType(PlanCanvasPage)))
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
     await tester.pumpAndSettle();
 
     await exportFromOverflow(tester, 'Export slate (PDF)');

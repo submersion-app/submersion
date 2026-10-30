@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -439,6 +441,23 @@ void main() {
     expect(view.status, PlanResultStatus.calculating);
   });
 
+  test('a blank plan runs nothing', () async {
+    final runner = _CountingRunner();
+    final container = makeContainer(
+      runner: runner,
+      settle: const Duration(hours: 1),
+    );
+    container.read(contingenciesExpandedProvider.notifier).state = true;
+    listenToAll(container);
+
+    final results = await planSlateResults(container.read);
+
+    expect(results.rangeTable, isNull);
+    expect(results.deviations, isEmpty);
+    expect(results.lostGas, isEmpty);
+    expect(runner.runs, isEmpty);
+  });
+
   test('a plan the gate rejects runs no bailout', () async {
     final runner = _CountingRunner();
     final container = makeContainer(runner: runner);
@@ -692,6 +711,70 @@ void main() {
         computeOutcomeForState(state, config: config).runtimeSeconds,
       );
     });
+
+    /// Finishes every held run, as they appear, until [slate] is done.
+    Future<void> drain(HeldPlanResultRunner runner, Future<void> slate) async {
+      var finished = false;
+      unawaited(slate.whenComplete(() => finished = true));
+      for (var i = 0; i < 20 && !finished; i++) {
+        for (final run in [...runner.held]) {
+          runner.held.remove(run);
+          run.finish();
+        }
+        await wait(Duration.zero);
+      }
+    }
+
+    test(
+      'a Settings change during the wait carries through every figure',
+      () async {
+        final runner = HeldPlanResultRunner();
+        final container = makeContainer(runner: runner);
+        load(container, _ccrWithBailout());
+        container.read(contingenciesExpandedProvider.notifier).state = true;
+        listenToAll(container);
+        await wait(Duration.zero);
+
+        final slate = planSlateResults(container.read);
+        final first = runner.latest(computeDeviations);
+        runner.held.remove(first);
+        first.finish();
+        await wait(Duration.zero);
+        settings.replace(settings.state.copyWith(ppO2MaxWorking: 1.2));
+        container.read(planDeviationsProvider);
+        await wait(Duration.zero);
+        await drain(runner, slate);
+        final results = await slate;
+
+        expect(
+          results.deviations,
+          same(container.read(planDeviationsProvider).value!.value),
+        );
+      },
+    );
+
+    test(
+      'opening contingencies during the wait carries them through',
+      () async {
+        final runner = HeldPlanResultRunner();
+        final container = makeContainer(runner: runner);
+        load(container, _multiGasDeco());
+        listenToAll(container);
+        await wait(Duration.zero);
+
+        final slate = planSlateResults(container.read);
+        await wait(Duration.zero);
+        container.read(contingenciesExpandedProvider.notifier).state = true;
+        container.read(planDeviationsProvider);
+        container.read(planLostGasProvider);
+        await wait(Duration.zero);
+        await drain(runner, slate);
+        final results = await slate;
+
+        expect(results.deviations, isNotEmpty);
+        expect(results.lostGas, isNotEmpty);
+      },
+    );
 
     test('a failed result fails the slate', () async {
       final runner = HeldPlanResultRunner();
