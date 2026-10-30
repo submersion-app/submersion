@@ -172,8 +172,13 @@ class ChangesetWriter {
       deviceId: deviceId,
       epochId: epochId,
     );
+    final publishingBase = !hasBase && !adoptedNoBase;
+    // Nothing is waiting on this export: its publish committed before the app
+    // could discard it, or whatever forced the base has passed. Left in place,
+    // a later base would resume it and move the published log backwards.
+    if (resumed != null && !publishingBase) await _resumable.discard(resumed);
 
-    if (!hasBase && !adoptedNoBase) {
+    if (publishingBase) {
       // Resume an export a previous attempt wrote but never finished
       // uploading, before spending a whole re-export on it. A wiped backend
       // forces the entire library out as one base, and on a phone that is

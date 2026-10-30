@@ -609,6 +609,60 @@ void main() {
       );
     });
 
+    test('a publish that needs no base drops an export it outran', () async {
+      // An app killed after the manifest committed but before the export was
+      // discarded. A later forced base would resume these stale bytes, moving
+      // the published seq and watermark backwards.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publish();
+      final repo = SyncRepository();
+      final path = await writeExport('committed.json', 50);
+      await store.save(
+        record(
+          dataPath: path,
+          byteLength: 50,
+          providerId: provider.providerId,
+          deviceId: await repo.getDeviceId(),
+        ),
+      );
+      await repo.clearPendingRecords();
+
+      final result = await publish();
+
+      expect(result.kind, ChangesetWriteKind.noop);
+      expect(await File(path).exists(), isFalse);
+    });
+
+    test('a forced base still resumes over the base it replaces', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      await publish();
+      final repo = SyncRepository();
+      Future<ChangesetWriteResult> forced() async => writer.publish(
+        provider: provider,
+        deviceId: await repo.getDeviceId(),
+        folderId: folder,
+        deletions: const [],
+        forceBase: true,
+      );
+
+      provider.failUploadsAfter = 0;
+      await expectLater(forced(), throwsA(anything));
+      provider.failUploadsAfter = null;
+
+      final retried = await forced();
+
+      expect(retried.kind, ChangesetWriteKind.base);
+      expect(
+        retried.snapshotAt,
+        isNull,
+        reason: 'only a resumed export leaves snapshotAt unset',
+      );
+    });
+
     test('an ordinary publish reclaims an abandoned export', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
