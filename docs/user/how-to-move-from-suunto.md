@@ -30,13 +30,13 @@ Submersion never stores your Suunto password. It keeps only a sign-in session, s
 1. Open **Transfer** (on a phone it is under **More**).
 2. Choose **Cloud**, then **Suunto**.
 
-<!-- screenshot: images/how-to/move-from-suunto/01-cloud.png: the Transfer Cloud section with the Suunto card; mac; demo logbook -->
+![The Transfer Cloud section with the Suunto card](images/how-to/move-from-suunto/01-cloud.png)
 
 ## 2. Sign in
 
 On **Sign in to Suunto**, enter your **Email** and **Password** and tap **Sign In**.
 
-<!-- screenshot: images/how-to/move-from-suunto/02-sign-in.png: Sign in to Suunto with empty Email and Password fields and the Sign In button; mac; not signed in -->
+![Sign in to Suunto with empty Email and Password fields and the Sign In button](images/how-to/move-from-suunto/02-sign-in.png)
 
 ## 3. Choose your dives
 

@@ -30,7 +30,7 @@ Submersion never stores your Garmin password. It keeps only a sign-in session, s
 1. Open **Transfer** (on a phone it is under **More**).
 2. Choose **Cloud**, then **Garmin**.
 
-<!-- screenshot: images/how-to/move-from-garmin-connect/01-cloud.png: the Transfer Cloud section with the Suunto, Garmin and divelogs.de cards; mac; demo logbook -->
+![The Transfer Cloud section with the Suunto, Garmin and divelogs.de cards](images/how-to/move-from-garmin-connect/01-cloud.png)
 
 ## 2. Sign in
 
@@ -38,7 +38,7 @@ On **Sign in to Garmin Connect**, enter your **Email** and **Password** and tap 
 
 If Garmin sends you a code, **Verification Required** appears. Type the code into **Verification Code** and tap **Verify**.
 
-<!-- screenshot: images/how-to/move-from-garmin-connect/02-sign-in.png: Sign in to Garmin Connect with empty Email and Password fields and the Sign In button; mac; not signed in -->
+![Sign in to Garmin Connect with empty Email and Password fields and the Sign In button](images/how-to/move-from-garmin-connect/02-sign-in.png)
 
 ## 3. Choose your dives
 

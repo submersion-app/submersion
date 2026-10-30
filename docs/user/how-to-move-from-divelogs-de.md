@@ -31,13 +31,13 @@ Submersion never stores your divelogs.de password. It keeps only a sign-in sessi
 1. Open **Transfer** (on a phone it is under **More**).
 2. Choose **Cloud**, then **divelogs.de**.
 
-<!-- screenshot: images/how-to/move-from-divelogs-de/01-cloud.png: the Transfer Cloud section with the divelogs.de card; mac; demo logbook -->
+![The Transfer Cloud section with the divelogs.de card](images/how-to/move-from-divelogs-de/01-cloud.png)
 
 ## 2. Sign in
 
 On **Sign in to divelogs.de**, enter your **Username** and **Password** and tap **Sign In**.
 
-<!-- screenshot: images/how-to/move-from-divelogs-de/02-sign-in.png: Sign in to divelogs.de with empty Username and Password fields and the Sign In button; mac; not signed in -->
+![Sign in to divelogs.de with empty Username and Password fields and the Sign In button](images/how-to/move-from-divelogs-de/02-sign-in.png)
 
 ## 3. Fetch your logbook
 
