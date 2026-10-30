@@ -2,6 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/global_search/data/global_search_sources.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+
+import '../../../helpers/test_database.dart';
 
 void main() {
   test('every kind has exactly one source, in display order', () {
@@ -36,6 +39,22 @@ void main() {
     };
     final searched = kGlobalSearchSources.map((s) => s.entity.subject).toSet();
     expect(searched.containsAll(lists), isTrue);
+  });
+
+  test('every table a source declares exists', () async {
+    final db = await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final runner = QueryIdSetRunner(db);
+    for (final source in kGlobalSearchSources) {
+      expect(
+        () => runner.tablesNamed({
+          ...source.tables,
+          ...source.entity.textSearchTables,
+        }),
+        returnsNormally,
+        reason: '${source.kind}',
+      );
+    }
   });
 
   test('a source with a list previews, and one without reads everything', () {

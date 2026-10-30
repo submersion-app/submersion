@@ -22,6 +22,9 @@ class GlobalSearchRun {
   final GlobalSearchSource source;
   final QueryNode query;
   final CompiledQuery compiled;
+
+  /// Every table this run reads: a write to any of them changes its results.
+  Set<String> get tables => {...compiled.tablesTouched, ...source.tables};
 }
 
 /// What the typed text asks of each source.

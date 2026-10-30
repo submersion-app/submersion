@@ -132,8 +132,8 @@ void main() {
         "VALUES ('p1', 'me', 'Wreck plan', 1, 1)",
       );
       await db.customStatement(
-        "INSERT INTO gps_tracks (id, start_time, name, created_at, "
-        "updated_at) VALUES ('g1', 1000, 'Wreck boat day', 1, 1)",
+        "INSERT INTO gps_tracks (id, start_time, end_time, name, created_at, "
+        "updated_at) VALUES ('g1', 1000, 2000, 'Wreck boat day', 1, 1)",
       );
       await db.customStatement(
         "INSERT INTO nav_tracks (id, diver_id, source, name, start_time, "
@@ -198,6 +198,39 @@ void main() {
         "created_at) VALUES ('a1', 'lent', 'me', 1)",
       );
       expect(await ids(GlobalSearchKind.equipment, 'reg'), {'own', 'lent'});
+    });
+
+    test('a GPS recording still in progress is left out', () async {
+      await db.customStatement(
+        'INSERT INTO gps_tracks (id, start_time, end_time, name, created_at, '
+        "updated_at) VALUES ('done', 1, 2, 'Boat a', 1, 1), "
+        "('live', 1, NULL, 'Boat b', 1, 1)",
+      );
+      expect(await ids(GlobalSearchKind.gpsTracks, 'boat'), {'done'});
+    });
+
+    test('a document is found by its owner and its tags', () async {
+      await seedTrip(db, 't1', owner: 'me', name: 'Bonaire 2026');
+      await seedSite(db, 's1', owner: 'me', name: 'Salt Pier');
+      await seedDive(db, 'd1', diver: 'me', siteId: 's1');
+      await db.customStatement(
+        "INSERT INTO tags (id, diver_id, name, created_at, updated_at) "
+        "VALUES ('t9', 'me', 'Insurance docs', 1, 1)",
+      );
+      await db.customStatement(
+        'INSERT INTO documents (id, diver_id, trip_id, dive_id, type, title, '
+        "created_at, updated_at) VALUES "
+        "('trip', 'me', 't1', NULL, 'other', 'A', 1, 1), "
+        "('dive', 'me', NULL, 'd1', 'other', 'B', 1, 1), "
+        "('tag', 'me', NULL, NULL, 'other', 'C', 1, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO document_tags (id, document_id, tag_id, created_at) "
+        "VALUES ('x1', 'tag', 't9', 1)",
+      );
+      expect(await ids(GlobalSearchKind.documents, 'bonaire'), {'trip'});
+      expect(await ids(GlobalSearchKind.documents, 'salt'), {'dive'});
+      expect(await ids(GlobalSearchKind.documents, 'insurance'), {'tag'});
     });
 
     test('a route with no owner shows to every diver', () async {

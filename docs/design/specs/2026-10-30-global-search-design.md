@@ -107,7 +107,13 @@ question may be whether the app knows a species at all. Built-in names show in
 the diver's language, and a word matches a built-in name in any of the app's
 languages, as dive types do. The species query field gains this too.
 
-**Live.** Results refresh when a table they read changes.
+**Documents.** A word matches what the Documents page searches (title, issuer,
+reference number, owner, tags) plus the notes. Notes are the one difference from
+a list: this section has no list to disagree with, and a note is shown on its
+document.
+
+**Live.** Results refresh when a table they read changes, including the tables
+behind who can see a row (shares, hides, shared library memberships).
 
 **Units and dates.** Dive rows show depth and date through `UnitFormatter`.
 

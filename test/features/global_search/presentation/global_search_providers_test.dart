@@ -21,7 +21,7 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    await seedDivers(db, ['me']);
+    await seedDivers(db, ['me', 'other']);
     await seedSite(db, 's1', owner: 'me', name: 'Salt Pier');
     container = ProviderContainer(
       overrides: [
@@ -57,6 +57,30 @@ void main() {
 
   test('blank text reads nothing', () async {
     expect(await search('   '), isEmpty);
+  });
+
+  test('hiding a site refreshes the results', () async {
+    await seedSite(db, 's2', owner: 'other', shared: true, name: 'Salt Bay');
+    final provider = globalSearchProvider('salt');
+    final sub = container.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    expect((await container.read(provider.future)).single.total, 2);
+
+    await db
+        .into(db.siteHides)
+        .insert(
+          SiteHidesCompanion.insert(
+            id: 'h1',
+            diverId: 'me',
+            siteId: 's2',
+            createdAt: 1,
+          ),
+        );
+    await Future<void>.delayed(
+      QueryIdSetRunner.changeTickDebounce + const Duration(milliseconds: 200),
+    );
+
+    expect((await container.read(provider.future)).single.total, 1);
   });
 
   test('text no record type can read is a refusal', () async {

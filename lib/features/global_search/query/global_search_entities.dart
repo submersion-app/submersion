@@ -15,6 +15,14 @@ final equipmentSetSearchEntity = QueryEntity(
   textSearchSql: [_like('name'), _like('description')],
 );
 
+/// A document's owner, as a name of [table] linked through [column].
+String _ownerName(String table, String column) =>
+    'EXISTS (SELECT 1 FROM $table towner WHERE towner.id = {r}.$column '
+    "AND unicode_lower(towner.name) LIKE ? ESCAPE '\\')";
+
+/// What the Documents page's search reads, the owner and tags included, plus
+/// the notes: this section has no list to disagree with, and a note is shown
+/// on the document it belongs to.
 final documentSearchEntity = QueryEntity(
   subject: QuerySubject.documents,
   table: 'documents',
@@ -24,6 +32,32 @@ final documentSearchEntity = QueryEntity(
     _like('issuer'),
     _like('reference_number'),
     _like('notes'),
+    _ownerName('dive_sites', 'site_id'),
+    _ownerName('trips', 'trip_id'),
+    _ownerName('equipment', 'equipment_id'),
+    _ownerName('courses', 'course_id'),
+    _ownerName('certifications', 'certification_id'),
+    _ownerName('buddies', 'buddy_id'),
+    _ownerName('dive_centers', 'dive_center_id'),
+    'EXISTS (SELECT 1 FROM dives tdive LEFT JOIN dive_sites tsite '
+        'ON tsite.id = tdive.site_id WHERE tdive.id = {r}.dive_id '
+        "AND (unicode_lower(tdive.name) LIKE ? ESCAPE '\\' "
+        "OR unicode_lower(tsite.name) LIKE ? ESCAPE '\\'))",
+    'EXISTS (SELECT 1 FROM document_tags tdt JOIN tags tt '
+        'ON tt.id = tdt.tag_id WHERE tdt.document_id = {r}.id '
+        "AND unicode_lower(tt.name) LIKE ? ESCAPE '\\')",
+  ],
+  textSearchTables: const [
+    'dive_sites',
+    'trips',
+    'equipment',
+    'courses',
+    'certifications',
+    'buddies',
+    'dive_centers',
+    'dives',
+    'document_tags',
+    'tags',
   ],
 );
 

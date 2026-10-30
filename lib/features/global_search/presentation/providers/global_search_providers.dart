@@ -44,7 +44,7 @@ final globalSearchProvider = FutureProvider.autoDispose
       );
       if (plan.refusal case final refusal?) throw GlobalSearchRefused(refusal);
 
-      final touched = {for (final r in plan.runs) ...r.compiled.tablesTouched};
+      final touched = {for (final r in plan.runs) ...r.tables};
       if (touched.isEmpty) return const [];
       await awaitServiceStatusIfRead(ref, touched);
       ref.invalidateSelfWhen(

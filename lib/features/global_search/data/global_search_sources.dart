@@ -38,6 +38,7 @@ class GlobalSearchSource {
     required this.titleSql,
     required this.orderBy,
     required this.scope,
+    this.tables = const {},
     this.detailSql = const [],
     this.dateSql,
     this.dateFrame = GlobalSearchDateFrame.wallClockUtc,
@@ -66,6 +67,10 @@ class GlobalSearchSource {
   /// WHERE. Empty for no diver, and for a table shared across divers.
   final SqlFragment Function(String? diverId) scope;
 
+  /// Tables the row's columns and [scope] read that the compiled query may
+  /// not, so a change to them refreshes the results.
+  final Set<String> tables;
+
   /// Rows to read, or null for every match: a type with no list to send the
   /// diver to expands in place, and its tables are small.
   final int? previewLimit;
@@ -92,6 +97,12 @@ SqlFragment _ownOrUnownedRows(String? diverId) => diverId == null
         whereClause: ' AND (r0.diver_id IS NULL OR r0.diver_id = ?)',
         variables: [Variable.withString(diverId)],
       );
+
+/// The GPS list shows finished recordings alone.
+SqlFragment _completedTracks(String? diverId) => const SqlFragment(
+  whereClause: ' AND r0.end_time IS NOT NULL',
+  variables: [],
+);
 
 SqlFragment _visibleSites(String? diverId) => VisibilityFilter.sqlFragment(
   tableAlias: 'r0',
@@ -132,6 +143,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     numberSql: 'r0.dive_number',
     orderBy: 'COALESCE(r0.entry_time, r0.dive_date_time) DESC, r0.id DESC',
     scope: _ownRows,
+    tables: const {'dive_sites'},
   ),
   GlobalSearchSource(
     kind: GlobalSearchKind.sites,
@@ -140,6 +152,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     detailSql: const ['r0.region', 'r0.country'],
     orderBy: 'r0.name COLLATE NOCASE ASC',
     scope: _visibleSites,
+    tables: const {'site_shares', 'site_hides', 'shared_library_memberships'},
   ),
   GlobalSearchSource(
     kind: GlobalSearchKind.trips,
@@ -150,6 +163,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     dateFrame: GlobalSearchDateFrame.localInstant,
     orderBy: 'r0.start_date DESC',
     scope: _visibleTrips,
+    tables: const {'trip_shares', 'trip_hides'},
   ),
   GlobalSearchSource(
     kind: GlobalSearchKind.equipment,
@@ -158,6 +172,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     detailSql: const ['r0.brand', 'r0.model'],
     orderBy: 'r0.is_active DESC, r0.type ASC, r0.name COLLATE NOCASE ASC',
     scope: _visibleEquipment,
+    tables: const {'equipment_shares'},
   ),
   GlobalSearchSource(
     kind: GlobalSearchKind.equipmentSets,
@@ -228,6 +243,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     orderBy: 'r0.updated_at DESC',
     // Every diver's, as the saved plans list shows them.
     scope: _everyRow,
+    tables: const {'dive_sites'},
     previewLimit: null,
   ),
   GlobalSearchSource(
@@ -236,7 +252,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     titleSql: _trackTitleSql,
     dateSql: 'r0.start_time',
     orderBy: 'r0.start_time DESC',
-    scope: _everyRow,
+    scope: _completedTracks,
     previewLimit: null,
   ),
   GlobalSearchSource(
