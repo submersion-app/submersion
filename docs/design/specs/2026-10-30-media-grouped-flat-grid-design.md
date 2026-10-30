@@ -122,7 +122,8 @@ grids count, which the `scrollOffsetFor` doc comment already assumes. The commen
 explains `leadingRow` goes with it. The cost is one pass over the groups per wheel
 click.
 
-The cache of grid counts stays as a list by group index.
+The group counts come from the sections the previous table was built from, and the
+correction runs in the same place as Keeping the diver's place, below.
 
 ## Keeping the diver's place
 
