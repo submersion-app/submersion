@@ -210,6 +210,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a page with nothing to scroll can still be pulled', (
+    tester,
+  ) async {
+    // Taller than every card, so the list has no extent of its own.
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpDashboard(tester);
+    final before = refreshBuilds;
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 800));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(refreshBuilds, greaterThan(before));
+  });
+
   testWidgets('renders without layout errors at phone width', (tester) async {
     // Regression: QuickActionsCard once used an internal Expanded that
     // threw in the unbounded 1-column scroll layout, collapsing the page.
@@ -386,15 +404,6 @@ void main() {
       expect(
         tester.state(find.byType(FlutterMap, skipOffstage: false)),
         same(mapState),
-      );
-    });
-
-    testWidgets('a short page can still be pulled to refresh', (tester) async {
-      await pumpDashboard(tester);
-
-      expect(
-        tester.widget<CustomScrollView>(find.byType(CustomScrollView)).physics,
-        isA<AlwaysScrollableScrollPhysics>(),
       );
     });
   });
