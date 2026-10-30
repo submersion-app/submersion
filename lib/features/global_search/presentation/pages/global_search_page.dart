@@ -111,6 +111,7 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
   Widget _results(BuildContext context, List<GlobalSearchSection> sections) {
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 24),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: sections.length,
       itemBuilder: (context, index) {
         final section = sections[index];

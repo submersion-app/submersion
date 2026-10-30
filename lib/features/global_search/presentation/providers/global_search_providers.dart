@@ -1,7 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/global_search/data/global_search_plan.dart';
@@ -16,7 +15,7 @@ import 'package:submersion/features/query/presentation/providers/query_unit_pref
 final globalSearchFocusTickProvider = StateProvider<int>((ref) => 0);
 
 final globalSearchRepositoryProvider = Provider<GlobalSearchRepository>(
-  (ref) => GlobalSearchRepository(DatabaseService.instance.database),
+  (ref) => GlobalSearchRepository(),
 );
 
 /// Thrown when no record type can read the typed text, for the page to show

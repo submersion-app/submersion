@@ -104,8 +104,8 @@ it, so See all selects all statuses or the count would disagree.
 
 **Species.** Results search the catalog rather than sightings, because the
 question may be whether the app knows a species at all. Built-in names show in
-the diver's language; matching stays on the stored English and scientific
-names, as the species lists do.
+the diver's language, and a word matches a built-in name in any of the app's
+languages, as dive types do. The species query field gains this too.
 
 **Live.** Results refresh when a table they read changes.
 

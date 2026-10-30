@@ -43,6 +43,7 @@ class GlobalSearchSource {
     this.dateFrame = GlobalSearchDateFrame.wallClockUtc,
     this.depthSql,
     this.numberSql,
+    this.typeSql,
     this.previewLimit = kGlobalSearchPreviewLimit,
   });
 
@@ -54,6 +55,9 @@ class GlobalSearchSource {
   final GlobalSearchDateFrame dateFrame;
   final String? depthSql;
   final String? numberSql;
+
+  /// The record's stored type, for a row with no title of its own.
+  final String? typeSql;
 
   /// Its list's own order.
   final String orderBy;
@@ -70,19 +74,20 @@ class GlobalSearchSource {
   bool get hasList => previewLimit != null;
 }
 
+const _noScope = SqlFragment(whereClause: '', variables: []);
+
 SqlFragment _ownRows(String? diverId) => diverId == null
-    ? const SqlFragment(whereClause: '', variables: [])
+    ? _noScope
     : SqlFragment(
         whereClause: ' AND r0.diver_id = ?',
         variables: [Variable.withString(diverId)],
       );
 
-SqlFragment _everyRow(String? diverId) =>
-    const SqlFragment(whereClause: '', variables: []);
+SqlFragment _everyRow(String? diverId) => _noScope;
 
 /// As `NavTrackRepository`: a route with no owner shows to every diver.
 SqlFragment _ownOrUnownedRows(String? diverId) => diverId == null
-    ? const SqlFragment(whereClause: '', variables: [])
+    ? _noScope
     : SqlFragment(
         whereClause: ' AND (r0.diver_id IS NULL OR r0.diver_id = ?)',
         variables: [Variable.withString(diverId)],
@@ -120,8 +125,8 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     kind: GlobalSearchKind.dives,
     entity: diveQueryEntity,
     titleSql:
-        '(SELECT COALESCE(NULLIF(TRIM(s.name), \'\'), NULLIF(TRIM(r0.name), \'\')) '
-        'FROM (SELECT 1) LEFT JOIN dive_sites s ON s.id = r0.site_id)',
+        "COALESCE(NULLIF(TRIM((SELECT s.name FROM dive_sites s "
+        "WHERE s.id = r0.site_id)), ''), NULLIF(TRIM(r0.name), ''))",
     dateSql: 'COALESCE(r0.entry_time, r0.dive_date_time)',
     depthSql: 'r0.max_depth',
     numberSql: 'r0.dive_number',
@@ -207,6 +212,7 @@ final List<GlobalSearchSource> kGlobalSearchSources = List.unmodifiable([
     kind: GlobalSearchKind.documents,
     entity: documentSearchEntity,
     titleSql: 'r0.title',
+    typeSql: 'r0.type',
     detailSql: const ['r0.issuer', 'r0.reference_number'],
     orderBy: 'r0.title COLLATE NOCASE ASC',
     scope: _ownRows,

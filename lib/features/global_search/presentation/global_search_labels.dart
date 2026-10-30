@@ -4,6 +4,8 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -56,6 +58,11 @@ String globalSearchHitTitle(
 ) {
   final title = hit.title ?? units.formatMonthDayWithYear(hit.date);
   return switch (hit.kind) {
+    // An untitled document goes by its type, as it does everywhere else.
+    GlobalSearchKind.documents when hit.title == null => documentTypeLabel(
+      l10n,
+      DocumentType.fromStorage(hit.type!),
+    ),
     GlobalSearchKind.dives when hit.number != null =>
       l10n.diveLog_search_jumpNumberTitle(hit.number!, title),
     GlobalSearchKind.species => localizedSpeciesName(l10n, hit.id, title),

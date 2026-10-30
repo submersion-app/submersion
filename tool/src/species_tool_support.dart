@@ -60,6 +60,13 @@ String? builtInSpeciesName(AppLocalizations l10n, String id) => switch (id) {
     buffer.writeln("  '$id' => l10n.species_${speciesSlug(id)}_name,");
   }
   buffer.write('  _ => null,\n};\n');
+  buffer
+    ..write('\n/// Every built-in species id.\n')
+    ..write('const List<String> kBuiltInSpeciesIds = [\n');
+  for (final row in rows) {
+    buffer.writeln("  '${row['id']}',");
+  }
+  buffer.write('];\n');
   return buffer.toString();
 }
 

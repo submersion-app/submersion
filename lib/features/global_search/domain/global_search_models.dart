@@ -33,6 +33,7 @@ class GlobalSearchHit {
     this.date,
     this.depthMeters,
     this.number,
+    this.type,
   });
 
   final GlobalSearchKind kind;
@@ -50,6 +51,9 @@ class GlobalSearchHit {
 
   /// The dive number.
   final int? number;
+
+  /// The document's stored type.
+  final String? type;
 }
 
 /// One record type's matches.

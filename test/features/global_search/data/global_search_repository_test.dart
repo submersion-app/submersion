@@ -307,6 +307,25 @@ void main() {
       expect(section.hits.single.title, 'Night shakedown');
     });
 
+    test('a translated name finds a built-in species', () async {
+      await db.customStatement(
+        "INSERT OR IGNORE INTO species (id, common_name, category) VALUES "
+        "('sp_whale_shark', 'Whale Shark', 'shark')",
+      );
+      final section = await search(GlobalSearchKind.species, 'Walhai');
+      expect(section.hits.map((h) => h.id), contains('sp_whale_shark'));
+    });
+
+    test('an untitled document carries its type', () async {
+      await db.customStatement(
+        "INSERT INTO documents (id, diver_id, type, title, issuer, created_at, "
+        "updated_at) VALUES ('m1', 'me', 'permit', '', 'Stinapa', 1, 1)",
+      );
+      final hit = (await search(GlobalSearchKind.documents, 'stinapa')).hits;
+      expect(hit.single.title, isNull);
+      expect(hit.single.type, 'permit');
+    });
+
     test('a blank detail is dropped', () async {
       await db.customStatement(
         "INSERT INTO dive_sites (id, diver_id, name, region, country, "

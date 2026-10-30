@@ -4,6 +4,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
+import 'package:submersion/features/marine_life/query/species_text_search.dart';
 
 /// A counted dive the species was seen on.
 const _sightingDiveLink =
@@ -21,8 +22,8 @@ QueryField _text(String key, String column) => QueryField(
 /// Every field and relation a species query can name (#2365). Both species
 /// pages root here (the diver's sighted species and the catalog); dives
 /// reach it through `sightings.species`. Species are global (no diver
-/// column), and SQL sees the stored English common name, so a built-in
-/// species is found by its English or scientific name.
+/// column). SQL sees the stored English common name, so a built-in species'
+/// translated names are matched by [kSpeciesTranslatedTextSearch].
 final speciesQueryEntity = QueryEntity(
   subject: QuerySubject.species,
   table: 'species',
@@ -31,6 +32,7 @@ final speciesQueryEntity = QueryEntity(
     "unicode_lower({r}.scientific_name) LIKE ? ESCAPE '\\'",
     "unicode_lower({r}.taxonomy_class) LIKE ? ESCAPE '\\'",
   ],
+  textSearchExpansions: const [kSpeciesTranslatedTextSearch],
   fields: [
     _text('name', 'common_name'),
     _text('scientificName', 'scientific_name'),

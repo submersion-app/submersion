@@ -1,15 +1,20 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/global_search/data/global_search_plan.dart';
 import 'package:submersion/features/global_search/data/global_search_sources.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 
 /// Reads one source's matches (#3882): its total and the rows it shows.
 class GlobalSearchRepository {
-  GlobalSearchRepository(this._db);
+  /// [database] is for tests. The app reads the live instance on every call,
+  /// as the repositories do, because moving the database replaces it.
+  GlobalSearchRepository([AppDatabase? database]) : _override = database;
 
-  final AppDatabase _db;
+  final AppDatabase? _override;
+
+  AppDatabase get _db => _override ?? DatabaseService.instance.database;
 
   Future<GlobalSearchSection> search(
     GlobalSearchRun run, {
@@ -53,6 +58,7 @@ class GlobalSearchRepository {
     if (source.dateSql case final sql?) '$sql AS hit_date',
     if (source.depthSql case final sql?) '$sql AS hit_depth',
     if (source.numberSql case final sql?) '$sql AS hit_number',
+    if (source.typeSql case final sql?) '$sql AS hit_type',
   ].join(', ');
 
   GlobalSearchHit _hit(GlobalSearchSource source, QueryRow row) {
@@ -79,6 +85,7 @@ class GlobalSearchRepository {
       number: source.numberSql == null
           ? null
           : row.readNullable<int>('hit_number'),
+      type: source.typeSql == null ? null : row.read<String>('hit_type'),
     );
   }
 
