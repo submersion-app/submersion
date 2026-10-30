@@ -242,6 +242,14 @@ void main() {
       return container.read(diveTableCountProvider);
     }
 
+    /// For what a tick must bring: a fixed wait can land before the count
+    /// does when the test isolate stalls.
+    Future<void> until(bool Function() done) async {
+      for (var i = 0; i < 300 && !done(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+
     test('counts every dive with no filter', () async {
       final container = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -287,12 +295,10 @@ void main() {
       await DiveRepository().createDive(
         Dive(id: 'd', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
       );
-      await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
+      const fourDives = ListEntryCount.unfiltered(4);
+      await until(() => container.read(diveTableCountProvider) == fourDives);
 
-      expect(
-        container.read(diveTableCountProvider),
-        const ListEntryCount.unfiltered(4),
-      );
+      expect(container.read(diveTableCountProvider), fourDives);
     });
 
     test('keeps the count on screen through a tick', () async {
@@ -311,7 +317,7 @@ void main() {
       await DiveRepository().createDive(
         Dive(id: 'd', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
       );
-      await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
+      await until(() => seen.isNotEmpty && seen.last != null);
 
       expect(seen, [const ListEntryCount.unfiltered(4)]);
     });

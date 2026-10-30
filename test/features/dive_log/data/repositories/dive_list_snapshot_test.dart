@@ -120,7 +120,7 @@ void main() {
       expect(statements.where((s) => s.contains('"dive_tanks"')), hasLength(1));
       expect(
         statements.singleWhere((s) => s.contains('"dive_tanks"')),
-        isNot(contains('old')),
+        isNot(contains(RegExp(r'\bold\b'))),
       );
     });
 

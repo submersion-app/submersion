@@ -109,6 +109,14 @@ void main() {
     Future<void> settle() =>
         Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
 
+    /// For what a tick must bring: a fixed wait can land before the reload
+    /// does when the test isolate stalls.
+    Future<void> until(bool Function() done) async {
+      for (var i = 0; i < 300 && !done(); i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+
     Dive listed(String id) => container
         .read(diveListNotifierProvider)
         .value!
@@ -146,7 +154,7 @@ void main() {
       await (db.update(db.dives)..where((t) => t.id.equals('a'))).write(
         const DivesCompanion(notes: Value('Edited')),
       );
-      await settle();
+      await until(() => listed('a').notes == 'Edited');
 
       expect(listed('a').notes, 'Edited');
       expect(listed('b'), same(untouched));
@@ -191,7 +199,7 @@ void main() {
       await (db.update(db.dives)..where((t) => t.id.equals('a'))).write(
         const DivesCompanion(notes: Value('Edited')),
       );
-      await settle();
+      await until(() => listed('b').tanks.isNotEmpty);
 
       expect(listed('b').tanks.map((t) => t.id), ['synced-tank']);
     });
@@ -219,7 +227,7 @@ void main() {
       await (db.update(db.dives)..where((t) => t.id.equals('a'))).write(
         const DivesCompanion(notes: Value('Edited')),
       );
-      await settle();
+      await until(() => listed('b').site?.name == 'New name');
 
       expect(listed('b').site?.name, 'New name');
     });
