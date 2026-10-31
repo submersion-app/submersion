@@ -121,7 +121,7 @@ class BailoutOutcome {
   /// When set, the figures above were worked out on a gas past its MOD: they
   /// have to answer something, but none of them may be shown as a bailout
   /// plan. It can be set with [worstCase] itself in range, since that instant
-  /// is the one that needs the most litres, not the deepest.
+  /// is the one that needs the most liters, not the deepest.
   final BailoutGasGap? gasGap;
 
   const BailoutOutcome({
@@ -429,7 +429,7 @@ class BailoutSolver {
     }
     final worst = points[worstIndex];
     final spentAtWorst = spentAtPoints[worstIndex];
-    // Every point, not just the worst: that one needs the most litres, which
+    // Every point, not just the worst: that one needs the most liters, which
     // a long shallow hold can claim from a brief trip past every MOD. Legs
     // end on a sample, so the plan's deepest point is always among these.
     final deepestPoint = points

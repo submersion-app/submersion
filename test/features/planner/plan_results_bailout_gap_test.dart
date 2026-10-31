@@ -157,6 +157,24 @@ void main() {
       expect(find.text('Bailout'), findsNothing);
     });
 
+    testWidgets('already in Bailout view, the chips stay as the way back', (
+      tester,
+    ) async {
+      final container = await _mount(
+        tester,
+        const ChartModeToggle(),
+        bailout: _ean50,
+        mode: ChartDisplayMode.bailout,
+      );
+      expect(find.text('Bailout'), findsOneWidget);
+
+      await tester.tap(find.text('CCR'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
+      expect(find.text('Bailout'), findsNothing);
+    });
+
     testWidgets('a covered plan keeps the Bailout chip', (tester) async {
       await _mount(tester, const ChartModeToggle(), bailout: _ean32);
 

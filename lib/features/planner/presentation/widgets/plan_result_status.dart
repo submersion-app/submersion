@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -107,7 +106,7 @@ class PlanChartBailoutStatus extends ConsumerWidget {
             : Text(
                 bailoutGasGapMessage(
                   context.l10n,
-                  UnitFormatter(ref.watch(settingsProvider)),
+                  ref.watch(unitFormatterProvider),
                   depthMeters: gap!.depthMeters,
                   deepestModMeters: gap.deepestModMeters,
                 ),
