@@ -86,16 +86,6 @@ class GasAnalysisService {
       final maxDepth = depths.reduce(math.max);
 
       // Calculate SAC for this segment
-      // Window to prorate a pressure-series-less tank across: its own
-      // usage range when the gas switches identify one, else the dive.
-      final usageRange = tankUsageRange(
-        tank: tank,
-        gasSwitches: sortedSwitches,
-        diveStart: profile.first.timestamp,
-        diveEnd: diveEndTimestamp,
-        tanks: tanks,
-      );
-
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
@@ -103,8 +93,12 @@ class GasAnalysisService {
         tankPressures: resolvedPressures[tank.id],
         startTime: startTime,
         endTime: endTime,
-        prorationStart: usageRange?.start ?? profile.first.timestamp,
-        prorationEnd: usageRange?.end ?? profile.last.timestamp,
+        prorationWindows: _prorationWindows(
+          tank: tank,
+          tanks: tanks,
+          profile: profile,
+          gasSwitches: sortedSwitches,
+        ),
       );
 
       if (sacRate == null) continue;
@@ -219,17 +213,6 @@ class GasAnalysisService {
       final maxD = depths.reduce(math.max);
 
       // Calculate SAC
-      // Same proration window as the gas-switch path: a tank that was only
-      // breathed for part of the dive must not have its drop spread across
-      // the whole of it.
-      final usageRange = tankUsageRange(
-        tank: tank,
-        gasSwitches: gasSwitches,
-        diveStart: profile.first.timestamp,
-        diveEnd: profile.last.timestamp,
-        tanks: tanks,
-      );
-
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
@@ -237,8 +220,12 @@ class GasAnalysisService {
         tankPressures: resolvedPressures[tank.id],
         startTime: seg.start,
         endTime: seg.end,
-        prorationStart: usageRange?.start ?? profile.first.timestamp,
-        prorationEnd: usageRange?.end ?? profile.last.timestamp,
+        prorationWindows: _prorationWindows(
+          tank: tank,
+          tanks: tanks,
+          profile: profile,
+          gasSwitches: gasSwitches,
+        ),
       );
 
       if (sacRate == null) continue;
@@ -310,9 +297,9 @@ class GasAnalysisService {
 
       // Determine when this tank was in use. A recorded duration says how
       // long but not when, so its depth window is the whole dive.
-      final usageRange = hasRecordedUsage
-          ? (start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)
-          : tankUsageRange(
+      final usageWindows = hasRecordedUsage
+          ? [(start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)]
+          : tankUsageWindows(
               tank: tank,
               gasSwitches: gasSwitches,
               diveStart: 0,
@@ -320,18 +307,14 @@ class GasAnalysisService {
               tanks: dive.tanks,
             );
 
-      if (usageRange == null) continue;
+      if (usageWindows.isEmpty) continue;
       final usageSeconds = hasRecordedUsage
           ? recordedSeconds
-          : usageRange.end - usageRange.start;
+          : usageWindows.breathedSeconds;
 
       // Get profile points during tank usage
       final usageProfile = profile
-          .where(
-            (p) =>
-                p.timestamp >= usageRange.start &&
-                p.timestamp <= usageRange.end,
-          )
+          .where((p) => usageWindows.covers(p.timestamp))
           .toList();
 
       // Calculate average depth during usage
@@ -354,8 +337,10 @@ class GasAnalysisService {
         // Enhanced calculation using time-series data
         sacRate = _calculateSacFromTimeSeries(
           pressurePoints: tsPressures,
-          startTime: usageRange.start,
-          endTime: usageRange.end,
+          // A cylinder holds its pressure between breathing periods, so the
+          // drop from the first to the last is the gas breathed in them all.
+          startTime: usageWindows.first.start,
+          endTime: usageWindows.last.end,
           avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
           tankVolume: volume,
           gasMix: tank.gasMix,
@@ -426,6 +411,28 @@ class GasAnalysisService {
   // ─────────────────────────────────────────────────────────────────────────
   // Private Helper Methods
   // ─────────────────────────────────────────────────────────────────────────
+
+  /// When [tank]'s logged pressure drop happened, to share it among segments:
+  /// its usage windows when the gas switches identify any, else the whole
+  /// dive. A tank only breathed for part of the dive must not have its drop
+  /// spread across all of it.
+  static List<TankUsageWindow> _prorationWindows({
+    required DiveTank tank,
+    required List<DiveTank> tanks,
+    required List<DiveProfilePoint> profile,
+    required List<GasSwitchWithTank>? gasSwitches,
+  }) {
+    final diveStart = profile.first.timestamp;
+    final diveEnd = profile.last.timestamp;
+    final windows = tankUsageWindows(
+      tank: tank,
+      gasSwitches: gasSwitches,
+      diveStart: diveStart,
+      diveEnd: diveEnd,
+      tanks: tanks,
+    );
+    return windows.isEmpty ? [(start: diveStart, end: diveEnd)] : windows;
+  }
 
   /// Compute SAC rate under [model], using its gas volumes.
   ///
@@ -567,8 +574,7 @@ class GasAnalysisService {
     List<TankPressurePoint>? tankPressures,
     required int startTime,
     required int endTime,
-    required int prorationStart,
-    required int prorationEnd,
+    required List<TankUsageWindow> prorationWindows,
   }) {
     if (profile.isEmpty) return null;
 
@@ -583,6 +589,8 @@ class GasAnalysisService {
     double? pressureUsed;
     double? startPressure;
     double? endPressure;
+    // The time pressureUsed was breathed over.
+    var breathedSec = durationSec;
 
     // Try time-series pressure data first
     if (tankPressures != null && tankPressures.length >= 2) {
@@ -603,15 +611,19 @@ class GasAnalysisService {
         // gas switches identify it -- spreading a stage/deco tank's drop over
         // the whole dive would understate its SAC by the ratio of its stint
         // to the dive, and calculateCylinderSac already prorates this way.
-        final totalDuration = prorationEnd - prorationStart;
+        // Time counts only inside the window, which a tank the diver came
+        // back to leaves and re-enters and a phase can outlast (#3900).
+        final totalDuration = prorationWindows.breathedSeconds;
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;
-          final proportion = durationSec / totalDuration;
-          pressureUsed = tankPressureUsed * proportion;
+          final breathedBefore = prorationWindows.breathedBefore(startTime);
+          breathedSec =
+              prorationWindows.breathedBefore(endTime) - breathedBefore;
+          pressureUsed = tankPressureUsed * breathedSec / totalDuration;
           // Estimate absolute pressures for this segment
           startPressure =
               tank.startPressure! -
-              (tankPressureUsed * (startTime - prorationStart) / totalDuration);
+              (tankPressureUsed * breathedBefore / totalDuration);
           endPressure = startPressure - pressureUsed;
         }
       }
@@ -620,7 +632,7 @@ class GasAnalysisService {
     if (pressureUsed == null || pressureUsed <= 0) return null;
 
     // Calculate SAC under the configured gas model
-    final durationMin = durationSec / 60.0;
+    final durationMin = breathedSec / 60.0;
     final ambientPressureBar = (avgDepth / 10.0) + 1.0;
 
     // Use volume-corrected SAC when tank data available
@@ -650,7 +662,8 @@ class GasAnalysisService {
     double? tankVolume,
     GasMix gasMix = const GasMix(),
     // The breathing time when it is not the window's length: a recorded
-    // usage duration (issue #1496) measured over a whole-dive window.
+    // usage duration (issue #1496) measured over a whole-dive window, or the
+    // periods of a cylinder the diver came back to (issue #3900).
     int? breathingSeconds,
   }) {
     if (pressurePoints.length < 2) return null;

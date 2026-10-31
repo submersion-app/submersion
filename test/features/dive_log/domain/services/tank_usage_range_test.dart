@@ -104,4 +104,124 @@ void main() {
       );
     });
   });
+
+  group('tankUsageWindows', () {
+    const left = DiveTank(id: 'left', role: TankRole.sidemountLeft);
+    const right = DiveTank(id: 'right', role: TankRole.sidemountRight);
+    const stage = DiveTank(id: 'stage', role: TankRole.stage);
+
+    List<TankUsageWindow> windowsOf(
+      DiveTank tank,
+      List<GasSwitchWithTank> switches, {
+      List<DiveTank> tanks = const [left, right],
+      int diveEnd = 2400,
+    }) {
+      return tankUsageWindows(
+        tank: tank,
+        gasSwitches: switches,
+        diveStart: 0,
+        diveEnd: diveEnd,
+        tanks: tanks,
+      );
+    }
+
+    test('returns every period a cylinder was breathed (#3900)', () {
+      final switches = [
+        switchTo('left', 0),
+        switchTo('right', 600),
+        switchTo('left', 1200),
+        switchTo('right', 1800),
+      ];
+
+      expect(windowsOf(left, switches), [
+        (start: 0, end: 600),
+        (start: 1200, end: 1800),
+      ]);
+      expect(windowsOf(right, switches), [
+        (start: 600, end: 1200),
+        (start: 1800, end: 2400),
+      ]);
+    });
+
+    test(
+      'a repeated switch onto the breathed cylinder continues the period',
+      () {
+        expect(
+          windowsOf(
+            back,
+            [
+              switchTo('back', 600),
+              switchTo('back', 900),
+              switchTo('deco', 1200),
+            ],
+            tanks: const [back, deco],
+          ),
+          [(start: 0, end: 1200)],
+        );
+      },
+    );
+
+    test('a cylinder switched off the moment it came on was not breathed', () {
+      expect(
+        windowsOf(
+          deco,
+          [switchTo('deco', 600), switchTo('back', 600)],
+          tanks: const [back, deco],
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a stage no switch names has no windows', () {
+      expect(windowsOf(stage, const [], tanks: const [back, stage]), isEmpty);
+    });
+
+    test('the primary gas spans a dive without switches', () {
+      expect(windowsOf(back, const [], tanks: const [back, stage]), [
+        (start: 0, end: 2400),
+      ]);
+    });
+
+    test('a dive with no duration has no windows', () {
+      expect(windowsOf(back, const [], diveEnd: 0), isEmpty);
+    });
+
+    test('a pair partner with no switch of its own shares every period', () {
+      final switches = [
+        switchTo('left', 0),
+        switchTo('stage', 1200),
+        switchTo('left', 1500),
+      ];
+
+      expect(windowsOf(right, switches, tanks: const [left, right, stage]), [
+        (start: 0, end: 1200),
+        (start: 1500, end: 2400),
+      ]);
+    });
+  });
+
+  group('TankUsageWindows', () {
+    const List<TankUsageWindow> windows = [
+      (start: 0, end: 600),
+      (start: 1200, end: 1800),
+    ];
+
+    test('breathedSeconds sums the periods', () {
+      expect(windows.breathedSeconds, 1200);
+    });
+
+    test('breathedBefore counts only time inside the periods', () {
+      expect(windows.breathedBefore(0), 0);
+      expect(windows.breathedBefore(300), 300);
+      expect(windows.breathedBefore(900), 600);
+      expect(windows.breathedBefore(1500), 900);
+      expect(windows.breathedBefore(2400), 1200);
+    });
+
+    test('covers includes both ends of a period', () {
+      expect(windows.covers(600), isTrue);
+      expect(windows.covers(1200), isTrue);
+      expect(windows.covers(900), isFalse);
+    });
+  });
 }
