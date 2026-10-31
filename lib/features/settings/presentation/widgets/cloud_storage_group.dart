@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -74,9 +73,9 @@ class CloudStorageGroup extends ConsumerWidget {
                 usage == null
                     ? l10n.settings_storageUsage_cloud_notScanned
                     : l10n.settings_storageUsage_cloud_scanned(
-                        UnitFormatter(
-                          ref.watch(settingsProvider),
-                        ).formatDateTime(usage.scannedAt, l10n: l10n),
+                        ref
+                            .watch(unitFormatterProvider)
+                            .formatDateTime(usage.scannedAt, l10n: l10n),
                       ),
                 style: muted,
               ),

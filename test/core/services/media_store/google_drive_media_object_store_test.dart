@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/core/services/media_store/google_drive_media_object_s
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 import '../../../helpers/fake_drive_server.dart';
+import '../../../helpers/google_auth_client.dart';
 import '../../../helpers/revocable_client.dart';
 import 'media_object_store_contract.dart';
 
@@ -442,6 +444,196 @@ void main() {
         ),
       ),
     );
+  });
+
+  // The clients production hands this store are googleapis_auth clients, which
+  // raise AccessDeniedException themselves for any response carrying
+  // www-authenticate. Google sends that header on these rejections, so the
+  // store never sees their status.
+  group('a rejection raised by the real auth client', () {
+    http.Client rejecting(
+      int status,
+      String challenge, {
+      void Function()? onSend,
+    }) => googleAuthClient(
+      MockClient((_) async {
+        onSend?.call();
+        return http.Response(
+          '',
+          status,
+          headers: {'www-authenticate': challenge},
+        );
+      }),
+    );
+
+    final expired = rejecting(401, 'Bearer error="invalid_token"');
+    final noDriveScope = rejecting(403, 'Bearer error="insufficient_scope"');
+
+    test('refreshes an expired token and retries the request', () async {
+      http.Client current = expired;
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => current,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          current = server.client;
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      expect(await store.head('smv1/objects/aa/x.jpg'), isNull);
+      expect(rejectedClients, [same(expired)]);
+    });
+
+    test('reports an expired token nothing could refresh as auth', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => expired,
+        onAuthRejected: (_) async => false,
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+    });
+
+    test('reports a refresh token Google refused as auth', () async {
+      // The desktop client refreshes on the first request after the access
+      // token expires, so a revoked grant fails there with invalid_grant.
+      // Read as a failure to reach Drive, it was retried and never dropped.
+      final revoked = MockClient(
+        (_) async => throw gauth.ServerRequestFailedException(
+          'Failed to obtain access credentials.',
+          statusCode: 400,
+          responseContent: {'error': 'invalid_grant'},
+        ),
+      );
+      final rejectedClients = <http.Client>[];
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => revoked,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          return false;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>()
+              .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+              .having((e) => e.message, 'message', contains('sign in again')),
+        ),
+      );
+      expect(rejectedClients, [same(revoked)]);
+    });
+
+    test('still treats any other refresh failure as transient', () async {
+      final outage = MockClient(
+        (_) async => throw gauth.ServerRequestFailedException(
+          'Failed to obtain access credentials.',
+          statusCode: 503,
+          responseContent: 'unavailable',
+        ),
+      );
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => outage,
+        onAuthRejected: (_) async => fail('an outage is not a rejection'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.transient,
+          ),
+        ),
+      );
+    });
+
+    final asksForTheDriveBox = isA<MediaStoreException>()
+        .having((e) => e.kind, 'kind', MediaStoreErrorKind.auth)
+        .having((e) => e.message, 'message', contains('Google Drive box'))
+        // The queue stores toString, which adds the cause, and the Transfers
+        // page shows it, so a cause here puts the raw header on screen.
+        .having((e) => e.toString(), 'toString', isNot(contains('www-auth')));
+
+    test('drops a grant without Drive access and does not retry', () async {
+      final rejectedClients = <http.Client>[];
+      var sent = 0;
+      final refused = rejecting(
+        403,
+        'Bearer error="insufficient_scope"',
+        onSend: () => sent++,
+      );
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => refused,
+        onAuthRejected: (rejected) async {
+          rejectedClients.add(rejected);
+          return true;
+        },
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(asksForTheDriveBox),
+      );
+      expect(rejectedClients, [same(refused)]);
+      expect(sent, 1);
+    });
+
+    test('still asks for Drive access if dropping the grant fails', () async {
+      final store = GoogleDriveMediaObjectStore(
+        clientSupplier: () async => noDriveScope,
+        onAuthRejected: (_) async => throw Exception('token store locked'),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.jpg'),
+        throwsA(asksForTheDriveBox),
+      );
+    });
+  });
+
+  test('the same client looks the media folder up once', () async {
+    final store = build();
+
+    await store.head('smv1/objects/aa/x.jpg');
+    await store.head('smv1/objects/aa/y.jpg');
+
+    final folderLookups = server.captured.where(
+      (r) => (r.url.queryParameters['q'] ?? '').contains('mimeType'),
+    );
+    expect(folderLookups, hasLength(1));
+  });
+
+  test('a client from a new sign-in looks the media folder up again', () async {
+    // A dropped grant leaves this store in place, and the diver may then pick
+    // another account, whose appDataFolder does not hold the cached folder.
+    final otherAccount = FakeDriveServer();
+    http.Client current = server.client;
+    final store = GoogleDriveMediaObjectStore(
+      clientSupplier: () async => current,
+      apiBase: 'https://fake.googleapis.test',
+    );
+
+    await store.head('smv1/objects/aa/x.jpg');
+    current = otherAccount.client;
+    await store.head('smv1/objects/aa/x.jpg');
+
+    expect(otherAccount.foldersByName.keys, ['submersion-media']);
   });
 
   group('an expired access token', () {

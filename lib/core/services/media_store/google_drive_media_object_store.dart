@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 /// Google Drive-backed media object store (design spec section 8.2), raw
@@ -25,11 +27,13 @@ class GoogleDriveMediaObjectStore
   /// throws "Client is already closed". Null means no Google session is
   /// available right now.
   ///
-  /// [onAuthRejected] is told which client Drive answered 401 to, so its
-  /// owner can refresh the token; it answers whether a fresh client is now
-  /// available, and the request is then retried once. Without it an expired
-  /// token failed every transfer as an auth error until something else
-  /// replaced the client (#3602).
+  /// [onAuthRejected] is told which client Drive answered 401 to, or whose
+  /// refresh Google refused, so its owner can refresh the token; it answers
+  /// whether a fresh client is now available, and the request is then
+  /// retried once. Without it an expired token failed every transfer as an
+  /// auth error until something else replaced the client (#3602). It also
+  /// hears of a client refused for lacking the Drive scope, so that grant is
+  /// dropped, but that request is not retried: a refresh cannot add a scope.
   GoogleDriveMediaObjectStore({
     required Future<http.Client?> Function() clientSupplier,
     Future<bool> Function(http.Client rejected)? onAuthRejected,
@@ -63,6 +67,12 @@ class GoogleDriveMediaObjectStore
   final String _apiBase;
 
   String? _folderId;
+
+  /// The client [_folderId] was found through, compared by identity. This
+  /// store outlives a sign-in, and a new client can be another account's,
+  /// whose appDataFolder does not hold that folder. The cost is one lookup
+  /// after each token refresh.
+  http.Client? _folderClient;
 
   @override
   Future<StoreObjectInfo?> head(String key) async {
@@ -336,16 +346,21 @@ class GoogleDriveMediaObjectStore
   }
 
   Future<String> _ensureFolder() async {
+    final client = await _resolveClient();
     final cached = _folderId;
-    if (cached != null) return cached;
+    if (cached != null && identical(client, _folderClient)) return cached;
+    final folderId = await _lookUpOrCreateFolder();
+    _folderClient = client;
+    return _folderId = folderId;
+  }
+
+  Future<String> _lookUpOrCreateFolder() async {
     final query =
         "name = '$folderName' "
         "and mimeType = 'application/vnd.google-apps.folder' "
         "and 'appDataFolder' in parents and trashed = false";
     final found = await _query(query);
-    if (found.isNotEmpty) {
-      return _folderId = found.first.id;
-    }
+    if (found.isNotEmpty) return found.first.id;
     final response = await _send(
       http.Request('POST', Uri.parse('$_apiBase/drive/v3/files'))
         ..headers['Content-Type'] = 'application/json; charset=utf-8'
@@ -359,7 +374,7 @@ class GoogleDriveMediaObjectStore
       throw _forStatus('create folder for', folderName, response);
     }
     final decoded = jsonDecode(response.body) as Map<String, Object?>;
-    return _folderId = decoded['id'] as String;
+    return decoded['id'] as String;
   }
 
   Future<_DriveFile?> _findByKey(String key) async {
@@ -461,12 +476,41 @@ class GoogleDriveMediaObjectStore
   ) async {
     try {
       return await http.Response.fromStream(await client.send(request));
+    } on gauth.AccessDeniedException catch (e) {
+      // The auth client raises this itself for a response carrying
+      // www-authenticate, so Google's rejections never arrive as a status. A
+      // 401 is put back into one for [_send]'s refresh; reported as a failure
+      // to reach Drive it was retried forever and never refreshed.
+      if (isMissingDriveScope(e)) {
+        await _dropRefusedGrant(client);
+        // No cause: the queue stores toString, which appends it, and it is
+        // the raw challenge header.
+        throw const MediaStoreException(
+          googleDriveAccessNotAllowed,
+          kind: MediaStoreErrorKind.auth,
+        );
+      }
+      return http.Response('', 401);
     } on Exception catch (e) {
+      // The desktop client refreshes before it sends, so a dead grant fails
+      // here. It goes the same way as a 401: nothing else ever drops it.
+      if (isRevokedDriveGrant(e)) return http.Response('', 401);
       throw MediaStoreException(
         'Could not reach Google Drive',
         kind: MediaStoreErrorKind.transient,
         cause: e,
       );
+    }
+  }
+
+  /// Reports [client] so its grant is dropped and the account reads as not
+  /// signed in, which offers the sign-in again. Best effort: the refusal is
+  /// the error to report whether or not the drop worked.
+  Future<void> _dropRefusedGrant(http.Client client) async {
+    try {
+      await _onAuthRejected?.call(client);
+    } on Exception {
+      // The caller reports the refusal itself.
     }
   }
 

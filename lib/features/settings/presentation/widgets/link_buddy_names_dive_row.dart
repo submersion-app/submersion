@@ -6,7 +6,6 @@ import 'package:submersion/features/buddies/domain/entities/legacy_buddy_convers
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One dive on the Link buddy names page: what identifies it, the names it
@@ -28,7 +27,7 @@ class LinkBuddyNamesDiveRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final roles =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final site = dive.siteName?.trim() ?? '';

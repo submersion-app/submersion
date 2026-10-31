@@ -3234,6 +3234,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_nameHint => 'Voer buddy naam in';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Uitsluiten van buddyranglijsten';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Samen gemaakte duiken tellen nog steeds als duiken met een buddy.';
+
+  @override
   String get buddies_field_nameRequired => 'Naam *';
 
   @override
@@ -3590,6 +3598,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Duiken samen';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Uitgesloten van buddyranglijsten';
 
   @override
   String get buddies_stat_favoriteSite => 'Favoriete locatie';
@@ -5670,6 +5682,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_action_markCompleted => 'Markeren als voltooid';
 
   @override
+  String get courses_action_chooseDive => 'Duik kiezen';
+
+  @override
   String get courses_action_unlinkDive => 'Duik ontkoppelen';
 
   @override
@@ -5864,6 +5879,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Voorgestelde duiken';
+
+  @override
+  String get courses_requirement_allDives => 'Alle duiken';
+
+  @override
+  String get courses_requirement_noDives => 'Geen duiken om te koppelen';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Geen duiken komen overeen met \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Duiken zoeken';
 
   @override
   String get courses_requirements_empty =>
@@ -8771,6 +8800,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'Plafond';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafond (ber.)';
 
   @override
   String get diveLog_legend_label_decoStops => 'Decostops';
@@ -15124,6 +15156,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Details';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Duiktijd';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count duiken';
   }
@@ -16142,6 +16177,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_location_kind_storage => 'Opslag';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Duikcentrum';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Servicewerkplaats';
 
   @override
@@ -16369,6 +16407,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Soort';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Opgeslagen duikcentrum';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Geen';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Opgeslagen duikcentrum verwijderen';
 
   @override
   String get equipment_locations_notesLabel => 'Notities';
@@ -17736,6 +17784,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'Toegevoegd';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Aanvullen';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'Druk';
@@ -20457,7 +20508,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_range_title => 'Bereiktabel';
 
   @override
+  String get plannerCanvas_results_calculating => 'Berekenen';
+
+  @override
+  String get plannerCanvas_results_failed => 'Kon niet worden berekend';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Geen decompressie vereist';
+
+  @override
+  String get plannerCanvas_results_updating => 'Bijwerken';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -29448,6 +29508,38 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Alle $count waren $value ($baseline van de $coverage waarbij dit is vastgelegd)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van $total waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van de $groupCoverage waarbij dit is vastgelegd waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -29733,6 +29825,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Gem. afdaling';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Duiken analyseren: $analyzed van $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Decoduiken';
@@ -53608,6 +53705,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Voer 0 tot 100 in';
+
+  @override
+  String get diveCenters_gearHere_title => 'Je uitrusting hier';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Huuruitrusting';

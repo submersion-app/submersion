@@ -380,6 +380,10 @@ final childEquipmentProvider =
       });
     });
 
+/// The tables an item's dives are read from: the dives and their gear and
+/// tank links.
+const _itemDiveTables = {'dives', 'dive_equipment', 'dive_tanks'};
+
 /// Dive count for equipment provider.
 ///
 /// Backs the "Used on N dives" figure. A junction read over `dive_equipment`,
@@ -394,15 +398,26 @@ final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   // The count reads the dives and their gear and tank links, so putting the
   // item on (or off) a dive refreshes it.
   ref.invalidateSelfWhen(
-    ref.read(diveRepositoryProvider).watchTables(const {
-      'dives',
-      'dive_equipment',
-      'dive_tanks',
-    }),
+    ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
   );
   // The active diver's dives, as the dive list the row opens (issue #2046).
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   return repository.getDiveCountForEquipment(equipmentId, diverId: diverId);
+});
+
+/// Total seconds of the dives [equipmentDiveCountProvider] counts, for the
+/// item page's Dive Time row. Refreshes on the same changes as that count.
+final equipmentDiveTimeProvider = FutureProvider.family<int, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
+  );
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveTimeForEquipment(equipmentId, diverId: diverId);
 });
 
 /// Trip count for equipment provider.

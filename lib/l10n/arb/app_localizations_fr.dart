@@ -3264,6 +3264,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_field_nameHint => 'Entrer le nom du binôme';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Exclure des classements de binômes';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Les plongées ensemble comptent toujours comme des plongées avec binôme.';
+
+  @override
   String get buddies_field_nameRequired => 'Nom *';
 
   @override
@@ -3620,6 +3628,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Plongées ensemble';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Exclu des classements de binômes';
 
   @override
   String get buddies_stat_favoriteSite => 'Site préféré';
@@ -5713,6 +5725,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get courses_action_markCompleted => 'Marquer comme terminé';
 
   @override
+  String get courses_action_chooseDive => 'Choisir une plongée';
+
+  @override
   String get courses_action_unlinkDive => 'Dissocier la plongée';
 
   @override
@@ -5908,6 +5923,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Plongées suggérées';
+
+  @override
+  String get courses_requirement_allDives => 'Toutes les plongées';
+
+  @override
+  String get courses_requirement_noDives => 'Aucune plongée à lier';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Aucune plongée ne correspond à «$query»';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Rechercher des plongées';
 
   @override
   String get courses_requirements_empty =>
@@ -8853,6 +8882,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'Plafond';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafond (calc.)';
 
   @override
   String get diveLog_legend_label_decoStops => 'Paliers de décompression';
@@ -15267,6 +15299,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Détails';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Temps de plongée';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count plongées';
   }
@@ -16290,6 +16325,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_location_kind_storage => 'Rangement';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Centre de plongée';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Atelier d\'entretien';
 
   @override
@@ -16517,6 +16555,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Type';
+
+  @override
+  String get equipment_locations_savedCenterLabel =>
+      'Centre de plongée enregistré';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Aucun';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Retirer le centre de plongée enregistré';
 
   @override
   String get equipment_locations_notesLabel => 'Notes';
@@ -17899,6 +17948,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'Ajouté';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Appoint';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'Pression';
@@ -20645,7 +20697,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_range_title => 'Table de variations';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calcul en cours';
+
+  @override
+  String get plannerCanvas_results_failed => 'Calcul impossible';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Aucune décompression requise';
+
+  @override
+  String get plannerCanvas_results_updating => 'Mise à jour';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -29741,6 +29802,38 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Les $count étaient $value ($baseline des $coverage où cette donnée est renseignée)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count sur $total étaient $value, contre $baseline des $coverage où cette donnée est renseignée';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count des $groupCoverage où cette donnée est renseignée étaient $value, contre $baseline des $coverage où cette donnée est renseignée';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -30030,6 +30123,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Descente moy.';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Analyse des plongées : $analyzed sur $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Plongées déco';
@@ -54075,6 +54173,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Saisissez une valeur de 0 à 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'Votre matériel ici';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Matériel de location';

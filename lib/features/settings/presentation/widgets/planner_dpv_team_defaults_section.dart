@@ -16,8 +16,15 @@ class PlannerDpvTeamDefaultsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = MissionUnits(UnitFormatter(settings));
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          plannerBatteryReserveFraction: s.plannerBatteryReserveFraction,
+          plannerWalkSpeedMps: s.plannerWalkSpeedMps,
+        ),
+      ),
+    );
+    final units = MissionUnits(ref.watch(unitFormatterProvider));
     final notifier = ref.read(settingsProvider.notifier);
 
     return Card(

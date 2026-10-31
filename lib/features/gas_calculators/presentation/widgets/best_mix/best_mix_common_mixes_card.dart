@@ -8,7 +8,6 @@ import 'package:submersion/features/gas_calculators/domain/best_mix.dart'
     show environmentFor;
 import 'package:submersion/features/gas_calculators/domain/standard_gas_mix.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -36,8 +35,7 @@ class _BestMixCommonMixesCardState
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final result = ref.watch(bestMixCalculatorResultProvider);
     final inputs = ref.watch(bestMixCalculatorInputsProvider);
     final environment = environmentFor(inputs);

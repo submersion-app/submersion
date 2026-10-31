@@ -30,7 +30,7 @@ class SavedPlansList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final plansAsync = ref.watch(divePlanSummariesProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // "No saved plans yet" is a claim about the data, so it may only be made
     // once the query has actually answered; retained values win over a

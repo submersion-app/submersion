@@ -281,8 +281,7 @@ class _DiveProfilePanelContentState
     final estimatedTankPressures = ref
         .watch(estimatedTankPressuresProvider(widget.diveId))
         .value;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final trackingIndex = ref.watch(
       profileTrackingIndexProvider(widget.diveId),
@@ -401,6 +400,8 @@ class _DiveProfilePanelContentState
                   maxDepth: dive.maxDepth,
                   ceilingCurve: analysis?.ceilingCurve,
                   decoStopCurve: analysis?.decoStopCurve,
+                  labelCeilingAsCalculated:
+                      analysis?.computerStopsWithCalculatedCeiling ?? false,
                   ascentRates: analysis?.ascentRates,
                   events: analysis?.events,
                   ndlCurve: analysis?.ndlCurve,

@@ -35,7 +35,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
-    show settingsProvider;
+    show settingsProvider, tissueColorSchemeProvider;
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which scene the 3D page is showing.
@@ -173,14 +173,13 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     final zAxis = ref.watch(
       dive3dZAxisProvider((diveId: widget.diveId, zMetric: _zMetric)),
     );
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final axes = buildDiveAxes(
       bounds: scene.bounds,
       depthTicks: depthAxisTicks(
         maxDepthMeters: sceneData.maxDepthMeters,
-        stepMeters: settings.depthUnit == DepthUnit.feet ? 7.62 : 10.0,
+        stepMeters: units.settings.depthUnit == DepthUnit.feet ? 7.62 : 10.0,
         toDisplay: units.convertDepth,
       ),
       timeTicks: timeAxisTicks(sceneData.durationSeconds),

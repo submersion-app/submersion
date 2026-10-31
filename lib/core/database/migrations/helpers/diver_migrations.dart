@@ -120,13 +120,14 @@ extension DiverMigrations on AppDatabase {
   }
 
   /// v237: diver_settings.show_dive_figure (issue #2326). Additive, not
-  /// null, default 0, so the dive figure starts off for every diver, new
-  /// and existing. Idempotent, so it is safe to call from both onUpgrade
-  /// and the beforeOpen backstop.
+  /// null, default 1 since the figure went on by default (issue #3889), so
+  /// a database that gains the column late comes up as a fresh one does.
+  /// Idempotent, so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
   Future<void> _assertShowDiveFigureColumn() => _addColumnIfMissing(
     'diver_settings',
     'show_dive_figure',
-    'INTEGER NOT NULL DEFAULT 0',
+    'INTEGER NOT NULL DEFAULT 1',
   );
 
   /// v206: the condition engine's master and per-rule toggles on

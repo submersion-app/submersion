@@ -25,7 +25,6 @@ import 'package:submersion/features/gear_passports/presentation/pages/foreign_ge
 import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
@@ -235,6 +234,7 @@ import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_ada
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_buddy_writer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_journal_writer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_route_writer.dart';
@@ -2232,7 +2232,7 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
     final converter = ref.watch(importedDiveConverterProvider);
     final diveRepo = ref.watch(diveRepositoryProvider);
 
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(unitFormatterProvider).settings;
 
     return UnifiedImportWizard(
       adapter: HealthKitAdapter(

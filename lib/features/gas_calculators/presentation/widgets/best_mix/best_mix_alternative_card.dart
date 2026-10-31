@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The helium-free alternative, shown only when helium was added to the
@@ -20,8 +19,7 @@ class BestMixAlternativeCard extends ConsumerWidget {
     if (alternative == null) return const SizedBox.shrink();
 
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final ppO2 = result.limitPpO2;

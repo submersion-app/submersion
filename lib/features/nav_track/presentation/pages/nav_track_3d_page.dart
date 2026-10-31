@@ -14,7 +14,6 @@ import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric
 import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_3d_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/track_readout_panel.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Fullscreen interactive 3D scene for one underwater track. Built on top
@@ -174,14 +173,13 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     final zAxis = ref.watch(
       navTrack3dZAxisProvider((trackId: widget.trackId, zMetric: _zMetric)),
     );
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final axes = buildDiveAxes(
       bounds: scene.bounds,
       depthTicks: depthAxisTicks(
         maxDepthMeters: sceneData.maxDepthMeters,
-        stepMeters: settings.depthUnit == DepthUnit.feet ? 7.62 : 10.0,
+        stepMeters: units.settings.depthUnit == DepthUnit.feet ? 7.62 : 10.0,
         toDisplay: units.convertDepth,
       ),
       timeTicks: timeAxisTicks(sceneData.durationSeconds),

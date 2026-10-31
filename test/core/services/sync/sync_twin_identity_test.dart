@@ -236,15 +236,23 @@ void main() {
       final service = buildService();
       final first = await service.performSync();
       expect(first.isSuccess, isTrue);
+      final published = await ownManifest(
+        cloud,
+        await repository.getDeviceId(),
+      );
 
-      // Sync 2 has a NEW change to publish, but the upload fails outright: its
-      // speculative nonce must be removed again, leaving N1 in the ring.
+      // Sync 2 has a NEW change to publish, but the upload fails outright, so
+      // no manifest carries its nonce and the ring must not hold it.
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd-ring-2', diveNumber: 2),
       );
       cloud.failUploads = true;
       final second = await service.performSync();
       expect(second.isSuccess, isFalse);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getStringList('sync_upload_nonces_${cloud.providerId}'), [
+        published!.uploadNonce,
+      ]);
 
       // Sync 3 sees the own manifest still carrying N1 (the failed upload never
       // replaced it). N1 must still be recognized as ours -- no false twin.
@@ -256,7 +264,7 @@ void main() {
       expect(await repository.getDeviceId(), deviceIdBefore);
     });
 
-    test('a timed-out upload that landed keeps its nonce recorded', () async {
+    test('a timed-out upload that landed does not read as a twin', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd-timeout-1', diveNumber: 1),
       );
@@ -264,8 +272,7 @@ void main() {
       expect((await service.performSync()).isSuccess, isTrue);
 
       // Sync 2: a NEW change whose PUT lands server-side but the response is
-      // lost. The speculative nonce must STAY recorded -- removing it would
-      // make a later own upload read as a foreign twin.
+      // lost, so the sync stops before it reaches the manifest.
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd-timeout-2', diveNumber: 2),
       );
@@ -277,14 +284,130 @@ void main() {
       final deviceIdBefore = await repository.getDeviceId();
       final third = await service.performSync();
 
+      expect(third.adoptedFreshIdentity, isFalse);
+      expect(await repository.getDeviceId(), deviceIdBefore);
+    });
+
+    test('a lost manifest response stays ours on a real provider', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-lost-1', diveNumber: 1),
+      );
+      final service = buildService();
+      expect((await service.performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+
+      // Sync 2's manifest lands, carrying a new nonce, but the response is
+      // lost. Providers report that as a CloudStorageException around the
+      // TimeoutException, not as the bare exception.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-lost-2', diveNumber: 2),
+      );
+      cloud.loseResponseForUploadsNamed = ChangesetLogLayout.manifestName(
+        deviceId,
+      );
+      expect((await service.performSync()).isSuccess, isFalse);
+      cloud.loseResponseForUploadsNamed = null;
+
+      final third = await service.performSync();
+
+      expect(third.adoptedFreshIdentity, isFalse);
+      expect(await repository.getDeviceId(), deviceId);
+    });
+
+    test('a base publish resumed after a hard failure stays ours', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-resume'),
+      );
+      final service = buildService();
+
+      // Sync 1 exports the base and fails uploading it. The export is parked
+      // for a resume with this attempt's nonce baked into its bytes.
+      cloud.failUploads = true;
+      expect((await service.performSync()).isSuccess, isFalse);
+      cloud.failUploads = false;
+
+      // Sync 2 resumes that export, so its manifest carries sync 1's nonce
+      // rather than the one sync 2 would have minted.
+      expect((await service.performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+
+      final third = await service.performSync();
+
       expect(
         third.adoptedFreshIdentity,
         isFalse,
         reason:
-            'the nonce of an indeterminate upload must survive the failure '
-            'path; only definite failures un-record it',
+            'an interrupted upload on a phone must not cost it its identity '
+            '(issue #3822)',
       );
-      expect(await repository.getDeviceId(), deviceIdBefore);
+      expect(await repository.getDeviceId(), deviceId);
+    });
+
+    test(
+      'a compaction failing after its changeset landed stays ours',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-compact-1', diveNumber: 1),
+        );
+        final service = buildService();
+        expect((await service.performSync()).isSuccess, isTrue);
+        final deviceId = await repository.getDeviceId();
+
+        // Sync 2 publishes changeset seq 2, committing a manifest with its new
+        // nonce, then compacts into a base at seq 3 inside the same publish.
+        for (var i = 2; i <= 6; i++) {
+          await DiveRepository().createDive(
+            createTestDiveWithBottomTime(id: 'd-compact-$i', diveNumber: i),
+          );
+        }
+        cloud.failUploadsNamed = ChangesetLogLayout.basePartName(
+          deviceId,
+          3,
+          0,
+        );
+        expect(
+          (await service.performSync()).isSuccess,
+          isFalse,
+          reason: 'the test only proves anything if the compaction ran',
+        );
+        cloud.failUploadsNamed = null;
+
+        final third = await service.performSync();
+
+        expect(third.adoptedFreshIdentity, isFalse);
+        expect(await repository.getDeviceId(), deviceId);
+      },
+    );
+
+    test('failed manifest writes cannot evict the live nonce', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd-evict-0', diveNumber: 100),
+      );
+      final service = buildService();
+      expect((await service.performSync()).isSuccess, isTrue);
+      final deviceId = await repository.getDeviceId();
+      final published = await ownManifest(cloud, deviceId);
+
+      // Each attempt has something new to publish and is refused at the
+      // manifest, so none of them replaces the nonce in the cloud. More
+      // attempts than the ring holds.
+      cloud.failUploadsNamed = ChangesetLogLayout.manifestName(deviceId);
+      for (var i = 1; i <= 9; i++) {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-evict-$i', diveNumber: 100 + i),
+        );
+        expect((await service.performSync()).isSuccess, isFalse);
+      }
+      cloud.failUploadsNamed = null;
+
+      expect(
+        (await ownManifest(cloud, deviceId))!.uploadNonce,
+        published!.uploadNonce,
+      );
+      final recovered = await service.performSync();
+
+      expect(recovered.adoptedFreshIdentity, isFalse);
+      expect(await repository.getDeviceId(), deviceId);
     });
 
     test('idle syncs do not rot the nonce ring into a false twin', () async {
@@ -298,11 +421,10 @@ void main() {
       final deviceId = await repository.getDeviceId();
 
       // More idle syncs than the ring holds entries. Each publishes nothing,
-      // so the manifest keeps the base upload's nonce; none of them may keep
-      // its speculative ring slot, or that live nonce would be evicted and
-      // the device would read its own manifest as a foreign twin (#733) --
-      // minting a fresh identity and re-uploading a full base every few
-      // idle syncs, forever.
+      // so the manifest keeps the base upload's nonce; none of them may take
+      // a ring slot, or that live nonce would be evicted and the device would
+      // read its own manifest as a foreign twin (#733), minting a fresh
+      // identity and re-uploading a full base every few idle syncs, forever.
       for (var i = 1; i <= 9; i++) {
         final result = await service.performSync();
         expect(result.isSuccess, isTrue, reason: 'idle sync $i');
@@ -315,7 +437,7 @@ void main() {
       expect(await repository.getDeviceId(), deviceId);
     });
 
-    test('a heartbeat rewrite gives its speculative ring slot back', () async {
+    test('a heartbeat rewrite takes no ring slot', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'd-heartbeat'),
       );
@@ -327,8 +449,8 @@ void main() {
 
       // Age the manifest past the heartbeat threshold so the next idle sync
       // rewrites it -- deliberately preserving the OLD nonce (a heartbeat is
-      // not an upload event). The heartbeat sync's speculative nonce never
-      // reaches the cloud, so it must be un-recorded again.
+      // not an upload event). The nonce that sync was handed never reaches the
+      // cloud, so it must never reach the ring either.
       final folder = await cloud.getOrCreateSyncFolder();
       final aged = SyncManifest(
         deviceId: published!.deviceId,
@@ -364,7 +486,7 @@ void main() {
         [published.uploadNonce],
         reason:
             'the heartbeat preserved the previous nonce in the manifest, so '
-            'its own speculative nonce must not stay in the ring',
+            'the one it was handed must not be in the ring',
       );
     });
 
@@ -403,6 +525,59 @@ void main() {
       );
       expect(await repository.getDeviceId(), deviceId);
     });
+
+    test(
+      'recording a held nonce moves it up rather than doubling it',
+      () async {
+        await initializer.recordUploadNonce('nonce-a', 'fake');
+        await initializer.recordUploadNonce('nonce-b', 'fake');
+        await initializer.recordUploadNonce('nonce-a', 'fake');
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getStringList('sync_upload_nonces_fake'), [
+          'nonce-a',
+          'nonce-b',
+        ]);
+      },
+    );
+
+    test(
+      'an emptied ring relearns the live nonce, so a twin still shows',
+      () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-relearn'),
+        );
+        expect((await buildService().performSync()).isSuccess, isTrue);
+        final deviceId = await repository.getDeviceId();
+
+        SharedPreferences.setMockInitialValues({});
+        final service = SyncService(
+          syncRepository: repository,
+          serializer: SyncDataSerializer(),
+          cloudProvider: cloud,
+          syncInitializer: SyncInitializer(
+            syncRepository: repository,
+            prefs: await SharedPreferences.getInstance(),
+          ),
+        );
+
+        // Idle, so nothing it publishes would refill the ring.
+        expect((await service.performSync()).adoptedFreshIdentity, isFalse);
+
+        await seedPeerManifest(
+          cloud,
+          deviceId,
+          uploadNonce: 'minted-by-a-twin',
+        );
+        final result = await service.performSync();
+
+        expect(
+          result.adoptedFreshIdentity,
+          isTrue,
+          reason: 'lost prefs must not switch twin detection off for good',
+        );
+      },
+    );
 
     test('the nonce ring keeps the newest entries per provider', () async {
       for (var i = 0; i < 9; i++) {

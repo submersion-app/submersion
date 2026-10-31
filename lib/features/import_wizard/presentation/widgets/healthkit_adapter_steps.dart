@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// Riverpod [StateProvider] signalling whether HealthKit permissions have been
@@ -319,7 +318,7 @@ class _HealthKitDateRangeStepState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Padding(
       padding: const EdgeInsets.all(24),

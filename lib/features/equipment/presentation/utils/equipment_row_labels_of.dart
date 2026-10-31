@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Row labels for [items] as one list shows them, in the app's language and
@@ -18,7 +17,7 @@ Map<String, EquipmentRowLabel> equipmentRowLabelsOf(
   String Function(EquipmentItem item)? shownWith,
 }) {
   final l10n = context.l10n;
-  final units = UnitFormatter(ref.watch(settingsProvider));
+  final units = ref.watch(unitFormatterProvider);
   return buildEquipmentRowLabels(
     items,
     EquipmentRowLabelStrings(

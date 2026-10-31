@@ -351,7 +351,17 @@ class SectionAppearancePage extends ConsumerWidget {
   // ---------------------------------------------------------------------------
 
   List<Widget> _buildDiveCardsSettings(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          cardColorAttribute: s.cardColorAttribute,
+          cardColorGradientPreset: s.cardColorGradientPreset,
+          cardColorGradientStart: s.cardColorGradientStart,
+          cardColorGradientEnd: s.cardColorGradientEnd,
+          showMapBackgroundOnDiveCards: s.showMapBackgroundOnDiveCards,
+        ),
+      ),
+    );
 
     return [
       ListTile(
@@ -418,7 +428,9 @@ class SectionAppearancePage extends ConsumerWidget {
   }
 
   List<Widget> _buildSiteCardsSettings(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final showMapBackgroundOnSiteCards = ref.watch(
+      settingsProvider.select((s) => s.showMapBackgroundOnSiteCards),
+    );
 
     return [
       SwitchListTile(
@@ -429,7 +441,7 @@ class SectionAppearancePage extends ConsumerWidget {
               .settings_appearance_mapBackgroundSiteCards_subtitleWithNote,
         ),
         secondary: const Icon(Icons.map),
-        value: settings.showMapBackgroundOnSiteCards,
+        value: showMapBackgroundOnSiteCards,
         onChanged: (value) {
           ref
               .read(settingsProvider.notifier)
@@ -465,7 +477,14 @@ class SectionAppearancePage extends ConsumerWidget {
   }
 
   List<Widget> _buildDiveTableExtras(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          showProfilePanelInTableView: s.showProfilePanelInTableView,
+          showDataSourceBadges: s.showDataSourceBadges,
+        ),
+      ),
+    );
 
     return [
       SwitchListTile(
@@ -664,14 +683,24 @@ class SectionAppearancePage extends ConsumerWidget {
 
   ListViewMode _getCurrentViewMode(WidgetRef ref, String key) {
     return switch (key) {
-      'dives' => ref.watch(settingsProvider).diveListViewMode,
-      'sites' => ref.watch(settingsProvider).siteListViewMode,
-      'trips' => ref.watch(settingsProvider).tripListViewMode,
-      'equipment' => ref.watch(settingsProvider).equipmentListViewMode,
-      'buddies' => ref.watch(settingsProvider).buddyListViewMode,
-      'diveCenters' => ref.watch(settingsProvider).diveCenterListViewMode,
-      'certifications' => ref.watch(settingsProvider).certificationListViewMode,
-      'courses' => ref.watch(settingsProvider).courseListViewMode,
+      'dives' => ref.watch(settingsProvider.select((s) => s.diveListViewMode)),
+      'sites' => ref.watch(settingsProvider.select((s) => s.siteListViewMode)),
+      'trips' => ref.watch(settingsProvider.select((s) => s.tripListViewMode)),
+      'equipment' => ref.watch(
+        settingsProvider.select((s) => s.equipmentListViewMode),
+      ),
+      'buddies' => ref.watch(
+        settingsProvider.select((s) => s.buddyListViewMode),
+      ),
+      'diveCenters' => ref.watch(
+        settingsProvider.select((s) => s.diveCenterListViewMode),
+      ),
+      'certifications' => ref.watch(
+        settingsProvider.select((s) => s.certificationListViewMode),
+      ),
+      'courses' => ref.watch(
+        settingsProvider.select((s) => s.courseListViewMode),
+      ),
       _ => ListViewMode.detailed,
     };
   }

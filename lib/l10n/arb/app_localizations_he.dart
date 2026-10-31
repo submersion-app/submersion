@@ -3195,6 +3195,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_nameHint => 'הזן שם חבר צוללים';
 
   @override
+  String get buddies_field_excludedFromRankings => 'לא לכלול בדירוג השותפים';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'צלילות ביחד עדיין נספרות כצלילות עם שותף.';
+
+  @override
   String get buddies_field_nameRequired => 'שם *';
 
   @override
@@ -3548,6 +3555,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'צלילות ביחד';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'לא נכלל בדירוג השותפים';
 
   @override
   String get buddies_stat_favoriteSite => 'אתר מועדף';
@@ -5580,6 +5590,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get courses_action_markCompleted => 'סמן כהושלם';
 
   @override
+  String get courses_action_chooseDive => 'בחר צלילה';
+
+  @override
   String get courses_action_unlinkDive => 'בטל קישור צלילה';
 
   @override
@@ -5769,6 +5782,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'צלילות מוצעות';
+
+  @override
+  String get courses_requirement_allDives => 'כל הצלילות';
+
+  @override
+  String get courses_requirement_noDives => 'אין צלילות לקישור';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'אין צלילות התואמות ל-\"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'חיפוש צלילות';
 
   @override
   String get courses_requirements_empty =>
@@ -8628,6 +8655,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'תקרה';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'תקרה (מחושב)';
 
   @override
   String get diveLog_legend_label_decoStops => 'עצירות דקו';
@@ -14909,6 +14939,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'פרטים';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'זמן צלילה';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count צלילות';
   }
@@ -15912,6 +15945,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_kind_storage => 'אחסון';
 
   @override
+  String get equipment_location_kind_diveCenter => 'מרכז צלילה';
+
+  @override
   String get equipment_location_kind_serviceShop => 'מעבדת שירות';
 
   @override
@@ -16137,6 +16173,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'סוג';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'מרכז צלילה שמור';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'ללא';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'הסר מרכז צלילה שמור';
 
   @override
   String get equipment_locations_notesLabel => 'הערות';
@@ -17468,6 +17513,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'נוסף';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'השלמה';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'לחץ';
@@ -20133,7 +20181,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_range_title => 'טבלת טווחים';
 
   @override
+  String get plannerCanvas_results_calculating => 'בחישוב';
+
+  @override
+  String get plannerCanvas_results_failed => 'לא ניתן לחשב';
+
+  @override
   String get plannerCanvas_results_noDeco => 'לא נדרשת דקומפרסיה';
+
+  @override
+  String get plannerCanvas_results_updating => 'בעדכון';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -28895,6 +28952,38 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'כל $count הצלילות היו $value ($baseline מתוך $coverage שבהן נתון זה נרשם)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count מתוך $total היו $value, לעומת $baseline מתוך $coverage שבהן נתון זה נרשם';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count מתוך $groupCoverage שבהן נתון זה נרשם היו $value, לעומת $baseline מתוך $coverage שבהן נתון זה נרשם';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -29173,6 +29262,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'ירידה ממוצעת';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'מנתח צלילות: $analyzed מתוך $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'צלילות דקו';
@@ -52796,6 +52890,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
+
+  @override
+  String get diveCenters_gearHere_title => 'הציוד שלך כאן';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';

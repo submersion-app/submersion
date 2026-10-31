@@ -7,7 +7,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/domain/profile_lookup.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -108,7 +107,7 @@ class TrackReadoutPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme.bodySmall;

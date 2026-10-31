@@ -7,7 +7,6 @@ import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/nearby_device_sheet.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/nearby_device_status.dart';
@@ -29,7 +28,7 @@ class NearbyDevicesSection extends ConsumerWidget {
     final progress =
         ref.watch(nearbyProgressProvider).value ?? const <String, Never>{};
     final canAdvertise = ref.watch(nearbyCanAdvertiseProvider);
-    final formatter = UnitFormatter(ref.watch(settingsProvider));
+    final formatter = ref.watch(unitFormatterProvider);
     final status = StatusColors.of(context);
     final now = DateTime.now();
 

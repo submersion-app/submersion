@@ -155,7 +155,7 @@ class _AdjustSheetState extends ConsumerState<_AdjustSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     const decimal = TextInputType.numberWithOptions(decimal: true);
     return Padding(
       padding: EdgeInsets.only(

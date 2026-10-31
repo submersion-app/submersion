@@ -3,7 +3,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// This year vs last year mini-stats.
@@ -17,8 +16,7 @@ class YearInReviewCard extends ConsumerWidget {
     if (review == null) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
+    final fmt = ref.watch(unitFormatterProvider);
     final seconds = review.current.totalSeconds;
     // Round to one decimal first, then pick the format from the rounded
     // value: otherwise 9.96h would fail the `< 10` test yet render as
