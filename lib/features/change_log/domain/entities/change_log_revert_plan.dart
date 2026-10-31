@@ -57,6 +57,14 @@ class ChangeLogRevertItem extends Equatable {
 
   bool get isBlocked => block != null;
 
+  /// Brings back a record the entry deleted.
+  bool get restoresRecord =>
+      column == null && event.action == ChangeLogAction.delete;
+
+  /// Removes a record the entry created.
+  bool get removesRecord =>
+      column == null && event.action == ChangeLogAction.insert;
+
   @override
   List<Object?> get props => [
     event,
