@@ -17852,6 +17852,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => 'Adicionado';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Complemento';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => 'Pressão';
 
   @override

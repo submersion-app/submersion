@@ -16093,6 +16093,7 @@
   "gasCalculators_mod_semanticsLabel": "Profundidad máxima operativa: {depth} {unit} a {ppo2} bar de ppO2 con {o2}% de oxígeno",
   "gasCalculators_blender_stepColumnAction": "Acción",
   "gasCalculators_blender_stepColumnAdded": "Añadido",
+  "gasCalculators_blender_stepColumnTopUp": "Recarga",
   "gasCalculators_blender_stepColumnPressure": "Presión",
   "gasCalculators_blender_stepColumnMix": "Mezcla",
   "gasCalculators_blender_flushFeeColumnGas": "Gas",

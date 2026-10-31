@@ -150,6 +150,7 @@
   "gasCalculators_blender_stepStartLabel": "Start",
   "gasCalculators_blender_stepColumnAction": "Aktion",
   "gasCalculators_blender_stepColumnAdded": "Hinzufügen",
+  "gasCalculators_blender_stepColumnTopUp": "Topup",
   "gasCalculators_blender_stepColumnPressure": "Druck",
   "gasCalculators_blender_stepColumnMix": "Mix",
   "gasCalculators_blender_settlesTo": "Endet bei {pressure} bei {temperature}",

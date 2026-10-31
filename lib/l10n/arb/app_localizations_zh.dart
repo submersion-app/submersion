@@ -16997,6 +16997,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_stepColumnAdded => '已添加';
 
   @override
+  String get gasCalculators_blender_stepColumnTopUp => '补充';
+
+  @override
   String get gasCalculators_blender_stepColumnPressure => '压力';
 
   @override

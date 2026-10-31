@@ -16093,6 +16093,7 @@
   "gasCalculators_mod_semanticsLabel": "أقصى عمق تشغيلي: {depth} {unit} عند {ppo2} بار ppO2 مع {o2}% أكسجين",
   "gasCalculators_blender_stepColumnAction": "الإجراء",
   "gasCalculators_blender_stepColumnAdded": "أضيف",
+  "gasCalculators_blender_stepColumnTopUp": "تعبئة إضافية",
   "gasCalculators_blender_stepColumnPressure": "الضغط",
   "gasCalculators_blender_stepColumnMix": "الخليط",
   "gasCalculators_blender_flushFeeColumnGas": "الغاز",

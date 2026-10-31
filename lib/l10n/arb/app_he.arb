@@ -16093,6 +16093,7 @@
   "gasCalculators_mod_semanticsLabel": "עומק תפעול מרבי: {depth} {unit} ב-{ppo2} בר ppO2 עם {o2}% חמצן",
   "gasCalculators_blender_stepColumnAction": "פעולה",
   "gasCalculators_blender_stepColumnAdded": "נוסף",
+  "gasCalculators_blender_stepColumnTopUp": "השלמה",
   "gasCalculators_blender_stepColumnPressure": "לחץ",
   "gasCalculators_blender_stepColumnMix": "תערובת",
   "gasCalculators_blender_flushFeeColumnGas": "גז",

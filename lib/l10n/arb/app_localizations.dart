@@ -28678,6 +28678,12 @@ abstract class AppLocalizations {
   /// **'Added'**
   String get gasCalculators_blender_stepColumnAdded;
 
+  /// No description provided for @gasCalculators_blender_stepColumnTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up'**
+  String get gasCalculators_blender_stepColumnTopUp;
+
   /// No description provided for @gasCalculators_blender_stepColumnPressure.
   ///
   /// In en, this message translates to:
