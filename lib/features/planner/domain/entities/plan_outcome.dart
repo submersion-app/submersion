@@ -279,6 +279,29 @@ enum PlanScheduleRowKind {
   stop,
 }
 
+/// A stretch of ascent travel with no line of its own in the plan table: the
+/// time is still breathed, so whatever charges gas per row reads it from here
+/// (see [PlanScheduleRow.foldedTravel]).
+class PlanFoldedTravel extends Equatable {
+  final double fromDepthMeters;
+  final double toDepthMeters;
+  final int seconds;
+
+  /// The cylinder breathed across this stretch, which is not always the one
+  /// on the row: a leg into a switch stop is still on the gas it left.
+  final String? tankId;
+
+  const PlanFoldedTravel({
+    required this.fromDepthMeters,
+    required this.toDepthMeters,
+    required this.seconds,
+    required this.tankId,
+  });
+
+  @override
+  List<Object?> get props => [fromDepthMeters, toDepthMeters, seconds, tankId];
+}
+
 /// One line of the dive plan table, the way a slate reads it: every travel
 /// leg is a line and every stop is a line, so a diver can follow the plan
 /// against a watch - leave the bottom, reach 21 m by minute 38, hold until
@@ -314,6 +337,12 @@ class PlanScheduleRow extends Equatable {
   /// endExceeded plan issue already uses.
   final double endMeters;
 
+  /// The travel between stops leading into this line, deepest stretch first
+  /// and split wherever the gas changes. The table folds it into this line's
+  /// runtime rather than printing it (#3138), so [durationSeconds] leaves it
+  /// out: [durationSeconds] alone does not add up to the dive's runtime.
+  final List<PlanFoldedTravel> foldedTravel;
+
   const PlanScheduleRow({
     required this.kind,
     required this.depthMeters,
@@ -326,6 +355,7 @@ class PlanScheduleRow extends Equatable {
     this.airBreakSeconds = 0,
     this.ppO2 = 0.0,
     this.endMeters = 0.0,
+    this.foldedTravel = const [],
   });
 
   /// Elapsed dive time when this line BEGINS, in seconds.
@@ -344,6 +374,7 @@ class PlanScheduleRow extends Equatable {
     airBreakSeconds,
     ppO2,
     endMeters,
+    foldedTravel,
   ];
 }
 

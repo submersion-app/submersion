@@ -17,7 +17,8 @@ class MemberGasService {
   /// for the first row) and its end depth; a level or stop row at its own
   /// depth. [sacFor] gives the litres per minute in force on a row. Pass
   /// [startDepth] when [rows] are a slice of a dive that does not begin at
-  /// the surface.
+  /// the surface. Travel a row folds into it is charged too, at the row's
+  /// rate, each stretch at its own mean depth to its own cylinder.
   Map<String, double> litersByTank({
     required List<PlanScheduleRow> rows,
     required DiveEnvironment environment,
@@ -25,9 +26,19 @@ class MemberGasService {
     double startDepth = 0.0,
   }) {
     final liters = <String, double>{};
+    void charge(String? tankId, int seconds, double depth, double sac) {
+      if (tankId == null) return;
+      final used = seconds / 60.0 * sac * environment.pressureAtDepth(depth);
+      liters[tankId] = (liters[tankId] ?? 0.0) + used;
+    }
+
     var previousDepth = startDepth;
     for (final row in rows) {
-      final tankId = row.tankId;
+      final sac = sacFor(row);
+      for (final leg in row.foldedTravel) {
+        final depth = (leg.fromDepthMeters + leg.toDepthMeters) / 2.0;
+        charge(leg.tankId, leg.seconds, depth, sac);
+      }
       final isTravel =
           row.kind == PlanScheduleRowKind.descent ||
           row.kind == PlanScheduleRowKind.ascent;
@@ -35,10 +46,7 @@ class MemberGasService {
           ? (previousDepth + row.depthMeters) / 2.0
           : row.depthMeters;
       previousDepth = row.depthMeters;
-      if (tankId == null) continue;
-      final minutes = row.durationSeconds / 60.0;
-      final used = minutes * sacFor(row) * environment.pressureAtDepth(depth);
-      liters[tankId] = (liters[tankId] ?? 0.0) + used;
+      charge(row.tankId, row.durationSeconds, depth, sac);
     }
     return liters;
   }

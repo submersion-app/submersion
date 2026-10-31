@@ -295,6 +295,91 @@ void main() {
     });
   });
 
+  group('travel the table folds into a stop (#3927)', () {
+    int foldedSeconds(PlanScheduleRow row) =>
+        row.foldedTravel.fold(0, (sum, leg) => sum + leg.seconds);
+
+    test('every second of the dive is on a line or folded into one', () {
+      final outcome = _engine.compute(
+        _plan(bottomDepth: 50, bottomMinutes: 30),
+      );
+      final total = outcome.schedule.fold<int>(
+        0,
+        (sum, row) => sum + row.durationSeconds + foldedSeconds(row),
+      );
+      expect(outcome.schedule.map(foldedSeconds), contains(greaterThan(0)));
+      expect(total, outcome.runtimeSeconds);
+    });
+
+    test('a folded leg fills the gap back to the line before', () {
+      final rows = _engine
+          .compute(_plan(bottomDepth: 50, bottomMinutes: 30))
+          .schedule;
+      for (var i = 1; i < rows.length; i++) {
+        expect(
+          rows[i].startRuntimeSeconds - foldedSeconds(rows[i]),
+          rows[i - 1].runtimeSeconds,
+        );
+      }
+    });
+
+    test('a leg into a switch stop stays on the gas it left', () {
+      final rows = _engine
+          .compute(
+            _plan(
+              bottomDepth: 50,
+              bottomMinutes: 30,
+              tanks: const [
+                _airTank,
+                _ean50,
+                DiveTank(
+                  id: 'o2',
+                  volume: 7.0,
+                  startPressure: 200.0,
+                  gasMix: GasMix(o2: 100),
+                ),
+              ],
+            ),
+          )
+          .schedule;
+      final switchStop = rows.indexWhere((r) => r.tankId == 'o2');
+      expect(rows[switchStop - 1].kind, PlanScheduleRowKind.stop);
+      expect(rows[switchStop - 1].tankId, 'deco');
+      // A gas's MOD can sit a hair deeper than its stop, leaving a span of no
+      // length on the new gas: no time is breathed on it before the stop.
+      final breathed = rows[switchStop].foldedTravel.where(
+        (l) => l.seconds > 0,
+      );
+      expect(breathed.map((leg) => leg.tankId), ['deco']);
+    });
+
+    test('a switch set between two stops divides the folded leg', () {
+      final outcome = _engine.compute(
+        _plan(
+          bottomDepth: 50,
+          bottomMinutes: 30,
+          tanks: [_airTank, _ean50.copyWith(decoSwitchDepth: 10)],
+        ),
+      );
+      final legs = outcome.schedule
+          .firstWhere((row) => row.foldedTravel.length > 1)
+          .foldedTravel;
+      expect(legs.map((leg) => leg.tankId), ['back', 'deco']);
+      expect(legs.first.toDepthMeters, 10);
+      expect(legs.last.fromDepthMeters, 10);
+    });
+
+    test('the leg to the first stop keeps its own line', () {
+      final rows = _engine
+          .compute(_plan(bottomDepth: 50, bottomMinutes: 30))
+          .schedule;
+      final firstStop = rows.firstWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      expect(firstStop.foldedTravel, isEmpty);
+    });
+  });
+
   group('gas consumption order', () {
     test('lists cylinders in the order the table breathes them, not the '
         'order they were added', () {
