@@ -2302,12 +2302,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     int? selectedPointIndex,
   ) {
-    final currentAsync = ref.watch(
-      sourceProfileAnalysisProvider((
-        diveId: dive.id,
-        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-      )),
+    final sourceKey = (
+      diveId: dive.id,
+      sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
     );
+    final currentAsync = ref.watch(sourceProfileAnalysisProvider(sourceKey));
     final current = currentAsync.valueOrNull;
     final isUsable =
         current != null &&
@@ -2338,9 +2337,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // it. `.value` keeps the previous segments through a reload, so a section
     // doesn't drop out for a frame.
     final phaseSegments =
-        ref.watch(phaseSegmentsProvider(dive.id)).value ?? const <SacSegment>[];
+        ref.watch(phaseSegmentsProvider(sourceKey)).value ??
+        const <SacSegment>[];
     final gasSegments =
-        ref.watch(gasSwitchSegmentsProvider(dive.id)).value ??
+        ref.watch(gasSwitchSegmentsProvider(sourceKey)).value ??
         const <SacSegment>[];
 
     // Get collapsed state from provider

@@ -149,9 +149,10 @@ void main() {
           profileAnalysisProvider(
             dive.id,
           ).overrideWith((ref) async => analysisWithSegments()),
-          phaseSegmentsProvider(
-            dive.id,
-          ).overrideWith((ref) async => hasPhases ? phaseSegments() : null),
+          phaseSegmentsProvider((
+            diveId: dive.id,
+            sourceId: null,
+          )).overrideWith((ref) async => hasPhases ? phaseSegments() : null),
           if (trackingIndex != null)
             profileTrackingIndexProvider(
               dive.id,
