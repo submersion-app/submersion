@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' as developer;
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:submersion/core/models/log_entry.dart';
@@ -301,25 +302,37 @@ class LoggerService {
       stackTrace: stackTrace,
     );
 
+    _record(
+      LogEntry(
+        timestamp: DateTime.now(),
+        category: category,
+        level: level,
+        message: error != null ? '$message | error: $error' : message,
+      ),
+      alwaysPersist,
+      _name,
+    );
+  }
+
+  /// Everything that happens to a line after the console: the file or the
+  /// startup buffer, then live listeners.
+  static void _record(LogEntry raw, bool alwaysPersist, String loggerName) {
     // Capture the current file service so that later changes to
     // _fileService do not affect already-emitted log entries.
     final service = _fileService;
     final persist =
-        service != null && _persists(level, alwaysPersist, category: category);
+        service != null &&
+        _persists(raw.level, alwaysPersist, category: raw.category);
 
     // File logging. Redacted here rather than at each call site: the file is
     // what users attach to public bug reports, and an exception's toString()
     // can carry a request URL or response body nobody chose to log. Lines
     // that are not persisted skip the work; the live stream stays in memory.
-    final text = error != null ? '$message | error: $error' : message;
-    final entry = LogEntry(
-      timestamp: DateTime.now(),
-      category: category,
-      level: level,
-      message: persist ? redactSecrets(text) : text,
-    );
+    final entry = persist
+        ? raw.copyWith(message: redactSecrets(raw.message))
+        : raw;
     if (persist) {
-      _enqueueWrite(service, Future.value(entry), _name);
+      _enqueueWrite(service, Future.value(entry), loggerName);
     } else if (service == null) {
       _bufferForStartup(entry, alwaysPersist);
     }
@@ -327,6 +340,31 @@ class LoggerService {
     // Notify live listeners.
     _logStreamController.add(entry);
   }
+
+  /// [Isolate.run], keeping what [work] logs.
+  ///
+  /// Statics are per isolate, so a worker has no log file attached and its
+  /// lines would reach the console alone. They are held there and recorded
+  /// here instead, under the file level this isolate chose and redacted like
+  /// any other line, so a problem found on a worker can still reach the log a
+  /// user attaches to a bug report. Lines from a [work] that throws are lost
+  /// with it.
+  static Future<R> isolateRunKeepingLogs<R>(FutureOr<R> Function() work) async {
+    final (:value, :lines) = await _runHoldingLines(work);
+    for (final line in lines) {
+      _record(line.entry, line.alwaysPersist, 'LoggerService');
+    }
+    return value;
+  }
+
+  /// Minimal-scope hop to the worker isolate: Dart closures capture their
+  /// enclosing scope, and this one holds [work] alone.
+  static Future<({R value, List<({LogEntry entry, bool alwaysPersist})> lines})>
+  _runHoldingLines<R>(FutureOr<R> Function() work) => Isolate.run(() async {
+    bufferUntilFileAttached();
+    final value = await work();
+    return (value: value, lines: _startupBuffer!.toList(growable: false));
+  });
 
   /// Create a logger for a specific class
   static LoggerService forClass(
