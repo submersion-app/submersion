@@ -162,6 +162,8 @@ void main() {
       tester.element(find.byType(InsightsEquipmentPage)),
     );
     expect(scope.read(exposureRankingUnitProvider), ExposureUnit.hours);
+    await tester.ensureVisible(find.byKey(const ValueKey('exposure-unit')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('exposure-unit')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cold dives').last);
@@ -203,6 +205,8 @@ void main() {
     // own string now, and dives is offered since items genuinely rank by
     // dive count; days is not, because a date trigger accrues no usage.
     await pumpPage(tester);
+    await tester.ensureVisible(find.byKey(const ValueKey('exposure-unit')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('exposure-unit')));
     await tester.pumpAndSettle();
     expect(find.text('Dives').hitTestable(), findsOneWidget);

@@ -16800,6 +16800,213 @@ class AppLocalizationsNl extends AppLocalizations {
       'Onderhoudslogboek opgeslagen';
 
   @override
+  String get transfer_export_inventoryTitle => 'Uitrustingsinventaris';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF met serienummers en wat je betaald hebt';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'Servicerapport';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF van wat er moet gebeuren, met servicegeschiedenis';
+
+  @override
+  String get settings_export_progress_inventory => 'Inventaris maken...';
+
+  @override
+  String get settings_export_success_inventory => 'Inventaris geëxporteerd';
+
+  @override
+  String get settings_export_saved_inventory => 'Inventaris opgeslagen';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'Servicerapport maken...';
+
+  @override
+  String get settings_export_success_serviceReport =>
+      'Servicerapport geëxporteerd';
+
+  @override
+  String get settings_export_saved_serviceReport => 'Servicerapport opgeslagen';
+
+  @override
+  String get equipmentReport_sheet_continue => 'Doorgaan';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'Groeperen op';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'Type uitrusting';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'Locatie';
+
+  @override
+  String get equipmentReport_sheet_location => 'Locatie';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'Alle locaties';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'Prijzen tonen';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp =>
+      'Uitzetten voor een douanelijst';
+
+  @override
+  String get equipmentReport_sheet_gear => 'Uitrusting';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'Alle uitrusting';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'Ingepakt voor een reis';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'Eén item';
+
+  @override
+  String get equipmentReport_sheet_trip => 'Reis';
+
+  @override
+  String get equipmentReport_sheet_item => 'Item';
+
+  @override
+  String get equipmentReport_sheet_history => 'Servicegeschiedenis';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'Kosten tonen';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'Uitrustingsinventaris';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'Servicerapport';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'Afgedrukt op $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stuks',
+      one: '$count stuk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return 'Totaal $currency';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'Geen locatie ingesteld';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'Item';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'Serienr.';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'Gekocht';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'Betaald';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'Prijzen zijn wat betaald is, niet de huidige waarde.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items hebben geen prijs.',
+      one: '$count item heeft geen prijs.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'te laat';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'binnenkort';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'op orde';
+
+  @override
+  String get equipmentReport_pdf_colService => 'Service';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'Vervalt';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'Status';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'Te laat';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'Binnenkort';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'Op orde';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'Alles is op orde.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items hebben geen serviceschema.',
+      one: '$count item heeft geen serviceschema.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'Datum';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'Werk';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'Winkel';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'Kosten';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'Geen service geregistreerd';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '$count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'Standaardvaluta gebruiken';
 
@@ -29005,6 +29212,162 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       'Open bevindingen per regel, over alle duiken';
+
+  @override
+  String get insights_equipment_showAll => 'Alles tonen';
+
+  @override
+  String get insights_equipment_showLess => 'Minder tonen';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count uur',
+      one: '$count uur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'Eigendomskosten';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'Aankoop plus service, over al je duiken';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'Totaal uitgegeven';
+
+  @override
+  String get insights_equipment_cost_perDive => 'Per duik';
+
+  @override
+  String get insights_equipment_cost_byYear => 'Uitgaven per jaar';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'Per duik';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'Per uur';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'Totaal';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / duik';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / uur';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount over $count duiken',
+      one: '$amount over $count duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount over $count uur',
+      one: '$amount over $count uur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'nog geen duiken';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aankopen hebben geen datum',
+      one: '$count aankoop heeft geen datum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items hebben geen geregistreerde kosten',
+      one: '$count item heeft geen geregistreerde kosten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'Nog geen aankoopprijzen of servicekosten geregistreerd';
+
+  @override
+  String get insights_equipment_cost_error =>
+      'Kosten van uitrusting konden niet worden geladen';
+
+  @override
+  String get insights_equipment_idle_title => 'Ongebruikte uitrusting';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'Uitrusting die je bezit en de laatste tijd niet hebt gebruikt, over al je duiken';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'Meer dan 6 maanden';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'Meer dan 1 jaar';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'Meer dan 2 jaar';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'Nooit gebruikt';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jr',
+      one: '$count jr',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mnd',
+      one: '$count mnd',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty =>
+      'Al je uitrusting is onlangs gebruikt';
+
+  @override
+  String get insights_equipment_idle_error =>
+      'Ongebruikte uitrusting kon niet worden geladen';
 
   @override
   String get insights_equipment_findings_empty => 'Geen open bevindingen';

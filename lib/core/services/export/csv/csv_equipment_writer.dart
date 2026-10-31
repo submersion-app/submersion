@@ -63,6 +63,10 @@ class CsvEquipmentWriter {
         // Appended (v268), like the restored site columns of #2201, so a
         // reader taking the older columns by offset is unaffected.
         'Location',
+        // Appended for the same reason. The currency is blank with no price,
+        // since every item defaults to one whether or not it was priced.
+        'Purchase Price',
+        'Purchase Currency',
       ],
     ];
 
@@ -107,6 +111,10 @@ class CsvEquipmentWriter {
         // Raw, line breaks and all: Submersion reads this file back (#3683).
         sanitizeCsvField(item.notes),
         sanitizeCsvField(locationNames[item.id]),
+        item.purchasePrice?.toString() ?? '',
+        item.purchasePrice == null
+            ? ''
+            : sanitizeCsvField(item.purchaseCurrency),
       ]);
     }
 
