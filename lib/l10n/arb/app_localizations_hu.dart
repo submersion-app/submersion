@@ -28830,6 +28830,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_chart_notRecorded => 'Nincs rögzítve';
 
   @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Nem sikerült megnyitni ezeket a merüléseket';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trend vonaldiagram $count adatponttal';
   }

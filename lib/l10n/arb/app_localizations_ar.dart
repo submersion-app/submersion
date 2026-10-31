@@ -29198,6 +29198,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_chart_notRecorded => 'غير مسجل';
 
   @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => 'تعذر فتح هذه الغوصات';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'مخطط خطي للاتجاه يعرض $count نقاط بيانات';
   }

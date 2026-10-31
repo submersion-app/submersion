@@ -28781,6 +28781,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_chart_notRecorded => 'Niet vastgelegd';
 
   @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Deze duiken konden niet worden geopend';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trendlijndiagram met $count datapunten';
   }

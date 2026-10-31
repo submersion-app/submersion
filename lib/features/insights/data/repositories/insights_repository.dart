@@ -46,6 +46,7 @@ export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
 part 'insights_repository_calendar_days.dart';
+part 'insights_repository_chart_dives.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
@@ -145,7 +146,7 @@ class EntryExitPairCount {
 /// unlogged. The callers outside Insights (the home dashboard, the site
 /// pages, the planner's logged SAC) already treat an error as nothing to
 /// show.
-class InsightsRepository {
+class InsightsRepository with InsightsChartDives {
   /// Equation of state used to convert cylinder pressure to gas volume.
   ///
   /// Injected from `gasModelProvider` so flipping the preference rebuilds this
@@ -154,7 +155,9 @@ class InsightsRepository {
 
   InsightsRepository({this.gasModel = GasModel.real});
 
+  @override
   AppDatabase get _db => DatabaseService.instance.database;
+  @override
   final _log = LoggerService.forClass(InsightsRepository);
   final _profileSeries = ProfileSeriesRepository();
 
@@ -269,6 +272,7 @@ class InsightsRepository {
   /// which additionally drop per-dive gas exclusions and gauge-mode dives.
   /// Pass `consumptionRate: true` for the SAC/RMV averages, trends and
   /// records, which drop those and rebreather dives as well (issue #3673).
+  @override
   ({String clause, List<Object?> params}) _diveFilter(
     DiveFilterState filter, {
     String alias = 'dives',

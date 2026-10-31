@@ -8360,6 +8360,8 @@
   "insights_chart_noDistributionData": "Geen verdelingsgegevens beschikbaar",
   "insights_chart_noTrendData": "Geen trendgegevens beschikbaar",
   "insights_chart_notRecorded": "Niet vastgelegd",
+  "insights_chart_linkLabel": "{chart}: {row}",
+  "insights_chart_openDivesFailed": "Deze duiken konden niet worden geopend",
   "insights_chart_trendSemanticLabel": "Trendlijndiagram met {count} datapunten",
   "insights_chart_trendSemanticLabelWithAxis": "Trendlijndiagram met {count} datapunten voor {yAxisLabel}",
   "insights_conditions_appBar_title": "Omstandigheden",

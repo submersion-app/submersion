@@ -46479,6 +46479,18 @@ abstract class AppLocalizations {
   /// **'Not recorded'**
   String get insights_chart_notRecorded;
 
+  /// No description provided for @insights_chart_linkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{chart}: {row}'**
+  String insights_chart_linkLabel(String chart, String row);
+
+  /// No description provided for @insights_chart_openDivesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open these dives'**
+  String get insights_chart_openDivesFailed;
+
   /// No description provided for @insights_chart_trendSemanticLabel.
   ///
   /// In en, this message translates to:

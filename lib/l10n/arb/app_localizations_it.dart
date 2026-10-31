@@ -28985,6 +28985,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_chart_notRecorded => 'Non registrato';
 
   @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Impossibile aprire queste immersioni';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Grafico di tendenza con $count punti dati';
   }

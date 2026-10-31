@@ -8259,6 +8259,8 @@
   "insights_chart_noDistributionData": "Nincsenek megoszlási adatok",
   "insights_chart_noTrendData": "Nincsenek trend adatok",
   "insights_chart_notRecorded": "Nincs rögzítve",
+  "insights_chart_linkLabel": "{chart}: {row}",
+  "insights_chart_openDivesFailed": "Nem sikerült megnyitni ezeket a merüléseket",
   "insights_chart_trendSemanticLabel": "Trend vonaldiagram {count} adatponttal",
   "insights_chart_trendSemanticLabelWithAxis": "Trend vonaldiagram {count} adatponttal a(z) {yAxisLabel} számára",
   "insights_conditions_appBar_title": "Körülmények",

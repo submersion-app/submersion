@@ -28915,6 +28915,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_chart_notRecorded => 'Nicht erfasst';
 
   @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Diese Tauchgänge konnten nicht geöffnet werden';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trendliniendiagramm mit $count Datenpunkten';
   }

@@ -8360,6 +8360,8 @@
   "insights_chart_noDistributionData": "No hay datos de distribución disponibles",
   "insights_chart_noTrendData": "No hay datos de tendencia disponibles",
   "insights_chart_notRecorded": "Sin registrar",
+  "insights_chart_linkLabel": "{chart}: {row}",
+  "insights_chart_openDivesFailed": "No se pudieron abrir estas inmersiones",
   "insights_chart_trendSemanticLabel": "Gráfico de líneas de tendencia mostrando {count} puntos de datos",
   "insights_chart_trendSemanticLabelWithAxis": "Gráfico de líneas de tendencia mostrando {count} puntos de datos para {yAxisLabel}",
   "insights_conditions_appBar_title": "Condiciones",
