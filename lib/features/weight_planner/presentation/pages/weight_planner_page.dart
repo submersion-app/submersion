@@ -19,7 +19,6 @@ import 'package:submersion/features/equipment/domain/entities/gear_provenance.da
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/buoyancy/buoyancy_physics.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
@@ -394,8 +393,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Prefill body weight from the newest profile entry, once.
     final latestWeight = ref.watch(latestDiverWeightProvider).valueOrNull;
@@ -452,7 +450,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
             totalKg: prediction.totalKg,
             observations: observations,
             exposureItemId: _exposureItemId(),
-            incrementKg: settings.weightUnit == WeightUnit.kilograms
+            incrementKg: units.settings.weightUnit == WeightUnit.kilograms
                 ? 0.5
                 : 0.45359237,
           )

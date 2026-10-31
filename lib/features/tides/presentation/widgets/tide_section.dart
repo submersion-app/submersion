@@ -166,7 +166,15 @@ class _TideSectionContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          depthUnit: s.depthUnit,
+          timeFormat: s.timeFormat,
+          dateFormat: s.dateFormat,
+        ),
+      ),
+    );
     final statusAsync = ref.watch(currentTideStatusProvider(location));
     final predictionsAsync = ref.watch(tidePredictionsProvider(location));
     final chartExtremesAsync = ref.watch(tideExtremesProvider(location));

@@ -4,6 +4,8 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show tissueColorSchemeProvider;
 
 List<DecoStatus> statuses() => BuhlmannAlgorithm().processProfile(
   depths: const [0, 30, 30, 30, 0],

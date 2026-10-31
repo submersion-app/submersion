@@ -29,7 +29,7 @@ class MissionTeamSection extends ConsumerWidget {
     );
     if (mission == null) return const SizedBox.shrink();
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final units = MissionUnits(UnitFormatter(ref.watch(settingsProvider)));
+    final units = MissionUnits(ref.watch(unitFormatterProvider));
     final l10n = context.l10n;
     final defaultCurrent = mission.defaultCurrent;
     final openWater = mission.environment == MissionEnvironment.openWater;

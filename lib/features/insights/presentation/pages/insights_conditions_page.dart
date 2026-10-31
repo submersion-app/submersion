@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
@@ -32,8 +31,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -98,7 +96,7 @@ class InsightsConditionsPage extends ConsumerWidget {
       child: visibilityAsync.when(
         data: (raw) {
           // The repository returns stable keys; localization happens here.
-          final units = UnitFormatter(ref.watch(settingsProvider));
+          final units = ref.watch(unitFormatterProvider);
           final data = raw
               .map(
                 (d) => DistributionSegment(

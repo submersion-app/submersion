@@ -15,7 +15,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _uuid = Uuid();
@@ -50,7 +49,7 @@ class PlanSavedTanksBar extends ConsumerWidget {
       for (final config in configs)
         for (final item in config.items) item,
     ];
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final planTanks = ref.watch(
       divePlanNotifierProvider.select((s) => s.tanks),
     );

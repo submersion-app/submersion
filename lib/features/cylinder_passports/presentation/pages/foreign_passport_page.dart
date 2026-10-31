@@ -19,7 +19,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(ForeignPassportPage);
@@ -146,7 +145,7 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
   Widget _body(BuildContext context, CylinderPassportPayload tag) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final rows = <(String, String)>[
       if (tag.volumeL != null)
         (

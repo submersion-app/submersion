@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 
@@ -401,11 +402,14 @@ class HealthKitService implements HealthImportService {
     return samples.map((s) => s.depth).reduce((a, b) => a > b ? a : b);
   }
 
-  /// Calculate average depth from samples.
+  /// Calculate average depth from samples, weighted by elapsed time.
   double _calculateAvgDepth(List<ImportedProfileSample> samples) {
-    if (samples.isEmpty) return 0.0;
-    final sum = samples.map((s) => s.depth).reduce((a, b) => a + b);
-    return sum / samples.length;
+    return timeWeightedMean(
+          samples,
+          time: (s) => s.timeSeconds,
+          value: (s) => s.depth,
+        ) ??
+        0.0;
   }
 
   /// Calculate temperature range from samples.

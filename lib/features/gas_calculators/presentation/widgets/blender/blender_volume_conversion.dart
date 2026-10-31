@@ -1,5 +1,5 @@
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 
 /// Cubic feet in a litre, matching `VolumeUnit.convert`.
 ///
@@ -9,15 +9,15 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// the way volume and price once did (PR #1215 review).
 const double cubicFeetPerLiter = 0.0353147;
 
-bool isMetricVolume(AppSettings settings) =>
+bool isMetricVolume(UnitFormatterSettings settings) =>
     settings.volumeUnit == VolumeUnit.liters;
 
 /// Litres to the diver's volume unit, for seeding a volume field.
-double litersToDisplayVolume(double liters, AppSettings settings) =>
+double litersToDisplayVolume(double liters, UnitFormatterSettings settings) =>
     isMetricVolume(settings) ? liters : liters * cubicFeetPerLiter;
 
 /// The diver's volume unit back to litres, for storing a volume field.
-double displayVolumeToLiters(double shown, AppSettings settings) =>
+double displayVolumeToLiters(double shown, UnitFormatterSettings settings) =>
     isMetricVolume(settings) ? shown : shown / cubicFeetPerLiter;
 
 /// A price per 100 litres, shown as a price per 100 of the diver's unit.
@@ -25,9 +25,13 @@ double displayVolumeToLiters(double shown, AppSettings settings) =>
 /// Gas priced at 7.99 per 100 cu ft is 0.28 per 100 L: the same gas, the same
 /// money, a unit that is 28 times larger. Storing the entered number without
 /// this conversion charged a cubic-foot diver 28 times over.
-double pricePer100LitersToDisplay(double per100Liters, AppSettings settings) =>
-    isMetricVolume(settings) ? per100Liters : per100Liters / cubicFeetPerLiter;
+double pricePer100LitersToDisplay(
+  double per100Liters,
+  UnitFormatterSettings settings,
+) => isMetricVolume(settings) ? per100Liters : per100Liters / cubicFeetPerLiter;
 
 /// The diver's displayed price back to a price per 100 litres, for storing.
-double displayToPricePer100Liters(double shown, AppSettings settings) =>
-    isMetricVolume(settings) ? shown : shown * cubicFeetPerLiter;
+double displayToPricePer100Liters(
+  double shown,
+  UnitFormatterSettings settings,
+) => isMetricVolume(settings) ? shown : shown * cubicFeetPerLiter;

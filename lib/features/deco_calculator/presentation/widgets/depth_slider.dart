@@ -4,7 +4,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
 
 /// Slider for adjusting dive depth (0-60m / 0-200ft).
@@ -14,13 +13,12 @@ class DepthSlider extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final depth = ref.watch(calcDepthProvider); // Stored in meters
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // Unit conversion
-    final isMetric = settings.depthUnit == DepthUnit.meters;
+    final isMetric = units.settings.depthUnit == DepthUnit.meters;
     final depthSymbol = units.depthSymbol;
     final displayDepth = units.convertDepth(depth);
     const minDisplay = 0.0;
