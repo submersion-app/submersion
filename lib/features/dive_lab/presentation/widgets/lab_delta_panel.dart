@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Verdict, tiles, the actual | what-if | delta table, tissue strips, gas
@@ -94,7 +97,15 @@ class LabDeltaPanel extends ConsumerWidget {
       children: [
         _Verdict(outcome: value, units: units, tankName: tankName),
         const SizedBox(height: 16),
-        _Tiles(outcome: value, units: units, tankName: tankName),
+        _Tiles(
+          outcome: value,
+          units: units,
+          tankName: tankName,
+          backGasTankId: inputs.tanks
+              .where((t) => t.role == TankRole.backGas)
+              .firstOrNull
+              ?.id,
+        ),
         const SizedBox(height: 16),
         PlanSectionHeader(l10n.diveLab_panel_delta),
         _DeltaTable(outcome: value, units: units, tankName: tankName),
@@ -196,10 +207,15 @@ class _Tiles extends StatelessWidget {
     required this.outcome,
     required this.units,
     required this.tankName,
+    required this.backGasTankId,
   });
   final ScenarioOutcome outcome;
   final UnitFormatter units;
   final String Function(String) tankName;
+
+  /// The dive's back-gas cylinder; the first tank stands in on a dive with
+  /// no cylinder in that role.
+  final String? backGasTankId;
 
   ScenarioDelta? _find(DeltaMetric m, {String? tankId}) {
     for (final d in outcome.deltas) {
@@ -212,9 +228,11 @@ class _Tiles extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
-    final back = outcome.consumption.counterfactual.isEmpty
-        ? null
-        : outcome.consumption.counterfactual.first.tankId;
+    final back =
+        backGasTankId ??
+        (outcome.consumption.counterfactual.isEmpty
+            ? null
+            : outcome.consumption.counterfactual.first.tankId);
     final entries = <(String, ScenarioDelta?)>[
       (l10n.diveLab_tile_tts, _find(DeltaMetric.ttsAtBranch)),
       (l10n.diveLab_tile_deco, _find(DeltaMetric.decoTimeAfterBranch)),
@@ -314,14 +332,14 @@ class _TissueStrips extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final style = Theme.of(context).textTheme.labelSmall;
-    Widget strip(String label, List<dynamic> statuses) => Column(
+    Widget strip(String label, List<DecoStatus> statuses) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: style),
         const SizedBox(height: 4),
-        if (outcome.actual.decoStatuses.isNotEmpty)
+        if (statuses.isNotEmpty)
           TissueHeatMapStrip(
-            decoStatuses: statuses.cast(),
+            decoStatuses: statuses,
             height: 28,
             colorFn: colorFn,
           ),
@@ -365,7 +383,7 @@ class _GasRows extends StatelessWidget {
     BuildContext context,
     TankConsumption c,
     ThemeData theme,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     final actual = outcome.consumption.actualFor(c.tankId);
     final start = c.startPressureBar;

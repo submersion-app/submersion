@@ -12,12 +12,14 @@ import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_pane
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../domain/support/synthetic_dives.dart';
 
-LabRequestInputs _inputs() {
+LabRequestInputs _inputs({List<DiveTank>? tanks}) {
   final d = squareDive(depth: 45, bottomMinutes: 30);
   return LabRequestInputs(
     dive: Dive(id: 'd', diveNumber: 1, dateTime: DateTime(2026)),
@@ -28,7 +30,7 @@ LabRequestInputs _inputs() {
     depths: d.depths,
     timestamps: d.timestamps,
     diveMode: DiveMode.oc,
-    tanks: d.tanks,
+    tanks: tanks ?? d.tanks,
     gasSwitches: d.switches,
     tankPressures: d.tankPressures,
     startCns: 0,
@@ -126,5 +128,29 @@ void main() {
     await tester.pump();
     expect(find.textContaining('engine down'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('the back gas tile reads the back-gas cylinder, not the first', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    // A logbook may list the deco cylinder before the back gas.
+    final inputs = _inputs(tanks: [..._inputs().tanks.reversed]);
+    final outcome = _outcome(inputs);
+    final back = outcome.consumption.counterfactualFor('back')!.endPressureBar;
+    final deco = outcome.consumption
+        .counterfactualFor('deco50')!
+        .endPressureBar;
+    expect(back, isNot(deco));
+    await tester.pumpWidget(
+      _harness(LabDeltaPanel(inputs: inputs, outcome: outcome)),
+    );
+    await tester.pump();
+    final tile = tester.widget<PlanStatTile>(
+      find.byWidgetPredicate((w) => w is PlanStatTile && w.label == 'Back gas'),
+    );
+    expect(tile.value, const UnitFormatter(AppSettings()).formatPressure(back));
   });
 }

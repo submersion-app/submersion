@@ -15,7 +15,7 @@ enum DeltaMetric {
   otuEnd(DeltaUnit.count, BetterWhen.lower, 50),
   maxPpO2AfterBranch(DeltaUnit.bar, BetterWhen.lower, 0.1),
   tankEndPressure(DeltaUnit.bar, BetterWhen.higher, 20),
-  gasOutTime(DeltaUnit.seconds, BetterWhen.neutral, 60),
+  gasOutTime(DeltaUnit.seconds, BetterWhen.higher, 60),
   minGasMarginAtBranch(DeltaUnit.bar, BetterWhen.higher, 20),
   ceilingViolations(DeltaUnit.count, BetterWhen.lower, 1),
   worstCeilingViolation(DeltaUnit.meters, BetterWhen.lower, 1);

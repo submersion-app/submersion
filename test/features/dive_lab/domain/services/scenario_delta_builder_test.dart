@@ -150,6 +150,10 @@ void main() {
     expect(go.tankId, 'back');
   });
 
+  test('running out of gas later is the better outcome', () {
+    expect(DeltaMetric.gasOutTime.betterWhen, BetterWhen.higher);
+  });
+
   test('ceiling violations count samples below the ceiling after branch', () {
     final d = squareDive();
     final a = _analyze(d);

@@ -147,7 +147,7 @@ LabSlateScenario labSlateScenario(
             for (final stop in planOutcome.stops)
               [
                 units.formatDepth(stop.depthMeters, decimals: 0),
-                '${(stop.durationSeconds / 60).ceil()} min',
+                formatLabMinutes(stop.durationSeconds),
                 formatLabTime(
                   outcome.branch.runtimeSeconds +
                       stop.arrivalRuntimeSeconds +
