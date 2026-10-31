@@ -97,27 +97,24 @@ _decoPanelCards(
   DiveDetailAnalysisRetention retention,
 ) {
   final selectedPointIndex = ref.watch(profileTrackingIndexProvider(dive.id));
-  final current = ref
-      .watch(
-        sourceProfileAnalysisProvider((
-          diveId: dive.id,
-          sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-        )),
-      )
-      .valueOrNull;
+  final key = (
+    diveId: dive.id,
+    sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+  );
+  final current = ref.watch(sourceProfileAnalysisProvider(key)).valueOrNull;
   // A withheld analysis is a real answer, not a transient blank: it carries
   // the reason the deco cards are missing, so it is usable and retained.
   final isUsable =
       current != null &&
       (current.decoStatuses.isNotEmpty || current.tissueLoadingWithheld);
 
-  // Retain the last usable analysis for THIS dive and fall back to it when the
-  // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
-  // read), so a single transient null doesn't blink the cards out. A dive that
-  // has genuinely never produced an analysis falls through to the null below
-  // and correctly shows nothing.
-  if (isUsable) retention.retainDecoPanel(dive.id, current);
-  final analysis = isUsable ? current : retention.decoPanelFor(dive.id);
+  // Retain the last usable analysis for THIS dive and source and fall back to
+  // it when the provider momentarily yields null/empty (e.g. a mid-sync
+  // empty-profile read), so a single transient null doesn't blink the cards
+  // out. A dive that has genuinely never produced an analysis falls through to
+  // the null below and correctly shows nothing.
+  if (isUsable) retention.retainDecoPanel(key, current);
+  final analysis = isUsable ? current : retention.decoPanelFor(key);
 
   // Don't show if no analysis is, or ever was, available for this dive.
   if (analysis == null ||
@@ -130,8 +127,7 @@ _decoPanelCards(
   // against that series and never against the merged dive.profile: on a
   // consolidated dive the union has every computer's samples, so the same
   // index lands on a different time (#543).
-  final chartProfile =
-      ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
+  final chartProfile = watchChartProfile(ref, dive);
   final String? timeSubtitle =
       selectedPointIndex != null && selectedPointIndex < chartProfile.length
       ? context.l10n.diveLog_detail_collapsed_atTime(

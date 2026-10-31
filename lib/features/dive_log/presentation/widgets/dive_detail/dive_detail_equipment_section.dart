@@ -22,6 +22,9 @@ class DiveEquipmentSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Get collapsed state from provider
     final isExpanded = ref.watch(equipmentSectionExpandedProvider);
+    final showFigure = ref.watch(
+      settingsProvider.select((s) => s.showDiveFigure),
+    );
 
     // Collapsed subtitle showing the top-level row count as the tree view
     // places it: an assembly's parts sit inside its row, and an orphaned
@@ -55,9 +58,7 @@ class DiveEquipmentSection extends ConsumerWidget {
         // against this dive's diver, as the tree alone did (issue #2046).
         child: DiveGearWithFigure(
           dive: dive,
-          showFigure: ref.watch(
-            settingsProvider.select((s) => s.showDiveFigure),
-          ),
+          showFigure: showFigure,
           showServiceStatus: diveGearShowsLiveServiceStatus(
             dive,
             DateTime.now(),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
@@ -8,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
@@ -53,25 +53,13 @@ class DiveTideSection extends ConsumerWidget {
   /// no tide data to show. [watchHasTide] answers the same question for the
   /// section list, which is what lets a pair form around this card.
   Widget? _tideCard(BuildContext context, WidgetRef ref) {
-    // Freshwater dives have no tides; hide the section entirely, even when
-    // an old stored record exists. The dive's own water type wins over its
-    // site's, as everywhere else (Dive.effectiveWaterType).
-    if (dive.effectiveWaterType == WaterType.fresh) return null;
+    final request = diveTideRequest(dive);
+    if (request == null) return null;
+    final siteLocation = request.location;
+    final entryTime = request.entryTime;
 
-    // Tide times are shown in the dive site's own clock; a site without
-    // coordinates has none, so there is no tide card.
-    final siteLocation = dive.site?.location;
-    if (siteLocation == null) return null;
-
-    final entryTime = dive.effectiveEntryTime;
     // The stored record, lazily self-healed against a fresh computation.
-    final tideRecordAsync = ref.watch(
-      healedTideRecordProvider((
-        diveId: dive.id,
-        location: siteLocation,
-        entryTime: entryTime,
-      )),
-    );
+    final tideRecordAsync = ref.watch(healedTideRecordProvider(request));
 
     return tideRecordAsync.when<Widget?>(
       data: (tideRecord) {
@@ -86,13 +74,7 @@ class DiveTideSection extends ConsumerWidget {
 
         // Nothing stored: the model's answer, computed off the UI thread.
         final calculated = ref
-            .watch(
-              calculatedTideRecordProvider((
-                diveId: dive.id,
-                location: siteLocation,
-                entryTime: entryTime,
-              )),
-            )
+            .watch(calculatedTideRecordProvider(request))
             .value;
         if (calculated == null) return null;
         return _buildTideCard(

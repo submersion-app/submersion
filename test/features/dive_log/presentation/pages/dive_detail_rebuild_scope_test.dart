@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -31,6 +33,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
@@ -398,6 +401,38 @@ void main() {
 
     expect(identical(chart(tester), before), isFalse);
     expect(chart(tester).tanks?.single.endPressure, 90);
+  });
+
+  testWidgets('sections appearing on both sides of a card leave it mounted', (
+    tester,
+  ) async {
+    // One side alone would pass without the section keys: Flutter matches a
+    // list of children from both ends, and only the part between the first
+    // and the last difference needs keys to find its way.
+    final container = await pumpDetail(tester);
+    final before = tester.element(find.byType(DiveNotesSection));
+
+    current = current.copyWith(
+      customFields: const [DiveCustomField(id: 'field-1', key: 'Permit')],
+      tags: [
+        Tag(
+          id: 'tag-1',
+          name: 'Wreck',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    container.invalidate(diveProvider(current.id));
+    await settle(tester);
+
+    expect(find.byType(DiveTagsSection), findsOneWidget);
+    expect(find.byType(DiveCustomFieldsSection), findsOneWidget);
+    expect(
+      identical(tester.element(find.byType(DiveNotesSection)), before),
+      isTrue,
+      reason: 'a remount would drop any state inside the section',
+    );
   });
 
   group('the notes card keeps its widget instance through', () {

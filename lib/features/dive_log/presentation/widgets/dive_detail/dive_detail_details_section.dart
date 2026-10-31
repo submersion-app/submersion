@@ -180,7 +180,7 @@ class DiveDetailsSection extends ConsumerWidget {
                 dive,
                 activeComputerId: activeComputerId,
               ),
-              // Surface interval - prefer imported value, fall back to calculated
+              // Surface interval: prefer imported value, fall back to calculated
               if (dive.surfaceInterval != null)
                 Builder(
                   builder: (context) {

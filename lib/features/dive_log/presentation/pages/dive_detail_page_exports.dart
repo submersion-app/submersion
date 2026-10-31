@@ -615,10 +615,10 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
             ),
             const Divider(height: 1),
             // Only offered when there is a chart to capture. The profile
-            // section does not build for an empty profile, so the
-            // RepaintBoundary _exportProfileChart reads would not exist and
-            // the export could only fail.
-            if (dive.profile.isNotEmpty)
+            // section does not build for an empty profile, and the diver can
+            // hide or fold it, so the RepaintBoundary _exportProfileChart
+            // reads may not exist, and then the export could only fail.
+            if (_profileChartExportKey.currentContext != null)
               ListTile(
                 leading: const Icon(Icons.show_chart),
                 title: Text(context.l10n.diveLog_export_profileAsImage),
@@ -728,7 +728,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       };
       if (!context.mounted) return;
       if (showProgress) Navigator.of(context, rootNavigator: true).pop();
-      // A null path means the save panel was dismissed - not a failure.
+      // A null path means the save panel was dismissed, not a failure.
       if (path == null) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

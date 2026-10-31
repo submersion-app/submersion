@@ -137,7 +137,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         // A folded row wants no gap above its content or itself: each row
         // draws its own divider, and the content starts flush under the
         // header.
-        final content = _sectionContent(context, ref, id, 0);
+        final content = _sectionContent(ref, id, 0);
         if (content == null) continue;
         children.add(
           _foldSection(
@@ -152,15 +152,15 @@ class DiveDetailSectionList extends ConsumerWidget {
       }
       final selfSpacing = _selfSpacingSections.contains(id);
       final content = _sectionContent(
-        context,
         ref,
         id,
         selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
       );
       if (content == null) continue;
       if (!selfSpacing) _addSectionGap(children, layout);
-      // Keyed so a section appearing above this one moves it rather than
-      // remounting it, which would drop the state inside.
+      // Keyed so sections coming and going on both sides of this one in the
+      // same rebuild move it rather than remounting it, which would drop the
+      // state inside.
       children.add(
         KeyedSubtree(key: ValueKey('diveSection_${id.name}'), child: content),
       );
@@ -181,7 +181,6 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// show after build; they take [topGap], the gap to put above themselves,
   /// and collapse to nothing when empty.
   Widget? _sectionContent(
-    BuildContext context,
     WidgetRef ref,
     DiveDetailSectionId id,
     double topGap,
@@ -255,7 +254,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         if (!diveHasWeights(dive)) return null;
         return DiveWeightSection(dive: dive);
       case DiveDetailSectionId.buoyancy:
-        if (dive.tanks.isEmpty && !diveHasExposureSuit(dive)) return null;
+        if (!diveHasBuoyancyInputs(dive)) return null;
         return DiveDetailBuoyancySection(dive: dive);
       case DiveDetailSectionId.tanks:
         if (dive.tanks.isEmpty) return null;
@@ -297,7 +296,7 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// Sections that decide whether they render from data that arrives after
   /// build: a tide model, sightings, safety findings.
   ///
-  /// Their builders always return a widget, so [_buildOrderedSections] cannot
+  /// Their builders always return a widget, so [build] cannot
   /// tell an empty one from a full one and must not put a gap above it; the
   /// widget takes the gap as an argument and places it only when it has
   /// content to place it above.

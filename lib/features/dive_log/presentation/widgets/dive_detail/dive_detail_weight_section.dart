@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_name_text.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -15,7 +14,6 @@ class DiveWeightSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!diveHasWeights(dive)) return const SizedBox.shrink();
     final units = ref.watch(unitFormatterProvider);
 
     // Combine new weights with legacy single weight for unified display

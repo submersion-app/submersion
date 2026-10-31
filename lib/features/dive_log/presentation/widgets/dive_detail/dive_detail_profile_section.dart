@@ -33,14 +33,16 @@ class DiveChartInputs extends Equatable {
 
   @override
   List<Object?> get props => [
+    // Equatable stops at the first difference, so the samples, by far the
+    // costliest to compare, go last.
     dive.id,
-    dive.profile,
-    dive.tanks,
     dive.effectiveRuntime,
     dive.maxDepth,
     dive.sac,
     dive.sacReferenceVolume,
     dive.isRebreather,
+    dive.tanks,
+    dive.profile,
   ];
 }
 
@@ -206,13 +208,6 @@ class _RangeToggle extends ConsumerWidget {
   }
 }
 
-/// The series the chart draws, resolved by the same one rule the chart itself
-/// uses (#543): the active source's own points on a multi-source dive,
-/// dive.profile otherwise. The point count and the range panel index it, so
-/// they must read the same series the curve was drawn from.
-List<DiveProfilePoint> _watchChartProfile(WidgetRef ref, Dive dive) =>
-    ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
-
 /// Profile point count (bottom-right, inline with x-axis)
 class _ProfilePointCount extends ConsumerWidget {
   const _ProfilePointCount({required this.dive});
@@ -221,7 +216,7 @@ class _ProfilePointCount extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chartProfile = _watchChartProfile(ref, dive);
+    final chartProfile = watchChartProfile(ref, dive);
     return Align(
       alignment: Alignment.centerRight,
       child: Text(
@@ -349,7 +344,7 @@ class _ProfileRangeStats extends ConsumerWidget {
         const SizedBox(height: 16),
         RangeStatsPanel(
           diveId: dive.id,
-          profile: _watchChartProfile(ref, dive),
+          profile: watchChartProfile(ref, dive),
           units: ref.watch(unitFormatterProvider),
           tanks: dive.tanks,
           isRebreather: dive.isRebreather,

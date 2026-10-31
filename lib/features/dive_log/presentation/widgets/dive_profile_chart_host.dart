@@ -142,8 +142,9 @@ class DiveProfileChartHost extends ConsumerWidget {
     // these providers reload behind any detail change tick (the first-view
     // safety review write included): the chart would drop its overlays and
     // estimated pressure series for a frame, then draw them again (#1468).
-    // Each is selected, so a reload that ends where it began rebuilds nothing:
-    // the host only rebuilds, and rebuilds the chart, for a value that changed.
+    // Each is selected, which drops the loading states a reload passes
+    // through: the host only rebuilds, and rebuilds the chart, for a value
+    // that differs. A list compares by identity, so one read again differs.
     final activeSourceId = ref.watch(activeDiveSourceProvider(diveId));
     final analysis = ref.watch(
       sourceProfileAnalysisProvider((

@@ -196,10 +196,10 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
   }
 
   /// Whether any linked buddy on this dive still lacks a sibling (issue
-  /// #2002). Call it while the page builds and hand the result to the menu,
-  /// never from a menu's itemBuilder: that runs outside build, so its first
-  /// read is still loading and the next rebuild drops the subscription,
-  /// which disposes the provider before the menu opens again (issue #2367).
+  /// #2002). Call it from build, never from a menu's itemBuilder: that runs
+  /// outside build, so its first read is still loading and the next rebuild
+  /// drops the subscription, which disposes the provider before the menu
+  /// opens again (issue #2367).
   bool _hasMirrorCandidates(WidgetRef ref) {
     if (dive.isPlanned) return false;
     final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;

@@ -11,6 +11,18 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
   String get diveId => widget.diveId;
 
+  /// Re-reads everything that shows [id]'s samples and sources.
+  ///
+  /// Takes the container rather than using ref: the actions that call this
+  /// finish after a wait the diver can leave during, and the dive list still
+  /// reads the same dive once this State is gone.
+  void _refreshDive(ProviderContainer container, String id) {
+    container.invalidate(diveProvider(id));
+    container.invalidate(diveProfileProvider(id));
+    container.invalidate(sourceProfilesProvider(id));
+    container.invalidate(diveDataSourcesProvider(id));
+  }
+
   Future<void> _addPhotos(Dive dive) async {
     await PhotoImportHelper.importPhotosForDive(
       context: context,
@@ -22,14 +34,13 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   Future<void> _linkPreDiveChecklist(BuildContext context, Dive dive) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_linked;
+    final repository = ref.read(preDiveSessionRepositoryProvider);
     final sessionId = await showLinkSessionPicker(
       context,
       diverId: dive.diverId,
     );
     if (sessionId == null) return;
-    await ref
-        .read(preDiveSessionRepositoryProvider)
-        .linkToDive(sessionId, dive.id);
+    await repository.linkToDive(sessionId, dive.id);
     // Nothing on this page renders the link, so the snackbar is the only
     // evidence the write happened.
     messenger.showSnackBar(SnackBar(content: Text(confirmation)));
@@ -247,6 +258,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
     try {
       final newDiveId = await ref
           .read(diveSplitServiceProvider)
@@ -255,13 +267,10 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       scheduleQualityScan([dive.id, newDiveId]);
       scheduleSensorSummaryRefresh([dive.id, newDiveId]);
       scheduleDerivedMetricsRefresh([dive.id, newDiveId]);
+      _refreshDive(container, dive.id);
+      container.invalidate(paginatedDiveListProvider);
+      container.invalidate(divesProvider);
       if (!mounted) return;
-      ref.invalidate(diveProvider(dive.id));
-      ref.invalidate(diveProfileProvider(dive.id));
-      ref.invalidate(sourceProfilesProvider(dive.id));
-      ref.invalidate(diveDataSourcesProvider(dive.id));
-      ref.invalidate(paginatedDiveListProvider);
-      ref.invalidate(divesProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.diveLog_sources_splitDone),
@@ -298,6 +307,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
     try {
       final newDiveIds = await ref
           .read(diveUncombineServiceProvider)
@@ -306,14 +316,11 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       scheduleQualityScan([dive.id, ...newDiveIds]);
       scheduleSensorSummaryRefresh([dive.id, ...newDiveIds]);
       scheduleDerivedMetricsRefresh([dive.id, ...newDiveIds]);
+      _refreshDive(container, dive.id);
+      container.invalidate(diveSegmentCountProvider(dive.id));
+      container.invalidate(paginatedDiveListProvider);
+      container.invalidate(divesProvider);
       if (!mounted) return;
-      ref.invalidate(diveProvider(dive.id));
-      ref.invalidate(diveProfileProvider(dive.id));
-      ref.invalidate(sourceProfilesProvider(dive.id));
-      ref.invalidate(diveDataSourcesProvider(dive.id));
-      ref.invalidate(diveSegmentCountProvider(dive.id));
-      ref.invalidate(paginatedDiveListProvider);
-      ref.invalidate(divesProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -332,15 +339,20 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
   Future<void> _setPrimarySource(String readingId) async {
     final diveId = this.diveId;
-    final repository = ref.read(diveRepositoryProvider);
-    await repository.setPrimaryDataSource(
-      diveId: diveId,
-      computerReadingId: readingId,
-    );
-    ref.invalidate(diveProvider(diveId));
-    ref.invalidate(diveProfileProvider(diveId));
-    ref.invalidate(sourceProfilesProvider(diveId));
-    ref.invalidate(diveDataSourcesProvider(diveId));
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage = context.l10n.common_error_tryAgain;
+    try {
+      await ref
+          .read(diveRepositoryProvider)
+          .setPrimaryDataSource(diveId: diveId, computerReadingId: readingId);
+    } catch (_) {
+      // Nothing awaits this callback, so a failure must not escape, and the
+      // chip staying as it was would explain nothing.
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
+      return;
+    }
+    _refreshDive(container, diveId);
   }
 
   Future<void> _reparseDive(
@@ -350,6 +362,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   ) async {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
+    final container = ProviderScope.containerOf(context, listen: false);
 
     final result = await service.reparseDive(
       dive.id,
@@ -358,10 +371,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     final errors = result.errors;
 
     // Invalidate providers so the UI reflects the re-parsed data.
-    ref.invalidate(diveProvider(dive.id));
-    ref.invalidate(diveProfileProvider(dive.id));
-    ref.invalidate(sourceProfilesProvider(dive.id));
-    ref.invalidate(diveDataSourcesProvider(dive.id));
+    _refreshDive(container, dive.id);
 
     if (context.mounted) {
       if (errors.isEmpty) {
@@ -395,6 +405,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     if (!demoSealGuard(context, DemoSealedFeature.diveComputerDownload)) return;
     final orchestrator = ref.read(diveResyncOrchestratorProvider);
     final l10n = context.l10n;
+    final container = ProviderScope.containerOf(context, listen: false);
 
     DiveResyncOutcome outcome;
     try {
@@ -409,10 +420,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       );
     }
 
-    ref.invalidate(diveProvider(dive.id));
-    ref.invalidate(diveProfileProvider(dive.id));
-    ref.invalidate(sourceProfilesProvider(dive.id));
-    ref.invalidate(diveDataSourcesProvider(dive.id));
+    _refreshDive(container, dive.id);
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

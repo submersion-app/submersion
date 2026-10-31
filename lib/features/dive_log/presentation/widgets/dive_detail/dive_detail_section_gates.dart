@@ -7,6 +7,8 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show GeoPoint;
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
@@ -32,6 +34,11 @@ bool diveHasWeights(Dive dive) {
 bool diveHasExposureSuit(Dive dive) => dive.equipment.any(
   (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,
 );
+
+/// Whether the buoyancy model has anything to work from: a tank, or a suit to
+/// account for.
+bool diveHasBuoyancyInputs(Dive dive) =>
+    dive.tanks.isNotEmpty || diveHasExposureSuit(dive);
 
 /// Whether the Environment card has anything to show: a logged weather or
 /// dive-conditions field, or satellite water conditions for the dive date.
@@ -101,21 +108,34 @@ bool _hasLoggedEnvironmentData(Dive dive) {
   return (health: health, reefPossible: reefPossible);
 }
 
+/// What the tide providers are asked for [dive], or null when it can have no
+/// tides to show.
+///
+/// Freshwater dives have no tides, even when an old stored record exists; the
+/// dive's own water type wins over its site's, as everywhere else
+/// (Dive.effectiveWaterType). Tide times are shown in the dive site's own
+/// clock, so a site without coordinates has none to show them in.
+({String diveId, GeoPoint location, DateTime entryTime})? diveTideRequest(
+  Dive dive,
+) {
+  if (dive.effectiveWaterType == WaterType.fresh) return null;
+  final location = dive.site?.location;
+  if (location == null) return null;
+  return (
+    diveId: dive.id,
+    location: location,
+    entryTime: dive.effectiveEntryTime,
+  );
+}
+
 /// Whether the dive has tide data to show, stored or modelled.
 ///
 /// Mirrors what `DiveTideSection` renders, read down to that one answer: a
 /// stored record, else the model's result; nothing while either is loading or
-/// failed. Freshwater dives have no tides, and a site without coordinates has
-/// no clock to show them in.
+/// failed.
 bool watchHasTide(WidgetRef ref, Dive dive) {
-  if (dive.effectiveWaterType == WaterType.fresh) return false;
-  final siteLocation = dive.site?.location;
-  if (siteLocation == null) return false;
-  final request = (
-    diveId: dive.id,
-    location: siteLocation,
-    entryTime: dive.effectiveEntryTime,
-  );
+  final request = diveTideRequest(dive);
+  if (request == null) return false;
   // Null while it loads or if it failed; otherwise whether a record is stored.
   final hasStoredRecord = ref.watch(
     healedTideRecordProvider(
@@ -148,11 +168,12 @@ bool watchHasSacSegments(
   final computerId = ref.watch(
     activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
   );
+  final key = (
+    diveId: dive.id,
+    sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+  );
   final hasSegments = ref.watch(
-    sourceProfileAnalysisProvider((
-      diveId: dive.id,
-      sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-    )).select(
+    sourceProfileAnalysisProvider(key).select(
       (a) =>
           (a.value?.sacSegments?.isNotEmpty ?? false) ||
           sacSegmentsLackRecordedPressure(
@@ -162,7 +183,7 @@ bool watchHasSacSegments(
           ),
     ),
   );
-  return hasSegments || retention.sacSegmentsFor(dive.id) != null;
+  return hasSegments || retention.sacSegmentsFor(key) != null;
 }
 
 /// Whether the Buoyancy card has a modelled result to show.
@@ -171,7 +192,7 @@ bool watchHasSacSegments(
 /// unmodelable dive, and keeps its last outcome through a reload; this reads
 /// the provider the same way, narrowed to that answer.
 bool watchHasBuoyancy(WidgetRef ref, Dive dive) {
-  if (dive.tanks.isEmpty && !diveHasExposureSuit(dive)) return false;
+  if (!diveHasBuoyancyInputs(dive)) return false;
   return ref.watch(
     buoyancyTwinProvider(dive.id).select((a) => a.value != null),
   );

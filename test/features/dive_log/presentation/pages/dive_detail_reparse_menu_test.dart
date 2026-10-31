@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Uint8List;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +28,12 @@ import '../../../../helpers/mock_providers.dart';
 /// `pigeon.DiveComputerHostApi().parseRawDiveData` tear-off is never invoked
 /// and no platform channel is touched.
 class _FakeReparseService extends ReparseService {
-  _FakeReparseService({required super.db, required this.result});
+  _FakeReparseService({required super.db, required this.result, this.gate});
 
   final ({List<String> errors, int profilesPreserved}) result;
+
+  /// Holds the re-parse open until completed.
+  final Completer<void>? gate;
   final reparsedDiveIds = <String>[];
 
   @override
@@ -43,12 +48,15 @@ class _FakeReparseService extends ReparseService {
     parseFn,
   }) async {
     reparsedDiveIds.add(diveId);
+    await gate?.future;
     return result;
   }
 }
 
 void main() {
   late AppDatabase db;
+  late GoRouter router;
+  late int diveReads;
 
   setUp(
     () =>
@@ -60,12 +68,14 @@ void main() {
     WidgetTester tester, {
     required ({List<String> errors, int profilesPreserved}) result,
     bool embedded = false,
+    Completer<void>? gate,
   }) async {
     final dive = createTestDiveWithBottomTime();
     final overrides = await getBaseOverrides();
-    final service = _FakeReparseService(db: db, result: result);
+    final service = _FakeReparseService(db: db, result: result, gate: gate);
+    diveReads = 0;
 
-    final router = GoRouter(
+    router = GoRouter(
       initialLocation: '/detail',
       routes: [
         GoRoute(
@@ -76,6 +86,10 @@ void main() {
           builder: (context, state) => embedded
               ? Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true))
               : DiveDetailPage(diveId: dive.id),
+        ),
+        GoRoute(
+          path: '/elsewhere',
+          builder: (context, state) => const SizedBox.shrink(),
         ),
       ],
     );
@@ -93,7 +107,10 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          diveProvider(dive.id).overrideWith((ref) async => dive),
+          diveProvider(dive.id).overrideWith((ref) async {
+            diveReads++;
+            return dive;
+          }),
           diveDataSourcesProvider(
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
@@ -165,6 +182,38 @@ void main() {
     await tapReparse(tester);
 
     expect(find.text('Re-parse failed: native bridge error'), findsOneWidget);
+  });
+
+  testWidgets('leaving while it runs still refreshes the dive', (tester) async {
+    // A re-parse takes a while and nothing holds the diver on the page. The
+    // list reads this dive too, so the refresh must not depend on the page
+    // that started it, and using a dead ref here would throw a StateError.
+    final gate = Completer<void>();
+    await pumpDetail(
+      tester,
+      result: (errors: <String>[], profilesPreserved: 0),
+      gate: gate,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    final subscription = container.listen(
+      diveProvider('test-dive-1'),
+      (_, _) {},
+    );
+    addTearDown(subscription.close);
+
+    await tapReparse(tester);
+    router.go('/elsewhere');
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveDetailPage), findsNothing);
+    final readsBefore = diveReads;
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(diveReads, readsBefore + 1);
   });
 
   testWidgets('the embedded app bar runs the same action', (tester) async {

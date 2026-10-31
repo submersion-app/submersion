@@ -84,7 +84,7 @@ class _TrainingSignatureCard extends ConsumerWidget {
                   );
                 }
 
-                // No signature yet - show add signature button
+                // No signature yet: show add signature button
                 return _buildAddSignatureButton(context, ref);
               },
               loading: () => const Padding(

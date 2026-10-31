@@ -36,25 +36,24 @@ class DiveSacSegmentsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedPointIndex = ref.watch(profileTrackingIndexProvider(dive.id));
-    final currentAsync = ref.watch(
-      sourceProfileAnalysisProvider((
-        diveId: dive.id,
-        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-      )),
+    final key = (
+      diveId: dive.id,
+      sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
     );
+    final currentAsync = ref.watch(sourceProfileAnalysisProvider(key));
     final current = currentAsync.valueOrNull;
     final isUsable =
         current != null &&
         current.sacSegments != null &&
         current.sacSegments!.isNotEmpty;
 
-    // Retain the last usable analysis for THIS dive and fall back to it when the
-    // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
-    // read), so a single transient null doesn't blink the card out. A dive that
-    // has genuinely never produced segments falls through to the
-    // SizedBox.shrink below and correctly shows nothing.
-    if (isUsable) retention.retainSacSegments(dive.id, current);
-    final analysis = isUsable ? current : retention.sacSegmentsFor(dive.id);
+    // Retain the last usable analysis for THIS dive and source and fall back
+    // to it when the provider momentarily yields null/empty (e.g. a mid-sync
+    // empty-profile read), so a single transient null doesn't blink the card
+    // out. A dive that has genuinely never produced segments falls through to
+    // the SizedBox.shrink below and correctly shows nothing.
+    if (isUsable) retention.retainSacSegments(key, current);
+    final analysis = isUsable ? current : retention.sacSegmentsFor(key);
 
     final units = ref.watch(unitFormatterProvider);
     final display = ref.watch(gasConsumptionDisplayProvider);
@@ -151,8 +150,7 @@ class DiveSacSegmentsSection extends ConsumerWidget {
     // non-overlapping segments for correct timestamp matching). The index is
     // a chart index, so it is resolved against the series the chart draws
     // (#543), see activeSourceProfileProvider.
-    final chartProfile =
-        ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
+    final chartProfile = watchChartProfile(ref, dive);
     DivePhase? selectedPhase;
     int? selectedSegmentIndex;
     if (selectedPointIndex != null &&

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -22,12 +25,21 @@ import '../../../../helpers/mock_providers.dart';
 class _RecordingDiveRepository extends Fake implements DiveRepository {
   final setPrimaryCalls = <(String, String)>[];
 
+  /// Holds the write open until completed.
+  Completer<void>? gate;
+
+  /// Thrown from the write when set.
+  Object? failure;
+
   @override
   Future<void> setPrimaryDataSource({
     required String diveId,
     required String computerReadingId,
   }) async {
     setPrimaryCalls.add((diveId, computerReadingId));
+    await gate?.future;
+    final failure = this.failure;
+    if (failure != null) throw failure;
   }
 }
 
@@ -36,13 +48,33 @@ class _RecordingSplitService extends DiveSplitService {
 
   final calls = <(String, String)>[];
 
+  /// Holds the split open until completed.
+  Completer<void>? gate;
+
   @override
   Future<String> split({
     required String diveId,
     required String sourceId,
   }) async {
     calls.add((diveId, sourceId));
+    await gate?.future;
     return 'new-dive-id';
+  }
+}
+
+class _GatedUncombineService extends DiveUncombineService {
+  _GatedUncombineService() : super(DiveRepository());
+
+  /// Holds the separate open until completed.
+  Completer<void>? gate;
+
+  final calls = <String>[];
+
+  @override
+  Future<List<String>> separate({required String diveId}) async {
+    calls.add(diveId);
+    await gate?.future;
+    return ['restored-dive-id'];
   }
 }
 
@@ -84,8 +116,15 @@ void main() {
   late Map<String, SourceProfile> profiles;
   late _RecordingSplitService splitService;
   late _RecordingDiveRepository repository;
+  late _GatedUncombineService uncombineService;
+  late ValueNotifier<bool> showPage;
+  late int diveReads;
 
   setUp(() {
+    uncombineService = _GatedUncombineService();
+    showPage = ValueNotifier(true);
+    addTearDown(showPage.dispose);
+    diveReads = 0;
     dive = createTestDiveWithBottomTime().copyWith(profile: _points(6));
     sources = [
       source(
@@ -119,6 +158,11 @@ void main() {
     repository = _RecordingDiveRepository();
   });
 
+  Finder inSourceBar(Finder matching) =>
+      find.descendant(of: find.byType(SourceBar), matching: matching);
+
+  Finder inSourceBarMenu() => inSourceBar(find.byIcon(Icons.more_vert)).last;
+
   Future<void> pumpPage(WidgetTester tester) async {
     final base = await getBaseOverrides();
     final originalOnError = FlutterError.onError;
@@ -130,7 +174,10 @@ void main() {
       ProviderScope(
         overrides: [
           ...base,
-          diveProvider(dive.id).overrideWith((ref) async => dive),
+          diveProvider(dive.id).overrideWith((ref) async {
+            diveReads++;
+            return dive;
+          }),
           diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),
           sourceProfilesProvider(dive.id).overrideWith((ref) async => profiles),
           gasSwitchesProvider(
@@ -140,6 +187,8 @@ void main() {
             dive.id,
           ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
           diveSplitServiceProvider.overrideWithValue(splitService),
+          diveUncombineServiceProvider.overrideWithValue(uncombineService),
+          diveSegmentCountProvider(dive.id).overrideWith((ref) async => 2),
           diveRepositoryProvider.overrideWithValue(repository),
           computersForDiveProvider(dive.id).overrideWith(
             (ref) async => [
@@ -165,7 +214,14 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true)),
+          home: ValueListenableBuilder<bool>(
+            valueListenable: showPage,
+            builder: (context, show, _) => show
+                ? Scaffold(
+                    body: DiveDetailPage(diveId: dive.id, embedded: true),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ),
       ),
     );
@@ -174,8 +230,31 @@ void main() {
     FlutterError.onError = originalOnError;
   }
 
-  Finder inSourceBar(Finder matching) =>
-      find.descendant(of: find.byType(SourceBar), matching: matching);
+  /// Keeps the dive read alive once the page is gone, as the dive list does,
+  /// so a refresh shows up in [diveReads].
+  void listenToDive(WidgetTester tester) {
+    final subscription = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    ).listen(diveProvider(dive.id), (_, _) {});
+    addTearDown(subscription.close);
+  }
+
+  /// Takes the page away while an action started from it is still running.
+  Future<int> leavePage(WidgetTester tester) async {
+    showPage.value = false;
+    await tester.pump();
+    expect(find.byType(DiveDetailPage), findsNothing);
+    return diveReads;
+  }
+
+  Future<void> tapSetPrimary(WidgetTester tester) async {
+    await tester.ensureVisible(inSourceBarMenu());
+    await tester.pump();
+    await tester.tap(inSourceBarMenu());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Set as primary'));
+    await tester.pump();
+  }
 
   testWidgets(
     'sources bar shows both resolved names and never Unknown Computer',
@@ -307,6 +386,85 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(repository.setPrimaryCalls, [(dive.id, 'src-b')]);
+  });
+
+  testWidgets('leaving during a set primary still refreshes the dive', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    listenToDive(tester);
+    final gate = repository.gate = Completer<void>();
+
+    await tapSetPrimary(tester);
+    final readsBefore = await leavePage(tester);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(diveReads, readsBefore + 1);
+  });
+
+  testWidgets('a set primary that fails tells the diver', (tester) async {
+    await pumpPage(tester);
+    repository.failure = StateError('the write failed');
+
+    await tapSetPrimary(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('leaving during a split still refreshes the dive', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpPage(tester);
+    listenToDive(tester);
+    final gate = splitService.gate = Completer<void>();
+
+    tester.widget<DataSourcesSection>(find.byType(DataSourcesSection)).onSplit!(
+      'src-b',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Split'));
+    await tester.pump();
+    final readsBefore = await leavePage(tester);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(diveReads, readsBefore + 1);
+  });
+
+  testWidgets('leaving during a separate still refreshes the dive', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpPage(tester);
+    listenToDive(tester);
+    final gate = uncombineService.gate = Completer<void>();
+
+    tester
+        .widget<DataSourcesSection>(find.byType(DataSourcesSection))
+        .onSeparate!();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Separate'));
+    await tester.pump();
+    expect(uncombineService.calls, [dive.id]);
+    final readsBefore = await leavePage(tester);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(diveReads, readsBefore + 1);
   });
 
   testWidgets(

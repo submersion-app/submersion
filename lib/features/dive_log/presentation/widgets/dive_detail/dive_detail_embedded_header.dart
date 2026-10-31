@@ -117,7 +117,7 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
                       .toggleFavorite(dive.id);
                 },
               ),
-              // Edit button - use query params in master-detail layout
+              // Edit button: use query params in master-detail layout
               IconButton(
                 icon: const Icon(Icons.edit, size: 20),
                 visualDensity: VisualDensity.compact,

@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -107,90 +108,96 @@ void main() {
     );
   }
 
+  final dive = createTestDiveWithBottomTime().copyWith(profile: mergedProfile);
+
+  /// The page on a consolidated dive. The primary source has an analysis to
+  /// show and src-b, a source with no profile analysis, has none.
+  Future<ProviderContainer> pumpPage(WidgetTester tester) async {
+    final sources = [
+      source(id: 'src-a', computerId: 'dc-a', isPrimary: true),
+      source(id: 'src-b', computerId: 'dc-b', isPrimary: false),
+    ];
+    final profiles = {
+      'src-a': const SourceProfile(
+        sourceId: 'src-a',
+        computerId: 'dc-a',
+        isEdited: false,
+        points: pointsA,
+      ),
+      'src-b': const SourceProfile(
+        sourceId: 'src-b',
+        computerId: 'dc-b',
+        isEdited: false,
+        points: mergedProfile,
+      ),
+    };
+    final base = await getBaseOverrides();
+    final originalOnError = FlutterError.onError;
+    addTearDown(() => FlutterError.onError = originalOnError);
+    FlutterError.onError = (d) {
+      if (d.toString().contains('overflowed')) return;
+      originalOnError?.call(d);
+    };
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveProvider(dive.id).overrideWith((ref) async => dive),
+          diveDataSourcesProvider(dive.id).overrideWith((ref) async => sources),
+          sourceProfilesProvider(dive.id).overrideWith((ref) async => profiles),
+          gasSwitchesProvider(
+            dive.id,
+          ).overrideWith((ref) async => <GasSwitchWithTank>[]),
+          tankPressuresProvider(
+            dive.id,
+          ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: null,
+          )).overrideWith((ref) async => analysisWithDeco()),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: 'src-b',
+          )).overrideWith((ref) async => null),
+          weeklyOtuProvider(dive.id).overrideWith((ref) async => 0.0),
+          // The chart reported index 4 of the series it draws (pointsA).
+          profileTrackingIndexProvider(dive.id).overrideWith((ref) => 4),
+          computersForDiveProvider(dive.id).overrideWith(
+            (ref) async => [
+              DiveComputer(
+                id: 'dc-a',
+                name: 'dc-a',
+                createdAt: now,
+                updatedAt: now,
+              ),
+              DiveComputer(
+                id: 'dc-b',
+                name: 'dc-b',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    return ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+  }
+
   testWidgets(
     'the deco card "at time" follows the active source, not the merged profile',
     (tester) async {
-      final dive = createTestDiveWithBottomTime().copyWith(
-        profile: mergedProfile,
-      );
-      final sources = [
-        source(id: 'src-a', computerId: 'dc-a', isPrimary: true),
-        source(id: 'src-b', computerId: 'dc-b', isPrimary: false),
-      ];
-      final profiles = {
-        'src-a': const SourceProfile(
-          sourceId: 'src-a',
-          computerId: 'dc-a',
-          isEdited: false,
-          points: pointsA,
-        ),
-        'src-b': const SourceProfile(
-          sourceId: 'src-b',
-          computerId: 'dc-b',
-          isEdited: false,
-          points: mergedProfile,
-        ),
-      };
-      final base = await getBaseOverrides();
-      final originalOnError = FlutterError.onError;
-      addTearDown(() => FlutterError.onError = originalOnError);
-      FlutterError.onError = (d) {
-        if (d.toString().contains('overflowed')) return;
-        originalOnError?.call(d);
-      };
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...base,
-            diveProvider(dive.id).overrideWith((ref) async => dive),
-            diveDataSourcesProvider(
-              dive.id,
-            ).overrideWith((ref) async => sources),
-            sourceProfilesProvider(
-              dive.id,
-            ).overrideWith((ref) async => profiles),
-            gasSwitchesProvider(
-              dive.id,
-            ).overrideWith((ref) async => <GasSwitchWithTank>[]),
-            tankPressuresProvider(
-              dive.id,
-            ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
-            sourceProfileAnalysisProvider((
-              diveId: dive.id,
-              sourceId: null,
-            )).overrideWith((ref) async => analysisWithDeco()),
-            weeklyOtuProvider(dive.id).overrideWith((ref) async => 0.0),
-            // The chart reported index 4 of the series it draws (pointsA).
-            profileTrackingIndexProvider(dive.id).overrideWith((ref) => 4),
-            computersForDiveProvider(dive.id).overrideWith(
-              (ref) async => [
-                DiveComputer(
-                  id: 'dc-a',
-                  name: 'dc-a',
-                  createdAt: now,
-                  updatedAt: now,
-                ),
-                DiveComputer(
-                  id: 'dc-b',
-                  name: 'dc-b',
-                  createdAt: now,
-                  updatedAt: now,
-                ),
-              ],
-            ),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: DiveDetailPage(diveId: dive.id, embedded: true),
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(seconds: 1));
+      await pumpPage(tester);
 
       final card = tester.widget<CompactDecoStatusCard>(
         find.byType(CompactDecoStatusCard),
@@ -199,4 +206,19 @@ void main() {
       expect(card.subtitle, '4:00');
     },
   );
+
+  testWidgets('a source with no analysis shows none, not the last source\'s', (
+    tester,
+  ) async {
+    final container = await pumpPage(tester);
+    expect(find.byType(CompactDecoStatusCard), findsOneWidget);
+
+    container.read(activeDiveSourceProvider(dive.id).notifier).state = 'src-b';
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // The kept analysis is for riding out a blip in one source's read. On
+    // another source it would pass one computer's deco off as this one's.
+    expect(find.byType(CompactDecoStatusCard), findsNothing);
+  });
 }
