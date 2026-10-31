@@ -57,11 +57,15 @@ class InventoryReport {
   final List<MapEntry<String, double>> totals;
   final List<InventoryGroup> groups;
 
+  /// What a legacy row with a blank currency prints in.
+  final String fallbackCurrency;
+
   const InventoryReport({
     required this.itemCount,
     required this.unpricedCount,
     required this.totals,
     required this.groups,
+    required this.fallbackCurrency,
   });
 
   bool get isEmpty => groups.isEmpty;
@@ -115,6 +119,7 @@ InventoryReport buildInventoryReport({
         .length,
     totals: _sum(rows, fallbackCurrency),
     groups: groups,
+    fallbackCurrency: fallbackCurrency,
   );
 }
 

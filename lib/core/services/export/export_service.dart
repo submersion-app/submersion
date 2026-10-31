@@ -16,6 +16,7 @@ import 'package:submersion/core/services/export/models/uddf_export_options.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
+import 'package:submersion/core/services/export/pdf/equipment_inventory_pdf_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart'
@@ -49,6 +50,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -80,6 +82,7 @@ class ExportService {
   final _blenderInvoicePdf = BlenderInvoicePdfExportService();
   final _excel = ExcelExportService();
   final _maintenance = MaintenanceExcelExportService();
+  final _equipmentInventory = EquipmentInventoryPdfExportService();
   final _blenderInvoiceExcel = BlenderInvoiceExcelExportService();
   final _kml = KmlExportService();
   final _uddf = UddfExportService();
@@ -547,6 +550,42 @@ class ExportService {
     required List<MaintenanceLogRow> rows,
     required DateFormatPreference dateFormat,
   }) => _maintenance.saveToFile(rows: rows, dateFormat: dateFormat);
+
+  // ==================== Equipment Reports ====================
+
+  Future<String> exportEquipmentInventory(
+    InventoryReport report, {
+    required InventoryReportOptions options,
+    required String? diverName,
+    required UnitFormatter units,
+    required DateTime printedAt,
+    PdfLocalization? localization,
+    Rect? sharePositionOrigin,
+  }) => _equipmentInventory.exportToPdf(
+    report,
+    options: options,
+    diverName: diverName,
+    units: units,
+    printedAt: printedAt,
+    localization: localization,
+    sharePositionOrigin: sharePositionOrigin,
+  );
+
+  Future<String?> saveEquipmentInventoryToFile(
+    InventoryReport report, {
+    required InventoryReportOptions options,
+    required String? diverName,
+    required UnitFormatter units,
+    required DateTime printedAt,
+    PdfLocalization? localization,
+  }) => _equipmentInventory.saveToFile(
+    report,
+    options: options,
+    diverName: diverName,
+    units: units,
+    printedAt: printedAt,
+    localization: localization,
+  );
 
   // ==================== KML Export ====================
 
