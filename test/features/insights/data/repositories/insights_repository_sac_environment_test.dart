@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -173,6 +174,60 @@ void main() {
       points.single.value,
       closeTo(dropBar / minutes / fresh.pressureAtDepth(avgDepth), 1e-9),
     );
+  });
+
+  group('a blank water type means none was recorded', () {
+    const fresh = DiveEnvironment(
+      waterDensityKgM3: DiveEnvironment.freshWaterDensity,
+    );
+
+    Future<void> insertSite(String waterType) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion(
+              id: const Value('s1'),
+              name: const Value('Lake'),
+              waterType: Value(waterType),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+    }
+
+    test('a blank on the dive takes its site\'s', () async {
+      await insertSite('fresh');
+      await insertDive(waterType: '', siteId: 's1');
+
+      final points = await repository.getSacPressurePerDive();
+
+      expect(
+        points.single.value,
+        closeTo(dropBar / minutes / fresh.pressureAtDepth(avgDepth), 1e-9),
+      );
+    });
+
+    test('a blank on both reads the standard water', () async {
+      await insertSite('');
+      await insertDive(waterType: '', siteId: 's1');
+
+      final points = await repository.getSacPressurePerDive();
+
+      expect(points.single.value, closeTo(dropBar / minutes / 3, 1e-6));
+    });
+
+    test('the dive entity reads a blank the way the SQL does', () async {
+      await insertSite('fresh');
+      await insertDive(waterType: '', siteId: 's1');
+
+      final dive = await DiveRepository().getDiveById('d1');
+      final points = await repository.getSacPressurePerDive();
+
+      expect(dive!.waterType, isNull);
+      expect(dive.effectiveWaterType, WaterType.fresh);
+      expect(dive.sac, closeTo(points.single.value, 1e-9));
+    });
   });
 
   test('the SQL and the dive entity agree on one dive', () async {

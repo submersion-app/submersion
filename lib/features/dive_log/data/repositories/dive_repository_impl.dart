@@ -4534,12 +4534,7 @@ class DiveRepository {
               orElse: () => EntryMethod.other,
             )
           : null,
-      waterType: row.waterType != null
-          ? WaterType.values.firstWhere(
-              (w) => w.name == row.waterType,
-              orElse: () => WaterType.salt,
-            )
-          : null,
+      waterType: _waterTypeOf(row.waterType),
       altitude: row.altitude,
       surfacePressure: row.surfacePressure,
       surfaceInterval: row.surfaceIntervalSeconds != null
@@ -5000,12 +4995,7 @@ class DiveRepository {
               orElse: () => EntryMethod.other,
             )
           : null,
-      waterType: row.waterType != null
-          ? WaterType.values.firstWhere(
-              (w) => w.name == row.waterType,
-              orElse: () => WaterType.salt,
-            )
-          : null,
+      waterType: _waterTypeOf(row.waterType),
       altitude: row.altitude,
       surfacePressure: row.surfacePressure,
       surfaceInterval: row.surfaceIntervalSeconds != null
@@ -9457,3 +9447,12 @@ class DiveNumberGap {
     return 'Missing dives #$missingStart-$missingEnd';
   }
 }
+
+/// A dive's stored water type. An empty string is a legacy "not recorded", as
+/// the query fields and the statistics read it, so the dive takes its site's.
+WaterType? _waterTypeOf(String? stored) => stored == null || stored.isEmpty
+    ? null
+    : WaterType.values.firstWhere(
+        (w) => w.name == stored,
+        orElse: () => WaterType.salt,
+      );
