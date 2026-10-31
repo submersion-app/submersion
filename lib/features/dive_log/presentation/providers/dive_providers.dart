@@ -35,7 +35,6 @@ import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/filter_aware_tick.dart';
 import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -604,16 +603,12 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _loadDives();
   }
 
-  /// Invalidate trip and dive center providers for a dive
+  /// Invalidate trip providers for a dive
   void _invalidateRelatedProviders(domain.Dive dive) {
     // Invalidate trip stats if dive has a trip (check both tripId and trip object)
     final tripId = dive.tripId ?? dive.trip?.id;
     if (tripId != null) {
       _ref.invalidate(tripWithStatsProvider(tripId));
-    }
-    // Invalidate dive center count if dive has a dive center
-    if (dive.diveCenter != null) {
-      _ref.invalidate(diveCenterDiveCountProvider(dive.diveCenter!.id));
     }
     // Refresh the trip list notifier (it's a StateNotifier so needs explicit refresh)
     _ref.read(tripListNotifierProvider.notifier).refresh();
@@ -1302,9 +1297,6 @@ class PaginatedDiveListNotifier
     final tripId = dive.tripId ?? dive.trip?.id;
     if (tripId != null) {
       _ref.invalidate(tripWithStatsProvider(tripId));
-    }
-    if (dive.diveCenter != null) {
-      _ref.invalidate(diveCenterDiveCountProvider(dive.diveCenter!.id));
     }
     _ref.read(tripListNotifierProvider.notifier).refresh();
     _ref.invalidate(allTripsWithStatsProvider);

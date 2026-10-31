@@ -395,6 +395,10 @@ void main() {
       read: (c) => c.read(diveCenterDiveCountProvider(_id).future),
     ),
     (
+      name: 'diveCenterDiveCountsProvider',
+      read: (c) => c.read(diveCenterDiveCountsProvider.future),
+    ),
+    (
       name: 'diveCenterSearchProvider',
       read: (c) => c.read(diveCenterSearchProvider(_id).future),
     ),
