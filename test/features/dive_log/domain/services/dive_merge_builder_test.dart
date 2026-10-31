@@ -180,6 +180,41 @@ void main() {
     });
   });
 
+  group('build - a plan among the segments (#3924)', () {
+    final earlier = dive('a', entry: DateTime.utc(2026, 7, 1, 9));
+    final later = dive('b', entry: DateTime.utc(2026, 7, 1, 10));
+
+    test('a plan combined with a logged dive is a logged dive', () {
+      final plan = earlier.copyWith(isPlanned: true);
+
+      expect(builder.build([plan, later]).mergedDive.isPlanned, isFalse);
+    });
+
+    test('a logged dive combined with a later plan is a logged dive', () {
+      final plan = later.copyWith(isPlanned: true);
+
+      expect(builder.build([earlier, plan]).mergedDive.isPlanned, isFalse);
+    });
+
+    test('plans combined with each other stay a plan', () {
+      final merged = builder.build([
+        earlier.copyWith(isPlanned: true),
+        later.copyWith(isPlanned: true),
+      ]).mergedDive;
+
+      expect(merged.isPlanned, isTrue);
+    });
+
+    test('the logged dive keeps its number when a plan comes first', () {
+      final merged = builder.build([
+        earlier.copyWith(isPlanned: true),
+        later.copyWith(diveNumber: 42),
+      ]).mergedDive;
+
+      expect(merged.diveNumber, 42);
+    });
+  });
+
   group('build - stats', () {
     List<DiveProfilePoint> flatProfile(int seconds, double depth) => [
       for (var t = 0; t <= seconds; t += 10)

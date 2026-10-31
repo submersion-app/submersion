@@ -334,10 +334,14 @@ class DiveMergeBuilder {
       bottomTime: _mergedBottomTime(sorted),
       maxDepth: _mergedMaxDepth(sorted),
       avgDepth: _mergedAvgDepth(sorted),
-      diveNumber: first.diveNumber,
+      // A plan has no number, so it must not blank the logged dive's.
+      diveNumber: _firstNonNull(sorted, (d) => d.diveNumber),
       surfaceInterval: first.surfaceInterval,
       diveMode: first.diveMode,
-      isPlanned: first.isPlanned,
+      // One logged segment means the dive happened. Keeping the earliest
+      // segment's flag would hide it from no-fly and residual exposure
+      // (issue #3924).
+      isPlanned: sorted.every((d) => d.isPlanned),
       notes: _mergedNotes(sorted),
       isFavorite: sorted.any((d) => d.isFavorite),
       // An explicit exclusion on any source survives the merge. Dropping it

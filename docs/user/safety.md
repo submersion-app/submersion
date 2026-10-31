@@ -117,15 +117,16 @@ published DAN/UHMS guideline intervals.
 ### The intervals
 
 Your last 48 hours of dives are classified into one of three cases, and the
-matching interval is counted from the end of the most recent dive. A planned dive
-does not count, even once its planned time has passed, until it is logged as
-executed:
+matching interval is counted from the end of the most recent dive:
 
 | Your last dives | Standard | Strict |
 |-----------------|----------|--------|
 | A single no-decompression dive | 12 h | 18 h |
 | Repetitive dives | 18 h | 24 h |
 | Any dive with a decompression obligation | 24 h | 48 h |
+
+A planned dive does not count, even once its planned time has passed, until it
+is logged as executed.
 
 Choose **Standard (12/18/24 h)** or **Strict (18/24/48 h)** under **Flying
 after diving** in **Settings > Safety**. Strict is the more conservative reading

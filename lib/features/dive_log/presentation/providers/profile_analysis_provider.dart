@@ -1922,6 +1922,7 @@ final residualOtuProvider = FutureProvider.family<double, String>((
 /// of the current dive plus any dive that occurred at or before it. Dives
 /// logged LATER than the current dive (e.g. later the same day) are excluded
 /// so the displayed "Prior" never borrows OTU from the future (issue #407).
+/// A plan counts only when the current dive is a plan too (issue #3924).
 /// Used by O2ToxicityCard for REPEX compliance display.
 final weeklyOtuProvider = FutureProvider.family<double, String>((
   ref,

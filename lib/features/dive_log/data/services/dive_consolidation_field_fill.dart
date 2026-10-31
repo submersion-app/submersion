@@ -156,9 +156,10 @@ const Map<String, String> consolidationUnfilledColumns = {
   'otu': "the target computer's own O2 exposure calculation",
   'dive_number':
       "the logbook sequence; an import numbers a secondary for "
-      'where it was appended, not where the dive falls',
+      'where it was appended, not where the dive falls. A plan has none, so '
+      'one that takes in a logged dive adopts its number',
   'is_favorite': 'a secondary does not make the dive a favorite',
-  'is_planned': 'a consolidated dive was logged, whatever its sources say',
+  'is_planned': 'stands unless a plan takes in a logged dive, which logs it',
   'gradient_factor_low': 'how the target computer computed its deco',
   'gradient_factor_high': 'how the target computer computed its deco',
   'deco_algorithm': 'how the target computer computed its deco',
@@ -207,6 +208,16 @@ Map<String, Expression> consolidationFieldFill(
         fill[column] = values[column]!;
       }
       break;
+    }
+  }
+  // A plan that takes in a logged dive was dived, so it stops being a plan:
+  // still flagged, the real dive would drop out of no-fly and residual
+  // exposure (issue #3924). It takes that dive's place in the logbook too.
+  final logged = secondaries.where((s) => !s.isPlanned).firstOrNull;
+  if (target.isPlanned && logged != null) {
+    fill['is_planned'] = const Variable<bool>(false);
+    if (target.diveNumber == null) {
+      fill['dive_number'] = Variable<int>(logged.diveNumber);
     }
   }
   return fill;
