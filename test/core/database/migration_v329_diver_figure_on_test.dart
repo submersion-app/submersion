@@ -97,8 +97,8 @@ void main() {
               .getSingle())
           .data;
 
-  test('v329 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, 329);
+  test('v329 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(329));
     expect(AppDatabase.migrationVersions, contains(329));
   });
 

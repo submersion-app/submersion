@@ -58,6 +58,26 @@ Future<List<ActiveLegendEntry>> _entries(
 
 void main() {
   group('activeLegendEntries', () {
+    testWidgets('calls the ceiling calculated under the computer\'s stops '
+        '(#2552)', (tester) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(
+          hasCeilingCurve: true,
+          hasDecoStopCurve: true,
+          labelCeilingAsCalculated: true,
+        ),
+        state: const ProfileLegendState(),
+      );
+
+      expect(entries.map((e) => e.label), [
+        'Depth',
+        'Deco stops',
+        'Ceiling (calc)',
+      ]);
+      expect(entries.last.color, ProfileMetricColors.ceiling);
+    });
+
     testWidgets('a chosen colour reaches its entry (issue #3012)', (
       tester,
     ) async {
@@ -427,6 +447,34 @@ void main() {
         expect(entries.map((e) => e.label), ['Depth', 'Depth · Suunto']);
       },
     );
+
+    testWidgets('marks only the sources whose ceiling is calculated under the '
+        'computer\'s stops (#2552)', (tester) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(
+          activeSourceName: 'Perdix',
+          hasCeilingCurve: true,
+          labelCeilingAsCalculated: true,
+          overlays: [
+            LegendOverlaySource(
+              name: 'Suunto',
+              metrics: {LegendMetric.ceiling},
+              labelCeilingAsCalculated: true,
+            ),
+            LegendOverlaySource(name: 'Teric', metrics: {LegendMetric.ceiling}),
+          ],
+        ),
+        state: const ProfileLegendState(),
+      );
+
+      expect(entries.map((e) => e.label), [
+        'Depth · Perdix',
+        'Ceiling (calc) · Perdix',
+        'Ceiling (calc) · Suunto',
+        'Ceiling · Teric',
+      ]);
+    });
 
     testWidgets('tints a second overlay one step lighter than the first', (
       tester,

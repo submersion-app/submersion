@@ -2,6 +2,8 @@
 // line), then how backups run, where the copy goes, and the two actions;
 // History and the Advanced section follow (spec section 8.2).
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/core/services/accounts/account_group_service.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
+import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/account_usage_service.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -144,6 +147,7 @@ void main() {
     List<BackupRecord> history = const [],
     Object? historyError,
     Object? targetError,
+    Future<List<(ConnectedAccount, AccountStatus)>> Function()? rosterLoad,
   }) async {
     tester.view.physicalSize = const Size(1200, 3000);
     tester.view.devicePixelRatio = 1.0;
@@ -169,7 +173,20 @@ void main() {
             (ref) async => historyError == null ? history : throw historyError,
           ),
           quarantinedDatabasesProvider.overrideWith((ref) async => const []),
-          accountGroupsProvider.overrideWith((ref) async => _groups),
+          // With a roster, the real groups provider runs on top of it.
+          if (rosterLoad == null)
+            accountGroupsProvider.overrideWith((ref) async => _groups)
+          else ...[
+            connectedAccountsWithStatusProvider.overrideWith(
+              (ref) => rosterLoad(),
+            ),
+            connectedAccountUsageProvider.overrideWith(
+              (ref) async => const AccountUsageSnapshot(),
+            ),
+            accountProviderRegistryProvider.overrideWithValue(
+              AccountProviderRegistry(const []),
+            ),
+          ],
           offerableAccountKindsProvider.overrideWithValue(const []),
           accountGroupServiceProvider.overrideWithValue(groupService),
           if (target != null || targetError != null)
@@ -318,6 +335,77 @@ void main() {
       of: find.byType(BottomSheet),
       matching: find.text(text),
     );
+
+    // Issue #3780: with the copy off nothing else holds the account groups.
+    // Overriding the groups hides it, however slowly: Riverpod still delivers
+    // a disposed build's result. This runs the real provider on a roster.
+    testWidgets('Choose an account opens when the accounts load slowly', (
+      tester,
+    ) async {
+      final roster = Completer<List<(ConnectedAccount, AccountStatus)>>();
+      var reads = 0;
+      await pumpPage(
+        tester,
+        rosterLoad: () {
+          reads++;
+          return roster.future;
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pump();
+      roster.complete([
+        (
+          _row('db-row', AccountKind.dropbox, 'Dropbox'),
+          AccountStatus.signedIn,
+        ),
+      ]);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Your accounts'), findsOneWidget);
+      expect(inSheet('Dropbox'), findsOneWidget);
+      // The row holds the one read, and the sheet shares it.
+      expect(reads, 1);
+    });
+
+    testWidgets('accounts that cannot be read say so instead of nothing', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        rosterLoad: () => Future.error(StateError('keychain')),
+      );
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Your accounts'), findsNothing);
+      expect(find.text('Could not load accounts'), findsOneWidget);
+    });
+
+    testWidgets('the tap after a failed read tries again', (tester) async {
+      var reads = 0;
+      await pumpPage(
+        tester,
+        rosterLoad: () async {
+          if (++reads == 1) throw StateError('keychain');
+          return [
+            (
+              _row('db-row', AccountKind.dropbox, 'Dropbox'),
+              AccountStatus.signedIn,
+            ),
+          ];
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pumpAndSettle();
+      expect(find.text('Could not load accounts'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('backup-copy-change')));
+      await tester.pumpAndSettle();
+      expect(find.text('Your accounts'), findsOneWidget);
+    });
 
     testWidgets('No copy turns the copy off', (tester) async {
       await pumpPage(tester, initialPrefs: {'backup_cloud_enabled': true});
