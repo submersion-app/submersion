@@ -61,6 +61,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_event_mappe
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
+import 'package:submersion/features/dive_log/domain/services/source_runtime.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -8953,6 +8954,16 @@ class DiveRepository {
       ),
     );
 
+    // The runtime follows the source like the entry and exit times do: left
+    // alone, the previous source's figure outranks them in
+    // Dive.effectiveRuntime (issue #3899). A source with no timing at all
+    // clears it, which leaves the live profile to speak for the dive.
+    final runtime = sourceRuntimeSeconds(
+      durationSeconds: newPrimary.duration,
+      entryTimeMs: newPrimary.entryTime?.millisecondsSinceEpoch,
+      exitTimeMs: newPrimary.exitTime?.millisecondsSinceEpoch,
+    );
+
     // Bottom time is derived from the new primary's own profile, never
     // taken from its duration, which is the runtime it measured (issue
     // #2421). With no profile to derive from, the dive keeps its own.
@@ -8960,7 +8971,7 @@ class DiveRepository {
       await _profileSeries.getSeriesForDive(diveId),
       sourceId: newPrimary.id,
       computerId: newPrimary.computerId,
-      runtimeSeconds: newPrimary.duration,
+      runtimeSeconds: runtime,
     );
 
     // Update the dives record with the new primary's metadata.
@@ -8973,6 +8984,7 @@ class DiveRepository {
         bottomTime: derivedBottomTime != null
             ? Value(derivedBottomTime)
             : const Value.absent(),
+        runtime: Value(runtime),
         waterTemp: Value(newPrimary.waterTemp),
         entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
         exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),

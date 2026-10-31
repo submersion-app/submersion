@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
+import 'package:submersion/features/dive_log/domain/services/source_runtime.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -146,6 +147,15 @@ class DiveSplitService {
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
       // leave the logbook entry (site, notes, number) behind.
+      final newDiveEntryMs =
+          source.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime;
+      final newDiveExitMs =
+          source.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime;
+      final newDiveRuntime = sourceRuntimeSeconds(
+        durationSeconds: source.duration,
+        entryTimeMs: newDiveEntryMs,
+        exitTimeMs: newDiveExitMs,
+      );
       await _db
           .into(_db.dives)
           .insert(
@@ -175,18 +185,16 @@ class DiveSplitService {
                           movingProfiles,
                           sourceId: source.id,
                           computerId: source.computerId,
-                          runtimeSeconds: source.duration,
+                          runtimeSeconds: newDiveRuntime,
                         ) ??
                         diveRow.bottomTime,
                   ),
+                  // The source's own, or the copied row would keep the
+                  // original dive's across the source's span (issue #3899).
+                  runtime: Value(newDiveRuntime ?? diveRow.runtime),
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
-                  entryTime: Value(
-                    source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.entryTime,
-                  ),
-                  exitTime: Value(
-                    source.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-                  ),
+                  entryTime: Value(newDiveEntryMs),
+                  exitTime: Value(newDiveExitMs),
                   surfaceIntervalSeconds: Value(
                     source.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
                   ),
@@ -574,6 +582,15 @@ class DiveSplitService {
           );
         }
 
+        final promotedEntryMs =
+            promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime;
+        final promotedExitMs =
+            promoted.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime;
+        final promotedRuntime = sourceRuntimeSeconds(
+          durationSeconds: promoted.duration,
+          entryTimeMs: promotedEntryMs,
+          exitTimeMs: promotedExitMs,
+        );
         diveUpdate = diveUpdate.copyWith(
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
@@ -585,17 +602,14 @@ class DiveSplitService {
                   allProfileSeries.where((s) => !movingProfiles.contains(s)),
                   sourceId: promoted.id,
                   computerId: promoted.computerId,
-                  runtimeSeconds: promoted.duration,
+                  runtimeSeconds: promotedRuntime,
                 ) ??
                 diveRow.bottomTime,
           ),
+          runtime: Value(promotedRuntime ?? diveRow.runtime),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
-          entryTime: Value(
-            promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,
-          ),
-          exitTime: Value(
-            promoted.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-          ),
+          entryTime: Value(promotedEntryMs),
+          exitTime: Value(promotedExitMs),
           surfaceIntervalSeconds: Value(
             promoted.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
           ),
