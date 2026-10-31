@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/loaded_service_clocks.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -35,6 +36,7 @@ void main() {
     bool planned = false,
     bool excludedFromStats = false,
     String? tripId,
+    String? diver,
   }) => db
       .into(db.dives)
       .insert(
@@ -48,6 +50,7 @@ void main() {
           isPlanned: Value(planned),
           excludedFromStats: Value(excludedFromStats),
           tripId: Value(tripId),
+          diverId: Value(diver),
         ),
       );
 
@@ -280,11 +283,48 @@ void main() {
     },
   );
 
+  test('the Trips row reads only the active diver\'s dives', () async {
+    for (final id in ['me', 'buddy']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    await addTrip('mine');
+    await addTrip('theirs');
+    await addDive('d1', actualDate, tripId: 'mine', diver: 'me');
+    await addDive('d2', actualDate, tripId: 'theirs', diver: 'buddy');
+    await link('d1', item.id);
+    await link('d2', item.id);
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(equipmentTripCountProvider(item.id).future), 1);
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), [
+      'mine',
+    ]);
+    expect(await repo.getTripCountForEquipment(item.id), 2);
+  });
+
   test('the Trips row refreshes when a plan on the trip is logged', () async {
     await addTrip('upcoming');
     await addDive('plan', planDate, planned: true, tripId: 'upcoming');
     await link('plan', item.id);
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
     addTearDown(container.dispose);
     final count = container.listen(
       equipmentTripCountProvider(item.id),

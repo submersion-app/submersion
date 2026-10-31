@@ -1934,8 +1934,9 @@ class EquipmentRepository {
 
   /// Get trip count for equipment item (unique trips from dives using this equipment):
   /// the trips of the dives [getDiveCountForEquipment] counts, however the
-  /// item is linked. A planned dive has not used the item, so a trip with
-  /// nothing but plans for it does not count (issue #3932).
+  /// item is linked, with [diverId] scoping them the same way. A planned dive
+  /// has not used the item, so a trip with nothing but plans for it does not
+  /// count (issue #3932).
   ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
@@ -1943,7 +1944,10 @@ class EquipmentRepository {
   /// later than it should be, a safety-relevant error rather than a cosmetic
   /// one. Do not "fix" this.
   // stats-scope-exempt: gear wear is physical, not descriptive
-  Future<int> getTripCountForEquipment(String equipmentId) async {
+  Future<int> getTripCountForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     try {
       final result = await _db
           .customSelect(
@@ -1954,7 +1958,7 @@ class EquipmentRepository {
       ''',
             variables: [
               Variable.withString(equipmentId),
-              const Variable<String>(null),
+              Variable<String>(diverId),
             ],
           )
           .getSingle();
@@ -1973,7 +1977,10 @@ class EquipmentRepository {
   /// Get trip IDs for equipment item: the trips
   /// [getTripCountForEquipment] counts.
   // stats-scope-exempt: gear usage is physical, not descriptive
-  Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
+  Future<List<String>> getTripIdsForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     try {
       final result = await _db
           .customSelect(
@@ -1985,7 +1992,7 @@ class EquipmentRepository {
       ''',
             variables: [
               Variable.withString(equipmentId),
-              const Variable<String>(null),
+              Variable<String>(diverId),
             ],
           )
           .get();

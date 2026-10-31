@@ -436,7 +436,9 @@ final equipmentTripCountProvider = FutureProvider.family<int, String>((
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
   );
-  return repository.getTripCountForEquipment(equipmentId);
+  // The active diver's dives, as the Dives row and the trip list it opens.
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getTripCountForEquipment(equipmentId, diverId: diverId);
 });
 
 /// Trip IDs for equipment provider.
@@ -452,7 +454,8 @@ final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
   );
-  return repository.getTripIdsForEquipment(equipmentId);
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getTripIdsForEquipment(equipmentId, diverId: diverId);
 });
 
 /// Active gear whose service is due, narrowed to one severity, worst first.
