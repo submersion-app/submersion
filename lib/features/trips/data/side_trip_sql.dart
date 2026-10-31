@@ -70,18 +70,14 @@ SqlFragment topLevelTripFilter({
   required String? diverId,
   required String conjunction,
 }) {
-  final trip = VisibilityFilter.sqlFragment(
-    tableAlias: 't',
+  SqlFragment visible(String alias) => VisibilityFilter.sqlFragment(
+    tableAlias: alias,
     diverId: diverId,
     conjunction: 'AND',
     kind: SharedItemKind.trip,
   );
-  final parent = VisibilityFilter.sqlFragment(
-    tableAlias: 'p',
-    diverId: diverId,
-    conjunction: 'AND',
-    kind: SharedItemKind.trip,
-  );
+  final trip = visible('t');
+  final parent = visible('p');
   return SqlFragment(
     whereClause:
         ' $conjunction NOT EXISTS (SELECT 1 FROM trips p '

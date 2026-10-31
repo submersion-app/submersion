@@ -47,6 +47,11 @@ void main() {
     ['$tripId-$diverId', tripId, diverId],
   );
 
+  Future<void> shareWithEveryone(String tripId) => db.customStatement(
+    'UPDATE trips SET is_shared = 1 WHERE id = ?',
+    [tripId],
+  );
+
   Future<void> hide(String tripId, String diverId) =>
       ProfileHidesRepository().hide(SharedItemKind.trip, tripId, diverId);
 
@@ -86,7 +91,7 @@ void main() {
     });
 
     test('a parent the profile hid is no parent either', () async {
-      await db.customStatement("UPDATE trips SET is_shared = 1 WHERE id = 'P'");
+      await shareWithEveryone('P');
       await hide('P', 'b');
       expect(await ranking('b'), [('C', 1)]);
     });
@@ -98,7 +103,7 @@ void main() {
     });
 
     test('a parent shared with everyone still takes the dives', () async {
-      await db.customStatement("UPDATE trips SET is_shared = 1 WHERE id = 'P'");
+      await shareWithEveryone('P');
       expect(await ranking('b'), [('P', 1)]);
     });
 
@@ -108,7 +113,7 @@ void main() {
       expect(await ranking('a'), [('P', 2)]);
     });
 
-    test('two side trips of a hidden parent rank apart', () async {
+    test('two side trips of a private parent rank apart', () async {
       await trip('C2', parent: 'P');
       await shareWith('C2', 'b');
       await dive('b2', 'C2');
@@ -173,6 +178,12 @@ void main() {
       expect(await rates('b'), [2, 1]);
     });
 
+    test('a parent the profile hid is no parent either', () async {
+      await shareWithEveryone('P');
+      await hide('P', 'b');
+      expect(await rates('b'), [2, 1]);
+    });
+
     test('a visible parent still samples its side trips together', () async {
       await shareWith('P', 'b');
       expect(await rates('b'), [1.5]);
@@ -203,7 +214,7 @@ void main() {
     }
 
     test('on a hide, which writes no trip row', () async {
-      await db.customStatement("UPDATE trips SET is_shared = 1 WHERE id = 'P'");
+      await shareWithEveryone('P');
       expect(await fires(() => hide('P', 'b')), isTrue);
     });
 
