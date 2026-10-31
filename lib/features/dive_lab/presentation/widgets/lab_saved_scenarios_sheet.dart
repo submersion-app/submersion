@@ -17,7 +17,6 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_pr
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Opens the saved-scenarios sheet for [diveId].
@@ -98,7 +97,7 @@ class _LabSavedScenariosSheetState
     if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     final actions = ref.read(labShareActionsProvider);
     setState(() => _busy = true);
     try {
@@ -172,7 +171,7 @@ class _LabSavedScenariosSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final scenarios = ref
         .watch(diveScenariosForDiveProvider(diveId))
         .valueOrNull;

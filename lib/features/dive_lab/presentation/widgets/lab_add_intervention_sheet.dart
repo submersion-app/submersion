@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -104,7 +103,7 @@ class _LabAddInterventionSheetState
   @override
   void initState() {
     super.initState();
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     _volume = TextEditingController(
       text: formatDecimalForInput(units.convertVolume(11.1)),
     );
@@ -238,7 +237,7 @@ class _LabAddInterventionSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final available = _available();
     final selected = _selected;
     return SafeArea(

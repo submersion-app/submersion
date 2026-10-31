@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Compare section on dive detail: this dive's saved scenarios with a
@@ -21,7 +20,7 @@ class DiveLabSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final scenarios =
         ref.watch(diveScenariosForDiveProvider(diveId)).valueOrNull ??
         const <DiveScenario>[];

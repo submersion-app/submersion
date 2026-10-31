@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_request_
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_add_intervention_sheet.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The scenario's interventions as removable chips plus the Add chip.
@@ -26,7 +25,7 @@ class LabInterventionChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final draft = ref.watch(labDraftProvider(diveId));
     final notifier = ref.read(labDraftProvider(diveId).notifier);
     String tankName(String id) => labTankName(inputs.tanks, id);

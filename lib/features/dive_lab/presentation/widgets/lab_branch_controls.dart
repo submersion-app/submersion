@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_lab/domain/services/branch_state_builde
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Branch readout, slider over the dive and fine steppers.
@@ -24,7 +23,7 @@ class LabBranchControls extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final draft = ref.watch(labDraftProvider(diveId));
     final notifier = ref.read(labDraftProvider(diveId).notifier);
     final max = inputs.durationSeconds;

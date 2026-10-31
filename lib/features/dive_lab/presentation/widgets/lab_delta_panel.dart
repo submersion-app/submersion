@@ -47,7 +47,7 @@ class LabDeltaPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final colorFn = colorFnForScheme(ref.watch(tissueColorSchemeProvider));
     final value = outcome;
     final loading = recomputing;
