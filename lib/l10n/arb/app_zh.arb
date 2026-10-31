@@ -6029,7 +6029,7 @@
   "plannerCanvas_issue_noUsableGas": "最低保底气量 {minGas} 使 {fill} 的充气没有可用气体",
   "plannerCanvas_issue_diluentModExceeded": "稀释气在 {depth} 处超过其 MOD（ppO₂ {value} bar）",
   "plannerCanvas_issue_ceilingViolated": "潜水剖面超过 {ceiling} 的减压上升限制，跳过了必需的停留",
-  "plannerCanvas_issue_noBailout": "CCR 减压计划未携带逃生气体",
+  "plannerCanvas_issue_noBailout": "减压计划未携带逃生气体",
   "plannerCanvas_issue_noDecoGas": "需要减压但未携带减压气体",
   "plannerCanvas_range_base": "基准",
   "plannerCanvas_range_legend": "单元格显示到达水面所需时间；红色 = 无法按计划潜水",

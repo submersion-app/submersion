@@ -20431,7 +20431,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'A CCR dekompressziós terv nem tartalmaz bailout gázt';
+      'A dekompressziós terv nem tartalmaz bailout gázt';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

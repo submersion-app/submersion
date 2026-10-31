@@ -20795,7 +20795,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
+      'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

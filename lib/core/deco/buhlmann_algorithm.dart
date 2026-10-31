@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
+import 'package:submersion/core/deco/ascent/loop_ascent_gas.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
@@ -465,21 +466,21 @@ class BuhlmannAlgorithm {
     var clockDepth = currentDepth;
     var clockPhase = AscentPhase.toFirstStop;
 
-    // A CCR loop's own gas bookkeeping (CcrLoopAscentGas.gasForDepth) is a
+    // A loop's own gas bookkeeping (LoopAscentGas.gasForDepth) is a
     // continuously pAlv-normalized fraction for the tissue simulation, not
-    // the diluent the diver actually breathes -- that fraction drifts with
-    // every depth change even on a single diluent the whole ascent, which
-    // made [switched] fire at nearly every stop and floor every one of them
-    // to [SchedulePolicy.gasSwitchStopSeconds] as if the diver had genuinely
-    // switched cylinders there (#3225). Real gas switches -- an OC plan's
-    // ascent, and a bailout schedule's own OptimalOcAscentGas -- are
-    // unaffected: only a loop's own drift is excluded.
-    final isCcrLoop = plan is CcrLoopAscentGas;
+    // the gas the diver actually feeds the loop -- that fraction drifts with
+    // every depth change even on a single diluent or supply gas the whole
+    // ascent, which made [switched] fire at nearly every stop and floor every
+    // one of them to [SchedulePolicy.gasSwitchStopSeconds] as if the diver
+    // had genuinely switched cylinders there (#3225). Real gas switches -- an
+    // OC plan's ascent, and a bailout schedule's own OptimalOcAscentGas --
+    // are unaffected: only a loop's own drift is excluded.
+    final isLoop = plan is LoopAscentGas;
     AscentGas previousGas = plan.gasForDepth(currentDepth);
     while (currentStopDepth > 0) {
       final stopGas = plan.gasForDepth(currentStopDepth);
       final switched =
-          !isCcrLoop &&
+          !isLoop &&
           (stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe);
 
       int stopTime = _calculateStopTime(currentStopDepth, plan, p, clockPhase);

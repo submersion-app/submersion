@@ -20051,7 +20051,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)';
+      'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

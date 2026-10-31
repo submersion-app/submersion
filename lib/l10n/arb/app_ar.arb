@@ -5878,7 +5878,7 @@
   "plannerCanvas_issue_noUsableGas": "الحد الأدنى الآمن {minGas} لا يترك غازًا قابلًا للاستخدام في تعبئة {fill}",
   "plannerCanvas_issue_diluentModExceeded": "يتجاوز غاز التخفيف حد MOD الخاص به عند {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "المسار يتجاوز سقف تخفيف الضغط عند {ceiling} ويتخطى توقفات إلزامية",
-  "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)",
+  "plannerCanvas_issue_noBailout": "خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)",
   "plannerCanvas_issue_noDecoGas": "يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف",
   "plannerCanvas_range_base": "أساسي",
   "plannerCanvas_range_legend": "تعرض الخلايا زمن الصعود إلى السطح؛ الأحمر = غير قابلة للغطس كما هو مخطط",

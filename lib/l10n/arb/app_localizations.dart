@@ -32607,7 +32607,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
   /// In en, this message translates to:
-  /// **'CCR decompression plan carries no bailout gas'**
+  /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
 
   /// No description provided for @plannerCanvas_issue_noDecoGas.
