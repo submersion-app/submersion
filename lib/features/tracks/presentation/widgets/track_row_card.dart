@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
 /// Wraps one track row (either kind) in the same card shape the dive list
-/// uses for its own rows (`dive_list_page.dart`): rounded corners, the same
-/// margin, and a background fill while [highlighted] (issue #4024).
+/// uses for its own rows (`dive_list_page.dart`): rounded corners and a
+/// background fill while [highlighted] (issue #4024).
+///
+/// Only a vertical margin, not the dive list's 16px horizontal one: a track
+/// row's last line already packs a dive-link chip and the kind badge onto
+/// one line (#3749), and claiming 32px of width back from that budget
+/// squeezed the chip into an ellipsis on a narrow phone in German (CI
+/// catching exactly the #2692 hazard that line's own comment warns about).
+/// `dive_list_page.dart`'s row has no equivalent last line this tight.
 ///
 /// The tap handler lives on this card's [InkWell], not on [child]'s own
 /// `ListTile.onTap`: a [ListTile] only adds its own ink response when given
@@ -29,7 +36,7 @@ class TrackRowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       child: Card(
         margin: EdgeInsets.zero,
         color: highlighted

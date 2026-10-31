@@ -37,6 +37,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_pol
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// What the crosshair-and-pan flow is currently placing, or nothing.
 enum _Placing { none, start, end }
@@ -540,8 +541,17 @@ class _AlignPageBody extends ConsumerWidget {
             ),
             ConstrainedBox(
               key: const ValueKey('nav-track-align-controls-panel'),
+              // Desktop width only ever reaches this panel through a wide
+              // window, never a short one in practice, and capping there
+              // too made the panel scroll even where its content already
+              // fit (the CI default test surface is 800x600 -- "desktop"
+              // by this app's own breakpoint -- and several existing tests
+              // tapped Save assuming the whole panel was on screen, the
+              // same assumption a real desktop diver has).
               constraints: BoxConstraints(
-                maxHeight: constraints.maxHeight * 0.45,
+                maxHeight: constraints.maxWidth >= ResponsiveBreakpoints.desktop
+                    ? double.infinity
+                    : constraints.maxHeight * 0.45,
               ),
               child: _ControlsPanel(
                 state: state,
