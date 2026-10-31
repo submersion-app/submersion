@@ -160,7 +160,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       state.editedProfile,
       windowSize: windowSize,
     );
-    state = state.copyWith(editedProfile: smoothed, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: smoothed,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.smoothAll);
   }
 
@@ -182,7 +186,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       return smoothedMap[p.timestamp] ?? p;
     }).toList();
 
-    state = state.copyWith(editedProfile: result, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: result,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.smoothSelection);
   }
 
@@ -230,7 +238,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       endTimestamp: range.end,
       depthDelta: depthDelta,
     );
-    state = state.copyWith(editedProfile: shifted, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: shifted,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.shiftDepth);
   }
 

@@ -73,7 +73,7 @@ void main() {
     expect(notifier.state.detectedOutliers, isNotNull);
   });
 
-  group('detected outliers go stale when samples move', () {
+  group('detected outliers go stale when the profile is edited', () {
     late ProfileEditorNotifier outlierNotifier;
 
     setUp(() {
@@ -94,6 +94,23 @@ void main() {
     test('deleteSegment clears them', () {
       outlierNotifier.setSelectedRange(start: 0, end: 4);
       outlierNotifier.deleteSegment();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothing clears them', () {
+      outlierNotifier.applySmoothing();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothingToRange clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 12);
+      outlierNotifier.applySmoothingToRange();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('shiftSegmentDepth clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentDepth(1.0);
       expect(outlierNotifier.state.detectedOutliers, isNull);
     });
 
