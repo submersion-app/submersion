@@ -44,6 +44,24 @@ class ChangeLogTableSpec {
   );
 }
 
+/// Logged tables made by raw SQL, which `allTables` does not list. A profile's
+/// revision lineage lives here, and a restored dive needs it back.
+const List<ChangeLogTableSpec> changeLogRawTableSpecs = [
+  ChangeLogTableSpec(
+    table: 'dive_profile_series_history',
+    keyColumns: ['series_id'],
+    columns: [
+      'series_id',
+      'dive_id',
+      'parent_series_id',
+      'root_series_id',
+      'content_hash',
+      'revision_kind',
+      'created_at',
+    ],
+  ),
+];
+
 List<ChangeLogTableSpec> changeLogSpecsFor(GeneratedDatabase db) => [
   for (final table in db.allTables)
     ChangeLogTableSpec(
@@ -51,6 +69,7 @@ List<ChangeLogTableSpec> changeLogSpecsFor(GeneratedDatabase db) => [
       keyColumns: [for (final column in table.$primaryKey) column.name],
       columns: [for (final column in table.$columns) column.name],
     ),
+  ...changeLogRawTableSpecs,
 ];
 
 /// The record id, in the form `syncRecordId` gives it.

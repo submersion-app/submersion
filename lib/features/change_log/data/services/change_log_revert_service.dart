@@ -288,6 +288,7 @@ class ChangeLogRevertService {
   /// the delete. The clock comes from the pending mark, never from the log.
   Future<void> _restoreRecord(ChangeLogEvent event, int now) async {
     final table = event.table;
+    final deviceLocal = changeLogDeviceLocalTables.contains(table);
     final columns = await _repository.liveColumns(table);
     final values = <String, Object?>{
       for (final column in await _repository.nullableDefaultedColumns(table))
@@ -300,8 +301,9 @@ class ChangeLogRevertService {
       'INSERT INTO "$table" (${values.keys.map((c) => '"$c"').join(', ')}) '
       'VALUES (${List.filled(values.length, '?').join(', ')})',
       variables: [for (final value in values.values) Variable<Object>(value)],
-      updates: {_infoOf(table)},
+      updates: deviceLocal ? const {} : {_infoOf(table)},
     );
+    if (deviceLocal) return;
     final entity = changeLogEntityType(table);
     await _sync.removeDeletion(entityType: entity, recordId: event.recordId);
     await _sync.markRecordPending(

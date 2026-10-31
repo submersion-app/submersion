@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show GeneratedDatabase;
+import 'package:drift/drift.dart' show GeneratedDatabase, Variable;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
@@ -14,6 +14,7 @@ import '../../../helpers/test_database.dart';
 Map<String, Set<String>> _columnsByTable(GeneratedDatabase db) => {
   for (final table in db.allTables)
     table.actualTableName: {for (final c in table.$columns) c.name},
+  for (final spec in changeLogRawTableSpecs) spec.table: spec.columns.toSet(),
 };
 
 void main() {
@@ -34,6 +35,22 @@ void main() {
       isEmpty,
       reason: 'these keys are not real tables',
     );
+  });
+
+  test('a raw table spec names the columns the table has', () async {
+    for (final spec in changeLogRawTableSpecs) {
+      final rows = await db
+          .customSelect(
+            'SELECT name FROM pragma_table_info(?)',
+            variables: [Variable.withString(spec.table)],
+          )
+          .get();
+      expect(
+        {for (final row in rows) row.read<String>('name')},
+        spec.columns.toSet(),
+        reason: spec.table,
+      );
+    }
   });
 
   test('every tracked table has a key', () {

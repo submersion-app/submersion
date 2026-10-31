@@ -11225,6 +11225,12 @@ abstract class AppLocalizations {
   /// **'Dives restored'**
   String get diveLog_bulkDelete_restored;
 
+  /// No description provided for @diveLog_bulkDelete_restoredIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives restored, but some recorded data could not be recovered'**
+  String get diveLog_bulkDelete_restoredIncomplete;
+
   /// No description provided for @diveLog_bulkDelete_snackbar.
   ///
   /// In en, this message translates to:
