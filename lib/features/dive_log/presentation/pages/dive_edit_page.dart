@@ -31,6 +31,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -303,6 +304,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   late TimeOfDay _entryTime;
   DateTime? _exitDate;
   TimeOfDay? _exitTime;
+
+  /// What the time inputs were filled with and the exact values they round;
+  /// null for a new dive. The save reads it so an unrelated edit does not
+  /// write whole minutes over stored seconds (issue #3901).
+  SeededDiveTimes? _seededTimes;
   final _diveNumberController = TextEditingController();
   final _durationController = TextEditingController();
   final _runtimeController = TextEditingController();
@@ -538,8 +544,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// The form's entry date and time as an instant, the wall clock stamped
   /// UTC as every dive time is. The save, the flight-window check and the
-  /// trip cylinders' state at the dive all read it here.
-  DateTime _currentEntryTime() => DateTime.utc(
+  /// trip cylinders' state at the dive all read it here. Stored seconds hold
+  /// until the diver moves the entry.
+  DateTime _currentEntryTime() {
+    final input = _entryInput();
+    return _seededTimes?.entryFor(input) ?? input;
+  }
+
+  /// The entry inputs to the minute, the wall clock stamped UTC.
+  DateTime _entryInput() => DateTime.utc(
     _entryDate.year,
     _entryDate.month,
     _entryDate.day,
@@ -547,19 +560,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _entryTime.minute,
   );
 
+  /// The exit inputs to the minute, the wall clock stamped UTC, or null until
+  /// both are set.
+  DateTime? _exitInput() {
+    if (_exitDate == null || _exitTime == null) return null;
+    return DateTime.utc(
+      _exitDate!.year,
+      _exitDate!.month,
+      _exitDate!.day,
+      _exitTime!.hour,
+      _exitTime!.minute,
+    );
+  }
+
+  /// The time inputs as the save reads them.
+  DiveTimeInputs _timeInputs() => DiveTimeInputs(
+    entry: _entryInput(),
+    exit: _exitInput(),
+    bottomTimeMinutes: _savedNumber(
+      _durationController,
+      integer: true,
+    )?.toInt(),
+    runtimeMinutes: _savedNumber(_runtimeController, integer: true)?.toInt(),
+  );
+
   /// In-edit dive end time, wall-clock-as-UTC: exit fields when both are
   /// set, otherwise entry + runtime. Null when neither is derivable. Feeds
-  /// the flight-window warning banner; mirrors the save-path derivation.
+  /// the flight-window warning banner; an estimated exit counts here, though
+  /// the save does not store one.
   DateTime? _currentDiveEndTime() {
-    if (_exitDate != null && _exitTime != null) {
-      return DateTime.utc(
-        _exitDate!.year,
-        _exitDate!.month,
-        _exitDate!.day,
-        _exitTime!.hour,
-        _exitTime!.minute,
-      );
-    }
+    final exit = _exitInput();
+    if (exit != null) return _seededTimes?.exitFor(exit) ?? exit;
     final entry = _currentEntryTime();
     final runtimeMinutes = switch (readNumber(
       _runtimeController.text,
@@ -927,42 +958,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// exit, bottom time, runtime and water temperature. Call inside setState.
   void _seedSourceFields(Dive dive, UnitFormatter units) {
     // A refresh reseeds a form that already holds the previous primary's
-    // values, so clear what the branches below may leave unset.
-    _exitDate = null;
-    _exitTime = null;
-    _durationController.text = '';
-    _runtimeController.text = '';
-    // Use entryTime if available, otherwise fall back to dateTime
-    final entryDateTime = dive.entryTime ?? dive.dateTime;
-    _entryDate = entryDateTime;
-    _entryTime = TimeOfDay.fromDateTime(entryDateTime);
-    // Set exit time if available
-    if (dive.exitTime != null) {
-      _exitDate = dive.exitTime;
-      _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
-    } else if (dive.bottomTime != null) {
-      // Calculate exit time from entry + bottomTime
-      final exitDateTime = entryDateTime.add(dive.bottomTime!);
-      _exitDate = exitDateTime;
-      _exitTime = TimeOfDay.fromDateTime(exitDateTime);
-    }
-    // Bottom time (stored bottomTime, or auto-calculated from profile)
-    if (dive.bottomTime != null) {
-      _durationController.text = _seedInt(dive.bottomTime!.inMinutes);
-    } else if (dive.profile.isNotEmpty) {
-      // Auto-calculate from profile if no stored duration
-      final calculatedBottomTime = dive.calculateBottomTimeFromProfile();
-      if (calculatedBottomTime != null) {
-        _durationController.text = _seedInt(calculatedBottomTime.inMinutes);
-      }
-    }
-    // Runtime: use stored value, or calculate from entry/exit times
-    if (dive.runtime != null) {
-      _runtimeController.text = _seedInt(dive.runtime!.inMinutes);
-    } else if (dive.entryTime != null && dive.exitTime != null) {
-      final calculatedRuntime = dive.exitTime!.difference(dive.entryTime!);
-      _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
-    }
+    // values, so every input is written, blank where the dive has no value.
+    final seeded = SeededDiveTimes.of(dive);
+    final shown = seeded.shown;
+    _seededTimes = seeded;
+    _entryDate = shown.entry;
+    _entryTime = TimeOfDay.fromDateTime(shown.entry);
+    _exitDate = shown.exit;
+    _exitTime = shown.exit == null ? null : TimeOfDay.fromDateTime(shown.exit!);
+    _durationController.text = shown.bottomTimeMinutes == null
+        ? ''
+        : _seedInt(shown.bottomTimeMinutes!);
+    _runtimeController.text = shown.runtimeMinutes == null
+        ? ''
+        : _seedInt(shown.runtimeMinutes!);
     _waterTempController.text = dive.waterTemp != null
         ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
         : '';
@@ -6184,37 +6193,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
 
     try {
-      // Build entry DateTime from date and time
-      final entryDateTime = _currentEntryTime();
-
-      // Build exit DateTime if set
-      DateTime? exitDateTime;
-      if (_exitDate != null && _exitTime != null) {
-        exitDateTime = DateTime.utc(
-          _exitDate!.year,
-          _exitDate!.month,
-          _exitDate!.day,
-          _exitTime!.hour,
-          _exitTime!.minute,
-        );
-      }
-
-      // Calculate runtime from entry/exit times (total dive time)
-      Duration? runtime;
-      if (exitDateTime != null) {
-        runtime = exitDateTime.difference(entryDateTime);
-        if (runtime.isNegative) runtime = null;
-      } else if (_savedNumber(_runtimeController, integer: true)
-          case final minutes?) {
-        runtime = Duration(minutes: minutes.toInt());
-      }
-
-      // Bottom time is manually entered (time at depth, excluding descent/ascent)
-      Duration? duration;
-      if (_savedNumber(_durationController, integer: true)
-          case final minutes?) {
-        duration = Duration(minutes: minutes.toInt());
-      }
+      // The time inputs hold whole minutes; what the diver left alone saves
+      // its stored precision.
+      final times = resolveDiveTimes(_timeInputs(), seeded: _seededTimes);
+      final entryDateTime = times.entry;
 
       // Parse form values and convert to metric for storage
       final maxDepth = _savedNumber(
@@ -6259,9 +6241,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             : null,
         dateTime: entryDateTime, // Keep for backward compatibility
         entryTime: entryDateTime,
-        exitTime: exitDateTime,
-        bottomTime: duration,
-        runtime: runtime,
+        exitTime: times.exit,
+        bottomTime: times.bottomTime,
+        runtime: times.runtime,
         maxDepth: maxDepth,
         avgDepth: avgDepth,
         waterTemp: waterTemp,
