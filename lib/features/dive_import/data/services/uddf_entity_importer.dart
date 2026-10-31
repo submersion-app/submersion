@@ -1953,10 +1953,10 @@ class UddfEntityImporter {
     // coordinate fallback its dives import with no site and no location at
     // all, silently.
     final existingSites = await repository.getAllSites(diverId: diverId);
-    final existingByName = <String, DiveSite>{};
+    final existingByName = <String, List<DiveSite>>{};
     final existingById = <String, DiveSite>{};
     for (final site in existingSites) {
-      existingByName[site.name.toLowerCase()] = site;
+      (existingByName[site.name.toLowerCase()] ??= []).add(site);
       existingById[site.id] = site;
     }
     for (var i = 0; i < items.length; i++) {
@@ -1965,9 +1965,12 @@ class UddfEntityImporter {
       final uddfId = items[i]['uddfId'] as String?;
       if (uddfId == null) continue;
       final name = items[i]['name'] as String?;
-      final existing =
-          (name == null ? null : existingByName[name.toLowerCase()]) ??
-          _nearestExistingSite(existingSites, items[i]);
+      final namesakes = name == null
+          ? null
+          : existingByName[name.toLowerCase()];
+      final existing = namesakes != null
+          ? ImportSiteLocation.namesakeOf(items[i], namesakes)
+          : _nearestExistingSite(existingSites, items[i]);
       if (existing != null) {
         idMapping[uddfId] = existing;
       }
