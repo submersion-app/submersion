@@ -71,3 +71,20 @@ Future<void> openChartDives(
     ),
   );
 }
+
+/// [openChartDives] for a chart whose category a filter can state: [narrow]
+/// turns the Insights filter into that row's filter.
+Future<void> openFilteredChartDives(
+  BuildContext context,
+  WidgetRef ref, {
+  required String chart,
+  required String row,
+  required DiveFilterState Function(DiveFilterState scope) narrow,
+}) => openChartDives(
+  context,
+  ref,
+  chart: chart,
+  row: row,
+  load: (repository, diverId, scope) =>
+      repository.getCountedDiveIds(diverId: diverId, filter: narrow(scope)),
+);

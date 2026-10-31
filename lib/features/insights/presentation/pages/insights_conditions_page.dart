@@ -4,6 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
@@ -169,6 +171,14 @@ class InsightsConditionsPage extends ConsumerWidget {
             child: DistributionPieChart(
               data: data,
               colors: [for (final s in raw) _waterTypeColor(s.label)],
+              onOpenSegment: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_waterType_title,
+                row: data[index].label,
+                narrow: (scope) =>
+                    waterTypeDivesFilter(scope, raw[index].label),
+              ),
             ),
           );
         },
@@ -275,7 +285,18 @@ class InsightsConditionsPage extends ConsumerWidget {
             label: l10n.insights_conditions_entryMethod_semanticLabel(
               description,
             ),
-            child: CategoryBarChart(data: chartData, barColor: Colors.teal),
+            child: CategoryBarChart(
+              data: chartData,
+              barColor: Colors.teal,
+              onOpenBar: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: l10n.insights_conditions_entryMethod_title,
+                row: chartData[index].label,
+                narrow: (scope) =>
+                    entryMethodDivesFilter(scope, data[index].label),
+              ),
+            ),
           );
         },
         loading: () => const SizedBox(

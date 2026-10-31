@@ -1,5 +1,7 @@
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart'
+    show kNotRecordedDistributionKey;
 
 /// The dives behind one row of the Insights country card (#2623): the
 /// Insights filter [scope] the row was counted under, narrowed to sites in
@@ -37,18 +39,70 @@ DiveFilterState calendarDayDivesFilter(
   DiveFilterState scope, {
   required int month,
   required int day,
-}) => _withConditions(scope, [
-  ConditionNode(
-    FieldPath(const ['month']),
-    QueryOp.eq,
-    NumberValue(month.toDouble(), null),
-  ),
-  ConditionNode(
-    FieldPath(const ['day']),
-    QueryOp.eq,
-    NumberValue(day.toDouble(), null),
-  ),
-]);
+}) => _withConditions(scope, [_number('month', month), _number('day', day)]);
+
+/// The dives behind one bar of the Day of Week chart (#3805). [dayOfWeek]
+/// counts as the chart does, from 0 for Sunday.
+DiveFilterState weekdayDivesFilter(DiveFilterState scope, int dayOfWeek) =>
+    _withConditions(scope, [
+      ConditionNode(
+        FieldPath(const ['weekday']),
+        QueryOp.eq,
+        EnumValue(_weekdayNames[dayOfWeek]),
+      ),
+    ]);
+
+/// The dives behind one bar of the Seasonal chart (#3805), in any year.
+DiveFilterState monthDivesFilter(DiveFilterState scope, int month) =>
+    _withConditions(scope, [_number('month', month)]);
+
+/// The dives behind one bar of the Dives per Year chart (#3805).
+DiveFilterState yearDivesFilter(DiveFilterState scope, int year) =>
+    _withConditions(scope, [_number('year', year)]);
+
+/// The dives behind one row of the dive types list (#3805). ANDed rather
+/// than set on the scope's `diveTypeId`: a dive can carry several types, so
+/// a scope already holding one type must keep it.
+DiveFilterState diveTypeDivesFilter(DiveFilterState scope, String typeId) =>
+    _withConditions(scope, [
+      ConditionNode(
+        FieldPath(const ['types']),
+        QueryOp.eq,
+        RefValue(typeId, typeId),
+      ),
+    ]);
+
+/// The dives behind one water type segment (#3805). [key] is the chart's
+/// key: a water type name or [kNotRecordedDistributionKey].
+DiveFilterState waterTypeDivesFilter(DiveFilterState scope, String key) =>
+    _withConditions(scope, [_recordedOrEmpty('waterType', key)]);
+
+/// The dives behind one entry method bar (#3805). [key] is the chart's key:
+/// an entry method name or [kNotRecordedDistributionKey].
+DiveFilterState entryMethodDivesFilter(DiveFilterState scope, String key) =>
+    _withConditions(scope, [_recordedOrEmpty('entryMethod', key)]);
+
+/// In the order the charts number days, from 0 for Sunday.
+const _weekdayNames = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+];
+
+ConditionNode _number(String field, int value) => ConditionNode(
+  FieldPath([field]),
+  QueryOp.eq,
+  NumberValue(value.toDouble(), null),
+);
+
+ConditionNode _recordedOrEmpty(String field, String key) =>
+    key == kNotRecordedDistributionKey
+    ? ConditionNode(FieldPath([field]), QueryOp.isEmpty, null)
+    : ConditionNode(FieldPath([field]), QueryOp.eq, EnumValue(key));
 
 ConditionNode _site(String column, StringValue value) =>
     ConditionNode(FieldPath(['site', column]), QueryOp.eq, value);

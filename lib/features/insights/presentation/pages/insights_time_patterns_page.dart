@@ -7,6 +7,8 @@ import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/time_of_day_colors.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/calendar_day_matrix_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
@@ -91,7 +93,17 @@ class InsightsTimePatternsPage extends ConsumerWidget {
             label: context.l10n.insights_timePatterns_dayOfWeek_semanticLabel(
               description,
             ),
-            child: CategoryBarChart(data: fullData, barColor: Colors.blue),
+            child: CategoryBarChart(
+              data: fullData,
+              barColor: Colors.blue,
+              onOpenBar: (day) => openFilteredChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_timePatterns_dayOfWeek_title,
+                row: fullData[day].label,
+                narrow: (scope) => weekdayDivesFilter(scope, day),
+              ),
+            ),
           );
         },
         loading: () => const SizedBox(
@@ -215,7 +227,17 @@ class InsightsTimePatternsPage extends ConsumerWidget {
             label: context.l10n.insights_timePatterns_seasonal_semanticLabel(
               description,
             ),
-            child: CategoryBarChart(data: fullData, barColor: Colors.teal),
+            child: CategoryBarChart(
+              data: fullData,
+              barColor: Colors.teal,
+              onOpenBar: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_timePatterns_seasonal_title,
+                row: fullData[index].label,
+                narrow: (scope) => monthDivesFilter(scope, index + 1),
+              ),
+            ),
           );
         },
         loading: () => const SizedBox(

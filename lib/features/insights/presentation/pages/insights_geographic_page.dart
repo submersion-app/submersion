@@ -63,16 +63,12 @@ class InsightsGeographicPage extends ConsumerWidget {
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
-              onItemTap: (item) => openChartDives(
+              onItemTap: (item) => openFilteredChartDives(
                 context,
                 ref,
                 chart: context.l10n.insights_geographic_countries_title,
                 row: item.name,
-                load: (repository, diverId, scope) =>
-                    repository.getCountedDiveIds(
-                      diverId: diverId,
-                      filter: countryDivesFilter(scope, item.name),
-                    ),
+                narrow: (scope) => countryDivesFilter(scope, item.name),
               ),
             ),
           );
@@ -111,20 +107,16 @@ class InsightsGeographicPage extends ConsumerWidget {
               countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
               // A region row carries its country as the subtitle.
-              onItemTap: (item) => openChartDives(
+              onItemTap: (item) => openFilteredChartDives(
                 context,
                 ref,
                 chart: context.l10n.insights_geographic_regions_title,
                 row: item.name,
-                load: (repository, diverId, scope) =>
-                    repository.getCountedDiveIds(
-                      diverId: diverId,
-                      filter: regionDivesFilter(
-                        scope,
-                        region: item.name,
-                        country: item.subtitle,
-                      ),
-                    ),
+                narrow: (scope) => regionDivesFilter(
+                  scope,
+                  region: item.name,
+                  country: item.subtitle,
+                ),
               ),
             ),
           );

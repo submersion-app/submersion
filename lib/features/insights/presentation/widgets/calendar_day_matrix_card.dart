@@ -76,20 +76,13 @@ class CalendarDayMatrixCard extends ConsumerWidget {
             : _CalendarDayMatrixBody(
                 matrix: matrix,
                 formatDate: units.formatMonthDay,
-                onOpen: (month, day) => openChartDives(
+                onOpen: (month, day) => openFilteredChartDives(
                   context,
                   ref,
                   chart: l10n.insights_timePatterns_calendarDays_title,
                   row: units.formatMonthDay(DateTime(2024, month, day)),
-                  load: (repository, diverId, scope) =>
-                      repository.getCountedDiveIds(
-                        diverId: diverId,
-                        filter: calendarDayDivesFilter(
-                          scope,
-                          month: month,
-                          day: day,
-                        ),
-                      ),
+                  narrow: (scope) =>
+                      calendarDayDivesFilter(scope, month: month, day: day),
                 ),
               ),
         loading: () => const SizedBox(

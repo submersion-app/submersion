@@ -5,6 +5,8 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
@@ -157,6 +159,13 @@ class InsightsProgressionPage extends ConsumerWidget {
               // years don't overrun each other on narrow screens.
               compactXLabelFormatter: (year) =>
                   year.length == 4 ? "'${year.substring(2)}" : year,
+              onOpenBar: (index) => openFilteredChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_progression_divesPerYear_title,
+                row: chartData[index].label,
+                narrow: (scope) => yearDivesFilter(scope, data[index].year),
+              ),
             ),
           );
         },
