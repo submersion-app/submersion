@@ -114,6 +114,25 @@ void main() {
       expect(timing.durationSeconds, isNull);
     });
 
+    test('a segment with no exit and no real duration has no end', () {
+      final first = _row(
+        'a',
+        computerId: 'dc-1',
+        entryTime: start,
+        exitTime: firstExit,
+      );
+      final second = _row(
+        'b',
+        computerId: 'dc-1',
+        entryTime: secondStart,
+        duration: 0,
+      );
+
+      final timing = dataSourceStrandTiming([first, second], first);
+
+      expect(timing.exitMs, firstExit.millisecondsSinceEpoch);
+    });
+
     test('a strand with nothing to span keeps the row duration', () {
       final first = _row(
         'a',

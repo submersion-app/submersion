@@ -140,7 +140,7 @@ int? _rowEndMs(DiveDataSourcesData row) {
   if (exit != null) return exit.millisecondsSinceEpoch;
   final entry = row.entryTime;
   final duration = row.duration;
-  if (entry == null || duration == null) return null;
+  if (entry == null || duration == null || duration <= 0) return null;
   return entry.add(Duration(seconds: duration)).millisecondsSinceEpoch;
 }
 
