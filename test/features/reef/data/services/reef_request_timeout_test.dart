@@ -123,6 +123,22 @@ void main() {
     expect(part.value!.namesIncomplete, isTrue);
   });
 
+  for (final status in [408, 425]) {
+    test('a $status name lookup marks the result incomplete', () async {
+      final client = _speciesClient([2384460, 111], (_) {
+        return Future.value(http.Response('try again', status));
+      });
+
+      final part = await NearbySpeciesService(
+        client: client,
+        matcher: _matcher(),
+        timeout: _limit,
+      ).fetch(_point);
+
+      expect(part.value!.namesIncomplete, isTrue);
+    });
+  }
+
   test('a name lookup that will never succeed is a finished one', () async {
     final client = _speciesClient([2384460, 111], (_) {
       return Future.value(http.Response('no such taxon', 404));

@@ -242,6 +242,32 @@ void main() {
     expect(searches, 2, reason: 'the 30-day cache must not keep the gap');
   });
 
+  test(
+    'a species row from before partial results were kept out is refetched',
+    () async {
+      // Written by the old snapshot path, which cached lists with failed lookups.
+      await ReefCacheDao(db, now: () => clock).write(
+        provider: ReefProviderId.species,
+        coordKey: ReefCoordinateKey.format(const GeoPoint(12.16, -68.28)),
+        variant: 'v2',
+        status: ReefDataStatus.ok,
+        payloadJson: '{"matched":[],"unmatchedNames":["Aplysina archeri"]}',
+      );
+      var searches = 0;
+      final repo = buildRepository(
+        speciesClient: MockClient((_) async {
+          searches++;
+          return http.Response(jsonEncode({'facets': []}), 200);
+        }),
+      );
+
+      final part = await repo.speciesFor(const GeoPoint(12.16, -68.28));
+
+      expect(searches, 1);
+      expect(part.status, ReefDataStatus.empty);
+    },
+  );
+
   test('a concurrent caller shares a partial species result', () async {
     var searches = 0;
     final repo = buildRepository(

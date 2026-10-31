@@ -155,8 +155,8 @@ class NearbySpeciesService {
 
   /// Resolves a taxon key to its scientific name. The name is null when the
   /// record is unusable or belongs to a [_terrestrialFamilies] family, which
-  /// is a finished answer, as is a client error such as 404: asking again
-  /// would get the same reply. `failed` means a later try could succeed.
+  /// is a finished answer, as is a permanent client error such as 404: asking
+  /// again would get the same reply. `failed` means a later try could succeed.
   Future<({String? name, bool failed})> _scientificName(int key) async {
     const lookupFailed = (name: null, failed: true);
     const noName = (name: null, failed: false);
@@ -164,9 +164,7 @@ class NearbySpeciesService {
       final response = await _client
           .get(Uri.https(_host, '$_speciesPath/$key'), headers: _headers)
           .timeout(_timeout);
-      if (response.statusCode == 429 || response.statusCode >= 500) {
-        return lookupFailed;
-      }
+      if (_isTransient(response.statusCode)) return lookupFailed;
       if (response.statusCode != 200) return noName;
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) return noName;
@@ -182,6 +180,11 @@ class NearbySpeciesService {
     }
   }
 }
+
+/// Timeout, too early, rate limited, or a server fault. Any other non-200
+/// reply is the server's final word on that record.
+bool _isTransient(int statusCode) =>
+    const {408, 425, 429}.contains(statusCode) || statusCode >= 500;
 
 class _FacetCount {
   final int key;

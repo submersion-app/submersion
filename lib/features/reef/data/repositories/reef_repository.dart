@@ -30,9 +30,10 @@ class ReefRepository {
   final Map<String, Future<ReefPart<Object?>?>> _inFlight = {};
 
   /// Cache generation for nearby species. Bump this whenever the taxon
-  /// whitelist changes so previously cached results are refetched rather
-  /// than served for the rest of their 30-day lifetime.
-  static const String _speciesWhitelistVariant = 'v2';
+  /// whitelist or what a cached result can contain changes, so previously
+  /// cached results are refetched rather than served for the rest of their
+  /// 30-day lifetime. v3 drops lists cached with failed name lookups.
+  static const String _speciesWhitelistVariant = 'v3';
 
   ReefRepository({
     required ReefCacheDao cache,
