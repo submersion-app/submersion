@@ -52,11 +52,13 @@ Future<List<(domain.ConnectedAccount, AccountStatus)>> _withStatus(
 ) async {
   final repository = ref.watch(connectedAccountsRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchAccountsChanges());
+  // Before the first await: a read nothing holds is disposed while it waits,
+  // and a disposed Ref throws (issue #3780).
+  final registry = ref.watch(accountProviderRegistryProvider);
   final accounts = [
     for (final a in await repository.getAll())
       if (kinds == null || kinds.contains(a.kind)) a,
   ];
-  final registry = ref.watch(accountProviderRegistryProvider);
   // Status probes hit the keychain / provider sessions: run them
   // concurrently so one slow probe cannot serialize the page load.
   return Future.wait([
@@ -136,9 +138,9 @@ Future<List<AccountGroup>> _groups(
   final usageRead = ref
       .watch(connectedAccountUsageProvider.future)
       .then<AccountUsageSnapshot?>((u) => u, onError: (Object _) => null);
+  final registry = ref.watch(accountProviderRegistryProvider);
   final withStatus = await statuses;
   final usage = await usageRead;
-  final registry = ref.watch(accountProviderRegistryProvider);
   final s3 = registry.capabilityFor<S3AccountAdapter>(AccountKind.s3);
   final webdav = registry.capabilityFor<WebDavAccountAdapter>(
     AccountKind.webdav,

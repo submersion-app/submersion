@@ -699,6 +699,91 @@ class NavTrackRepository {
     return routeIds;
   }
 
+  /// The rows of every route linked to [diveIds], in [getForDive]'s order
+  /// across all of them, with `points` left empty: for a caller that keeps
+  /// only the link columns, as [restoreLinks] does, the blob is megabytes it
+  /// never reads.
+  Future<List<NavTrackRow>> linkedRowsForDives(List<String> diveIds) async {
+    final rows = <NavTrackRow>[];
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      rows.addAll(
+        await _selectWithoutPoints(
+          where: 'dive_id IN (${List.filled(chunk.length, '?').join(', ')})',
+          variables: [for (final id in chunk) Variable.withString(id)],
+        ),
+      );
+    }
+    rows.sort((a, b) {
+      if (a.isPrimary != b.isPrimary) return a.isPrimary ? -1 : 1;
+      final byStart = a.startTime.compareTo(b.startTime);
+      return byStart != 0 ? byStart : a.id.compareTo(b.id);
+    });
+    return rows;
+  }
+
+  /// Moves every route linked to [fromDiveIds] onto [toDiveId], for a
+  /// consolidate or merge folding those dives into it (issue #3918). Call
+  /// this before they are deleted: unlike an intentional delete, the link is
+  /// part of what the diver is keeping.
+  ///
+  /// How each link came about carries over. [link] settles the rest as for
+  /// any new link: the owner follows the dive, a route with no position
+  /// inherits the dive's, and a primary already on [toDiveId] stays primary.
+  /// Moving in [linkedRowsForDives]' order means that with none there, the
+  /// earliest of the routes coming in takes the role.
+  Future<void> moveLinks({
+    required List<String> fromDiveIds,
+    required String toDiveId,
+  }) async {
+    for (final route in await linkedRowsForDives(fromDiveIds)) {
+      final linkMode =
+          domain.NavTrackLinkMode.fromWireValue(route.linkMode) ??
+          domain.NavTrackLinkMode.manual;
+      await unlink(route.id, onlyFromDiveId: route.diveId);
+      await link(route.id, toDiveId, linkMode: linkMode);
+    }
+  }
+
+  /// Writes back the link columns of [rows], read by [linkedRowsForDives]
+  /// before a fold that is now being undone. The dives must exist again by
+  /// now. Only those columns are restored, so a rename or a correction made
+  /// since stands, and a route deleted since stays deleted. A dive left with
+  /// no primary route gets one, for a route linked after the fold whose
+  /// primary has gone back to its own dive.
+  Future<void> restoreLinks(List<NavTrackRow> rows) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final row in rows) {
+        final rowsAffected =
+            await (_db.update(
+              _db.navTracks,
+            )..where((t) => t.id.equals(row.id))).write(
+              NavTracksCompanion(
+                diveId: Value(row.diveId),
+                diverId: Value(row.diverId),
+                linkMode: Value(row.linkMode),
+                isPrimary: Value(row.isPrimary),
+                siteId: Value(row.siteId),
+                anchorLatitude: Value(row.anchorLatitude),
+                anchorLongitude: Value(row.anchorLongitude),
+                updatedAt: Value(now),
+              ),
+            );
+        if (rowsAffected > 0) await _markPending(row.id, now);
+      }
+      for (final diveId in {for (final r in rows) r.diveId}.nonNulls) {
+        await _promoteSiblingIfNoPrimary(diveId, now);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore nav track links',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Normalizes routes whose linked dive was just deleted.
   ///
   /// The `nav_tracks.dive_id` foreign key's `SET NULL` action already

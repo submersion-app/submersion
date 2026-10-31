@@ -238,9 +238,7 @@ class _FactorRow extends StatelessWidget {
             ),
           ],
         ),
-        if (factor.groupCovered > 0 &&
-            factor.groupCovered < factor.groupSize &&
-            factor is NumericFactor)
+        if (factor.groupCovered > 0 && factor.hasCoverageGap)
           Text(
             l10n.insights_focus_factors_coverage(
               factor.groupCovered,
@@ -264,7 +262,13 @@ class _FactorRow extends StatelessWidget {
           all: Text(focusNumericValue(factor.id, baselineMean, units, l10n)),
           difference: Text(difference ?? '', style: muted),
         );
-      case CategoricalFactor(:final top) when top.isNotEmpty:
+      case CategoricalFactor(
+            :final top,
+            :final baselineCovered,
+            :final baselineSize,
+            :final baselineIsPartial,
+          )
+          when top.isNotEmpty:
         return _Columns(
           narrow: narrow,
           label: label,
@@ -285,6 +289,14 @@ class _FactorRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final s in top) Text(percent.format(s.baselineShare)),
+              if (baselineIsPartial)
+                Text(
+                  l10n.insights_focus_factors_coverage(
+                    baselineCovered,
+                    baselineSize,
+                  ),
+                  style: muted,
+                ),
             ],
           ),
           difference: const SizedBox.shrink(),

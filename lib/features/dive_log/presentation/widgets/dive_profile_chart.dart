@@ -258,6 +258,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// band from the stop depth up to the surface.
   final List<double>? decoStopCurve;
 
+  /// True when [decoStopCurve] is the computer's while [ceilingCurve] is
+  /// calculated, used to label the ceiling "Ceiling (calc)" (issue #2552).
+  final bool labelCeilingAsCalculated;
+
   /// Ascent rate data for each profile point
   final List<AscentRatePoint>? ascentRates;
 
@@ -724,6 +728,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.onTimeSelected,
     this.ceilingCurve,
     this.decoStopCurve,
+    this.labelCeilingAsCalculated = false,
     this.ascentRates,
     this.events,
     this.ndlCurve,
@@ -2052,6 +2057,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    String ceilingRowLabel(bool calculated) => calculated
+        ? l10n.diveLog_legend_label_ceilingCalculated
+        : l10n.diveLog_tooltip_ceiling;
+
     // Ceiling (always shown once enabled, even where the curve has no data
     // for this sample -- a toggled-on row disappearing entirely reads as the
     // toggle having silently failed, issue #2228 follow-up).
@@ -2059,7 +2068,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final ceiling = _curveValueAt(widget.ceilingCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
-          label: l10n.diveLog_tooltip_ceiling,
+          label: ceilingRowLabel(widget.labelCeilingAsCalculated),
           value: ceiling != null && ceiling > 0
               ? units.formatDepth(ceiling)
               : '-',
@@ -2074,9 +2083,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final curve = overlay.analysis?.ceilingCurve;
         if (idx == null || curve == null || idx >= curve.length) continue;
         final ceiling = curve[idx];
+        final label = ceilingRowLabel(
+          overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
+        );
         rows.add(
           TooltipRow(
-            label: '${l10n.diveLog_tooltip_ceiling} · ${overlay.name}',
+            label: '$label · ${overlay.name}',
             value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
             bulletColor: _overlayColor(
               overlay,
@@ -2933,6 +2945,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasHeartRateData: hasHeartRateData,
       hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
       hasCeilingCurve: widget.ceilingCurve != null,
+      labelCeilingAsCalculated: widget.labelCeilingAsCalculated,
       hasDecoStopCurve:
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
@@ -3718,6 +3731,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Apply zoom and pan to calculate visible bounds (see ChartViewport).
     final visibleRangeX = totalMaxTime * _viewport.visibleWidth;
     final visibleRangeY = totalMaxDepth * _viewport.visibleHeight;
+    final depthInterval = _calculateDepthInterval(visibleRangeY);
 
     final visibleMinX = _viewport.offsetX * totalMaxTime;
     final visibleMaxX = visibleMinX + visibleRangeX;
@@ -3771,6 +3785,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
     _rightAxisSelectorActive = effectiveRightAxisMetric != null;
+    // Mean depth is plotted at its real depth, not stretched across
+    // [metricBand], so its axis repeats the depth axis instead of unmapping
+    // the band (issue #3892).
+    final rightAxisIsDepthScale =
+        effectiveRightAxisMetric == ProfileRightAxisMetric.meanDepth;
+    // Axis values are negated display-unit depths (surface at 0).
+    String depthTickLabel(double axisValue) => '${(-axisValue).toInt()}';
 
     final combinedSig = _sigOf([
       _baseSig,
@@ -4129,7 +4150,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
-              horizontalInterval: _calculateDepthInterval(visibleRangeY),
+              horizontalInterval: depthInterval,
               verticalInterval: _calculateTimeInterval(visibleRangeX),
               getDrawingHorizontalLine: (value) => FlLine(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -4151,20 +4172,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
-                  interval: _calculateDepthInterval(visibleRangeY),
+                  interval: depthInterval,
                   getTitlesWidget: (value, meta) {
                     // Suppress interval ticks too close to the min boundary
                     // (min is the most-negative value = deepest depth).
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Show positive depth values (negate the negative axis values)
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        '${(-value).toInt()}',
+                        depthTickLabel(value),
                         style: Theme.of(context).textTheme.labelSmall,
                         maxLines: 1,
                       ),
@@ -4239,49 +4258,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
+                  interval: rightAxisIsDepthScale ? depthInterval : null,
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
                       return const SizedBox();
                     }
                     // Suppress interval ticks too close to the min boundary
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Map from inverted depth axis to the metric value
-                    final metricValue = metricBand.unmap(
-                      -value,
-                      rightAxisRange.min,
-                      rightAxisRange.max,
-                    );
-                    if (metricValue < rightAxisRange.min ||
-                        metricValue > rightAxisRange.max) {
-                      return const SizedBox();
+                    final String label;
+                    if (rightAxisIsDepthScale) {
+                      label = depthTickLabel(value);
+                    } else {
+                      // Map from inverted depth axis to the metric value
+                      final metricValue = metricBand.unmap(
+                        -value,
+                        rightAxisRange.min,
+                        rightAxisRange.max,
+                      );
+                      if (metricValue < rightAxisRange.min ||
+                          metricValue > rightAxisRange.max) {
+                        return const SizedBox();
+                      }
+                      // Metric distance to the neighbouring tick, so the
+                      // label carries enough decimals to differ from it.
+                      final tickStep =
+                          metricBand.unmap(
+                            -(value + meta.appliedInterval),
+                            rightAxisRange.min,
+                            rightAxisRange.max,
+                          ) -
+                          metricValue;
+                      label = formatRightAxisTick(
+                        effectiveRightAxisMetric,
+                        metricValue,
+                        units,
+                        tickStep: tickStep,
+                      );
                     }
                     final metricColor = _palette.rightAxisColor(
                       effectiveRightAxisMetric,
                       singleTank: _isSingleTankDive,
                     );
-                    // Metric distance to the neighbouring tick, so the
-                    // label carries enough decimals to differ from it.
-                    final tickStep =
-                        metricBand.unmap(
-                          -(value + meta.appliedInterval),
-                          rightAxisRange.min,
-                          rightAxisRange.max,
-                        ) -
-                        metricValue;
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        formatRightAxisTick(
-                          effectiveRightAxisMetric,
-                          metricValue,
-                          units,
-                          tickStep: tickStep,
-                        ),
+                        label,
                         style: Theme.of(
                           context,
                         ).textTheme.labelSmall?.copyWith(color: metricColor),
@@ -5372,6 +5397,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             tintByMetric: overlay.tintByMetric,
             color: overlay.color,
             metrics: _overlayMetrics(overlay),
+            labelCeilingAsCalculated:
+                overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
           ),
     ];
   }

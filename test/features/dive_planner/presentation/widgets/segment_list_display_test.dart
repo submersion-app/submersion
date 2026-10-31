@@ -165,6 +165,40 @@ void main() {
       );
       expect(editor.availableTanks, hasLength(2));
     });
+
+    testWidgets('editing a segment overridden off the loop offers every '
+        'cylinder, so saving it keeps its own (#3898)', (tester) async {
+      await tester.pumpWidget(harness());
+      final container = containerOf(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(PlanMode.ccr);
+      notifier.addTank(bailout);
+      notifier.addSegment(
+        PlanSegment(
+          id: 'oc',
+          targetDepth: 30,
+          durationSeconds: 600,
+          tankId: 'bo',
+          gasMix: bailout.gasMix,
+          diveModeOverride: PlanMode.oc,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Edit segment').first);
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.tankLocked, isFalse);
+      expect(editor.availableTanks.map((t) => t.id), contains('bo'));
+      expect(
+        find.descendant(
+          of: find.byType(DropdownButton<String>),
+          matching: find.text('Bailout 50'),
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   group('RT includes the configured gas-switch stop time (#3263)', () {
