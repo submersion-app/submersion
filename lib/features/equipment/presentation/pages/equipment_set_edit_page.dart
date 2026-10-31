@@ -57,7 +57,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   bool _isInitialized = false;
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
-  bool _showFigure = false;
+  bool _showFigure = true;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -234,7 +234,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
             ),
             const SizedBox(height: 8),
 
-            // The diver figure on the set page (issue #2326), off by default.
+            // The diver figure on the set page (issue #2326), on by default.
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(context.l10n.equipment_setEdit_figureSwitch_title),

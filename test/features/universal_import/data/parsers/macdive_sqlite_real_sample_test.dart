@@ -130,11 +130,11 @@ void main() {
       expect(withTags, isNotEmpty);
     });
 
-    test('at least one dive has unmatchedBuddyNames populated', () async {
+    test('at least one dive has buddyRefs populated', () async {
       final payload = await const MacDiveSqliteParser().parse(bytes);
       final dives = payload.entitiesOf(ImportEntityType.dives);
       final withBuddies = dives.where(
-        (d) => (d['unmatchedBuddyNames'] as List?)?.isNotEmpty ?? false,
+        (d) => (d['buddyRefs'] as List?)?.isNotEmpty ?? false,
       );
       expect(withBuddies, isNotEmpty);
     });

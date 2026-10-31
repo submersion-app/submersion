@@ -5,8 +5,8 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v237: diver_settings.show_dive_figure, the diver-wide switch for the
-/// diver figure in the dive detail equipment card (issue #2326). Off by
-/// default for every diver; kept below main's v239, so a database already
+/// diver figure in the dive detail equipment card (issue #2326). On by
+/// default since issue #3889; kept below main's v239, so a database already
 /// past it gains the column through the beforeOpen backstop.
 void main() {
   Future<Set<String>> settingsColumns(AppDatabase db) async {
@@ -50,7 +50,7 @@ void main() {
     );
   });
 
-  test('a fresh database has the switch, off', () async {
+  test('a fresh database has the switch, on', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -62,7 +62,7 @@ void main() {
       (c) => c.read<String>('name') == 'show_dive_figure',
     );
     expect(column.read<int>('notnull'), 1);
-    expect(column.read<String?>('dflt_value'), contains('0'));
+    expect(column.read<String?>('dflt_value'), contains('1'));
   });
 
   test('a database stranded before v237 gains the column', () async {

@@ -8961,6 +8961,7 @@
   "equipment_deleteDialog_title": "Delete Equipment",
   "equipment_detail_brandLabel": "Brand",
   "equipment_detail_detailsTitle": "Details",
+  "equipment_detail_diveTimeLabel": "Dive Time",
   "equipment_detail_divesCountPlural": "{count} dives",
   "equipment_detail_divesCountSingular": "{count} dive",
   "equipment_detail_divesLabel": "Dives",

@@ -187,7 +187,8 @@ extension EquipmentMigrations on AppDatabase {
   }
 
   /// v229: equipment_sets.show_figure (issue #2326). Additive, not null,
-  /// default 0, so every existing set comes up with the figure off.
+  /// default 1 since the figure went on by default (issue #3889), so a
+  /// database that gains the column late comes up as a fresh one does.
   /// Idempotent, so it is safe to call from both onUpgrade and the
   /// beforeOpen backstop.
   Future<void> _assertEquipmentSetShowFigureColumn() async {
@@ -199,8 +200,27 @@ extension EquipmentMigrations on AppDatabase {
     if (!names.contains('show_figure')) {
       await customStatement(
         'ALTER TABLE equipment_sets '
-        'ADD COLUMN show_figure INTEGER NOT NULL DEFAULT 0',
+        'ADD COLUMN show_figure INTEGER NOT NULL DEFAULT 1',
       );
+    }
+  }
+
+  /// v329: the diver figure goes from opt-in to on by default (issue #3889),
+  /// so every stored set and diver is turned on; a stored off cannot be told
+  /// from one nobody chose. Asserts both columns first: v229 and v237 landed
+  /// below newer rungs, so a database already past them gets its column from
+  /// beforeOpen, which runs after this. Leaves updated_at and the HLC alone:
+  /// each device makes this change itself, and a newer stamp would let this
+  /// upgrade outrank what another device has changed since. One-time, so not
+  /// in the beforeOpen backstop, which would undo a later Hide on every open.
+  Future<void> _turnDiverFigureOnForEveryone() async {
+    await _assertEquipmentSetShowFigureColumn();
+    await _assertShowDiveFigureColumn();
+    if (await _tableExists('equipment_sets')) {
+      await customStatement('UPDATE equipment_sets SET show_figure = 1');
+    }
+    if (await _tableExists('diver_settings')) {
+      await customStatement('UPDATE diver_settings SET show_dive_figure = 1');
     }
   }
 

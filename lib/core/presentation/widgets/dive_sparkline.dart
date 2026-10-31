@@ -124,14 +124,18 @@ class DiveSparkline extends StatelessWidget {
     return SizedBox(
       width: width,
       height: height,
-      child: LineChart(
-        LineChartData(
-          lineTouchData: const LineTouchData(enabled: false),
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          clipData: const FlClipData.all(),
-          lineBarsData: bars,
+      // Its own layer, so a list row's hover or ink repaint does not repaint
+      // the curve with it.
+      child: RepaintBoundary(
+        child: LineChart(
+          LineChartData(
+            lineTouchData: const LineTouchData(enabled: false),
+            gridData: const FlGridData(show: false),
+            titlesData: const FlTitlesData(show: false),
+            borderData: FlBorderData(show: false),
+            clipData: const FlClipData.all(),
+            lineBarsData: bars,
+          ),
         ),
       ),
     );

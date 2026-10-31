@@ -15146,6 +15146,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Részletek';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Merülésidő';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count merülés';
   }
