@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
@@ -93,12 +94,39 @@ void main() {
       expect(timing.durationSeconds, isNull);
     });
 
-    test('a strand with no exit to span keeps the row duration', () {
-      final first = _row('a', computerId: 'dc-1', entryTime: start);
-      final second = _row('b', computerId: 'dc-1', entryTime: secondStart);
+    test('a segment with no exit ends at its entry plus its duration', () {
+      final first = _row(
+        'a',
+        computerId: 'dc-1',
+        entryTime: start,
+        exitTime: firstExit,
+      );
+      final second = _row(
+        'b',
+        computerId: 'dc-1',
+        entryTime: secondStart,
+        duration: 1800,
+      );
 
       final timing = dataSourceStrandTiming([first, second], first);
 
+      expect(timing.exitMs, secondExit.millisecondsSinceEpoch);
+      expect(timing.durationSeconds, isNull);
+    });
+
+    test('a strand with nothing to span keeps the row duration', () {
+      final first = _row(
+        'a',
+        computerId: 'dc-1',
+      ).copyWith(entryTime: const Value(null));
+      final second = _row(
+        'b',
+        computerId: 'dc-1',
+      ).copyWith(entryTime: const Value(null));
+
+      final timing = dataSourceStrandTiming([first, second], first);
+
+      expect(timing.entryMs, isNull);
       expect(timing.exitMs, isNull);
       expect(timing.durationSeconds, 440);
     });

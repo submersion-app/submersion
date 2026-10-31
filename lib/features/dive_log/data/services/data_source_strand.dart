@@ -126,15 +126,22 @@ Map<String, String> dataSourceStrandKeysById(
     for (final r in strand)
       if (r.entryTime != null) r.entryTime!.millisecondsSinceEpoch,
   ];
-  final exits = [
-    for (final r in strand)
-      if (r.exitTime != null) r.exitTime!.millisecondsSinceEpoch,
-  ];
+  final exits = [for (final r in strand) ?_rowEndMs(r)];
   return (
     entryMs: entries.isEmpty ? null : entries.reduce(min),
     exitMs: exits.isEmpty ? null : exits.reduce(max),
     durationSeconds: entries.isEmpty || exits.isEmpty ? row.duration : null,
   );
+}
+
+/// Where [row] ends: its exit, else its entry plus the runtime it measured.
+int? _rowEndMs(DiveDataSourcesData row) {
+  final exit = row.exitTime;
+  if (exit != null) return exit.millisecondsSinceEpoch;
+  final entry = row.entryTime;
+  final duration = row.duration;
+  if (entry == null || duration == null) return null;
+  return entry.add(Duration(seconds: duration)).millisecondsSinceEpoch;
 }
 
 /// How far apart two parses of one recording may put its maximum depth:
