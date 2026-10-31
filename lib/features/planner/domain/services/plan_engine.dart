@@ -1930,7 +1930,7 @@ class PlanEngine {
 
     final inDeco = segmentOutcomes.any((s) => s.inDeco);
     // A loop deco dive stays on the loop, so what it must carry is a way off
-    // it, not a richer gas to switch to: every carried gas is bailout there.
+    // it, not a richer gas to switch to.
     final isLoop = plan.mode != domain.PlanMode.oc;
     if (inDeco && !isLoop && !_hasDecoGas(plan)) {
       issues.add(
