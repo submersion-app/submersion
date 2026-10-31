@@ -78,7 +78,9 @@ void main() {
         actual.stops.map((s) => (s.depthMeters, s.durationSeconds)),
         reference.stops.map((s) => (s.depthMeters, s.durationSeconds)),
       );
-      expect(actual.stops.last.gasFO2, closeTo(fO2, 1e-10));
+      // The schedule is timed on the loop's inspired mix; its rows name the
+      // supply cylinder the loop is fed from (issue #3896).
+      expect(actual.stops.last.gasFO2, closeTo(0.5, 1e-10));
     },
   );
 

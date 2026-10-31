@@ -8805,6 +8805,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gasgemisch (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Flaschenkonfiguration';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Flaschen-Extras';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Mindestbewertung';
 
   @override
@@ -20529,7 +20535,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'CCR-Dekompressionsplan führt kein Bailout-Gas mit';
+      'Dekompressionsplan führt kein Bailout-Gas mit';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -28955,6 +28961,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String insights_chart_barSemanticLabel(Object count) {
     return 'Balkendiagramm mit $count Kategorien';
+  }
+
+  @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
   }
 
   @override
@@ -48322,6 +48333,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count Flaschenkonfigurationen';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count Flaschen-Extras';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Meereslebewesen';
 
   @override
@@ -50607,7 +50628,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Wählen Sie im Diagramm einen Bereich aus, um Aktionen zu aktivieren';
+      'Ziehen Sie über das Diagramm, um einen Bereich auszuwählen und Aktionen zu aktivieren';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Tiefe +1 m';
@@ -50711,6 +50732,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'Keine Profildaten verfügbar';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Verschieben nicht möglich: Die Auswahl hat in dieser Richtung keinen Platz';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Das gesamte Profil kann nicht gelöscht werden';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Glätten nicht möglich: Wählen Sie mindestens drei Messpunkte aus';
 
   @override
   String get diveLog_profileEditor_undo => 'Rückgängig';
@@ -52712,6 +52745,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Ausgeschlossen';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Alle deine Tauchgänge sind von Statistiken ausgeschlossen';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Sie bleiben in deinem Logbuch. Bearbeite einen Tauchgang, um ihn wieder mitzuzählen.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -54839,6 +54880,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Hat Profil';
+
+  @override
+  String get query_dives_tankConfig => 'Flaschenkonfiguration';
+
+  @override
+  String get query_dives_stages => 'Stage(s)';
+
+  @override
+  String get query_dives_decoGas => 'Dekogas';
+
+  @override
+  String get query_dives_multiGas => 'Mehrere Gase';
 
   @override
   String get query_dives_id => 'Tauchgangs-ID';

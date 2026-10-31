@@ -79,6 +79,7 @@ void main() {
       'scanRecordedDecoSignals': (r) => r.scanRecordedDecoSignals(),
       'getDecoObligationStats': (r) => r.getDecoObligationStats(),
       'countExcludedDives': (r) => r.countExcludedDives(),
+      'countLogbookDives': (r) => r.countLogbookDives(),
     };
 
     for (final MapEntry(key: name, value: call) in calls.entries) {

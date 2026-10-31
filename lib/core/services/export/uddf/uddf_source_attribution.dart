@@ -6,7 +6,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 
 /// Submersion's extension blocks that say which `<source>` of a dive
 /// recorded what (issue #2492): each tank row, and each tank pressure
-/// series.
+/// series. A gas switch names its computer the same way (#3966), in a
+/// `<computer>` of its own `<gasswitch>`.
 ///
 /// The standard `<tankpressure>` in a waypoint names a cylinder and nothing
 /// else, and holds one reading per cylinder per sample. So a backup of a
@@ -38,6 +39,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// naming a computer is needed; it is absent when the row named none. Each
 /// series stays a series of its own, since one source can record a tank in
 /// two stretches. Pressures are bar, unconverted, so a round trip is exact.
+///
+/// A switch names its computer inside its `<gasswitch>`, because nothing in
+/// the file identifies a switch for a block to point at: two computers can
+/// log one second on one merged cylinder. It takes no `source`, as
+/// `gas_switches` stores none.
 class UddfSourceAttribution {
   const UddfSourceAttribution._();
 
@@ -45,6 +51,17 @@ class UddfSourceAttribution {
   /// `dataSources` the import wizard keeps for the same reason (#1735).
   static const String seriesKey = 'tankPressureSeries';
   static const String tanksKey = 'tankSources';
+
+  /// [sources] by the dive each belongs to.
+  static Map<String, List<DiveSourceExport>> groupByDive(
+    List<DiveSourceExport> sources,
+  ) {
+    final byDive = <String, List<DiveSourceExport>>{};
+    for (final source in sources) {
+      (byDive[source.diveId] ??= []).add(source);
+    }
+    return byDive;
+  }
 
   /// Writes both blocks for every dive of [dives] that has two or more
   /// entries in [sources], with its series from [pressures]. Writes nothing
@@ -60,10 +77,7 @@ class UddfSourceAttribution {
     required Map<String, DiveTankPressureExport> pressures,
     required List<DiveSourceExport> sources,
   }) {
-    final sourcesByDive = <String, List<DiveSourceExport>>{};
-    for (final source in sources) {
-      (sourcesByDive[source.diveId] ??= []).add(source);
-    }
+    final sourcesByDive = groupByDive(sources);
     final attributed = [
       for (final dive in dives)
         if ((sourcesByDive[dive.id]?.length ?? 0) >= 2) dive,
@@ -124,6 +138,25 @@ class UddfSourceAttribution {
         }
       },
     );
+  }
+
+  /// Writes the `<computer>` of a `<gasswitch>` that [computerId] logged, the
+  /// ordinal of one of its dive's [sources] that computer recorded. Writes
+  /// nothing for a switch with no computer, which stays the whole dive's, or
+  /// one no source recorded.
+  ///
+  /// A dive with one source needs this too, unlike the blocks: that source
+  /// adopts what a restore cannot place, but a switch left unattributed
+  /// applies to every computer rather than to it.
+  static void writeSwitchComputer(
+    XmlBuilder builder,
+    String? computerId,
+    List<DiveSourceExport> sources,
+  ) {
+    final ordinal = _computerOrdinal(sources, computerId, null);
+    if (ordinal != null) {
+      builder.element('computer', nest: ordinal.toString());
+    }
   }
 
   /// The `<tank>` attributes for [tank], or null when neither its source

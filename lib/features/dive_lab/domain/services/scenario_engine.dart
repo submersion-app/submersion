@@ -395,7 +395,7 @@ class ScenarioEngine {
       startTimestamp: branchT,
       startDepth: branch.depthMeters,
       ascentPlan: plan.mode == domain.PlanMode.scr
-          ? engine.scrAscentPlanFor(plan.segments.last.gasMix)
+          ? (engine.scrAscentPlanFor(plan) ?? engine.ocAscentPlanFor(plan))
           : engine.ocAscentPlanFor(plan),
       policy: engine.schedulePolicyFor(plan),
       loop: plan.mode == domain.PlanMode.ccr
