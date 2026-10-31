@@ -102,6 +102,10 @@ class ServiceReport {
     required this.due,
     required this.history,
   });
+
+  /// True when the scope held no gear at all.
+  bool get isEmpty =>
+      overdue + dueSoon + upToDate + noScheduleCount == 0 && history.isEmpty;
 }
 
 /// Builds the report for [gear], which the caller has already narrowed to
