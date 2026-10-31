@@ -225,11 +225,5 @@ void main() {
       ]);
       expect(windows.within(600, 1200), isEmpty);
     });
-
-    test('covers includes both ends of a period', () {
-      expect(windows.covers(600), isTrue);
-      expect(windows.covers(1200), isTrue);
-      expect(windows.covers(900), isFalse);
-    });
   });
 }

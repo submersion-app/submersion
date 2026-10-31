@@ -611,10 +611,9 @@ class GasAnalysisService {
     // A phase can outlast the tank's breathing time, which is what its drop
     // happened over. None at all is a segment a stale switch handed to it,
     // where only a transmitter can say the tank was on the regulator.
-    final breathedInSegment = prorationWindows.breathedBetween(
-      startTime,
-      endTime,
-    );
+    final breathedInSegment = prorationWindows
+        .within(startTime, endTime)
+        .breathedSeconds;
 
     // Try time-series pressure data first
     if (tankPressures != null && tankPressures.length >= 2) {
