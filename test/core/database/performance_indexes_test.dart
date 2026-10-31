@@ -26,6 +26,22 @@ void main() {
     }
   });
 
+  test('gas_switches is indexed by dive', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await db.customSelect('SELECT 1').get();
+
+    final row = await db
+        .customSelect(
+          "SELECT tbl_name FROM sqlite_master WHERE type = 'index' "
+          "AND name = 'idx_gas_switches_dive_id'",
+        )
+        .getSingleOrNull();
+    expect(row?.read<String>('tbl_name'), 'gas_switches');
+  });
+
   test('ensurePerformanceIndexes is idempotent', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
