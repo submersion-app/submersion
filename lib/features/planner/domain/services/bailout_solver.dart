@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
@@ -701,6 +702,40 @@ class BailoutSolver {
       previousFHe = fHe;
     }
 
+    // Split at every gas-switch depth crossed, same as PlanEngine's own travel
+    // legs (#3225): a carried gas whose MOD falls strictly between a leg's
+    // ends would otherwise never appear, its whole usable window sitting
+    // inside a leg charged entirely to the gas valid at the deepest point.
+    void addTravelLeg(double from, double to, int seconds, int startRuntime) {
+      var legStartRuntime = startRuntime;
+      for (final span in splitAscentLeg(
+        bailoutPlan,
+        fromDepth: from,
+        toDepth: to,
+        seconds: seconds,
+      )) {
+        final gas = bailoutPlan.gasForDepth(span.fromDepth);
+        add(
+          kind: PlanScheduleRowKind.ascent,
+          depth: span.toDepth,
+          duration: span.seconds,
+          runtime: legStartRuntime + span.seconds,
+          fO2: gas.fO2,
+          fHe: gas.fHe,
+          physicsDepth: span.fromDepth,
+          endPhysicsDepth: span.toDepth == 0 ? 0 : null,
+        );
+        charge(
+          tankForGas(gas.fO2, gas.fHe),
+          (legStartRuntime - point.runtimeSeconds).toDouble(),
+          span.seconds.toDouble(),
+          span.fromDepth,
+          span.toDepth,
+        );
+        legStartRuntime += span.seconds;
+      }
+    }
+
     var depth = point.depthMeters;
     // Absolute dive time, continuing from the authored legs printed before
     // this (_legRowsUpTo) rather than restarting at 0, so RT reads
@@ -720,50 +755,7 @@ class BailoutSolver {
       // measures its own secondsSinceBailoutStart from (issue #3743).
       final iterStartRuntime = end;
       if (i == 0 && travelSeconds > 0) {
-        // Split at every gas-switch depth crossed, same as PlanEngine's own
-        // first travel leg (#3225): a carried gas whose MOD falls strictly
-        // between the bailout depth and the first stop would otherwise
-        // never appear -- its whole usable window sits inside this one
-        // leg, which used to be charged entirely to the gas valid at the
-        // deepest point.
-        final boundaries = travelLegBoundaries(
-          bailoutPlan,
-          fromDepth: depth,
-          toDepth: stop.depthMeters,
-        );
-        final totalSpan = depth - stop.depthMeters;
-        var legDepth = depth;
-        var legRuntime = end;
-        var remaining = travelSeconds;
-        for (var j = 1; j < boundaries.length; j++) {
-          final legTo = boundaries[j];
-          final isLast = j == boundaries.length - 1;
-          final legSeconds = isLast
-              ? remaining
-              : (travelSeconds * (legDepth - legTo) / totalSpan).round();
-          remaining -= legSeconds;
-          final legStartRuntime = legRuntime;
-          legRuntime += legSeconds;
-          final gas = bailoutPlan.gasForDepth(legDepth);
-          final fO2 = 1.0 - gas.fN2 - gas.fHe;
-          add(
-            kind: PlanScheduleRowKind.ascent,
-            depth: legTo,
-            duration: legSeconds,
-            runtime: legRuntime,
-            fO2: fO2,
-            fHe: gas.fHe,
-            physicsDepth: legDepth,
-          );
-          charge(
-            tankForGas(fO2, gas.fHe),
-            (legStartRuntime - point.runtimeSeconds).toDouble(),
-            legSeconds.toDouble(),
-            legDepth,
-            legTo,
-          );
-          legDepth = legTo;
-        }
+        addTravelLeg(depth, stop.depthMeters, travelSeconds, end);
       }
       end += travelSeconds + stop.durationSeconds;
       final stopGas = bailoutPlan.gasForDepth(stop.depthMeters);
@@ -807,32 +799,12 @@ class BailoutSolver {
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final finalStartRuntime = end;
       final travelSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      end += travelSeconds;
-      final gas = bailoutPlan.gasForDepth(depth);
-      final fO2 = 1.0 - gas.fN2 - gas.fHe;
-      add(
-        kind: PlanScheduleRowKind.ascent,
-        depth: 0,
-        duration: travelSeconds,
-        runtime: end,
-        fO2: fO2,
-        fHe: gas.fHe,
-        physicsDepth: depth,
-        endPhysicsDepth: 0,
-      );
-      charge(
-        tankForGas(fO2, gas.fHe),
-        (finalStartRuntime - point.runtimeSeconds).toDouble(),
-        travelSeconds.toDouble(),
-        depth,
-        0,
-      );
+      addTravelLeg(depth, 0, travelSeconds, end);
     }
     return (rows: rows, litersByTank: litersByTank);
   }
