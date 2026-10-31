@@ -31,6 +31,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart'
     show kDefaultBatteryReserveFraction, kDefaultWalkSpeedMps;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
 ///
@@ -106,6 +107,10 @@ class PlanEngineConfig extends Equatable {
 
   /// SCR supply injection rate (surface liters per minute) for the CMF loop.
   final double scrInjectionRateLpm;
+
+  /// SCR diver metabolic O2 consumption (surface liters per minute), which
+  /// sets the CMF loop's steady-state O2 fraction.
+  final double scrVo2Lpm;
 
   /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
   /// `o2consumption`, default 720).
@@ -206,6 +211,7 @@ class PlanEngineConfig extends Equatable {
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
     this.scrInjectionRateLpm = 12.0,
+    this.scrVo2Lpm = ScrCalculator.defaultVo2,
     this.pscrO2ConsumptionMlMin = 720.0,
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
@@ -259,6 +265,7 @@ class PlanEngineConfig extends Equatable {
     loopVolumeLiters,
     buddyFactor,
     scrInjectionRateLpm,
+    scrVo2Lpm,
     pscrO2ConsumptionMlMin,
     pscrSacMlMin,
     pscrRatio,
@@ -311,6 +318,7 @@ class PlanEngineConfig extends Equatable {
     double? loopVolumeLiters,
     double? buddyFactor,
     double? scrInjectionRateLpm,
+    double? scrVo2Lpm,
     double? pscrO2ConsumptionMlMin,
     double? pscrSacMlMin,
     double? pscrRatio,
@@ -365,6 +373,7 @@ class PlanEngineConfig extends Equatable {
       loopVolumeLiters: loopVolumeLiters ?? this.loopVolumeLiters,
       buddyFactor: buddyFactor ?? this.buddyFactor,
       scrInjectionRateLpm: scrInjectionRateLpm ?? this.scrInjectionRateLpm,
+      scrVo2Lpm: scrVo2Lpm ?? this.scrVo2Lpm,
       pscrO2ConsumptionMlMin:
           pscrO2ConsumptionMlMin ?? this.pscrO2ConsumptionMlMin,
       pscrSacMlMin: pscrSacMlMin ?? this.pscrSacMlMin,
@@ -642,6 +651,7 @@ BreathingConfig breathingFor(
       supplyFO2: gas.o2 / 100.0,
       supplyFHe: gas.he / 100.0,
       injectionRateLpm: config.scrInjectionRateLpm,
+      vo2: config.scrVo2Lpm,
     );
   }
   if (mode == domain.PlanMode.pscr) {
@@ -2145,6 +2155,37 @@ class PlanEngine {
             breathing: breathing,
           )
         : null;
+  }
+
+  /// The semi-closed loop [compute] keeps an SCR plan on through its ascent
+  /// (issue #3896), for the Dive Lab's synthesized remainder; null when the
+  /// plan's final leg is not breathed on a semi-closed loop.
+  AscentGasPlan? scrAscentPlanFor(domain.DivePlan plan) {
+    final segments = List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    return PlanEngine(config: config.resolvedFor(plan))._semiClosedLoopFor(
+      plan,
+      segments.isEmpty ? null : segments.last,
+      environmentFor(plan),
+    );
+  }
+
+  /// The schedule policy [compute] derives for [plan], for code that
+  /// retraces its schedule: the Dive Lab times its synthesized ascent with
+  /// the same legs the engine scheduled. Resolves [config] against the plan
+  /// first, as [compute] does, so a plan's own rates win and an unset one
+  /// falls back to the diver's Settings.
+  SchedulePolicy schedulePolicyFor(domain.DivePlan plan) =>
+      PlanEngine(config: config.resolvedFor(plan))._policyFor(plan);
+
+  /// The open-circuit ascent gas plan [compute] builds for [plan], with its
+  /// config resolved, its cylinder roles resolved and its water applied, so
+  /// the Dive Lab synthesizes the same gas switches the engine schedules.
+  AscentGasPlan ocAscentPlanFor(domain.DivePlan plan) {
+    final resolved = const TankRoleResolver().apply(plan);
+    return PlanEngine(
+      config: config.resolvedFor(plan),
+    )._ascentPlanFor(resolved.tanks, environmentFor(resolved));
   }
 
   /// Each gas joins the ascent at its cylinder's MOD (issue #3567): the one

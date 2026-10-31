@@ -64,6 +64,7 @@ part 'helpers/dive_computer_connection_migrations.dart';
 part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
 part 'helpers/dive_profile_migrations.dart';
+part 'helpers/dive_lab_migrations.dart';
 part 'helpers/diver_migrations.dart';
 part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';

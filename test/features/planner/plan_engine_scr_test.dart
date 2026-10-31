@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -51,6 +52,38 @@ domain.DivePlan _plan(domain.PlanMode mode) => domain.DivePlan(
 );
 
 void main() {
+  test(
+    'SCR ascent stays on the effective loop mix, even with rich OC tanks',
+    () {
+      const supply = GasMix(o2: 50, he: 10);
+      final fO2 = ScrCalculator.calculateCmfSteadyStateFo2(
+        injectionRateLpm: 12,
+        supplyO2Percent: 50,
+      )!;
+      final effective = GasMix(o2: fO2 * 100, he: (1 - fO2) * 20);
+      final scr = _plan(domain.PlanMode.scr).copyWith(
+        tanks: [_tank.copyWith(gasMix: supply)],
+        segments: [for (final s in _segments()) s.copyWith(gasMix: supply)],
+      );
+      final oc = scr.copyWith(
+        mode: domain.PlanMode.oc,
+        tanks: [_tank.copyWith(gasMix: effective)],
+        segments: [for (final s in scr.segments) s.copyWith(gasMix: effective)],
+      );
+      const engine = PlanEngine();
+      final actual = engine.compute(scr);
+      final reference = engine.compute(oc);
+      expect(actual.runtimeSeconds, reference.runtimeSeconds);
+      expect(
+        actual.stops.map((s) => (s.depthMeters, s.durationSeconds)),
+        reference.stops.map((s) => (s.depthMeters, s.durationSeconds)),
+      );
+      // The schedule is timed on the loop's inspired mix; its rows name the
+      // supply cylinder the loop is fed from (issue #3896).
+      expect(actual.stops.last.gasFO2, closeTo(0.5, 1e-10));
+    },
+  );
+
   test('PlanMode.scr parses from its stored string name', () {
     expect(domain.PlanMode.values.byName('scr'), domain.PlanMode.scr);
     expect(domain.PlanMode.scr.name, 'scr');
@@ -107,6 +140,19 @@ void main() {
     // mode-aware hypoxia check fires. Open circuit on the same gas does not.
     expect(pscr.issues.any((i) => i.type == PlanIssueType.hypoxicGas), isTrue);
     expect(oc.issues.any((i) => i.type == PlanIssueType.hypoxicGas), isFalse);
+  });
+
+  test('the SCR loop uses the configured metabolic O2 consumption', () {
+    final plan = _plan(domain.PlanMode.scr);
+    final lean = const PlanEngine(
+      config: PlanEngineConfig(scrVo2Lpm: 0.8),
+    ).compute(plan);
+    final hungry = const PlanEngine(
+      config: PlanEngineConfig(scrVo2Lpm: 1.8),
+    ).compute(plan);
+    // Less O2 consumed leaves a richer loop: more oxygen exposure.
+    expect(lean.cnsEnd, greaterThan(hungry.cnsEnd));
+    expect(const PlanEngineConfig().scrVo2Lpm, 1.3);
   });
 }
 
