@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -22,113 +20,12 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_warnings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
-import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
-
-/// Localized, unit-aware message for a plan issue. Reuses the existing
-/// `divePlanner_warning_*` strings where a type overlaps, so only genuinely
-/// new issue types need new keys.
-String planIssueMessage(
-  BuildContext context,
-  PlanIssue issue,
-  UnitFormatter units,
-) {
-  final l10n = context.l10n;
-  switch (issue.type) {
-    case PlanIssueType.ppO2High:
-      return l10n.divePlanner_warning_ppO2High(
-        issue.value?.toStringAsFixed(2) ?? '--',
-      );
-    case PlanIssueType.ppO2Critical:
-      return l10n.divePlanner_warning_ppO2Critical(
-        issue.value?.toStringAsFixed(2) ?? '--',
-      );
-    case PlanIssueType.hypoxicGas:
-      return l10n.plannerCanvas_issue_hypoxic(
-        units.formatDepth(issue.atDepth ?? 0, decimals: 0),
-        issue.value?.toStringAsFixed(2) ?? '--',
-      );
-    case PlanIssueType.endExceeded:
-      // The engine compares unrounded values, so plain rounding could print
-      // "30m exceeds the 30m limit" for an END of 30.05 m. Round the END up
-      // and the limit down; the epsilon stops float noise (32.0000001) from
-      // bumping a whole value. The engine only raises this issue when the END
-      // is above the limit, so an END within the epsilon of it is still shown
-      // one unit higher rather than equal.
-      const epsilon = 1e-6;
-      final limit = (units.convertDepth(issue.threshold ?? 0) + epsilon)
-          .floor();
-      final end = max(
-        (units.convertDepth(issue.value ?? 0) - epsilon).ceil(),
-        limit + 1,
-      );
-      return l10n.divePlanner_warning_endExceedsLimit(
-        units.formatDepth(units.depthToMeters(end.toDouble()), decimals: 0),
-        units.formatDepth(units.depthToMeters(limit.toDouble()), decimals: 0),
-      );
-    case PlanIssueType.gasDensityHigh:
-      return l10n.plannerCanvas_issue_gasDensityHigh(
-        issue.value?.toStringAsFixed(1) ?? '--',
-      );
-    case PlanIssueType.gasDensityCritical:
-      return l10n.plannerCanvas_issue_gasDensityCritical(
-        issue.value?.toStringAsFixed(1) ?? '--',
-      );
-    case PlanIssueType.cnsWarning:
-      return l10n.divePlanner_warning_cnsWarning(
-        issue.value?.toStringAsFixed(0) ?? '--',
-      );
-    case PlanIssueType.cnsCritical:
-      return l10n.divePlanner_warning_cnsCritical;
-    case PlanIssueType.otuHigh:
-      return l10n.divePlanner_warning_otuWarning;
-    case PlanIssueType.gasReserveViolation:
-      return l10n.divePlanner_warning_gasLow(
-        units.formatPressure(issue.threshold ?? 0),
-      );
-    case PlanIssueType.gasOut:
-      return l10n.divePlanner_warning_gasOut;
-    case PlanIssueType.ndlExceededNoDecoGas:
-      return l10n.plannerCanvas_issue_noDecoGas;
-    case PlanIssueType.noBailoutCarried:
-      return l10n.plannerCanvas_issue_noBailout;
-    case PlanIssueType.minGasViolation:
-      return l10n.plannerCanvas_issue_minGas(
-        units.formatPressure(issue.threshold ?? 0),
-      );
-    case PlanIssueType.noUsableGas:
-      return l10n.plannerCanvas_issue_noUsableGas(
-        units.formatPressure(issue.value ?? 0),
-        units.formatPressure(issue.threshold ?? 0),
-      );
-    case PlanIssueType.diluentModExceeded:
-      return l10n.plannerCanvas_issue_diluentModExceeded(
-        units.formatDepth(issue.atDepth ?? 0, decimals: 0),
-        issue.value?.toStringAsFixed(2) ?? '--',
-      );
-    case PlanIssueType.ceilingViolated:
-      return l10n.plannerCanvas_issue_ceilingViolated(
-        units.formatDepth(issue.value ?? 0, decimals: 1),
-      );
-  }
-}
-
-IconData _issueIcon(PlanIssueSeverity severity) {
-  switch (severity) {
-    case PlanIssueSeverity.critical:
-      return Icons.error;
-    case PlanIssueSeverity.alert:
-      return Icons.warning;
-    case PlanIssueSeverity.warning:
-      return Icons.warning_amber;
-    case PlanIssueSeverity.info:
-      return Icons.info_outline;
-  }
-}
 
 /// The results content: runtime table, per-tank gas plan, and the
 /// severity-sorted issue list. The page owns the sheet chrome and passes the
@@ -185,57 +82,52 @@ class PlanResultsSheet extends ConsumerWidget {
           u.litersUsed > 0;
     });
 
-    return ListView(
+    // Laid out in full rather than lazily, so the warnings list can be
+    // measured and scrolled to while it is out of view (#3738).
+    return SingleChildScrollView(
       controller: controller,
-      shrinkWrap: shrinkWrap,
       physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        _grip(theme),
-        PlanSectionHeader(context.l10n.divePlanner_label_decoSchedule),
-        _RuntimeTable(outcome: outcome, units: units),
-        const SizedBox(height: 20),
-        PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
-        for (final usage in loopTankUsages)
-          _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
-        if (ref.watch(
-          divePlanNotifierProvider.select((s) => s.mission != null),
-        )) ...[
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _grip(theme),
+          PlanSectionHeader(context.l10n.divePlanner_label_decoSchedule),
+          _RuntimeTable(outcome: outcome, units: units),
           const SizedBox(height: 20),
-          PlanSectionHeader(context.l10n.plannerMission_results_title),
-          const MissionResultsSection(),
-        ],
-        if (bailout != null && !bailout.isFinishedEmpty) ...[
+          PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
+          for (final usage in loopTankUsages)
+            _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
+          if (ref.watch(
+            divePlanNotifierProvider.select((s) => s.mission != null),
+          )) ...[
+            const SizedBox(height: 20),
+            PlanSectionHeader(context.l10n.plannerMission_results_title),
+            const MissionResultsSection(),
+          ],
+          if (bailout != null && !bailout.isFinishedEmpty) ...[
+            const SizedBox(height: 20),
+            PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
+            PlanResultSection<BailoutOutcome>(
+              view: bailout,
+              builder: (outcome) =>
+                  _BailoutSection(outcome: outcome, units: units),
+            ),
+          ],
+          ...?_contingencySections(context, ref, units),
+          if (rangeTable != null && !rangeTable.isFinishedEmpty) ...[
+            const SizedBox(height: 20),
+            PlanSectionHeader(context.l10n.plannerCanvas_range_title),
+            const RangeTableSection(),
+          ],
           const SizedBox(height: 20),
-          PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
-          PlanResultSection<BailoutOutcome>(
-            view: bailout,
-            builder: (outcome) =>
-                _BailoutSection(outcome: outcome, units: units),
+          PlanWarningsSection(
+            key: const Key('planWarningsSection'),
+            issues: outcome.issues,
+            units: units,
           ),
         ],
-        ...?_contingencySections(context, ref, units),
-        if (rangeTable != null && !rangeTable.isFinishedEmpty) ...[
-          const SizedBox(height: 20),
-          PlanSectionHeader(context.l10n.plannerCanvas_range_title),
-          const RangeTableSection(),
-        ],
-        const SizedBox(height: 20),
-        PlanSectionHeader(context.l10n.divePlanner_label_warnings),
-        if (outcome.issues.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(
-              context.l10n.divePlanner_label_empty,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          )
-        else
-          for (final group in groupPlanIssues(outcome.issues))
-            _IssueRow(group: group, units: units),
-      ],
+      ),
     );
   }
 
@@ -827,28 +719,6 @@ class _GasRow extends StatelessWidget {
         ? '--'
         : '${units.convertPressure(bar).round()}${units.pressureSymbol}';
     return '$volume/$pressure';
-  }
-}
-
-class _IssueRow extends StatelessWidget {
-  const _IssueRow({required this.group, required this.units});
-
-  final GroupedPlanIssue group;
-  final UnitFormatter units;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final issue = group.issue;
-    final color = planIssueSeverityColor(theme.colorScheme, issue.severity);
-    final message = planIssueMessage(context, issue, units);
-    return PlanWarningRow(
-      icon: _issueIcon(issue.severity),
-      color: color,
-      message: group.count > 1
-          ? context.l10n.plannerCanvas_issue_repeated(message, group.count)
-          : message,
-    );
   }
 }
 

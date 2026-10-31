@@ -26,7 +26,25 @@ void main() {
         threshold: 1.4,
       );
       expect(a, equals(b));
-      expect(a.props, hasLength(8));
+      expect(a.props, hasLength(9));
+      expect(
+        a,
+        isNot(
+          equals(
+            const PlanIssue(
+              type: PlanIssueType.ppO2High,
+              severity: PlanIssueSeverity.warning,
+              message: 'high',
+              atRuntime: 120,
+              atDepth: 40,
+              segmentId: 's1',
+              tankId: 'back',
+              value: 1.5,
+              threshold: 1.4,
+            ),
+          ),
+        ),
+      );
       expect(
         a,
         isNot(
