@@ -8362,6 +8362,7 @@
   "insights_chart_notRecorded": "לא נרשם",
   "insights_chart_linkLabel": "{chart}: {row}",
   "insights_chart_openDivesFailed": "לא ניתן לפתוח צלילות אלה",
+  "insights_chart_viewDives": "הצגת צלילות",
   "insights_chart_trendSemanticLabel": "תרשים קו מגמה המציג {count} נקודות נתונים",
   "insights_chart_trendSemanticLabelWithAxis": "תרשים קו מגמה המציג {count} נקודות נתונים עבור {yAxisLabel}",
   "insights_conditions_appBar_title": "תנאים",

@@ -29071,6 +29071,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir ces plongées';
 
   @override
+  String get insights_chart_viewDives => 'Voir les plongées';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Graphique de tendance montrant $count points de données';
   }

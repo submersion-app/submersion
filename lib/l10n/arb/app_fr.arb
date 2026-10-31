@@ -8261,6 +8261,7 @@
   "insights_chart_notRecorded": "Non renseigné",
   "insights_chart_linkLabel": "{chart} : {row}",
   "insights_chart_openDivesFailed": "Impossible d'ouvrir ces plongées",
+  "insights_chart_viewDives": "Voir les plongées",
   "insights_chart_trendSemanticLabel": "Graphique de tendance montrant {count} points de données",
   "insights_chart_trendSemanticLabelWithAxis": "Graphique de tendance montrant {count} points de données pour {yAxisLabel}",
   "insights_conditions_appBar_title": "Conditions",

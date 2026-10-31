@@ -28974,6 +28974,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível abrir estes mergulhos';
 
   @override
+  String get insights_chart_viewDives => 'Ver mergulhos';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Gráfico de linhas de tendência mostrando $count pontos de dados';
   }

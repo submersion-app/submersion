@@ -28248,6 +28248,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_chart_openDivesFailed => 'לא ניתן לפתוח צלילות אלה';
 
   @override
+  String get insights_chart_viewDives => 'הצגת צלילות';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'תרשים קו מגמה המציג $count נקודות נתונים';
   }

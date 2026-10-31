@@ -17,6 +17,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     this.formatCount,
     this.countWidth = 40,
     this.scaleTo,
+    this.onOpenRow,
   });
 
   final List<({String label, int count})> data;
@@ -34,6 +35,10 @@ class HorizontalCategoryBarChart extends StatelessWidget {
   /// Shares of a whole pass the whole, so each bar's length matches its
   /// share.
   final int? scaleTo;
+
+  /// Set to open the dives behind a row in one tap (issue #3805). Each row
+  /// already shows its number, so there is nothing to mark first.
+  final Future<void> Function(int index)? onOpenRow;
 
   @override
   Widget build(BuildContext context) {
@@ -71,56 +76,70 @@ class HorizontalCategoryBarChart extends StatelessWidget {
       label: context.l10n.insights_chart_barSemanticLabel(data.length),
       child: Column(
         children: [
-          for (final item in data)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      item.label,
-                      style: theme.textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
+          for (final (index, item) in data.indexed)
+            _tappable(
+              index,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(
+                        item.label,
+                        style: theme.textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: FractionallySizedBox(
-                      alignment: AlignmentDirectional.centerStart,
-                      widthFactor: maxCount == 0
-                          ? 0
-                          : (item.count / maxCount).clamp(0.0, 1.0),
-                      child: Container(
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(4),
+                    Expanded(
+                      child: FractionallySizedBox(
+                        alignment: AlignmentDirectional.centerStart,
+                        widthFactor: maxCount == 0
+                            ? 0
+                            : (item.count / maxCount).clamp(0.0, 1.0),
+                        child: Container(
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: countWidth,
-                    // Shrinks a count too long for the column (a large text
-                    // scale, a 4-digit count with its share) instead of
-                    // wrapping it onto a second line.
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text(
-                        formatCount?.call(item.count) ?? '${item.count}',
-                        style: theme.textTheme.bodySmall,
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: countWidth,
+                      // Shrinks a count too long for the column (a large text
+                      // scale, a 4-digit count with its share) instead of
+                      // wrapping it onto a second line.
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(
+                          formatCount?.call(item.count) ?? '${item.count}',
+                          style: theme.textTheme.bodySmall,
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    if (onOpenRow != null)
+                      const Icon(Icons.chevron_right, size: 16),
+                  ],
+                ),
               ),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _tappable(int index, Widget row) {
+    final open = onOpenRow;
+    if (open == null) return row;
+    return Semantics(
+      button: true,
+      child: InkWell(onTap: () => open(index), child: row),
     );
   }
 }

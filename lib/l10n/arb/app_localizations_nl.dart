@@ -28790,6 +28790,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duiken konden niet worden geopend';
 
   @override
+  String get insights_chart_viewDives => 'Duiken bekijken';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trendlijndiagram met $count datapunten';
   }

@@ -46491,6 +46491,12 @@ abstract class AppLocalizations {
   /// **'Could not open these dives'**
   String get insights_chart_openDivesFailed;
 
+  /// No description provided for @insights_chart_viewDives.
+  ///
+  /// In en, this message translates to:
+  /// **'View dives'**
+  String get insights_chart_viewDives;
+
   /// No description provided for @insights_chart_trendSemanticLabel.
   ///
   /// In en, this message translates to:

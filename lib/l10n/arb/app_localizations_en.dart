@@ -28492,6 +28492,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_chart_openDivesFailed => 'Could not open these dives';
 
   @override
+  String get insights_chart_viewDives => 'View dives';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trend line chart showing $count data points';
   }

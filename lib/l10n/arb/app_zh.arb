@@ -8536,6 +8536,7 @@
   "insights_chart_notRecorded": "未记录",
   "insights_chart_linkLabel": "{chart}：{row}",
   "insights_chart_openDivesFailed": "无法打开这些潜水记录",
+  "insights_chart_viewDives": "查看潜水记录",
   "insights_chart_trendSemanticLabel": "显示 {count} 个数据点的趋势折线图",
   "insights_chart_trendSemanticLabelWithAxis": "显示 {yAxisLabel} 的 {count} 个数据点的趋势折线图",
   "insights_conditions_appBar_title": "条件",

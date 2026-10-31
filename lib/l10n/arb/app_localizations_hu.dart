@@ -28839,6 +28839,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni ezeket a merüléseket';
 
   @override
+  String get insights_chart_viewDives => 'Merülések megtekintése';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trend vonaldiagram $count adatponttal';
   }

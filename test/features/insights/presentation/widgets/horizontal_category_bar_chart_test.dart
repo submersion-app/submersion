@@ -118,4 +118,34 @@ void main() {
     expect(find.byIcon(Icons.bar_chart), findsOneWidget);
     expect(find.byType(FractionallySizedBox), findsNothing);
   });
+
+  testWidgets('a row opens in one tap and has a chevron (#3805)', (
+    tester,
+  ) async {
+    int? opened;
+    await tester.pumpWidget(
+      _wrap(
+        HorizontalCategoryBarChart(
+          data: const [(label: 'Wreck', count: 10), (label: 'Lake', count: 5)],
+          onOpenRow: (i) async => opened = i,
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
+    await tester.tap(find.text('Lake'));
+    await tester.pump();
+
+    expect(opened, 1);
+  });
+
+  testWidgets('with no callback a row has no chevron', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const HorizontalCategoryBarChart(data: [(label: 'Wreck', count: 10)]),
+      ),
+    );
+
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
 }

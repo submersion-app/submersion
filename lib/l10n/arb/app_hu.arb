@@ -8261,6 +8261,7 @@
   "insights_chart_notRecorded": "Nincs rögzítve",
   "insights_chart_linkLabel": "{chart}: {row}",
   "insights_chart_openDivesFailed": "Nem sikerült megnyitni ezeket a merüléseket",
+  "insights_chart_viewDives": "Merülések megtekintése",
   "insights_chart_trendSemanticLabel": "Trend vonaldiagram {count} adatponttal",
   "insights_chart_trendSemanticLabelWithAxis": "Trend vonaldiagram {count} adatponttal a(z) {yAxisLabel} számára",
   "insights_conditions_appBar_title": "Körülmények",

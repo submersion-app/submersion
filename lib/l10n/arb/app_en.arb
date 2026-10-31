@@ -16689,6 +16689,7 @@
   "insights_chart_notRecorded": "Not recorded",
   "insights_chart_linkLabel": "{chart}: {row}",
   "insights_chart_openDivesFailed": "Could not open these dives",
+  "insights_chart_viewDives": "View dives",
   "@insights_chart_linkLabel": {
     "placeholders": {
       "chart": {

@@ -27331,6 +27331,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_chart_openDivesFailed => '无法打开这些潜水记录';
 
   @override
+  String get insights_chart_viewDives => '查看潜水记录';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return '显示 $count 个数据点的趋势折线图';
   }

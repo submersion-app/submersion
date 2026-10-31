@@ -8362,6 +8362,7 @@
   "insights_chart_notRecorded": "غير مسجل",
   "insights_chart_linkLabel": "{chart}: {row}",
   "insights_chart_openDivesFailed": "تعذر فتح هذه الغوصات",
+  "insights_chart_viewDives": "عرض الغوصات",
   "insights_chart_trendSemanticLabel": "مخطط خطي للاتجاه يعرض {count} نقاط بيانات",
   "insights_chart_trendSemanticLabelWithAxis": "مخطط خطي للاتجاه يعرض {count} نقاط بيانات لـ {yAxisLabel}",
   "insights_conditions_appBar_title": "الظروف",

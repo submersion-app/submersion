@@ -28924,6 +28924,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Tauchgänge konnten nicht geöffnet werden';
 
   @override
+  String get insights_chart_viewDives => 'Tauchgänge ansehen';
+
+  @override
   String insights_chart_trendSemanticLabel(Object count) {
     return 'Trendliniendiagramm mit $count Datenpunkten';
   }
