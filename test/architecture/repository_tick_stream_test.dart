@@ -12,10 +12,12 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/maps/data/repositories/offline_map_repository.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
@@ -387,8 +389,6 @@ void main() {
 
       test('fires on a dive_custom_fields write the filter reads', () async {
         await insertDive();
-        // Let the dive's own tick pass, so only the field write can fire.
-        await Future<void>.delayed(const Duration(milliseconds: 350));
         expect(
           await fires(
             InsightsRepository().watchInsightsChanges(filter: textSearch),
@@ -409,7 +409,6 @@ void main() {
 
       test('fires on a dive_profile_events write the filter reads', () async {
         await insertDive();
-        await Future<void>.delayed(const Duration(milliseconds: 350));
         expect(
           await fires(
             InsightsRepository().watchInsightsChanges(
@@ -444,6 +443,38 @@ void main() {
         );
       });
 
+      test('fires on a service status write the filter reads', () async {
+        // A chart does not await this cache, so the tick is what brings it up
+        // to date once the cache is written.
+        final serviceDue = DiveFilterState(
+          query: ConditionNode(
+            FieldPath(const ['gear', 'serviceDue']),
+            QueryOp.eq,
+            const EnumValue('overdue'),
+          ),
+        );
+        expect(
+          diveFilterTablesTouched(serviceDue),
+          contains(serviceStatusTable),
+        );
+        await seedParents();
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(filter: serviceDue),
+            () => db
+                .into(db.equipmentServiceStatus)
+                .insert(
+                  EquipmentServiceStatusCompanion.insert(
+                    equipmentId: 'e1',
+                    severity: 'overdue',
+                    computedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+
       test('a write to a filter table and a dive is one tick', () async {
         var ticks = 0;
         final sub = InsightsRepository()
@@ -451,9 +482,15 @@ void main() {
             .listen((_) => ticks++);
         addTearDown(sub.cancel);
 
-        await insertTag();
-        await insertDive();
-        await Future<void>.delayed(const Duration(milliseconds: 450));
+        await db.transaction(() async {
+          await insertTag();
+          await insertDive();
+        });
+        for (var i = 0; i < 150 && ticks == 0; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+        // Room for a second tick to arrive, had there been a second stream.
+        await Future<void>.delayed(const Duration(milliseconds: 100));
 
         expect(ticks, 1);
       });

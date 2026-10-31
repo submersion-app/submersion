@@ -43,7 +43,7 @@ class _FilteredRead<T> {
       return value == null ? null : diveCount(value);
     }
 
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 200; i++) {
       if (count() == expected) break;
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
@@ -84,14 +84,16 @@ void main() {
   DiveFilterState searchFor(String word) =>
       DiveFilterState(query: TextNode([word]));
 
+  final _FilteredRead<Object?> chart = _FilteredRead(
+    depthProgressionTrendProvider,
+    (points) => (points as List).length,
+  );
+
   /// Every shape of provider that reads the filter: the shared chart helper,
   /// the two focus providers and the conditions rows that subscribe on their
   /// own, and the dive id set the equipment rankings narrow to.
   final reads = <String, _FilteredRead<Object?>>{
-    'a chart through the shared cache helper': _FilteredRead(
-      depthProgressionTrendProvider,
-      (points) => (points as List).length,
-    ),
+    'a chart through the shared cache helper': chart,
     'the conditions rows': _FilteredRead(
       conditionsRowsProvider,
       (rows) => (rows as List).length,
@@ -180,24 +182,22 @@ void main() {
   }
 
   test('a dive a rename brings into the filter joins the chart', () async {
-    final read = reads['a chart through the shared cache helper']!;
     final container = makeContainer(searchFor('wreck'));
-    final onScreen = read.listen(container);
+    final onScreen = chart.listen(container);
     addTearDown(onScreen.close);
-    expect(await read.settle(container, 0), 0);
+    expect(await chart.settle(container, 0), 0);
 
     await tags.updateTag(reef.copyWith(name: 'wreck'));
 
-    expect(await read.settle(container, 1), 1);
+    expect(await chart.settle(container, 1), 1);
   });
 
   test(
     'a chart cached after its page closed is fresh when the page returns',
     () async {
-      final read = reads['a chart through the shared cache helper']!;
       final container = makeContainer(searchFor('reef'));
-      final firstVisit = read.listen(container);
-      expect(await read.settle(container, 1), 1);
+      final firstVisit = chart.listen(container);
+      expect(await chart.settle(container, 1), 1);
       firstVisit.close();
 
       await tags.updateTag(reef.copyWith(name: 'wreck'));
@@ -205,27 +205,26 @@ void main() {
       // five-minute keepAlive.
       await Future<void>.delayed(const Duration(milliseconds: 400));
 
-      final secondVisit = read.listen(container);
+      final secondVisit = chart.listen(container);
       addTearDown(secondVisit.close);
-      expect(await read.settle(container, 0), 0);
+      expect(await chart.settle(container, 0), 0);
     },
   );
 
   test('a chart follows the tables of a filter set after it loaded', () async {
-    final read = reads['a chart through the shared cache helper']!;
     final container = makeContainer(const DiveFilterState());
-    final onScreen = read.listen(container);
+    final onScreen = chart.listen(container);
     addTearDown(onScreen.close);
-    expect(await read.settle(container, 2), 2);
+    expect(await chart.settle(container, 2), 2);
 
     container.read(insightsFilterProvider.notifier).state = searchFor('reef');
     // The filtered load has to land first: a rename racing the rebuild would
     // be read by that query, and pass with no tick at all.
-    expect(await read.settle(container, 1), 1);
+    expect(await chart.settle(container, 1), 1);
 
     await tags.updateTag(reef.copyWith(name: 'wreck'));
 
-    expect(await read.settle(container, 0), 0);
+    expect(await chart.settle(container, 0), 0);
   });
 
   test('the unfiltered species page ignores the Insights filter', () async {

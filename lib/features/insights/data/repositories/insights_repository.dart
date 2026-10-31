@@ -257,22 +257,16 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
-          ..._filterTableQueries(filter),
+          // As the query compiler reports them, so a new filter field is
+          // followed without editing this list.
+          if (filter != null)
+            for (final table in DiveRepository().tablesNamed(
+              diveFilterTablesTouched(filter),
+            ))
+              TableUpdateQuery.onTable(table),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
-
-  /// One update query per table [filter] reads, as the query compiler reports
-  /// them, so a new filter field is followed without editing the list above.
-  List<TableUpdateQuery> _filterTableQueries(DiveFilterState? filter) {
-    if (filter == null) return const [];
-    final touched = diveFilterTablesTouched(filter);
-    return [
-      for (final table in _db.allTables)
-        if (touched.contains(table.actualTableName))
-          TableUpdateQuery.onTable(table),
-    ];
-  }
 
   /// Builds the always-on statistics scope plus, when the diver has active
   /// filter axes, the `AND <alias>.id IN (<subquery>)` fragment and its raw
