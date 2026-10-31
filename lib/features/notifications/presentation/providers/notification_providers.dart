@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -46,6 +47,7 @@ final notificationSchedulingProvider = FutureProvider<void>((ref) async {
         s.reminderTime,
         s.tripServiceLeadDays,
         s.locale,
+        exposureThresholdsFromSettings(s),
       ),
     ),
   );

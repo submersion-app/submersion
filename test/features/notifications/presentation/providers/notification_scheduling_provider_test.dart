@@ -77,4 +77,20 @@ void main() {
 
     expect(scheduler.calls, 2);
   });
+
+  // The scheduler reads these through exposureThresholdsFromSettings, and they
+  // decide when a usage clock comes due.
+  test('reschedules when each exposure threshold changes', () async {
+    notifier.state = notifier.state.copyWith(coldWaterThresholdC: 5);
+    await settle();
+    expect(scheduler.calls, 2);
+
+    notifier.state = notifier.state.copyWith(deepDiveThresholdM: 45);
+    await settle();
+    expect(scheduler.calls, 3);
+
+    notifier.state = notifier.state.copyWith(highO2ThresholdPercent: 50);
+    await settle();
+    expect(scheduler.calls, 4);
+  });
 }
