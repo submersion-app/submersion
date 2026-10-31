@@ -409,6 +409,35 @@ void main() {
         expect(exposure.maxPpO2Depth, 30.0);
       });
 
+      test('integrates a switch only from its sample onward', () {
+        // Air down to the 6 m sample, then EAN50 for the 300 s stop.
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [30.0, 6.0, 6.0],
+          timestamps: [0, 240, 540],
+          gasSwitches: {240: 0.50},
+          initialO2Fraction: 0.21,
+        );
+
+        final onAir = O2ToxicityCalculator.calculatePpO2(18.0, 0.21);
+        final onEan50 = O2ToxicityCalculator.calculatePpO2(6.0, 0.50);
+        expect(
+          exposure.cnsEnd,
+          closeTo(
+            calculator.calculateCnsForSegment(onAir, 240) +
+                calculator.calculateCnsForSegment(onEan50, 300),
+            1e-9,
+          ),
+        );
+        expect(
+          exposure.otu,
+          closeTo(
+            calculator.calculateOtuForSegment(onAir, 240) +
+                calculator.calculateOtuForSegment(onEan50, 300),
+            1e-9,
+          ),
+        );
+      });
+
       test('counts the outgoing gas at the sample of a switch', () {
         // Arrives at 30 m on EAN50 (2.0 bar), then switches to a leaner mix.
         final exposure = calculator.calculateMultiGasExposure(

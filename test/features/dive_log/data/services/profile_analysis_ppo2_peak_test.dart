@@ -173,6 +173,18 @@ void main() {
       expect(analysis.o2Exposure.ppO2Critical, isTrue);
     });
 
+    test('a measured peak on a repeated timestamp is not skipped', () {
+      final analysis = analyzeLoop(
+        diveMode: DiveMode.ccr,
+        depths: const [20.0, 20.0, 24.0, 20.0],
+        timestamps: const [0, 60, 60, 120],
+        ppO2: const [1.2, 1.2, 1.8, 1.2],
+      );
+
+      expect(analysis.o2Exposure.maxPpO2, closeTo(1.8, 1e-9));
+      expect(analysis.o2Exposure.maxPpO2Depth, 24.0);
+    });
+
     test('a constant setpoint reports the deepest depth it was held at', () {
       final analysis = analyzeLoop(
         diveMode: DiveMode.ccr,

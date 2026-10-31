@@ -190,20 +190,18 @@ class O2ToxicityCalculator {
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
     double currentO2Fraction = initialO2Fraction;
-    final sampledPpO2s = [calculatePpO2(depths.first, initialO2Fraction)];
-    final sampledDepths = [depths.first];
+    final sampledPpO2s = <double>[];
+    final sampledDepths = <double>[];
+
+    void sampleCurrentGas(double depth) {
+      sampledPpO2s.add(calculatePpO2(depth, currentO2Fraction));
+      sampledDepths.add(depth);
+    }
+
+    sampleCurrentGas(depths.first);
 
     for (int i = 1; i < depths.length; i++) {
-      // The diver reaches this sample on the outgoing gas
-      sampledPpO2s.add(calculatePpO2(depths[i], currentO2Fraction));
-      sampledDepths.add(depths[i]);
-
-      // Check for gas switch at this point
-      if (gasSwitches.containsKey(timestamps[i])) {
-        currentO2Fraction = gasSwitches[timestamps[i]]!;
-        sampledPpO2s.add(calculatePpO2(depths[i], currentO2Fraction));
-        sampledDepths.add(depths[i]);
-      }
+      sampleCurrentGas(depths[i]);
 
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
       final duration = timestamps[i] - timestamps[i - 1];
@@ -218,6 +216,12 @@ class O2ToxicityCalculator {
         timeAboveWarning += duration;
       } else if (ppO2 > ppO2WarningThreshold) {
         timeAboveWarning += duration;
+      }
+
+      // A switch at this sample takes effect from here on
+      if (gasSwitches.containsKey(timestamps[i])) {
+        currentO2Fraction = gasSwitches[timestamps[i]]!;
+        sampleCurrentGas(depths[i]);
       }
     }
 
