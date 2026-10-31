@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
-import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
@@ -77,13 +76,11 @@ class SiteRuleApplier {
         updates: {_db.diveSites},
       );
     }
-    for (final id in changed) {
-      await _sync.markRecordPending(
-        entityType: 'diveSites',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-    }
+    await _sync.markRecordsPending(
+      entityType: 'diveSites',
+      recordIds: changed,
+      localUpdatedAt: now,
+    );
     return AppliedAction([
       for (final id in changed)
         ruleChange(rule, id, a.field.name, before[id], after),
@@ -121,8 +118,16 @@ class SiteRuleApplier {
             : wanted.any(before[id]!.contains))
           id,
     ];
-    for (final id in changed) {
-      await writeMembership(a.collection, add: add, siteId: id, ids: wanted);
+    if (changed.isNotEmpty) {
+      add
+          ? await _addToAll(a.collection, wanted, {
+              for (final id in changed)
+                id: [
+                  for (final w in wanted.toSet())
+                    if (!before[id]!.contains(w)) w,
+                ],
+            })
+          : await _removeFromAll(a.collection, changed, wanted);
     }
     final after = changed.isEmpty
         ? const <String, List<String>>{}
@@ -151,8 +156,39 @@ class SiteRuleApplier {
     return out;
   }
 
+  /// Adds to [c] the ids [missing] names for each of its sites, in one pass
+  /// over the snapshot the action just read (#4012). [wanted] is widened
+  /// once, not once per site.
+  Future<void> _addToAll(
+    SiteCollection c,
+    List<String> wanted,
+    Map<String, List<String>> missing,
+  ) async {
+    switch (c) {
+      case SiteCollection.tags:
+        // A link implies its scope: a dive-only tag becomes a site tag too.
+        await _tags.widenScope(wanted, TagScope.sites, notify: false);
+        await _classification.addTagsToSites(missing);
+      case SiteCollection.siteTypes:
+        await _classification.addTypesToSites(missing);
+    }
+  }
+
+  /// Removes [ids] from [c] on every one of [siteIds] (#4012).
+  Future<void> _removeFromAll(
+    SiteCollection c,
+    List<String> siteIds,
+    List<String> ids,
+  ) => switch (c) {
+    SiteCollection.tags => _classification.removeTagsFromSites(siteIds, ids),
+    SiteCollection.siteTypes => _classification.removeTypesFromSites(
+      siteIds,
+      ids,
+    ),
+  };
+
   /// Adds [ids] to, or removes them from, [c] on one site, without
-  /// notifying.
+  /// notifying. Undo's write: it restores one change at a time.
   Future<void> writeMembership(
     SiteCollection c, {
     required bool add,
@@ -185,21 +221,23 @@ class SiteRuleApplier {
       columns: const ['description'],
       ids: ids,
     );
-    final changes = <RuleChange>[];
-    for (final id in ids) {
-      if (before[id] == null) continue;
-      final old = (before[id]!['description'] as String?) ?? '';
-      await _sites.appendDescription(id, text);
-      changes.add(
+    final present = [
+      for (final id in ids)
+        if (before[id] != null) id,
+    ];
+    for (final chunk in ruleIdChunks(present)) {
+      await _sites.appendDescriptionToAll(chunk, text);
+    }
+    String old(String id) => (before[id]!['description'] as String?) ?? '';
+    return AppliedAction([
+      for (final id in present)
         ruleChange(
           rule,
           id,
           'description',
-          old,
-          appendMarkdownParagraph(old, text),
+          old(id),
+          appendMarkdownParagraph(old(id), text),
         ),
-      );
-    }
-    return AppliedAction(changes);
+    ]);
   }
 }

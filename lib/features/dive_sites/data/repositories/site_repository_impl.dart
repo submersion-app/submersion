@@ -505,28 +505,28 @@ class SiteRepository {
     }
   }
 
-  /// Appends [text] to [siteId]'s description, as a new Markdown paragraph
-  /// when the description already holds text (logbook rules, #3513; #3683).
-  /// Marks the site pending; the caller notifies.
-  Future<void> appendDescription(String siteId, String text) async {
-    if (text.isEmpty) return;
+  /// Appends [text] to each of [siteIds]' descriptions, as a new Markdown
+  /// paragraph when one already holds text (logbook rules, #3513; #3683).
+  /// Marks the sites pending; the caller chunks [siteIds] and notifies.
+  Future<void> appendDescriptionToAll(List<String> siteIds, String text) async {
+    if (text.isEmpty || siteIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.customUpdate(
       "UPDATE dive_sites SET description = CASE WHEN description = '' "
       "THEN ? ELSE description || char(10) || char(10) || ? END, "
       'updated_at = ? '
-      'WHERE id = ?',
+      "WHERE id IN (${List.filled(siteIds.length, '?').join(', ')})",
       variables: [
         Variable.withString(text),
         Variable.withString(text),
         Variable.withInt(now),
-        Variable.withString(siteId),
+        for (final id in siteIds) Variable.withString(id),
       ],
       updates: {_db.diveSites},
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markRecordsPending(
       entityType: 'diveSites',
-      recordId: siteId,
+      recordIds: siteIds,
       localUpdatedAt: now,
     );
   }

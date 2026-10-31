@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,6 +28,10 @@ class SiteClassificationRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
+
+  /// Links per statement in the writes over many sites. Each binds at most
+  /// four variables, well under SQLite's limit.
+  static const _linkChunk = 500;
 
   /// Emits when either junction, or the type or tag vocabulary, changes.
   Stream<void> watchChanges() => _db.tableUpdates(
@@ -378,6 +383,130 @@ class SiteClassificationRepository {
       notify: notify,
       actingDiverId: actingDiverId,
     );
+  }
+
+  /// [addTypes] over many sites in one pass (#4012): [missing] names the
+  /// types each site lacks, in the order to add them, from a read the caller
+  /// has just made. For a caller's transaction, as `notify: false` is: it
+  /// neither notifies nor checks who may edit a library site.
+  Future<void> addTypesToSites(Map<String, List<String>> missing) =>
+      _insertLinks(
+        _db.siteSiteTypes,
+        linkColumn: 'site_type_id',
+        entityType: 'siteSiteTypes',
+        missing: missing,
+      );
+
+  /// [addTypesToSites] for tags.
+  Future<void> addTagsToSites(Map<String, List<String>> missing) =>
+      _insertLinks(
+        _db.siteTags,
+        linkColumn: 'tag_id',
+        entityType: 'siteTags',
+        missing: missing,
+      );
+
+  /// [removeTypes] over many sites in one pass (#4012), on the terms of
+  /// [addTypesToSites]. A type a site does not carry is ignored.
+  Future<void> removeTypesFromSites(
+    List<String> siteIds,
+    List<String> typeIds,
+  ) => _removeLinks(
+    _db.siteSiteTypes,
+    linkColumn: 'site_type_id',
+    entityType: 'siteSiteTypes',
+    siteIds: siteIds,
+    linkedIds: typeIds,
+  );
+
+  /// [removeTypesFromSites] for tags.
+  Future<void> removeTagsFromSites(List<String> siteIds, List<String> tagIds) =>
+      _removeLinks(
+        _db.siteTags,
+        linkColumn: 'tag_id',
+        entityType: 'siteTags',
+        siteIds: siteIds,
+        linkedIds: tagIds,
+      );
+
+  /// Inserts [missing] as [_insertTags] does, one statement per chunk: each
+  /// site's `created_at` keeps its links in order, and RETURNING names the
+  /// rows that landed, so a pair already held is not marked pending.
+  Future<void> _insertLinks(
+    TableInfo<Table, dynamic> table, {
+    required String linkColumn,
+    required String entityType,
+    required Map<String, List<String>> missing,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rows = [
+      for (final MapEntry(key: siteId, value: linkedIds) in missing.entries)
+        for (final (i, linkedId) in linkedIds.indexed)
+          (siteId: siteId, linkedId: linkedId, createdAt: now + i),
+    ];
+    if (rows.isEmpty) return;
+    await _db.transaction(() async {
+      final inserted = <String>[];
+      for (final chunk in rows.slices(_linkChunk)) {
+        final landed = await _db.customWriteReturning(
+          'INSERT INTO ${table.actualTableName} '
+          '(id, site_id, $linkColumn, created_at) '
+          "VALUES ${List.filled(chunk.length, '(?, ?, ?, ?)').join(', ')} "
+          'ON CONFLICT DO NOTHING RETURNING id',
+          variables: [
+            for (final row in chunk) ...[
+              Variable.withString(_uuid.v4()),
+              Variable.withString(row.siteId),
+              Variable.withString(row.linkedId),
+              Variable.withInt(row.createdAt),
+            ],
+          ],
+          updates: {table},
+          updateKind: UpdateKind.insert,
+        );
+        inserted.addAll(landed.map((r) => r.read<String>('id')));
+      }
+      await _syncRepository.markRecordsPending(
+        entityType: entityType,
+        recordIds: inserted,
+        localUpdatedAt: now,
+      );
+    });
+  }
+
+  /// Deletes [linkedIds] from [siteIds], one statement per chunk, and
+  /// tombstones each row that went.
+  Future<void> _removeLinks(
+    TableInfo<Table, dynamic> table, {
+    required String linkColumn,
+    required String entityType,
+    required List<String> siteIds,
+    required List<String> linkedIds,
+  }) async {
+    if (siteIds.isEmpty || linkedIds.isEmpty) return;
+    final unwanted = linkedIds.toSet().toList();
+    await _db.transaction(() async {
+      final removed = <String>[];
+      for (final chunk in siteIds.slices(_linkChunk)) {
+        final gone = await _db.customWriteReturning(
+          'DELETE FROM ${table.actualTableName} '
+          "WHERE site_id IN (${List.filled(chunk.length, '?').join(', ')}) "
+          "AND $linkColumn IN (${List.filled(unwanted.length, '?').join(', ')}) "
+          'RETURNING id',
+          variables: [
+            for (final id in chunk) Variable.withString(id),
+            for (final id in unwanted) Variable.withString(id),
+          ],
+          updates: {table},
+          updateKind: UpdateKind.delete,
+        );
+        removed.addAll(gone.map((r) => r.read<String>('id')));
+      }
+      await _syncRepository.logDeletions(
+        entityType: entityType,
+        recordIds: removed,
+      );
+    });
   }
 
   /// Moves the duplicates' links onto [survivorId] during a site merge.
