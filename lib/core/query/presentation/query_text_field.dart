@@ -28,12 +28,27 @@ bool suggestionsReplaceSpan(QueryError error, String text) {
 /// each new instance is applied once, after any new value in the same
 /// update.
 class QueryTextOverride {
-  QueryTextOverride(this.text, {this.commit = false});
+  QueryTextOverride(this.text, {this.commit = false, this.selectAll = false});
   final String text;
 
   /// Parse and commit [text] as if the diver typed it (a hint tapped),
   /// rather than only showing it (Undo).
   final bool commit;
+
+  /// Leave [text] selected, so the next keystroke replaces it, rather than
+  /// the caret after it.
+  final bool selectAll;
+}
+
+/// Reads typed text in place of a [QueryTextField]'s own root, for a field
+/// over several: global search parses the text once per record type, so no
+/// single root can say whether it reads (#3882).
+abstract interface class QueryTextReader {
+  /// Why nothing can read [text], or null when something can.
+  QueryError? check(String text);
+
+  /// What to offer at [caret] in [text].
+  List<Completion> completionsAt(String text, int caret);
 }
 
 /// The typed editor of a query tree (#2365, spec Unit 6 "Text").
@@ -60,6 +75,9 @@ class QueryTextField extends StatefulWidget {
     this.textOverride,
     this.shortcuts = const {},
     this.onSubmitted,
+    this.textReader,
+    this.onTextAccepted,
+    this.clearTooltip,
   });
 
   final QueryEditorContext context;
@@ -94,6 +112,17 @@ class QueryTextField extends StatefulWidget {
 
   /// Called when the diver presses Enter (the keyboard's search action).
   final VoidCallback? onSubmitted;
+
+  /// Reads the text instead of [context]'s root. With one, the field holds
+  /// text alone: nothing reaches [onChanged], and text the reader accepts
+  /// reaches [onTextAccepted].
+  final QueryTextReader? textReader;
+
+  /// Called with text the [textReader] accepts, an emptied field included.
+  final ValueChanged<String>? onTextAccepted;
+
+  /// Names the button that empties the field.
+  final String? clearTooltip;
 
   @override
   State<QueryTextField> createState() => _QueryTextFieldState();
@@ -137,7 +166,9 @@ class _QueryTextFieldState extends State<QueryTextField> {
         ..setError();
       _error = null;
       _completions = const [];
-    } else if (widget.context.prefs != old.context.prefs && _error == null) {
+    } else if (widget.context.prefs != old.context.prefs &&
+        _error == null &&
+        widget.textReader == null) {
       // The unit setting changed: the same tree reads differently now.
       _controller.text = widget.context.printer.print(_committed);
     } else if (widget.context.names != old.context.names && _error != null) {
@@ -152,12 +183,17 @@ class _QueryTextFieldState extends State<QueryTextField> {
     if (override != null && !identical(override, old.textOverride)) {
       // After a new value in the same update, so the override wins. The
       // committed tree stays as it is: the text is shown, not applied.
-      _controller
-        ..text = override.text
-        ..selection = TextSelection.collapsed(offset: override.text.length)
-        ..setError();
-      _error = null;
-      _completions = const [];
+      // The same text keeps what it said: nothing about it has changed.
+      if (override.text != _controller.text) {
+        _controller
+          ..text = override.text
+          ..setError();
+        _error = null;
+        _completions = const [];
+      }
+      _controller.selection = override.selectAll
+          ? TextSelection(baseOffset: 0, extentOffset: override.text.length)
+          : TextSelection.collapsed(offset: override.text.length);
       if (override.commit) {
         // After the frame: committing calls the parent back, and this
         // runs inside its build.
@@ -190,15 +226,24 @@ class _QueryTextFieldState extends State<QueryTextField> {
     final caret = _controller.selection.isValid
         ? _controller.selection.extentOffset
         : text.length;
-    final completions = completionsAt(text, caret, widget.context);
+    final reader = widget.textReader;
+    final completions =
+        reader?.completionsAt(text, caret) ??
+        completionsAt(text, caret, widget.context);
     if (text.trim().isEmpty) {
       _commit(null);
-      _setValid(true);
-      _controller.setError();
-      setState(() {
-        _error = null;
-        _completions = completions;
-      });
+      widget.onTextAccepted?.call(text);
+      _showClean(completions);
+      return;
+    }
+    if (reader != null) {
+      final error = reader.check(text);
+      if (error != null) {
+        _showError(error, completions);
+      } else {
+        widget.onTextAccepted?.call(text);
+        _showClean(completions);
+      }
       return;
     }
     switch (widget.context.parser.parse(text)) {
@@ -210,12 +255,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
         );
         if (errors.isEmpty) {
           _commit(normalizeQuery(node));
-          _setValid(true);
-          _controller.setError();
-          setState(() {
-            _error = null;
-            _completions = completions;
-          });
+          _showClean(completions);
         } else {
           _showError(errors.first, completions);
         }
@@ -234,6 +274,15 @@ class _QueryTextFieldState extends State<QueryTextField> {
     if (node == _committed) return;
     _committed = node;
     widget.onChanged(node);
+  }
+
+  void _showClean(List<Completion> completions) {
+    _setValid(true);
+    _controller.setError();
+    setState(() {
+      _error = null;
+      _completions = completions;
+    });
   }
 
   void _showError(QueryError error, List<Completion> completions) {
@@ -292,6 +341,7 @@ class _QueryTextFieldState extends State<QueryTextField> {
                   ? null
                   : IconButton(
                       icon: const Icon(Icons.clear),
+                      tooltip: widget.clearTooltip,
                       onPressed: () => _replace(0, _controller.text.length, ''),
                     ),
               errorText: error == null ? null : describe(error),

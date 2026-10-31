@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/presentation/query_completions.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_error_controller.dart';
 import 'package:submersion/core/query/presentation/query_labels.dart';
@@ -45,6 +47,199 @@ void main() {
   QueryErrorHighlightController controllerOf(WidgetTester tester) =>
       tester.widget<TextField>(find.byKey(fieldKey)).controller!
           as QueryErrorHighlightController;
+
+  group('with a text reader', () {
+    Widget readerHost(
+      _FakeReader reader, {
+      List<String>? accepted,
+      QueryEditorContext? editorContext,
+      QueryTextOverride? textOverride,
+      List<QueryNode?>? committed,
+      String? clearTooltip,
+    }) => MaterialApp(
+      home: Scaffold(
+        body: QueryTextField(
+          context: editorContext ?? context,
+          value: null,
+          onChanged: committed?.add ?? (_) {},
+          fieldKey: fieldKey,
+          textReader: reader,
+          onTextAccepted: accepted?.add,
+          textOverride: textOverride,
+          clearTooltip: clearTooltip,
+        ),
+      ),
+    );
+
+    testWidgets('reports text the reader accepts and commits no tree', (
+      tester,
+    ) async {
+      final accepted = <String>[];
+      final committed = <QueryNode?>[];
+      await tester.pumpWidget(
+        readerHost(_FakeReader(), accepted: accepted, committed: committed),
+      );
+      await tester.enterText(find.byKey(fieldKey), 'anything goes');
+      await tester.pump();
+      expect(accepted, ['anything goes']);
+      expect(committed, isEmpty);
+    });
+
+    testWidgets('shows what the reader refuses and keeps it from the page', (
+      tester,
+    ) async {
+      final accepted = <String>[];
+      await tester.pumpWidget(
+        readerHost(
+          _FakeReader(
+            refuse: const QueryError(
+              QueryErrorCode.emptyPath,
+              offset: 0,
+              length: 3,
+              suggestions: ['bar'],
+            ),
+          ),
+          accepted: accepted,
+        ),
+      );
+      await tester.enterText(find.byKey(fieldKey), 'foo');
+      await tester.pump();
+      expect(accepted, isEmpty);
+      expect(
+        find.text(const QueryError(QueryErrorCode.emptyPath).message),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(ActionChip, 'bar'), findsOneWidget);
+    });
+
+    testWidgets('accepts an emptied field without asking the reader', (
+      tester,
+    ) async {
+      final accepted = <String>[];
+      final reader = _FakeReader(
+        refuse: const QueryError(QueryErrorCode.emptyPath),
+      );
+      await tester.pumpWidget(readerHost(reader, accepted: accepted));
+      await tester.enterText(find.byKey(fieldKey), '   ');
+      await tester.pump();
+      expect(accepted, ['   ']);
+      expect(reader.checked, isEmpty);
+    });
+
+    testWidgets('offers the reader\'s completions, not the root\'s', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        readerHost(
+          _FakeReader(
+            completions: const [
+              Completion('expiryDate', replaceStart: 0, replaceLength: 2),
+            ],
+          ),
+        ),
+      );
+      await tester.enterText(find.byKey(fieldKey), 'ex');
+      await tester.pump();
+      await tester.tap(find.widgetWithText(ActionChip, 'expiryDate'));
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byKey(fieldKey)).controller!.text,
+        'expiryDate',
+      );
+    });
+
+    testWidgets('keeps its text when the units change', (tester) async {
+      await tester.pumpWidget(readerHost(_FakeReader()));
+      await tester.enterText(find.byKey(fieldKey), 'depth > 30m');
+      await tester.pump();
+      await tester.pumpWidget(
+        readerHost(
+          _FakeReader(),
+          editorContext: context.copyWith(
+            prefs: const UnitPrefs(
+              depth: DepthUnit.feet,
+              temperature: TemperatureUnit.fahrenheit,
+              pressure: PressureUnit.psi,
+              weight: WeightUnit.pounds,
+              volume: VolumeUnit.cubicFeet,
+            ),
+          ),
+        ),
+      );
+      expect(
+        tester.widget<TextField>(find.byKey(fieldKey)).controller!.text,
+        'depth > 30m',
+      );
+    });
+
+    testWidgets('names the clear button', (tester) async {
+      await tester.pumpWidget(
+        readerHost(_FakeReader(), clearTooltip: 'Clear search'),
+      );
+      await tester.enterText(find.byKey(fieldKey), 'x');
+      await tester.pump();
+      expect(find.byTooltip('Clear search'), findsOneWidget);
+    });
+  });
+
+  testWidgets('selecting refused text keeps what it says about it', (
+    tester,
+  ) async {
+    Widget hostWith(QueryTextOverride? override) => MaterialApp(
+      home: Scaffold(
+        body: QueryTextField(
+          context: context,
+          value: null,
+          onChanged: (_) {},
+          fieldKey: fieldKey,
+          textOverride: override,
+          textReader: _FakeReader(
+            refuse: const QueryError(QueryErrorCode.emptyPath),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(hostWith(null));
+    await tester.enterText(find.byKey(fieldKey), 'foo');
+    await tester.pump();
+    await tester.pumpWidget(
+      hostWith(QueryTextOverride('foo', selectAll: true)),
+    );
+    await tester.pump();
+
+    expect(
+      find.text(const QueryError(QueryErrorCode.emptyPath).message),
+      findsOneWidget,
+    );
+    final controller = tester
+        .widget<TextField>(find.byKey(fieldKey))
+        .controller!;
+    expect(controller.selection.extentOffset, 3);
+  });
+
+  testWidgets('an override can select the text it shows', (tester) async {
+    Widget hostWith(QueryTextOverride? override) => MaterialApp(
+      home: Scaffold(
+        body: QueryTextField(
+          context: context,
+          value: null,
+          onChanged: (_) {},
+          fieldKey: fieldKey,
+          textOverride: override,
+        ),
+      ),
+    );
+    await tester.pumpWidget(hostWith(null));
+    await tester.pumpWidget(
+      hostWith(QueryTextOverride('wreck', selectAll: true)),
+    );
+    final controller = tester
+        .widget<TextField>(find.byKey(fieldKey))
+        .controller!;
+    expect(controller.text, 'wreck');
+    expect(controller.selection.baseOffset, 0);
+    expect(controller.selection.extentOffset, 'wreck'.length);
+  });
 
   testWidgets('a name typed before the index loaded commits once it loads', (
     tester,
@@ -581,3 +776,20 @@ void main() {
 }
 
 class _FakeContext extends Fake implements BuildContext {}
+
+class _FakeReader implements QueryTextReader {
+  _FakeReader({this.refuse, this.completions = const []});
+
+  final QueryError? refuse;
+  final List<Completion> completions;
+  final checked = <String>[];
+
+  @override
+  QueryError? check(String text) {
+    checked.add(text);
+    return refuse;
+  }
+
+  @override
+  List<Completion> completionsAt(String text, int caret) => completions;
+}

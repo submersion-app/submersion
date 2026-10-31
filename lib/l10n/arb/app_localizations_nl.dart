@@ -2481,6 +2481,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Duiken zoeken';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Alles doorzoeken';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'Vraag over je duiken';
 
   @override
@@ -9862,6 +9865,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number · $title';
   }
+
+  @override
+  String get globalSearch_hint => 'Doorzoek alles, of probeer depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Zoekopdracht wissen';
+
+  @override
+  String get globalSearch_prompt =>
+      'Vind duiken, duikstekken, reizen, uitrusting, buddy\'s, documenten en meer';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Geen resultaten voor \"$query\"';
+  }
+
+  @override
+  String get globalSearch_failed => 'Zoeken mislukt. Probeer het opnieuw.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Alle $count bekijken';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS-tracks';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Onderwaterroutes';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20211,6 +20243,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_trips => 'Reizen';
+
+  @override
+  String get nav_search => 'Zoeken';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
@@ -54007,6 +54042,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_customFields_value => 'Waarde';
 
   @override
+  String get query_divePlans_date => 'Datum';
+
+  @override
+  String get query_divePlans_depth => 'Maximale diepte';
+
+  @override
+  String get query_divePlans_mode => 'Modus';
+
+  @override
+  String get query_divePlans_name => 'Naam';
+
+  @override
+  String get query_divePlans_notes => 'Notities';
+
+  @override
+  String get query_divePlans_runtime => 'Totale duur';
+
+  @override
+  String get query_divePlans_site => 'Duikstek';
+
+  @override
   String get query_diveTypes_builtIn => 'Ingebouwd';
 
   @override
@@ -54229,10 +54285,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_entity_customFields => 'Aangepaste velden';
 
   @override
+  String get query_entity_divePlans => 'Opgeslagen plannen';
+
+  @override
   String get query_entity_diveTypes => 'Duiktypes';
 
   @override
   String get query_entity_dives => 'Duiken';
+
+  @override
+  String get query_entity_documents => 'Documenten';
 
   @override
   String get query_entity_equipment => 'Uitrusting';
@@ -54241,13 +54303,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'Uitrustingskenmerken';
 
   @override
+  String get query_entity_equipmentSets => 'Uitrustingssets';
+
+  @override
   String get query_entity_findings => 'Veiligheidsbevindingen';
 
   @override
   String get query_findings_rule => 'Regel';
 
   @override
+  String get query_entity_gpsTracks => 'GPS-tracks';
+
+  @override
   String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_navTracks => 'Onderwaterroutes';
 
   @override
   String get query_entity_sightings => 'Waarnemingen';
@@ -54284,6 +54355,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'Tekstwaarde';
+
+  @override
+  String get query_equipmentSets_default => 'Standaard';
+
+  @override
+  String get query_equipmentSets_description => 'Beschrijving';
+
+  @override
+  String get query_equipmentSets_itemCount => 'Aantal items';
+
+  @override
+  String get query_equipmentSets_items => 'Items';
+
+  @override
+  String get query_equipmentSets_name => 'Naam';
 
   @override
   String get query_equipment_active => 'Actief';
@@ -54344,6 +54430,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_gpsTracks_date => 'Datum';
+
+  @override
+  String get query_gpsTracks_deviceName => 'Apparaat';
+
+  @override
+  String get query_gpsTracks_duration => 'Duur';
+
+  @override
+  String get query_gpsTracks_file => 'Bestand';
+
+  @override
+  String get query_gpsTracks_name => 'Naam';
+
+  @override
+  String get query_gpsTracks_source => 'Bron';
 
   @override
   String get query_list_noMatch => 'Niets komt overeen met deze query';
@@ -54553,6 +54657,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_op_inList => 'is een van';
 
   @override
+  String get query_navTracks_date => 'Datum';
+
+  @override
+  String get query_navTracks_depth => 'Maximale diepte';
+
+  @override
+  String get query_navTracks_deviceName => 'Apparaat';
+
+  @override
+  String get query_navTracks_distance => 'Afstand';
+
+  @override
+  String get query_navTracks_dive => 'Duik';
+
+  @override
+  String get query_navTracks_duration => 'Duur';
+
+  @override
+  String get query_navTracks_equipment => 'Uitrusting';
+
+  @override
+  String get query_navTracks_file => 'Bestand';
+
+  @override
+  String get query_navTracks_name => 'Naam';
+
+  @override
+  String get query_navTracks_site => 'Duikstek';
+
+  @override
+  String get query_navTracks_source => 'Bron';
+
+  @override
   String get query_op_between => 'tussen';
 
   @override
@@ -54578,6 +54715,57 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'Minstens één';
+
+  @override
+  String get query_documents_buddy => 'Buddy';
+
+  @override
+  String get query_documents_center => 'Duikcentrum';
+
+  @override
+  String get query_documents_certification => 'Certificering';
+
+  @override
+  String get query_documents_course => 'Cursus';
+
+  @override
+  String get query_documents_dive => 'Duik';
+
+  @override
+  String get query_documents_equipment => 'Uitrusting';
+
+  @override
+  String get query_documents_expiryDate => 'Vervaldatum';
+
+  @override
+  String get query_documents_issueDate => 'Uitgiftedatum';
+
+  @override
+  String get query_documents_issuer => 'Uitgever';
+
+  @override
+  String get query_documents_notes => 'Notities';
+
+  @override
+  String get query_documents_primary => 'Primair';
+
+  @override
+  String get query_documents_referenceNumber => 'Referentienummer';
+
+  @override
+  String get query_documents_site => 'Duikstek';
+
+  @override
+  String get query_documents_tags => 'Tags';
+
+  @override
+  String get query_documents_title => 'Titel';
+
+  @override
+  String get query_documents_trip => 'Reis';
+
+  @override
+  String get query_documents_type => 'Type';
 
   @override
   String get query_editor_addCondition => 'Voorwaarde toevoegen';

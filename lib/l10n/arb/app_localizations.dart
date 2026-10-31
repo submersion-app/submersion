@@ -3877,6 +3877,12 @@ abstract class AppLocalizations {
   /// **'Search dives'**
   String get accessibility_shortcut_searchDives;
 
+  /// No description provided for @accessibility_shortcut_searchEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything'**
+  String get accessibility_shortcut_searchEverything;
+
   /// No description provided for @accessibility_shortcut_askQuestion.
   ///
   /// In en, this message translates to:
@@ -15690,6 +15696,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'#{number} · {title}'**
   String diveLog_search_jumpNumberTitle(int number, String title);
+
+  /// No description provided for @globalSearch_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search everything, or try depth > 30m'**
+  String get globalSearch_hint;
+
+  /// No description provided for @globalSearch_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get globalSearch_clear;
+
+  /// No description provided for @globalSearch_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Find dives, sites, trips, gear, buddies, documents and more'**
+  String get globalSearch_prompt;
+
+  /// No description provided for @globalSearch_noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String globalSearch_noResults(String query);
+
+  /// No description provided for @globalSearch_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Search failed. Please try again.'**
+  String get globalSearch_failed;
+
+  /// No description provided for @globalSearch_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all {count}'**
+  String globalSearch_seeAll(int count);
+
+  /// No description provided for @globalSearch_section_gpsTracks.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS tracks'**
+  String get globalSearch_section_gpsTracks;
+
+  /// No description provided for @globalSearch_section_underwaterRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater routes'**
+  String get globalSearch_section_underwaterRoutes;
 
   /// No description provided for @diveLog_ask_row.
   ///
@@ -32387,6 +32441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trips'**
   String get nav_trips;
+
+  /// No description provided for @nav_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get nav_search;
 
   /// No description provided for @plannerCanvas_bailout_available.
   ///
@@ -85988,6 +86048,48 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Date'**
+  String get query_divePlans_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_divePlans_depth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get query_divePlans_mode;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_divePlans_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_divePlans_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get query_divePlans_runtime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_divePlans_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Built-in'**
   String get query_diveTypes_builtIn;
 
@@ -86429,6 +86531,12 @@ abstract class AppLocalizations {
   /// **'Custom fields'**
   String get query_entity_customFields;
 
+  /// Name of a kind of record in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Saved plans'**
+  String get query_entity_divePlans;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
@@ -86440,6 +86548,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get query_entity_dives;
+
+  /// Name of a kind of record in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get query_entity_documents;
 
   /// Field label in the query builder
   ///
@@ -86453,6 +86567,12 @@ abstract class AppLocalizations {
   /// **'Equipment attributes'**
   String get query_entity_equipmentAttributes;
 
+  /// Name of a kind of record in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment sets'**
+  String get query_entity_equipmentSets;
+
   /// Entity label in the query builder
   ///
   /// In en, this message translates to:
@@ -86465,11 +86585,23 @@ abstract class AppLocalizations {
   /// **'Rule'**
   String get query_findings_rule;
 
+  /// Name of a kind of record in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'GPS tracks'**
+  String get query_entity_gpsTracks;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
   /// **'Media'**
   String get query_entity_media;
+
+  /// Name of a kind of record in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Underwater routes'**
+  String get query_entity_navTracks;
 
   /// Field label in the query builder
   ///
@@ -86542,6 +86674,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Text value'**
   String get query_equipmentAttributes_valueText;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get query_equipmentSets_default;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get query_equipmentSets_description;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Item count'**
+  String get query_equipmentSets_itemCount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get query_equipmentSets_items;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_equipmentSets_name;
 
   /// Field label in the query builder
   ///
@@ -86662,6 +86824,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filter'**
   String get query_filter_tooltip;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get query_gpsTracks_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get query_gpsTracks_deviceName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get query_gpsTracks_duration;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get query_gpsTracks_file;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_gpsTracks_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get query_gpsTracks_source;
 
   /// Shown when a list's query hides every row
   ///
@@ -87077,6 +87275,72 @@ abstract class AppLocalizations {
   /// **'is one of'**
   String get query_op_inList;
 
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get query_navTracks_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_navTracks_depth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get query_navTracks_deviceName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get query_navTracks_distance;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get query_navTracks_dive;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get query_navTracks_duration;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get query_navTracks_equipment;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get query_navTracks_file;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_navTracks_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_navTracks_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get query_navTracks_source;
+
   /// Operator label in the query builder
   ///
   /// In en, this message translates to:
@@ -87130,6 +87394,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Any of'**
   String get query_editor_anyOf;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get query_documents_buddy;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get query_documents_center;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certification'**
+  String get query_documents_certification;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get query_documents_course;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get query_documents_dive;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get query_documents_equipment;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get query_documents_expiryDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Issue date'**
+  String get query_documents_issueDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer'**
+  String get query_documents_issuer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_documents_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Primary'**
+  String get query_documents_primary;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Reference number'**
+  String get query_documents_referenceNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_documents_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_documents_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get query_documents_title;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get query_documents_trip;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_documents_type;
 
   /// Builder button
   ///

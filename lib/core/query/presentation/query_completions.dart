@@ -26,7 +26,9 @@ class Completion {
 }
 
 const _valueOperators = {'=', '!=', '<', '<=', '>', '>=', '~'};
-const _maxCompletions = 8;
+
+/// The most a field offers at once.
+const kMaxQueryCompletions = 8;
 
 /// What the editor offers at [caret] in [text] (#2365):
 ///
@@ -79,7 +81,7 @@ List<Completion> completionsAt(
           replaceLength: replaceLength,
         ),
       );
-      if (out.length == _maxCompletions) break;
+      if (out.length == kMaxQueryCompletions) break;
     }
     return out;
   }
@@ -132,7 +134,7 @@ List<Completion> completionsAt(
       return [
         ...emit(customLabels, quote: true),
         ...emit(field.enumValues!),
-      ].take(_maxCompletions).toList();
+      ].take(kMaxQueryCompletions).toList();
     }
     if (resolved?.terminalRelation case final rel?) {
       if (context.names case final NameEntries names) {
@@ -173,7 +175,7 @@ List<String> _keysOf(QueryEntity entity, String prefix) {
       if (f.key.toLowerCase().startsWith(lower)) f.key,
     for (final r in entity.relations)
       if (r.key.toLowerCase().startsWith(lower)) r.key,
-  ].take(_maxCompletions).toList();
+  ].take(kMaxQueryCompletions).toList();
 }
 
 QueryEntity? _entityAtEnd(QueryEditorContext context, List<String> segments) {

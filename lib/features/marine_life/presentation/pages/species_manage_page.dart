@@ -4,9 +4,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_catalog_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -293,7 +293,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
   }
 
   Widget _buildSpeciesTile(Species species, {required bool isCustom}) {
-    return ListTile(
+    return SpeciesCatalogTile(
+      species: species,
       leading: SelectionLeading(
         isSelectionMode: _isSelectionMode,
         isChecked: _selectedIds.contains(species.id),
@@ -301,18 +302,8 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
         // deleteSpecies refuses, so neither gets a checkbox.
         isSelectable: _isSelectable(species),
         onChanged: (_) => _selection.toggle(species.id),
-        child: Icon(
-          iconForSpeciesCategory(species.category),
-          color: _getCategoryColor(species.category),
-        ),
+        child: SpeciesCatalogIcon(species.category),
       ),
-      title: Text(species.localizedCommonName(context.l10n)),
-      subtitle: species.scientificName != null
-          ? Text(
-              species.scientificName!,
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            )
-          : Text(species.category.localizedName(context.l10n)),
       // Per-row actions yield to selection mode. Leaving the trash here would
       // put a one-tap delete beside the checkbox while the bulk delete sits
       // deliberately behind the selection bar's overflow -- two contradictory
@@ -526,29 +517,6 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           );
         }
       }
-    }
-  }
-
-  Color _getCategoryColor(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Colors.blue;
-      case SpeciesCategory.shark:
-        return Colors.blueGrey;
-      case SpeciesCategory.ray:
-        return Colors.indigo;
-      case SpeciesCategory.mammal:
-        return Colors.teal;
-      case SpeciesCategory.turtle:
-        return Colors.green;
-      case SpeciesCategory.invertebrate:
-        return Colors.orange;
-      case SpeciesCategory.coral:
-        return Colors.pink;
-      case SpeciesCategory.plant:
-        return Colors.lightGreen;
-      case SpeciesCategory.other:
-        return Colors.grey;
     }
   }
 }

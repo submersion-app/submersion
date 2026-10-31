@@ -1,7 +1,9 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/accessibility/shortcut_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 
 void main() {
@@ -25,6 +27,14 @@ void main() {
         reason: entry.label,
       );
     }
+  });
+
+  test('the global search shortcut resolves to its own string', () {
+    final de = lookupAppLocalizations(const Locale('de'));
+    expect(
+      shortcutEntryLabel(de, 'Search everything'),
+      de.accessibility_shortcut_searchEverything,
+    );
   });
 
   test('an ad-hoc label has no translation and falls back to itself', () {

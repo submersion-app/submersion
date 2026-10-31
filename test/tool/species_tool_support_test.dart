@@ -33,8 +33,10 @@ void main() {
     expect(source, contains("  'sp_a_fish' => l10n.species_a_fish_name,\n"));
     expect(source, contains("  'sp_b_ray' => l10n.species_b_ray_name,\n"));
     expect(source, contains('  _ => null,\n};\n'));
-    // Two cases plus the doc comment's mention of the `sp_` slug.
-    expect('sp_'.allMatches(source).length, 3);
+    // Two cases, the doc comment's mention of the `sp_` slug, and two ids.
+    expect('sp_'.allMatches(source).length, 5);
+    expect(source, contains("const List<String> kBuiltInSpeciesIds = [\n"));
+    expect(source, contains("  'sp_b_ray',\n];\n"));
   });
 
   test('renderDescriptionLookup mirrors the name renderer with _desc', () {

@@ -2485,6 +2485,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_searchDives => 'Merülések keresése';
 
   @override
+  String get accessibility_shortcut_searchEverything => 'Keresés mindenben';
+
+  @override
   String get accessibility_shortcut_askQuestion => 'Kérdezz a merüléseidről';
 
   @override
@@ -9900,6 +9903,36 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_search_jumpNumberTitle(int number, String title) {
     return '#$number. · $title';
   }
+
+  @override
+  String get globalSearch_hint =>
+      'Keressen mindenben, vagy próbálja: depth > 30m';
+
+  @override
+  String get globalSearch_clear => 'Keresés törlése';
+
+  @override
+  String get globalSearch_prompt =>
+      'Merülések, helyszínek, utak, felszerelés, társak, dokumentumok és egyebek keresése';
+
+  @override
+  String globalSearch_noResults(String query) {
+    return 'Nincs találat erre: „$query”';
+  }
+
+  @override
+  String get globalSearch_failed => 'A keresés nem sikerült. Próbálja újra.';
+
+  @override
+  String globalSearch_seeAll(int count) {
+    return 'Összes megtekintése ($count)';
+  }
+
+  @override
+  String get globalSearch_section_gpsTracks => 'GPS-nyomvonalak';
+
+  @override
+  String get globalSearch_section_underwaterRoutes => 'Víz alatti útvonalak';
 
   @override
   String diveLog_ask_row(String text) {
@@ -20268,6 +20301,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_trips => 'Utak';
+
+  @override
+  String get nav_search => 'Keresés';
 
   @override
   String plannerCanvas_bailout_available(String liters) {
@@ -54061,6 +54097,27 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_customFields_value => 'Érték';
 
   @override
+  String get query_divePlans_date => 'Dátum';
+
+  @override
+  String get query_divePlans_depth => 'Maximális mélység';
+
+  @override
+  String get query_divePlans_mode => 'Mód';
+
+  @override
+  String get query_divePlans_name => 'Név';
+
+  @override
+  String get query_divePlans_notes => 'Jegyzetek';
+
+  @override
+  String get query_divePlans_runtime => 'Teljes idő';
+
+  @override
+  String get query_divePlans_site => 'Merülőhely';
+
+  @override
   String get query_diveTypes_builtIn => 'Beépített';
 
   @override
@@ -54283,10 +54340,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_entity_customFields => 'Egyéni mezők';
 
   @override
+  String get query_entity_divePlans => 'Mentett tervek';
+
+  @override
   String get query_entity_diveTypes => 'Merülés típusok';
 
   @override
   String get query_entity_dives => 'Merülések';
+
+  @override
+  String get query_entity_documents => 'Dokumentumok';
 
   @override
   String get query_entity_equipment => 'Felszerelés';
@@ -54295,13 +54358,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'Felszerelés jellemzői';
 
   @override
+  String get query_entity_equipmentSets => 'Felszerelés csoportok';
+
+  @override
   String get query_entity_findings => 'Biztonsági megállapítások';
 
   @override
   String get query_findings_rule => 'Szabály';
 
   @override
+  String get query_entity_gpsTracks => 'GPS-nyomvonalak';
+
+  @override
   String get query_entity_media => 'Média';
+
+  @override
+  String get query_entity_navTracks => 'Víz alatti útvonalak';
 
   @override
   String get query_entity_sightings => 'Észlelések';
@@ -54338,6 +54410,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'Szöveges érték';
+
+  @override
+  String get query_equipmentSets_default => 'Alapértelmezett';
+
+  @override
+  String get query_equipmentSets_description => 'Leírás';
+
+  @override
+  String get query_equipmentSets_itemCount => 'Elemek száma';
+
+  @override
+  String get query_equipmentSets_items => 'Elemek';
+
+  @override
+  String get query_equipmentSets_name => 'Név';
 
   @override
   String get query_equipment_active => 'Aktív';
@@ -54398,6 +54485,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'Szűrő';
+
+  @override
+  String get query_gpsTracks_date => 'Dátum';
+
+  @override
+  String get query_gpsTracks_deviceName => 'Eszköz';
+
+  @override
+  String get query_gpsTracks_duration => 'Időtartam';
+
+  @override
+  String get query_gpsTracks_file => 'Fájl';
+
+  @override
+  String get query_gpsTracks_name => 'Név';
+
+  @override
+  String get query_gpsTracks_source => 'Forrás';
 
   @override
   String get query_list_noMatch => 'Semmi sem felel meg ennek a lekérdezésnek';
@@ -54607,6 +54712,39 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_op_inList => 'egyike';
 
   @override
+  String get query_navTracks_date => 'Dátum';
+
+  @override
+  String get query_navTracks_depth => 'Maximális mélység';
+
+  @override
+  String get query_navTracks_deviceName => 'Eszköz';
+
+  @override
+  String get query_navTracks_distance => 'Távolság';
+
+  @override
+  String get query_navTracks_dive => 'Merülés';
+
+  @override
+  String get query_navTracks_duration => 'Időtartam';
+
+  @override
+  String get query_navTracks_equipment => 'Felszerelés';
+
+  @override
+  String get query_navTracks_file => 'Fájl';
+
+  @override
+  String get query_navTracks_name => 'Név';
+
+  @override
+  String get query_navTracks_site => 'Merülőhely';
+
+  @override
+  String get query_navTracks_source => 'Forrás';
+
+  @override
   String get query_op_between => 'között';
 
   @override
@@ -54632,6 +54770,57 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'Bármelyik';
+
+  @override
+  String get query_documents_buddy => 'Búvártárs';
+
+  @override
+  String get query_documents_center => 'Búvárközpont';
+
+  @override
+  String get query_documents_certification => 'Minősítés';
+
+  @override
+  String get query_documents_course => 'Tanfolyam';
+
+  @override
+  String get query_documents_dive => 'Merülés';
+
+  @override
+  String get query_documents_equipment => 'Felszerelés';
+
+  @override
+  String get query_documents_expiryDate => 'Lejárat dátuma';
+
+  @override
+  String get query_documents_issueDate => 'Kiállítás dátuma';
+
+  @override
+  String get query_documents_issuer => 'Kibocsátó';
+
+  @override
+  String get query_documents_notes => 'Jegyzetek';
+
+  @override
+  String get query_documents_primary => 'Elsődleges';
+
+  @override
+  String get query_documents_referenceNumber => 'Hivatkozási szám';
+
+  @override
+  String get query_documents_site => 'Merülőhely';
+
+  @override
+  String get query_documents_tags => 'Címkék';
+
+  @override
+  String get query_documents_title => 'Cím';
+
+  @override
+  String get query_documents_trip => 'Utazás';
+
+  @override
+  String get query_documents_type => 'Típus';
 
   @override
   String get query_editor_addCondition => 'Feltétel hozzáadása';
