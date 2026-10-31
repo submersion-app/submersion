@@ -31,6 +31,7 @@ class _FakeRepository implements ReefRepository {
   final health = <Future<ReefPart<ReefHealth>>>[];
   final protection = <Future<ReefPart<List<ReefProtection>>>>[];
   final forgotten = <ReefProviderId>[];
+  Object? forgetError;
   int habitatCalls = 0;
   int healthCalls = 0;
   int protectionCalls = 0;
@@ -49,6 +50,7 @@ class _FakeRepository implements ReefRepository {
 
   @override
   Future<void> forgetFailure(ReefProviderId provider, GeoPoint point) async {
+    if (forgetError case final error?) throw error;
     forgotten.add(provider);
   }
 
@@ -259,6 +261,28 @@ void main() {
 
     expect(find.text('Could not check reef habitat right now'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('a retry still refetches when forgetting the failure fails', (
+    tester,
+  ) async {
+    final repository = _FakeRepository()
+      ..forgetError = StateError('cache delete failed')
+      ..habitat.addAll([
+        Future.value(const ReefPart.unavailable()),
+        Future.value(_reef),
+      ])
+      ..health.add(Future.value(const ReefPart.empty()))
+      ..protection.add(Future.value(const ReefPart.empty()));
+
+    await tester.pumpWidget(_harness(repository));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+
+    expect(repository.habitatCalls, 2);
+    expect(find.textContaining('threat level High'), findsOneWidget);
   });
 
   testWidgets('a part that throws reads as unavailable with a retry', (

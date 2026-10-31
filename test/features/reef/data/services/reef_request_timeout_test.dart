@@ -139,6 +139,21 @@ void main() {
     });
   }
 
+  test('a name lookup with an unusable body is a finished one', () async {
+    final client = _speciesClient([2384460, 111], (_) {
+      return Future.value(http.Response('[]', 200));
+    });
+
+    final part = await NearbySpeciesService(
+      client: client,
+      matcher: _matcher(),
+      timeout: _limit,
+    ).fetch(_point);
+
+    expect(part.value!.unmatchedNames, isEmpty);
+    expect(part.value!.namesIncomplete, isFalse);
+  });
+
   test('a name lookup that will never succeed is a finished one', () async {
     final client = _speciesClient([2384460, 111], (_) {
       return Future.value(http.Response('no such taxon', 404));

@@ -36,6 +36,19 @@ String _facetBody(List<int> keys) => jsonEncode({
   ],
 });
 
+class _UnreadableCacheDao extends ReefCacheDao {
+  _UnreadableCacheDao(super.db);
+
+  @override
+  Future<ReefCacheEntry?> read(
+    ReefProviderId provider,
+    String coordKey, {
+    String variant = '',
+  }) async {
+    throw StateError('cache read failed');
+  }
+}
+
 void main() {
   late LocalCacheDatabase db;
   late DateTime clock;
@@ -56,12 +69,13 @@ void main() {
     http.Client? healthClient,
     http.Client? protectionClient,
     http.Client? speciesClient,
+    ReefCacheDao? cache,
   }) {
     final ok = MockClient(
       (_) async => http.Response(jsonEncode({'features': []}), 200),
     );
     return ReefRepository(
-      cache: ReefCacheDao(db, now: () => clock),
+      cache: cache ?? ReefCacheDao(db, now: () => clock),
       habitat: ReefHabitatService(client: habitatClient ?? ok),
       health: ReefHealthService(
         client:
@@ -302,6 +316,20 @@ void main() {
 
     expect(parts[1].status, ReefDataStatus.empty);
   });
+
+  test(
+    'a concurrent caller reads unavailable when the leader throws',
+    () async {
+      final repo = buildRepository(cache: _UnreadableCacheDao(db));
+      const point = GeoPoint(12.16, -68.28);
+
+      final leader = repo.habitatFor(point);
+      final follower = repo.habitatFor(point);
+
+      await expectLater(leader, throwsStateError);
+      expect((await follower).status, ReefDataStatus.unavailable);
+    },
+  );
 
   test('a cached row that cannot be read is fetched again', () async {
     await ReefCacheDao(db, now: () => clock).write(
