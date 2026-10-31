@@ -5,12 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
+
+import '../../helpers/main_scaffold_stubs.dart';
 
 /// Regression coverage for #647: the Android system back button closed the
 /// app instead of going back, because `context.go()` replaces the shell's
@@ -87,14 +88,16 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           updateServiceProvider.overrideWith((ref) async => null),
           updateStatusProvider.overrideWith(
-            (ref) => _StubUpdateStatusNotifier(),
+            (ref) => StubUpdateStatusNotifier(),
           ),
           downloadNotifierProvider.overrideWith(
-            (ref) => _StubDownloadNotifier(),
+            (ref) => StubDownloadNotifier(),
           ),
           // MainScaffold reads the color-accent toggles; the real
           // SettingsNotifier reaches for the database.
-          settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+          settingsProvider.overrideWith(
+            (ref) => StubSettingsNotifier(const AppSettings()),
+          ),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -200,31 +203,4 @@ void main() {
       expect(exitCalls, ['SystemNavigator.pop']);
     });
   });
-}
-
-/// Stub that avoids the 5-second timer in the real [UpdateStatusNotifier].
-class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
-    implements UpdateStatusNotifier {
-  _StubUpdateStatusNotifier() : super(const UpToDate());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Stub that avoids platform channel dependencies.
-class _StubDownloadNotifier extends StateNotifier<DownloadState>
-    implements DownloadNotifier {
-  _StubDownloadNotifier() : super(const DownloadState());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Stub settings notifier so the shell can build without a database.
-class _StubSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _StubSettingsNotifier() : super(const AppSettings());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

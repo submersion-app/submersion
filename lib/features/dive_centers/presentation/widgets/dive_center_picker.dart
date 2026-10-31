@@ -19,7 +19,10 @@ class DiveCenterPickerSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final DiveCenter? selectedCenter;
   final ValueChanged<DiveCenter> onCenterSelected;
-  final VoidCallback onCreateNewCenter;
+
+  /// Null when the caller only chooses among existing centers: no add
+  /// button then.
+  final VoidCallback? onCreateNewCenter;
 
   /// Where "nearby" is measured from; null lists every center
   /// alphabetically with no sections.
@@ -30,7 +33,7 @@ class DiveCenterPickerSheet extends ConsumerWidget {
     required this.scrollController,
     required this.selectedCenter,
     required this.onCenterSelected,
-    required this.onCreateNewCenter,
+    this.onCreateNewCenter,
     this.reference,
   });
 
@@ -72,11 +75,12 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              TextButton.icon(
-                onPressed: onCreateNewCenter,
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.diveCenters_picker_newCenter),
-              ),
+              if (onCreateNewCenter != null)
+                TextButton.icon(
+                  onPressed: onCreateNewCenter,
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.diveCenters_picker_newCenter),
+                ),
             ],
           ),
         ),
@@ -103,12 +107,14 @@ class DiveCenterPickerSheet extends ConsumerWidget {
                         context.l10n.diveCenters_empty_title,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: onCreateNewCenter,
-                        icon: const Icon(Icons.add),
-                        label: Text(context.l10n.diveCenters_title_add),
-                      ),
+                      if (onCreateNewCenter != null) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: onCreateNewCenter,
+                          icon: const Icon(Icons.add),
+                          label: Text(context.l10n.diveCenters_title_add),
+                        ),
+                      ],
                     ],
                   ),
                 );

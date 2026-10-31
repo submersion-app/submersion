@@ -788,8 +788,9 @@ class UniversalAdapter implements ImportSourceAdapter {
     // existing-id seeds for the importer's id mappings.
     Map<String, String> preResolvedIdsFor(
       wizard.ImportEntityType type,
-      List<Map<String, dynamic>> items,
-    ) {
+      List<Map<String, dynamic>> items, {
+      bool linkOnSkip = true,
+    }) {
       final matches = bundle.groups[type]?.entityMatches;
       if (matches == null || matches.isEmpty) return const {};
       final actions = duplicateActions[type] ?? const {};
@@ -801,12 +802,11 @@ class UniversalAdapter implements ImportSourceAdapter {
         // wizard gates advancement on pending decisions, so that state is
         // not reachable today, but dropping the association silently is the
         // exact defect this fix exists to prevent. A seed is harmless when
-        // the entity IS imported: _importBuddies/_importTags/_importEquipment
-        // overwrite the mapping with the newly created id.
+        // the entity IS imported: its import stage overwrites the mapping
+        // with the newly created id.
         final links =
-            action == null ||
-            action == DuplicateAction.skip ||
-            action == DuplicateAction.consolidate;
+            action == DuplicateAction.consolidate ||
+            (linkOnSkip && (action == null || action == DuplicateAction.skip));
         if (!links) continue;
         if (entry.key < 0 || entry.key >= items.length) continue;
         final item = items[entry.key];
@@ -867,6 +867,22 @@ class UniversalAdapter implements ImportSourceAdapter {
       preResolvedDiveTypeIds: preResolvedIdsFor(
         wizard.ImportEntityType.diveTypes,
         uddfData.customDiveTypes,
+      ),
+      preResolvedDiveCenterIds: preResolvedIdsFor(
+        wizard.ImportEntityType.diveCenters,
+        uddfData.diveCenters,
+      ),
+      // A trip matches on its name alone, so a skipped one may be another
+      // year's trip of that name: only an explicit link overrides the
+      // placement by date a dive whose trip was not imported gets (#2618).
+      preResolvedTripIds: preResolvedIdsFor(
+        wizard.ImportEntityType.trips,
+        uddfData.trips,
+        linkOnSkip: false,
+      ),
+      preResolvedCertificationIds: preResolvedIdsFor(
+        wizard.ImportEntityType.certifications,
+        uddfData.certifications,
       ),
       onProgress: onProgress,
       cancelToken: cancelToken,

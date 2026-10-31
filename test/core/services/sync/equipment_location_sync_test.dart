@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -77,6 +78,91 @@ void main() {
       expect(mv?['note'], 'n');
     },
   );
+
+  group('saved dive center link (v331)', () {
+    Map<String, dynamic> place(String id, {Object? center = 'keep'}) => {
+      'id': id,
+      'diverId': 'd',
+      'name': id,
+      'kind': 'diveCenter',
+      'notes': '',
+      'isArchived': false,
+      'createdAt': 1,
+      'updatedAt': 2,
+      'hlc': null,
+      if (center != 'keep') 'diveCenterId': center,
+    };
+
+    Future<String?> linkOf(String id) async =>
+        (await serializer.fetchRecord(
+              'equipmentLocations',
+              id,
+            ))?['diveCenterId']
+            as String?;
+
+    setUp(() async {
+      await db
+          .into(db.diveCenters)
+          .insert(
+            DiveCentersCompanion.insert(
+              id: 'reef',
+              name: 'Reef',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('linked', center: 'reef'),
+      );
+    });
+
+    test('a record with the key sets the link', () async {
+      expect(await linkOf('linked'), 'reef');
+    });
+
+    test('an explicit null unlinks', () async {
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('linked', center: null),
+      );
+      expect(await linkOf('linked'), isNull);
+    });
+
+    test('a record from before v331 keeps the local link', () async {
+      await serializer.upsertRecord('equipmentLocations', place('linked'));
+      expect(await linkOf('linked'), 'reef');
+    });
+
+    test('a new place from before v331 arrives unlinked', () async {
+      await serializer.upsertRecord('equipmentLocations', place('fresh'));
+      expect(await linkOf('fresh'), isNull);
+    });
+
+    test('in one batch each record decides by its own keys', () async {
+      await serializer.upsertRecord(
+        'equipmentLocations',
+        place('other', center: 'reef'),
+      );
+      await serializer.upsertRecords('equipmentLocations', [
+        place('linked'),
+        place('other', center: null),
+      ]);
+      expect(await linkOf('linked'), 'reef');
+      expect(await linkOf('other'), isNull);
+    });
+
+    test('a tombstoned center clears the link, not the place', () {
+      expect(
+        SyncService.parentRefs['equipmentLocations'],
+        contains((
+          field: 'diveCenterId',
+          parent: 'diveCenters',
+          nullable: true,
+        )),
+      );
+    });
+  });
 
   test('moves are a parent-gated child of equipment', () {
     expect(

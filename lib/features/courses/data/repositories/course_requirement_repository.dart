@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 
@@ -438,10 +439,16 @@ class CourseRequirementRepository {
     }
   }
 
-  /// Candidate dives for crediting: the course diver's dives that are either
-  /// assigned to this course (dive_courses) or dated on/after the course
-  /// start, excluding dives already credited to any requirement of this
-  /// course. Newest first, capped at 10.
+  /// Candidate dives for crediting, capped at 10 and excluding dives already
+  /// credited to any requirement of this course. Dives assigned to the course
+  /// (dive_courses) always qualify and lead.
+  ///
+  /// A course in progress adds dives dated on/after its start, newest first:
+  /// the dive just logged is the likely one. A completed course considers
+  /// every dive of its diver, nearest its dates first in either direction: a
+  /// course logged long after the fact is often dated by its certification,
+  /// so its dives can precede the start, and recency says nothing about them.
+  ///
   /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
   /// to the course on purpose; excluding it from statistics is a statement
   /// about their logbook averages, not a retraction of course credit. Do not
@@ -456,55 +463,38 @@ class CourseRequirementRepository {
       )..where((t) => t.id.equals(courseId))).getSingleOrNull();
       if (course == null) return const [];
 
-      final rows = await _db
-          .customSelect(
-            '''
-            SELECT d.id, d.dive_number, d.dive_date_time,
-                   s.name AS site_name
-            FROM dives d
-            LEFT JOIN dive_sites s ON s.id = d.site_id
-            WHERE d.diver_id = ?2
-              AND (EXISTS (
+      const assigned = '''EXISTS (
                     SELECT 1 FROM dive_courses dc
                     WHERE dc.dive_id = d.id AND dc.course_id = ?1
-                  ) OR d.dive_date_time >= ?3)
-              AND d.id NOT IN (
-                SELECT l.dive_id
-                FROM course_requirement_dives l
-                JOIN course_requirements r ON r.id = l.requirement_id
-                WHERE r.course_id = ?1
-              )
-            ORDER BY d.dive_date_time DESC
+                  )''';
+      final completionDate = course.completionDate;
+      // Course dates are local timestamps (Mark as Completed stores now), and
+      // dive times are wall-clock UTC, so compare whole wall-clock days.
+      final courseStart = _wallClockDayStart(course.startDate);
+      final courseEnd = completionDate == null
+          ? null
+          : _wallClockDayStart(completionDate) + Duration.millisecondsPerDay;
+
+      return await _selectCandidates(
+        course,
+        window: completionDate != null
+            ? ''
+            : 'AND ($assigned OR d.dive_date_time >= ?3)',
+        // ?4 is null while the course runs, which ties every dive at 0 and
+        // leaves the order to the newest-first tie-break.
+        orderAndLimit:
+            '''
+            ORDER BY CASE
+                WHEN $assigned THEN 0
+                WHEN d.dive_date_time < ?3 THEN ?3 - d.dive_date_time
+                WHEN d.dive_date_time >= ?4 THEN d.dive_date_time - ?4
+                ELSE 0
+              END,
+              d.dive_date_time DESC
             LIMIT 10
             ''',
-            variables: [
-              Variable.withString(courseId),
-              Variable.withString(course.diverId),
-              Variable.withInt(course.startDate),
-            ],
-            readsFrom: {
-              _db.dives,
-              _db.diveCourses,
-              _db.diveSites,
-              _db.courseRequirementDives,
-              _db.courseRequirements,
-            },
-          )
-          .get();
-
-      return [
-        for (final row in rows)
-          RequirementDiveSummary(
-            diveId: row.data['id'] as String,
-            diveNumber: row.data['dive_number'] as int?,
-            // Wall-clock-as-UTC, same as the linked-dive summaries above.
-            dateTime: DateTime.fromMillisecondsSinceEpoch(
-              row.data['dive_date_time'] as int,
-              isUtc: true,
-            ),
-            siteName: row.data['site_name'] as String?,
-          ),
-      ];
+        variables: [Variable.withInt(courseStart), Variable<int>(courseEnd)],
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get suggested dives for course: $courseId',
@@ -514,6 +504,97 @@ class CourseRequirementRepository {
       rethrow;
     }
   }
+
+  /// Every dive the course's diver could still credit, whenever it happened:
+  /// the suggestions only ever reach the dives nearest the course. Excludes
+  /// dives already credited to any requirement of this course, because
+  /// [linkDive] would ignore them. Newest first, uncapped: the row is four
+  /// columns, and a cap would hide the old dive this list exists to reach.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
+  Future<List<RequirementDiveSummary>> getCreditableDives(
+    String courseId,
+  ) async {
+    try {
+      final course = await (_db.select(
+        _db.courses,
+      )..where((t) => t.id.equals(courseId))).getSingleOrNull();
+      if (course == null) return const [];
+
+      return await _selectCandidates(
+        course,
+        orderAndLimit: 'ORDER BY d.dive_date_time DESC',
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get creditable dives for course: $courseId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The dives of [course]'s diver not yet credited to any of its
+  /// requirements. Binds ?1 to the course and ?2 to the diver; [window] and
+  /// [orderAndLimit] number their own [variables] from ?3.
+  // stats-scope-exempt: course credit is deliberate, not descriptive
+  Future<List<RequirementDiveSummary>> _selectCandidates(
+    Course course, {
+    String window = '',
+    required String orderAndLimit,
+    List<Variable<Object>> variables = const [],
+  }) async {
+    final rows = await _db
+        .customSelect(
+          '''
+            SELECT d.id, d.dive_number, d.dive_date_time,
+                   s.name AS site_name
+            FROM dives d
+            LEFT JOIN dive_sites s ON s.id = d.site_id
+            WHERE d.diver_id = ?2
+              $window
+              AND d.id NOT IN (
+                SELECT l.dive_id
+                FROM course_requirement_dives l
+                JOIN course_requirements r ON r.id = l.requirement_id
+                WHERE r.course_id = ?1
+              )
+            $orderAndLimit
+            ''',
+          variables: [
+            Variable.withString(course.id),
+            Variable.withString(course.diverId),
+            ...variables,
+          ],
+          readsFrom: {
+            _db.dives,
+            _db.diveCourses,
+            _db.diveSites,
+            _db.courseRequirementDives,
+            _db.courseRequirements,
+          },
+        )
+        .get();
+
+    return [
+      for (final row in rows)
+        RequirementDiveSummary(
+          diveId: row.data['id'] as String,
+          diveNumber: row.data['dive_number'] as int?,
+          // Wall-clock-as-UTC, same as the linked-dive summaries above.
+          dateTime: DateTime.fromMillisecondsSinceEpoch(
+            row.data['dive_date_time'] as int,
+            isUtc: true,
+          ),
+          siteName: row.data['site_name'] as String?,
+        ),
+    ];
+  }
+
+  /// The wall-clock-UTC start of the day a stored course date falls on.
+  int _wallClockDayStart(int courseDateMillis) => wallClockUtcDayStart(
+    DateTime.fromMillisecondsSinceEpoch(courseDateMillis),
+  ).millisecondsSinceEpoch;
 
   /// Bump the parent requirement's updatedAt and mark it sync-pending so
   /// its hlc advances -- junction delta export is gated on the parent hlc.

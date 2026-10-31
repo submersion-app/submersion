@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/widgets/ccr_settings_se
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -40,6 +41,7 @@ void main() {
   });
 
   List<dynamic> overrides() => [
+    ...plannerResultsInline(),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
   ];
 
@@ -226,6 +228,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
@@ -267,6 +270,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
@@ -311,6 +315,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),

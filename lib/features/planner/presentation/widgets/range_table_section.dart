@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/services/range_table_service.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -14,9 +18,23 @@ class RangeTableSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final table = ref.watch(planRangeTableProvider);
-    if (table == null) return const SizedBox.shrink();
     final units = UnitFormatter(ref.watch(settingsProvider));
+    final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
+    return PlanResultSection<RangeTable>(
+      view: planResultView(ref.watch(planRangeTableProvider), planId),
+      builder: (table) => _RangeGrid(table: table, units: units),
+    );
+  }
+}
+
+class _RangeGrid extends StatelessWidget {
+  const _RangeGrid({required this.table, required this.units});
+
+  final RangeTable table;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     String depthLabel(double delta) {

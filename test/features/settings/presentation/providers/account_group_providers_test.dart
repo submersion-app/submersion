@@ -1,11 +1,13 @@
 // Issue #3482 phase 2: accounts for the pages that show them, and the kinds a
 // diver can add on this platform and build.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
@@ -22,6 +24,17 @@ import 'package:submersion/features/settings/presentation/providers/account_grou
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../support/fake_keychain_storage.dart';
+
+class _FakeRoster extends Fake implements ConnectedAccountsRepository {
+  _FakeRoster(this.accounts);
+  final Future<List<ConnectedAccount>> accounts;
+
+  @override
+  Stream<void> watchAccountsChanges() => const Stream.empty();
+
+  @override
+  Future<List<ConnectedAccount>> getAll() => accounts;
+}
 
 ProviderContainer _container(List<Override> overrides) {
   final c = ProviderContainer(overrides: overrides);
@@ -85,6 +98,38 @@ void main() {
         AccountKindOffer.git,
       ]);
     });
+  });
+
+  // Issue #3780: a read nothing holds is disposed while it waits, and the
+  // accounts it was waiting for still arrive.
+  test('a read nothing holds survives disposal while it waits', () async {
+    final at = DateTime.utc(2026);
+    final roster = Completer<List<ConnectedAccount>>();
+    final c = _container([
+      connectedAccountsRepositoryProvider.overrideWithValue(
+        _FakeRoster(roster.future),
+      ),
+      connectedAccountUsageProvider.overrideWith(
+        (ref) async => const AccountUsageSnapshot(),
+      ),
+      accountProviderRegistryProvider.overrideWithValue(
+        AccountProviderRegistry(const []),
+      ),
+    ]);
+
+    final read = c.read(accountGroupsProvider.future);
+    await Future<void>.delayed(Duration.zero);
+    roster.complete([
+      ConnectedAccount(
+        id: 'db',
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+        createdAt: at,
+        updatedAt: at,
+      ),
+    ]);
+
+    expect((await read).single.label, 'Dropbox');
   });
 
   test('groups combine roster, status, local config and usage', () async {

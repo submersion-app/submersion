@@ -114,7 +114,9 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
 
   Future<void> _follow(Dive dive) async {
     setState(() => _loadingDiveId = dive.id);
-    final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
+    final analysis = await ref.container.awaitFuture(
+      profileAnalysisProvider(dive.id).future,
+    );
     if (!mounted) return;
 
     final compartments = (analysis != null && analysis.decoStatuses.isNotEmpty)

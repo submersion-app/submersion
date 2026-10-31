@@ -5708,6 +5708,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_action_markCompleted => 'Segna come Completato';
 
   @override
+  String get courses_action_chooseDive => 'Scegli immersione';
+
+  @override
   String get courses_action_unlinkDive => 'Scollega immersione';
 
   @override
@@ -5904,6 +5907,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Immersioni suggerite';
+
+  @override
+  String get courses_requirement_allDives => 'Tutte le immersioni';
+
+  @override
+  String get courses_requirement_noDives => 'Nessuna immersione da collegare';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Nessuna immersione corrisponde a \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Cerca immersioni';
 
   @override
   String get courses_requirements_empty =>
@@ -8834,6 +8851,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'Ceiling';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'Ceiling (calc.)';
 
   @override
   String get diveLog_legend_label_decoStops => 'Soste deco';
@@ -16232,6 +16252,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_location_kind_storage => 'Deposito';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Centro immersioni';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Centro assistenza';
 
   @override
@@ -16460,6 +16483,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Tipo';
+
+  @override
+  String get equipment_locations_savedCenterLabel =>
+      'Centro immersioni salvato';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Nessuno';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Rimuovi centro immersioni salvato';
 
   @override
   String get equipment_locations_notesLabel => 'Note';
@@ -17839,6 +17873,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'Aggiunto';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Rabbocco';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'Pressione';
@@ -20567,8 +20604,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerCanvas_range_title => 'Tabella di variazione';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calcolo in corso';
+
+  @override
+  String get plannerCanvas_results_failed => 'Impossibile calcolare';
+
+  @override
   String get plannerCanvas_results_noDeco =>
       'Nessuna decompressione necessaria';
+
+  @override
+  String get plannerCanvas_results_updating => 'Aggiornamento';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -29929,6 +29975,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Discesa media';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Analisi delle immersioni: $analyzed di $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Immersioni deco';
@@ -53941,6 +53992,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Inserisci un valore da 0 a 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'La tua attrezzatura qui';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';

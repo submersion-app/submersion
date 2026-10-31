@@ -711,8 +711,14 @@ extension RungsFromV231 on AppDatabase {
     if (from < 329) await reportProgress();
 
     // v330: buddies.excluded_from_rankings (issue #3624). Column only, no
-    // backfill; re-asserted in beforeOpen. 328 is held by PR #3869.
+    // backfill; re-asserted in beforeOpen.
     if (from < 330) await _assertBuddyExcludedFromRankingsColumn();
     if (from < 330) await reportProgress();
+
+    // v331: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 331) await _assertEquipmentLocationCenterColumn();
+    if (from < 331) await reportProgress();
   }
 }
