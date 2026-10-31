@@ -6,6 +6,8 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show GeoPoint;
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -236,6 +238,41 @@ void main() {
       // The fold's primary went home with the secondary, so this one is
       // the target's only route and has to draw.
       expect(row.isPrimary, isTrue);
+    });
+
+    test('undo keeps a position set since on a route that stayed', () async {
+      await seedOverlapping(['a', 'b']);
+      final stayed = await seedRoute('a');
+
+      final outcome = await consolidation.apply(
+        targetDiveId: 'a',
+        secondaryDiveIds: ['b'],
+      );
+      await routes.setSite(stayed, null, anchor: const GeoPoint(1, 2));
+      await consolidation.undo(outcome.snapshot);
+
+      final row = await routeRow(stayed);
+      expect(row.diveId, 'a');
+      expect(row.anchorLatitude, 1);
+      expect(row.anchorLongitude, 2);
+    });
+
+    test('undo keeps a position changed since on a route that moved', () async {
+      await seedOverlapping(['a', 'b']);
+      final moved = await seedRoute('b');
+      await routes.setSite(moved, null, anchor: const GeoPoint(1, 2));
+
+      final outcome = await consolidation.apply(
+        targetDiveId: 'a',
+        secondaryDiveIds: ['b'],
+      );
+      await routes.setSite(moved, null, anchor: const GeoPoint(3, 4));
+      await consolidation.undo(outcome.snapshot);
+
+      final row = await routeRow(moved);
+      expect(row.diveId, 'b');
+      expect(row.anchorLatitude, 3);
+      expect(row.anchorLongitude, 4);
     });
 
     test('undo does not bring back a route deleted after the fold', () async {

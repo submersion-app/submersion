@@ -751,16 +751,20 @@ class NavTrackRepository {
   /// no primary route gets one, for a route linked after the fold whose
   /// primary has gone back to its own dive.
   ///
-  /// [link] only gives a dive's position to a route with none, so a route
-  /// that had a site or an anchor kept it through the fold and neither is
-  /// written here: whatever the diver changed since stands. A route that had
-  /// neither goes back to neither, since the row cannot tell a position the
-  /// fold gave it from one the diver set afterwards.
-  Future<void> restoreLinks(List<NavTrackRow> rows) async {
+  /// Only a route moved onto [survivingDiveId] with no position of its own
+  /// can have been given one by [link], so only that route goes back to none,
+  /// even if the diver set one since: the row cannot tell the two apart.
+  /// Every other route's site and anchor are left alone, so whatever the
+  /// diver changed since stands.
+  Future<void> restoreLinks(
+    List<NavTrackRow> rows, {
+    required String survivingDiveId,
+  }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final row in rows) {
-        final hadPosition =
+        final keepsPosition =
+            row.diveId == survivingDiveId ||
             row.siteId != null ||
             (row.anchorLatitude != null && row.anchorLongitude != null);
         final rowsAffected =
@@ -772,11 +776,13 @@ class NavTrackRepository {
                 diverId: Value(row.diverId),
                 linkMode: Value(row.linkMode),
                 isPrimary: Value(row.isPrimary),
-                siteId: hadPosition ? const Value.absent() : const Value(null),
-                anchorLatitude: hadPosition
+                siteId: keepsPosition
                     ? const Value.absent()
                     : const Value(null),
-                anchorLongitude: hadPosition
+                anchorLatitude: keepsPosition
+                    ? const Value.absent()
+                    : const Value(null),
+                anchorLongitude: keepsPosition
                     ? const Value.absent()
                     : const Value(null),
                 updatedAt: Value(now),

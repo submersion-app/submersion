@@ -176,7 +176,7 @@ void main() {
       await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
       await repo.rename(id, 'Reef loop');
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       final restored = (await repo.getForDive('b')).single;
       expect(restored.linkMode, NavTrackLinkMode.auto);
@@ -197,7 +197,7 @@ void main() {
       await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
       await repo.setSite(id, 'site-2', anchor: const GeoPoint(3, 4));
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       final restored = (await repo.getForDive('b')).single;
       expect(restored.siteId, 'site-2');
@@ -213,7 +213,7 @@ void main() {
       await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
       await repo.setSite(id, null, clearAnchor: true);
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       expect((await repo.getForDive('b')).single.anchor, isNull);
     });
@@ -228,7 +228,7 @@ void main() {
       await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
       await db.customStatement("DELETE FROM dive_sites WHERE id = 'site-1'");
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       final restored = (await repo.getForDive('b')).single;
       expect(restored.id, id);
@@ -241,7 +241,7 @@ void main() {
       final captured = await repo.linkedRowsForDives(['a']);
       await db.delete(db.syncRecords).go();
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       final pending = await (db.select(
         db.syncRecords,
@@ -256,7 +256,7 @@ void main() {
       await repo.delete(id);
       await db.delete(db.syncRecords).go();
 
-      await repo.restoreLinks(captured);
+      await repo.restoreLinks(captured, survivingDiveId: 'a');
 
       expect(await repo.getById(id), isNull);
       expect(await db.select(db.syncRecords).get(), isEmpty);
@@ -278,7 +278,7 @@ void main() {
           "UPDATE nav_tracks SET is_primary = 0 WHERE id = '$other'",
         );
 
-        await repo.restoreLinks(captured.toList());
+        await repo.restoreLinks(captured.toList(), survivingDiveId: 'b');
 
         expect((await repo.getById(other))!.isPrimary, isTrue);
       },
