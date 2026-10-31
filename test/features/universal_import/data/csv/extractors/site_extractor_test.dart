@@ -59,28 +59,27 @@ void main() {
       expect(sites, isEmpty);
     });
 
-    test('returns site ID mapping via siteIdForName', () {
+    test('returns the site ID of a row via siteIdForRow', () {
       final rows = <Map<String, dynamic>>[
         {'siteName': 'Blue Hole'},
       ];
 
-      extractor.extractFromRows(rows);
+      final sites = extractor.extractFromRows(rows);
 
-      final id = extractor.siteIdForName('Blue Hole');
-      expect(id, isNotNull);
-      expect(id, isA<String>());
+      expect(extractor.siteIdForRow(rows.single), sites.single['id']);
     });
 
-    test('siteIdForName is case-insensitive', () {
+    test('siteIdForRow is case-insensitive', () {
       final rows = <Map<String, dynamic>>[
         {'siteName': 'Blue Hole'},
       ];
 
-      extractor.extractFromRows(rows);
+      final sites = extractor.extractFromRows(rows);
 
-      final id1 = extractor.siteIdForName('Blue Hole');
-      final id2 = extractor.siteIdForName('blue hole');
-      expect(id1, id2);
+      expect(
+        extractor.siteIdForRow({'siteName': 'blue hole'}),
+        sites.single['id'],
+      );
     });
 
     test('each site gets a unique UUID', () {
@@ -194,14 +193,14 @@ void main() {
       expect(sites[0]['longitude'], closeTo(151.2093, 0.0001));
     });
 
-    test('siteIdForName returns null for unseen site name', () {
+    test('siteIdForRow returns null for unseen site name', () {
       final rows = <Map<String, dynamic>>[
         {'siteName': 'Blue Hole'},
       ];
 
       extractor.extractFromRows(rows);
 
-      expect(extractor.siteIdForName('Unknown Site'), isNull);
+      expect(extractor.siteIdForRow({'siteName': 'Unknown Site'}), isNull);
     });
 
     test('GPS from first occurrence wins for deduped sites', () {
@@ -226,7 +225,7 @@ void main() {
           'siteRegion': 'Gozo',
           'siteCountry': 'Malta',
         },
-        {'siteName': 'Blue Hole', 'siteCountry': 'Elsewhere'},
+        {'siteName': 'Blue Hole', 'siteCountry': 'MALTA'},
       ];
 
       final site = extractor.extractFromRows(rows).single;
@@ -235,6 +234,50 @@ void main() {
       expect(site['island'], 'Comino');
       expect(site['region'], 'Gozo');
       expect(site['country'], 'Malta');
+    });
+
+    group('same-name sites (#4015)', () {
+      final dahab = <String, dynamic>{
+        'siteName': 'Blue Hole',
+        'siteCity': 'Dahab',
+        'siteCountry': 'Egypt',
+      };
+      final belize = <String, dynamic>{
+        'siteName': 'Blue Hole',
+        'siteCity': 'Lighthouse Reef',
+        'siteCountry': 'Belize',
+      };
+
+      test('rows that place a name differently are two sites', () {
+        final sites = extractor.extractFromRows([dahab, belize]);
+
+        expect(sites.map((s) => s['country']), ['Egypt', 'Belize']);
+        expect(extractor.siteIdForRow(dahab), sites.first['id']);
+        expect(extractor.siteIdForRow(belize), sites.last['id']);
+        expect(sites.first['id'], isNot(sites.last['id']));
+      });
+
+      test('a row that leaves the place blank cannot tell them apart', () {
+        final blank = <String, dynamic>{'siteName': 'Blue Hole'};
+
+        final sites = extractor.extractFromRows([dahab, blank, belize]);
+
+        expect(sites, hasLength(2));
+        expect(extractor.siteIdForRow(blank), sites.first['id']);
+      });
+
+      test('a later row fills what the first left blank, and then decides '
+          'the next one', () {
+        final blank = <String, dynamic>{'siteName': 'Blue Hole'};
+
+        final sites = extractor.extractFromRows([blank, dahab, belize]);
+
+        expect(sites.map((s) => s['country']), ['Egypt', 'Belize']);
+        expect(sites.first['city'], 'Dahab');
+        expect(extractor.siteIdForRow(blank), sites.first['id']);
+        expect(extractor.siteIdForRow(dahab), sites.first['id']);
+        expect(extractor.siteIdForRow(belize), sites.last['id']);
+      });
     });
 
     test('leaves out blank place fields', () {

@@ -21,6 +21,9 @@ class TissueLiveService {
   /// Tissue state at [now], off-gassed from [endOfDiveCompartments] over the
   /// time elapsed since [lastDiveEnd].
   ///
+  /// [lastDiveEnd] and [now] are true instants, not wall-clock-as-UTC: clock
+  /// digits gain or lose an hour of off-gassing across a DST change.
+  ///
   /// [gfLow]/[gfHigh] are the diver's CURRENT decompression settings, not
   /// whatever the dive itself was analyzed with: the live readout reflects
   /// what the diver's present conservatism means for their residual loading
@@ -80,7 +83,8 @@ class TissueLiveService {
   /// [lastDiveEnd], for a heat map / area chart of off-gassing -- the same
   /// way `CompactTissueLoadingCard` already draws one across a dive, just
   /// across the surface interval that follows it instead. The last entry is
-  /// the same [DecoStatus] [currentStatus] would return for the same inputs.
+  /// the same [DecoStatus] [currentStatus] would return for the same inputs,
+  /// so [lastDiveEnd] and [now] are true instants here too.
   ///
   /// A single-entry list (just the end-of-dive state, not off-gassed) when
   /// [now] is at or before [lastDiveEnd]: nothing has elapsed to sample.

@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show TableUpdate, Variable;
 
@@ -295,8 +293,9 @@ class SyncService {
   /// immediately, regardless of this.
   static const _unreadableEpochGraceMs = 60 * 60 * 1000; // 1 hour
 
+  static const ChangesetCodec _changesetCodec = ChangesetCodec();
+
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
-  late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
 
   /// Assembles a peer's base parts into a temp file (per-part + whole-file
   /// checksum verified) for the bounded-memory replace-adopt (#358).
@@ -5218,9 +5217,7 @@ class SyncService {
       version: pending.version,
       exportedAt: pending.exportedAt,
       deviceId: pending.deviceId,
-      checksum: sha256
-          .convert(utf8.encode(jsonEncode(data.toJson())))
-          .toString(),
+      checksum: await SyncDataSerializer.checksumOfOffIsolate(data),
       data: data,
       deletions: pending.deletions,
     );
@@ -5872,15 +5869,27 @@ class SyncService {
         baseFilePaths.add(path);
         baseExportedAt.add(await _readBaseExportedAt(path));
         // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-        // first gap) so adopt can record it as this peer's cursor -- otherwise the
-        // next sync cold-starts and re-downloads the whole base we just applied.
+        // first gap or damaged one) so adopt can record it as this peer's
+        // cursor. Otherwise the next sync cold-starts and re-downloads the whole
+        // base we just applied.
         var appliedThrough = baseSeq;
         for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
           final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
           if (cf == null) break;
-          changesets.add(
-            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
-          );
+          // Damage has the standing of a gap, as in ChangesetReader.pull: the
+          // cursor stops short of it, which a replace reads as a library it
+          // must wait for. An encrypted library shows it as a corrupt envelope
+          // and a plain one as a failed checksum. A read that failed says
+          // nothing about the file, so that still aborts the collection.
+          final Uint8List bytes;
+          try {
+            bytes = await provider.downloadFile(cf.id);
+          } on EnvelopeCorruptException {
+            break;
+          }
+          final decoded = await _changesetCodec.decodeVerifiedChangeset(bytes);
+          if (!decoded.checksumValid) break;
+          changesets.add(decoded.payload);
           appliedThrough = seq;
         }
         cursors.add((

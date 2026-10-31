@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 
@@ -35,6 +36,7 @@ class DiveMergeSnapshot {
     this.buddyRoleRows = const [],
     this.profileSeriesRows = const [],
     this.tankSeriesRows = const [],
+    this.profileRevisions = const [],
     this.navTrackRows = const [],
     this.linkedRows = const [],
   });
@@ -109,6 +111,10 @@ class DiveMergeSnapshot {
   final List<DiveProfileSeriesRow> profileSeriesRows;
   final List<TankPressureSeriesRow> tankSeriesRows;
 
+  /// The revision nodes of [profileSeriesRows], which their delete cascades
+  /// away and no series row carries (issue #4014).
+  final List<ProfileSeriesRevision> profileRevisions;
+
   /// The routes linked to the captured dives (issue #3918), with `points`
   /// left empty: an undo restores only their link columns.
   final List<NavTrackRow> navTrackRows;
@@ -137,6 +143,10 @@ class DiveMergeSnapshot {
     final mediaRows = await (db.select(
       db.media,
     )..where((t) => t.diveId.isIn(diveIds))).get();
+    final series = ProfileSeriesRepository(
+      database: db,
+      syncRepository: SyncRepository(database: db),
+    );
 
     return DiveMergeSnapshot(
       mergedDiveId: mergedDiveId,
@@ -195,14 +205,15 @@ class DiveMergeSnapshot {
         )..where((t) => t.diveId.isIn(diveIds))).get())
           d.id: d.diveId!,
       },
-      profileSeriesRows: await ProfileSeriesRepository(
-        database: db,
-        syncRepository: SyncRepository(database: db),
-      ).getRowsForDives(diveIds),
+      profileSeriesRows: await series.getRowsForDives(diveIds),
       tankSeriesRows: await TankPressureSeriesRepository(
         database: db,
         syncRepository: SyncRepository(database: db),
       ).getRowsForDives(diveIds),
+      profileRevisions: [
+        for (final nodes in (await series.getRevisionsForDives(diveIds)).values)
+          ...nodes,
+      ],
       navTrackRows: await NavTrackRepository().linkedRowsForDives(diveIds),
       linkedRows: await DiveFoldLinks().read(diveIds),
     );

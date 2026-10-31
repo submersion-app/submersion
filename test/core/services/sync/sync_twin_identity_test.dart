@@ -66,7 +66,6 @@ void main() {
 
   group('uploadNonce envelope round trip', () {
     test('serializes and parses the nonce; absent key reads as null', () {
-      final serializer = SyncDataSerializer();
       const payload = SyncPayload(
         version: syncFormatVersion,
         exportedAt: 1,
@@ -77,20 +76,23 @@ void main() {
         uploadNonce: 'nonce-1',
       );
 
-      final parsed = serializer.deserializePayload(
-        serializer.serializePayload(payload),
+      final parsed = SyncPayload.fromJson(
+        jsonDecode(jsonEncode(payload.toJson())) as Map<String, dynamic>,
       );
       expect(parsed.uploadNonce, 'nonce-1');
 
-      final legacy = serializer.deserializePayload(
-        jsonEncode({
-          'version': 2,
-          'exportedAt': 1,
-          'deviceId': 'd',
-          'checksum': 'c',
-          'data': const SyncData().toJson(),
-          'deletions': <String, dynamic>{},
-        }),
+      final legacy = SyncPayload.fromJson(
+        jsonDecode(
+              jsonEncode({
+                'version': 2,
+                'exportedAt': 1,
+                'deviceId': 'd',
+                'checksum': 'c',
+                'data': const SyncData().toJson(),
+                'deletions': <String, dynamic>{},
+              }),
+            )
+            as Map<String, dynamic>,
       );
       expect(legacy.uploadNonce, isNull);
     });

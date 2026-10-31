@@ -20,6 +20,11 @@ enum PlanIssueType {
   gasOut,
   ndlExceededNoDecoGas,
   noBailoutCarried,
+
+  /// A loop plan goes deeper than the MOD of every bailout gas it carries
+  /// (#3961). [PlanIssue.value] is the plan's deepest point and
+  /// [PlanIssue.threshold] the deepest MOD carried, both in meters.
+  noEligibleBailoutGas,
   minGasViolation,
 
   /// A back gas whose rock-bottom minimum is at or above its fill, so no
