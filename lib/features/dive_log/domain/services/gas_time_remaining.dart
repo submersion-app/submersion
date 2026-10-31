@@ -12,8 +12,6 @@
 /// gauge reading gets the same GTR.
 library;
 
-import 'dart:math' as math;
-
 import 'package:submersion/core/utils/time_weighted_mean.dart';
 
 /// Direct-ascent rate the GTR calculation assumes (Shearwater: 10 m/min).
@@ -39,9 +37,9 @@ const double _surfaceDepthMeters = 1.0;
 /// - [ceilings] reports a deco ceiling above 0 m at that sample.
 ///
 /// [pressures] is the tank pressure track in bar, aligned with [depths] and
-/// [timestamps] (seconds). [reserveBar] is the pressure the diver wants to
-/// surface with. Once the reserve plus the gas needed for the ascent exceeds
-/// the current pressure the value is 0, never negative.
+/// [timestamps] (seconds, in time order). [reserveBar] is the pressure the
+/// diver wants to surface with. Once the reserve plus the gas needed for the
+/// ascent exceeds the current pressure the value is 0, never negative.
 ///
 /// Depth and pressure are read as piecewise linear series, so the window holds
 /// exactly [sacWindowSeconds] of history wherever it opens, and a sample added
@@ -70,6 +68,13 @@ List<int?> calculateGtrCurve({
       'ceilings (${ceilings.length}) must match depths (${depths.length})',
     );
   }
+  if (sacWindowSeconds <= 0) {
+    throw ArgumentError.value(
+      sacWindowSeconds,
+      'sacWindowSeconds',
+      'must be positive',
+    );
+  }
 
   final result = List<int?>.filled(n, null);
   // Both window bounds only move forward, so one cursor and a cumulative depth
@@ -94,22 +99,20 @@ List<int?> calculateGtrCurve({
     if (ceilings != null && ceilings[i] > 0) continue;
     if (timestamps[0] > windowStart) continue;
 
-    final windowOpens = math.max(windowStart, timestamps[anchor]);
-    final durationSeconds = timestamps[i] - windowOpens;
-    if (durationSeconds <= 0) continue;
-
     final pressureDrop =
-        _readAt(pressures, timestamps, anchor, windowOpens) - pressures[i];
+        _readAt(pressures, timestamps, anchor, windowStart) - pressures[i];
     if (pressureDrop <= 0) continue;
 
     // The anchor sample can sit before the window, so take off the area
     // between it and where the window opens.
-    final depthAtOpen = _readAt(depths, timestamps, anchor, windowOpens);
-    final areaBeforeOpen =
-        (windowOpens - timestamps[anchor]) * (depths[anchor] + depthAtOpen) / 2;
-    final windowArea = depthAreaTo[i] - depthAreaTo[anchor] - areaBeforeOpen;
-    final meanDepth = windowArea / durationSeconds;
-    final consumptionAtDepth = pressureDrop / (durationSeconds / 60.0);
+    final depthAtStart = _readAt(depths, timestamps, anchor, windowStart);
+    final areaBeforeStart =
+        (windowStart - timestamps[anchor]) *
+        (depths[anchor] + depthAtStart) /
+        2;
+    final windowArea = depthAreaTo[i] - depthAreaTo[anchor] - areaBeforeStart;
+    final meanDepth = windowArea / sacWindowSeconds;
+    final consumptionAtDepth = pressureDrop / (sacWindowSeconds / 60.0);
     final sac = consumptionAtDepth / _ambientBar(meanDepth);
     if (sac <= 0) continue;
 

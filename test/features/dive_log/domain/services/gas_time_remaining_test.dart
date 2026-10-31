@@ -317,6 +317,19 @@ void main() {
       expect(gtr.every((v) => v == null), isTrue);
     });
 
+    test('throws on a window with no length', () {
+      expect(
+        () => calculateGtrCurve(
+          depths: const [20.0, 20.0],
+          timestamps: const [0, 10],
+          pressures: const [200.0, 199.0],
+          reserveBar: 50.0,
+          sacWindowSeconds: 0,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('throws on mismatched series lengths', () {
       expect(
         () => calculateGtrCurve(
