@@ -2814,6 +2814,7 @@
   "diveLog_filterChip_noEntryMethod": "Geen instapmethode",
   "diveLog_filterChip_noRole": "Geen rol",
   "diveLog_filterChip_noWaterType": "Geen watertype",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "Tot {date}",
   "diveLog_filter_allSites": "Alle stekken",
   "diveLog_filter_allTypes": "Alle types",

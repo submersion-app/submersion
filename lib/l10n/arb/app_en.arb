@@ -4985,6 +4985,17 @@
   "diveLog_filterChip_noEntryMethod": "No Entry Method",
   "diveLog_filterChip_noRole": "No Role",
   "diveLog_filterChip_noWaterType": "No Water Type",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
+  "@diveLog_filterChip_namedDives": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_filterChip_until": "Until {date}",
   "diveLog_filter_allSites": "All sites",
   "diveLog_filter_allTypes": "All types",

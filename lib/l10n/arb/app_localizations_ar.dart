@@ -8794,6 +8794,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'بدون نوع مياه';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'حتى $date';
   }

@@ -2814,6 +2814,7 @@
   "diveLog_filterChip_noEntryMethod": "Sem Método de Entrada",
   "diveLog_filterChip_noRole": "Sem Função",
   "diveLog_filterChip_noWaterType": "Sem Tipo de Água",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "Até {date}",
   "diveLog_filter_allSites": "Todos os pontos",
   "diveLog_filter_allTypes": "Todos os tipos",

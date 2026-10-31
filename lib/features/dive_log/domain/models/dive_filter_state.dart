@@ -84,6 +84,10 @@ class DiveFilterState {
   /// while the filter is active drops out (issue #1919).
   final String? buddyId;
   final List<String> diveIds;
+
+  /// What [diveIds] are, for their chip ("Cloud cover: Clear") when a chart
+  /// opened them (#3805). Filters nothing, so it is no axis of its own.
+  final String? diveIdsLabel;
   final double? minO2Percent;
   final double? maxO2Percent;
   final int? minRating;
@@ -166,6 +170,7 @@ class DiveFilterState {
     this.buddyNameFilter,
     this.buddyId,
     this.diveIds = const [],
+    this.diveIdsLabel,
     this.minO2Percent,
     this.maxO2Percent,
     this.minRating,
@@ -284,6 +289,7 @@ class DiveFilterState {
           other.buddyNameFilter == buddyNameFilter &&
           other.buddyId == buddyId &&
           listEquals(other.diveIds, diveIds) &&
+          other.diveIdsLabel == diveIdsLabel &&
           other.minO2Percent == minO2Percent &&
           other.maxO2Percent == maxO2Percent &&
           other.minRating == minRating &&
@@ -326,6 +332,7 @@ class DiveFilterState {
     buddyNameFilter,
     buddyId,
     Object.hashAll(diveIds),
+    diveIdsLabel,
     minO2Percent,
     maxO2Percent,
     minRating,
@@ -368,6 +375,7 @@ class DiveFilterState {
     String? buddyNameFilter,
     String? buddyId,
     List<String>? diveIds,
+    String? diveIdsLabel,
     double? minO2Percent,
     double? maxO2Percent,
     int? minRating,
@@ -475,6 +483,7 @@ class DiveFilterState {
           : (buddyNameFilter ?? this.buddyNameFilter),
       buddyId: clearBuddyId ? null : (buddyId ?? this.buddyId),
       diveIds: clearDiveIds ? const [] : (diveIds ?? this.diveIds),
+      diveIdsLabel: clearDiveIds ? null : (diveIdsLabel ?? this.diveIdsLabel),
       minO2Percent: clearMinO2Percent
           ? null
           : (minO2Percent ?? this.minO2Percent),

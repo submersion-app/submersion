@@ -8217,6 +8217,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => '无水体类型';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label（$count）';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return '至 $date';
   }

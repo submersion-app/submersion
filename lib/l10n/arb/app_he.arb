@@ -2713,6 +2713,7 @@
   "diveLog_filterChip_noEntryMethod": "ללא שיטת כניסה",
   "diveLog_filterChip_noRole": "ללא תפקיד",
   "diveLog_filterChip_noWaterType": "ללא סוג מים",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "עד {date}",
   "diveLog_filter_allSites": "כל האתרים",
   "diveLog_filter_allTypes": "כל הסוגים",

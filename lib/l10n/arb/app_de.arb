@@ -2839,6 +2839,7 @@
   "diveLog_filterChip_noEntryMethod": "Keine Einstiegsmethode",
   "diveLog_filterChip_noRole": "Keine Rolle",
   "diveLog_filterChip_noWaterType": "Keine Wasserart",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "Bis {date}",
   "diveLog_filter_allSites": "Alle Tauchplätze",
   "diveLog_filter_allTypes": "Alle Typen",

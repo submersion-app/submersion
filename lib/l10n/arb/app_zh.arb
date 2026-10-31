@@ -2927,6 +2927,7 @@
   "diveLog_filterChip_noEntryMethod": "无入水方式",
   "diveLog_filterChip_noRole": "无角色",
   "diveLog_filterChip_noWaterType": "无水体类型",
+  "diveLog_filterChip_namedDives": "{label}（{count}）",
   "diveLog_filterChip_until": "至 {date}",
   "diveLog_filter_allSites": "所有潜水点",
   "diveLog_filter_allTypes": "所有类型",

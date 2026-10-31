@@ -352,6 +352,27 @@ void main() {
       });
     });
 
+    group('diveIdsLabel (#3805)', () {
+      test('takes part in equality', () {
+        const named = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'One');
+        const other = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'Two');
+        expect(named, isNot(equals(other)));
+        expect(named.hashCode, isNot(other.hashCode));
+      });
+
+      test('clearing the dive ids clears the label', () {
+        const named = DiveFilterState(diveIds: ['a'], diveIdsLabel: 'One');
+        final cleared = named.copyWith(clearDiveIds: true);
+        expect(cleared.diveIds, isEmpty);
+        expect(cleared.diveIdsLabel, isNull);
+      });
+
+      test('a label alone is no axis', () {
+        const labelled = DiveFilterState(diveIdsLabel: 'One');
+        expect(labelled.hasActiveFilters, isFalse);
+      });
+    });
+
     group('query (#2365)', () {
       test('copyWith sets and clears the advanced query', () {
         final node = ConditionNode(

@@ -8688,6 +8688,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Sans type d\'eau';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Jusqu\'au $date';
   }

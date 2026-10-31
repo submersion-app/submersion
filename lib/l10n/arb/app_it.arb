@@ -2713,6 +2713,7 @@
   "diveLog_filterChip_noEntryMethod": "Senza metodo di ingresso",
   "diveLog_filterChip_noRole": "Nessun ruolo",
   "diveLog_filterChip_noWaterType": "Senza tipo di acqua",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "Fino al {date}",
   "diveLog_filter_allSites": "Tutti i siti",
   "diveLog_filter_allTypes": "Tutti i tipi",

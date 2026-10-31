@@ -2814,6 +2814,7 @@
   "diveLog_filterChip_noEntryMethod": "بدون طريقة دخول",
   "diveLog_filterChip_noRole": "بدون دور",
   "diveLog_filterChip_noWaterType": "بدون نوع مياه",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "حتى {date}",
   "diveLog_filter_allSites": "جميع المواقع",
   "diveLog_filter_allTypes": "جميع الأنواع",

@@ -13627,6 +13627,12 @@ abstract class AppLocalizations {
   /// **'No Water Type'**
   String get diveLog_filterChip_noWaterType;
 
+  /// No description provided for @diveLog_filterChip_namedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String diveLog_filterChip_namedDives(String label, int count);
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:

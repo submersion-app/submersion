@@ -2713,6 +2713,7 @@
   "diveLog_filterChip_noEntryMethod": "Nincs beszállási mód",
   "diveLog_filterChip_noRole": "Nincs szerep",
   "diveLog_filterChip_noWaterType": "Nincs víztípus",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
   "diveLog_filterChip_until": "Eddig: {date}",
   "diveLog_filter_allSites": "Összes merülőhely",
   "diveLog_filter_allTypes": "Összes típus",
