@@ -54100,6 +54100,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_customFields_value => 'Wert';
 
   @override
+  String get query_divePlans_date => 'Datum';
+
+  @override
+  String get query_divePlans_depth => 'Maximale Tiefe';
+
+  @override
+  String get query_divePlans_mode => 'Modus';
+
+  @override
+  String get query_divePlans_name => 'Name';
+
+  @override
+  String get query_divePlans_notes => 'Notizen';
+
+  @override
+  String get query_divePlans_runtime => 'Gesamtzeit';
+
+  @override
+  String get query_divePlans_site => 'Tauchplatz';
+
+  @override
   String get query_diveTypes_builtIn => 'Vordefiniert';
 
   @override
@@ -54322,10 +54343,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_entity_customFields => 'Eigene Felder';
 
   @override
+  String get query_entity_divePlans => 'Gespeicherte Pläne';
+
+  @override
   String get query_entity_diveTypes => 'Tauchgangsarten';
 
   @override
   String get query_entity_dives => 'Tauchgänge';
+
+  @override
+  String get query_entity_documents => 'Dokumente';
 
   @override
   String get query_entity_equipment => 'Ausrüstung';
@@ -54334,13 +54361,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'Ausrüstungsmerkmale';
 
   @override
+  String get query_entity_equipmentSets => 'Ausrüstungssets';
+
+  @override
   String get query_entity_findings => 'Sicherheitsbefunde';
 
   @override
   String get query_findings_rule => 'Regel';
 
   @override
+  String get query_entity_gpsTracks => 'GPS-Tracks';
+
+  @override
   String get query_entity_media => 'Medien';
+
+  @override
+  String get query_entity_navTracks => 'Unterwasserrouten';
 
   @override
   String get query_entity_sightings => 'Sichtungen';
@@ -54377,6 +54413,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'Textwert';
+
+  @override
+  String get query_equipmentSets_default => 'Standard';
+
+  @override
+  String get query_equipmentSets_description => 'Beschreibung';
+
+  @override
+  String get query_equipmentSets_itemCount => 'Anzahl der Teile';
+
+  @override
+  String get query_equipmentSets_items => 'Teile';
+
+  @override
+  String get query_equipmentSets_name => 'Name';
 
   @override
   String get query_equipment_active => 'Aktiv';
@@ -54437,6 +54488,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'Filter';
+
+  @override
+  String get query_gpsTracks_date => 'Datum';
+
+  @override
+  String get query_gpsTracks_deviceName => 'Gerät';
+
+  @override
+  String get query_gpsTracks_duration => 'Dauer';
+
+  @override
+  String get query_gpsTracks_file => 'Datei';
+
+  @override
+  String get query_gpsTracks_name => 'Name';
+
+  @override
+  String get query_gpsTracks_source => 'Quelle';
 
   @override
   String get query_list_noMatch => 'Nichts entspricht dieser Abfrage';
@@ -54646,6 +54715,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_op_inList => 'ist eines von';
 
   @override
+  String get query_navTracks_date => 'Datum';
+
+  @override
+  String get query_navTracks_depth => 'Maximale Tiefe';
+
+  @override
+  String get query_navTracks_deviceName => 'Gerät';
+
+  @override
+  String get query_navTracks_distance => 'Strecke';
+
+  @override
+  String get query_navTracks_dive => 'Tauchgang';
+
+  @override
+  String get query_navTracks_duration => 'Dauer';
+
+  @override
+  String get query_navTracks_equipment => 'Ausrüstung';
+
+  @override
+  String get query_navTracks_file => 'Datei';
+
+  @override
+  String get query_navTracks_name => 'Name';
+
+  @override
+  String get query_navTracks_site => 'Tauchplatz';
+
+  @override
+  String get query_navTracks_source => 'Quelle';
+
+  @override
   String get query_op_between => 'zwischen';
 
   @override
@@ -54671,6 +54773,57 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'Eine der Bedingungen';
+
+  @override
+  String get query_documents_buddy => 'Tauchpartner';
+
+  @override
+  String get query_documents_center => 'Tauchbasis';
+
+  @override
+  String get query_documents_certification => 'Zertifizierung';
+
+  @override
+  String get query_documents_course => 'Kurs';
+
+  @override
+  String get query_documents_dive => 'Tauchgang';
+
+  @override
+  String get query_documents_equipment => 'Ausrüstung';
+
+  @override
+  String get query_documents_expiryDate => 'Ablaufdatum';
+
+  @override
+  String get query_documents_issueDate => 'Ausstellungsdatum';
+
+  @override
+  String get query_documents_issuer => 'Aussteller';
+
+  @override
+  String get query_documents_notes => 'Notizen';
+
+  @override
+  String get query_documents_primary => 'Primär';
+
+  @override
+  String get query_documents_referenceNumber => 'Referenznummer';
+
+  @override
+  String get query_documents_site => 'Tauchplatz';
+
+  @override
+  String get query_documents_tags => 'Tags';
+
+  @override
+  String get query_documents_title => 'Titel';
+
+  @override
+  String get query_documents_trip => 'Reise';
+
+  @override
+  String get query_documents_type => 'Typ';
 
   @override
   String get query_editor_addCondition => 'Bedingung hinzufügen';

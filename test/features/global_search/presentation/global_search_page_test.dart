@@ -2,24 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_error_code.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
 import 'package:submersion/features/global_search/presentation/pages/global_search_page.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -34,27 +48,43 @@ class _StubSettings extends StateNotifier<AppSettings>
 
 final _query = TextNode(['reef']);
 
-GlobalSearchSection _section(
-  GlobalSearchKind kind,
-  int count, {
-  int? total,
-  String prefix = 'Hit',
-}) => GlobalSearchSection(
-  kind: kind,
-  total: total ?? count,
-  query: _query,
-  hasList: !const {
-    GlobalSearchKind.equipmentSets,
-    GlobalSearchKind.documents,
-    GlobalSearchKind.divePlans,
-    GlobalSearchKind.gpsTracks,
-    GlobalSearchKind.underwaterRoutes,
-  }.contains(kind),
-  hits: [
-    for (var i = 0; i < count; i++)
-      GlobalSearchHit(kind: kind, id: 'id$i', title: '$prefix $i'),
-  ],
-);
+GlobalSearchSection _section(GlobalSearchKind kind, int count, {int? total}) =>
+    GlobalSearchSection(
+      kind: kind,
+      total: total ?? count,
+      query: _query,
+      hasList: !const {
+        GlobalSearchKind.equipmentSets,
+        GlobalSearchKind.documents,
+        GlobalSearchKind.divePlans,
+        GlobalSearchKind.gpsTracks,
+        GlobalSearchKind.underwaterRoutes,
+      }.contains(kind),
+      ids: [for (var i = 0; i < count; i++) 'id$i'],
+    );
+
+late SharedPreferences _prefs;
+final _now = DateTime(2026, 10, 30);
+
+/// What the Buddies list holds: `Hit 0`, `Hit 1`, and so on.
+final _buddies = [
+  for (var i = 0; i < 10; i++)
+    BuddyWithDiveCount(
+      buddy: Buddy(
+        id: 'id$i',
+        name: 'Hit $i',
+        createdAt: _now,
+        updatedAt: _now,
+      ),
+      diveCount: 0,
+    ),
+];
+
+/// What the equipment sets hold: `Set 0`, `Set 1`, and so on.
+final _sets = [
+  for (var i = 0; i < 10; i++)
+    EquipmentSet(id: 'id$i', name: 'Set $i', createdAt: _now, updatedAt: _now),
+];
 
 /// The list routes See all can land on, each a page naming its address.
 List<RouteBase> _routes() => [
@@ -69,8 +99,7 @@ List<RouteBase> _routes() => [
     '/certifications',
     '/courses',
     '/species/manage',
-    '/sites/:id',
-    '/documents/:id',
+    '/buddies/:id',
   ])
     GoRoute(
       path: path,
@@ -85,11 +114,25 @@ Widget _app(
   final router = GoRouter(initialLocation: '/search', routes: _routes());
   return ProviderScope(
     overrides: [
+      sharedPreferencesProvider.overrideWithValue(_prefs),
       settingsProvider.overrideWith((ref) => _StubSettings()),
       certificationCatalogSyncProvider.overrideWithValue(
         CertificationCatalog.builtInOnly,
       ),
       globalSearchProvider.overrideWith((ref, text) => answer(text)),
+      queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
+      queryUnitPrefsProvider.overrideWithValue(kMetricPrefs),
+      allBuddiesWithDiveCountProvider.overrideWith((ref) async => _buddies),
+      equipmentSetsProvider.overrideWith((ref) async => _sets),
+      // The other lists stay empty: See all reads the section, not its rows.
+      globalSearchDivesProvider.overrideWith((ref, key) async => const []),
+      sitesWithCountsProvider.overrideWith((ref) async => const []),
+      allTripsWithStatsProvider.overrideWith((ref) async => const []),
+      allEquipmentProvider.overrideWith((ref) async => const []),
+      allDiveCentersProvider.overrideWith((ref) async => const []),
+      allCertificationsProvider.overrideWith((ref) async => const []),
+      allCoursesProvider.overrideWith((ref) async => const []),
+      allSpeciesProvider.overrideWith((ref) async => const []),
       ...overrides.cast(),
     ],
     child: MaterialApp.router(
@@ -112,6 +155,11 @@ Future<void> _search(WidgetTester tester, String text) async {
 }
 
 void main() {
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
   testWidgets('prompts before anything is typed, with the field focused', (
     tester,
   ) async {
@@ -132,17 +180,17 @@ void main() {
     await tester.pumpWidget(
       _app(
         (_) async => [
-          _section(GlobalSearchKind.sites, 2),
-          _section(GlobalSearchKind.buddies, 1, prefix: 'Buddy'),
+          _section(GlobalSearchKind.buddies, 2),
+          _section(GlobalSearchKind.equipmentSets, 1),
         ],
       ),
     );
     await _search(tester, 'reef');
 
-    expect(find.text('Sites'), findsOneWidget);
     expect(find.text('Buddies'), findsOneWidget);
+    expect(find.text('Equipment Sets'), findsOneWidget);
     expect(find.text('Hit 1'), findsOneWidget);
-    expect(find.text('Buddy 0'), findsOneWidget);
+    expect(find.text('Set 0'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
   });
 
@@ -153,7 +201,9 @@ void main() {
     expect(find.text('No results for "nothing"'), findsOneWidget);
   });
 
-  testWidgets('explains text no record type can read', (tester) async {
+  testWidgets('explains a refusal the field did not see coming', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(
         (_) async => throw const GlobalSearchRefused(
@@ -161,9 +211,58 @@ void main() {
         ),
       ),
     );
-    await _search(tester, '"oops');
+    await _search(tester, 'reef');
 
     expect(find.textContaining('quote'), findsOneWidget);
+  });
+
+  group('the query language', () {
+    testWidgets('underlines text no record type can read', (tester) async {
+      await tester.pumpWidget(_app((_) async => const []));
+      await _search(tester, '"oops');
+
+      expect(find.textContaining('quote'), findsOneWidget);
+    });
+
+    testWidgets('half a query leaves the last results up', (tester) async {
+      final asked = <String>[];
+      await tester.pumpWidget(
+        _app((text) async {
+          asked.add(text);
+          return [_section(GlobalSearchKind.buddies, 1)];
+        }),
+      );
+      await _search(tester, 'depth > 30m');
+      await _search(tester, 'depth >');
+
+      expect(find.text('Hit 0'), findsOneWidget);
+      expect(asked, ['depth > 30m']);
+    });
+
+    testWidgets('offers the fields of every record type', (tester) async {
+      await tester.pumpWidget(_app((_) async => const []));
+      await _search(tester, 'expir');
+
+      await tester.tap(find.widgetWithText(ActionChip, 'expiryDate'));
+      await tester.pump();
+      final field = tester.widget<TextField>(
+        find.byKey(const ValueKey('global-search-field')),
+      );
+      expect(field.controller!.text, 'expiryDate');
+    });
+
+    testWidgets('searches by a field only one record type has', (tester) async {
+      final asked = <String>[];
+      await tester.pumpWidget(
+        _app((text) async {
+          asked.add(text);
+          return const [];
+        }),
+      );
+      await _search(tester, 'expires < 2028');
+
+      expect(asked, ['expires < 2028']);
+    });
   });
 
   testWidgets('reports a failed search', (tester) async {
@@ -175,13 +274,13 @@ void main() {
 
   testWidgets('a result opens its record over the results', (tester) async {
     await tester.pumpWidget(
-      _app((_) async => [_section(GlobalSearchKind.sites, 1)]),
+      _app((_) async => [_section(GlobalSearchKind.buddies, 1)]),
     );
     await _search(tester, 'reef');
 
     await tester.tap(find.text('Hit 0'));
     await tester.pumpAndSettle();
-    expect(find.text('page /sites/id0'), findsOneWidget);
+    expect(find.text('page /buddies/id0'), findsOneWidget);
 
     tester.state<NavigatorState>(find.byType(Navigator).first).pop();
     await tester.pumpAndSettle();
@@ -190,7 +289,7 @@ void main() {
 
   testWidgets('a short section offers no See all', (tester) async {
     await tester.pumpWidget(
-      _app((_) async => [_section(GlobalSearchKind.sites, 5)]),
+      _app((_) async => [_section(GlobalSearchKind.buddies, 5)]),
     );
     await _search(tester, 'reef');
 
@@ -199,15 +298,23 @@ void main() {
 
   testWidgets('a section with no list expands in place', (tester) async {
     await tester.pumpWidget(
-      _app((_) async => [_section(GlobalSearchKind.documents, 7)]),
+      _app((_) async => [_section(GlobalSearchKind.equipmentSets, 7)]),
     );
     await _search(tester, 'reef');
 
-    expect(find.text('Hit 4'), findsOneWidget);
-    expect(find.text('Hit 5'), findsNothing);
+    expect(find.text('Set 4'), findsOneWidget);
+    expect(find.text('Set 5'), findsNothing);
     await tester.tap(find.text('See all 7'));
     await tester.pumpAndSettle();
-    expect(find.text('Hit 6'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Set 6'),
+      100,
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.text('Set 6'), findsOneWidget);
     expect(find.text('See all 7'), findsNothing);
   });
 
@@ -218,11 +325,11 @@ void main() {
       _app(
         (text) async => [
           GlobalSearchSection(
-            kind: GlobalSearchKind.documents,
+            kind: GlobalSearchKind.equipmentSets,
             total: 7,
             hasList: false,
             query: TextNode([text]),
-            hits: _section(GlobalSearchKind.documents, 7).hits,
+            ids: _section(GlobalSearchKind.equipmentSets, 7).ids,
           ),
         ],
       ),
@@ -383,7 +490,7 @@ void main() {
   test('every kind has a location', () {
     final locations = {
       for (final kind in GlobalSearchKind.values)
-        globalSearchHitLocation(GlobalSearchHit(kind: kind, id: 'x')),
+        globalSearchLocation(kind, 'x'),
     };
     expect(locations, hasLength(GlobalSearchKind.values.length));
     expect(locations, contains('/tracks/underwater/x'));

@@ -54223,6 +54223,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_customFields_value => 'Valore';
 
   @override
+  String get query_divePlans_date => 'Data';
+
+  @override
+  String get query_divePlans_depth => 'Profondità massima';
+
+  @override
+  String get query_divePlans_mode => 'Modalità';
+
+  @override
+  String get query_divePlans_name => 'Nome';
+
+  @override
+  String get query_divePlans_notes => 'Note';
+
+  @override
+  String get query_divePlans_runtime => 'Durata totale';
+
+  @override
+  String get query_divePlans_site => 'Sito';
+
+  @override
   String get query_diveTypes_builtIn => 'Predefinito';
 
   @override
@@ -54445,10 +54466,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_entity_customFields => 'Campi personalizzati';
 
   @override
+  String get query_entity_divePlans => 'Piani salvati';
+
+  @override
   String get query_entity_diveTypes => 'Tipi di immersione';
 
   @override
   String get query_entity_dives => 'Immersioni';
+
+  @override
+  String get query_entity_documents => 'Documenti';
 
   @override
   String get query_entity_equipment => 'Attrezzatura';
@@ -54457,13 +54484,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'Attributi dell\'attrezzatura';
 
   @override
+  String get query_entity_equipmentSets => 'Set di attrezzatura';
+
+  @override
   String get query_entity_findings => 'Rilievi di sicurezza';
 
   @override
   String get query_findings_rule => 'Regola';
 
   @override
+  String get query_entity_gpsTracks => 'Tracce GPS';
+
+  @override
   String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_navTracks => 'Percorsi subacquei';
 
   @override
   String get query_entity_sightings => 'Avvistamenti';
@@ -54500,6 +54536,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'Valore testuale';
+
+  @override
+  String get query_equipmentSets_default => 'Predefinito';
+
+  @override
+  String get query_equipmentSets_description => 'Descrizione';
+
+  @override
+  String get query_equipmentSets_itemCount => 'Numero di elementi';
+
+  @override
+  String get query_equipmentSets_items => 'Elementi';
+
+  @override
+  String get query_equipmentSets_name => 'Nome';
 
   @override
   String get query_equipment_active => 'Attivo';
@@ -54560,6 +54611,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'Filtro';
+
+  @override
+  String get query_gpsTracks_date => 'Data';
+
+  @override
+  String get query_gpsTracks_deviceName => 'Dispositivo';
+
+  @override
+  String get query_gpsTracks_duration => 'Durata';
+
+  @override
+  String get query_gpsTracks_file => 'File';
+
+  @override
+  String get query_gpsTracks_name => 'Nome';
+
+  @override
+  String get query_gpsTracks_source => 'Origine';
 
   @override
   String get query_list_noMatch =>
@@ -54770,6 +54839,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_op_inList => 'è uno di';
 
   @override
+  String get query_navTracks_date => 'Data';
+
+  @override
+  String get query_navTracks_depth => 'Profondità massima';
+
+  @override
+  String get query_navTracks_deviceName => 'Dispositivo';
+
+  @override
+  String get query_navTracks_distance => 'Distanza';
+
+  @override
+  String get query_navTracks_dive => 'Immersione';
+
+  @override
+  String get query_navTracks_duration => 'Durata';
+
+  @override
+  String get query_navTracks_equipment => 'Attrezzatura';
+
+  @override
+  String get query_navTracks_file => 'File';
+
+  @override
+  String get query_navTracks_name => 'Nome';
+
+  @override
+  String get query_navTracks_site => 'Sito';
+
+  @override
+  String get query_navTracks_source => 'Origine';
+
+  @override
   String get query_op_between => 'tra';
 
   @override
@@ -54795,6 +54897,57 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'Almeno una';
+
+  @override
+  String get query_documents_buddy => 'Compagno';
+
+  @override
+  String get query_documents_center => 'Diving center';
+
+  @override
+  String get query_documents_certification => 'Certificazione';
+
+  @override
+  String get query_documents_course => 'Corso';
+
+  @override
+  String get query_documents_dive => 'Immersione';
+
+  @override
+  String get query_documents_equipment => 'Attrezzatura';
+
+  @override
+  String get query_documents_expiryDate => 'Data di scadenza';
+
+  @override
+  String get query_documents_issueDate => 'Data di rilascio';
+
+  @override
+  String get query_documents_issuer => 'Emittente';
+
+  @override
+  String get query_documents_notes => 'Note';
+
+  @override
+  String get query_documents_primary => 'Principale';
+
+  @override
+  String get query_documents_referenceNumber => 'Numero di riferimento';
+
+  @override
+  String get query_documents_site => 'Sito';
+
+  @override
+  String get query_documents_tags => 'Tag';
+
+  @override
+  String get query_documents_title => 'Titolo';
+
+  @override
+  String get query_documents_trip => 'Viaggio';
+
+  @override
+  String get query_documents_type => 'Tipo';
 
   @override
   String get query_editor_addCondition => 'Aggiungi condizione';

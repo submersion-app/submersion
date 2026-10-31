@@ -50836,6 +50836,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_customFields_value => '值';
 
   @override
+  String get query_divePlans_date => '日期';
+
+  @override
+  String get query_divePlans_depth => '最大深度';
+
+  @override
+  String get query_divePlans_mode => '模式';
+
+  @override
+  String get query_divePlans_name => '名称';
+
+  @override
+  String get query_divePlans_notes => '备注';
+
+  @override
+  String get query_divePlans_runtime => '总时长';
+
+  @override
+  String get query_divePlans_site => '潜点';
+
+  @override
   String get query_diveTypes_builtIn => '内置';
 
   @override
@@ -51058,10 +51079,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_entity_customFields => '自定义字段';
 
   @override
+  String get query_entity_divePlans => '已保存的计划';
+
+  @override
   String get query_entity_diveTypes => '潜水类型';
 
   @override
   String get query_entity_dives => '潜水';
+
+  @override
+  String get query_entity_documents => '文档';
 
   @override
   String get query_entity_equipment => '装备';
@@ -51070,13 +51097,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_entity_equipmentAttributes => '装备属性';
 
   @override
+  String get query_entity_equipmentSets => '装备套装';
+
+  @override
   String get query_entity_findings => '安全发现';
 
   @override
   String get query_findings_rule => '规则';
 
   @override
+  String get query_entity_gpsTracks => 'GPS 轨迹';
+
+  @override
   String get query_entity_media => '媒体';
+
+  @override
+  String get query_entity_navTracks => '水下路线';
 
   @override
   String get query_entity_sightings => '观察记录';
@@ -51113,6 +51149,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => '文本值';
+
+  @override
+  String get query_equipmentSets_default => '默认';
+
+  @override
+  String get query_equipmentSets_description => '描述';
+
+  @override
+  String get query_equipmentSets_itemCount => '物品数量';
+
+  @override
+  String get query_equipmentSets_items => '物品';
+
+  @override
+  String get query_equipmentSets_name => '名称';
 
   @override
   String get query_equipment_active => '启用';
@@ -51173,6 +51224,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => '筛选';
+
+  @override
+  String get query_gpsTracks_date => '日期';
+
+  @override
+  String get query_gpsTracks_deviceName => '设备';
+
+  @override
+  String get query_gpsTracks_duration => '时长';
+
+  @override
+  String get query_gpsTracks_file => '文件';
+
+  @override
+  String get query_gpsTracks_name => '名称';
+
+  @override
+  String get query_gpsTracks_source => '来源';
 
   @override
   String get query_list_noMatch => '没有与此查询匹配的结果';
@@ -51382,6 +51451,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_op_inList => '是其中之一';
 
   @override
+  String get query_navTracks_date => '日期';
+
+  @override
+  String get query_navTracks_depth => '最大深度';
+
+  @override
+  String get query_navTracks_deviceName => '设备';
+
+  @override
+  String get query_navTracks_distance => '距离';
+
+  @override
+  String get query_navTracks_dive => '潜水';
+
+  @override
+  String get query_navTracks_duration => '时长';
+
+  @override
+  String get query_navTracks_equipment => '装备';
+
+  @override
+  String get query_navTracks_file => '文件';
+
+  @override
+  String get query_navTracks_name => '名称';
+
+  @override
+  String get query_navTracks_site => '潜点';
+
+  @override
+  String get query_navTracks_source => '来源';
+
+  @override
   String get query_op_between => '介于';
 
   @override
@@ -51407,6 +51509,57 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => '任一满足';
+
+  @override
+  String get query_documents_buddy => '潜伴';
+
+  @override
+  String get query_documents_center => '潜水中心';
+
+  @override
+  String get query_documents_certification => '证书';
+
+  @override
+  String get query_documents_course => '课程';
+
+  @override
+  String get query_documents_dive => '潜水';
+
+  @override
+  String get query_documents_equipment => '装备';
+
+  @override
+  String get query_documents_expiryDate => '到期日期';
+
+  @override
+  String get query_documents_issueDate => '签发日期';
+
+  @override
+  String get query_documents_issuer => '签发机构';
+
+  @override
+  String get query_documents_notes => '备注';
+
+  @override
+  String get query_documents_primary => '主要';
+
+  @override
+  String get query_documents_referenceNumber => '参考编号';
+
+  @override
+  String get query_documents_site => '潜点';
+
+  @override
+  String get query_documents_tags => '标签';
+
+  @override
+  String get query_documents_title => '标题';
+
+  @override
+  String get query_documents_trip => '旅程';
+
+  @override
+  String get query_documents_type => '类型';
 
   @override
   String get query_editor_addCondition => '添加条件';

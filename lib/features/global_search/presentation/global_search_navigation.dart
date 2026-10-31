@@ -22,21 +22,21 @@ import 'package:submersion/features/trips/presentation/navigation/open_trip_list
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// The address of the page a result opens.
-String globalSearchHitLocation(GlobalSearchHit hit) => switch (hit.kind) {
-  GlobalSearchKind.dives => '/dives/${hit.id}',
-  GlobalSearchKind.sites => '/sites/${hit.id}',
-  GlobalSearchKind.trips => '/trips/${hit.id}',
-  GlobalSearchKind.equipment => '/equipment/${hit.id}',
-  GlobalSearchKind.equipmentSets => '/equipment/sets/${hit.id}',
-  GlobalSearchKind.buddies => '/buddies/${hit.id}',
-  GlobalSearchKind.diveCenters => '/dive-centers/${hit.id}',
-  GlobalSearchKind.certifications => '/certifications/${hit.id}',
-  GlobalSearchKind.courses => '/courses/${hit.id}',
-  GlobalSearchKind.species => '/species/${hit.id}',
-  GlobalSearchKind.documents => '/documents/${hit.id}',
-  GlobalSearchKind.divePlans => '/planning/dive-planner/${hit.id}',
-  GlobalSearchKind.gpsTracks => gpsTrackLocation(hit.id),
-  GlobalSearchKind.underwaterRoutes => underwaterTrackLocation(hit.id),
+String globalSearchLocation(GlobalSearchKind kind, String id) => switch (kind) {
+  GlobalSearchKind.dives => '/dives/$id',
+  GlobalSearchKind.sites => '/sites/$id',
+  GlobalSearchKind.trips => '/trips/$id',
+  GlobalSearchKind.equipment => '/equipment/$id',
+  GlobalSearchKind.equipmentSets => '/equipment/sets/$id',
+  GlobalSearchKind.buddies => '/buddies/$id',
+  GlobalSearchKind.diveCenters => '/dive-centers/$id',
+  GlobalSearchKind.certifications => '/certifications/$id',
+  GlobalSearchKind.courses => '/courses/$id',
+  GlobalSearchKind.species => '/species/$id',
+  GlobalSearchKind.documents => '/documents/$id',
+  GlobalSearchKind.divePlans => '/planning/dive-planner/$id',
+  GlobalSearchKind.gpsTracks => gpsTrackLocation(id),
+  GlobalSearchKind.underwaterRoutes => underwaterTrackLocation(id),
 };
 
 /// Opens [kind]'s list narrowed to [query], its other filters cleared so its

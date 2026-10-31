@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/core/query/presentation/query_editor_context.dart';
+import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
+import 'package:submersion/features/global_search/presentation/global_search_text_reader.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 import 'package:submersion/features/global_search/presentation/widgets/global_search_section_view.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/query/presentation/app_query_labels.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
-/// Results stop growing here on a wide window: a row is a line of text.
+/// The field and results stop growing here on a wide window.
 const double _kMaxResultsWidth = 720;
 
-/// One search over every kind of record (#3882). The field reads what the
-/// Dives field reads: words, quoted phrases and query syntax.
+/// One search over every kind of record (#3882). The field is the Dives
+/// field, query language, completions and all, reading the text against every
+/// record type at once.
 class GlobalSearchPage extends ConsumerStatefulWidget {
   const GlobalSearchPage({super.key});
 
@@ -24,73 +33,80 @@ class GlobalSearchPage extends ConsumerStatefulWidget {
 }
 
 class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
-  final _controller = TextEditingController();
   final _focus = FocusNode();
+
+  /// What the field shows.
+  String _text = '';
+
+  /// The last text a record type could read. Half a query (`depth >`) leaves
+  /// the results of what came before it up, as the Dives field does.
+  String _query = '';
+  QueryTextOverride? _override;
 
   @override
   void dispose() {
-    _controller.dispose();
     _focus.dispose();
     super.dispose();
   }
 
   void _clear() {
-    _controller.clear();
+    setState(() => _override = QueryTextOverride('', commit: true));
     _focus.requestFocus();
   }
 
   void _focusField() {
     _focus.requestFocus();
-    _controller.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: _controller.text.length,
-    );
+    setState(() => _override = QueryTextOverride(_text, selectAll: true));
   }
 
-  void _open(GlobalSearchHit hit) =>
-      context.pushOrReturnTo(globalSearchHitLocation(hit));
+  void _open(GlobalSearchKind kind, String id) =>
+      context.pushOrReturnTo(globalSearchLocation(kind, id));
 
   @override
   Widget build(BuildContext context) {
     ref.listen(globalSearchFocusTickProvider, (_, _) => _focusField());
     final l10n = context.l10n;
+    final editorContext = QueryEditorContext(
+      registry: appQueryRegistry,
+      root: diveQueryEntity,
+      prefs: ref.watch(queryUnitPrefsProvider),
+      names: ref.watch(queryNameIndexProvider).value ?? NameIndex.empty,
+      labels: AppQueryLabels(context),
+      now: DateTime.now,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: ValueListenableBuilder(
-          valueListenable: _controller,
-          builder: (context, value, _) => CallbackShortcuts(
-            bindings: {
-              // Empty leaves Esc to whatever sits outside the field.
-              if (value.text.isNotEmpty)
-                const SingleActivator(LogicalKeyboardKey.escape): _clear,
-            },
-            child: TextField(
-              key: const ValueKey('global-search-field'),
-              controller: _controller,
-              focusNode: _focus,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: l10n.globalSearch_hint,
-                border: InputBorder.none,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: value.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: l10n.globalSearch_clear,
-                        onPressed: _clear,
-                      ),
+      appBar: AppBar(title: Text(l10n.nav_search)),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _kMaxResultsWidth),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: QueryTextField(
+                  fieldKey: const ValueKey('global-search-field'),
+                  context: editorContext,
+                  textReader: GlobalSearchTextReader(editorContext),
+                  value: null,
+                  onChanged: (_) {},
+                  onTextChanged: (text) => setState(() => _text = text),
+                  onTextAccepted: (text) => setState(() => _query = text),
+                  hintText: l10n.globalSearch_hint,
+                  clearTooltip: l10n.globalSearch_clear,
+                  describeError: (e) => describeQueryError(l10n, e),
+                  focusNode: _focus,
+                  autofocus: true,
+                  textOverride: _override,
+                  // Empty leaves Esc to whatever sits outside the field.
+                  onEscape: _text.isEmpty ? null : _clear,
+                ),
               ),
             ),
           ),
-        ),
-      ),
-      body: ValueListenableBuilder(
-        valueListenable: _controller,
-        builder: (context, value, _) =>
-            DebouncedSearchResults<GlobalSearchSection>(
-              query: value.text.trim(),
+          Expanded(
+            child: DebouncedSearchResults<GlobalSearchSection>(
+              query: _query.trim(),
               watchProvider: (ref, text) =>
                   ref.watch(globalSearchProvider(text)),
               dataBuilder: _results,
@@ -104,6 +120,8 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
               emptyQueryBuilder: (context) =>
                   _Message(l10n.globalSearch_prompt, icon: Icons.search),
             ),
+          ),
+        ],
       ),
     );
   }
@@ -122,7 +140,7 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
               // Per search, so an expanded section does not outlive it.
               key: ValueKey((section.kind, section.query)),
               section: section,
-              onOpen: _open,
+              onOpen: (id) => _open(section.kind, id),
               onSeeAll: section.hasList
                   ? () => openGlobalSearchList(
                       context,

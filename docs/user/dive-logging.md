@@ -472,11 +472,15 @@ and a question about your diving can **Open in Insights**.
 
 To search everything rather than just your dives, choose **Search** in the
 navigation (on a phone it starts under **More**, and you can move it to the
-bottom bar) or press Cmd/Ctrl+K. The field reads the same words and queries, and
-the results are grouped by type: dives, sites, trips, equipment and sets, buddies,
-dive centers, certifications, courses, species, documents, saved plans, GPS tracks
-and underwater routes. A query such as `depth > 30m` shows only the types it makes
-sense for. **See all** opens that type's list with the search applied.
+bottom bar) or press Cmd/Ctrl+K. The field reads the same words and queries, with
+the same suggestions as you type, and the results are grouped by type: dives,
+sites, trips, equipment and sets, buddies, dive centers, certifications, courses,
+species, documents, saved plans, GPS tracks and underwater routes. Each result
+looks like its row in that type's own list.
+
+A query shows only the types it makes sense for: `depth > 30m` finds dives, sites,
+saved plans and underwater routes, and `expires < 2027` finds certifications and
+documents. **See all** opens that type's list with the search applied.
 
 ### Selecting and bulk editing
 

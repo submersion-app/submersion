@@ -86,4 +86,17 @@ void main() {
   test('text no record type can read is a refusal', () async {
     await expectLater(search('"oops'), throwsA(isA<GlobalSearchRefused>()));
   });
+
+  test('reads a section\'s dives by id, in no particular order', () async {
+    await seedDive(db, 'd1', diver: 'me', siteId: 's1');
+    await seedDive(db, 'd2', diver: 'me');
+    await seedDive(db, 'd3', diver: 'me');
+    final provider = globalSearchDivesProvider(
+      globalSearchDiveKey(['d1', 'd3']),
+    );
+    final sub = container.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    final dives = await container.read(provider.future);
+    expect(dives.map((d) => d.id).toSet(), {'d1', 'd3'});
+  });
 }

@@ -39,6 +39,10 @@ class DiveListItem extends ConsumerWidget {
   /// Card margin override (detailed tile only).
   final EdgeInsetsGeometry? margin;
 
+  /// The card to draw, for a list with no view mode of its own to follow.
+  /// Null follows the Dives list.
+  final ListViewMode? viewMode;
+
   final VoidCallback? onTap;
 
   /// Selection / highlight state (defaults suit read-only lists like Recent).
@@ -85,6 +89,7 @@ class DiveListItem extends ConsumerWidget {
     this.gradientStartColor,
     this.gradientEndColor,
     this.margin,
+    this.viewMode,
     this.onTap,
     this.isSelectionMode = false,
     this.isChecked = false,
@@ -104,7 +109,8 @@ class DiveListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewMode = ref.watch(diveListViewModeProvider);
+    final ListViewMode viewMode =
+        this.viewMode ?? ref.watch(diveListViewModeProvider);
 
     final duration = summary.runtime ?? summary.bottomTime;
 

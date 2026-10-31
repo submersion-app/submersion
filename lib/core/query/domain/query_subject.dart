@@ -37,8 +37,8 @@ enum QuerySubject {
   /// Custom certification levels (issue #690): name-only, as above.
   certificationLevels,
 
-  /// Global search's text-only roots (#3882): no registry entity, no fields
-  /// and no relations, so a query over them is plain words alone.
+  /// Records with no list query of their own: global search roots at them
+  /// (#3882).
   equipmentSets,
   documents,
   divePlans,

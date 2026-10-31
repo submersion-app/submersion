@@ -53056,6 +53056,27 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_customFields_value => 'ערך';
 
   @override
+  String get query_divePlans_date => 'תאריך';
+
+  @override
+  String get query_divePlans_depth => 'עומק מרבי';
+
+  @override
+  String get query_divePlans_mode => 'מצב';
+
+  @override
+  String get query_divePlans_name => 'שם';
+
+  @override
+  String get query_divePlans_notes => 'הערות';
+
+  @override
+  String get query_divePlans_runtime => 'משך כולל';
+
+  @override
+  String get query_divePlans_site => 'אתר';
+
+  @override
   String get query_diveTypes_builtIn => 'מובנה';
 
   @override
@@ -53278,10 +53299,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_customFields => 'שדות מותאמים אישית';
 
   @override
+  String get query_entity_divePlans => 'תוכניות שמורות';
+
+  @override
   String get query_entity_diveTypes => 'סוגי צלילה';
 
   @override
   String get query_entity_dives => 'צלילות';
+
+  @override
+  String get query_entity_documents => 'מסמכים';
 
   @override
   String get query_entity_equipment => 'ציוד';
@@ -53290,13 +53317,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_equipmentAttributes => 'מאפייני ציוד';
 
   @override
+  String get query_entity_equipmentSets => 'סטי ציוד';
+
+  @override
   String get query_entity_findings => 'ממצאי בטיחות';
 
   @override
   String get query_findings_rule => 'כלל';
 
   @override
+  String get query_entity_gpsTracks => 'מסלולי GPS';
+
+  @override
   String get query_entity_media => 'מדיה';
+
+  @override
+  String get query_entity_navTracks => 'מסלולים תת-ימיים';
 
   @override
   String get query_entity_sightings => 'תצפיות';
@@ -53333,6 +53369,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_equipmentAttributes_valueText => 'ערך טקסט';
+
+  @override
+  String get query_equipmentSets_default => 'ברירת מחדל';
+
+  @override
+  String get query_equipmentSets_description => 'תיאור';
+
+  @override
+  String get query_equipmentSets_itemCount => 'מספר פריטים';
+
+  @override
+  String get query_equipmentSets_items => 'פריטים';
+
+  @override
+  String get query_equipmentSets_name => 'שם';
 
   @override
   String get query_equipment_active => 'פעיל';
@@ -53393,6 +53444,24 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_filter_tooltip => 'סינון';
+
+  @override
+  String get query_gpsTracks_date => 'תאריך';
+
+  @override
+  String get query_gpsTracks_deviceName => 'מכשיר';
+
+  @override
+  String get query_gpsTracks_duration => 'משך';
+
+  @override
+  String get query_gpsTracks_file => 'קובץ';
+
+  @override
+  String get query_gpsTracks_name => 'שם';
+
+  @override
+  String get query_gpsTracks_source => 'מקור';
 
   @override
   String get query_list_noMatch => 'אין תוצאות התואמות לשאילתה זו';
@@ -53602,6 +53671,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_op_inList => 'אחד מ';
 
   @override
+  String get query_navTracks_date => 'תאריך';
+
+  @override
+  String get query_navTracks_depth => 'עומק מרבי';
+
+  @override
+  String get query_navTracks_deviceName => 'מכשיר';
+
+  @override
+  String get query_navTracks_distance => 'מרחק';
+
+  @override
+  String get query_navTracks_dive => 'צלילה';
+
+  @override
+  String get query_navTracks_duration => 'משך';
+
+  @override
+  String get query_navTracks_equipment => 'ציוד';
+
+  @override
+  String get query_navTracks_file => 'קובץ';
+
+  @override
+  String get query_navTracks_name => 'שם';
+
+  @override
+  String get query_navTracks_site => 'אתר';
+
+  @override
+  String get query_navTracks_source => 'מקור';
+
+  @override
   String get query_op_between => 'בין';
 
   @override
@@ -53627,6 +53729,57 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_editor_anyOf => 'אחד מהתנאים';
+
+  @override
+  String get query_documents_buddy => 'שותף';
+
+  @override
+  String get query_documents_center => 'מרכז צלילה';
+
+  @override
+  String get query_documents_certification => 'הסמכה';
+
+  @override
+  String get query_documents_course => 'קורס';
+
+  @override
+  String get query_documents_dive => 'צלילה';
+
+  @override
+  String get query_documents_equipment => 'ציוד';
+
+  @override
+  String get query_documents_expiryDate => 'תאריך תפוגה';
+
+  @override
+  String get query_documents_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get query_documents_issuer => 'מנפיק';
+
+  @override
+  String get query_documents_notes => 'הערות';
+
+  @override
+  String get query_documents_primary => 'ראשי';
+
+  @override
+  String get query_documents_referenceNumber => 'מספר אסמכתה';
+
+  @override
+  String get query_documents_site => 'אתר';
+
+  @override
+  String get query_documents_tags => 'תגיות';
+
+  @override
+  String get query_documents_title => 'כותרת';
+
+  @override
+  String get query_documents_trip => 'טיול';
+
+  @override
+  String get query_documents_type => 'סוג';
 
   @override
   String get query_editor_addCondition => 'הוספת תנאי';

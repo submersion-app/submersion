@@ -12,14 +12,16 @@ QueryField _text(String key, String column) => QueryField(
   labelKey: 'query_certifications_$key',
 );
 
-QueryField _date(String key, String column) => QueryField(
-  key: key,
-  type: FieldType.date,
-  dateFrame: DateFrame.localInstant,
-  sql: '{r}.$column',
-  emptySql: '{r}.$column IS NULL',
-  labelKey: 'query_certifications_$key',
-);
+QueryField _date(String key, String column, {required String alias}) =>
+    QueryField(
+      key: key,
+      aliases: [alias],
+      type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
+      sql: '{r}.$column',
+      emptySql: '{r}.$column IS NULL',
+      labelKey: 'query_certifications_$key',
+    );
 
 /// A buddy's certification row, as stored in `buddy_id`/`instructor_id`.
 QueryRelation _buddy(String key, String column) => QueryRelation(
@@ -69,8 +71,8 @@ final certificationQueryEntity = QueryEntity(
     _text('instructorName', 'instructor_name'),
     _text('instructorNumber', 'instructor_number'),
     _text('notes', 'notes'),
-    _date('issueDate', 'issue_date'),
-    _date('expiryDate', 'expiry_date'),
+    _date('issueDate', 'issue_date', alias: 'issued'),
+    _date('expiryDate', 'expiry_date', alias: 'expires'),
   ],
   relations: [
     _buddy('buddy', 'buddy_id'),

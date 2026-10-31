@@ -39,9 +39,7 @@ void main() {
     GlobalSearchKind kind,
     String text, {
     String? diverId = 'me',
-  }) async => {
-    for (final hit in (await search(kind, text, diverId: diverId)).hits) hit.id,
-  };
+  }) async => (await search(kind, text, diverId: diverId)).ids.toSet();
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -56,8 +54,7 @@ void main() {
       await seedDive(db, 'd1', diver: 'me', siteId: 's1');
       final section = await search(GlobalSearchKind.dives, 'salt');
       expect(section.total, 1);
-      expect(section.hits.single.title, 'Salt Pier');
-      expect(section.hits.single.date, isNotNull);
+      expect(section.ids, ['d1']);
     });
 
     test('sites', () async {
@@ -67,9 +64,7 @@ void main() {
 
     test('trips', () async {
       await seedTrip(db, 't1', owner: 'me', name: 'Bonaire 2026');
-      final section = await search(GlobalSearchKind.trips, 'bonaire');
-      expect(section.hits.single.id, 't1');
-      expect(section.hits.single.date!.isUtc, isFalse);
+      expect(await ids(GlobalSearchKind.trips, 'bonaire'), {'t1'});
     });
 
     test('equipment, by serial number and by tag', () async {
@@ -118,8 +113,10 @@ void main() {
         "INSERT INTO species (id, common_name, category) VALUES "
         "('x1', 'Zebra Blenny Test', 'fish')",
       );
-      final hit = (await search(GlobalSearchKind.species, 'zebra blenny'));
-      expect(hit.hits.map((h) => h.id), contains('x1'));
+      expect(
+        await ids(GlobalSearchKind.species, 'zebra blenny'),
+        contains('x1'),
+      );
     });
 
     test('documents, plans and tracks read every match', () async {
@@ -144,6 +141,28 @@ void main() {
       expect(await ids(GlobalSearchKind.divePlans, 'wreck'), {'p1'});
       expect(await ids(GlobalSearchKind.gpsTracks, 'wreck'), {'g1'});
       expect(await ids(GlobalSearchKind.underwaterRoutes, 'wreck'), {'n1'});
+    });
+  });
+
+  group('a field query', () {
+    test('finds a record with no list of its own', () async {
+      final expiry = DateTime(2027, 3, 1).millisecondsSinceEpoch;
+      await db.customStatement(
+        "INSERT INTO documents (id, diver_id, type, title, expiry_date, "
+        "created_at, updated_at) VALUES "
+        "('due', 'me', 'insurance', 'DAN', $expiry, 1, 1), "
+        "('none', 'me', 'map', 'Pier', NULL, 1, 1)",
+      );
+      expect(await ids(GlobalSearchKind.documents, 'expires < 2028'), {'due'});
+      expect(await ids(GlobalSearchKind.documents, 'type = map'), {'none'});
+    });
+
+    test('still keeps to the diver', () async {
+      await db.customStatement(
+        "INSERT INTO documents (id, diver_id, type, title, created_at, "
+        "updated_at) VALUES ('theirs', 'other', 'map', 'Pier', 1, 1)",
+      );
+      expect(await ids(GlobalSearchKind.documents, 'type = map'), isEmpty);
     });
   });
 
@@ -259,7 +278,7 @@ void main() {
         await seedSite(db, 's$i', owner: 'me', name: 'Reef $i');
       }
       final section = await search(GlobalSearchKind.sites, 'reef');
-      expect(section.hits, hasLength(kGlobalSearchPreviewLimit));
+      expect(section.ids, hasLength(kGlobalSearchPreviewLimit));
       expect(section.total, kGlobalSearchPreviewLimit + 2);
     });
 
@@ -271,7 +290,7 @@ void main() {
         );
       }
       final section = await search(GlobalSearchKind.equipmentSets, 'kit');
-      expect(section.hits, hasLength(kGlobalSearchPreviewLimit + 2));
+      expect(section.ids, hasLength(kGlobalSearchPreviewLimit + 2));
       expect(section.total, kGlobalSearchPreviewLimit + 2);
     });
 
@@ -302,7 +321,7 @@ void main() {
             ),
           );
       final section = await search(GlobalSearchKind.dives, 'salt');
-      expect(section.hits.map((h) => h.id).toList(), ['new', 'old']);
+      expect(section.ids, ['new', 'old']);
     });
 
     test('a bare number finds that dive with no text match', () async {
@@ -319,25 +338,7 @@ void main() {
             ),
           );
       final section = await search(GlobalSearchKind.dives, '500');
-      expect(section.hits.single.id, 'd500');
-      expect(section.hits.single.number, 500);
-    });
-
-    test('a dive with no site leads with its own name', () async {
-      await db
-          .into(db.dives)
-          .insert(
-            DivesCompanion.insert(
-              id: 'd1',
-              diverId: const Value('me'),
-              name: const Value('Night shakedown'),
-              diveDateTime: 1000,
-              createdAt: 1,
-              updatedAt: 1,
-            ),
-          );
-      final section = await search(GlobalSearchKind.dives, 'shakedown');
-      expect(section.hits.single.title, 'Night shakedown');
+      expect(section.ids, ['d500']);
     });
 
     test('a translated name finds a built-in species', () async {
@@ -345,28 +346,10 @@ void main() {
         "INSERT OR IGNORE INTO species (id, common_name, category) VALUES "
         "('sp_whale_shark', 'Whale Shark', 'shark')",
       );
-      final section = await search(GlobalSearchKind.species, 'Walhai');
-      expect(section.hits.map((h) => h.id), contains('sp_whale_shark'));
-    });
-
-    test('an untitled document carries its type', () async {
-      await db.customStatement(
-        "INSERT INTO documents (id, diver_id, type, title, issuer, created_at, "
-        "updated_at) VALUES ('m1', 'me', 'permit', '', 'Stinapa', 1, 1)",
+      expect(
+        await ids(GlobalSearchKind.species, 'Walhai'),
+        contains('sp_whale_shark'),
       );
-      final hit = (await search(GlobalSearchKind.documents, 'stinapa')).hits;
-      expect(hit.single.title, isNull);
-      expect(hit.single.type, 'permit');
-    });
-
-    test('a blank detail is dropped', () async {
-      await db.customStatement(
-        "INSERT INTO dive_sites (id, diver_id, name, region, country, "
-        "created_at, updated_at) VALUES "
-        "('s1', 'me', 'Reef', '  ', 'Bonaire', 1, 1)",
-      );
-      final section = await search(GlobalSearchKind.sites, 'reef');
-      expect(section.hits.single.details, ['Bonaire']);
     });
   });
 }

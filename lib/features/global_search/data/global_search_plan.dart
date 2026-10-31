@@ -34,9 +34,9 @@ class GlobalSearchPlan {
 
   final List<GlobalSearchRun> runs;
 
-  /// Why the first source refused the text, when every source did. A
-  /// source refusing while another reads it is not an error: `depth > 30m`
-  /// means nothing for a buddy.
+  /// Why the text was refused, when every source refused it. A source
+  /// refusing while another reads it is not an error: `depth > 30m` means
+  /// nothing for a buddy.
   final QueryError? refusal;
 }
 
@@ -48,43 +48,72 @@ GlobalSearchPlan planGlobalSearch(
   List<GlobalSearchSource>? sources,
 }) {
   final runs = <GlobalSearchRun>[];
-  QueryError? firstRefusal;
+  QueryError? refusal;
   for (final source in sources ?? kGlobalSearchSources) {
-    final parsed = QueryParser(
-      appQueryRegistry,
-      source.entity,
-      context,
-    ).parse(text);
-    switch (parsed) {
-      case ParseFailure(:final error):
-        firstRefusal ??= error;
-      case ParseOk(node: null):
-        break;
-      case ParseOk(:final node?):
-        final query = _widened(source, node);
-        final errors = validateQuery(query, source.entity, appQueryRegistry);
-        if (errors.isNotEmpty) {
-          firstRefusal ??= errors.first;
-          continue;
-        }
-        runs.add(
-          GlobalSearchRun(
-            source: source,
-            query: query,
-            compiled: compileQuery(
-              query,
-              source.entity,
-              appQueryRegistry,
-              diverId: diverId,
-            ),
+    final read = _read(source, text, context);
+    refusal = _moreHelpful(refusal, read.refusal);
+    if (read.query case final query?) {
+      runs.add(
+        GlobalSearchRun(
+          source: source,
+          query: query,
+          compiled: compileQuery(
+            query,
+            source.entity,
+            appQueryRegistry,
+            diverId: diverId,
           ),
-        );
+        ),
+      );
     }
   }
-  return GlobalSearchPlan(
-    runs: runs,
-    refusal: runs.isEmpty ? firstRefusal : null,
-  );
+  return GlobalSearchPlan(runs: runs, refusal: runs.isEmpty ? refusal : null);
+}
+
+/// Why no source reads [text], or null when one does: [planGlobalSearch]'s
+/// verdict with nothing compiled, for the field to ask on every keystroke.
+QueryError? globalSearchRefusal(
+  String text, {
+  required ParseContext context,
+  List<GlobalSearchSource>? sources,
+}) {
+  QueryError? refusal;
+  for (final source in sources ?? kGlobalSearchSources) {
+    final read = _read(source, text, context);
+    if (read.query != null) return null;
+    refusal = _moreHelpful(refusal, read.refusal);
+  }
+  return refusal;
+}
+
+/// What [source] makes of [text]: a query, why it refuses, or neither for
+/// nothing to read.
+({QueryNode? query, QueryError? refusal}) _read(
+  GlobalSearchSource source,
+  String text,
+  ParseContext context,
+) {
+  switch (QueryParser(appQueryRegistry, source.entity, context).parse(text)) {
+    case ParseFailure(:final error):
+      return (query: null, refusal: error);
+    case ParseOk(node: null):
+      return (query: null, refusal: null);
+    case ParseOk(:final node?):
+      final query = _widened(source, node);
+      final errors = validateQuery(query, source.entity, appQueryRegistry);
+      return errors.isEmpty
+          ? (query: query, refusal: null)
+          : (query: null, refusal: errors.first);
+  }
+}
+
+/// The refusal to show: the first, unless a later source can suggest a fix
+/// and it cannot. A typo in `expirs < 2027` means nothing to Dives, but
+/// Documents knows what was meant.
+QueryError? _moreHelpful(QueryError? kept, QueryError? next) {
+  if (kept == null) return next;
+  if (next == null || kept.suggestions.isNotEmpty) return kept;
+  return next.suggestions.isNotEmpty ? next : kept;
 }
 
 /// A bare number also finds the dive with that number (#3455).

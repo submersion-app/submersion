@@ -38,6 +38,48 @@ void main() {
     expect(result.refusal, isNull);
   });
 
+  test('a record with no list answers a field query too', () {
+    expect(
+      kinds(plan('depth > 30m')),
+      containsAll({
+        GlobalSearchKind.dives,
+        GlobalSearchKind.divePlans,
+        GlobalSearchKind.underwaterRoutes,
+      }),
+    );
+    expect(
+      kinds(plan('expires < 2028')),
+      containsAll({
+        GlobalSearchKind.certifications,
+        GlobalSearchKind.documents,
+      }),
+    );
+    expect(
+      kinds(plan('itemCount > 3')),
+      contains(GlobalSearchKind.equipmentSets),
+    );
+    expect(kinds(plan('file ~ reef')), contains(GlobalSearchKind.gpsTracks));
+  });
+
+  test('a typo takes its suggestion from a type that knows the field', () {
+    final refusal = plan('expirs < 2028').refusal;
+    expect(refusal, isNotNull);
+    expect(refusal!.suggestions, contains('expiryDate'));
+  });
+
+  group('globalSearchRefusal', () {
+    test('agrees with the plan, without compiling anything', () {
+      for (final text in ['bonaire', 'depth > 30m', 'expires < 2028', '500']) {
+        expect(globalSearchRefusal(text, context: context), isNull);
+      }
+      expect(
+        globalSearchRefusal('"unterminated', context: context)?.code,
+        QueryErrorCode.unterminatedQuote,
+      );
+      expect(globalSearchRefusal('   ', context: context), isNull);
+    });
+  });
+
   test('blank text plans nothing and refuses nothing', () {
     final result = plan('   ');
     expect(result.runs, isEmpty);

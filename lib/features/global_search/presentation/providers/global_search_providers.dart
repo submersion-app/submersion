@@ -1,6 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/global_search/data/global_search_plan.dart';
@@ -25,6 +27,20 @@ class GlobalSearchRefused implements Exception {
 
   final QueryError error;
 }
+
+/// The dives behind a section's rows, named by [globalSearchDiveKey]. The
+/// other types read their list's provider, which holds every record; dives
+/// are paged, so a result may not be among those the list has loaded.
+final globalSearchDivesProvider = FutureProvider.autoDispose
+    .family<List<DiveSummary>, String>((ref, key) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDivesChanges());
+      return repository.getSummariesByIds(key.split(','));
+    });
+
+/// The key of [ids] in [globalSearchDivesProvider]: a family compares its
+/// argument by value, and a list has none.
+String globalSearchDiveKey(List<String> ids) => ids.join(',');
 
 /// Every record type's matches for the typed text (#3882), leaving out the
 /// types with none. A write to any table the search read refreshes it in
