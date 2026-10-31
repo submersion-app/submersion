@@ -13,6 +13,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -105,6 +106,7 @@ class UddfFullExportService {
     final sources = options.includeRawData
         ? (dataSources ?? const <DiveSourceExport>[])
         : const <DiveSourceExport>[];
+    final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
     final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
     final encoded = await UddfDumpCodec.encodeAll(
       withBytes.map((s) => s.rawData!).toList(growable: false),
@@ -376,6 +378,7 @@ class UddfFullExportService {
                         gasSwitchList,
                         tankPressures:
                             diveTankPressures?[dive.id]?.displayedByTank,
+                        sources: sourcesByDive[dive.id] ?? const [],
                       );
                     }
                   },

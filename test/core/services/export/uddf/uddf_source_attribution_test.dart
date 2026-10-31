@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dar
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/tank_pressure_export_fixtures.dart';
@@ -273,6 +274,91 @@ void main() {
     );
 
     expect(seriesIn(xml), isEmpty);
+  });
+
+  group('gas switch computers', () {
+    GasSwitchWithTank gasSwitch(int timestamp, String? computer) =>
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-$timestamp',
+            diveId: 'dive-a',
+            timestamp: timestamp,
+            tankId: 'tank-2',
+            createdAt: DateTime.utc(2026, 3, 1, 12),
+            computerId: computer,
+          ),
+          tankName: 'Stage',
+          gasMix: 'EAN50',
+          o2Fraction: 0.5,
+        );
+
+    final switches = {
+      'dive-a': [
+        gasSwitch(0, 'comp-a'),
+        gasSwitch(30, 'comp-b'),
+        // Entered by hand, and logged by a computer no source of this dive
+        // recorded: neither has a <source> to point at.
+        gasSwitch(60, null),
+        gasSwitch(90, 'comp-gone'),
+      ],
+    };
+
+    Future<String> backup(List<DiveSourceExport> sources) =>
+        UddfFullExportService().generateAllDataXmlForTest(
+          dives: [dive],
+          dataSources: sources,
+          diveGasSwitches: switches,
+        );
+
+    List<(String?, String?)> computersIn(String xml) => [
+      for (final gs in XmlDocument.parse(xml).findAllElements('gasswitch'))
+        (
+          gs.getElement('time')?.innerText,
+          gs.getElement('computer')?.innerText,
+        ),
+    ];
+
+    test('names the ordinal of a source that computer recorded', () async {
+      expect(computersIn(await backup(sources)), [
+        ('0', '0'),
+        ('30', '1'),
+        ('60', null),
+        ('90', null),
+      ]);
+    });
+
+    test('names it on a dive with a single source too', () async {
+      // A lone source adopts the pressure series and tanks a restore cannot
+      // place, but a switch with no computer applies to every computer.
+      expect(computersIn(await backup([sources.first])), [
+        ('0', '0'),
+        ('30', null),
+        ('60', null),
+        ('90', null),
+      ]);
+    });
+
+    test('names none when the sources are left out', () async {
+      final xml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        diveGasSwitches: switches,
+      );
+
+      expect(xml, isNot(contains('<computer>')));
+    });
+
+    test('parses each switch back with its ordinal', () async {
+      final parsed = await ExportService().importAllDataFromUddf(
+        await backup(sources),
+      );
+      final entries =
+          parsed.dives.single['gasSwitches'] as List<Map<String, dynamic>>;
+
+      expect(
+        [for (final e in entries) (e['timestamp'], e['computerOrdinal'])],
+        [(0, 0), (30, 1), (60, null), (90, null)],
+      );
+    });
   });
 
   test('skips rows that name nothing it could restore', () {

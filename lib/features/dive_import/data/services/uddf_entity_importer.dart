@@ -3252,79 +3252,6 @@ class UddfEntityImporter {
         );
       }
 
-      // Insert gas switches
-      final gasSwitchesData =
-          diveData['gasSwitches'] as List<Map<String, dynamic>>?;
-      if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
-        // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
-        // persisted tank row id. MacDive-style switches reference a gas mix
-        // UUID (via <switchmix ref>), while top-level <gasswitches>
-        // entries reference a tank UUID (via <tankref>); we accept either.
-        // FIT imports carry no refs at all and address tanks positionally
-        // via `tankIndex`.
-        final tankIdByRef = <String, String>{};
-        final tankIdByGasMixRef = <String, String>{};
-        final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
-        if (tanksData != null) {
-          for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
-            final tank = tanks[i];
-            final tankData = tanksData[i];
-            final ref = (tankData['uddfTankId'] as String?)?.trim();
-            if (ref != null && ref.isNotEmpty) {
-              tankIdByRef[ref] = tank.id;
-            }
-            final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
-            // First tank linked to a given gas wins; later tanks sharing the
-            // same gas don't overwrite. This is a pragmatic resolution for
-            // dives where multiple tanks carry the same mix.
-            if (gasMixRef != null &&
-                gasMixRef.isNotEmpty &&
-                !tankIdByGasMixRef.containsKey(gasMixRef)) {
-              tankIdByGasMixRef[gasMixRef] = tank.id;
-            }
-          }
-        }
-
-        final switches = gasSwitchesData
-            .map((gs) {
-              final timestamp = gs['timestamp'] as int?;
-              if (timestamp == null) return null;
-              final tankRef = (gs['tankRef'] as String?)?.trim();
-              final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
-              String? tankId;
-              if (tankRef != null && tankRef.isNotEmpty) {
-                tankId = tankIdByRef[tankRef];
-              }
-              if ((tankId == null || tankId.isEmpty) &&
-                  gasMixRef != null &&
-                  gasMixRef.isNotEmpty) {
-                tankId = tankIdByGasMixRef[gasMixRef];
-              }
-              if (tankId == null || tankId.isEmpty) {
-                final tankIndex = gs['tankIndex'] as int?;
-                if (tankIndex != null &&
-                    tankIndex >= 0 &&
-                    tankIndex < tanks.length) {
-                  tankId = tanks[tankIndex].id;
-                }
-              }
-              if (tankId == null || tankId.isEmpty) return null;
-              return GasSwitch(
-                id: _uuid.v4(),
-                diveId: diveId,
-                timestamp: timestamp,
-                tankId: tankId,
-                depth: gs['depth'] as double?,
-                createdAt: now,
-              );
-            })
-            .whereType<GasSwitch>()
-            .toList();
-        if (switches.isNotEmpty) {
-          await repos.diveRepository.insertGasSwitches(switches);
-        }
-      }
-
       // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
       // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
       // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
@@ -3396,6 +3323,7 @@ class UddfEntityImporter {
           ? SourceDiver.unqualifyForFile(diverKey, sourceFileId)
           : diverKey;
 
+      var computerIdByOrdinal = const <int, String?>{};
       if (sourceEntries.isEmpty) {
         final dataSourceId = _uuid.v4();
 
@@ -3465,7 +3393,7 @@ class UddfEntityImporter {
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].id.value,
         };
-        final computerIdByOrdinal = <int, String?>{
+        computerIdByOrdinal = {
           for (var i = 0; i < sourceEntries.length; i++)
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].computerId.value,
@@ -3500,6 +3428,17 @@ class UddfEntityImporter {
           );
         }
       }
+
+      // After the source rows, never before: a switch names its computer by
+      // the ordinal of a <source>, which only they resolve (issue #3966).
+      await _insertGasSwitches(
+        diveData,
+        diveId: diveId,
+        tanks: tanks,
+        computerIdByOrdinal: computerIdByOrdinal,
+        now: now,
+        repos: repos,
+      );
 
       // Every further computer the dive was worn with (issue #2672). After
       // the primary source, never before: that row adopts the dive's
@@ -3613,6 +3552,92 @@ class UddfEntityImporter {
       return null;
     }
     return fix;
+  }
+
+  /// Stores [diveData]'s gas switches, each under the computer that logged
+  /// it. [computerIdByOrdinal] is the dive's restored computers by `<source>`
+  /// ordinal: a switch naming no ordinal in it stays unattributed, as every
+  /// switch of a file without `<source>` entries does (issue #3966).
+  Future<void> _insertGasSwitches(
+    Map<String, dynamic> diveData, {
+    required String diveId,
+    required List<DiveTank> tanks,
+    required Map<int, String?> computerIdByOrdinal,
+    required DateTime now,
+    required ImportRepositories repos,
+  }) async {
+    final gasSwitchesData =
+        diveData['gasSwitches'] as List<Map<String, dynamic>>?;
+    if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
+      // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
+      // persisted tank row id. MacDive-style switches reference a gas mix
+      // UUID (via <switchmix ref>), while top-level <gasswitches>
+      // entries reference a tank UUID (via <tankref>); we accept either.
+      // FIT imports carry no refs at all and address tanks positionally
+      // via `tankIndex`.
+      final tankIdByRef = <String, String>{};
+      final tankIdByGasMixRef = <String, String>{};
+      final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
+      if (tanksData != null) {
+        for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
+          final tank = tanks[i];
+          final tankData = tanksData[i];
+          final ref = (tankData['uddfTankId'] as String?)?.trim();
+          if (ref != null && ref.isNotEmpty) {
+            tankIdByRef[ref] = tank.id;
+          }
+          final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
+          // First tank linked to a given gas wins; later tanks sharing the
+          // same gas don't overwrite. This is a pragmatic resolution for
+          // dives where multiple tanks carry the same mix.
+          if (gasMixRef != null &&
+              gasMixRef.isNotEmpty &&
+              !tankIdByGasMixRef.containsKey(gasMixRef)) {
+            tankIdByGasMixRef[gasMixRef] = tank.id;
+          }
+        }
+      }
+
+      final switches = gasSwitchesData
+          .map((gs) {
+            final timestamp = gs['timestamp'] as int?;
+            if (timestamp == null) return null;
+            final tankRef = (gs['tankRef'] as String?)?.trim();
+            final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
+            String? tankId;
+            if (tankRef != null && tankRef.isNotEmpty) {
+              tankId = tankIdByRef[tankRef];
+            }
+            if ((tankId == null || tankId.isEmpty) &&
+                gasMixRef != null &&
+                gasMixRef.isNotEmpty) {
+              tankId = tankIdByGasMixRef[gasMixRef];
+            }
+            if (tankId == null || tankId.isEmpty) {
+              final tankIndex = gs['tankIndex'] as int?;
+              if (tankIndex != null &&
+                  tankIndex >= 0 &&
+                  tankIndex < tanks.length) {
+                tankId = tanks[tankIndex].id;
+              }
+            }
+            if (tankId == null || tankId.isEmpty) return null;
+            return GasSwitch(
+              id: _uuid.v4(),
+              diveId: diveId,
+              timestamp: timestamp,
+              tankId: tankId,
+              depth: gs['depth'] as double?,
+              createdAt: now,
+              computerId: computerIdByOrdinal[gs['computerOrdinal']],
+            );
+          })
+          .whereType<GasSwitch>()
+          .toList();
+      if (switches.isNotEmpty) {
+        await repos.diveRepository.insertGasSwitches(switches);
+      }
+    }
   }
 
   List<DiveTank> _buildTanks(Map<String, dynamic> diveData) {

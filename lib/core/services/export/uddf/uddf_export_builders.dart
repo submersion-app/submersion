@@ -161,6 +161,7 @@ class UddfExportBuilders {
     List<Trip>? trips,
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
+    List<DiveSourceExport> sources = const [],
   }) {
     // Find the trip this dive belongs to
     Trip? diveTrip;
@@ -734,6 +735,11 @@ class UddfExportBuilders {
                             nest: gs.heFraction.toString(),
                           );
                         }
+                        UddfSourceAttribution.writeSwitchComputer(
+                          builder,
+                          gs.gasSwitch.computerId,
+                          sources,
+                        );
                       },
                     );
                   }
