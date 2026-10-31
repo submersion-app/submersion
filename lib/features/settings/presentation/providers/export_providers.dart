@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/equipment_report_exports.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/excel/maintenance_excel_export_service.dart';
@@ -148,11 +149,21 @@ class ExportState {
 }
 
 /// Export notifier for managing export operations
-class ExportNotifier extends StateNotifier<ExportState> {
+class ExportNotifier extends StateNotifier<ExportState>
+    with EquipmentReportExports {
   final ExportService _exportService;
   final Ref _ref;
 
   ExportNotifier(this._exportService, this._ref) : super(const ExportState());
+
+  @override
+  Ref get reportRef => _ref;
+
+  @override
+  ExportService get reportExportService => _exportService;
+
+  @override
+  AppLocalizations get reportL10n => _l10n;
 
   /// Each assembly's part names in template order, for the Components
   /// column of the equipment CSV and the Excel sheet (issue #1487).

@@ -194,6 +194,8 @@ ways to deliver the result:
 | **CSV** | Spreadsheets | A comma-separated file. Choose **Dives**, **Sites**, **Equipment**, **Cylinder fills**, or **Gear check-ins** (every OK check and reported issue). For **Units**, **Metric** writes metric values and ISO dates; **My units** writes your unit, date and time settings, named in each column header. Submersion can import its own CSV exports back. |
 | **Excel Workbook** | A single spreadsheet with everything | An `.xlsx` workbook with sheets for Dives, Sites, Equipment and Statistics, plus checklists, maintenance and gear check-ins when you have them. |
 | **Google Earth KML** | Seeing where you have dived | A `.kml` file that plots your dive sites on the 3D globe in Google Earth. Sites without coordinates are skipped. |
+| **Equipment Inventory** | Insurance, customs | A PDF of the gear you own, with serial numbers and what you paid. Group it by gear type or location, print one location, or hide prices. |
+| **Service Report** | Dive shops, trips, selling gear | A PDF of what is due, followed by service history. Covers all gear, the gear for one trip, or one item with its installed parts. Costs can be hidden. |
 | **Maintenance Log** | Gear servicing | Service history for all your equipment, as a spreadsheet. |
 
 > [!NOTE]

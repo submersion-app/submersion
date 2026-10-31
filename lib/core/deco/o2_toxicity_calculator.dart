@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 
@@ -24,14 +25,20 @@ class O2ToxicityCalculator {
   /// CNS calculation method (default: Shearwater-style interpolation)
   final CnsCalculationMethod cnsMethod;
 
+  /// Water and surface pressure the instance methods read depths against.
+  final DiveEnvironment environment;
+
   const O2ToxicityCalculator({
     this.ppO2WarningThreshold = 1.4,
     this.ppO2CriticalThreshold = 1.6,
     this.cnsWarningThreshold = 80,
     this.cnsMethod = CnsCalculationMethod.shearwater,
+    this.environment = DiveEnvironment.standard,
   });
 
-  /// Calculate ppO2 at a given depth for a gas mix.
+  /// Calculate ppO2 at a given depth for a gas mix, on the flat model: 1 bar
+  /// at the surface and exactly 10 m per bar. For a depth in known water use
+  /// the instance methods, which read [environment].
   ///
   /// [depthMeters] is the depth in meters.
   /// [o2Fraction] is the oxygen fraction (0.0-1.0).
@@ -40,6 +47,10 @@ class O2ToxicityCalculator {
     final ambientPressure = 1.0 + (depthMeters / 10.0);
     return ambientPressure * o2Fraction;
   }
+
+  /// ppO2 at [depthMeters] in [environment].
+  double _ppO2At(double depthMeters, double o2Fraction) =>
+      environment.pressureAtDepth(depthMeters) * o2Fraction;
 
   /// Calculate the Maximum Operating Depth (MOD) for a gas.
   ///
@@ -137,7 +148,7 @@ class O2ToxicityCalculator {
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
       final duration = timestamps[i] - timestamps[i - 1];
 
-      final ppO2 = calculatePpO2(avgDepth, o2Fraction);
+      final ppO2 = _ppO2At(avgDepth, o2Fraction);
 
       // Calculate CNS and OTU for this segment
       totalCns += calculateCnsForSegment(ppO2, duration);
@@ -195,7 +206,7 @@ class O2ToxicityCalculator {
     final sampledDepths = <double>[];
 
     void sampleCurrentGas(double depth) {
-      sampledPpO2s.add(calculatePpO2(depth, currentO2Fraction));
+      sampledPpO2s.add(_ppO2At(depth, currentO2Fraction));
       sampledDepths.add(depth);
     }
 
@@ -207,7 +218,7 @@ class O2ToxicityCalculator {
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
       final duration = timestamps[i] - timestamps[i - 1];
 
-      final ppO2 = calculatePpO2(avgDepth, currentO2Fraction);
+      final ppO2 = _ppO2At(avgDepth, currentO2Fraction);
 
       totalCns += calculateCnsForSegment(ppO2, duration);
       totalOtu += _calculateOtu(ppO2, duration);
@@ -270,7 +281,7 @@ class O2ToxicityCalculator {
   ///
   /// Returns a list of ppO2 values corresponding to each depth point.
   List<double> calculatePpO2Curve(List<double> depths, double o2Fraction) {
-    return depths.map((d) => calculatePpO2(d, o2Fraction)).toList();
+    return depths.map((d) => _ppO2At(d, o2Fraction)).toList();
   }
 
   /// Calculate ppO2 curve for a CCR dive profile.
@@ -330,10 +341,7 @@ class O2ToxicityCalculator {
         (injectionRateLpm * supplyO2Fraction - vo2) / (injectionRateLpm - vo2);
 
     // Calculate ppO2 at each depth using the loop FO2
-    return depths.map((depth) {
-      final ambientPressure = 1.0 + (depth / 10.0);
-      return ambientPressure * loopFo2;
-    }).toList();
+    return depths.map((depth) => _ppO2At(depth, loopFo2)).toList();
   }
 
   /// Calculate CNS recovery after surface interval.
@@ -349,7 +357,7 @@ class O2ToxicityCalculator {
   ///
   /// Returns true if ppO2 is at or below the warning threshold.
   bool isPpO2Safe(double depthMeters, double o2Fraction) {
-    final ppO2 = calculatePpO2(depthMeters, o2Fraction);
+    final ppO2 = _ppO2At(depthMeters, o2Fraction);
     return ppO2 <= ppO2WarningThreshold;
   }
 
