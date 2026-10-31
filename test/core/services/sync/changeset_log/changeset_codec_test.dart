@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -50,9 +51,12 @@ void main() {
       deviceId: deviceId,
       deletions: const [],
     );
-    final parts = await codec.encodeBaseParts(payload, partSize: 64);
+    final parts = BaseChunker.slice(
+      await codec.encodeChangeset(payload),
+      partSize: 64,
+    );
     expect(parts.length, greaterThanOrEqualTo(1));
-    final back = await codec.decodeBaseParts(parts);
+    final back = await codec.decodeChangeset(BaseChunker.reassemble(parts));
     expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
 

@@ -145,7 +145,7 @@ Future<void> seedPeerBaseFromPayload(
   const codec = ChangesetCodec();
   final folder = await cloud.getOrCreateSyncFolder();
   final fullBytes = await codec.encodeChangeset(payload);
-  final parts = await codec.encodeBaseParts(payload);
+  final parts = BaseChunker.slice(fullBytes);
   for (var i = 0; i < parts.length; i++) {
     await cloud.uploadFile(
       parts[i],
@@ -199,7 +199,7 @@ Future<SyncPayload?> cloudBasePayload(
     parts.add(await cloud.downloadFile(pf.id));
   }
   if (parts.isEmpty) return null;
-  return const ChangesetCodec().decodeBaseParts(parts);
+  return const ChangesetCodec().decodeChangeset(BaseChunker.reassemble(parts));
 }
 
 /// True if [deviceId] has published a manifest (its log exists in [cloud]).

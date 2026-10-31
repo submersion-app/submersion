@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -174,7 +175,9 @@ void main() {
           '$folder/${ChangesetLogLayout.basePartName(deviceId, manifest.baseSeq!, i)}',
         ),
     ];
-    final base = await const ChangesetCodec().decodeBaseParts(parts);
+    final base = await const ChangesetCodec().decodeChangeset(
+      BaseChunker.reassemble(parts),
+    );
     final deletedIds = base.deletions.values
         .expand((l) => l)
         .map((d) => d.id)

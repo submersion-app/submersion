@@ -94,8 +94,8 @@ void main() {
     /// Builds the payload JSON both helpers below publish: [dataJson] is the
     /// raw `data` section a peer still on row-per-sample tables would send,
     /// legacy `diveProfiles` / `tankPressureProfiles` keys included.
-    /// `SyncPayload.toJson` (and so `ChangesetCodec.encodeChangeset` /
-    /// `encodeBaseParts`, which route through it) calls `data.toJson` under
+    /// `SyncPayload.toJson` (and so `ChangesetCodec.encodeChangeset`, which
+    /// routes through it) calls `data.toJson` under
     /// the hood, which drops those keys (inbound only) before the bytes are
     /// ever built, so both helpers assemble the wire bytes from raw JSON
     /// instead of going through a `SyncPayload` object.

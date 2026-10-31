@@ -5,7 +5,6 @@ import 'package:meta/meta.dart';
 
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_json_weight.dart';
-import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
 /// A received payload, and whether its checksum matched. They come back
@@ -14,7 +13,8 @@ import 'package:submersion/core/utils/off_isolate.dart';
 typedef VerifiedChangeset = ({SyncPayload payload, bool checksumValid});
 
 /// Bridges payloads and the on-storage byte form: a changeset is one JSON
-/// object; a base is the same JSON byte-sliced into resumable parts.
+/// object. A base has the same shape but is streamed to and from a temp file
+/// (see [SyncDataSerializer.exportBaseToTempFile]), never held here.
 ///
 /// A substantial payload is encoded and decoded on a worker, because a sync
 /// usually runs on the UI isolate. The work lives in static functions so that
@@ -33,23 +33,14 @@ class ChangesetCodec {
   Future<Uint8List> encodeChangeset(SyncPayload payload) =>
       _encodeOffIsolate(payload, offIsolateMinBytes, offIsolateRunner);
 
-  /// [bytes] parsed but not judged, for a caller that does not read the
-  /// checksum.
+  /// [bytes] parsed but not judged. A caller that applies the payload wants
+  /// [decodeVerifiedChangeset].
   Future<SyncPayload> decodeChangeset(Uint8List bytes) =>
       _decodeOffIsolate(bytes, offIsolateMinBytes, offIsolateRunner);
 
   /// [bytes] parsed, with the checksum checked on the same worker.
   Future<VerifiedChangeset> decodeVerifiedChangeset(Uint8List bytes) =>
       _decodeVerifiedOffIsolate(bytes, offIsolateMinBytes, offIsolateRunner);
-
-  Future<List<Uint8List>> encodeBaseParts(
-    SyncPayload base, {
-    int partSize = BaseChunker.defaultPartSize,
-  }) async =>
-      BaseChunker.slice(await encodeChangeset(base), partSize: partSize);
-
-  Future<SyncPayload> decodeBaseParts(List<Uint8List> parts) =>
-      decodeChangeset(BaseChunker.reassemble(parts));
 
   static Future<Uint8List> _encodeOffIsolate(
     SyncPayload payload,
