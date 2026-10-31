@@ -80,6 +80,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_segment_groups.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -2421,7 +2422,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         [
           ...timeSegments,
           ...phaseSegments,
-          ...gasSegments,
+          for (final row in gasSectionRows(gasSegments)) ...row.segments,
         ].any((s) => volumeForSegment(s.tankId) == null);
 
     return CollapsibleCardSection(
@@ -2473,10 +2474,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     GasConsumptionLane lane,
   ) {
     return SegmentedButton<GasConsumptionLane>(
-      style: SegmentedButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
       segments: [
         ButtonSegment(
           value: GasConsumptionLane.sac,

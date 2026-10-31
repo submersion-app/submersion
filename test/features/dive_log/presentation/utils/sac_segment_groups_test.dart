@@ -76,6 +76,24 @@ void main() {
     });
   });
 
+  group('gasSectionRows', () {
+    test('lists every cylinder on a multi-cylinder dive', () {
+      final rows = gasSectionRows([
+        _segment(0, 600, tankId: 'back', tankName: 'Back'),
+        _segment(600, 900, tankId: 'stage', tankName: 'Stage'),
+      ]);
+
+      expect(rows.map((g) => g.label), ['Back', 'Stage']);
+    });
+
+    test('is empty on a dive that stayed on one cylinder', () {
+      expect(
+        gasSectionRows([_segment(0, 600, tankId: 'back', tankName: 'Back')]),
+        isEmpty,
+      );
+    });
+  });
+
   group('groupSegmentsByCylinder', () {
     test('merges repeat visits to a cylinder', () {
       final groups = groupSegmentsByCylinder([

@@ -56,6 +56,13 @@ List<SacSegmentGroup> groupSegmentsByPhase(List<SacSegment> segments) =>
 List<SacSegmentGroup> groupSegmentsByCylinder(List<SacSegment> segments) =>
     _groupBy(segments, (s) => s.tankId ?? s.displayLabel);
 
+/// The rows of the card's Gas section: none on a dive that stayed on one
+/// cylinder, where a single row would only repeat the Cylinders card.
+List<SacSegmentGroup> gasSectionRows(List<SacSegment> segments) {
+  final groups = groupSegmentsByCylinder(segments);
+  return groups.length > 1 ? groups : const [];
+}
+
 List<SacSegmentGroup> _groupBy(
   Iterable<SacSegment> segments,
   Object? Function(SacSegment) key,

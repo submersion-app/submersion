@@ -179,9 +179,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     final l10n = context.l10n;
     final rates = widget.rates;
     final phases = groupSegmentsByPhase(widget.phaseSegments);
-    final allGases = groupSegmentsByCylinder(widget.gasSegments);
-    // A single row would only repeat the Cylinders card.
-    final gases = allGases.length > 1 ? allGases : const <SacSegmentGroup>[];
+    final gases = gasSectionRows(widget.gasSegments);
     if (phases.isEmpty && gases.isEmpty) return null;
 
     // Phase and gas bars share a scale, so a row compares across sections.

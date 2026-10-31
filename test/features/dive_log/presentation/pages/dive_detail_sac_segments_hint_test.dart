@@ -342,6 +342,17 @@ void main() {
     expect(find.textContaining('L/min'), findsWidgets);
   });
 
+  testWidgets('the lane chip keeps a full tap target', (tester) async {
+    await pumpWith(
+      tester,
+      dive: diveWithProfile(tanks: const [backGasWithVolume]),
+      settings: const AppSettings(),
+    );
+
+    final chip = find.byType(SegmentedButton<GasConsumptionLane>);
+    expect(tester.getSize(chip).height, greaterThanOrEqualTo(48));
+  });
+
   testWidgets('single-lane modes show no chip', (tester) async {
     await pumpWith(
       tester,
