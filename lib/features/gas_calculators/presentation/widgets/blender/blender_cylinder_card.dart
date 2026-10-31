@@ -16,7 +16,6 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_responsive_header_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_menu.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(BlenderCylinderCard);
@@ -42,7 +41,7 @@ class BlenderCylinderCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // Bar fill pressures never reach four digits; psi ones commonly do (a
     // 300-bar cylinder is ~4350 psi), so the digit cap follows the diver's
     // unit rather than clipping psi at 999 (issue #1876).

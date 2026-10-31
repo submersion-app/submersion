@@ -10,11 +10,11 @@ import 'package:submersion/features/media/presentation/providers/media_thumbnail
 class MediaThumbnailSlot {
   const MediaThumbnailSlot({required this.row, required this.index});
 
-  /// Index, in the scroll view, of the row holding this thumbnail's grid.
-  /// Always 0 in the flat grid, which is one grid.
+  /// Index of the group holding this thumbnail. Always 0 in the flat grid,
+  /// which is one group.
   final int row;
 
-  /// The thumbnail's index within that grid.
+  /// The thumbnail's index within that group.
   final int index;
 }
 
@@ -27,7 +27,6 @@ class MediaThumbnailZoomAnchor {
     required this.cursorY,
     required this.tileTop,
     required this.tileExtent,
-    required this.leadingRow,
   });
 
   final MediaThumbnailSlot slot;
@@ -39,18 +38,13 @@ class MediaThumbnailZoomAnchor {
   /// The thumbnail's side; thumbnails are square.
   final double tileExtent;
 
-  /// Index of the first row the scroll view had built. A lazy list keeps
-  /// that row where it is when rows change height and moves the rest, so
-  /// the rows from here to the anchor's are what shift it.
-  final int leadingRow;
-
   /// The scroll offset that puts the thumbnail back on the cursor's line
   /// once it is laid out [newColumns] across, never before the start.
   /// The end is the scroll view's to enforce: it is not known until the
   /// new layout is.
   ///
-  /// [heightChangeAbove] is how much taller the built rows above the
-  /// anchor's grid become, negative for shorter.
+  /// [heightChangeAbove] is how much taller the groups above the anchor's
+  /// become, negative for shorter.
   ///
   /// This predicts the new layout rather than measuring it, so that the
   /// first frame at the new size is already in place. The prediction holds
@@ -152,36 +146,21 @@ class MediaThumbnailZoomAnchorHolder {
         }
       }
       if (nearest != null) {
-        _pending = _anchorFor(nearest, boundary, cursorY: position.dy);
+        _pending = _anchorFor(nearest, cursorY: position.dy);
         return;
       }
     }
   }
 
   MediaThumbnailZoomAnchor _anchorFor(
-    RenderMetaData target,
-    RenderBox boundary, {
+    RenderMetaData target, {
     required double cursorY,
   }) {
-    // The outermost lazy list or grid inside the library: the scroll
-    // view's own, above any grid nested in one of its rows.
-    RenderSliverMultiBoxAdaptor? rows;
-    for (
-      RenderObject? node = target.parent;
-      node != null && node != boundary;
-      node = node.parent
-    ) {
-      if (node is RenderSliverMultiBoxAdaptor) rows = node;
-    }
-    final leading = rows?.firstChild?.parentData;
     return MediaThumbnailZoomAnchor(
       slot: target.metaData as MediaThumbnailSlot,
       cursorY: cursorY,
       tileTop: target.localToGlobal(Offset.zero).dy,
       tileExtent: target.size.height,
-      leadingRow: leading is SliverMultiBoxAdaptorParentData
-          ? leading.index ?? 0
-          : 0,
     );
   }
 

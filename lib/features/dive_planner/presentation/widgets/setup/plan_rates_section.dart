@@ -23,7 +23,7 @@ class PlanRatesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final lastStopDepth =
         state.lastStopDepth ?? ref.watch(lastStopDepthProvider);
     return Column(

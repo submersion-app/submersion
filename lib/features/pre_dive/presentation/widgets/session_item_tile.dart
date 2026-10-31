@@ -99,7 +99,14 @@ class SessionItemTile extends ConsumerWidget {
     if (item.state != PreDiveItemState.pending) return const [];
     final equipmentId = item.equipmentId;
     if (equipmentId == null) return const [];
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          conditionEngineEnabled: s.conditionEngineEnabled,
+          conditionDisabledRules: s.conditionDisabledRules,
+        ),
+      ),
+    );
     if (!settings.conditionEngineEnabled) return const [];
     final findings =
         ref.watch(equipmentConditionProvider(equipmentId)).value ?? const [];
@@ -129,7 +136,7 @@ class SessionItemTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final (serviceEntries, serviceAsOf) = _serviceEntries(ref);
     final hasOverdue = serviceEntries.any(
       (entry) => entry.severity == ServiceClockSeverity.overdue,

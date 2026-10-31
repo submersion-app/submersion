@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Selector for the ghosted contingency: Base / +depth / +time / both.
@@ -22,7 +21,7 @@ class ContingencyChips extends ConsumerWidget {
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return const SizedBox.shrink();
     final selected = ref.watch(selectedDeviationProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).
     final resolved = ref.watch(resolvedPlanEngineConfigProvider);

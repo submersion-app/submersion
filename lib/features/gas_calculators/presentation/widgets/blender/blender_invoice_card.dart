@@ -9,6 +9,7 @@ import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -90,8 +91,8 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
   Widget build(BuildContext context) {
     final fills = ref.watch(blenderBilledFillsProvider);
     final currency = ref.watch(blenderCurrencyProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = units.settings;
     final decimals = pressureDecimalsFor(settings.pressureUnit);
     final billedDate = ref.watch(blenderBilledDateProvider);
     final theme = Theme.of(context);
@@ -290,7 +291,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
   Widget _dateHeader(
     BuildContext context,
     DateTime date,
-    AppSettings settings,
+    UnitFormatterSettings settings,
   ) {
     final units = UnitFormatter(settings);
     return Padding(
@@ -328,7 +329,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
   Future<void> _pickDate(
     BuildContext context,
     DateTime current,
-    AppSettings settings,
+    UnitFormatterSettings settings,
   ) async {
     final picked = await showAppDatePicker(
       context: context,
@@ -359,7 +360,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
 
   Widget _tariffSummary(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     String currency,
   ) {
     final topupO2 = ref.watch(blenderTopupO2PercentProvider);
@@ -588,7 +589,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     int multiplier,
     String currency,
     UnitFormatter units,
-    AppSettings settings,
+    UnitFormatterSettings settings,
   ) {
     final prices = ref.watch(blenderGasPricesProvider);
     final headerStyle = blenderTableHeaderStyle(context);
@@ -647,7 +648,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     int multiplier,
     double? price,
     UnitFormatter units,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     TextStyle? style,
   ) {
     final label = blenderGasRoleLabel(context, role);

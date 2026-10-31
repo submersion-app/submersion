@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_computer/presentation/providers/dive_co
 import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every way [computer] has reached the library (issue #3106): each direct
@@ -74,7 +73,7 @@ class _ConnectionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final label = connectionLabel(l10n, connection);
     final lastUsed = l10n.diveComputer_connections_lastUsed(
       formatLastDownload(context, connection.lastUsedAt, units: units),

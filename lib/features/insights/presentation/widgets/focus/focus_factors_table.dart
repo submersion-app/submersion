@@ -11,7 +11,6 @@ import 'package:submersion/features/insights/presentation/formatters/focus_facto
 import 'package:submersion/features/insights/presentation/formatters/focus_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_quiet_rows.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Below this width the difference column folds under the group value.
@@ -49,7 +48,7 @@ class _FocusFactorsTableState extends ConsumerState<FocusFactorsTable> {
     if (report.tooFewDives) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),
@@ -238,9 +237,7 @@ class _FactorRow extends StatelessWidget {
             ),
           ],
         ),
-        if (factor.groupCovered > 0 &&
-            factor.groupCovered < factor.groupSize &&
-            factor is NumericFactor)
+        if (factor.groupCovered > 0 && factor.hasCoverageGap)
           Text(
             l10n.insights_focus_factors_coverage(
               factor.groupCovered,
@@ -264,7 +261,13 @@ class _FactorRow extends StatelessWidget {
           all: Text(focusNumericValue(factor.id, baselineMean, units, l10n)),
           difference: Text(difference ?? '', style: muted),
         );
-      case CategoricalFactor(:final top) when top.isNotEmpty:
+      case CategoricalFactor(
+            :final top,
+            :final baselineCovered,
+            :final baselineSize,
+            :final baselineIsPartial,
+          )
+          when top.isNotEmpty:
         return _Columns(
           narrow: narrow,
           label: label,
@@ -285,6 +288,14 @@ class _FactorRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final s in top) Text(percent.format(s.baselineShare)),
+              if (baselineIsPartial)
+                Text(
+                  l10n.insights_focus_factors_coverage(
+                    baselineCovered,
+                    baselineSize,
+                  ),
+                  style: muted,
+                ),
             ],
           ),
           difference: const SizedBox.shrink(),

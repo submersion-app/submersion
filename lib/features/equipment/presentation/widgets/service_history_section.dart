@@ -557,8 +557,7 @@ class _ServiceRecordTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final theme = Theme.of(context);
 

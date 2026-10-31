@@ -17,7 +17,6 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_edit
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_toolbar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_chart.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Page for editing a dive profile's depth data.
@@ -339,8 +338,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     final sources =
         ref.watch(diveDataSourcesProvider(diveId)).value ?? const [];
     final sourceLabels = sourceNameLabelsFor(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     return historyAsync.when(
       loading: () => const SizedBox(
         width: 20,

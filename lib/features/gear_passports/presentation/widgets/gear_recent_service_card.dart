@@ -7,7 +7,6 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest service records, and See all on the detail page, where the
@@ -22,7 +21,7 @@ class GearRecentServiceCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final records = [
       ...?ref.watch(serviceRecordsForEquipmentProvider(equipmentId)).value,
     ]..sort((a, b) => b.serviceDate.compareTo(a.serviceDate));

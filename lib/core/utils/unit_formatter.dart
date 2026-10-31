@@ -3,16 +3,30 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
     as coords;
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/per_minute.dart' as rate;
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+/// The formatter for the diver's settings, for widgets and providers that
+/// show values.
+///
+/// Prefer this to `UnitFormatter(ref.watch(settingsProvider))`, which rebuilds
+/// on every settings edit (issue #3818). This one keeps the same instance
+/// until something the formatter can read changes, so a list row built from
+/// it sits out the edits that have nothing to do with it.
+final unitFormatterProvider = Provider<UnitFormatter>((ref) {
+  ref.watch(settingsProvider.select(unitFormatterSettingsKey));
+  return UnitFormatter(ref.read(settingsProvider));
+});
+
 /// Utility class for formatting values with the correct units based on settings
 class UnitFormatter {
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
 
   const UnitFormatter(this.settings);
 

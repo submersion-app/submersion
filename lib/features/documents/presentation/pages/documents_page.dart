@@ -15,7 +15,6 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 import 'package:submersion/features/documents/presentation/widgets/document_tag_filter_row.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_expiring_strip.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -238,7 +237,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final all = ref.watch(allDocumentsProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final tagsByDocument =
         ref.watch(tagsByItemProvider(TagScope.documents)).value ??
         const <String, List<Tag>>{};

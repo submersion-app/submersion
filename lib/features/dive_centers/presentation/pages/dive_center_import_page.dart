@@ -7,7 +7,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/data/services/dive_center_api_service.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Page for searching and importing dive centers from online sources.
 class DiveCenterImportPage extends ConsumerStatefulWidget {
@@ -201,7 +200,7 @@ class _DiveCenterImportPageState extends ConsumerState<DiveCenterImportPage> {
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // Error state
     if (state.hasError) {

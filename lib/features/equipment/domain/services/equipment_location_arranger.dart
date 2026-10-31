@@ -27,8 +27,9 @@ class EquipmentLocationSection {
 /// means no location), then arranges each place's gear with
 /// [arrangeEquipment] unchanged, so type headings and item order inside a
 /// place are exactly what the shared arrangement draws everywhere else.
-/// Places come by kind (storage, service shop, person, other), then by
-/// name, then id; "No location" last. The input list is never mutated.
+/// Places come by kind (storage, dive center, service shop, person, other),
+/// then by name, then id; "No location" last. The input list is never
+/// mutated.
 List<EquipmentLocationSection> arrangeEquipmentByLocation(
   List<EquipmentItem> items,
   EquipmentArrangement arrangement, {

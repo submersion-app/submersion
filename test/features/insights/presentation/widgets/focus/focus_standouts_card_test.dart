@@ -30,10 +30,16 @@ CategoricalFactor category(
   double b,
   int count, {
   double strength = 1,
+  int groupSize = 10,
+  int? groupCovered,
+  int baselineCovered = 20,
+  int baselineSize = 20,
 }) => CategoricalFactor(
   id: id,
-  groupCovered: 10,
-  groupSize: 10,
+  groupCovered: groupCovered ?? groupSize,
+  groupSize: groupSize,
+  baselineCovered: baselineCovered,
+  baselineSize: baselineSize,
   top: [
     CategoryShare(
       key: key,
@@ -100,6 +106,119 @@ void main() {
     final depth = tester.getTopLeft(find.textContaining('Average depth'));
     final boat = tester.getTopLeft(find.textContaining('All 10'));
     expect(depth.dy, lessThan(boat.dy));
+  });
+
+  testWidgets('a partly recorded baseline names its denominator', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          category(
+            FocusFactorId.entryMethod,
+            'boat',
+            1.0,
+            0.6,
+            3,
+            groupSize: 3,
+            baselineCovered: 5,
+            baselineSize: 10,
+          ),
+          category(
+            FocusFactorId.gas,
+            'nitrox',
+            0.8,
+            0.5,
+            8,
+            strength: 0.3,
+            baselineCovered: 8,
+            baselineSize: 12,
+          ),
+        ],
+      ),
+    );
+    expect(
+      find.text(
+        'All 3 were Boat (60% of the 5 of 10 dives with this recorded)',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        '8 of 10 were Nitrox, against 50% of the 8 of 12 dives with this '
+        'recorded',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('of all your dives'), findsNothing);
+  });
+
+  testWidgets('a partly recorded group counts against its recorded dives', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          category(
+            FocusFactorId.entryMethod,
+            'boat',
+            1.0,
+            0.6,
+            2,
+            groupSize: 5,
+            groupCovered: 2,
+            baselineCovered: 5,
+            baselineSize: 10,
+          ),
+        ],
+      ),
+    );
+    expect(
+      find.text(
+        '2 of the 2 of 5 dives with this recorded were Boat, against 60% of '
+        'the 5 of 10 dives with this recorded',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  test('every locale keeps each number in the recorded sentences', () {
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      const coverage = 'COVERAGE';
+      final all = l10n.insights_focus_standouts_categoryAllRecorded(
+        31,
+        'BOAT',
+        '60%',
+        coverage,
+      );
+      final some = l10n.insights_focus_standouts_categorySomeRecorded(
+        29,
+        31,
+        'BOAT',
+        '60%',
+        coverage,
+      );
+      for (final part in ['31', 'BOAT', '60%', coverage]) {
+        expect(all, contains(part), reason: '$locale all: $part');
+        expect(some, contains(part), reason: '$locale some: $part');
+      }
+      expect(some, contains('29'), reason: '$locale some: count');
+      final part = l10n.insights_focus_standouts_categoryPartRecorded(
+        29,
+        'GROUP',
+        'BOAT',
+        '60%',
+        coverage,
+      );
+      for (final piece in ['29', 'GROUP', 'BOAT', '60%', coverage]) {
+        expect(part, contains(piece), reason: '$locale part: $piece');
+      }
+    }
   });
 
   testWidgets('direction words follow the factor', (tester) async {
