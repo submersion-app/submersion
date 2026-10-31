@@ -6132,6 +6132,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       setState(() {
         _markDirty();
         _exitTime = time;
+        _seededTimes = _seededTimes?.withExitPicked();
         // Also set exit date if not set
         _exitDate ??= _entryDate;
       });

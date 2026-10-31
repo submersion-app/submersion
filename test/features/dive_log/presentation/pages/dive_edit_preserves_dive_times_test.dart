@@ -136,4 +136,38 @@ void main() {
     expect(reloaded.runtime, const Duration(seconds: 2960));
     expect(reloaded.bottomTime, const Duration(seconds: 2409));
   });
+
+  testWidgets('confirming the estimated exit in its picker stores it', (
+    tester,
+  ) async {
+    final dive = await repository.createDive(
+      Dive(
+        id: 'dive-3901-confirm',
+        dateTime: entry,
+        entryTime: entry,
+        bottomTime: const Duration(seconds: 2409),
+      ),
+    );
+
+    String? savedId;
+    await pumpEditor(tester, dive.id, onSaved: (id) => savedId = id);
+
+    final exitRow = find
+        .ancestor(of: find.text('Exit'), matching: find.byType(FormRow))
+        .first;
+    await tester.ensureVisible(exitRow);
+    await tester.pumpAndSettle();
+    await tester.tap(exitRow);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK')); // date
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK')); // time
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(savedId, isNotNull, reason: 'save should complete');
+    final reloaded = (await repository.getDiveById(dive.id))!;
+    expect(reloaded.exitTime, DateTime.utc(2026, 1, 1, 10, 40));
+  });
 }

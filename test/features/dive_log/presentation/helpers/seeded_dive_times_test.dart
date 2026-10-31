@@ -2,6 +2,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 
+/// One input edited, the rest as they were.
+extension on DiveTimeInputs {
+  DiveTimeInputs copyWith({
+    DateTime? entry,
+    DateTime? exit,
+    int? bottomTimeMinutes,
+    int? runtimeMinutes,
+  }) => DiveTimeInputs(
+    entry: entry ?? this.entry,
+    exit: exit ?? this.exit,
+    bottomTimeMinutes: bottomTimeMinutes ?? this.bottomTimeMinutes,
+    runtimeMinutes: runtimeMinutes ?? this.runtimeMinutes,
+  );
+}
+
 void main() {
   final entry = DateTime.utc(2026, 1, 1, 10, 0, 50);
   final exit = DateTime.utc(2026, 1, 1, 10, 50, 10);
@@ -304,6 +319,30 @@ void main() {
       final seeded = SeededDiveTimes.of(imported());
 
       expect(seeded.exitFor(seeded.shown.exit), isNull);
+    });
+  });
+
+  group('SeededDiveTimes.withExitPicked', () {
+    test('saves an estimated exit the diver confirmed at the minute shown', () {
+      final seeded = SeededDiveTimes.of(imported());
+      final form = seeded.shown;
+
+      final saved = resolveDiveTimes(form, seeded: seeded.withExitPicked());
+
+      expect(saved.exit, DateTime.utc(2026, 1, 1, 10, 40));
+      expect(saved.runtime, DateTime.utc(2026, 1, 1, 10, 40).difference(entry));
+    });
+
+    test('keeps a stored exit confirmed at the same minute', () {
+      final seeded = SeededDiveTimes.of(imported(exitTime: exit));
+
+      final saved = resolveDiveTimes(
+        seeded.shown,
+        seeded: seeded.withExitPicked(),
+      );
+
+      expect(saved.exit, exit);
+      expect(saved.runtime, runtime);
     });
   });
 }

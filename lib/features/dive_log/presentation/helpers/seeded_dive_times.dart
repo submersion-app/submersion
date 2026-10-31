@@ -15,18 +15,6 @@ class DiveTimeInputs {
     this.bottomTimeMinutes,
     this.runtimeMinutes,
   });
-
-  DiveTimeInputs copyWith({
-    DateTime? entry,
-    DateTime? exit,
-    int? bottomTimeMinutes,
-    int? runtimeMinutes,
-  }) => DiveTimeInputs(
-    entry: entry ?? this.entry,
-    exit: exit ?? this.exit,
-    bottomTimeMinutes: bottomTimeMinutes ?? this.bottomTimeMinutes,
-    runtimeMinutes: runtimeMinutes ?? this.runtimeMinutes,
-  );
 }
 
 /// A dive's times at full precision.
@@ -97,6 +85,20 @@ class SeededDiveTimes {
   /// As [entryFor]; null for a dive with no stored exit left as it was shown.
   DateTime? exitFor(DateTime? input) =>
       input == shown.exit ? exact.exit : input;
+
+  /// These times once the diver confirms an exit in its picker. An estimate
+  /// they confirm is an exit they recorded, even at the minute shown; a
+  /// stored exit keeps its seconds, as any input left alone does.
+  SeededDiveTimes withExitPicked() => exact.exit != null
+      ? this
+      : SeededDiveTimes(
+          shown: DiveTimeInputs(
+            entry: shown.entry,
+            bottomTimeMinutes: shown.bottomTimeMinutes,
+            runtimeMinutes: shown.runtimeMinutes,
+          ),
+          exact: exact,
+        );
 }
 
 /// What a save writes for the form's time inputs.
