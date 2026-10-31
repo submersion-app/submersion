@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -182,6 +184,55 @@ void main() {
       expect(find.text(_allExcludedTitle), findsNothing);
     });
 
+    testWidgets('its sheet can start a planned dive', (tester) async {
+      Object? prefill;
+      final router = GoRouter(
+        initialLocation: '/insights/overview',
+        routes: [
+          GoRoute(
+            path: '/insights/overview',
+            builder: (_, _) => const InsightsOverviewPage(embedded: true),
+          ),
+          GoRoute(
+            path: '/dives/new',
+            builder: (_, state) {
+              prefill = state.extra;
+              return const Scaffold(body: Text('New Dive'));
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            filteredDiveStatisticsProvider.overrideWith((ref) async => _zero),
+            currentDiverProvider.overrideWith((ref) async => null),
+            logbookDiveCountsProvider.overrideWith(
+              (ref) async => const LogbookDiveCounts(logged: 0, counted: 0),
+            ),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(_onboardingAction));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Plan a dive'));
+      await tester.pumpAndSettle();
+
+      expect(prefill, isA<DivePrefill>());
+      expect((prefill! as DivePrefill).isPlanned, isTrue);
+    });
+
     testWidgets('keeps it under a filter, which has nothing to match', (
       tester,
     ) async {
@@ -266,6 +317,40 @@ void main() {
 
       expect(find.text('Retry'), findsOneWidget);
       expect(find.text(_onboardingTitle), findsNothing);
+    });
+
+    testWidgets('retrying after an error reads the counts again', (
+      tester,
+    ) async {
+      var attempts = 0;
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            filteredDiveStatisticsProvider.overrideWith((ref) async => _zero),
+            currentDiverProvider.overrideWith((ref) async => null),
+            logbookDiveCountsProvider.overrideWith((ref) async {
+              attempts++;
+              if (attempts == 1) throw StateError('database unavailable');
+              return const LogbookDiveCounts(logged: 0, counted: 0);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: InsightsOverviewPage(embedded: true)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      expect(attempts, 2);
+      expect(find.text(_onboardingTitle), findsOneWidget);
     });
   });
 }
