@@ -114,6 +114,26 @@ void main() {
       expect(outlierNotifier.state.detectedOutliers, isNull);
     });
 
+    test('trimEndZeros clears them', () {
+      final trimNotifier = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 4, depth: 90),
+          DiveProfilePoint(timestamp: 8, depth: 10),
+          DiveProfilePoint(timestamp: 12, depth: 0),
+          DiveProfilePoint(timestamp: 16, depth: 0),
+          DiveProfilePoint(timestamp: 20, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      trimNotifier.detectOutliers();
+      expect(trimNotifier.state.detectedOutliers, isNotEmpty);
+
+      trimNotifier.trimEndZeros();
+
+      expect(trimNotifier.state.detectedOutliers, isNull);
+    });
+
     test('undo clears them', () {
       outlierNotifier.applySmoothing();
       outlierNotifier.detectOutliers();
