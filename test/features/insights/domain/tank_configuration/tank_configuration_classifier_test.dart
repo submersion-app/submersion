@@ -35,6 +35,7 @@ void main() {
     bool hasProfile = true,
   }) => classifyTankConfiguration(
     TankConfigurationDive(
+      diveId: 'dive',
       diveMode: mode,
       tanks: tanks,
       gasSwitches: switches,
@@ -243,6 +244,7 @@ void main() {
 
   test('fromDives counts base configurations and extras', () {
     TankConfigurationDive d(List<DiveTank> tanks) => TankConfigurationDive(
+      diveId: 'dive',
       diveMode: DiveMode.oc,
       tanks: tanks,
       hasProfile: true,
@@ -260,5 +262,30 @@ void main() {
       TankBaseConfiguration.noTanks: 1,
     });
     expect(stats.extraCounts, {TankConfigurationExtra.stages: 1});
+  });
+
+  test('fromDives keeps the dives behind each count (#3805)', () {
+    TankConfigurationDive d(String id, List<DiveTank> tanks) =>
+        TankConfigurationDive(
+          diveId: id,
+          diveMode: DiveMode.oc,
+          tanks: tanks,
+          hasProfile: true,
+        );
+    final stats = TankConfigurationStats.fromDives([
+      d('a', [tank(TankRole.backGas)]),
+      d('b', [tank(TankRole.backGas)]),
+      d('c', [tank(TankRole.sidemountLeft), tank(TankRole.stage, o2: 50)]),
+      d('d', const []),
+    ]);
+
+    expect(stats.baseDiveIds, {
+      TankBaseConfiguration.singleBackmount: ['a', 'b'],
+      TankBaseConfiguration.sidemount: ['c'],
+      TankBaseConfiguration.noTanks: ['d'],
+    });
+    expect(stats.extraDiveIds, {
+      TankConfigurationExtra.stages: ['c'],
+    });
   });
 }

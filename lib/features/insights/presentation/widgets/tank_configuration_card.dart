@@ -5,6 +5,7 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
@@ -35,7 +36,7 @@ class TankConfigurationCard extends ConsumerWidget {
                 icon: MdiIcons.divingScubaTank,
                 message: l10n.insights_gas_tankConfig_empty,
               )
-            : _content(context, stats),
+            : _content(context, ref, stats),
         loading: () => const SizedBox(
           height: 120,
           child: Center(child: CircularProgressIndicator()),
@@ -48,7 +49,11 @@ class TankConfigurationCard extends ConsumerWidget {
     );
   }
 
-  Widget _content(BuildContext context, TankConfigurationStats stats) {
+  Widget _content(
+    BuildContext context,
+    WidgetRef ref,
+    TankConfigurationStats stats,
+  ) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final percent = NumberFormat.percentPattern(
@@ -59,14 +64,32 @@ class TankConfigurationCard extends ConsumerWidget {
           count,
           percent.format(count / stats.totalDives),
         );
-    List<({String label, int count})> rows<T>(
+    List<({T key, String label, int count})> rows<T>(
       Map<T, int> counts,
       String Function(T) label,
     ) {
       final entries = counts.entries.where((e) => e.value > 0).toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      return [for (final e in entries) (label: label(e.key), count: e.value)];
+      return [
+        for (final e in entries)
+          (key: e.key, label: label(e.key), count: e.value),
+      ];
     }
+
+    List<({String label, int count})> bars<T>(
+      List<({T key, String label, int count})> rows,
+    ) => [for (final r in rows) (label: r.label, count: r.count)];
+
+    Future<void> open<T>(
+      ({T key, String label, int count}) row,
+      Map<T, List<String>> diveIds,
+    ) => openChartDives(
+      context,
+      ref,
+      chart: l10n.insights_gas_tankConfig_title,
+      row: row.label,
+      load: (_, _, _) async => diveIds[row.key] ?? const [],
+    );
 
     final base = rows(
       stats.baseCounts,
@@ -91,21 +114,23 @@ class TankConfigurationCard extends ConsumerWidget {
       children: [
         heading(l10n.insights_gas_tankConfig_configurationHeading),
         HorizontalCategoryBarChart(
-          data: base,
+          data: bars(base),
           barColor: theme.colorScheme.primary,
           formatCount: countAndShare,
           countWidth: _countWidth,
           scaleTo: stats.totalDives,
+          onOpenRow: (index) => open(base[index], stats.baseDiveIds),
         ),
         if (extras.isNotEmpty) ...[
           const SizedBox(height: 12),
           heading(l10n.insights_gas_tankConfig_extrasHeading),
           HorizontalCategoryBarChart(
-            data: extras,
+            data: bars(extras),
             barColor: theme.colorScheme.tertiary,
             formatCount: countAndShare,
             countWidth: _countWidth,
             scaleTo: stats.totalDives,
+            onOpenRow: (index) => open(extras[index], stats.extraDiveIds),
           ),
         ],
         const SizedBox(height: 12),

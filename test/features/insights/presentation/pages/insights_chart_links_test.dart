@@ -143,6 +143,45 @@ void main() {
     });
   });
 
+  testWidgets('Time Patterns: a time of day opens the dives counted', (
+    tester,
+  ) async {
+    await pumpPage(tester, const InsightsTimePatternsPage(embedded: true), [
+      divesByDayOfWeekProvider.overrideWith((ref) async => const []),
+      divesBySeasonProvider.overrideWith((ref) async => const []),
+      divesByCalendarDayProvider.overrideWith(
+        (ref) async => CalendarDayMatrix.fromCounts(const []),
+      ),
+      surfaceIntervalStatsProvider.overrideWith(
+        (ref) async => throw StateError('not under test'),
+      ),
+      divesByTimeOfDayProvider.overrideWith(
+        (ref) async => TimeOfDayDistribution(
+          segments: [
+            DistributionSegment(label: 'Dusk', count: 2, percentage: 100),
+          ],
+          divesWithoutLocation: 0,
+          diveIdsByBucket: const {
+            'Dusk': ['a', 'b'],
+          },
+        ),
+      ),
+    ]);
+
+    final chart = tester.widget<DistributionPieChart>(
+      inCard('Dives by Time of Day', find.byType(DistributionPieChart)),
+    );
+    await chart.onOpenSegment!(0);
+    await tester.pumpAndSettle();
+
+    final filter = container.read(diveFilterProvider);
+    expect(filter.diveIds, ['a', 'b']);
+    expect(
+      filter.diveIdsLabel,
+      'Dives by Time of Day: ${chart.data.single.label}',
+    );
+  });
+
   testWidgets('Progression: a year opens that year', (tester) async {
     await pumpPage(tester, const InsightsProgressionPage(embedded: true), [
       depthProgressionTrendProvider.overrideWith((ref) async => const []),

@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_app.dart';
 
 /// Issue #3421: the Gas page's tank configuration card.
 void main() {
@@ -150,5 +155,61 @@ void main() {
 
     expect(find.text('No dives to show'), findsOneWidget);
     expect(find.byType(HorizontalCategoryBarChart), findsNothing);
+  });
+
+  testWidgets('a row opens the dives behind it (#3805)', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/insights',
+      routes: [
+        GoRoute(
+          path: '/insights',
+          builder: (_, _) => const Scaffold(
+            body: SingleChildScrollView(child: TankConfigurationCard()),
+          ),
+        ),
+        GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
+      ],
+    );
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          tankConfigurationStatsProvider.overrideWith(
+            (ref) async => const TankConfigurationStats(
+              totalDives: 3,
+              baseCounts: {
+                TankBaseConfiguration.singleBackmount: 2,
+                TankBaseConfiguration.sidemount: 1,
+              },
+              extraCounts: {TankConfigurationExtra.stages: 1},
+              baseDiveIds: {
+                TankBaseConfiguration.singleBackmount: ['a', 'b'],
+                TankBaseConfiguration.sidemount: ['c'],
+              },
+              extraDiveIds: {
+                TankConfigurationExtra.stages: ['c'],
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TankConfigurationCard)),
+    );
+
+    final rows = find.byType(HorizontalCategoryBarChart);
+    await tester.tap(
+      find.descendant(of: rows.first, matching: find.byType(InkWell)).at(1),
+    );
+    await tester.pumpAndSettle();
+
+    final filter = container.read(diveFilterProvider);
+    expect(filter.diveIds, ['c']);
+    expect(filter.diveIdsLabel, 'Tank configuration: Sidemount');
   });
 }

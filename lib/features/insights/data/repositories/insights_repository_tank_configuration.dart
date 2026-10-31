@@ -124,6 +124,7 @@ TankConfigurationDive _tankConfigurationDive(
         t,
   ];
   return TankConfigurationDive(
+    diveId: id,
     diveMode: _diveModesByName[row.read<String>('dive_mode')] ?? DiveMode.oc,
     tanks: owned.isEmpty ? all : owned,
     gasSwitches: switchesByDive[id] ?? const [],

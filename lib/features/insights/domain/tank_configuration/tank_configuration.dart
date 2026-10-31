@@ -31,12 +31,14 @@ typedef TankConfigurationResult = ({
 /// profile, which decides how much a missing switch says.
 class TankConfigurationDive {
   const TankConfigurationDive({
+    required this.diveId,
     required this.diveMode,
     required this.tanks,
     this.gasSwitches = const [],
     required this.hasProfile,
   });
 
+  final String diveId;
   final DiveMode diveMode;
   final List<DiveTank> tanks;
   final List<({String tankId, int timestamp})> gasSwitches;
@@ -50,26 +52,34 @@ class TankConfigurationStats extends Equatable {
     required this.totalDives,
     required this.baseCounts,
     required this.extraCounts,
+    this.baseDiveIds = const {},
+    this.extraDiveIds = const {},
   });
 
   factory TankConfigurationStats.fromDives(
     Iterable<TankConfigurationDive> dives,
   ) {
     var total = 0;
-    final base = <TankBaseConfiguration, int>{};
-    final extras = <TankConfigurationExtra, int>{};
+    final base = <TankBaseConfiguration, List<String>>{};
+    final extras = <TankConfigurationExtra, List<String>>{};
     for (final dive in dives) {
       final result = classifyTankConfiguration(dive);
       total++;
-      base.update(result.base, (n) => n + 1, ifAbsent: () => 1);
+      (base[result.base] ??= []).add(dive.diveId);
       for (final extra in result.extras) {
-        extras.update(extra, (n) => n + 1, ifAbsent: () => 1);
+        (extras[extra] ??= []).add(dive.diveId);
       }
     }
     return TankConfigurationStats(
       totalDives: total,
-      baseCounts: Map.unmodifiable(base),
-      extraCounts: Map.unmodifiable(extras),
+      baseCounts: Map.unmodifiable({
+        for (final e in base.entries) e.key: e.value.length,
+      }),
+      extraCounts: Map.unmodifiable({
+        for (final e in extras.entries) e.key: e.value.length,
+      }),
+      baseDiveIds: Map.unmodifiable(base),
+      extraDiveIds: Map.unmodifiable(extras),
     );
   }
 
@@ -83,6 +93,16 @@ class TankConfigurationStats extends Equatable {
   final Map<TankBaseConfiguration, int> baseCounts;
   final Map<TankConfigurationExtra, int> extraCounts;
 
+  /// The dives behind each count (issue #3805).
+  final Map<TankBaseConfiguration, List<String>> baseDiveIds;
+  final Map<TankConfigurationExtra, List<String>> extraDiveIds;
+
   @override
-  List<Object?> get props => [totalDives, baseCounts, extraCounts];
+  List<Object?> get props => [
+    totalDives,
+    baseCounts,
+    extraCounts,
+    baseDiveIds,
+    extraDiveIds,
+  ];
 }
