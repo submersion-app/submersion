@@ -72,8 +72,9 @@ apply to the item's type.
 
 - **Details:** status, the number of **Dives** and **Trips** the item was used
   on (tap either to see them), purchase details and how long you have owned it.
-  Trips counts the trips that list shows, so a dive on a side trip counts both
-  the side trip and its parent, and trips you have hidden are left out.
+  Neither counts planned dives, and those lists leave them out too. Trips
+  counts the trips its list shows, so a dive on a side trip counts both the
+  side trip and its parent, and trips you have hidden are left out.
 - **Location:** where the item is now. **Move** sends it somewhere else.
 - **Cylinder passport:** for a Tank. See [Cylinder Passports](cylinder-passports.md).
 - **Gear passport:** for any other item. See [Gear Tags](gear-tags.md).

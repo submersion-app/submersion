@@ -607,7 +607,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   onTap: () => openDiveList(
                     context,
                     ref,
-                    DiveFilterState(equipmentIds: [equipmentId]),
+                    DiveFilterState.itemUse(equipmentId),
                   ),
                 ),
                 loading: () => _buildDetailRow(
