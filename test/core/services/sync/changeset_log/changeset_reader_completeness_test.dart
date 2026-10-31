@@ -96,6 +96,36 @@ void main() {
     );
   });
 
+  test('a refused base read stops the pull', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer(); // base @1
+    final basePart = ChangesetLogLayout.basePartName(peerId, 1, 0);
+    provider.matchedDownloadFailure = const CloudAccessRefusedException(
+      'refused',
+    );
+    provider.failDownloadsWhere = (id) => id.endsWith(basePart);
+
+    await expectLater(
+      pullAs('reader-x'),
+      throwsA(isA<CloudAccessRefusedException>()),
+    );
+  });
+
+  test('an interrupted base read stays with its peer', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer(); // base @1
+    final basePart = ChangesetLogLayout.basePartName(peerId, 1, 0);
+    provider.failDownloadsWhere = (id) => id.endsWith(basePart);
+
+    final result = await pullAs('reader-x');
+
+    expect(result.incompletePeerDeviceIds, {peerId});
+  });
+
   test('an ordinary read failure stays with its peer', () async {
     await DiveRepository().createDive(
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
