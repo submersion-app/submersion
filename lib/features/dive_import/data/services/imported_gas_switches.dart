@@ -5,7 +5,8 @@ import 'package:uuid/uuid.dart';
 const _uuid = Uuid();
 
 /// [diveData]'s gas switches as rows of the imported dive, each under the
-/// computer that logged it. A switch naming no tank of [tanks] is dropped.
+/// computer that logged it. A switch with no time, or naming no tank of
+/// [tanks], is dropped.
 ///
 /// [computerIdByOrdinal] is the dive's restored computers by `<source>`
 /// ordinal: a switch naming no ordinal in it stays unattributed, as every
