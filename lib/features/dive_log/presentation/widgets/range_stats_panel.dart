@@ -154,9 +154,9 @@ class RangeStatsPanel extends ConsumerWidget {
   /// source the chart draws, the same one [profile] (and so the range's
   /// average depth) comes from.
   ///
-  /// The duration is the selection's own span, and the average depth comes
-  /// from the plotted line, so a range holding no sample of a sparse profile
-  /// still has both. It has neither off the end of that line.
+  /// The average depth comes from the plotted line, so a range holding no
+  /// sample of a sparse profile still has one; there is none off the end of
+  /// that line. The duration is what the pressure series cover of the range.
   RangeGasConsumption _gasConsumption(
     WidgetRef ref,
     RangeSelectionState rangeState,

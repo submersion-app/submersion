@@ -80,6 +80,31 @@ void main() {
       expect(result.rmv, closeTo(60, 1e-9));
     });
 
+    test('stops counting where the pressure series ends (#3890)', () {
+      // Readings stop at 5:00, falling 10 bar a minute. A 4:00 to 6:00
+      // selection again sees one minute's 10 bar.
+      final result = rangeGasConsumption(
+        tanks: const [backGas],
+        tankPressures: {
+          'bg': [
+            for (var t = 0; t <= 300; t += 60)
+              TankPressurePoint(
+                tankId: 'bg',
+                timestamp: t,
+                pressure: 200 - t / 6,
+              ),
+          ],
+        },
+        startTimestamp: 240,
+        endTimestamp: 360,
+        avgDepth: 10,
+        model: GasModel.ideal,
+      );
+
+      expect(result.sac, closeTo(5, 1e-9));
+      expect(result.rmv, closeTo(60, 1e-9));
+    });
+
     test('cylinders breathed in turn cover the selection between them', () {
       // Each series reads for half of the range, and each falls 20 bar: 40
       // bar over all four minutes, not over either cylinder's two.

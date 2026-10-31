@@ -49,7 +49,8 @@ RangeGasConsumption rangeGasConsumption({
   }
   if (pressures.isEmpty) return none;
 
-  // A pressure that fell has readings inside the range, so this is positive.
+  // A pressure that fell has a series overlapping the range, so this is
+  // positive, even when the range sits between two of its readings.
   final readings = [
     for (final id in pressures.keys) ...series[id]!.map((p) => p.timestamp),
   ];
