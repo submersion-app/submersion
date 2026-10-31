@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/unique_ids.dart';
@@ -25,17 +27,18 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> insertDive({
+  Future<String> insertDive({
     int? runtime,
     int? bottomTime,
     DateTime? exitTime,
   }) async {
+    final id = uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
         .insert(
           DivesCompanion(
-            id: Value(uniqueTestId('dive')),
+            id: Value(id),
             diveDateTime: Value(start.millisecondsSinceEpoch),
             entryTime: Value(start.millisecondsSinceEpoch),
             exitTime: Value(exitTime?.millisecondsSinceEpoch),
@@ -46,6 +49,7 @@ void main() {
             updatedAt: Value(now),
           ),
         );
+    return id;
   }
 
   group('findMatchingDiveWithScore duration', () {
@@ -87,6 +91,25 @@ void main() {
       final match = await repository.findMatchingDiveWithScore(
         profileStartTime: start,
         durationSeconds: 1810,
+        maxDepth: 20,
+      );
+
+      expect(match?.durationDifferenceSeconds, 10);
+    });
+
+    test('uses the profile span when no runtime or exit is stored', () async {
+      final diveId = await insertDive(bottomTime: 1800);
+      await ProfileSeriesRepository().insertSeries(
+        diveId: diveId,
+        samples: [
+          for (final t in [0, 1200, 2400])
+            ProfileSample(timestamp: t, depth: 20),
+        ],
+      );
+
+      final match = await repository.findMatchingDiveWithScore(
+        profileStartTime: start,
+        durationSeconds: 2410,
         maxDepth: 20,
       );
 
