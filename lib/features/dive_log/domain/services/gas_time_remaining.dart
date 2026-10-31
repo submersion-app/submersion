@@ -12,6 +12,10 @@
 /// gauge reading gets the same GTR.
 library;
 
+import 'dart:math' as math;
+
+import 'package:submersion/core/utils/time_weighted_mean.dart';
+
 /// Direct-ascent rate the GTR calculation assumes (Shearwater: 10 m/min).
 const double gtrAscentRateMetersPerMinute = 10.0;
 
@@ -39,6 +43,10 @@ const double _surfaceDepthMeters = 1.0;
 /// surface with. Once the reserve plus the gas needed for the ascent exceeds
 /// the current pressure the value is 0, never negative.
 ///
+/// Depth and pressure are read as piecewise linear series, so the window holds
+/// exactly [sacWindowSeconds] of history wherever it opens, and a sample added
+/// on an existing segment leaves the result unchanged.
+///
 /// Seconds are truncated, not rounded: displays floor these to whole minutes,
 /// so rounding 2939.8 s up to 2940 would read 49 min for 48 min 59.8 s left,
 /// and a countdown must never say there is more gas time than there is.
@@ -64,19 +72,20 @@ List<int?> calculateGtrCurve({
   }
 
   final result = List<int?>.filled(n, null);
-  // Both window bounds only move forward, so one cursor and a running depth
-  // sum keep the whole pass O(n). Re-summing the window per sample instead
+  // Both window bounds only move forward, so one cursor and a cumulative depth
+  // integral keep the whole pass O(n). Re-summing the window per sample instead
   // costs O(n * samples-per-window), which on a densely sampled or merged
   // profile is the entire profile at every sample. The cursor advances on
-  // every iteration, including ones the guards below skip, so that the sum
-  // stays in step with it.
+  // every iteration, including ones the guards below skip, so that it stays in
+  // step with the window.
+  final depthIntegral = TimeWeightedMean();
+  final depthAreaTo = List<double>.filled(n, 0.0);
   var anchor = 0;
-  var windowDepthSum = 0.0;
   for (var i = 0; i < n; i++) {
-    windowDepthSum += depths[i];
+    depthIntegral.add(timestamps[i], depths[i]);
+    depthAreaTo[i] = depthIntegral.area;
     final windowStart = timestamps[i] - sacWindowSeconds;
     while (anchor + 1 < i && timestamps[anchor + 1] <= windowStart) {
-      windowDepthSum -= depths[anchor];
       anchor++;
     }
 
@@ -85,11 +94,21 @@ List<int?> calculateGtrCurve({
     if (ceilings != null && ceilings[i] > 0) continue;
     if (timestamps[0] > windowStart) continue;
 
-    final durationSeconds = timestamps[i] - timestamps[anchor];
-    final pressureDrop = pressures[anchor] - pressures[i];
-    if (durationSeconds <= 0 || pressureDrop <= 0) continue;
+    final windowOpens = math.max(windowStart, timestamps[anchor]);
+    final durationSeconds = timestamps[i] - windowOpens;
+    if (durationSeconds <= 0) continue;
 
-    final meanDepth = windowDepthSum / (i - anchor + 1);
+    final pressureDrop =
+        _readAt(pressures, timestamps, anchor, windowOpens) - pressures[i];
+    if (pressureDrop <= 0) continue;
+
+    // The anchor sample can sit before the window, so take off the area
+    // between it and where the window opens.
+    final depthAtOpen = _readAt(depths, timestamps, anchor, windowOpens);
+    final areaBeforeOpen =
+        (windowOpens - timestamps[anchor]) * (depths[anchor] + depthAtOpen) / 2;
+    final windowArea = depthAreaTo[i] - depthAreaTo[anchor] - areaBeforeOpen;
+    final meanDepth = windowArea / durationSeconds;
     final consumptionAtDepth = pressureDrop / (durationSeconds / 60.0);
     final sac = consumptionAtDepth / _ambientBar(meanDepth);
     if (sac <= 0) continue;
@@ -107,6 +126,19 @@ List<int?> calculateGtrCurve({
     result[i] = (minutesAtDepth * 60).floor();
   }
   return result;
+}
+
+/// [series] at [time], at or after sample [before] and before the next one.
+double _readAt(
+  List<double> series,
+  List<int> timestamps,
+  int before,
+  int time,
+) {
+  final beforeTime = timestamps[before];
+  if (time <= beforeTime) return series[before];
+  final progress = (time - beforeTime) / (timestamps[before + 1] - beforeTime);
+  return series[before] + (series[before + 1] - series[before]) * progress;
 }
 
 double _ambientBar(double depthMeters) => 1.0 + depthMeters / 10.0;
