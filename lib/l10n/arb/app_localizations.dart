@@ -85890,6 +85890,30 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get query_dives_tankConfig;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Stage(s)'**
+  String get query_dives_stages;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas'**
+  String get query_dives_decoGas;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-gas'**
+  String get query_dives_multiGas;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
   /// **'Dive ID'**
   String get query_dives_id;
 

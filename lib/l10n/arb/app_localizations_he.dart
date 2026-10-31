@@ -53105,6 +53105,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_hasProfile => 'יש פרופיל';
 
   @override
+  String get query_dives_tankConfig => 'תצורת בלונים';
+
+  @override
+  String get query_dives_stages => 'סטייג\'ים';
+
+  @override
+  String get query_dives_decoGas => 'גז דקו';
+
+  @override
+  String get query_dives_multiGas => 'ריבוי גזים';
+
+  @override
   String get query_dives_id => 'מזהה צלילה';
 
   @override

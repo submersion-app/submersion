@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_types/query/dive_type_text_search.dart'
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
+import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -130,6 +132,21 @@ QueryField _bool(String key, String column) => QueryField(
   sql: '{r}.$column',
   emptySql: '0',
   labelKey: _label(key),
+);
+
+/// One of a dive's tank configuration extras, a yes or no in the shape of
+/// `deco`. Its key is the [TankConfigurationExtra]'s name.
+QueryField _tankExtra(TankConfigurationExtra extra) => QueryField(
+  key: extra.name,
+  type: FieldType.bool,
+  sql: '',
+  emptySql: '0',
+  labelKey: _label(extra.name),
+  boolSql: (
+    whenTrue: tankConfigHasExtraSql('{r}', extra),
+    whenFalse: 'NOT (${tankConfigHasExtraSql('{r}', extra)})',
+  ),
+  tables: kTankConfigurationTables,
 );
 
 QueryRelation _fk(
@@ -418,6 +435,19 @@ final QueryEntity diveQueryEntity = QueryEntity(
           'NOT EXISTS (SELECT 1 FROM dive_tanks t WHERE t.dive_id = {r}.id)',
       tables: ['dive_tanks'],
     ),
+    QueryField(
+      key: 'tankConfig',
+      type: FieldType.enumName,
+      sql: tankConfigBaseSql('{r}'),
+      // The No tanks logged bar, not "no tank rows": a rebreather dive with
+      // none is still Rebreather, so `:none` leaves it out where
+      // `gasCount:none` finds it.
+      emptySql: "${tankConfigBaseSql('{r}')} = 'noTanks'",
+      labelKey: _label('tankConfig'),
+      enumValues: _names(TankBaseConfiguration.values),
+      tables: kTankConfigurationTables,
+    ),
+    for (final extra in TankConfigurationExtra.values) _tankExtra(extra),
     _num(
       'sac',
       kDiveSacSql,

@@ -53919,6 +53919,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_dives_hasProfile => 'Heeft profiel';
 
   @override
+  String get query_dives_tankConfig => 'Flesconfiguratie';
+
+  @override
+  String get query_dives_stages => 'Stagefles(sen)';
+
+  @override
+  String get query_dives_decoGas => 'Decogas';
+
+  @override
+  String get query_dives_multiGas => 'Meerdere gassen';
+
+  @override
   String get query_dives_id => 'Duik-ID';
 
   @override

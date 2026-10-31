@@ -54265,6 +54265,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_dives_hasProfile => 'Tem perfil';
 
   @override
+  String get query_dives_tankConfig => 'Configuração dos cilindros';
+
+  @override
+  String get query_dives_stages => 'Stage(s)';
+
+  @override
+  String get query_dives_decoGas => 'Gás de deco';
+
+  @override
+  String get query_dives_multiGas => 'Vários gases';
+
+  @override
   String get query_dives_id => 'ID do mergulho';
 
   @override

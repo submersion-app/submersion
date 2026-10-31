@@ -121,14 +121,19 @@ void main() {
         ),
       );
 
-  Future<void> insertSource(String id, String diveId, String computerId) => db
+  Future<void> insertSource(
+    String id,
+    String diveId,
+    String computerId, {
+    bool primary = true,
+  }) => db
       .into(db.diveDataSources)
       .insert(
         DiveDataSourcesCompanion(
           id: Value(id),
           diveId: Value(diveId),
           computerId: Value(computerId),
-          isPrimary: const Value(true),
+          isPrimary: Value(primary),
           importedAt: Value(DateTime.utc(2024)),
           createdAt: Value(DateTime.utc(2024)),
         ),
@@ -403,6 +408,27 @@ void main() {
         'a',
         1,
         const _Tank('backGas', volume: 12, computerId: 'other'),
+      );
+
+      final result = await viaSql('a');
+      expect(result.base, TankBaseConfiguration.singleBackmount);
+    });
+
+    test('a cylinder naming no computer belongs to its source', () async {
+      await insertDive('a');
+      await insertSource('s', 'a', 'primary');
+      await insertSource('another', 'a', 'other', primary: false);
+      await insertTank(
+        'a-0',
+        'a',
+        0,
+        const _Tank('backGas', volume: 12, sourceId: 's'),
+      );
+      await insertTank(
+        'a-1',
+        'a',
+        1,
+        const _Tank('backGas', volume: 12, sourceId: 'another'),
       );
 
       final result = await viaSql('a');

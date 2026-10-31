@@ -53973,6 +53973,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_dives_hasProfile => 'Van profil';
 
   @override
+  String get query_dives_tankConfig => 'Palackkonfiguráció';
+
+  @override
+  String get query_dives_stages => 'Stage palack(ok)';
+
+  @override
+  String get query_dives_decoGas => 'Dekó gáz';
+
+  @override
+  String get query_dives_multiGas => 'Több gáz';
+
+  @override
   String get query_dives_id => 'Merülés azonosító';
 
   @override

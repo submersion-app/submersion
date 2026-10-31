@@ -54387,6 +54387,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_dives_hasProfile => 'A un profil';
 
   @override
+  String get query_dives_tankConfig => 'Configuration des blocs';
+
+  @override
+  String get query_dives_stages => 'Stage(s)';
+
+  @override
+  String get query_dives_decoGas => 'Gaz de déco';
+
+  @override
+  String get query_dives_multiGas => 'Multigaz';
+
+  @override
   String get query_dives_id => 'ID de plongée';
 
   @override

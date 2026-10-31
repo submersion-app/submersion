@@ -50886,6 +50886,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_dives_hasProfile => '有剖面';
 
   @override
+  String get query_dives_tankConfig => '气瓶配置';
+
+  @override
+  String get query_dives_stages => '阶段瓶';
+
+  @override
+  String get query_dives_decoGas => '减压气';
+
+  @override
+  String get query_dives_multiGas => '多种气体';
+
+  @override
   String get query_dives_id => '潜水编号';
 
   @override

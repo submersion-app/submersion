@@ -54918,6 +54918,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_dives_hasProfile => 'له ملف تعريف';
 
   @override
+  String get query_dives_tankConfig => 'تكوين الأسطوانات';
+
+  @override
+  String get query_dives_stages => 'أسطوانات مرحلية';
+
+  @override
+  String get query_dives_decoGas => 'غاز تخفيف الضغط';
+
+  @override
+  String get query_dives_multiGas => 'غازات متعددة';
+
+  @override
   String get query_dives_id => 'معرّف الغطسة';
 
   @override
