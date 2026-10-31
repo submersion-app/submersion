@@ -15,7 +15,8 @@ extension TripFilterQuery on TripFilterState {
     final parts = <QueryNode>[
       // Trips whose dives used the item: the dive gear union, which also
       // counts a transmitter-matched cylinder. One dive carries both
-      // conditions, because a plan has not used the item (issue #3932).
+      // conditions, because a plan has not used the item (issue #3932). A
+      // dive excluded from statistics has, so it stays: not countedDives.
       if (equipmentId != null)
         ScopedNode(
           FieldPath(['dives']),

@@ -121,11 +121,14 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 ///
 /// Only trips the diver can see, so the set is the filtered list's rows and
 /// the equipment Trips row can count it (issue #4016). Hiding or sharing a
-/// trip writes no table the query reads, hence the trips tick.
+/// trip writes no table the query reads, hence the extra tick.
 final queryFilteredTripIdsProvider = FutureProvider.autoDispose
     .family<Set<String>, TripFilterState>((ref, filter) async {
       ref.invalidateSelfWhen(
-        ref.read(tripRepositoryProvider).watchTripsChanges(),
+        ref.watch(queryIdSetRunnerProvider).watchTables(const {
+          'trip_hides',
+          'trip_shares',
+        }),
       );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final compiled = compileTripFilter(filter, diverId: diverId);

@@ -618,7 +618,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 error: (e, s) => const SizedBox.shrink(),
               ),
               EquipmentDiveTimeRow(equipmentId: equipmentId),
+              // A reload, since the count follows the trip filter: every dive
+              // write runs one, and the row keeps its figure meanwhile.
               tripCountAsync.when(
+                skipLoadingOnReload: true,
                 data: (count) => _buildCountLinkRow(
                   context,
                   label: context.l10n.equipment_detail_tripsLabel,

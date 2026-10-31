@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -213,6 +214,62 @@ void main() {
 
     expect(await rowCount(), 0);
     expect(await listed(), isEmpty);
+  });
+
+  test('my dive on a trip shared with me counts', () async {
+    await addDiver('buddy');
+    await addTrip('A', diver: 'buddy');
+    await db
+        .into(db.tripShares)
+        .insert(
+          TripSharesCompanion.insert(
+            id: 's',
+            tripId: 'A',
+            diverId: me,
+            createdAt: 1,
+          ),
+        );
+    await addDive('D', 'A');
+    await link('D');
+
+    expect(await rowCount(), 1);
+    expect(await listed(), {'A'});
+  });
+
+  test('my dive on a trip I cannot see does not count', () async {
+    await addDiver('buddy');
+    await addTrip('A', diver: 'buddy');
+    await addDive('D', 'A');
+    await link('D');
+
+    expect(await rowCount(), 0);
+    expect(await listed(), isEmpty);
+  });
+
+  test('a query of alternatives stays inside the visible trips', () async {
+    await addTrip('A');
+    await addTrip('B');
+    await db
+        .into(db.tripHides)
+        .insert(
+          TripHidesCompanion.insert(
+            id: 'h',
+            diverId: me,
+            tripId: 'B',
+            createdAt: 1,
+          ),
+        );
+    ConditionNode named(String name) =>
+        ConditionNode(FieldPath(['name']), QueryOp.eq, StringValue(name));
+
+    expect(
+      await container.read(
+        queryFilteredTripIdsProvider(
+          TripFilterState(query: OrNode([named('A'), named('B')])),
+        ).future,
+      ),
+      {'A'},
+    );
   });
 
   test('hiding a trip refreshes an open row', () async {
