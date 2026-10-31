@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
+import 'package:submersion/features/reef/presentation/widgets/reef_part_rows.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -27,11 +28,15 @@ class WaterConditionsCard extends ConsumerWidget {
 
   final WaterType? waterType;
 
+  /// Offered when the lookup failed; a null callback shows no button.
+  final VoidCallback? onRetry;
+
   const WaterConditionsCard({
     super.key,
     required this.health,
     this.habitat,
     this.waterType,
+    this.onRetry,
   });
 
   @override
@@ -39,13 +44,18 @@ class WaterConditionsCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    Widget tile(String subtitle, {bool isThreeLine = false}) => ListTile(
+    Widget tile(
+      String subtitle, {
+      bool isThreeLine = false,
+      Widget? trailing,
+    }) => ListTile(
       leading: Icon(Icons.thermostat, color: scheme.primary),
       title: Text(
         context.l10n.water_conditions_title,
         style: theme.textTheme.titleSmall,
       ),
       subtitle: Text(subtitle),
+      trailing: trailing,
       isThreeLine: isThreeLine,
       dense: true,
     );
@@ -54,7 +64,10 @@ class WaterConditionsCard extends ConsumerWidget {
       return tile(context.l10n.water_conditions_freshwater);
     }
     if (health.status == ReefDataStatus.unavailable) {
-      return tile(context.l10n.water_conditions_unavailable);
+      return tile(
+        context.l10n.water_conditions_unavailable,
+        trailing: onRetry == null ? null : ReefRetryButton(onPressed: onRetry!),
+      );
     }
     if (health.status == ReefDataStatus.empty) {
       return tile(context.l10n.water_conditions_noData);

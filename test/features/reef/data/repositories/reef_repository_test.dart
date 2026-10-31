@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/native.dart';
@@ -18,10 +19,21 @@ import 'package:submersion/features/reef/domain/services/species_catalog_matcher
 
 SpeciesCatalogMatcher _matcher() => SpeciesCatalogMatcher.fromJsonString(
   jsonEncode({
-    'speciesKeys': <String, String>{},
+    'speciesKeys': {'2384460': 'sp_sixbar_wrasse'},
     'taxonKeys': [587],
   }),
 );
+
+String _facetBody(List<int> keys) => jsonEncode({
+  'facets': [
+    {
+      'field': 'SPECIES_KEY',
+      'counts': [
+        for (final key in keys) {'name': '$key', 'count': 5},
+      ],
+    },
+  ],
+});
 
 void main() {
   late LocalCacheDatabase db;
@@ -41,6 +53,8 @@ void main() {
   ReefRepository buildRepository({
     http.Client? habitatClient,
     http.Client? healthClient,
+    http.Client? protectionClient,
+    http.Client? speciesClient,
   }) {
     final ok = MockClient(
       (_) async => http.Response(jsonEncode({'features': []}), 200),
@@ -52,43 +66,17 @@ void main() {
         client:
             healthClient ?? MockClient((_) async => http.Response('down', 503)),
       ),
-      protection: ReefProtectionService(client: ok),
+      protection: ReefProtectionService(client: protectionClient ?? ok),
       species: NearbySpeciesService(
-        client: MockClient(
-          (_) async => http.Response(jsonEncode({'facets': []}), 200),
-        ),
+        client:
+            speciesClient ??
+            MockClient(
+              (_) async => http.Response(jsonEncode({'facets': []}), 200),
+            ),
         matcher: _matcher(),
       ),
     );
   }
-
-  test(
-    'includeHealth false issues no health request and caches nothing',
-    () async {
-      var healthCalls = 0;
-      final counting = MockClient((_) async {
-        healthCalls++;
-        return http.Response('down', 503);
-      });
-
-      final repo = buildRepository(healthClient: counting);
-      final snapshot = await repo.snapshotFor(
-        const GeoPoint(41.0, -81.5),
-        includeHealth: false,
-      );
-
-      expect(healthCalls, 0);
-      expect(snapshot.health.status, ReefDataStatus.empty);
-      // The other three parts fetched normally.
-      expect(snapshot.habitat.status, ReefDataStatus.empty);
-      expect(snapshot.protection.status, ReefDataStatus.empty);
-
-      // Nothing was cached for health: a later includeHealth fetch really
-      // goes to the network.
-      await repo.snapshotFor(const GeoPoint(41.0, -81.5));
-      expect(healthCalls, 1);
-    },
-  );
 
   test('a successful health fetch round-trips through the cache', () async {
     var healthCalls = 0;
@@ -115,17 +103,17 @@ void main() {
     });
 
     final repo = buildRepository(healthClient: counting);
-    final first = await repo.snapshotFor(const GeoPoint(12.16, -68.28));
-    final second = await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    final first = await repo.currentHealthFor(const GeoPoint(12.16, -68.28));
+    final second = await repo.currentHealthFor(const GeoPoint(12.16, -68.28));
 
     expect(healthCalls, 1);
-    expect(first.health.status, ReefDataStatus.ok);
-    expect(first.health.value!.sst, 30.56);
+    expect(first.status, ReefDataStatus.ok);
+    expect(first.value!.sst, 30.56);
     // The cached copy decodes to the same value the network produced.
-    expect(second.health, first.health);
+    expect(second, first);
   });
 
-  test('snapshotFor with a date keys the health cache by that date', () async {
+  test('a dated reading and current conditions cache apart', () async {
     var healthCalls = 0;
     final counting = MockClient((_) async {
       healthCalls++;
@@ -133,11 +121,11 @@ void main() {
     });
 
     final repo = buildRepository(healthClient: counting);
-    await repo.snapshotFor(
+    await repo.healthFor(
       const GeoPoint(12.16, -68.28),
-      date: DateTime.utc(2023, 9, 1),
+      DateTime.utc(2023, 9, 1),
     );
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.currentHealthFor(const GeoPoint(12.16, -68.28));
 
     // Different variants (dated vs current), so both fetch.
     expect(healthCalls, 2);
@@ -167,27 +155,139 @@ void main() {
     expect(second.value!.threatLevel, 'High');
   });
 
-  test('habitatFor shares the cache entry with snapshotFor', () async {
+  test('one provider failing does not blank the others', () async {
+    final repo = buildRepository();
+    const point = GeoPoint(12.16, -68.28);
+
+    expect(
+      (await repo.currentHealthFor(point)).status,
+      ReefDataStatus.unavailable,
+    );
+    expect((await repo.habitatFor(point)).status, ReefDataStatus.empty);
+    expect((await repo.protectionFor(point)).status, ReefDataStatus.empty);
+  });
+
+  test('a stalled species request does not hold the other parts', () async {
+    final pending = Completer<http.Response>();
+    final repo = buildRepository(
+      speciesClient: MockClient((_) => pending.future),
+    );
+    const point = GeoPoint(12.16, -68.28);
+
+    final species = repo.speciesFor(point);
+
+    expect((await repo.habitatFor(point)).status, ReefDataStatus.empty);
+    expect((await repo.protectionFor(point)).status, ReefDataStatus.empty);
+
+    pending.complete(http.Response(jsonEncode({'facets': []}), 200));
+    expect((await species).status, ReefDataStatus.empty);
+  });
+
+  test('protection and species round-trip through the cache', () async {
+    var protectionCalls = 0;
+    var speciesCalls = 0;
+    final repo = buildRepository(
+      protectionClient: MockClient((_) async {
+        protectionCalls++;
+        return http.Response(
+          jsonEncode({
+            'features': [
+              {
+                'attributes': {'site_name': 'Bonaire National Marine Park'},
+              },
+            ],
+          }),
+          200,
+        );
+      }),
+      speciesClient: MockClient((_) async {
+        speciesCalls++;
+        return http.Response(_facetBody([2384460]), 200);
+      }),
+    );
+    const point = GeoPoint(12.16, -68.28);
+
+    final firstProtection = await repo.protectionFor(point);
+    final secondProtection = await repo.protectionFor(point);
+    final firstSpecies = await repo.speciesFor(point);
+    final secondSpecies = await repo.speciesFor(point);
+
+    expect(protectionCalls, 1);
+    expect(speciesCalls, 1);
+    expect(secondProtection, firstProtection);
+    expect(secondSpecies, firstSpecies);
+    expect(secondSpecies.value!.matched.single.speciesId, 'sp_sixbar_wrasse');
+  });
+
+  test('a partial species result is shown but never cached', () async {
+    var searches = 0;
+    final repo = buildRepository(
+      speciesClient: MockClient((request) async {
+        if (request.url.path.endsWith('/occurrence/search')) {
+          searches++;
+          return http.Response(_facetBody([2384460, 111]), 200);
+        }
+        return http.Response('down', 503);
+      }),
+    );
+    const point = GeoPoint(12.16, -68.28);
+
+    final first = await repo.speciesFor(point);
+    final second = await repo.speciesFor(point);
+
+    expect(first.status, ReefDataStatus.ok);
+    expect(first.value!.namesIncomplete, isTrue);
+    expect(second.value!.namesIncomplete, isTrue);
+    expect(searches, 2, reason: 'the 30-day cache must not keep the gap');
+  });
+
+  test('forgetFailure lets the next read reach the network', () async {
+    var healthCalls = 0;
+    var speciesCalls = 0;
+    final repo = buildRepository(
+      healthClient: MockClient((_) async {
+        healthCalls++;
+        return http.Response('down', 503);
+      }),
+      speciesClient: MockClient((_) async {
+        speciesCalls++;
+        return http.Response('down', 503);
+      }),
+    );
+    const point = GeoPoint(12.16, -68.28);
+
+    await repo.currentHealthFor(point);
+    await repo.currentHealthFor(point);
+    await repo.speciesFor(point);
+    await repo.speciesFor(point);
+    expect(healthCalls, 1);
+    expect(speciesCalls, 1);
+
+    await repo.forgetFailure(ReefProviderId.health, point);
+    await repo.forgetFailure(ReefProviderId.species, point);
+    await repo.currentHealthFor(point);
+    await repo.speciesFor(point);
+
+    expect(healthCalls, 2);
+    expect(speciesCalls, 2);
+  });
+
+  test('forgetFailure leaves other parts cached', () async {
     final counting = MockClient((_) async {
       habitatCalls++;
       return http.Response(jsonEncode({'features': []}), 200);
     });
-
     final repo = buildRepository(habitatClient: counting);
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
-    await repo.habitatFor(const GeoPoint(12.16, -68.28));
+    const point = GeoPoint(12.16, -68.28);
 
-    expect(habitatCalls, 1);
-  });
+    await repo.habitatFor(point);
+    await repo.currentHealthFor(point);
 
-  test('one provider failing does not blank the others', () async {
-    final repo = buildRepository();
-    final snapshot = await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.forgetFailure(ReefProviderId.health, point);
+    await repo.forgetFailure(ReefProviderId.habitat, point);
+    await repo.habitatFor(point);
 
-    expect(snapshot.health.status, ReefDataStatus.unavailable);
-    expect(snapshot.habitat.status, ReefDataStatus.empty);
-    expect(snapshot.protection.status, ReefDataStatus.empty);
-    expect(snapshot.allUnavailable, isFalse);
+    expect(habitatCalls, 1, reason: 'an empty answer is a fact, not a failure');
   });
 
   test('a second call within the ttl serves from cache', () async {
@@ -206,8 +306,8 @@ void main() {
     });
 
     final repo = buildRepository(habitatClient: counting);
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.habitatFor(const GeoPoint(12.16, -68.28));
+    await repo.habitatFor(const GeoPoint(12.16, -68.28));
 
     expect(habitatCalls, 1);
   });
@@ -219,8 +319,8 @@ void main() {
     });
 
     final repo = buildRepository(habitatClient: counting);
-    await repo.snapshotFor(const GeoPoint(12.1601, -68.2801));
-    await repo.snapshotFor(const GeoPoint(12.1604, -68.2804));
+    await repo.habitatFor(const GeoPoint(12.1601, -68.2801));
+    await repo.habitatFor(const GeoPoint(12.1604, -68.2804));
 
     expect(habitatCalls, 1);
   });
@@ -234,9 +334,9 @@ void main() {
 
     final repo = buildRepository(habitatClient: counting);
     await Future.wait([
-      repo.snapshotFor(const GeoPoint(12.16, -68.28)),
-      repo.snapshotFor(const GeoPoint(12.16, -68.28)),
-      repo.snapshotFor(const GeoPoint(12.16, -68.28)),
+      repo.habitatFor(const GeoPoint(12.16, -68.28)),
+      repo.habitatFor(const GeoPoint(12.16, -68.28)),
+      repo.habitatFor(const GeoPoint(12.16, -68.28)),
     ]);
 
     expect(habitatCalls, 1);
@@ -249,13 +349,13 @@ void main() {
     });
 
     final repo = buildRepository(habitatClient: failing);
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.habitatFor(const GeoPoint(12.16, -68.28));
     clock = clock.add(const Duration(minutes: 30));
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.habitatFor(const GeoPoint(12.16, -68.28));
     expect(habitatCalls, 1);
 
     clock = clock.add(const Duration(hours: 2));
-    await repo.snapshotFor(const GeoPoint(12.16, -68.28));
+    await repo.habitatFor(const GeoPoint(12.16, -68.28));
     expect(habitatCalls, 2);
   });
 

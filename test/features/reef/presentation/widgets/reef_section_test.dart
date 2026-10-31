@@ -9,7 +9,6 @@ import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/domain/entities/reef_protection.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
@@ -19,25 +18,32 @@ import '../../../../helpers/l10n_test_helpers.dart';
 
 const _location = GeoPoint(12.16, -68.28);
 
-ReefSnapshot _snapshot({
+typedef _Parts = ({
+  ReefPart<ReefHabitat> habitat,
+  ReefPart<ReefHealth> health,
+  ReefPart<List<ReefProtection>> protection,
+});
+
+_Parts _snapshot({
   ReefPart<ReefHabitat> habitat = const ReefPart.empty(),
   ReefPart<ReefHealth>? health,
   ReefPart<List<ReefProtection>> protection = const ReefPart.empty(),
-}) => ReefSnapshot(
+}) => (
   habitat: habitat,
   health: health ?? const ReefPart.unavailable(),
   protection: protection,
-  species: const ReefPart.empty(),
 );
 
-Widget _harness(ReefSnapshot snapshot, {WaterType? waterType}) {
-  final request = ReefSnapshotRequest(
-    location: _location,
-    fetchHealth: waterType != WaterType.fresh,
-  );
+Widget _harness(_Parts parts, {WaterType? waterType}) {
   return ProviderScope(
     overrides: [
-      reefSnapshotProvider(request).overrideWith((ref) async => snapshot),
+      reefHabitatProvider(_location).overrideWith((ref) async => parts.habitat),
+      reefCurrentHealthProvider(
+        _location,
+      ).overrideWith((ref) async => parts.health),
+      reefProtectionProvider(
+        _location,
+      ).overrideWith((ref) async => parts.protection),
       // WaterConditionsCard reads the diver's unit setting, which chains
       // through settingsProvider to SharedPreferences. Overriding at the
       // narrowest point severs that chain without mocking preferences.

@@ -39006,7 +39006,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reef_section_sourcesTooltip => '数据来源';
 
   @override
-  String get reef_section_loadError => '目前无法加载生态系统数据';
+  String get reef_section_checking => '正在检查…';
 
   @override
   String get reef_habitat_title => '珊瑚礁生境';

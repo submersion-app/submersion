@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 /// protected area" is a fact, "could not check" is a failure.
 enum ReefDataStatus { ok, empty, unavailable }
 
-/// One provider's contribution to a [ReefSnapshot].
+/// One provider's answer for one location.
 class ReefPart<T> extends Equatable {
   final ReefDataStatus status;
   final T? value;

@@ -371,7 +371,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             siteId: site.id,
             readOnly: !_canEditSite(ref, site),
             location: site.location,
-            waterType: site.waterType,
           ),
       // Attachments and dive photos.
       SiteDetailSectionId.media: () =>

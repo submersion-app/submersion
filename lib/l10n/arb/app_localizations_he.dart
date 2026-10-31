@@ -40386,8 +40386,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'מקורות נתונים';
 
   @override
-  String get reef_section_loadError =>
-      'לא ניתן לטעון נתוני מערכת אקולוגית כרגע';
+  String get reef_section_checking => 'בודק…';
 
   @override
   String get reef_habitat_title => 'בית גידול השונית';

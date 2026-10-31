@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
-import 'package:submersion/features/reef/domain/entities/reef_snapshot.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -15,12 +14,7 @@ import 'package:submersion/features/reef/presentation/widgets/nearby_species_tie
 
 import '../../../../helpers/l10n_test_helpers.dart';
 
-ReefSnapshot _snapshot(ReefPart<NearbySpecies> species) => ReefSnapshot(
-  habitat: const ReefPart.empty(),
-  health: const ReefPart.empty(),
-  protection: const ReefPart.empty(),
-  species: species,
-);
+ReefPart<NearbySpecies> _snapshot(ReefPart<NearbySpecies> species) => species;
 
 const _catalogSpecies = Species(
   id: 'sp_whale_shark',
@@ -61,15 +55,13 @@ class _RecordingSpeciesRepository extends Fake implements SpeciesRepository {
 
 Widget _harness(
   GeoPoint location,
-  ReefSnapshot snapshot, {
+  ReefPart<NearbySpecies> species, {
   List<Species> catalog = const [_catalogSpecies],
   SpeciesRepository? repository,
 }) => ProviderScope(
   overrides: [
     validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-    reefSnapshotProvider(
-      ReefSnapshotRequest(location: location),
-    ).overrideWith((ref) async => snapshot),
+    reefNearbySpeciesProvider(location).overrideWith((ref) async => species),
     allSpeciesProvider.overrideWith((ref) async => catalog),
     if (repository != null)
       speciesRepositoryProvider.overrideWithValue(repository),

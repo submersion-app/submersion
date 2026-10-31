@@ -25263,7 +25263,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "This device cannot compress video. Originals are uploaded from it.",
   "reef_section_title": "Ecosystem",
   "reef_section_sourcesTooltip": "Data sources",
-  "reef_section_loadError": "Could not load ecosystem data right now",
+  "reef_section_checking": "Checking…",
   "reef_habitat_title": "Reef habitat",
   "reef_habitat_onReef": "On a coral reef",
   "reef_habitat_onReefWithThreat": "On a coral reef, threat level {threat}",

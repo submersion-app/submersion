@@ -41141,8 +41141,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Gegevensbronnen';
 
   @override
-  String get reef_section_loadError =>
-      'Ecosysteemgegevens konden nu niet worden geladen';
+  String get reef_section_checking => 'Bezig met controleren…';
 
   @override
   String get reef_habitat_title => 'Rifhabitat';

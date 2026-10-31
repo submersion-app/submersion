@@ -12568,7 +12568,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "لا يمكن لهذا الجهاز ضغط الفيديو. يتم رفع الملفات الأصلية منه.",
   "reef_section_title": "النظام البيئي",
   "reef_section_sourcesTooltip": "مصادر البيانات",
-  "reef_section_loadError": "تعذّر تحميل بيانات النظام البيئي الآن",
+  "reef_section_checking": "جارٍ التحقق…",
   "reef_habitat_title": "موئل الشعاب",
   "reef_habitat_onReef": "على شعاب مرجانية",
   "reef_habitat_onReefWithThreat": "على شعاب مرجانية، مستوى التهديد {threat}",

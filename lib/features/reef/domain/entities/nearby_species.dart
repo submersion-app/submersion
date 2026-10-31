@@ -39,9 +39,15 @@ class NearbySpecies extends Equatable {
   /// Scientific names only, for the regional long tail.
   final List<String> unmatchedNames;
 
+  /// True when a name lookup failed, so [unmatchedNames] may be short. Never
+  /// persisted: a result with a gap is shown once rather than kept for the
+  /// cache's 30-day lifetime.
+  final bool namesIncomplete;
+
   const NearbySpecies({
     this.matched = const [],
     this.unmatchedNames = const [],
+    this.namesIncomplete = false,
   });
 
   bool get isEmpty => matched.isEmpty && unmatchedNames.isEmpty;
@@ -62,5 +68,5 @@ class NearbySpecies extends Equatable {
   );
 
   @override
-  List<Object?> get props => [matched, unmatchedNames];
+  List<Object?> get props => [matched, unmatchedNames, namesIncomplete];
 }
