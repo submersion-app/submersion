@@ -222,7 +222,7 @@ void main() {
       showPressureThresholdMarkers: true,
     );
 
-    /// The tank lines' heights, the higher pressure (nearer the surface) first.
+    /// The tank lines' heights, the lower pressure (further down) first.
     List<double> tankLineYs(WidgetTester tester) =>
         [for (final bar in _flatLines(tester)) bar.spots.first.y]..sort();
 

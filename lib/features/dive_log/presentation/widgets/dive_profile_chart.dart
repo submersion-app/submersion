@@ -3546,7 +3546,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ...overlayPoints.map((p) => p.timestamp),
     ].reduce(math.max).toDouble();
 
-    // Temperature bounds (if showing) - in the user's preferred unit. The
+    // Temperature bounds (if showing), in the user's preferred unit. The
     // right axis's own range, so the active source's and every overlaid
     // source's curves read true against its labels. Overlays pool into it, so
     // it moves as they are toggled (see _syncBarSignatures).
