@@ -139,6 +139,8 @@ bool hasDataForMetric(
       return (min: 0.0, max: surfaceGfMaxScale);
 
     case ProfileRightAxisMetric.meanDepth:
+      // Only says the metric has data. Its line sits at real depth, so the
+      // axis reads the chart's depth scale rather than this range.
       if (config.meanDepthCurve == null) return null;
       final depths = config.meanDepthCurve!;
       if (depths.isEmpty) return null;
