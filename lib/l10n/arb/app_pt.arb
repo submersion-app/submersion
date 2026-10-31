@@ -8526,6 +8526,8 @@
   "insights_focus_standouts_more": "{count, plural, =1{e mais {count} na comparação completa} other{e mais {count} na comparação completa}}",
   "insights_focus_standouts_categoryAll": "Todos os {count} foram {value} ({baseline} de todos os seus mergulhos)",
   "insights_focus_standouts_categorySome": "{count} de {total} foram {value}, contra {baseline} de todos os seus mergulhos",
+  "insights_focus_standouts_categoryAllRecorded": "Todos os {count} foram {value} ({baseline} dos {coverage} com este dado registado)",
+  "insights_focus_standouts_categorySomeRecorded": "{count} de {total} foram {value}, contra {baseline} dos {coverage} com este dado registado",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} contra {baseline})",
   "insights_focus_direction_deeper": "mais fundo",
   "insights_focus_direction_shallower": "menos fundo",

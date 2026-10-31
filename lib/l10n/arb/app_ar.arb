@@ -8526,6 +8526,8 @@
   "insights_focus_standouts_more": "{count, plural, one{وواحدة أخرى في المقارنة الكاملة} two{واثنتان أخريان في المقارنة الكاملة} few{و{count} أخرى في المقارنة الكاملة} many{و{count} أخرى في المقارنة الكاملة} other{و{count} أخرى في المقارنة الكاملة}}",
   "insights_focus_standouts_categoryAll": "كل الغطسات الـ{count} كانت {value} ({baseline} من كل غطساتك)",
   "insights_focus_standouts_categorySome": "{count} من {total} كانت {value}، مقابل {baseline} من كل غطساتك",
+  "insights_focus_standouts_categoryAllRecorded": "كل الغطسات الـ{count} كانت {value} ({baseline} من {coverage} سُجّل فيها هذا)",
+  "insights_focus_standouts_categorySomeRecorded": "{count} من {total} كانت {value}، مقابل {baseline} من {coverage} سُجّل فيها هذا",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} مقابل {baseline})",
   "insights_focus_direction_deeper": "أعمق",
   "insights_focus_direction_shallower": "أقل عمقاً",

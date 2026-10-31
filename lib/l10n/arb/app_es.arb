@@ -8526,6 +8526,8 @@
   "insights_focus_standouts_more": "{count, plural, =1{y 1 más en la comparación completa} other{y {count} más en la comparación completa}}",
   "insights_focus_standouts_categoryAll": "Las {count} fueron {value} ({baseline} de todas tus inmersiones)",
   "insights_focus_standouts_categorySome": "{count} de {total} fueron {value}, frente a {baseline} de todas tus inmersiones",
+  "insights_focus_standouts_categoryAllRecorded": "Las {count} fueron {value} ({baseline} de las {coverage} con este dato registrado)",
+  "insights_focus_standouts_categorySomeRecorded": "{count} de {total} fueron {value}, frente a {baseline} de las {coverage} con este dato registrado",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} frente a {baseline})",
   "insights_focus_direction_deeper": "más profundo",
   "insights_focus_direction_shallower": "menos profundo",

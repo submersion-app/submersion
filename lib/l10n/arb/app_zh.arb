@@ -8700,6 +8700,8 @@
   "insights_focus_standouts_more": "{count, plural, =1{完整对比中还有 1 项} other{完整对比中还有 {count} 项}}",
   "insights_focus_standouts_categoryAll": "全部 {count} 次均为{value}（占你全部潜水的 {baseline}）",
   "insights_focus_standouts_categorySome": "{total} 次中有 {count} 次为{value}，而全部潜水中为 {baseline}",
+  "insights_focus_standouts_categoryAllRecorded": "全部 {count} 次均为{value}（在已记录此项的 {coverage}中占 {baseline}）",
+  "insights_focus_standouts_categorySomeRecorded": "{total} 次中有 {count} 次为{value}，而在已记录此项的 {coverage}中为 {baseline}",
   "insights_focus_standouts_numeric": "{factor}{direction} {difference}（{group} 对比 {baseline}）",
   "insights_focus_direction_deeper": "深",
   "insights_focus_direction_shallower": "浅",

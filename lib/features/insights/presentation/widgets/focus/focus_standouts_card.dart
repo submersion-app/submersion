@@ -118,7 +118,30 @@ class FocusStandoutsCard extends ConsumerWidget {
           typesById: typesById,
         );
         final baseline = percent.format(share.baselineShare);
-        return share.groupCount >= f.groupSize
+        final wholeGroup = share.groupCount >= f.groupSize;
+        if (f.baselineIsPartial) {
+          // A recorded-only share is not a share of all dives: name what it
+          // is a share of (issue #3915).
+          final coverage = l10n.insights_focus_factors_coverage(
+            f.baselineCovered,
+            f.baselineSize,
+          );
+          return wholeGroup
+              ? l10n.insights_focus_standouts_categoryAllRecorded(
+                  share.groupCount,
+                  value,
+                  baseline,
+                  coverage,
+                )
+              : l10n.insights_focus_standouts_categorySomeRecorded(
+                  share.groupCount,
+                  f.groupSize,
+                  value,
+                  baseline,
+                  coverage,
+                );
+        }
+        return wholeGroup
             ? l10n.insights_focus_standouts_categoryAll(
                 share.groupCount,
                 value,

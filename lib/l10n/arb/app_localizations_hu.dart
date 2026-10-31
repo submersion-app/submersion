@@ -29461,6 +29461,27 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Mind a(z) $count $value volt ($baseline az ezt rögzítő $coverage közül)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total merülésből $count $value volt, szemben az ezt rögzítő $coverage $baseline arányával';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,

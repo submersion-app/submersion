@@ -30,10 +30,15 @@ CategoricalFactor category(
   FocusFactorId id,
   List<(String, double, double)> top, {
   bool standsOut = false,
+  int? groupCovered,
+  int baselineCovered = 20,
+  int baselineSize = 20,
 }) => CategoricalFactor(
   id: id,
-  groupCovered: top.isEmpty ? 0 : 10,
+  groupCovered: groupCovered ?? (top.isEmpty ? 0 : 10),
   groupSize: 10,
+  baselineCovered: baselineCovered,
+  baselineSize: baselineSize,
   top: [
     for (final (k, g, b) in top)
       CategoryShare(
@@ -210,6 +215,60 @@ void main() {
     await pump(tester, report, width: 400);
     expect(find.text('Difference'), findsNothing);
     expect(find.textContaining('-2.1'), findsOneWidget);
+  });
+
+  testWidgets('a partly recorded baseline shows its coverage on both sides', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          category(
+            FocusFactorId.entryMethod,
+            [('boat', 1.0, 0.6)],
+            standsOut: true,
+            baselineCovered: 5,
+            baselineSize: 10,
+          ),
+        ],
+      ),
+    );
+    expect(find.text('60%'), findsOneWidget);
+    expect(find.text('10 of 10 dives'), findsOneWidget);
+    expect(find.text('5 of 10 dives'), findsOneWidget);
+    final percent = tester.getTopLeft(find.text('60%'));
+    final coverage = tester.getTopLeft(find.text('5 of 10 dives'));
+    expect(coverage.dx, percent.dx);
+    expect(coverage.dy, greaterThan(percent.dy));
+  });
+
+  testWidgets('a partly recorded group shows its own coverage', (tester) async {
+    await pump(
+      tester,
+      FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          category(
+            FocusFactorId.entryMethod,
+            [('boat', 1.0, 0.6)],
+            standsOut: true,
+            groupCovered: 4,
+            baselineCovered: 5,
+            baselineSize: 10,
+          ),
+        ],
+      ),
+    );
+    expect(find.text('4 of 10 dives'), findsOneWidget);
+    expect(find.text('5 of 10 dives'), findsOneWidget);
+  });
+
+  testWidgets('a fully recorded category shows no coverage', (tester) async {
+    await pump(tester, report);
+    expect(find.textContaining(' of 10 dives'), findsNothing);
+    expect(find.textContaining(' of 20 dives'), findsNothing);
   });
 
   testWidgets('too few dives renders nothing', (tester) async {

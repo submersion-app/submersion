@@ -16941,6 +16941,25 @@
       "baseline": { "type": "String" }
     }
   },
+  "insights_focus_standouts_categoryAllRecorded": "All {count} were {value} ({baseline} of the {coverage} with this recorded)",
+  "@insights_focus_standouts_categoryAllRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
+  "insights_focus_standouts_categorySomeRecorded": "{count} of {total} were {value}, against {baseline} of the {coverage} with this recorded",
+  "@insights_focus_standouts_categorySomeRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} vs {baseline})",
   "@insights_focus_standouts_numeric": {
     "placeholders": {
