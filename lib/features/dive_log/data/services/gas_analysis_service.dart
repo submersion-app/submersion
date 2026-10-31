@@ -240,8 +240,9 @@ class GasAnalysisService {
 
       if (sacRate == null) continue;
 
+      final breathedSec = usageWindows.breathedBetween(seg.start, seg.end);
       final durationMin =
-          usageWindows.breathedBetween(seg.start, seg.end) / 60.0;
+          (breathedSec > 0 ? breathedSec : seg.end - seg.start) / 60.0;
       final breathedDepth =
           sacProfile.map((p) => p.depth).reduce((a, b) => a + b) /
           sacProfile.length;
