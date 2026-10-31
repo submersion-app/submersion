@@ -16672,6 +16672,8 @@
   "insights_category_timePatterns_subtitle": "When you dive",
   "insights_category_timePatterns_title": "Time Patterns",
   "insights_chart_barSemanticLabel": "Bar chart with {count} categories",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
+  "@insights_chart_barRowSemanticLabel": {"description": "Screen reader label of a tappable bar chart row", "placeholders": {"count": {"type": "String"}, "label": {"type": "String"}}},
   "insights_chart_distributionSemanticLabel": "Distribution pie chart with {count} segments",
   "insights_chart_multiTrendSemanticLabel": "Multi-trend line chart comparing {seriesNames}",
   "insights_chart_noBarData": "No data available",

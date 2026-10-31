@@ -8254,6 +8254,7 @@
   "insights_category_overview_title": "Aperçu",
   "insights_category_overview_subtitle": "Totaux, records et répartitions en un coup d'œil",
   "insights_chart_barSemanticLabel": "Diagramme en barres avec {count} catégories",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Diagramme circulaire de distribution avec {count} segments",
   "insights_chart_multiTrendSemanticLabel": "Graphique de tendances multiples comparant {seriesNames}",
   "insights_chart_noBarData": "Aucune donnée disponible",

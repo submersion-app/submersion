@@ -46449,6 +46449,12 @@ abstract class AppLocalizations {
   /// **'Bar chart with {count} categories'**
   String insights_chart_barSemanticLabel(Object count);
 
+  /// Screen reader label of a tappable bar chart row
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {count}'**
+  String insights_chart_barRowSemanticLabel(String count, String label);
+
   /// No description provided for @insights_chart_distributionSemanticLabel.
   ///
   /// In en, this message translates to:

@@ -8488,6 +8488,7 @@
   "insights_category_overview_title": "Überblick",
   "insights_category_overview_subtitle": "Summen, Rekorde & Aufschlüsselungen auf einen Blick",
   "insights_chart_barSemanticLabel": "Balkendiagramm mit {count} Kategorien",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Kreisdiagramm mit {count} Segmenten",
   "insights_chart_multiTrendSemanticLabel": "Mehrzeiliges Trenddiagramm zum Vergleich von {seriesNames}",
   "insights_chart_noBarData": "Keine Daten verfügbar",

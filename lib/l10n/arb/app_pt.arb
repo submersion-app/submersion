@@ -8355,6 +8355,7 @@
   "insights_category_overview_title": "Visão geral",
   "insights_category_overview_subtitle": "Totais, recordes e detalhamentos num relance",
   "insights_chart_barSemanticLabel": "Gráfico de barras com {count} categorias",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Gráfico de pizza de distribuição com {count} segmentos",
   "insights_chart_multiTrendSemanticLabel": "Gráfico de linhas multi-tendência comparando {seriesNames}",
   "insights_chart_noBarData": "Nenhum dado disponível",

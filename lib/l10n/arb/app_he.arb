@@ -8355,6 +8355,7 @@
   "insights_category_overview_title": "סקירה כללית",
   "insights_category_overview_subtitle": "סיכומים, שיאים ופילוחים במבט אחד",
   "insights_chart_barSemanticLabel": "תרשים עמודות עם {count} קטגוריות",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "תרשים עוגה עם {count} מקטעים",
   "insights_chart_multiTrendSemanticLabel": "תרשים מגמה רב-קווי המשווה {seriesNames}",
   "insights_chart_noBarData": "אין נתונים זמינים",

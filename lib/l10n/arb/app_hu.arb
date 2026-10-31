@@ -8254,6 +8254,7 @@
   "insights_category_overview_title": "Áttekintés",
   "insights_category_overview_subtitle": "Összesítések, rekordok és bontások egy pillantásra",
   "insights_chart_barSemanticLabel": "Oszlopdiagram {count} kategóriával",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Megoszlási kördiagram {count} szegmenssel",
   "insights_chart_multiTrendSemanticLabel": "Többszörös trend vonaldiagram, {seriesNames} összehasonlítása",
   "insights_chart_noBarData": "Nincsenek elérhető adatok",

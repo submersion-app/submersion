@@ -28963,6 +28963,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Grafico a torta con $count segmenti';
   }

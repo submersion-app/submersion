@@ -8355,6 +8355,7 @@
   "insights_category_overview_title": "Resumen",
   "insights_category_overview_subtitle": "Totales, récords y desgloses de un vistazo",
   "insights_chart_barSemanticLabel": "Gráfico de barras con {count} categorías",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Gráfico circular de distribución con {count} segmentos",
   "insights_chart_multiTrendSemanticLabel": "Gráfico de líneas multitendencia comparando {seriesNames}",
   "insights_chart_noBarData": "No hay datos disponibles",

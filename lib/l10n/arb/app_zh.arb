@@ -8529,6 +8529,7 @@
   "insights_category_overview_title": "概览",
   "insights_category_overview_subtitle": "总计、纪录和分类一目了然",
   "insights_chart_barSemanticLabel": "包含 {count} 个类别的柱状图",
+  "insights_chart_barRowSemanticLabel": "{label}，{count}",
   "insights_chart_distributionSemanticLabel": "包含 {count} 个扇区的分布饼图",
   "insights_chart_multiTrendSemanticLabel": "比较 {seriesNames} 的多趋势折线图",
   "insights_chart_noBarData": "无可用数据",

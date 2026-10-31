@@ -27302,6 +27302,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label，$count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return '包含 $count 个扇区的分布饼图';
   }

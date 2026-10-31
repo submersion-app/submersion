@@ -8355,6 +8355,7 @@
   "insights_category_overview_title": "Overzicht",
   "insights_category_overview_subtitle": "Totalen, records en uitsplitsingen in één oogopslag",
   "insights_chart_barSemanticLabel": "Staafdiagram met {count} categorieën",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Cirkeldiagram met {count} segmenten",
   "insights_chart_multiTrendSemanticLabel": "Multi-trend lijndiagram die {seriesNames} vergelijkt",
   "insights_chart_noBarData": "Geen gegevens beschikbaar",

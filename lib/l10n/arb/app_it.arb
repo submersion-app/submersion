@@ -8250,6 +8250,7 @@
   "insights_category_overview_title": "Panoramica",
   "insights_category_overview_subtitle": "Totali, record e ripartizioni a colpo d'occhio",
   "insights_chart_barSemanticLabel": "Grafico a barre con {count} categorie",
+  "insights_chart_barRowSemanticLabel": "{label}, {count}",
   "insights_chart_distributionSemanticLabel": "Grafico a torta con {count} segmenti",
   "insights_chart_multiTrendSemanticLabel": "Grafico a linee multiple che confronta {seriesNames}",
   "insights_chart_noBarData": "Nessun dato disponibile",

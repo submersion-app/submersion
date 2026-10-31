@@ -8355,6 +8355,7 @@
   "insights_category_overview_title": "نظرة عامة",
   "insights_category_overview_subtitle": "الإجماليات والأرقام القياسية والتفصيلات في لمحة",
   "insights_chart_barSemanticLabel": "مخطط أعمدة بـ {count} فئات",
+  "insights_chart_barRowSemanticLabel": "{label}، {count}",
   "insights_chart_distributionSemanticLabel": "مخطط دائري للتوزيع بـ {count} شرائح",
   "insights_chart_multiTrendSemanticLabel": "مخطط خطوط متعددة الاتجاهات يقارن {seriesNames}",
   "insights_chart_noBarData": "لا توجد بيانات متاحة",
