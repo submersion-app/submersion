@@ -793,5 +793,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // Issue #3343: the v62 view_configs unique index, which a fresh install
     // never got (before_open_view_configs.dart).
     await _assertViewConfigsUniqueIndex();
+
+    await _assertChangeLogTables(); // v328 (#3922)
   }
 }

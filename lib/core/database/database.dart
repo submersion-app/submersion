@@ -4,6 +4,7 @@ import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/certification_currency_tables.dart';
+import 'package:submersion/core/database/tables/change_log_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
@@ -290,6 +291,11 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SharedSiteSuggestions,
     SharedLibraryBackups,
     LibrarySiteNotes,
+    // Per-device change log (v328, issue #3922)
+    ChangeLogContext,
+    ChangeLogOperations,
+    ChangeLogEvents,
+    ChangeLogFields,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -299,7 +305,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 327;
+  static const int currentSchemaVersion = 328;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1484,6 +1490,9 @@ class AppDatabase extends _$AppDatabase {
     // upgraded database (issue #3809). Drift never read or wrote them, and
     // sync never carried them, so the floor does not move.
     327,
+    // v328: the per-device change log tables (issue #3922). Local only and
+    // never synced, so the floor does not move.
+    328,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -44,6 +44,7 @@ import 'package:submersion/features/documents/domain/entities/document_page.dart
 
 part 'before_open.dart';
 part 'before_open_backup_note.dart';
+part 'before_open_change_log.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_settings_columns.dart';
 part 'before_open_course_links.dart';
@@ -53,6 +54,7 @@ part 'before_open_view_configs.dart';
 part 'helpers/buddy_card_migrations.dart';
 part 'helpers/buddy_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
+part 'helpers/change_log_migrations.dart';
 part 'helpers/checklist_section_migrations.dart';
 part 'helpers/computer_tissue_migrations.dart';
 part 'helpers/connection_migrations.dart';

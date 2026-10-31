@@ -701,5 +701,10 @@ extension RungsFromV231 on AppDatabase {
       await _dropMisspelledPpO2DecoBandColumns();
     }
     if (from < 327) await reportProgress();
+
+    // v328: the per-device change log tables (issue #3922). Table-only rung,
+    // no backfill; the log starts empty. Re-asserted in beforeOpen.
+    if (from < 328) await _assertChangeLogSchema();
+    if (from < 328) await reportProgress();
   }
 }
