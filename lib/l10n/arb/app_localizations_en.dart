@@ -22735,6 +22735,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Sync error';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'Sign-in needed';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account needs you to sign in again.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Syncing...';
 
   @override
@@ -37590,6 +37598,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => 'Sign in again';
+
+  @override
+  String get settings_accounts_differentAccount_title =>
+      'That\'s a different account';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion uses $expected, but you signed in as $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Nothing was synced, and $signedIn was not connected.';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {

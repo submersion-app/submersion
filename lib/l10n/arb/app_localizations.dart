@@ -36673,6 +36673,18 @@ abstract class AppLocalizations {
   /// **'Sync error'**
   String get settings_cloudSync_status_syncError;
 
+  /// No description provided for @settings_cloudSync_status_signInNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in needed'**
+  String get settings_cloudSync_status_signInNeeded;
+
+  /// Cloud Sync status card while the account needs signing in again; account is its name
+  ///
+  /// In en, this message translates to:
+  /// **'{account} needs you to sign in again.'**
+  String settings_cloudSync_signInNeeded_message(String account);
+
   /// No description provided for @settings_cloudSync_status_syncing.
   ///
   /// In en, this message translates to:
@@ -60227,6 +60239,27 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in again'**
   String get settings_accounts_signInAgain;
+
+  /// No description provided for @settings_accounts_differentAccount_title.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a different account'**
+  String get settings_accounts_differentAccount_title;
+
+  /// Dialog after signing in to a different account than the one in use; both are addresses
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion uses {expected}, but you signed in as {signedIn}.'**
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  );
+
+  /// Second paragraph of that dialog; signedIn is the other address
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was synced, and {signedIn} was not connected.'**
+  String settings_accounts_differentAccount_nothingSynced(String signedIn);
 
   /// No description provided for @settings_accounts_usedHere.
   ///

@@ -10,6 +10,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
+import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -24,6 +27,8 @@ import 'package:submersion/features/settings/presentation/widgets/sync/sync_acco
 import 'package:submersion/features/settings/presentation/widgets/sync/nearby_devices_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_advanced_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/sign_in_again_button.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -122,10 +127,26 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
   ) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    // From health, not the status: after a restart the status starts as idle
+    // while the sign-in problem is still there.
+    final needsSignIn =
+        ref.watch(syncHealthProvider).reason == HealthReason.syncSignedOut &&
+        syncState.status != SyncStatus.syncing;
+    final signInGroup = needsSignIn
+        ? ref.watch(signInAgainGroupProvider(DataFeature.sync)).value
+        : null;
+    final title = needsSignIn
+        ? l10n.settings_cloudSync_status_signInNeeded
+        : _getStatusTitle(l10n, syncState.status);
+    final message = signInGroup != null
+        ? l10n.settings_cloudSync_signInNeeded_message(signInGroup.label)
+        : syncState.message;
+    final opensTroubleshoot =
+        needsSignIn || syncState.status == SyncStatus.error;
 
     return Semantics(
       label: [
-        _getStatusTitle(l10n, syncState.status),
+        title,
         if (syncState.lastSync != null)
           l10n.settings_cloudSync_lastSynced(
             _formatDateTime(l10n, syncState.lastSync!),
@@ -139,7 +160,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
         // On an error, the whole card is a shortcut into Troubleshoot Sync so a
         // stuck user finds the way out where the error is shown (issue #509).
         child: InkWell(
-          onTap: syncState.status == SyncStatus.error
+          onTap: opensTroubleshoot
               ? () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const TroubleshootSyncPage(),
@@ -159,22 +180,27 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _getStatusTitle(l10n, syncState.status),
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          if (syncState.message != null)
-                            Text(
-                              syncState.message!,
-                              style: theme.textTheme.bodySmall,
-                            ),
+                          Text(title, style: theme.textTheme.titleMedium),
+                          if (message != null)
+                            Text(message, style: theme.textTheme.bodySmall),
                         ],
                       ),
                     ),
-                    if (syncState.status == SyncStatus.error)
-                      const Icon(Icons.chevron_right),
+                    if (opensTroubleshoot) const Icon(Icons.chevron_right),
                   ],
                 ),
+                if (needsSignIn)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: SignInAgainButton(
+                        feature: DataFeature.sync,
+                        filled: true,
+                        onPressed: (group) => signInAgain(context, ref, group),
+                      ),
+                    ),
+                  ),
                 if (syncState.status == SyncStatus.syncing &&
                     syncState.progress != null) ...[
                   const SizedBox(height: 16),

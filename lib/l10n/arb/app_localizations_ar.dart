@@ -23385,6 +23385,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'خطأ في المزامنة';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'يلزم تسجيل الدخول';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return 'يتطلب $account تسجيل الدخول مجددًا.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'جارٍ المزامنة...';
 
   @override
@@ -38700,6 +38708,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => 'تسجيل الدخول مرة أخرى';
+
+  @override
+  String get settings_accounts_differentAccount_title => 'هذا حساب مختلف';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'يستخدم Submersion الحساب $expected، لكنك سجّلت الدخول باستخدام $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'لم تتم مزامنة أي شيء، ولم يتم ربط $signedIn.';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {

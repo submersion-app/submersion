@@ -35,6 +35,9 @@ enum HealthReason {
   backupOverdue,
   backupNever,
   backupCloudCopyMissing,
+
+  /// The cloud copy is missing, and signing in again would help (#3811).
+  backupCloudSignIn,
   backupNoOffDeviceCopy,
   syncCustomFolder,
   syncOff,
@@ -81,6 +84,11 @@ class FeatureHealth extends Equatable {
   @override
   List<Object?> get props => [feature, level, reason, when, count, name];
 }
+
+/// Whether [health] is one that signing in again would fix (issue #3811).
+bool offersSignInAgain(FeatureHealth health) =>
+    health.reason == HealthReason.syncSignedOut ||
+    health.reason == HealthReason.backupCloudSignIn;
 
 /// The most severe of [candidates]; ties go to the earliest. With none, the
 /// feature is healthy.

@@ -916,7 +916,10 @@ class DiveMergeService {
       }
 
       // Routes and the other records back on their sources (issue #3918).
-      await _navTracks.restoreLinks(snapshot.navTrackRows);
+      await _navTracks.restoreLinks(
+        snapshot.navTrackRows,
+        survivingDiveId: mergedId,
+      );
       await _foldLinks.restore(snapshot.linkedRows, now: now);
     });
 

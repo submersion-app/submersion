@@ -22556,6 +22556,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'שגיאת סנכרון';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'נדרשת התחברות';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account מבקש שתתחבר מחדש.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'מסנכרן...';
 
   @override
@@ -37277,6 +37285,22 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => 'התחברות מחדש';
+
+  @override
+  String get settings_accounts_differentAccount_title => 'זה חשבון אחר';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion משתמש ב-$expected, אבל התחברת בתור $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'שום דבר לא סונכרן, ו-$signedIn לא חובר.';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {

@@ -1,81 +1,50 @@
-import 'package:flutter/foundation.dart';
-
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
-import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 
 /// Downsampled depth profiles for the dive list's mini charts, keyed by dive
-/// id, plus the ids of any series whose blob did not decode.
-///
-/// The unreadable ids come back rather than being logged where they are
-/// found, because the summarising runs on a background isolate and the
-/// logger lives on the UI one.
-typedef SparklineSummaries = ({
-  Map<String, List<DiveProfilePoint>> byDive,
-  List<String> unreadableSeriesIds,
-});
+/// id.
+typedef SparklineSummaries =
+    SeriesReduction<Map<String, List<DiveProfilePoint>>>;
 
-/// [summarizeSparklines] on a background isolate.
+/// [sparklineReduction] over [rows] on a background isolate.
 ///
 /// A page of the dive list carries up to 50 full-resolution blobs, and
 /// decoding, merging and downsampling them on the UI isolate cost 14 to 45 ms
 /// in a debug build, landing mid-fling as one to three dropped frames per
-/// page (#3506). On the web, where there are no isolates, [compute] runs the
-/// same work in place.
+/// page (#3506).
 Future<SparklineSummaries> summarizeSparklinesInBackground(
   List<DiveProfileSeriesRow> rows, {
   required int maxSamples,
-}) {
-  if (rows.isEmpty) {
-    return Future.value((
-      byDive: const <String, List<DiveProfilePoint>>{},
-      unreadableSeriesIds: const <String>[],
-    ));
-  }
-  return compute(_summarize, (rows: rows, maxSamples: maxSamples));
-}
+}) => reduceSeriesRowsInBackground(
+  rows,
+  sparklineReduction(maxSamples: maxSamples),
+);
 
-SparklineSummaries _summarize(
-  ({List<DiveProfileSeriesRow> rows, int maxSamples}) request,
-) => summarizeSparklines(request.rows, maxSamples: request.maxSamples);
-
-/// Summarises each dive in [rows] to at most [maxSamples] points.
+/// Summarises each dive in a page of series to at most [maxSamples] points.
 ///
-/// [rows] must be grouped by dive and ordered within each dive as
+/// The series must be grouped by dive and ordered within each dive as
 /// `ProfileSeriesRepository.getRowsForDives` returns them. A dive whose every
 /// series is unreadable, or that has none, is absent from the result. Uses
 /// the dive's primary series when it has any, every series otherwise
 /// ([_sparklineSeries]).
-SparklineSummaries summarizeSparklines(
-  List<DiveProfileSeriesRow> rows, {
+SeriesReduce<Map<String, List<DiveProfilePoint>>> sparklineReduction({
   required int maxSamples,
-}) {
+}) => (series) {
   final byDive = <String, List<ProfileSeries>>{};
-  final unreadable = <String>[];
-  for (final row in rows) {
-    final ProfileSeries series;
-    try {
-      series = decodeProfileSeriesRow(row);
-    } on ProfileSeriesCodecException {
-      unreadable.add(row.id);
-      continue;
-    }
-    byDive.putIfAbsent(row.diveId, () => []).add(series);
+  for (final s in series) {
+    byDive.putIfAbsent(s.diveId, () => []).add(s);
   }
-  return (
-    byDive: {
-      for (final entry in byDive.entries)
-        entry.key: _downsample([
-          for (final p in mergeSeriesPoints(_sparklineSeries(entry.value)))
-            DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
-        ], maxSamples),
-    },
-    unreadableSeriesIds: unreadable,
-  );
-}
+  return {
+    for (final entry in byDive.entries)
+      entry.key: _downsample([
+        for (final p in mergeSeriesPoints(_sparklineSeries(entry.value)))
+          DiveProfilePoint(timestamp: p.timestamp, depth: p.depth),
+      ], maxSamples),
+  };
+};
 
 /// The series a sparkline summarises: the primary ones when the dive has
 /// any, every series otherwise.
@@ -84,7 +53,7 @@ SparklineSummaries summarizeSparklines(
 /// the dive or the originals a saved edit superseded. Interleaving either
 /// with the primary drew the mini chart as a sawtooth between two
 /// computers' depths (#543). With a primary present this matches
-/// `getDiveProfile`'s `primaryOnly` read, so the mini chart and the lazily
+/// `getDiveProfile`'s primary-only read, so the mini chart and the lazily
 /// loaded list profile show the same shape. The two deliberately differ
 /// when NO series is primary (none promoted yet): that read returns an
 /// empty list, while a sparkline is better drawn from whatever exists
