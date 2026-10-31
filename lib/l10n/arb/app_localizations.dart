@@ -2150,6 +2150,12 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get common_action_dismiss;
 
+  /// Button on a status message that closes it and every message waiting behind it
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get common_action_dismissAll;
+
   /// No description provided for @equipment_setEdit_defaultSwitch_title.
   ///
   /// In en, this message translates to:
@@ -13603,11 +13609,23 @@ abstract class AppLocalizations {
   /// **'No Buddy'**
   String get diveLog_filterChip_noBuddy;
 
+  /// No description provided for @diveLog_filterChip_noEntryMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'No Entry Method'**
+  String get diveLog_filterChip_noEntryMethod;
+
   /// No description provided for @diveLog_filterChip_noRole.
   ///
   /// In en, this message translates to:
   /// **'No Role'**
   String get diveLog_filterChip_noRole;
+
+  /// No description provided for @diveLog_filterChip_noWaterType.
+  ///
+  /// In en, this message translates to:
+  /// **'No Water Type'**
+  String get diveLog_filterChip_noWaterType;
 
   /// No description provided for @diveLog_filterChip_until.
   ///
@@ -13729,6 +13747,12 @@ abstract class AppLocalizations {
   /// **'No Buddy Assigned'**
   String get diveLog_filter_noBuddyOnly;
 
+  /// No description provided for @diveLog_filter_noEntryMethodOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'No entry method recorded'**
+  String get diveLog_filter_noEntryMethodOnly;
+
   /// No description provided for @diveLog_filter_noRoleOnly.
   ///
   /// In en, this message translates to:
@@ -13848,6 +13872,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show only dives without a buddy'**
   String get diveLog_filter_showOnlyNoBuddy;
+
+  /// No description provided for @diveLog_filter_showOnlyNoEntryMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Show only dives with no known entry method'**
+  String get diveLog_filter_showOnlyNoEntryMethod;
 
   /// No description provided for @diveLog_filter_showOnlyNoRole.
   ///
@@ -24486,6 +24516,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Details'**
   String get equipment_detail_detailsTitle;
+
+  /// No description provided for @equipment_detail_diveTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Time'**
+  String get equipment_detail_diveTimeLabel;
 
   /// No description provided for @equipment_detail_divesCountPlural.
   ///

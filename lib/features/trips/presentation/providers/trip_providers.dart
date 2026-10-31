@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -278,7 +277,13 @@ final diveIdsForTripProvider = FutureProvider.family<List<String>, String>((
   return repository.getDiveIdsForTrip(tripId, diverId: diverId);
 });
 
-/// Full dive entities for a trip provider.
+/// A trip's dives, for the screens that list them.
+///
+/// Every trip screen waits on this, so it reads the dives without decoding a
+/// profile or pressure series for each one (issue #3831). What a card can show
+/// is all there, SAC and tank pressures included, but `Dive.profile` is empty
+/// on nearly every dive: a screen that draws one reads it through
+/// `getMergedProfile`.
 ///
 /// Scoped to the currently-active diver so that shared trips only show that
 /// diver's dives. See [diveIdsForTripProvider] for why this self-invalidates
@@ -303,11 +308,7 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
     diverId: diverId,
   );
   if (diveIds.isEmpty) return [];
-  // getDivesByIds does not load the dive_buddies junction; attach it so the
-  // cards' Buddy field matches the Dives tab (#3039).
-  return ref
-      .read(buddyRepositoryProvider)
-      .withBuddies(await diveRepository.getDivesByIds(diveIds));
+  return diveRepository.getDivesByIdsWithoutSamples(diveIds);
 });
 
 /// Trip search provider

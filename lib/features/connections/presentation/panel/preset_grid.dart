@@ -204,6 +204,8 @@ class _SavedMapMenu extends ConsumerWidget {
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(l10n.connections_savedMap_deleted(map.name)),
+                  duration: const Duration(seconds: 5),
+                  persist: false,
                   action: SnackBarAction(
                     label: l10n.connections_savedMap_undo,
                     onPressed: () => repo.restore(map),

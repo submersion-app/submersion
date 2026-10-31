@@ -20,8 +20,8 @@ extension EquipmentLocationMigrations on AppDatabase {
     await Migrator(this).createTable(equipmentLocationMoves);
   }
 
-  /// `equipment_locations.dive_center_id` (v328, issue #3623). Safe from
-  /// both the v328 rung and the beforeOpen backstop.
+  /// `equipment_locations.dive_center_id` (v331, issue #3623). Safe from
+  /// both the v331 rung and the beforeOpen backstop.
   Future<void> _assertEquipmentLocationCenterColumn() async {
     await _addColumnIfMissing(
       'equipment_locations',

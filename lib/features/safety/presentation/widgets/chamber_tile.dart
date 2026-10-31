@@ -170,6 +170,8 @@ class _ChamberMenu extends ConsumerWidget {
           messenger.showSnackBar(
             SnackBar(
               content: Text(l10n.emergencyCard_chamberHidden),
+              duration: const Duration(seconds: 5),
+              persist: false,
               action: SnackBarAction(
                 label: l10n.emergencyCard_undo,
                 onPressed: () => notifier.setChamberHidden(chamber.id, false),

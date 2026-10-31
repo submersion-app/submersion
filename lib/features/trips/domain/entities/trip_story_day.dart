@@ -62,7 +62,12 @@ class TripStoryDay extends Equatable {
   final int dayNumber;
   final ItineraryDay? itineraryDay;
   final List<Dive> dives;
+
+  /// The day's earliest media, for the photo strip: a preview, not all of it.
+  /// [mediaCount] and [photoCount] cover the whole day.
   final List<MediaItem> media;
+  final int mediaCount;
+  final int photoCount;
   final List<Sighting> sightings;
   final TripStoryDayKind kind;
 
@@ -73,6 +78,8 @@ class TripStoryDay extends Equatable {
     this.itineraryDay,
     this.dives = const [],
     this.media = const [],
+    this.mediaCount = 0,
+    this.photoCount = 0,
     this.sightings = const [],
   });
 
@@ -139,6 +146,8 @@ class TripStoryDay extends Equatable {
     itineraryDay,
     dives,
     media,
+    mediaCount,
+    photoCount,
     sightings,
     kind,
   ];

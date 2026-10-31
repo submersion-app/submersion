@@ -131,7 +131,7 @@ page.
 `equipment_locations.dive_center_id`: text, nullable, foreign key to
 `dive_centers(id)`, `ON DELETE SET NULL`.
 
-- Schema v328 at time of writing. Renumber if another PR ships that version
+- Schema v331 at time of writing. Renumber if another PR ships that version
   first. Rung in `migrations/ladder/rungs_v231_onward.dart`, an idempotent
   column assert in `migrations/helpers/equipment_location_migrations.dart`,
   re-asserted from `before_open_child_columns.dart`. Never in `database.dart`.

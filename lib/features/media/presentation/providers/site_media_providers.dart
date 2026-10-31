@@ -34,9 +34,9 @@ final mediaCountForSiteProvider = FutureProvider.family<int, String>((
 });
 
 /// Media from dives logged at the site, grouped by dive with empty dives
-/// dropped. Same bounded fan-out as mediaForTripProvider: a single
-/// Future.wait over every dive would fire hundreds of DB/IO calls at once
-/// on a busy site, while sequential awaits grow first paint linearly.
+/// dropped. A bounded fan-out: a single Future.wait over every dive would
+/// fire hundreds of DB/IO calls at once on a busy site, while sequential
+/// awaits grow first paint linearly.
 final mediaFromDivesAtSiteProvider =
     FutureProvider.family<Map<Dive, List<MediaItem>>, String>((
       ref,

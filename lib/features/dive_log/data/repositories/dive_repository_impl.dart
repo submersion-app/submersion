@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -40,6 +42,7 @@ import 'package:submersion/features/dive_log/domain/entities/tank_shared_compute
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_scrubber_entry.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart'
@@ -461,199 +464,206 @@ class DiveRepository {
           query.where((t) => t.diverId.equals(diverId));
         }
 
-        final rows = await query.get();
-        if (rows.isEmpty) return [];
-
-        // Batch load all related data to avoid N+1 queries
-        final diveIds = rows.map((r) => r.id).toList();
-
-        // Load all tanks for these dives in one query
-        final allTanks =
-            await (_db.select(_db.diveTanks)
-                  ..where((t) => t.diveId.isIn(diveIds))
-                  ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
-                .get();
-        final tanksByDive = <String, List<DiveTank>>{};
-        for (final tank in allTanks) {
-          tanksByDive.putIfAbsent(tank.diveId, () => []).add(tank);
-        }
-
-        // Load all sites for these dives in one query
-        final siteIds = rows
-            .where((r) => r.siteId != null)
-            .map((r) => r.siteId!)
-            .toSet()
-            .toList();
-        final allSites = siteIds.isNotEmpty
-            ? await (_db.select(
-                _db.diveSites,
-              )..where((t) => t.id.isIn(siteIds))).get()
-            : <DiveSite>[];
-        final sitesById = {for (final s in allSites) s.id: s};
-
-        // Load all dive centers for these dives in one query
-        final centerIds = rows
-            .where((r) => r.diveCenterId != null)
-            .map((r) => r.diveCenterId!)
-            .toSet()
-            .toList();
-        final allCenters = centerIds.isNotEmpty
-            ? await (_db.select(
-                _db.diveCenters,
-              )..where((t) => t.id.isIn(centerIds))).get()
-            : <DiveCenter>[];
-        final centersById = {for (final c in allCenters) c.id: c};
-
-        // Load all trips for these dives in one query
-        final tripIds = rows
-            .where((r) => r.tripId != null)
-            .map((r) => r.tripId!)
-            .toSet()
-            .toList();
-        final allTrips = tripIds.isNotEmpty
-            ? await (_db.select(
-                _db.trips,
-              )..where((t) => t.id.isIn(tripIds))).get()
-            : <Trip>[];
-        final tripsById = {for (final t in allTrips) t.id: t};
-
-        // Load all equipment for these dives in one query.
-        //
-        // The ORDER BY is a DETERMINISM guarantee, not a display order:
-        // without it SQLite may emit join rows in whatever order its plan
-        // produces, which is what made a dive's gear list look random (#1486,
-        // #1576) and what let export output churn between devices. The
-        // diver's chosen arrangement is applied in the presentation layer by
-        // arrangeEquipment(); this only guarantees that two reads agree.
-        // Sorting down to id keeps the order total.
-        final allDiveEquipment =
-            await (_db.select(_db.diveEquipment).join([
-                    innerJoin(
-                      _db.equipment,
-                      _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
-                    ),
-                  ])
-                  ..where(_db.diveEquipment.diveId.isIn(diveIds))
-                  ..orderBy([
-                    OrderingTerm.asc(_db.equipment.type),
-                    OrderingTerm.asc(_db.equipment.name),
-                    OrderingTerm.asc(_db.equipment.id),
-                  ]))
-                .get();
-        final equipmentByDive = <String, List<EquipmentItem>>{};
-        // Where each row came from (issue #1487), joined back onto the
-        // attribute-hydrated items at the mapper call below.
-        final provenanceByDive = <String, List<GearProvenance>>{};
-        for (final joinRow in allDiveEquipment) {
-          final link = joinRow.readTable(_db.diveEquipment);
-          final diveId = link.diveId;
-          final e = joinRow.readTable(_db.equipment);
-          provenanceByDive
-              .putIfAbsent(diveId, () => [])
-              .add(
-                GearProvenance(
-                  equipmentId: link.equipmentId,
-                  viaEquipmentId: link.viaEquipmentId,
-                  viaSetId: link.viaSetId,
-                ),
-              );
-          equipmentByDive
-              .putIfAbsent(diveId, () => [])
-              .add(
-                EquipmentItem(
-                  id: e.id,
-                  diverId: e.diverId,
-                  name: e.name,
-                  type: EquipmentType.values.firstWhere(
-                    (t) => t.name == e.type,
-                    orElse: () => EquipmentType.other,
-                  ),
-                  brand: e.brand,
-                  model: e.model,
-                  serialNumber: e.serialNumber,
-                  status: EquipmentStatus.values.firstWhere(
-                    (s) => s.name == e.status,
-                    orElse: () => EquipmentStatus.active,
-                  ),
-                  purchaseDate: e.purchaseDate != null
-                      ? DateTime.fromMillisecondsSinceEpoch(e.purchaseDate!)
-                      : null,
-                  purchasePrice: e.purchasePrice,
-                  purchaseCurrency: e.purchaseCurrency,
-                  lastServiceDate: e.lastServiceDate != null
-                      ? DateTime.fromMillisecondsSinceEpoch(e.lastServiceDate!)
-                      : null,
-                  serviceIntervalDays: e.serviceIntervalDays,
-                  notes: e.notes,
-                  isActive: e.isActive,
-                  // The column is non-nullable, so no guard is needed. Kept
-                  // because the "date added" gear sort reads it and would
-                  // silently tie every item on null without it.
-                  createdAt: DateTime.fromMillisecondsSinceEpoch(e.createdAt),
-                ),
-              );
-        }
-        final equipmentAttrs = await _equipmentAttributesFor(
-          equipmentByDive.values.expand((list) => list).map((e) => e.id),
-        );
-        for (final entry in equipmentByDive.entries.toList()) {
-          equipmentByDive[entry.key] = entry.value
-              .map(
-                (i) => i.copyWith(attributes: equipmentAttrs[i.id] ?? const []),
-              )
-              .toList();
-        }
-
-        // Note: Profile data is NOT loaded for list views to improve performance
-        // Profile data should only be loaded for individual dive detail views
-
-        // Load all tags for these dives in one query
-        final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
-        final diveTypesByDive = await _diveTypesForDives(diveIds);
-        final coursesByDive = await _courseLinks.courseIdsForDives(diveIds);
-        final diverRolesByDive = await _roleLinks.resolveDiverRoleIds({
-          for (final row in rows) row.id: row.diverRole,
-        });
-
-        // Load all custom fields for these dives in one query
-        final customFieldsByDive = await _customFieldRepository
-            .getFieldsForDiveIds(diveIds);
-
-        // Load all buddies (junction) for these dives in one query so the
-        // table view's Buddy / Dive Master columns render recorded people
-        // (issue #626). Scalar buddy/diveMaster remain the fallback.
-        final buddiesByDive = await _buddyRepository.getBuddiesForDives(
-          diveIds,
-        );
-
-        return rows
-            .map(
-              (row) => _mapRowToDiveWithPreloadedData(
-                row,
-                tanks: tanksByDive[row.id] ?? [],
-                gear: gearLinksFor(
-                  equipmentByDive[row.id] ?? const [],
-                  provenanceByDive[row.id] ?? const [],
-                ),
-                site: row.siteId != null ? sitesById[row.siteId] : null,
-                center: row.diveCenterId != null
-                    ? centersById[row.diveCenterId]
-                    : null,
-                trip: row.tripId != null ? tripsById[row.tripId] : null,
-                tags: tagsByDive[row.id] ?? [],
-                diveTypeIds: diveTypesByDive[row.id],
-                courseIds: coursesByDive[row.id] ?? const [],
-                diverRoleIds: diverRolesByDive[row.id],
-                customFields: customFieldsByDive[row.id] ?? [],
-                buddies: buddiesByDive[row.id] ?? const [],
-              ),
-            )
-            .toList();
+        return _mapRowsWithPreloadedData(await query.get());
       });
     } catch (e, stackTrace) {
       _log.error('Failed to get all dives', error: e, stackTrace: stackTrace);
       rethrow;
     }
+  }
+
+  /// [rows] as domain dives, each relation read in one statement rather than
+  /// the one per dive [_mapRowToDive] costs.
+  ///
+  /// No sample is read, so `profile` stays empty and what [_mapRowToDive]
+  /// derives from samples stays missing. Weights are left to the callers that
+  /// show them, through [weightsByDive].
+  Future<List<domain.Dive>> _mapRowsWithPreloadedData(
+    List<Dive> rows, {
+    Map<String, List<domain.DiveWeight>> weightsByDive = const {},
+  }) async {
+    if (rows.isEmpty) return [];
+
+    final diveIds = rows.map((r) => r.id).toList();
+
+    // Load all tanks for these dives in one query
+    final allTanks =
+        await (_db.select(_db.diveTanks)
+              ..where((t) => t.diveId.isIn(diveIds))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    final tanksByDive = <String, List<DiveTank>>{};
+    for (final tank in allTanks) {
+      tanksByDive.putIfAbsent(tank.diveId, () => []).add(tank);
+    }
+
+    // Load all sites for these dives in one query
+    final siteIds = rows
+        .where((r) => r.siteId != null)
+        .map((r) => r.siteId!)
+        .toSet()
+        .toList();
+    final allSites = siteIds.isNotEmpty
+        ? await (_db.select(
+            _db.diveSites,
+          )..where((t) => t.id.isIn(siteIds))).get()
+        : <DiveSite>[];
+    final sitesById = {for (final s in allSites) s.id: s};
+
+    // Load all dive centers for these dives in one query
+    final centerIds = rows
+        .where((r) => r.diveCenterId != null)
+        .map((r) => r.diveCenterId!)
+        .toSet()
+        .toList();
+    final allCenters = centerIds.isNotEmpty
+        ? await (_db.select(
+            _db.diveCenters,
+          )..where((t) => t.id.isIn(centerIds))).get()
+        : <DiveCenter>[];
+    final centersById = {for (final c in allCenters) c.id: c};
+
+    // Load all trips for these dives in one query
+    final tripIds = rows
+        .where((r) => r.tripId != null)
+        .map((r) => r.tripId!)
+        .toSet()
+        .toList();
+    final allTrips = tripIds.isNotEmpty
+        ? await (_db.select(_db.trips)..where((t) => t.id.isIn(tripIds))).get()
+        : <Trip>[];
+    final tripsById = {for (final t in allTrips) t.id: t};
+
+    // Load all equipment for these dives in one query.
+    //
+    // The ORDER BY is a DETERMINISM guarantee, not a display order:
+    // without it SQLite may emit join rows in whatever order its plan
+    // produces, which is what made a dive's gear list look random (#1486,
+    // #1576) and what let export output churn between devices. The
+    // diver's chosen arrangement is applied in the presentation layer by
+    // arrangeEquipment(); this only guarantees that two reads agree.
+    // Sorting down to id keeps the order total.
+    final allDiveEquipment =
+        await (_db.select(_db.diveEquipment).join([
+                innerJoin(
+                  _db.equipment,
+                  _db.equipment.id.equalsExp(_db.diveEquipment.equipmentId),
+                ),
+              ])
+              ..where(_db.diveEquipment.diveId.isIn(diveIds))
+              ..orderBy([
+                OrderingTerm.asc(_db.equipment.type),
+                OrderingTerm.asc(_db.equipment.name),
+                OrderingTerm.asc(_db.equipment.id),
+              ]))
+            .get();
+    final equipmentByDive = <String, List<EquipmentItem>>{};
+    // Where each row came from (issue #1487), joined back onto the
+    // attribute-hydrated items at the mapper call below.
+    final provenanceByDive = <String, List<GearProvenance>>{};
+    for (final joinRow in allDiveEquipment) {
+      final link = joinRow.readTable(_db.diveEquipment);
+      final diveId = link.diveId;
+      final e = joinRow.readTable(_db.equipment);
+      provenanceByDive
+          .putIfAbsent(diveId, () => [])
+          .add(
+            GearProvenance(
+              equipmentId: link.equipmentId,
+              viaEquipmentId: link.viaEquipmentId,
+              viaSetId: link.viaSetId,
+            ),
+          );
+      equipmentByDive
+          .putIfAbsent(diveId, () => [])
+          .add(
+            EquipmentItem(
+              id: e.id,
+              diverId: e.diverId,
+              name: e.name,
+              type: EquipmentType.values.firstWhere(
+                (t) => t.name == e.type,
+                orElse: () => EquipmentType.other,
+              ),
+              brand: e.brand,
+              model: e.model,
+              serialNumber: e.serialNumber,
+              status: EquipmentStatus.values.firstWhere(
+                (s) => s.name == e.status,
+                orElse: () => EquipmentStatus.active,
+              ),
+              purchaseDate: e.purchaseDate != null
+                  ? DateTime.fromMillisecondsSinceEpoch(e.purchaseDate!)
+                  : null,
+              purchasePrice: e.purchasePrice,
+              purchaseCurrency: e.purchaseCurrency,
+              lastServiceDate: e.lastServiceDate != null
+                  ? DateTime.fromMillisecondsSinceEpoch(e.lastServiceDate!)
+                  : null,
+              serviceIntervalDays: e.serviceIntervalDays,
+              notes: e.notes,
+              isActive: e.isActive,
+              // The column is non-nullable, so no guard is needed. Kept
+              // because the "date added" gear sort reads it and would
+              // silently tie every item on null without it.
+              createdAt: DateTime.fromMillisecondsSinceEpoch(e.createdAt),
+            ),
+          );
+    }
+    final equipmentAttrs = await _equipmentAttributesFor(
+      equipmentByDive.values.expand((list) => list).map((e) => e.id),
+    );
+    for (final entry in equipmentByDive.entries.toList()) {
+      equipmentByDive[entry.key] = entry.value
+          .map((i) => i.copyWith(attributes: equipmentAttrs[i.id] ?? const []))
+          .toList();
+    }
+
+    // Note: Profile data is NOT loaded for list views to improve performance
+    // Profile data should only be loaded for individual dive detail views
+
+    // Load all tags for these dives in one query
+    final tagsByDive = await _tagRepository.getTagsForDives(diveIds);
+    final diveTypesByDive = await _diveTypesForDives(diveIds);
+    final coursesByDive = await _courseLinks.courseIdsForDives(diveIds);
+    final diverRolesByDive = await _roleLinks.resolveDiverRoleIds({
+      for (final row in rows) row.id: row.diverRole,
+    });
+
+    // Load all custom fields for these dives in one query
+    final customFieldsByDive = await _customFieldRepository.getFieldsForDiveIds(
+      diveIds,
+    );
+
+    // Load all buddies (junction) for these dives in one query so the
+    // table view's Buddy / Dive Master columns render recorded people
+    // (issue #626). Scalar buddy/diveMaster remain the fallback.
+    final buddiesByDive = await _buddyRepository.getBuddiesForDives(diveIds);
+
+    return rows
+        .map(
+          (row) => _mapRowToDiveWithPreloadedData(
+            row,
+            tanks: tanksByDive[row.id] ?? [],
+            gear: gearLinksFor(
+              equipmentByDive[row.id] ?? const [],
+              provenanceByDive[row.id] ?? const [],
+            ),
+            site: row.siteId != null ? sitesById[row.siteId] : null,
+            center: row.diveCenterId != null
+                ? centersById[row.diveCenterId]
+                : null,
+            trip: row.tripId != null ? tripsById[row.tripId] : null,
+            tags: tagsByDive[row.id] ?? [],
+            diveTypeIds: diveTypesByDive[row.id],
+            courseIds: coursesByDive[row.id] ?? const [],
+            diverRoleIds: diverRolesByDive[row.id],
+            customFields: customFieldsByDive[row.id] ?? [],
+            buddies: buddiesByDive[row.id] ?? const [],
+            weights: weightsByDive[row.id] ?? const [],
+          ),
+        )
+        .toList();
   }
 
   /// Get a single dive by ID
@@ -2598,6 +2608,111 @@ class DiveRepository {
     }
   }
 
+  /// [getDivesByIds] for a screen that lists dives rather than drawing them
+  /// (issue #3831): the same dives in the same order with
+  /// [domain.Dive.buddies] loaded, read in a fixed set of statements per
+  /// [chunkSize] ids instead of a full set per dive, with no series decoded.
+  ///
+  /// Every value matches [getDivesByIds]. A dive whose row leaves one to its
+  /// samples ([_diveIdsNeedingSamples]) goes through [_mapRowToDive] alone,
+  /// so such a dive costs what it always did and the rest cost almost
+  /// nothing. [domain.Dive.profile] is therefore empty on nearly every dive
+  /// returned: never draw it, or derive anything else from it, here.
+  Future<List<domain.Dive>> getDivesByIdsWithoutSamples(
+    List<String> ids, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    if (ids.isEmpty) return [];
+
+    try {
+      return await PerfTimer.measure('getDivesByIdsWithoutSamples', () async {
+        final rows = <Dive>[];
+        final divesById = <String, domain.Dive>{};
+        for (final chunk in seriesIdChunks(
+          ids.toSet().toList(),
+          size: chunkSize,
+        )) {
+          final chunkRows = await (_db.select(
+            _db.dives,
+          )..where((t) => t.id.isIn(chunk))).get();
+          final needSamples = await _diveIdsNeedingSamples(chunk);
+          final lean = [
+            for (final row in chunkRows)
+              if (!needSamples.contains(row.id)) row,
+          ];
+          final sampled = await Future.wait(
+            chunkRows
+                .where((r) => needSamples.contains(r.id))
+                .map(_mapRowToDive),
+          );
+          final chunkDives = [
+            ...await _mapRowsWithPreloadedData(
+              lean,
+              weightsByDive: await _weightsForDives([
+                for (final row in lean) row.id,
+              ]),
+            ),
+            // [_mapRowToDive] leaves the buddy junction unloaded.
+            ...await _buddyRepository.withBuddies(sampled),
+          ];
+          rows.addAll(chunkRows);
+          divesById.addAll({for (final dive in chunkDives) dive.id: dive});
+        }
+        rows.sort(_newestFirst);
+        return [for (final row in rows) divesById[row.id]!];
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dives without samples',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Which of [diveIds] leave a shown value to their samples, in one statement
+  /// that reads no series blob. Each arm is a fallback in the full read:
+  ///
+  /// - no `water_temp`, which [_mapRowToDive] takes from the profile;
+  /// - no `runtime` and no usable exit time, where
+  ///   [domain.Dive.effectiveRuntime] measures the profile;
+  /// - a tank with no stored start or end pressure, which [_mapRowToDive]
+  ///   takes from the pressure series.
+  ///
+  /// Each arm needs a series to read, so a hand-logged dive with the same
+  /// gap stays out: its samples could not fill it. A new fallback in those
+  /// reads needs an arm here, or this path silently blanks it.
+  // stats-scope-exempt: routes a list's dives, and aggregates nothing
+  Future<Set<String>> _diveIdsNeedingSamples(List<String> diveIds) async {
+    const hasProfile =
+        'EXISTS (SELECT 1 FROM dive_profile_series s '
+        'WHERE s.dive_id = d.id AND s.sample_count > 0)';
+    final placeholders = List.filled(diveIds.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT d.id AS id FROM dives d '
+          'WHERE d.id IN ($placeholders) AND ('
+          '(d.water_temp IS NULL AND $hasProfile) '
+          "OR (d.runtime IS NULL AND ${timestampRuntimeSecondsSql('d')} IS NULL "
+          'AND $hasProfile) '
+          'OR EXISTS (SELECT 1 FROM dive_tanks t '
+          'JOIN tank_pressure_series p '
+          'ON p.dive_id = t.dive_id AND p.tank_id = t.id '
+          'WHERE t.dive_id = d.id '
+          'AND (t.start_pressure IS NULL OR t.end_pressure IS NULL)))',
+          variables: [for (final id in diveIds) Variable.withString(id)],
+          readsFrom: {
+            _db.dives,
+            _db.diveProfileSeries,
+            _db.diveTanks,
+            _db.tankPressureSeries,
+          },
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('id')};
+  }
+
   /// Entry time (else the logged date/time) descending, then dive number
   /// descending with unnumbered dives last: the order SQL's
   /// `ORDER BY COALESCE(entry_time, dive_date_time) DESC, dive_number DESC`
@@ -3476,6 +3591,35 @@ class DiveRepository {
     }
   }
 
+  /// One page of the dive picker, for a sheet that only names and dates a
+  /// dive (see [divePickerRows]). Pass the last row's cursor for the next page.
+  Future<List<DivePickerRow>> getDivePickerRows({
+    String? diverId,
+    String query = '',
+    DiveSummaryCursor? cursor,
+    int limit = kDivePickerPageSize,
+  }) async {
+    try {
+      return await PerfTimer.measure(
+        'getDivePickerRows',
+        () => divePickerRows(
+          _db,
+          diverId: diverId,
+          query: query,
+          cursor: cursor,
+          limit: limit,
+        ),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive picker rows',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Loads [DiveSummary] rows for [ids] (slim SELECT plus batched tags and
   /// dive types), ordered most recent first.
   // stats-scope-exempt: hydrates rows for an already-chosen id set. It
@@ -4197,6 +4341,7 @@ class DiveRepository {
     List<String>? diverRoleIds,
     List<domain.DiveCustomField> customFields = const [],
     List<domain.BuddyWithRole> buddies = const [],
+    List<domain.DiveWeight> weights = const [],
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -4436,7 +4581,7 @@ class DiveRepository {
           .toList(),
       profile: const [], // Profile not loaded for list views
       gear: gear,
-      weights: const [], // Weights not loaded for list views (use detail view)
+      weights: weights, // Only callers that show them preload them
       isFavorite: row.isFavorite,
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
@@ -4544,8 +4689,8 @@ class DiveRepository {
     // [getMergedProfile] mirrors this read and the two must stay in step.
     final seriesProfile = await _mergedSeriesPoints(row.id);
 
-    // Get equipment for this dive. See the batch path in [getAllDives] for
-    // why this is ordered.
+    // Get equipment for this dive. See [_mapRowsWithPreloadedData] for why
+    // this is ordered.
     final equipmentQuery =
         _db.select(_db.diveEquipment).join([
             innerJoin(
@@ -4588,8 +4733,8 @@ class DiveRepository {
         serviceIntervalDays: e.serviceIntervalDays,
         notes: e.notes,
         isActive: e.isActive,
-        // See the batch mapper in [getAllDives]: the "date added" gear sort
-        // reads this and ties on null without it.
+        // See [_mapRowsWithPreloadedData]: the "date added" gear sort reads
+        // this and ties on null without it.
         createdAt: DateTime.fromMillisecondsSinceEpoch(e.createdAt),
       );
     }).toList();
@@ -5175,21 +5320,7 @@ class DiveRepository {
       final query = _db.select(_db.diveWeights)
         ..where((w) => w.diveId.equals(diveId));
       final rows = await query.get();
-      return rows
-          .map(
-            (row) => domain.DiveWeight(
-              id: row.id,
-              diveId: row.diveId,
-              weightType: WeightType.values.firstWhere(
-                (w) => w.name == row.weightType,
-                orElse: () => WeightType.belt,
-              ),
-              amountKg: row.amountKg,
-              notes: row.notes,
-              label: row.label,
-            ),
-          )
-          .toList();
+      return rows.map(_mapWeightRow).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to load weights for dive: $diveId',
@@ -5199,6 +5330,34 @@ class DiveRepository {
       return [];
     }
   }
+
+  /// [_loadWeightsForDive] for [diveIds] in one statement, grouped by dive.
+  /// A dive with no weights has no entry.
+  Future<Map<String, List<domain.DiveWeight>>> _weightsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.diveWeights,
+    )..where((w) => w.diveId.isIn(diveIds))).get();
+    final byDive = <String, List<domain.DiveWeight>>{};
+    for (final row in rows) {
+      byDive.putIfAbsent(row.diveId, () => []).add(_mapWeightRow(row));
+    }
+    return byDive;
+  }
+
+  domain.DiveWeight _mapWeightRow(DiveWeight row) => domain.DiveWeight(
+    id: row.id,
+    diveId: row.diveId,
+    weightType: WeightType.values.firstWhere(
+      (w) => w.name == row.weightType,
+      orElse: () => WeightType.belt,
+    ),
+    amountKg: row.amountKg,
+    notes: row.notes,
+    label: row.label,
+  );
 
   /// Load custom fields for a dive
   Future<List<domain.DiveCustomField>> _loadCustomFieldsForDive(

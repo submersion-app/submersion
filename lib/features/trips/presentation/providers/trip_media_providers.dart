@@ -1,49 +1,56 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_media_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
-/// Media for all dives in a trip, grouped by dive.
-/// Returns a map of [Dive] to [MediaItem] list, preserving dive context.
-final mediaForTripProvider =
-    FutureProvider.family<Map<Dive, List<MediaItem>>, String>((
-      ref,
-      tripId,
-    ) async {
-      // Get all dives for this trip
+final tripMediaRepositoryProvider = Provider<TripMediaRepository>((ref) {
+  return TripMediaRepository();
+});
+
+/// What the Overview and Photos previews show: each dive's earliest items and
+/// the true counts, without loading the trip's gallery.
+///
+/// Re-read on a write to `media` and, through [diveIdsForTripProvider],
+/// whenever the trip's dives change. A deleted dive clears its media's dive_id
+/// by cascade without Drift seeing a write to `media`, so that second source
+/// is load-bearing.
+final tripMediaPreviewProvider =
+    FutureProvider.family<TripMediaPreview, String>((ref, tripId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(tripMediaRepositoryProvider).watchPreviewChanges(),
+      );
+      final diveIds = await ref.watch(diveIdsForTripProvider(tripId).future);
+      if (diveIds.isEmpty) return TripMediaPreview.empty;
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return ref
+          .watch(tripMediaRepositoryProvider)
+          .getPreview(tripId, diverId: diverId);
+    });
+
+/// Every media item of a trip, grouped by dive, for the gallery and the
+/// viewer. The whole gallery in memory, so it lives only while one of them is
+/// open. Previews read [tripMediaPreviewProvider] instead.
+final mediaForTripProvider = FutureProvider.autoDispose
+    .family<Map<Dive, List<MediaItem>>, String>((ref, tripId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+      );
       final dives = await ref.watch(divesForTripProvider(tripId).future);
+      if (dives.isEmpty) return {};
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final items = await ref
+          .watch(tripMediaRepositoryProvider)
+          .getMediaForTrip(tripId, diverId: diverId);
 
-      if (dives.isEmpty) {
-        return {};
+      final byDiveId = <String, List<MediaItem>>{};
+      for (final item in items) {
+        (byDiveId[item.diveId!] ??= []).add(item);
       }
-
-      // Fetch each dive's media concurrently, but in bounded chunks: a single
-      // Future.wait over every dive would fire hundreds of DB/IO/platform calls
-      // at once on a large trip (jank/resource pressure), while a sequential
-      // await would make first paint grow linearly with dive count. Chunking
-      // caps in-flight work while still parallelizing within each batch.
-      const chunkSize = 12;
-      final mediaLists = <List<MediaItem>>[];
-      for (var offset = 0; offset < dives.length; offset += chunkSize) {
-        final chunk = dives.skip(offset).take(chunkSize);
-        mediaLists.addAll(
-          await Future.wait(
-            chunk.map(
-              (dive) => ref.watch(mediaForDiveProvider(dive.id).future),
-            ),
-          ),
-        );
-      }
-
-      final Map<Dive, List<MediaItem>> result = {};
-      for (var i = 0; i < dives.length; i++) {
-        if (mediaLists[i].isNotEmpty) {
-          result[dives[i]] = mediaLists[i];
-        }
-      }
-
-      return result;
+      return {for (final dive in dives) dive: ?byDiveId[dive.id]};
     });
 
 /// Total media count for a trip (for badges/headers).
@@ -51,20 +58,19 @@ final mediaCountForTripProvider = FutureProvider.family<int, String>((
   ref,
   tripId,
 ) async {
-  final mediaByDive = await ref.watch(mediaForTripProvider(tripId).future);
-  return mediaByDive.values.fold<int>(0, (sum, list) => sum + list.length);
+  final preview = await ref.watch(tripMediaPreviewProvider(tripId).future);
+  return preview.mediaCount;
 });
 
 /// Flat list of all media for trip, sorted by takenAt.
 /// Used for trip-scoped photo viewer navigation.
-final flatMediaListForTripProvider =
-    FutureProvider.family<List<MediaItem>, String>((ref, tripId) async {
+final flatMediaListForTripProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, tripId) async {
       final mediaByDive = await ref.watch(mediaForTripProvider(tripId).future);
 
       final allMedia = mediaByDive.values.expand((list) => list).toList();
 
-      // Sort by takenAt (chronological)
-      allMedia.sort((a, b) => a.takenAt.compareTo(b.takenAt));
+      allMedia.sort(compareMediaChronologically);
 
       return allMedia;
     });

@@ -230,6 +230,16 @@ class BuddyRepository {
     String? notes,
     String? diverId,
   }) async {
+    return (await resolveByName(name, notes: notes, diverId: diverId)).buddy;
+  }
+
+  /// [findOrCreateByName], also saying whether the person is new, so an
+  /// import can report what it added rather than what it linked (#3871).
+  Future<({domain.Buddy buddy, bool created})> resolveByName(
+    String name, {
+    String? notes,
+    String? diverId,
+  }) async {
     try {
       final trimmedName = name.trim();
       if (trimmedName.isEmpty) {
@@ -258,7 +268,8 @@ class BuddyRepository {
         final row = results.first;
         _log.info('Found existing buddy: $trimmedName');
         final found = _mapRowToBuddy(_db.buddies.map(row.data));
-        return (await _withPrimaryCerts([found])).first;
+        final hydrated = (await _withPrimaryCerts([found])).first;
+        return (buddy: hydrated, created: false);
       }
 
       // Create new buddy
@@ -272,7 +283,7 @@ class BuddyRepository {
         updatedAt: DateTime.now(),
       );
 
-      return await createBuddy(newBuddy);
+      return (buddy: await createBuddy(newBuddy), created: true);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find or create buddy: $name',
@@ -494,10 +505,10 @@ class BuddyRepository {
   /// junction, in batched [getBuddiesForDives] queries.
   ///
   /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
-  /// junction unloaded (only `getAllDives` hydrates it), when the caller shows
-  /// or exports the people on them (#3039). The ids are bound in runs of
-  /// [chunkSize], since a whole trip or a large export selection has no upper
-  /// bound and each id is one SQL variable.
+  /// junction unloaded (`getAllDives` and `getDivesByIdsWithoutSamples` hydrate
+  /// it), when the caller shows or exports the people on them (#3039). The ids
+  /// are bound in runs of [chunkSize], since a whole trip or a large export
+  /// selection has no upper bound and each id is one SQL variable.
   Future<List<dive_domain.Dive>> withBuddies(
     List<dive_domain.Dive> dives, {
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,

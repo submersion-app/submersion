@@ -106,6 +106,20 @@ void main() {
     }
   });
 
+  test('a replacement arrives on a later day than its predecessor left', () {
+    // The app counts a fitted part's dives by its install day, whole days
+    // at a time, so a part swapped in mid-day would take over the morning's
+    // dives of the part it replaced.
+    DateTime day(DateTime t) => DateTime(t.year, t.month, t.day);
+    final replacements = demoGear.where((g) => g.replaces != null);
+    expect(replacements, isNotEmpty);
+    for (final g in replacements) {
+      final arrived = day(ctx.timeline.boughtOn(g.key)!);
+      final left = day(ctx.timeline.leftOn(g.replaces!)!);
+      expect(arrived.isAfter(left), isTrue, reason: '${g.key}: $arrived');
+    }
+  });
+
   test('gear leaves on a home day, unless it was lost on a trip', () {
     for (final g in demoGear.where((g) => g.leaves != null)) {
       if (g.leaves!.status == EquipmentStatus.lost) continue;

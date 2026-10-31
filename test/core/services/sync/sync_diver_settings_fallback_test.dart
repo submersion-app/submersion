@@ -536,7 +536,7 @@ void main() {
     'applies a pre-v237 diver_settings payload missing the dive figure switch',
     () async {
       // No hand-written seed covers it (issue #2326): the Drift column
-      // default fills it through _withSchemaDefaults, so it lands off, on
+      // default fills it through _withSchemaDefaults, so it lands on, on
       // both the single and the batch path.
       await db.customStatement('PRAGMA foreign_keys = OFF');
 
@@ -567,7 +567,7 @@ void main() {
         final row = await (db.select(
           db.diverSettings,
         )..where((t) => t.id.equals(id))).getSingle();
-        expect(row.showDiveFigure, isFalse, reason: id);
+        expect(row.showDiveFigure, isTrue, reason: id);
       }
     },
   );

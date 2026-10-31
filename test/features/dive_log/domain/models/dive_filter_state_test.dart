@@ -130,6 +130,27 @@ void main() {
         expect(filter.hasActiveFilters, isTrue);
       });
 
+      test('returns true when noEntryMethodOnly is true', () {
+        const filter = DiveFilterState(noEntryMethodOnly: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('returns true when noWaterType is true', () {
+        const filter = DiveFilterState(noWaterType: true);
+
+        expect(filter.hasActiveFilters, isTrue);
+      });
+
+      test('water types and noWaterType count as one axis', () {
+        const filter = DiveFilterState(
+          waterTypes: [WaterType.salt],
+          noWaterType: true,
+        );
+
+        expect(filter.activeAxisCount, 1);
+      });
+
       test('returns false when noRoleOnly is false', () {
         const filter = DiveFilterState(noRoleOnly: false);
 
@@ -244,6 +265,27 @@ void main() {
         final updated = original.copyWith(clearNoRoleOnly: true);
 
         expect(updated.noRoleOnly, isNull);
+      });
+
+      test('sets and clears noWaterType', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noWaterType: true);
+
+        expect(updated.noWaterType, isTrue);
+        expect(updated.copyWith(clearNoWaterType: true).noWaterType, isNull);
+      });
+
+      test('sets and clears noEntryMethodOnly', () {
+        const original = DiveFilterState();
+
+        final updated = original.copyWith(noEntryMethodOnly: true);
+
+        expect(updated.noEntryMethodOnly, isTrue);
+        expect(
+          updated.copyWith(clearNoEntryMethodOnly: true).noEntryMethodOnly,
+          isNull,
+        );
       });
 
       test('copyWith keeps noRoleOnly when another axis changes', () {
@@ -487,6 +529,8 @@ void main() {
         const DiveFilterState(decoOnly: false),
         const DiveFilterState(noBuddyOnly: true),
         const DiveFilterState(noRoleOnly: true),
+        const DiveFilterState(noWaterType: true),
+        const DiveFilterState(noEntryMethodOnly: true),
         const DiveFilterState(tagIds: ['t']),
         const DiveFilterState(weekdays: [1]),
         const DiveFilterState(equipmentIds: ['e']),

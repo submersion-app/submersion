@@ -1394,6 +1394,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_dismiss => 'Elvetés';
 
   @override
+  String get common_action_dismissAll => 'Összes elvetése';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Alapértelmezett készlet';
 
   @override
@@ -8630,7 +8633,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Nincs búvártárs';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Nincs beszállási mód';
+
+  @override
   String get diveLog_filterChip_noRole => 'Nincs szerep';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Nincs víztípus';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8696,6 +8705,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Nincs búvártárs hozzárendelve';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Nincs rögzített beszállási mód';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'Nincs szerep hozzárendelve';
 
   @override
@@ -8759,6 +8772,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Csak búvártárs nélküli merülések mutatása';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Csak ismert beszállási mód nélküli merülések mutatása';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>
@@ -15127,6 +15144,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Részletek';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Merülésidő';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

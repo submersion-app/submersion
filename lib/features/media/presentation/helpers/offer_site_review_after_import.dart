@@ -53,6 +53,7 @@ Future<void> offerSiteReviewAfterImport(
       SnackBar(
         content: Text(l10n.mediaImport_offerSiteReview(eligible.length)),
         duration: const Duration(seconds: 8),
+        persist: false,
         action: SnackBarAction(
           label: l10n.mediaImport_reviewSitesAction,
           onPressed: () => router.push('/dives/match-sites', extra: eligible),

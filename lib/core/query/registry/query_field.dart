@@ -143,6 +143,10 @@ class QueryField {
     FieldType.bool => kBoolOps,
   };
 
-  bool matches(String keyOrAlias) =>
-      key == keyOrAlias || aliases.contains(keyOrAlias);
+  /// Typed names fold case, so `Trip:none` reads as `trip:none` (#3810).
+  bool matches(String keyOrAlias) {
+    final name = keyOrAlias.toLowerCase();
+    return key.toLowerCase() == name ||
+        aliases.any((a) => a.toLowerCase() == name);
+  }
 }

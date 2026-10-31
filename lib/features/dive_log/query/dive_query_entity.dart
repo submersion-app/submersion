@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/query/dive_child_query_entities.dar
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 
 /// Every field and relation a dive query can name (#2365). This file is
 /// the ONLY place a dive filter axis is defined: the paginated list, its
@@ -59,6 +60,14 @@ const _effectiveWaterType =
     "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
     'WHERE s.id = {r}.site_id))';
 
+/// A dive's effective entry method: its own, else its site's when the site
+/// lists exactly one (issue #3806). The SQL twin of
+/// `Dive.effectiveEntryMethod`, matching the insights entry method chart.
+final _effectiveEntryMethod =
+    "COALESCE(NULLIF({r}.entry_method, ''), "
+    "(SELECT ${singleSiteEntryMethodSql('s.entry_method')} FROM dive_sites s "
+    'WHERE s.id = {r}.site_id))';
+
 List<String> _names<T extends Enum>(List<T> values) => [
   for (final v in values) v.name,
 ];
@@ -101,6 +110,19 @@ QueryField _enum(String key, String column, List<String> values) => QueryField(
   labelKey: _label(key),
   enumValues: values,
 );
+
+/// An enum read through [sql], a dive's value with its site as the fallback,
+/// so the query re-ticks when a site changes.
+QueryField _effectiveEnum(String key, String sql, List<String> values) =>
+    QueryField(
+      key: key,
+      type: FieldType.enumName,
+      sql: sql,
+      emptySql: '$sql IS NULL',
+      labelKey: _label(key),
+      enumValues: values,
+      tables: const ['dive_sites'],
+    );
 
 QueryField _bool(String key, String column) => QueryField(
   key: key,
@@ -472,16 +494,12 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'current_strength',
       _names(CurrentStrength.values),
     ),
-    QueryField(
-      key: 'waterType',
-      type: FieldType.enumName,
-      sql: _effectiveWaterType,
-      emptySql: '$_effectiveWaterType IS NULL',
-      labelKey: _label('waterType'),
-      enumValues: _names(WaterType.values),
-      tables: const ['dive_sites'],
+    _effectiveEnum('waterType', _effectiveWaterType, _names(WaterType.values)),
+    _effectiveEnum(
+      'entryMethod',
+      _effectiveEntryMethod,
+      _names(EntryMethod.values),
     ),
-    _enum('entryMethod', 'entry_method', _names(EntryMethod.values)),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),
     _enum('diveMode', 'dive_mode', _names(DiveMode.values)),
     _bool('favorite', 'is_favorite'),

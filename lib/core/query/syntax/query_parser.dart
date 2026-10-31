@@ -91,6 +91,10 @@ const Set<String> kQueryKeywords = {
 
 const _operatorSymbols = {'=', '!=', '<', '<=', '>', '>=', '~', ':', '['};
 
+/// What a diver writes after `is` for a missing value before they learn
+/// `:none` (#3810). `set` is the one word that says the opposite.
+const _emptyWords = {'blank', 'null', 'empty', 'none', 'unset'};
+
 /// Recursive-descent parser for the typed syntax (spec Unit 2). Returns a
 /// tree or a positioned [ParseFailure]; never throws to the caller.
 class QueryParser {
@@ -225,7 +229,7 @@ class QueryParser {
     }
     if (t.kind == TokenKind.word) {
       final after = _tokens[_pos + 1];
-      if (_operatorFollows(after)) {
+      if (_operatorFollows(after) || _presenceFollows(t)) {
         return _condition();
       }
       _next();
@@ -238,6 +242,31 @@ class QueryParser {
       (t.kind == TokenKind.symbol && _operatorSymbols.contains(t.text)) ||
       _isKeyword(t, 'in') ||
       _isKeyword(t, 'between');
+
+  /// Whether [word] starts `trip is blank`. It must name a field or relation:
+  /// `boat is empty` stays three words of free text.
+  bool _presenceFollows(Token word) =>
+      _presencePhraseAt(_pos + 1) != null &&
+      resolvePath(registry, _entity, FieldPath(word.text.split('.'))).error ==
+          null;
+
+  /// The spoken form of `:none` or `:any` starting at token [at] (`is blank`,
+  /// `is not set`): what it means, how many tokens it spans and its last
+  /// word, or null when the tokens there are not one.
+  ({QueryOp op, int length, Token word})? _presencePhraseAt(int at) {
+    if (!_isKeyword(_tokens[at], 'is')) return null;
+    final negated = _isKeyword(_tokens[at + 1], 'not');
+    final word = _tokens[at + (negated ? 2 : 1)];
+    if (word.kind != TokenKind.word) return null;
+    final text = word.text.toLowerCase();
+    if (text != 'set' && !_emptyWords.contains(text)) return null;
+    final saysEmpty = text != 'set';
+    return (
+      op: saysEmpty != negated ? QueryOp.isEmpty : QueryOp.isSet,
+      length: negated ? 3 : 2,
+      word: word,
+    );
+  }
 
   QueryNode _condition() {
     final pathTok = _next();
@@ -269,6 +298,11 @@ class QueryParser {
         ),
       );
     }
+    final phrase = _presencePhraseAt(_pos);
+    if (phrase != null) {
+      _pos += phrase.length;
+      return _presence(path, res, phrase.op, phrase.word);
+    }
     final opTok = _next();
 
     if (_isSymbol(opTok, '[')) {
@@ -297,25 +331,14 @@ class QueryParser {
     if (_isSymbol(opTok, ':')) {
       final v = _peek;
       if (_isKeyword(v, 'none')) {
-        final noneValue = res.field?.enumValues?.contains('none') ?? false;
-        if (noneValue) {
-          // `current:none` would read as "unrecorded" while the diver may
-          // mean the stored value "none": refuse the ambiguity and name
-          // both spellings.
-          throw _Abort(
-            _err(
-              QueryErrorCode.noneAmbiguous,
-              v,
-              args: {'field': path.segments.last},
-            ),
-          );
-        }
+        final node = _presence(path, res, QueryOp.isEmpty, v);
         _next();
-        return ConditionNode(path, QueryOp.isEmpty, null);
+        return node;
       }
       if (_isKeyword(v, 'any')) {
+        final node = _presence(path, res, QueryOp.isSet, v);
         _next();
-        return ConditionNode(path, QueryOp.isSet, null);
+        return node;
       }
       if (res.terminalRelation != null) {
         return _relationRef(path, res.terminalRelation!, opTok);
@@ -414,6 +437,31 @@ class QueryParser {
 
   /// Checked BEFORE the value is read, so `favorite ~ x` reports the
   /// operator, not a missing true/false.
+  /// `path:none`, `path:any` or a spoken form of either, read at [at].
+  ConditionNode _presence(
+    FieldPath path,
+    PathResolution res,
+    QueryOp op,
+    Token at,
+  ) {
+    final field = res.field;
+    if ((op == QueryOp.isEmpty || _isKeyword(at, 'none')) &&
+        (field?.enumValues?.contains('none') ?? false)) {
+      // `current:none` would read as "unrecorded" while the diver may
+      // mean the stored value "none", and `current is not none` the same
+      // way round: refuse the ambiguity and name both spellings.
+      throw _Abort(
+        _err(
+          QueryErrorCode.noneAmbiguous,
+          at,
+          args: {'field': path.segments.last},
+        ),
+      );
+    }
+    if (field != null) _requireOp(field, op, at);
+    return ConditionNode(path, op, null);
+  }
+
   void _requireOp(QueryField field, QueryOp op, Token opTok) {
     if (!field.ops.contains(op)) {
       throw _Abort(

@@ -45,6 +45,22 @@ void main() {
   });
 
   group('resetDiveColumnFilter and isDiveColumnFiltered', () {
+    test('the water type column owns the not recorded chip too', () {
+      const f = DiveFilterState(noWaterType: true);
+      expect(isDiveColumnFiltered(f, DiveField.waterType), isTrue);
+      final next = resetDiveColumnFilter(f, DiveField.waterType);
+      expect(next.noWaterType, isNull);
+      expect(next.hasActiveFilters, isFalse);
+    });
+
+    test('the entry method column owns the not recorded switch', () {
+      const f = DiveFilterState(noEntryMethodOnly: true);
+      expect(isDiveColumnFiltered(f, DiveField.entryMethod), isTrue);
+      final next = resetDiveColumnFilter(f, DiveField.entryMethod);
+      expect(next.noEntryMethodOnly, isNull);
+      expect(next.hasActiveFilters, isFalse);
+    });
+
     test('removes plain and negated top-level rules on the column only', () {
       final f = const DiveFilterState().copyWith(
         query: AndNode([

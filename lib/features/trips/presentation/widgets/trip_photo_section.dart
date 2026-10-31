@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 
 /// Maximum number of thumbnail photos to display in the preview row.
@@ -27,7 +28,7 @@ class TripPhotoSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mediaCountAsync = ref.watch(mediaCountForTripProvider(tripId));
-    final mediaListAsync = ref.watch(flatMediaListForTripProvider(tripId));
+    final previewAsync = ref.watch(tripMediaPreviewProvider(tripId));
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -96,12 +97,12 @@ class TripPhotoSection extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             // Content
-            mediaListAsync.when(
-              data: (media) {
-                if (media.isEmpty) {
+            previewAsync.when(
+              data: (preview) {
+                if (preview.mediaCount == 0) {
                   return _EmptyState(onScanPressed: onScanPressed);
                 }
-                return _PhotoRow(tripId: tripId, media: media);
+                return _PhotoRow(tripId: tripId, preview: preview);
               },
               loading: () => const SizedBox(
                 height: 80,
@@ -169,16 +170,15 @@ class _EmptyState extends StatelessWidget {
 /// Horizontal scrollable row of photo thumbnails.
 class _PhotoRow extends StatelessWidget {
   final String tripId;
-  final List<MediaItem> media;
+  final TripMediaPreview preview;
 
-  const _PhotoRow({required this.tripId, required this.media});
+  const _PhotoRow({required this.tripId, required this.preview});
 
   @override
   Widget build(BuildContext context) {
-    final visibleCount = media.length > _maxVisibleThumbnails
-        ? _maxVisibleThumbnails
-        : media.length;
-    final remainingCount = media.length - visibleCount;
+    final media = preview.earliest(_maxVisibleThumbnails);
+    final visibleCount = media.length;
+    final remainingCount = preview.mediaCount - visibleCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

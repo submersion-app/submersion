@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/cloud_storage/git/git_object_id.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_object_store.dart';
 import 'package:submersion/core/services/cloud_storage/git/git_objects.dart';
 import 'package:submersion/core/services/cloud_storage/git/pack_reader.dart';
 import 'package:submersion/core/services/cloud_storage/git/pack_writer.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 
 import '../../../../helpers/git_cli.dart';
 
@@ -93,4 +97,94 @@ void main() {
     expect(verify, contains('tree'));
     expect(verify, contains('commit'));
   }, skip: skipUnlessGit());
+
+  group('a large write', () {
+    // git hash-object on 300 KiB of zeros.
+    const zerosBlobId = '1e23bd3e28ee6c2f5727e3767dbf9745eae94486';
+    final zeros = Uint8List(300 * 1024);
+
+    late int hops;
+    Future<R> counting<R>(FutureOr<R> Function() work) {
+      hops++;
+      return Isolate.run(work);
+    }
+
+    setUp(() => hops = 0);
+
+    List<PackEntrySource> largeEntries() {
+      final blob = Uint8List.fromList(
+        List.generate(kOffIsolateMinBytes, (i) => (i * 31) % 251),
+      );
+      return [
+        PackEntrySource.bytes(GitObjectType.blob, blob),
+        PackEntrySource.bytes(GitObjectType.blob, Uint8List.fromList([1, 2])),
+      ];
+    }
+
+    test('hashes to the id git gives it, on another isolate', () async {
+      final id = await hashGitObjectOffIsolate(
+        GitObjectType.blob,
+        zeros,
+        runner: counting,
+      );
+      expect(id.hex, zerosBlobId);
+      expect(hops, 1);
+    });
+
+    test('a small blob hashes here', () async {
+      final id = await hashGitObjectOffIsolate(
+        GitObjectType.blob,
+        Uint8List.fromList(utf8.encode('hello\n')),
+        runner: counting,
+      );
+      expect(id.hex, 'ce013625030ba8dba906f756967f9e9ca394464a');
+      expect(hops, 0);
+    });
+
+    test('packs on another isolate, to the same bytes', () async {
+      final entries = largeEntries();
+      final prepared = await preparePack(entries, runner: counting);
+      expect(hops, 1);
+      expect(await _collect(prepared), await _collect(writePack(entries)));
+    });
+
+    test('a pack built off-isolate reads back', () async {
+      final entries = largeEntries();
+      final bytes = await _collect(await preparePack(entries));
+      final ids = await readPack(bytes, MemoryGitObjectStore());
+      expect(ids, hasLength(2));
+    });
+
+    test('a small pack streams as it did', () async {
+      final blob = Uint8List.fromList([1, 2, 3]);
+      final entries = [PackEntrySource.bytes(GitObjectType.blob, blob)];
+      final prepared = await preparePack(entries, runner: counting);
+      expect(hops, 0);
+      expect(await _collect(prepared), await _collect(writePack(entries)));
+    });
+
+    test('a file-backed entry streams, however large', () async {
+      final dir = await Directory.systemTemp.createTemp('pack_prepare');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File(p.join(dir.path, 'large.bin'));
+      await file.writeAsBytes(zeros);
+      final entries = [
+        PackEntrySource.file(GitObjectType.blob, file, zeros.length),
+      ];
+      final prepared = await preparePack(entries, runner: counting);
+      expect(hops, 0);
+      expect(await readPack(await _collect(prepared), MemoryGitObjectStore()), [
+        GitObjectId.fromHex(zerosBlobId),
+      ]);
+    });
+
+    test('a failed isolate packs here instead', () async {
+      final entries = largeEntries();
+      final prepared = await preparePack(
+        entries,
+        runner: <R>(work) async => throw IsolateSpawnException('no isolate'),
+      );
+      expect(await _collect(prepared), await _collect(writePack(entries)));
+    });
+  });
 }

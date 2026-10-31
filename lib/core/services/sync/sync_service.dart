@@ -159,16 +159,6 @@ class SyncResult {
       'SyncResult(status: $status, records: $recordsSynced, conflicts: $conflictsFound)';
 }
 
-class SyncStepException implements Exception {
-  final String step;
-  final Object error;
-
-  SyncStepException(this.step, this.error);
-
-  @override
-  String toString() => 'Sync failed during $step: $error';
-}
-
 /// Progress callback for sync operations
 typedef SyncProgressCallback = void Function(SyncProgress progress);
 
@@ -854,79 +844,47 @@ class SyncService {
       if (await _shouldSkipPublishAfterAdopt(provider.providerId, deletions)) {
         // Just adopted a restored library and have nothing of our own yet: our
         // library == the adopted epoch the peers already published, so there
-        // is nothing to say. Skip the publish entirely (checked before the
-        // nonce so a skipped sync does not consume a nonce ring slot). Once a
-        // local change exists, the writer publishes it as a small changeset
-        // against the adopted watermark -- never a redundant full base (#358).
+        // is nothing to say. Skip the publish entirely. Once a local change
+        // exists, the writer publishes it as a small changeset against the
+        // adopted watermark, never a redundant full base (#358).
         _log.info('Skipping publish after adopt (no local changes yet)');
       } else {
         publishAttempted = true;
-        final uploadNonce = _uuid.v4();
-        // Record the nonce BEFORE publishing: a lost response (timeout, app
-        // death) still leaves our manifest carrying this nonce, and an
-        // unrecorded copy would read as a foreign twin on the next sync.
-        await _syncInitializer?.recordUploadNonce(
-          uploadNonce,
-          provider.providerId,
+        final write = await _changesetWriter.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folderId,
+          deletions: deletions,
+          epochId: currentEpochId,
+          uploadNonce: _uuid.v4(),
+          // Recorded by the writer at the manifest, not here: this publish may
+          // write none (nothing to say), or one carrying a different nonce (a
+          // resumed base), and may fail after one landed (a compaction). A
+          // ring that guesses gets one of those wrong, and a wrong guess reads
+          // as a twin on the next sync: a new identity for this device, and
+          // another full base to upload (#733, #3822).
+          onManifestNonce: (nonce) =>
+              _recordUploadNonce(nonce, provider.providerId),
+          deviceName: await _deviceNameForManifest(),
+          appliedPeerHlc: appliedPeerHlc,
+          // Republish our log from what we actually hold now. Without this
+          // the cold-start above never converges: our manifest keeps
+          // claiming an HLC we no longer have, so the next sync detects the
+          // same "stale restore" and wipes every peer cursor again -- a full
+          // re-download of the whole fleet's data, every sync (#997).
+          forceBase: staleRestoreDetected,
+          // A full base republish -- what a wiped or replaced backend forces
+          // -- can run to hundreds of megabytes. Spread it across the back
+          // fifth of the bar so the user sees it advancing, instead of
+          // reading a motionless 80% as a hang and killing the app, which
+          // restarts the whole upload from part 0 (issue #1032).
+          onBasePartUploaded: (uploaded, total) => _reportProgress(
+            SyncPhase.uploading,
+            0.8 + 0.2 * (uploaded / total),
+            _l10n.settings_cloudSync_progress_uploadingLibrary(uploaded, total),
+          ),
         );
-        try {
-          final write = await _changesetWriter.publish(
-            provider: provider,
-            deviceId: deviceId,
-            folderId: folderId,
-            deletions: deletions,
-            epochId: currentEpochId,
-            uploadNonce: uploadNonce,
-            deviceName: await _deviceNameForManifest(),
-            appliedPeerHlc: appliedPeerHlc,
-            // Republish our log from what we actually hold now. Without this
-            // the cold-start above never converges: our manifest keeps
-            // claiming an HLC we no longer have, so the next sync detects the
-            // same "stale restore" and wipes every peer cursor again -- a full
-            // re-download of the whole fleet's data, every sync (#997).
-            forceBase: staleRestoreDetected,
-            // A full base republish -- what a wiped or replaced backend forces
-            // -- can run to hundreds of megabytes. Spread it across the back
-            // fifth of the bar so the user sees it advancing, instead of
-            // reading a motionless 80% as a hang and killing the app, which
-            // restarts the whole upload from part 0 (issue #1032).
-            onBasePartUploaded: (uploaded, total) => _reportProgress(
-              SyncPhase.uploading,
-              0.8 + 0.2 * (uploaded / total),
-              _l10n.settings_cloudSync_progress_uploadingLibrary(
-                uploaded,
-                total,
-              ),
-            ),
-          );
-          // A publish that did not stamp this nonce into the manifest -- a
-          // noop (nothing to say) or a heartbeat (which deliberately keeps
-          // the previous nonce) -- must give its speculative ring slot back.
-          // Otherwise every idle sync consumes a slot until the manifest's
-          // live nonce is evicted, and the device reads its own manifest as
-          // a foreign twin: a fresh identity plus a full base re-upload
-          // every ring-length idle syncs (#733).
-          publishSnapshotAt = write.snapshotAt;
-          if (write.kind == ChangesetWriteKind.noop ||
-              write.kind == ChangesetWriteKind.heartbeat) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-        } catch (e) {
-          // Keep the speculative nonce on a timeout (the publish may have
-          // landed); remove it only on definite failures, so repeated hard
-          // failures cannot evict the last good nonce from the ring.
-          final cause = e is SyncStepException ? e.error : e;
-          if (cause is! TimeoutException) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-          rethrow;
-        }
+        publishSnapshotAt = write.snapshotAt;
       }
 
       // ---- Keyslot self-heal (encrypted libraries) ----
@@ -1318,14 +1276,37 @@ class SyncService {
     );
     for (final f in files) {
       if (!ChangesetLogLayout.isManifest(f.name)) continue;
-      try {
-        final m = SyncManifest.fromBytes(await provider.downloadFile(f.id));
-        if (m.epochId == epochId && m.baseSeq != null) return true;
-      } catch (_) {
-        continue;
-      }
+      final m = await _usableManifest(provider, f.id);
+      if (m != null && m.epochId == epochId && m.baseSeq != null) return true;
     }
     return false;
+  }
+
+  /// The manifest in [fileId], or null when the cloud holds one this device
+  /// cannot use.
+  ///
+  /// A manifest that could not be fetched says nothing about the cloud, so that
+  /// failure propagates. Both callers count what is readable to decide whether
+  /// a library exists, and a "no" ends in a delete-all refill or in
+  /// [_reestablishEpochFromLocalLibrary] wiping every sync file: a dropped
+  /// connection must not be able to answer that.
+  Future<SyncManifest?> _usableManifest(
+    CloudStorageProvider provider,
+    String fileId,
+  ) async {
+    final Uint8List bytes;
+    try {
+      bytes = await provider.downloadFile(fileId);
+    } on EnvelopeCorruptException {
+      return null;
+    } on SyncEncryptionRequired {
+      return null;
+    }
+    try {
+      return SyncManifest.fromBytes(bytes);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Twin-identity split: if this device's own cloud manifest carries an
@@ -1344,10 +1325,13 @@ class SyncService {
     // Require the manifest to actually claim our id: a manifest at our filename
     // whose body names a different device is mislabeled, not evidence that
     // another install is syncing as us.
-    if (manifest == null ||
-        manifest.deviceId != deviceId ||
-        nonce == null ||
-        !initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+    if (manifest == null || manifest.deviceId != deviceId || nonce == null) {
+      return (deviceId: deviceId, adopted: false);
+    }
+    if (!initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+      // Ours, and the one the next sync will read. Refresh it, so a run of
+      // publishes that fail at the manifest cannot push it out of the ring.
+      await initializer.recordUploadNonce(nonce, provider.providerId);
       return (deviceId: deviceId, adopted: false);
     }
     _log.warning(
@@ -1359,6 +1343,10 @@ class SyncService {
     // merging the converging files advance it instead of no-opping.
     await _syncRepository.ensureSyncClockConfigured();
     return (deviceId: newId, adopted: true);
+  }
+
+  Future<void> _recordUploadNonce(String nonce, String providerId) async {
+    await _syncInitializer?.recordUploadNonce(nonce, providerId);
   }
 
   /// Read a device's own changeset manifest from the cloud, or null if absent
@@ -2204,10 +2192,10 @@ class SyncService {
   ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
   ///   3. batched apply of every row through the existing [_mergeEntity].
   /// Applies a peer's base file. Tries the worker-isolate path (file read +
-  /// JSON parse off the UI isolate; the whole-file SHA-256 still runs on the
-  /// main isolate in BasePartFileSink.assemble -- folding it in is a deferred
-  /// follow-up) and falls back to the inline path on any worker failure, so a
-  /// broken isolate degrades to old behaviour and never fails or corrupts sync.
+  /// JSON parse off the UI isolate) and falls back to the inline path on any
+  /// worker failure, so a broken isolate degrades to old behaviour and never
+  /// fails or corrupts sync. The base's checksums were already verified, off
+  /// the UI isolate, by BasePartFileSink.assemble.
   ///
   /// [onProgress] receives a 0.0 to 1.0 fraction spanning the three passes
   /// (each pass is one third), with a final 1.0 once the transaction commits.
@@ -2260,8 +2248,7 @@ class SyncService {
   }
 
   /// Worker-backed base apply: the file read + JSON parse run in [client]'s
-  /// isolate; the merge/writes (and, for now, the whole-file SHA-256 in
-  /// BasePartFileSink.assemble) run here. Mirrors [_applyRemoteBaseFileInline]
+  /// isolate; the merge/writes run here. Mirrors [_applyRemoteBaseFileInline]
   /// exactly, fed by streamed rows in file order instead of an inline parse (so
   /// per-table batching and mergeOrder match).
   Future<_MergeResult> _applyRemoteBaseFileViaWorker(
@@ -3424,7 +3411,7 @@ class SyncService {
     'equipmentOwnershipEvents': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
-    // v328: the saved center behind a Dive center place (issue #3623).
+    // v331: the saved center behind a Dive center place (issue #3623).
     // Cleared, not skipped: the place outlives its center.
     'equipmentLocations': [
       (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
@@ -4795,11 +4782,6 @@ class SyncService {
       await PeerCursorStore(db).resetForProvider(provider.providerId);
 
       final deletions = await _syncRepository.getAllDeletions();
-      final uploadNonce = _uuid.v4();
-      await _syncInitializer?.recordUploadNonce(
-        uploadNonce,
-        provider.providerId,
-      );
       // Publish the new library as a fresh epoch-stamped base. Peers on the old
       // epoch halt for adoption; adopters rebuild from this base.
       await _changesetWriter.publish(
@@ -4808,7 +4790,9 @@ class SyncService {
         folderId: syncFolder,
         deletions: deletions,
         epochId: marker.epochId,
-        uploadNonce: uploadNonce,
+        uploadNonce: _uuid.v4(),
+        onManifestNonce: (nonce) =>
+            _recordUploadNonce(nonce, provider.providerId),
         deviceName: await _deviceNameForManifest(),
       );
 
@@ -5670,7 +5654,10 @@ class SyncService {
   /// which verifies per-part and whole-file checksums as bytes land), its base
   /// export time, and its post-base changesets decoded in memory (small
   /// deltas). Skips a device whose base parts are not all present or whose base
-  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// fails its checksum (a publish still in flight -> retry next adopt). A
+  /// fetch that was interrupted is not that: it says nothing about the cloud,
+  /// so the failure propagates, as [BaseFetchInterrupted] for a base and as
+  /// itself for a manifest or changeset, and the caller aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.
@@ -5716,94 +5703,102 @@ class SyncService {
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
     final selfDeviceId = await _syncRepository.getDeviceId();
-    for (final deviceId in deviceIds) {
-      if (excludeDeviceIds.contains(deviceId)) continue;
-      final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
-      if (manifestFile == null) continue;
-      SyncManifest manifest;
-      try {
-        manifest = SyncManifest.fromBytes(
-          await provider.downloadFile(manifestFile.id),
+    try {
+      for (final deviceId in deviceIds) {
+        if (excludeDeviceIds.contains(deviceId)) continue;
+        final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
+        if (manifestFile == null) continue;
+        final manifest = await _usableManifest(provider, manifestFile.id);
+        if (manifest == null) continue;
+        // Recorded unconditionally: the manifest parsed, so a missing name is
+        // the peer's current state and clears any name it published before.
+        //
+        // Never for this device, though. Unlike a pull, this scan reads every
+        // manifest in the folder including its own, and PeerDeviceNameStore
+        // documents that this device is not in it: the device identity
+        // service already knows its own name, and a self entry would show up
+        // as a peer to anything that lists the map.
+        //
+        // Guarded on its own: nothing above catches here, so a failed
+        // preferences write would abort the whole scan and with it the
+        // library adoption, over optional metadata.
+        if (deviceId != selfDeviceId) {
+          try {
+            await _peerNames?.record(deviceId, manifest.deviceName);
+          } catch (e) {
+            _log.warning(
+              'Could not record the name for peer $deviceId',
+              error: e,
+            );
+          }
+        }
+        if (manifest.epochId != epochId) continue;
+        final baseSeq = manifest.baseSeq;
+        if (baseSeq == null) continue;
+        // Compatibility-floor filter, the adopt-side twin of the one in
+        // ChangesetReader.pull: a manifest's schemaVersion is its writer's
+        // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
+        // check because a base-less peer contributes nothing to adopt either
+        // way (pull holds its changesets on its own).
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null &&
+            peerSchema > AppDatabase.currentSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(deviceId);
+          final name = manifest.deviceName;
+          if (name != null && name.isNotEmpty) {
+            newerSchemaPeerNames[deviceId] = name;
+          }
+          continue;
+        }
+        // Once any peer is held the collection is void: keep scanning manifests
+        // only to name every held peer, and fetch no more bases.
+        if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
+        final partCount = manifest.basePartCount ?? 0;
+        if (partCount <= 0) continue;
+        final path = await _baseSink.assemble(
+          name: 'ssv1_adopt_${deviceId}_$baseSeq',
+          partCount: partCount,
+          wholeChecksum: manifest.baseChecksum,
+          partChecksums: manifest.basePartChecksums,
+          downloadPart: (i) async {
+            final pf =
+                byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+            if (pf == null) return null;
+            return provider.downloadFile(pf.id);
+          },
         );
-      } catch (_) {
-        continue;
-      }
-      // Recorded unconditionally: the manifest parsed, so a missing name is
-      // the peer's current state and clears any name it published before.
-      //
-      // Never for this device, though. Unlike a pull, this scan reads every
-      // manifest in the folder including its own, and PeerDeviceNameStore
-      // documents that this device is not in it: the device identity
-      // service already knows its own name, and a self entry would show up
-      // as a peer to anything that lists the map.
-      //
-      // Guarded on its own: nothing above catches here, so a failed
-      // preferences write would abort the whole scan and with it the
-      // library adoption, over optional metadata.
-      if (deviceId != selfDeviceId) {
-        try {
-          await _peerNames?.record(deviceId, manifest.deviceName);
-        } catch (e) {
-          _log.warning(
-            'Could not record the name for peer $deviceId',
-            error: e,
+        // Base incomplete/corrupt: skip this device.
+        if (path == null) continue;
+        baseFilePaths.add(path);
+        baseExportedAt.add(await _readBaseExportedAt(path));
+        // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
+        // first gap) so adopt can record it as this peer's cursor -- otherwise the
+        // next sync cold-starts and re-downloads the whole base we just applied.
+        var appliedThrough = baseSeq;
+        for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
+          final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
+          if (cf == null) break;
+          changesets.add(
+            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
           );
+          appliedThrough = seq;
         }
+        cursors.add((
+          deviceId: deviceId,
+          baseSeq: baseSeq,
+          appliedThrough: appliedThrough,
+        ));
       }
-      if (manifest.epochId != epochId) continue;
-      final baseSeq = manifest.baseSeq;
-      if (baseSeq == null) continue;
-      // Compatibility-floor filter, the adopt-side twin of the one in
-      // ChangesetReader.pull: a manifest's schemaVersion is its writer's
-      // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
-      // check because a base-less peer contributes nothing to adopt either
-      // way (pull holds its changesets on its own).
-      final peerSchema = manifest.schemaVersion;
-      if (peerSchema != null && peerSchema > AppDatabase.currentSchemaVersion) {
-        newerSchemaPeerDeviceIds.add(deviceId);
-        final name = manifest.deviceName;
-        if (name != null && name.isNotEmpty) {
-          newerSchemaPeerNames[deviceId] = name;
-        }
-        continue;
+    } catch (_) {
+      // BaseFetchInterrupted says nothing about this device's base, and both
+      // callers are delete-all-refill: going on without it would drop its
+      // rows, and an empty set would read as "no library". So it, like any
+      // other failure here, aborts the collection. The temp files assembled so
+      // far are not the caller's to delete until this returns.
+      for (final path in baseFilePaths) {
+        await _baseSink.deleteQuietly(path);
       }
-      // Once any peer is held the collection is void: keep scanning manifests
-      // only to name every held peer, and fetch no more bases.
-      if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
-      final partCount = manifest.basePartCount ?? 0;
-      if (partCount <= 0) continue;
-      final path = await _baseSink.assemble(
-        name: 'ssv1_adopt_${deviceId}_$baseSeq',
-        partCount: partCount,
-        wholeChecksum: manifest.baseChecksum,
-        partChecksums: manifest.basePartChecksums,
-        downloadPart: (i) async {
-          final pf =
-              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-          if (pf == null) return null;
-          return provider.downloadFile(pf.id);
-        },
-      );
-      if (path == null) continue; // base incomplete/corrupt -> skip this device
-      baseFilePaths.add(path);
-      baseExportedAt.add(await _readBaseExportedAt(path));
-      // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-      // first gap) so adopt can record it as this peer's cursor -- otherwise the
-      // next sync cold-starts and re-downloads the whole base we just applied.
-      var appliedThrough = baseSeq;
-      for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
-        final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
-        if (cf == null) break;
-        changesets.add(
-          _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
-        );
-        appliedThrough = seq;
-      }
-      cursors.add((
-        deviceId: deviceId,
-        baseSeq: baseSeq,
-        appliedThrough: appliedThrough,
-      ));
+      rethrow;
     }
     if (newerSchemaPeerDeviceIds.isNotEmpty) {
       for (final path in baseFilePaths) {

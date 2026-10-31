@@ -79,7 +79,7 @@ void main() {
     },
   );
 
-  group('saved dive center link (v328)', () {
+  group('saved dive center link (v331)', () {
     Map<String, dynamic> place(String id, {Object? center = 'keep'}) => {
       'id': id,
       'diverId': 'd',
@@ -129,12 +129,12 @@ void main() {
       expect(await linkOf('linked'), isNull);
     });
 
-    test('a record from before v328 keeps the local link', () async {
+    test('a record from before v331 keeps the local link', () async {
       await serializer.upsertRecord('equipmentLocations', place('linked'));
       expect(await linkOf('linked'), 'reef');
     });
 
-    test('a new place from before v328 arrives unlinked', () async {
+    test('a new place from before v331 arrives unlinked', () async {
       await serializer.upsertRecord('equipmentLocations', place('fresh'));
       expect(await linkOf('fresh'), isNull);
     });

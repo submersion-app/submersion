@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v328: equipment_locations gains dive_center_id (issue #3623), the
+/// Schema v331: equipment_locations gains dive_center_id (issue #3623), the
 /// saved center a Dive center place stands for. Every existing place stays
 /// as it was, with no link.
 void main() {
@@ -32,21 +32,21 @@ void main() {
         },
       );
 
-  test('v328 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(328));
-    expect(AppDatabase.migrationVersions, contains(328));
+  test('v331 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(331));
+    expect(AppDatabase.migrationVersions, contains(331));
     expect(
-      AppDatabase.migrationStepCount(327),
-      AppDatabase.migrationStepCount(328) + 1,
+      AppDatabase.migrationStepCount(330),
+      AppDatabase.migrationStepCount(331) + 1,
     );
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(328));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(331));
   });
 
-  test('upgrading from v327 leaves every place unlinked, kind kept', () async {
-    final db = AppDatabase(dbAt(327));
+  test('upgrading from v330 leaves every place unlinked, kind kept', () async {
+    final db = AppDatabase(dbAt(330));
     addTearDown(db.close);
     final row = await db
         .customSelect('SELECT kind, dive_center_id FROM equipment_locations')
@@ -56,7 +56,7 @@ void main() {
   });
 
   test('the link clears, and the place stays, when its center goes', () async {
-    final db = AppDatabase(dbAt(327));
+    final db = AppDatabase(dbAt(330));
     addTearDown(db.close);
     final keys = await db
         .customSelect("PRAGMA foreign_key_list('equipment_locations')")
@@ -69,7 +69,7 @@ void main() {
   });
 
   test('a database already carrying the column is left alone', () async {
-    final db = AppDatabase(dbAt(327, withColumn: true));
+    final db = AppDatabase(dbAt(330, withColumn: true));
     addTearDown(db.close);
     final columns =
         (await db
@@ -80,7 +80,7 @@ void main() {
     expect(columns, hasLength(1));
   });
 
-  test('the backstop restores the column at v328', () async {
+  test('the backstop restores the column at v331', () async {
     final db = AppDatabase(dbAt(AppDatabase.currentSchemaVersion));
     addTearDown(db.close);
     final row = await db

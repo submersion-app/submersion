@@ -52,6 +52,7 @@ import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
+import 'package:submersion/shared/widgets/app_scaffold_messenger.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -714,7 +715,6 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     );
 
     return MaterialApp.router(
-      scaffoldMessengerKey: _scaffoldMessengerKey,
       title: 'Submersion',
       debugShowCheckedModeBanner: false,
       theme: AppThemeRegistry.resolveTheme(themePreset, Brightness.light),
@@ -734,7 +734,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         // outside the zoom scope so the barrier stays a full-screen, unscaled
         // overlay. LockBarrier sits OUTSIDE RestoreBarrier so the App Lock
         // re-lock overlay covers restore UI too.
-        return LockBarrier(
+        final app = LockBarrier(
           child: RestoreBarrier(
             child: Consumer(
               builder: (context, ref, _) {
@@ -766,6 +766,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
             ),
           ),
         );
+        // Here rather than through MaterialApp.scaffoldMessengerKey, which
+        // would give the key MaterialApp's plain messenger instead of this one.
+        return AppScaffoldMessenger(key: _scaffoldMessengerKey, child: app);
       },
     );
   }

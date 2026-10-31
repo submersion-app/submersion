@@ -73,3 +73,68 @@ GROUP BY a.entity_id, b.entity_id$having
 ORDER BY weight DESC, source ASC, target ASC''';
   return (sql: sql, params: params);
 }
+
+/// [buildEdgeSql] for pairs of one [kind] among [ids]: the same rows in the
+/// same order, for a kind dense enough that the self-join hurts.
+///
+/// A diver's gear is on nearly every dive, so a self-join makes one row per
+/// pair per dive: eight pieces over 5,000 dives is 140,000 rows, for a few
+/// hundred edges. Kits repeat, so this finds each distinct set of [ids] on a
+/// dive once, and enumerates the pairs of one sample dive per set.
+///
+/// Sets compare by their sorted, joined ids; `char(31)` is a separator no id
+/// holds.
+({String sql, List<Object?> params}) buildSameKindEdgeSql({
+  required ConnectionKind kind,
+  required Iterable<String> ids,
+  required String? diverId,
+  required DiveFilterState filter,
+  int minShared = 1,
+}) {
+  final list = ids.toList();
+  // The scope is built beside the SQL that embeds it, so the census sees
+  // both in one chunk.
+  final scope = diveScopeSql(diverId: diverId, filter: filter);
+  final where = [
+    ...scope.clauses,
+    if (list.isEmpty)
+      '0 = 1'
+    else
+      'a.entity_id IN (${placeholders(list.length)})',
+  ];
+  final having = minShared > 1 ? '\nHAVING SUM(k.n) >= ?' : '';
+  final sql =
+      '''
+WITH m AS MATERIALIZED (
+  SELECT DISTINCT a.entity_id AS entity_id, d.id AS dive_id, d.dive_date_time AS t
+  FROM dives d
+  JOIN (${membershipSql(kind)}) a ON a.dive_id = d.id
+  WHERE ${where.join(' AND ')}
+),
+sets AS (
+  SELECT dive_id, MIN(t) AS t,
+         group_concat(entity_id, char(31) ORDER BY entity_id) AS members
+  FROM m
+  GROUP BY dive_id
+),
+kits AS (
+  SELECT COUNT(*) AS n, MIN(t) AS first_ms, MAX(t) AS last_ms,
+         MIN(dive_id) AS sample
+  FROM sets
+  GROUP BY members
+)
+SELECT a.entity_id AS source, b.entity_id AS target,
+       SUM(k.n) AS weight,
+       MIN(k.first_ms) AS first_ms,
+       MAX(k.last_ms) AS last_ms
+FROM kits k
+JOIN m a ON a.dive_id = k.sample
+JOIN m b ON b.dive_id = k.sample
+WHERE a.entity_id < b.entity_id
+GROUP BY a.entity_id, b.entity_id$having
+ORDER BY weight DESC, source ASC, target ASC''';
+  return (
+    sql: sql,
+    params: [...scope.params, ...list, if (minShared > 1) minShared],
+  );
+}

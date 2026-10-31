@@ -30,7 +30,7 @@ class EquipmentLocations extends Table {
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 
-  /// The saved center a Dive center place stands for (v328, issue #3623).
+  /// The saved center a Dive center place stands for (v331, issue #3623).
   /// Optional. SET NULL so deleting a center leaves the place; the delete
   /// paths also clear this by hand, because a SET NULL reaches no peer.
   TextColumn get diveCenterId => text().nullable().references(

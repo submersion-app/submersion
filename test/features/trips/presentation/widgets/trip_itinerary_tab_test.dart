@@ -12,6 +12,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -646,7 +647,11 @@ void main() {
         dives: [diveA],
         itineraryDays: [day],
         mediaByDiveId: {
-          'a': [photo('m1'), photo('m2')],
+          'a': DiveMediaPreview(
+            items: [photo('m1'), photo('m2')],
+            mediaCount: 2,
+            photoCount: 2,
+          ),
         },
         sightingsByDiveId: {
           'a': [

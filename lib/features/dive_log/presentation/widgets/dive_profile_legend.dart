@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,7 +30,10 @@ export 'package:submersion/features/dive_log/presentation/widgets/profile_legend
 /// clipping a label part-way through.
 class DiveProfileLegend extends ConsumerWidget {
   final ProfileLegendConfig config;
-  final double zoomLevel;
+
+  /// Listened to by the zoom controls alone: a zoom gesture changes this once
+  /// per pointer frame, and the entries around the controls do not read it.
+  final ValueListenable<double> zoomLevel;
   final double minZoom;
   final double maxZoom;
   final VoidCallback onZoomIn;
@@ -108,14 +112,17 @@ class DiveProfileLegend extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 4),
-          ChartZoomControls(
-            dense: true,
-            zoomLevel: zoomLevel,
-            minZoom: minZoom,
-            maxZoom: maxZoom,
-            onZoomIn: onZoomIn,
-            onZoomOut: onZoomOut,
-            onResetZoom: onResetZoom,
+          ValueListenableBuilder<double>(
+            valueListenable: zoomLevel,
+            builder: (context, zoom, _) => ChartZoomControls(
+              dense: true,
+              zoomLevel: zoom,
+              minZoom: minZoom,
+              maxZoom: maxZoom,
+              onZoomIn: onZoomIn,
+              onZoomOut: onZoomOut,
+              onResetZoom: onResetZoom,
+            ),
           ),
         ],
       ),

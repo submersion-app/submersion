@@ -3,9 +3,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 
@@ -205,6 +207,94 @@ void main() {
         today: DateTime(2026, 6, 1),
       );
       expect(story.days[1].itineraryDay?.portName, 'Kralendijk');
+    });
+
+    group('day media', () {
+      MediaItem photo(String id, int hour) => MediaItem(
+        id: id,
+        mediaType: MediaType.photo,
+        takenAt: DateTime.utc(2026, 3, 8, hour),
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      DiveMediaPreview preview(List<MediaItem> items, {int? count}) =>
+          DiveMediaPreview(
+            items: items,
+            mediaCount: count ?? items.length,
+            photoCount: count ?? items.length,
+          );
+
+      List<TripStoryDay> daysWith(Map<String, DiveMediaPreview> media) =>
+          buildTripStory(
+            trip: _trip(),
+            dives: [
+              _dive('morning', DateTime(2026, 3, 8, 9)),
+              _dive('night', DateTime(2026, 3, 8, 20)),
+              _dive('next-day', DateTime(2026, 3, 9, 9)),
+            ],
+            itineraryDays: [],
+            mediaByDiveId: media,
+            sightingsByDiveId: {},
+            checklistItems: [],
+            today: DateTime(2026, 6, 1),
+          ).days;
+
+      test('merges the dives of a day chronologically', () {
+        final days = daysWith({
+          'morning': preview([photo('b', 9), photo('d', 11)]),
+          'night': preview([photo('a', 8), photo('c', 10)]),
+        });
+
+        expect(days[1].media.map((m) => m.id), ['a', 'b', 'c', 'd']);
+      });
+
+      test('caps the day at the preview limit, keeping the earliest', () {
+        final days = daysWith({
+          'morning': preview([
+            for (var i = 0; i < tripMediaPreviewLimit; i++) photo('m$i', i * 2),
+          ]),
+          'night': preview([
+            for (var i = 0; i < tripMediaPreviewLimit; i++)
+              photo('n$i', i * 2 + 1),
+          ]),
+        });
+
+        expect(days[1].media.map((m) => m.id), [
+          'm0',
+          'n0',
+          'm1',
+          'n1',
+          'm2',
+          'n2',
+        ]);
+      });
+
+      test('counts the whole day, not just the preview', () {
+        final days = daysWith({
+          'morning': preview([photo('a', 8)], count: 30),
+          'night': const DiveMediaPreview(
+            items: [],
+            mediaCount: 5,
+            photoCount: 2,
+          ),
+        });
+
+        expect(days[1].mediaCount, 35);
+        expect(days[1].photoCount, 32);
+      });
+
+      test('keeps each day to its own dives', () {
+        final days = daysWith({
+          'morning': preview([photo('a', 8)]),
+          'next-day': preview([photo('b', 8)], count: 3),
+        });
+
+        expect(days[1].mediaCount, 1);
+        expect(days[2].mediaCount, 3);
+        expect(days[2].media.map((m) => m.id), ['b']);
+        expect(days[0].media, isEmpty);
+      });
     });
 
     test('buckets by effectiveEntryTime, not the legacy dateTime', () {

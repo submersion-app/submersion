@@ -138,6 +138,44 @@ void main() {
     );
   });
 
+  group('buildSameKindEdgeSql', () {
+    test('counts each distinct kit once, under the dive scope', () {
+      final r = buildSameKindEdgeSql(
+        kind: ConnectionKind.equipment,
+        ids: ['e1', 'e2'],
+        diverId: 'me',
+        filter: const DiveFilterState(),
+      );
+      expect(r.sql, contains('MATERIALIZED'));
+      expect(r.sql, contains('d.diver_id = ?'));
+      expect(r.sql, contains('SUM(k.n) AS weight'));
+      expect(r.sql, contains('a.entity_id < b.entity_id'));
+      expect(r.params, ['me', 'e1', 'e2']);
+    });
+
+    test('minShared binds last', () {
+      final r = buildSameKindEdgeSql(
+        kind: ConnectionKind.equipment,
+        ids: ['e1', 'e2'],
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        minShared: 3,
+      );
+      expect(r.sql, contains('HAVING SUM(k.n) >= ?'));
+      expect(r.params.last, 3);
+    });
+
+    test('no ids match nothing', () {
+      final r = buildSameKindEdgeSql(
+        kind: ConnectionKind.equipment,
+        ids: const [],
+        diverId: null,
+        filter: const DiveFilterState(),
+      );
+      expect(r.sql, contains('0 = 1'));
+    });
+  });
+
   group('buildNodeSql', () {
     test('reads each entity first dive in scope', () {
       final r = buildNodeSql(
@@ -220,6 +258,104 @@ void main() {
       );
       expect(r.sql, contains('LIMIT ?'));
       expect(r.params, ['me', 'sp1', '%tur%', 5]);
+    });
+
+    test('a ranked limit cuts before the label table is joined', () {
+      // The label table holds the photo blobs: a limit that sits after the
+      // join reads every candidate's photo to sort it (#3833).
+      final r = buildNodeSql(
+        kind: ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        limit: 160,
+        byRank: true,
+      );
+      expect(
+        r.sql.indexOf('LIMIT ?'),
+        lessThan(r.sql.indexOf('JOIN buddies t ON')),
+      );
+      expect(r.sql, contains('ORDER BY dive_count DESC, m.entity_id ASC'));
+      expect(r.sql, contains('ORDER BY c.dive_count DESC, t.id ASC'));
+      expect(r.params, ['me', 160]);
+    });
+
+    test('a ranked limit still drops links to a missing entity', () {
+      final sql = buildNodeSql(
+        kind: ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        limit: 160,
+        byRank: true,
+      ).sql;
+      expect(
+        sql.indexOf('EXISTS (SELECT 1 FROM buddies'),
+        lessThan(sql.indexOf('LIMIT ?')),
+      );
+    });
+
+    test('a ranked limit with a label search filters before it cuts', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.species,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        labelLike: '%tur%',
+        limit: 5,
+        byRank: true,
+      );
+      expect(r.sql.indexOf('LIKE ?'), lessThan(r.sql.indexOf('LIMIT ?')));
+      expect(r.params, ['me', '%tur%', 5]);
+    });
+
+    test('neighboursOf unions each frontier kind under one dive scope', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        neighboursOf: const NeighboursOf(
+          {
+            ConnectionKind.buddy: {'f'},
+            ConnectionKind.site: {'s1', 's2'},
+          },
+          exclude: {'f'},
+        ),
+        limit: 160,
+        byRank: true,
+      );
+      expect(r.sql, contains(' UNION '));
+      expect(
+        'd.diver_id = ?'.allMatches(r.sql),
+        hasLength(2),
+        reason: 'the count and the neighbours are scoped once each',
+      );
+      expect(r.sql, contains('nb.entity_id NOT IN (?)'));
+      expect(r.params, ['me', 'f', 's1', 's2', 'me', 'f', 160]);
+    });
+
+    test('neighboursOf with an empty frontier matches nothing', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        neighboursOf: const NeighboursOf({}),
+      );
+      expect(r.sql, contains('0 = 1'));
+      expect(r.params, ['me']);
+    });
+
+    test('the node count takes the same neighbours as the node read', () {
+      final r = buildNodeCountSql(
+        kind: ConnectionKind.buddy,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+        neighboursOf: const NeighboursOf(
+          {
+            ConnectionKind.site: {'s1'},
+          },
+          exclude: {'f'},
+        ),
+      );
+      expect(r.sql, contains('m.entity_id IN (SELECT nb.entity_id'));
+      expect(r.params, ['me', 's1', 'me', 'f']);
     });
 
     test('escapeLike escapes the LIKE metacharacters', () {

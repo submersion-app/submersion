@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
 import 'package:submersion/features/trips/domain/services/day_plan_progress.dart';
@@ -37,9 +36,10 @@ class ItineraryDayCard extends ConsumerWidget {
   /// the plan reads as a plan or as progress.
   final TripStoryDayKind kind;
 
-  /// The day's photos and sightings, from the trip story. Empty while the
-  /// story loads or when it failed: they only add a line, never gate the card.
-  final List<MediaItem> media;
+  /// The day's photo count and sightings, from the trip story. Zero and empty
+  /// while the story loads or when it failed: they only add a line, never
+  /// gate the card.
+  final int photoCount;
   final List<Sighting> sightings;
 
   /// Weather stored for this day; logged dive weather wins over it.
@@ -56,7 +56,7 @@ class ItineraryDayCard extends ConsumerWidget {
     required this.tripId,
     required this.isLiveaboard,
     required this.kind,
-    this.media = const [],
+    this.photoCount = 0,
     this.sightings = const [],
     this.storedWeather,
     this.bottomGap = 8,
@@ -324,11 +324,6 @@ class ItineraryDayCard extends ConsumerWidget {
   String? _mediaLine(BuildContext context) {
     final l10n = context.l10n;
     final speciesCount = sightings.map((s) => s.speciesId).toSet().length;
-    // Trip media also holds videos, signatures and documents; the line
-    // counts photos.
-    final photoCount = media
-        .where((m) => m.mediaType == MediaType.photo)
-        .length;
     final parts = [
       if (photoCount > 0) l10n.trips_day_photoCount(photoCount),
       if (speciesCount > 0) l10n.trips_day_speciesCount(speciesCount),

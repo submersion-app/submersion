@@ -18,7 +18,7 @@ queues the place for sync.
 
 ## Global Constraints
 
-- Schema v328, renumbered if another PR ships that version first.
+- Schema v331, renumbered if another PR ships that version first.
 - Never add a table or rung to `database.dart`; rungs go in
   `migrations/ladder/rungs_v231_onward.dart`.
 - Strings go in all 11 ARB files, translated, keyed next to a neighbouring key of
@@ -125,7 +125,7 @@ git commit -m "feat(equipment): add a Dive center place type"
 - Modify: `lib/core/database/database.dart` (`currentSchemaVersion` only)
 - Modify: `lib/features/equipment/domain/entities/equipment_location.dart`
 - Modify: `lib/features/equipment/data/repositories/equipment_location_repository.dart`
-- Test: `test/core/database/migration_v328_equipment_location_center_test.dart`
+- Test: `test/core/database/migration_v331_equipment_location_center_test.dart`
 - Test: `test/features/equipment/data/repositories/equipment_location_repository_test.dart`
 - Test: `test/features/equipment/domain/entities/equipment_location_test.dart`
 
@@ -158,13 +158,13 @@ keeps the value, and two places differing only in link are not equal.
 
 - [ ] **Step 2: Run to confirm they fail**
 
-Run: `flutter test test/core/database/migration_v328_equipment_location_center_test.dart test/features/equipment/data/repositories/equipment_location_repository_test.dart`
+Run: `flutter test test/core/database/migration_v331_equipment_location_center_test.dart test/features/equipment/data/repositories/equipment_location_repository_test.dart`
 Expected: FAIL.
 
 - [ ] **Step 3: Add the column**
 
 ```dart
-/// The saved center a Dive center place stands for (v328, issue #3623).
+/// The saved center a Dive center place stands for (v331, issue #3623).
 /// Optional. SET NULL so deleting a center leaves the place; the delete
 /// paths also clear this by hand, because a SET NULL reaches no peer.
 TextColumn get diveCenterId => text().nullable().references(
@@ -179,7 +179,7 @@ Add `_assertEquipmentLocationCenterColumn()` to the migrations extension using
 'TEXT REFERENCES dive_centers(id) ON DELETE SET NULL')`, returning early when the
 table is absent if `_addColumnIfMissing` does not already. Add `dive_centers` to
 the parent list in `_assertEquipmentLocationSchema`, since the table now has that
-foreign key. Add the v328 rung with a comment, the `reportProgress` line, the
+foreign key. Add the v331 rung with a comment, the `reportProgress` line, the
 `beforeOpen` assert in `before_open_child_columns.dart`, and bump
 `currentSchemaVersion`. Run build_runner.
 
@@ -196,7 +196,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add lib/core/database lib/features/equipment test/core/database/migration_v328_equipment_location_center_test.dart test/features/equipment
+git add lib/core/database lib/features/equipment test/core/database/migration_v331_equipment_location_center_test.dart test/features/equipment
 git commit -m "feat(equipment): link a place to a saved dive center"
 ```
 
@@ -238,7 +238,7 @@ Expected: the no-key tests FAIL, showing the link overwritten with null.
 > below was needed. The tests above pin the behaviour.
 
 ```dart
-/// An incoming place as a companion. A build before v328 sends no
+/// An incoming place as a companion. A build before v331 sends no
 /// `diveCenterId` key at all, which must not read as an unlink: an absent
 /// value leaves the local column alone, a null one clears it.
 EquipmentLocationsCompanion _equipmentLocationCompanion(
@@ -256,7 +256,7 @@ EquipmentLocationsCompanion _equipmentLocationCompanion(
 Use it at both apply sites. Add to the parent refs:
 
 ```dart
-// v328: the saved center behind a Dive center place. Cleared, not skipped:
+// v331: the saved center behind a Dive center place. Cleared, not skipped:
 // the place outlives its center.
 'equipmentLocations': [
   (field: 'diveCenterId', parent: 'diveCenters', nullable: true),

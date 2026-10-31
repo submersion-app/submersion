@@ -1393,6 +1393,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_dismiss => 'Dispensar';
 
   @override
+  String get common_action_dismissAll => 'Dispensar tudo';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Conjunto padrão';
 
   @override
@@ -8653,7 +8656,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sem Dupla';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Sem Método de Entrada';
+
+  @override
   String get diveLog_filterChip_noRole => 'Sem Função';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Sem Tipo de Água';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8719,6 +8728,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Sem Dupla Atribuída';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Sem método de entrada registado';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'Sem Função Atribuída';
 
   @override
@@ -8781,6 +8794,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Mostrar apenas mergulhos sem dupla';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Mostrar apenas mergulhos sem método de entrada conhecido';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>
@@ -15171,6 +15188,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Detalhes';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Tempo de Mergulho';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

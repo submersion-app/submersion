@@ -1395,6 +1395,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_dismiss => 'Verwerfen';
 
   @override
+  String get common_action_dismissAll => 'Alle verwerfen';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Standard-Set';
 
   @override
@@ -8650,7 +8653,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Kein Buddy';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Keine Einstiegsmethode';
+
+  @override
   String get diveLog_filterChip_noRole => 'Keine Rolle';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Keine Wasserart';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8716,6 +8725,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Kein Buddy zugewiesen';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Keine Einstiegsmethode erfasst';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'Keine Rolle zugewiesen';
 
   @override
@@ -8778,6 +8791,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Nur Tauchgänge ohne Buddy anzeigen';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Nur Tauchgänge ohne bekannte Einstiegsmethode anzeigen';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>
@@ -15165,6 +15182,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Details';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Tauchzeit';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

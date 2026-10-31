@@ -2,6 +2,11 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 
+/// The most nodes [nodesWithinBudget] can keep for [budget], ties included, or
+/// null for no budget. Anything kept is in the top this many of its own kind,
+/// so a load need read no further.
+int? budgetReach(int budget) => budget > 0 ? budget * 2 : null;
+
 /// The nodes a load keeps before it queries edges, so edge work is bounded
 /// by [budget] rather than by the size of the log.
 ///
@@ -23,7 +28,7 @@ List<ConnectionNode> nodesWithinBudget(List<ConnectionNode> nodes, int budget) {
       final r = rank(a, b);
       return r != 0 ? r : a.ref.wire.compareTo(b.ref.wire);
     });
-  final cap = budget * 2;
+  final cap = budgetReach(budget)!;
   var end = budget;
   while (end < ranked.length &&
       end < cap &&
@@ -42,23 +47,9 @@ Map<ConnectionKind, Set<String>> idsByKind(Iterable<ConnectionNode> nodes) {
   return out;
 }
 
-/// [graph] with the nodes of [all] that the budget cut before the edge
-/// queries (those not in [kept]) added to its hidden counts.
-ConnectionGraph withDropped(
-  ConnectionGraph graph,
-  List<ConnectionNode> all,
-  List<ConnectionNode> kept,
-) {
-  final totals = <ConnectionKind, int>{};
-  for (final n in all) {
-    totals[n.ref.kind] = (totals[n.ref.kind] ?? 0) + 1;
-  }
-  return withDroppedCounts(graph, totals, kept);
-}
-
-/// [withDropped] for a load that read only the top of each kind: [totals]
-/// holds each kind's full entity count, and whatever [kept] does not hold
-/// is added to the hidden counts.
+/// [graph] with what the budget cut before the edge queries added to its
+/// hidden counts: [totals] holds each kind's full entity count, and whatever
+/// [kept] does not hold is hidden.
 ConnectionGraph withDroppedCounts(
   ConnectionGraph graph,
   Map<ConnectionKind, int> totals,
