@@ -165,6 +165,20 @@ void main() {
     });
   });
 
+  testWidgets('a covered plan short of gas still says so', (tester) async {
+    await _mount(
+      tester,
+      PlanResultsSheet(controller: ScrollController()),
+      bailout: _ean32.copyWith(volume: 1),
+    );
+
+    expect(
+      find.text('Bailout gas insufficient for the worst case'),
+      findsOneWidget,
+    );
+    expect(find.text(_gapMessage), findsNothing);
+  });
+
   group('the chart', () {
     testWidgets('a gas gap hides the Bailout chip', (tester) async {
       await _mount(tester, const ChartModeToggle(), bailout: _ean50);

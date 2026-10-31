@@ -2008,13 +2008,8 @@ class PlanEngine {
           : ppO2OverLimit(outcome.maxPpO2, config.ppO2Working);
 
       // Where on this leg a depth limit is first passed (#3738).
-      int onset(bool Function(double depth) exceeds) => legOnsetRuntime(
-        startRuntime: outcome.startRuntime,
-        durationSeconds: outcome.endRuntime - outcome.startRuntime,
-        startDepth: leg.startDepth,
-        endDepth: leg.endDepth,
-        exceeds: exceeds,
-      );
+      int onset(bool Function(double depth) exceeds) =>
+          _legOnset(leg, outcome, exceeds);
       // The same ppO2 the leg's maxPpO2 was taken from, at any depth.
       double ppO2At(double depth) => segmentIsLoop
           ? _breathingFor(
@@ -2378,6 +2373,19 @@ class PlanEngine {
     return issues;
   }
 
+  /// The runtime [leg], with its [outcome], first passes a depth limit.
+  int _legOnset(
+    ResolvedLeg leg,
+    SegmentOutcome outcome,
+    bool Function(double depth) exceeds,
+  ) => legOnsetRuntime(
+    startRuntime: outcome.startRuntime,
+    durationSeconds: outcome.endRuntime - outcome.startRuntime,
+    startDepth: leg.startDepth,
+    endDepth: leg.endDepth,
+    exceeds: exceeds,
+  );
+
   /// The loop can die anywhere, and carrying a bailout gas does not help
   /// where it may not be breathed (#3961), so this does not wait for deco as
   /// [PlanIssueType.noBailoutCarried] does: a no-stop dive needs a gas to
@@ -2400,19 +2408,16 @@ class PlanEngine {
     final firstPast = legs.indexWhere(
       (leg) => !gases.coversDepth(leg.deeperEnd),
     );
-    final outcome = segmentOutcomes[firstPast];
     return PlanIssue(
       type: PlanIssueType.noEligibleBailoutGas,
       severity: PlanIssueSeverity.alert,
       message:
           'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
           'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
-      atRuntime: legOnsetRuntime(
-        startRuntime: outcome.startRuntime,
-        durationSeconds: outcome.endRuntime - outcome.startRuntime,
-        startDepth: legs[firstPast].startDepth,
-        endDepth: legs[firstPast].endDepth,
-        exceeds: (depth) => !gases.coversDepth(depth),
+      atRuntime: _legOnset(
+        legs[firstPast],
+        segmentOutcomes[firstPast],
+        (depth) => !gases.coversDepth(depth),
       ),
       atDepth: deepest,
       value: deepest,

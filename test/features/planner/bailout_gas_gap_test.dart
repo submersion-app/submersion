@@ -233,6 +233,29 @@ void main() {
       );
     });
 
+    test('finds the leg that passes the MOD on a stepped descent, not just '
+        'the first', () {
+      final outcome = engine.compute(
+        _plan(
+          segments: [
+            ..._toDepth(5, minutes: 10),
+            PlanSegment.travel(
+              id: 'second-step',
+              fromDepth: 5,
+              targetDepth: 20,
+              ratePerMinute: 18,
+              tankId: 'dil',
+              gasMix: _air,
+              order: 2,
+            ),
+          ],
+        ),
+      );
+
+      // 17 s to 5 m, the 10 minute hold, then about 4 s to about 6 m.
+      expect(gapIssues(outcome).single.atRuntime, closeTo(621, 3));
+    });
+
     test('a plan told it carries no bailout gas hears nothing about a MOD: '
         'the loop\'s own supply is not a bailout gas', () {
       const ean40 = GasMix(o2: 40);
