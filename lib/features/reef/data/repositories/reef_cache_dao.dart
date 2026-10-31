@@ -84,7 +84,8 @@ class ReefCacheDao {
 
   /// Deletes a cached failure so the next [read] misses and the part is
   /// fetched again, ahead of [failureTtl]. A good result is left alone: only
-  /// the failure is in doubt.
+  /// the failure is in doubt. A status this build does not know counts as a
+  /// failure here, as it does in [read].
   Future<void> deleteFailure(
     ReefProviderId provider,
     String coordKey, {
@@ -95,7 +96,10 @@ class ReefCacheDao {
               t.provider.equals(provider.name) &
               t.coordKey.equals(coordKey) &
               t.variant.equals(variant) &
-              t.status.equals(ReefDataStatus.unavailable.name),
+              t.status.isNotIn([
+                ReefDataStatus.ok.name,
+                ReefDataStatus.empty.name,
+              ]),
         ))
         .go();
   }

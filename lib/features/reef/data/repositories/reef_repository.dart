@@ -181,28 +181,31 @@ class ReefRepository {
     required T Function(Object?) decode,
     bool Function(T)? skipStore,
   }) async {
-    final cached = await _cache.read(provider, coordKey, variant: variant);
-    if (cached != null) {
-      // A row this build cannot read counts as a miss: habitat never expires,
-      // so nothing else would ever replace it.
-      try {
-        return _decodeEntry<T>(cached, decode);
-      } catch (e) {
-        developer.log('Unreadable reef cache row: $e', name: 'ReefRepository');
-      }
+    // The cache only saves a request, so when it cannot answer the network
+    // still gets asked. That includes a row this build cannot read: habitat
+    // never expires, so nothing else would ever replace it.
+    try {
+      final cached = await _cache.read(provider, coordKey, variant: variant);
+      if (cached != null) return _decodeEntry<T>(cached, decode);
+    } catch (e) {
+      developer.log('Unreadable reef cache: $e', name: 'ReefRepository');
     }
 
     final part = await fetch();
     if (part.hasValue && (skipStore?.call(part.value as T) ?? false)) {
       return part;
     }
-    await _cache.write(
-      provider: provider,
-      coordKey: coordKey,
-      variant: variant,
-      status: part.status,
-      payloadJson: part.hasValue ? encode(part.value as T) : '{}',
-    );
+    try {
+      await _cache.write(
+        provider: provider,
+        coordKey: coordKey,
+        variant: variant,
+        status: part.status,
+        payloadJson: part.hasValue ? encode(part.value as T) : '{}',
+      );
+    } catch (e) {
+      developer.log('Reef cache write failed: $e', name: 'ReefRepository');
+    }
     return part;
   }
 

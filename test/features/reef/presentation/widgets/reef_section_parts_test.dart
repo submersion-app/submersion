@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show Intl;
 import 'package:submersion/core/constants/enums.dart';
@@ -173,6 +174,29 @@ void main() {
 
     expect(find.text('Retry'), findsNWidgets(2));
     expect(find.text('Not in a marine protected area'), findsOneWidget);
+  });
+
+  testWidgets('a retry names its part to a screen reader', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final repository = _FakeRepository()
+      ..habitat.add(Future.value(const ReefPart.unavailable()))
+      ..health.add(Future.value(const ReefPart.unavailable()))
+      ..protection.add(Future.value(const ReefPart.empty()));
+
+    await tester.pumpWidget(_harness(repository));
+    await tester.pumpAndSettle();
+
+    final habitat = tester
+        .getSemantics(find.text('Retry').first)
+        .getSemanticsData();
+    final water = tester
+        .getSemantics(find.text('Retry').last)
+        .getSemanticsData();
+
+    expect(habitat.label, contains('Reef habitat'));
+    expect(habitat.hasAction(SemanticsAction.tap), isTrue);
+    expect(water.label, contains('Water conditions'));
+    semantics.dispose();
   });
 
   testWidgets('retry forgets the failure and refetches only that part', (

@@ -135,15 +135,22 @@ class ReefSection extends ConsumerWidget {
 
   /// Builds one part's row. A retry counts as loading, so the row returns to
   /// [checking] instead of showing the old failure while the fetch runs.
+  ///
+  /// A failed row is one semantics node, so a screen reader announces its
+  /// retry with the part it belongs to rather than a bare "Retry".
   Widget _partRow<T>(
     AsyncValue<ReefPart<T>> value, {
     required Widget checking,
     required Widget Function(ReefPart<T>) row,
   }) {
+    Widget rowFor(ReefPart<T> part) => part.status == ReefDataStatus.unavailable
+        ? MergeSemantics(child: row(part))
+        : row(part);
+
     return value.when(
       skipLoadingOnRefresh: false,
-      data: row,
-      error: (_, _) => row(ReefPart<T>.unavailable()),
+      data: rowFor,
+      error: (_, _) => rowFor(ReefPart<T>.unavailable()),
       loading: () => checking,
     );
   }

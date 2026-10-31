@@ -76,6 +76,24 @@ void main() {
     expect(habitat?.status, ReefDataStatus.ok);
   });
 
+  test('deleteFailure removes a status read treats as a failure', () async {
+    await db
+        .into(db.reefDataCache)
+        .insert(
+          ReefDataCacheCompanion.insert(
+            provider: ReefProviderId.habitat.name,
+            coordKey: 'k',
+            payloadJson: '{}',
+            status: 'retiredStatus',
+            fetchedAt: clock.millisecondsSinceEpoch,
+          ),
+        );
+
+    await dao.deleteFailure(ReefProviderId.habitat, 'k');
+
+    expect(await dao.read(ReefProviderId.habitat, 'k'), isNull);
+  });
+
   test('habitat never expires', () async {
     await dao.write(
       provider: ReefProviderId.habitat,

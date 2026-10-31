@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:http/http.dart' as http;
 
@@ -65,16 +67,22 @@ final reefProtectionProvider =
 /// Species recorded near a location.
 ///
 /// This part has no retry button, so only a complete answer is held for the
-/// session. A failed or partial one goes with its last watcher, and the next
-/// visit asks again.
+/// session. A failed one goes with its last watcher, and its cached failure
+/// spaces out the next try. A partial one has no cache row to do that, so it
+/// is held for the same window: otherwise every visit would resend the search
+/// and every name lookup, perhaps to a server already rate limiting them.
 // no-tick: remote reef data keyed by quantized coordinate, as above.
 final reefNearbySpeciesProvider = FutureProvider.autoDispose
     .family<ReefPart<NearbySpecies>, GeoPoint>((ref, location) async {
       final part = await ref.watch(reefRepositoryProvider).speciesFor(location);
-      final complete =
-          part.status != ReefDataStatus.unavailable &&
-          part.value?.namesIncomplete != true;
-      if (complete && ref.mounted) ref.keepAlive();
+      if (!ref.mounted || part.status == ReefDataStatus.unavailable) {
+        return part;
+      }
+      final hold = ref.keepAlive();
+      if (part.value?.namesIncomplete == true) {
+        final expiry = Timer(ReefCacheDao.failureTtl, hold.close);
+        ref.onDispose(expiry.cancel);
+      }
       return part;
     });
 

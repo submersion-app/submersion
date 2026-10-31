@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/native.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/reef/data/repositories/reef_cache_dao.dart';
 import 'package:submersion/features/reef/data/repositories/reef_repository.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
@@ -103,12 +105,14 @@ void main() {
     }
 
     test('a stalled species request leaves the other parts free', () async {
+      final stalled = Completer<http.Response>();
       final container = containerFor((request) {
-        if (request.url.host == 'api.gbif.org') {
-          return Completer<http.Response>().future;
-        }
+        if (request.url.host == 'api.gbif.org') return stalled.future;
         return Future.value(http.Response(jsonEncode({'features': []}), 200));
       });
+      // Otherwise its 15 second limit fires during some later test in CI's
+      // shared isolate.
+      addTearDown(() => stalled.complete(http.Response('down', 503)));
       final species = container.listen(
         reefNearbySpeciesProvider(location),
         (_, _) {},
@@ -176,22 +180,54 @@ void main() {
       expect(built, 2, reason: 'no retry button, so the next visit must ask');
     });
 
-    test('a partial species answer goes with its last watcher', () async {
-      var built = 0;
-      final container = containerAnswering(() {
-        built++;
-        return const ReefPart.ok(
-          NearbySpecies(
-            unmatchedNames: ['Aplysina archeri'],
-            namesIncomplete: true,
-          ),
+    group('a partial species answer', () {
+      const partial = ReefPart.ok(
+        NearbySpecies(
+          unmatchedNames: ['Aplysina archeri'],
+          namesIncomplete: true,
+        ),
+      );
+
+      /// [visit] for a fake clock, where nothing can be awaited.
+      void visitSite(ProviderContainer container, FakeAsync async) {
+        final sub = container.listen(
+          reefNearbySpeciesProvider(location),
+          (_, _) {},
         );
+        async.flushMicrotasks();
+        sub.close();
+        async.elapse(Duration.zero);
+      }
+
+      test('waits out the failure window before asking again', () {
+        fakeAsync((async) {
+          var built = 0;
+          final container = containerAnswering(() {
+            built++;
+            return partial;
+          });
+
+          visitSite(container, async);
+          visitSite(container, async);
+          expect(built, 1, reason: 'it is not cached, so this is its backoff');
+
+          async.elapse(ReefCacheDao.failureTtl);
+          visitSite(container, async);
+          expect(built, 2);
+        });
       });
 
-      await visit(container);
-      await visit(container);
+      test('leaves no timer behind when the provider goes', () {
+        fakeAsync((async) {
+          final container = containerAnswering(() => partial);
 
-      expect(built, 2);
+          visitSite(container, async);
+          container.dispose();
+          async.flushMicrotasks();
+
+          expect(async.pendingTimers, isEmpty);
+        });
+      });
     });
   });
 }

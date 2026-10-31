@@ -15,6 +15,7 @@ import 'package:submersion/features/reef/data/services/reef_habitat_service.dart
 import 'package:submersion/features/reef/data/services/reef_health_service.dart';
 import 'package:submersion/features/reef/data/services/reef_protection_service.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
+import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/services/reef_coordinate_key.dart';
 import 'package:submersion/features/reef/domain/services/species_catalog_matcher.dart';
 
@@ -49,6 +50,31 @@ class _UnreadableCacheDao extends ReefCacheDao {
   }
 }
 
+class _UnwritableCacheDao extends ReefCacheDao {
+  _UnwritableCacheDao(super.db);
+
+  @override
+  Future<void> write({
+    required ReefProviderId provider,
+    required String coordKey,
+    required ReefDataStatus status,
+    required String payloadJson,
+    String variant = '',
+  }) async {
+    throw StateError('cache write failed');
+  }
+}
+
+class _ThrowingHabitatService extends ReefHabitatService {
+  _ThrowingHabitatService()
+    : super(client: MockClient((_) async => http.Response('', 200)));
+
+  @override
+  Future<ReefPart<ReefHabitat>> fetch(GeoPoint point) async {
+    throw StateError('habitat fetch failed');
+  }
+}
+
 void main() {
   late LocalCacheDatabase db;
   late DateTime clock;
@@ -65,6 +91,7 @@ void main() {
   tearDown(() async => db.close());
 
   ReefRepository buildRepository({
+    ReefHabitatService? habitat,
     http.Client? habitatClient,
     http.Client? healthClient,
     http.Client? protectionClient,
@@ -76,7 +103,7 @@ void main() {
     );
     return ReefRepository(
       cache: cache ?? ReefCacheDao(db, now: () => clock),
-      habitat: ReefHabitatService(client: habitatClient ?? ok),
+      habitat: habitat ?? ReefHabitatService(client: habitatClient ?? ok),
       health: ReefHealthService(
         client:
             healthClient ?? MockClient((_) async => http.Response('down', 503)),
@@ -320,7 +347,7 @@ void main() {
   test(
     'a concurrent caller reads unavailable when the leader throws',
     () async {
-      final repo = buildRepository(cache: _UnreadableCacheDao(db));
+      final repo = buildRepository(habitat: _ThrowingHabitatService());
       const point = GeoPoint(12.16, -68.28);
 
       final leader = repo.habitatFor(point);
@@ -330,6 +357,30 @@ void main() {
       expect((await follower).status, ReefDataStatus.unavailable);
     },
   );
+
+  test('a cache that cannot be read still reaches the network', () async {
+    final counting = MockClient((_) async {
+      habitatCalls++;
+      return http.Response(jsonEncode({'features': []}), 200);
+    });
+    final repo = buildRepository(
+      habitatClient: counting,
+      cache: _UnreadableCacheDao(db),
+    );
+
+    final part = await repo.habitatFor(const GeoPoint(12.16, -68.28));
+
+    expect(habitatCalls, 1);
+    expect(part.status, ReefDataStatus.empty);
+  });
+
+  test('a good answer survives a failed cache write', () async {
+    final repo = buildRepository(cache: _UnwritableCacheDao(db));
+
+    final part = await repo.habitatFor(const GeoPoint(12.16, -68.28));
+
+    expect(part.status, ReefDataStatus.empty);
+  });
 
   test('a cached row that cannot be read is fetched again', () async {
     await ReefCacheDao(db, now: () => clock).write(

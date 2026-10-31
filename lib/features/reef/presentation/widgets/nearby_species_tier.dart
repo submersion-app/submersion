@@ -242,8 +242,8 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
           taxonomyClass: result.taxonomyClass,
         );
     if (!mounted) return;
-    // The chip stays up until the snapshot refreshes, so this can be a
-    // species the site already expects; addSpecies is idempotent.
+    // The chip stays up after an add, so this can be a species the site
+    // already expects; addSpecies is idempotent.
     await ref
         .read(siteExpectedSpeciesNotifierProvider(widget.siteId).notifier)
         .addSpecies(species.id);

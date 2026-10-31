@@ -40,8 +40,8 @@ class NearbySpecies extends Equatable {
   final List<String> unmatchedNames;
 
   /// True when a name lookup failed, so [unmatchedNames] may be short. Never
-  /// persisted: a result with a gap is shown once rather than kept for the
-  /// cache's 30-day lifetime.
+  /// persisted: a result with a gap must not be kept for the cache's 30-day
+  /// lifetime.
   final bool namesIncomplete;
 
   const NearbySpecies({
