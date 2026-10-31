@@ -36,11 +36,9 @@ const _day =
 /// No weight entry at all: neither a `dive_weights` row nor a positive legacy
 /// scalar, the one the edit form migrates into the table on load (#1392). ONE
 /// rule, read by the `weight` field and the `weights` relation so `weight:none`
-/// and `weights:none` cannot disagree. It is the NULL case of
-/// [recordedWeightKgSql] (#3914).
-const kDiveNoWeightSql =
-    '(COALESCE({r}.weight_amount, 0) <= 0 AND NOT EXISTS '
-    '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
+/// and `weights:none` cannot disagree, and defined as the NULL case of
+/// [recordedWeightKgSql] so neither can disagree with the value (#3914).
+final kDiveNoWeightSql = '(${recordedWeightKgSql('{r}')} IS NULL)';
 
 /// The gear union the equipment axes have always used: items linked
 /// through `dive_equipment`, cylinders the transmitter registry matched

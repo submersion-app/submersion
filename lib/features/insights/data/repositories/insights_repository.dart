@@ -2574,7 +2574,7 @@ class InsightsRepository {
         FROM dives d
         WHERE 1 = 1 $diverFilter ${df.clause}
           AND total_kg IS NOT NULL
-        ORDER BY d.dive_date_time
+        ORDER BY d.dive_date_time, d.id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {

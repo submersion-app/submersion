@@ -745,6 +745,20 @@ void main() {
       expect(DiveField.totalWeight.extractFromDive(minimalDive), isNull);
     });
 
+    test('totalWeight falls back to the legacy scalar (issue #3914)', () {
+      final legacy = Dive(id: 'legacy', dateTime: now, weightAmount: 6);
+      final zero = Dive(id: 'zero', dateTime: now, weightAmount: 0);
+
+      expect(DiveField.totalWeight.extractFromDive(legacy), 6.0);
+      expect(DiveField.totalWeight.extractFromDive(zero), isNull);
+    });
+
+    test('totalWeight never adds the legacy scalar to weight rows', () {
+      final both = testDive.copyWith(weightAmount: 9);
+
+      expect(DiveField.totalWeight.extractFromDive(both), 6.0);
+    });
+
     test('diluentGas returns null when not set', () {
       expect(DiveField.diluentGas.extractFromDive(minimalDive), isNull);
     });

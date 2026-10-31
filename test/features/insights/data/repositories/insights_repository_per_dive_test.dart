@@ -233,6 +233,16 @@ void main() {
       expect(await repository.getWeightPerDive(), isEmpty);
     });
 
+    test('orders dives at the same moment by id', () async {
+      final at = DateTime.utc(2024, 5, 10);
+      await insertDive(id: 'b', at: at, legacyWeight: 5.0);
+      await insertDive(id: 'a', at: at, legacyWeight: 7.0);
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.map((p) => p.diveId), ['a', 'b']);
+    });
+
     test('scopes legacy scalar dives like every other dive', () async {
       await insertDive(
         id: 'old',
