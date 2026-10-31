@@ -68,11 +68,6 @@ class DemoBuilder {
   }) async {
     final work = Directory.systemTemp.createTempSync('demo_pack');
     try {
-      final dbPath = p.join(work.path, 'submersion_demo.db');
-      final db = AppDatabase(
-        NativeDatabase(File(dbPath), setup: registerAppSqlFunctions),
-      );
-      DatabaseService.instance.setTestDatabase(db);
       final catalog = Catalog.load(catalogDir);
       final plan = StoryPlanner(
         Random(seed),
@@ -82,10 +77,25 @@ class DemoBuilder {
       final library = ShapeLibrary(shapes, Random(seed));
       final short = shapeShortfalls(plan, library.shapes);
       if (short.isNotEmpty) {
-        await db.close();
-        DatabaseService.instance.resetForTesting();
         throw DemoBuildRefused('not enough dive shapes: ${short.join('; ')}');
       }
+      final dbPath = p.join(work.path, 'submersion_demo.db');
+      // A working copy that a failed build just starts again, so the disk sync
+      // SQLite does for each of the seeders' commits buys nothing, and on a
+      // busy disk those syncs were most of a build (issue #3814). The journal
+      // stays, in memory, for the repositories' rollbacks. Neither setting is
+      // stored in the file.
+      final db = AppDatabase(
+        NativeDatabase(
+          File(dbPath),
+          setup: (raw) {
+            registerAppSqlFunctions(raw);
+            raw.execute('PRAGMA journal_mode = MEMORY');
+            raw.execute('PRAGMA synchronous = OFF');
+          },
+        ),
+      );
+      DatabaseService.instance.setTestDatabase(db);
       final ctx = DemoSeedContext(
         db: db,
         plan: plan,

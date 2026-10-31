@@ -351,6 +351,8 @@ class DiveProfileChartHost extends ConsumerWidget {
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,
+        labelCeilingAsCalculated:
+            analysis?.computerStopsWithCalculatedCeiling ?? false,
         ascentRates: analysis?.ascentRates,
         events: analysis?.events,
         ndlCurve: analysis?.ndlCurve,

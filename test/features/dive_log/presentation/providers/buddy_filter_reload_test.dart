@@ -8,6 +8,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -33,7 +34,7 @@ class _CountingRepository implements DiveRepository {
 
   final DiveRepository _inner;
   int summaryCalls = 0;
-  int allDivesCalls = 0;
+  int listReads = 0;
   int orderedIdsCalls = 0;
 
   @override
@@ -52,9 +53,21 @@ class _CountingRepository implements DiveRepository {
 
   @override
   Future<List<Dive>> getAllDives({String? diverId}) {
-    allDivesCalls++;
+    listReads++;
     return _inner.getAllDives(diverId: diverId);
   }
+
+  @override
+  Future<DiveListSnapshot> getDiveListSnapshot({
+    String? diverId,
+    DiveListSnapshot? previous,
+  }) {
+    listReads++;
+    return _inner.getDiveListSnapshot(diverId: diverId, previous: previous);
+  }
+
+  @override
+  Stream<void> watchDiveHydrationWrites() => _inner.watchDiveHydrationWrites();
 
   @override
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
@@ -362,7 +375,7 @@ void main() {
     await Future<void>.delayed(
       DiveRepository.changeTickDebounce + const Duration(milliseconds: 200),
     );
-    final before = counting.allDivesCalls;
+    final before = counting.listReads;
 
     await BuddyRepository().addBuddyToDive('annDive', 'ann', DiveRole.buddyId);
     await Future<void>.delayed(
@@ -370,7 +383,7 @@ void main() {
     );
 
     expect(await waitFor(filteredIds, (ids) => ids.isNotEmpty), {'annDive'});
-    expect(counting.allDivesCalls - before, 1);
+    expect(counting.listReads - before, 1);
   });
 
   test('a local buddy edit recomputes the neighbor ids once', () async {
@@ -412,7 +425,7 @@ void main() {
     Set<String>? filteredIds() =>
         container.read(filteredDivesProvider).value?.map((d) => d.id).toSet();
     await waitFor(filteredIds, (ids) => ids.isNotEmpty);
-    final before = counting.allDivesCalls;
+    final before = counting.listReads;
 
     container.read(diveFilterProvider.notifier).state = const DiveFilterState(
       buddyNameFilter: 'Ann',
@@ -423,7 +436,7 @@ void main() {
     );
 
     expect(
-      counting.allDivesCalls - before,
+      counting.listReads - before,
       0,
       reason: 'narrowing is by SQL ids; the hydrated list need not reload',
     );
