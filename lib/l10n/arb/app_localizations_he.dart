@@ -20105,6 +20105,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'אף גז חילוץ (bailout) אינו מגיע ל-$depth: ה-MOD העמוק ביותר שנישא הוא $deepestMod. יש לשאת גז שמיש בעומק זה; תוספת מאותו גז לא תעזור.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'נדרשת דקומפרסיה אך לא נלקח גז דקו';
 

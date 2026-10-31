@@ -20431,6 +20431,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Decompressieplan heeft geen bailoutgas aan boord';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Geen bailoutgas bereikt $depth: de diepste meegenomen MOD is $deepestMod. Neem een gas mee dat op die diepte bruikbaar is; meer van hetzelfde gas helpt niet.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'Decompressie vereist maar geen decogas meegenomen';
 

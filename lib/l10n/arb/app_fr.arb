@@ -5800,6 +5800,7 @@
   "plannerCanvas_issue_diluentModExceeded": "Le diluant dépasse sa MOD Dil à {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Le profil dépasse le plafond de décompression de {ceiling} et saute des paliers obligatoires",
   "plannerCanvas_issue_noBailout": "Le plan de décompression n'emporte aucun gaz de bailout",
+  "plannerCanvas_issue_noEligibleBailoutGas": "Aucun gaz de bailout n'atteint {depth} : la MOD la plus profonde emportée est {deepestMod}. Emportez un gaz utilisable à cette profondeur ; davantage du même gaz n'y changera rien.",
   "plannerCanvas_issue_noDecoGas": "Décompression requise mais aucun gaz de déco emporté",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Les cellules indiquent le temps de remontée ; rouge = non plongeable comme prévu",

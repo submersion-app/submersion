@@ -5901,6 +5901,7 @@
   "plannerCanvas_issue_diluentModExceeded": "El diluyente excede su MOD Dil a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "El perfil sobrepasa el techo de descompresión de {ceiling} y omite paradas obligatorias",
   "plannerCanvas_issue_noBailout": "El plan de descompresión no lleva gas de bailout",
+  "plannerCanvas_issue_noEligibleBailoutGas": "Ningún gas de bailout llega a {depth}: la MOD más profunda que se lleva es {deepestMod}. Lleva un gas utilizable a esa profundidad; más del mismo gas no servirá.",
   "plannerCanvas_issue_noDecoGas": "Se requiere descompresión pero no se lleva gas de deco",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Las celdas muestran el tiempo hasta la superficie; rojo = no buceable según lo planeado",
