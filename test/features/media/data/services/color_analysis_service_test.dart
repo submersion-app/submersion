@@ -218,6 +218,15 @@ void main() {
       );
     });
 
+    // Finishes every decode, including those the queue starts on the way: a
+    // timeout left running would fire in another file of CI's shared isolate.
+    tearDown(() async {
+      for (var i = 0; i < gates.length; i++) {
+        if (!gates[i].isCompleted) gates[i].complete(null);
+        await pumpEventQueue();
+      }
+    });
+
     test('the newest request starts ahead of an older backlog', () async {
       for (var i = 0; i < 32; i++) {
         unawaited(service.statsFor('old-$i', sourceOf('old-$i')));

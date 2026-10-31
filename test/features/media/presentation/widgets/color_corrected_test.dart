@@ -186,14 +186,36 @@ void main() {
       await finish();
     });
 
-    testWidgets('a rebuild keeps its place in the queue', (tester) async {
+    testWidgets('a rebuild does not move it ahead of newer requests', (
+      tester,
+    ) async {
       final photo = item();
-      final (:service, :finish) = held(tester);
+      final gates = <Completer<Uint8List?>>[];
+      final started = <ImageProvider>[];
+      final service = ColorAnalysisService(
+        decodeRgba: (provider) {
+          started.add(provider);
+          final gate = Completer<Uint8List?>();
+          gates.add(gate);
+          return gate.future;
+        },
+      );
+      final newer = MemoryImage(Uint8List(1));
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
       await pumpTile(tester, service, photo);
+      unawaited(service.statsFor('newer', newer));
 
       await pumpTile(tester, service, photo);
-      expect(service.isPending(colorStatsKey(photo)), isTrue);
-      await finish();
+      gates.first.complete(null);
+      await tester.pump();
+      expect(started.last, same(newer));
+
+      // Answers the rest, whose timeouts would otherwise outlive the test.
+      for (var i = 1; i < gates.length; i++) {
+        gates[i].complete(null);
+        await tester.pump();
+      }
     });
 
     testWidgets('a second tile keeps a shared key queued', (tester) async {

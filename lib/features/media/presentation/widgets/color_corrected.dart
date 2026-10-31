@@ -36,7 +36,6 @@ class ColorCorrected extends ConsumerStatefulWidget {
 }
 
 class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
-  String? _requestedKey;
   ColorStatsRequest? _request;
 
   /// The last stats this tile drew, and for which item.
@@ -45,7 +44,10 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   @override
   void didUpdateWidget(ColorCorrected oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_requestedKey != colorStatsKey(widget.item)) _cancelRequest();
+    final request = _request;
+    if (request != null && request.key != colorStatsKey(widget.item)) {
+      _cancelRequest();
+    }
   }
 
   @override
@@ -59,7 +61,6 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   void _cancelRequest() {
     _request?.cancel();
     _request = null;
-    _requestedKey = null;
   }
 
   /// Stats for [key], asking for them when the service has no answer.
@@ -77,8 +78,7 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     // Analysed, and too few usable pixels: nothing to correct with.
     if (service.hasAnswer(key)) return null;
     final source = widget.analysisSource;
-    if (source != null && !(_requestedKey == key && service.isPending(key))) {
-      _requestedKey = key;
+    if (source != null && !(_request?.key == key && service.isPending(key))) {
       final request = _request = service.request(key, source);
       request.stats.then((stats) {
         if (mounted && stats != null) setState(() {});

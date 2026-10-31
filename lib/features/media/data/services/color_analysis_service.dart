@@ -11,7 +11,9 @@ typedef RgbaDecoder = Future<Uint8List?> Function(ImageProvider source);
 
 /// One caller's interest in a key's colour statistics.
 class ColorStatsRequest {
-  ColorStatsRequest._(this.stats, [this._onCancel]);
+  ColorStatsRequest._(this.key, this.stats, [this._onCancel]);
+
+  final String key;
 
   /// The answer, as [ColorAnalysisService.statsFor] gives it. Null too when
   /// every caller cancelled before the decode started.
@@ -48,9 +50,9 @@ class _Analysis {
 /// (no correction), never an exception in a grid.
 ///
 /// Waiting keys are served newest first, for the reason
-/// `GalleryThumbnailCache` gives, and a tile that leaves the screen takes its
-/// request with it (issue #3868): what is on screen now never waits behind
-/// what has scrolled away.
+/// `GalleryThumbnailCache` gives, and a disposed tile takes its request with
+/// it (issue #3868): the tiles left after a fling never wait behind the ones
+/// it threw away.
 class ColorAnalysisService {
   ColorAnalysisService({
     RgbaDecoder? decodeRgba,
@@ -105,7 +107,7 @@ class ColorAnalysisService {
     if (_cache.containsKey(key)) {
       final hit = _cache.remove(key);
       _cache[key] = hit;
-      return ColorStatsRequest._(SynchronousFuture(hit));
+      return ColorStatsRequest._(key, SynchronousFuture(hit));
     }
     final running = _running[key];
     final analysis = running ?? _waiting.remove(key) ?? _Analysis(source);
@@ -115,6 +117,7 @@ class ColorAnalysisService {
       _startWaiting();
     }
     return ColorStatsRequest._(
+      key,
       analysis.done.future,
       () => _cancel(key, analysis),
     );
@@ -138,24 +141,23 @@ class ColorAnalysisService {
 
   Future<void> _analyse(String key, _Analysis analysis) async {
     _running[key] = analysis;
-    Uint8List? rgba;
+    ChannelStats? stats;
     try {
-      rgba = await _decode(analysis.source).timeout(decodeTimeout);
+      final rgba = await _decode(analysis.source).timeout(decodeTimeout);
+      // A decode that failed or timed out is not remembered: it may well work
+      // next time (a slow mount, an app sent to the background mid-decode).
+      // Only an image that decoded and had too few usable pixels is.
+      if (rgba != null) {
+        stats = ChannelStats.fromRgba(rgba);
+        _cache[key] = stats;
+        while (_cache.length > capacity) {
+          _cache.remove(_cache.keys.first);
+        }
+      }
     } catch (_) {
-      rgba = null;
+      stats = null;
     }
     _running.remove(key);
-    // A decode that failed or timed out is not remembered: it may well work
-    // next time (a slow mount, an app sent to the background mid-decode).
-    // Only an image that decoded and had too few usable pixels is.
-    ChannelStats? stats;
-    if (rgba != null) {
-      stats = ChannelStats.fromRgba(rgba);
-      _cache[key] = stats;
-      while (_cache.length > capacity) {
-        _cache.remove(_cache.keys.first);
-      }
-    }
     analysis.done.complete(stats);
     _startWaiting();
   }
