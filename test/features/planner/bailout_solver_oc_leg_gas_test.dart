@@ -174,6 +174,27 @@ void main() {
     );
   });
 
+  test('a leg on a missing cylinder spends from where the plan charges it', () {
+    // PlanEngine falls back to the first tank for a dangling id, so with a
+    // bailout listed first both results have to count that gas against it.
+    final plan = _plan([
+      _descent,
+      _ocHold(tankId: 'gone'),
+    ]).copyWith(tanks: [_bailout(), _diluentTank]);
+    final used = const PlanEngine()
+        .compute(plan)
+        .tankUsages
+        .firstWhere((u) => u.tankId == 'bo')
+        .litersUsed;
+    final carried = solver.solve(_plan([_descent, _loopHold()]))!;
+
+    expect(used, greaterThan(0));
+    expect(
+      solver.solve(plan)!.availableLiters,
+      closeTo(carried.availableLiters - used, 1e-6),
+    );
+  });
+
   test('never reports less than nothing available', () {
     final outcome = solver.solve(
       _plan([_descent, _ocHold(minutes: 40)], bailout: _bailout(volume: 3)),

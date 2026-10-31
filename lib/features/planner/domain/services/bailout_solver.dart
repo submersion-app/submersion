@@ -68,10 +68,10 @@ class BailoutOutcome {
   /// the flat-hold-then-climb steps every other stop shows.
   final List<PlanScheduleRow> ccrRows;
 
-  /// The bailout-role cylinders [availableLiters] was summed from -- shown
-  /// here rather than in the main per-tank gas list, which only lists one an
-  /// authored off-loop segment breathes: they carry no normal-loop
-  /// consumption to chart there.
+  /// The bailout-role cylinders [availableLiters] was summed from. They show
+  /// here because they carry no normal-loop consumption; the main per-tank
+  /// gas list includes a bailout cylinder only when an authored off-loop
+  /// segment actually breathes it.
   final List<DiveTank> bailoutTanks;
 
   /// Per-cylinder consumption for the worst-case bailout schedule, read the
@@ -287,6 +287,10 @@ class BailoutSolver {
     double totalSpentAt(int index) =>
         spentAtPoints[index].values.fold(0.0, (sum, liters) => sum + liters);
     final bailoutTankIds = {for (final tank in bailoutTanks) tank.id};
+    final planTankIds = {for (final tank in plan.tanks) tank.id};
+    // PlanEngine's fallback for a leg naming a cylinder no longer on the plan.
+    String chargedTankId(ResolvedLeg leg) =>
+        planTankIds.contains(leg.tankId) ? leg.tankId : plan.tanks.first.id;
     bool isOffLoop(ResolvedLeg leg) => modeFor(plan, leg.segment) != plan.mode;
     final offLoopBottomLeg = PlanEngine.lastLegAtMaxDepth(
       plan,
@@ -295,10 +299,11 @@ class BailoutSolver {
 
     for (final leg in legs) {
       final segment = leg.segment;
-      final offLoop = isOffLoop(leg) && bailoutTankIds.contains(leg.tankId);
+      final tankId = chargedTankId(leg);
+      final offLoop = isOffLoop(leg) && bailoutTankIds.contains(tankId);
       if (offLoop && identical(leg, offLoopBottomLeg)) {
-        spent[leg.tankId] =
-            (spent[leg.tankId] ?? 0) +
+        spent[tankId] =
+            (spent[tankId] ?? 0) +
             config.problemSolvingLiters(plan, environment);
       }
       var covered = 0;
@@ -337,8 +342,8 @@ class BailoutSolver {
         covered += chunk;
         elapsed += chunk;
         if (offLoop) {
-          spent[leg.tankId] =
-              (spent[leg.tankId] ?? 0) +
+          spent[tankId] =
+              (spent[tankId] ?? 0) +
               config.sacForPhase(leg.phase) *
                   (chunk / 60.0) *
                   environment.pressureAtDepth(chunkAvg);

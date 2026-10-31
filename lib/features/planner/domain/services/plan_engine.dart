@@ -1175,10 +1175,11 @@ class PlanEngine {
 
   /// CCR consumption: metabolic O2 for the time on the loop charged to the
   /// oxygen-supply tank, descent loop-fill diluent charged leg by leg to
-  /// whichever diluent that leg actually breathes. A leg a per-segment
-  /// override takes off the loop breathes its own cylinder instead, at the
-  /// SAC rates the open-circuit walk charges (#3898). A bailout tank no such
-  /// leg breathes consumes nothing here: it is sized by the bailout solver.
+  /// whichever diluent that leg actually breathes. When a per-segment
+  /// override takes a leg off the loop, that leg breathes its own cylinder
+  /// instead, at the SAC rates the open-circuit walk charges (#3898). A
+  /// bailout tank that no such leg breathes consumes nothing here: the
+  /// bailout solver sizes it.
   List<PlanTankUsage> _computeCcrTankUsages(
     domain.DivePlan plan, {
     required List<ResolvedLeg> legs,
