@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,13 +81,13 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> insertDive(String id) async {
+  Future<void> insertDive(String id, {int? at}) async {
     await db
         .into(db.dives)
         .insert(
           DivesCompanion(
             id: Value(id),
-            diveDateTime: Value(now),
+            diveDateTime: Value(at ?? now),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -295,6 +297,181 @@ void main() {
     expect(stats.decoCount, 1, reason: 'the pass still answers');
     final cached = await cacheDb.select(cacheDb.decoClassificationCache).get();
     expect(cached, isEmpty, reason: 'but keeps nothing under those settings');
+  });
+
+  // Issue #3807: the residual lookback reads the previous dive's analysis with
+  // nobody listening to it, so invalidating that analysis mid-load stranded
+  // the lookback and with it the whole pass.
+  test(
+    'a lookback analysis invalidated mid-load does not strand the pass',
+    () async {
+      final twoHours = const Duration(hours: 2).inMilliseconds;
+      await insertDive('later', at: now + twoHours);
+      await insertBareProfile('later', 18, 30);
+      // A recorded deco signal keeps this dive out of the pass, so the only
+      // reader of its analysis is the later dive's lookback.
+      await insertDive('earlier');
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'earlier',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 9.0, decoType: 2, ceiling: 9.0),
+        ],
+        now: now,
+      );
+      final (depths, times) = _square(18, 30);
+      final previous = ProfileAnalysisService().analyze(
+        diveId: 'earlier',
+        depths: depths,
+        timestamps: times,
+      );
+
+      final gate = Completer<void>();
+      final started = Completer<void>();
+      final container = ProviderContainer(
+        overrides: [
+          ...(await getBaseOverrides()),
+          profileAnalysisProvider('earlier').overrideWith((ref) async {
+            if (!started.isCompleted) started.complete();
+            await gate.future;
+            return previous.copyWith(
+              inputsFingerprint: ref
+                  .read(diverAnalysisSettingsProvider)
+                  .fingerprint,
+            );
+          }),
+        ].cast(),
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(decoObligationStatsProvider.future);
+      await started.future.timeout(const Duration(seconds: 5));
+      container.invalidate(profileAnalysisProvider('earlier'));
+      await pumpEventQueue();
+      gate.complete();
+
+      final stats = await result.timeout(const Duration(seconds: 10));
+      expect(stats.decoCount + stats.noDecoCount, 2);
+    },
+  );
+
+  // Issue #3807: a first pass runs for minutes on a phone, so the counts are
+  // published as they are worked out instead of arriving all at the end.
+  group('progress', () {
+    Future<List<DecoClassificationProgress?>> runPass(
+      ProviderContainer container,
+    ) async {
+      final seen = <DecoClassificationProgress?>[];
+      final sub = container.listen(
+        decoClassificationProgressProvider,
+        (_, next) => seen.add(next),
+      );
+      addTearDown(sub.close);
+      await container.read(decoObligationStatsProvider.future);
+      return seen;
+    }
+
+    test('counts what is already known before analyzing anything', () async {
+      await insertDive('recorded');
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'recorded',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 9.0, decoType: 2, ceiling: 9.0),
+        ],
+        now: now,
+      );
+      await insertDive('manual');
+      await insertDive('cached');
+      await insertBareProfile('cached', 40, 25);
+      await insertDive('shallow');
+      await insertBareProfile('shallow', 18, 30);
+
+      final container = await makeContainer();
+      await DecoClassificationCacheRepository().put(
+        'cached',
+        hadDeco: false,
+        inputsHash: decoInputsHash(
+          engineVersion: analysisEngineVersion,
+          settingsFingerprint: container
+              .read(diverAnalysisSettingsProvider)
+              .fingerprint,
+          diveUpdatedAt: now,
+        ),
+      );
+
+      final seen = await runPass(container);
+
+      final first = seen.first!;
+      expect(first.stats.decoCount, 1, reason: 'the recorded dive');
+      expect(first.stats.noDecoCount, 1, reason: 'the cached dive');
+      expect(first.stats.unknownCount, 1, reason: 'the dive with no profile');
+      expect(first.analyzed, 1, reason: 'the cached dive needs no analysis');
+      expect(first.total, 2);
+    });
+
+    test('moves on after each dive and clears when the pass ends', () async {
+      await insertDive('deep');
+      await insertBareProfile('deep', 40, 25);
+      await insertDive('shallow');
+      await insertBareProfile('shallow', 18, 30);
+
+      final seen = await runPass(await makeContainer());
+
+      expect(seen.last, isNull, reason: 'the card takes the final result');
+      final steps = seen.whereType<DecoClassificationProgress>().toList();
+      expect(steps.map((p) => p.analyzed), [0, 1]);
+      expect(steps.last.total, 2);
+      expect(
+        steps.last.stats.decoCount + steps.last.stats.noDecoCount,
+        1,
+        reason: 'the first dive is counted, the second is still to do',
+      );
+    });
+
+    test('a dive that yields nothing counts as unknown, not pending', () async {
+      await insertDive('one');
+      await insertBareProfile('one', 40, 25);
+      await insertDive('two');
+      await insertBareProfile('two', 18, 30);
+      final container = ProviderContainer(
+        overrides: [
+          ...(await getBaseOverrides()),
+          profileAnalysisProvider('one').overrideWith((ref) async => null),
+          profileAnalysisProvider('two').overrideWith((ref) async => null),
+        ].cast(),
+      );
+      addTearDown(container.dispose);
+
+      final seen = await runPass(container);
+
+      final steps = seen.whereType<DecoClassificationProgress>().toList();
+      expect(steps.last.stats.unknownCount, 1);
+      expect(steps.last.analyzed, 1);
+    });
+
+    test('a new pass clears what a replaced pass left behind', () async {
+      await insertDive('deep');
+      await insertBareProfile('deep', 40, 25);
+      final container = await makeContainer();
+      container.read(decoClassificationProgressProvider.notifier).state = (
+        stats: (decoCount: 7, noDecoCount: 0, unknownCount: 0),
+        analyzed: 7,
+        total: 99,
+      );
+
+      final seen = await runPass(container);
+
+      expect(
+        seen.first,
+        isNull,
+        reason: 'the card must not show the previous pass as this one',
+      );
+    });
+
+    test('nothing is published when there is nothing to analyze', () async {
+      await insertDive('manual');
+
+      expect(await runPass(await makeContainer()), everyElement(isNull));
+    });
   });
 
   // Copilot review on #2748: an analysis that records no inputs cannot show

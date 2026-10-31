@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -89,6 +90,7 @@ Future<void> pumpDashboard(
   WidgetTester tester, {
   DashboardMilestones? milestones,
   List<MediaItem> photos = const [],
+  Future<List<MediaItem>>? lateMedia,
   List<Dive> onThisDay = const [],
   YearInReview? yearInReview,
   List<RecentSitePin> sites = const [],
@@ -152,7 +154,7 @@ Future<void> pumpDashboard(
                 anniversaries: [],
               ),
         ),
-        recentMediaProvider.overrideWith((ref) async => photos),
+        recentMediaProvider.overrideWith((ref) async => lateMedia ?? photos),
         onThisDayProvider.overrideWith((ref) async => onThisDay),
         yearInReviewProvider.overrideWith((ref) async => yearInReview),
         activeCoursesProgressProvider.overrideWith((ref) async => []),
@@ -209,6 +211,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a page with nothing to scroll can still be pulled', (
+    tester,
+  ) async {
+    // Taller than every card, so the list has no extent of its own.
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pumpDashboard(tester);
+    final before = refreshBuilds;
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 800));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(refreshBuilds, greaterThan(before));
+  });
+
   testWidgets('renders without layout errors at phone width', (tester) async {
     // Regression: QuickActionsCard once used an internal Expanded that
     // threw in the unbounded 1-column scroll layout, collapsing the page.
@@ -228,10 +248,16 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(HeroHeader), findsOneWidget);
     expect(find.byType(QuickActionsCard), findsOneWidget);
-    expect(find.byType(MilestonesCard), findsOneWidget);
+    // Below this fold, but built for the band a lazy list keeps ready.
+    expect(find.byType(MilestonesCard, skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('populated data shows the conditional cards', (tester) async {
+    // Tall enough for every row: below the fold they are built on approach.
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await pumpDashboard(
       tester,
       milestones: const DashboardMilestones(
@@ -284,16 +310,195 @@ void main() {
         if (c != HomeCardType.recentDives && c != HomeCardType.hero) c.name,
       HomeCardType.hero.name,
     ];
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await pumpDashboard(
       tester,
       settingsNotifier: MockSettingsNotifier(AppSettings(homeCardOrder: order)),
     );
 
-    // SingleChildScrollView lays out ALL children (it is not lazy), so both
-    // widgets are measurable without scrolling and share a coordinate space.
+    // The rows are lazy, so the tall view above is what puts both widgets
+    // in the tree without scrolling, in one coordinate space.
     final recentDivesY = tester.getTopLeft(find.byType(RecentDivesCard)).dy;
     final heroY = tester.getTopLeft(find.byType(HeroHeader)).dy;
     expect(heroY, greaterThan(recentDivesY));
+  });
+
+  group('first load (#3819)', () {
+    const sites = [
+      RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
+      RecentSitePin(siteName: 'Site B', latitude: 35.0, longitude: 24.0),
+    ];
+
+    /// A phone page tall with cards, so the map sits far below the fold.
+    Future<void> pumpPhone(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await pumpDashboard(
+        tester,
+        milestones: const DashboardMilestones(
+          nextMilestone: 250,
+          divesRemaining: 3,
+          anniversaries: [],
+        ),
+        yearInReview: const YearInReview(
+          year: 2026,
+          current: YearStats(diveCount: 34, totalSeconds: 147600, maxDepth: 48),
+          previous: YearStats(
+            diveCount: 28,
+            totalSeconds: 100800,
+            maxDepth: 40,
+          ),
+        ),
+        onThisDay: [Dive(id: 'otd', dateTime: DateTime(2023, 7, 24))],
+        sites: sites,
+      );
+    }
+
+    testWidgets('leaves cards and the map below the fold unbuilt', (
+      tester,
+    ) async {
+      await pumpPhone(tester);
+
+      expect(find.byType(HeroHeader), findsOneWidget);
+      expect(find.byType(RecentDivesCard), findsOneWidget);
+      expect(
+        find.byType(RecentSitesMapCard, skipOffstage: false),
+        findsNothing,
+      );
+      expect(find.byType(OnThisDayCard, skipOffstage: false), findsNothing);
+      expect(find.byType(FlutterMap, skipOffstage: false), findsNothing);
+    });
+
+    group('photos resolving after the sites', () {
+      const pin = RecentSitePin(siteName: 'A', latitude: 36, longitude: 25);
+      final photo = MediaItem(
+        id: 'p1',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.platformGallery,
+        filePath: '/tmp/p1.jpg',
+        takenAt: DateTime(2026, 7, 1),
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      );
+
+      /// A desktop page, where the map and photos pair up on one row.
+      Future<Completer<List<MediaItem>>> pumpWithLatePhotos(
+        WidgetTester tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 1600);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+        final media = Completer<List<MediaItem>>();
+        await pumpDashboard(
+          tester,
+          sites: const [pin],
+          lateMedia: media.future,
+        );
+        return media;
+      }
+
+      Future<void> settle(WidgetTester tester) async {
+        for (var i = 0; i < 5; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      testWidgets('the map mounts once, in its pair', (tester) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        // Mounting it now would throw it away: joining the pair moves the
+        // card under a Row, which no key on the row can keep alive.
+        expect(find.byType(FlutterMap), findsNothing);
+
+        media.complete([photo]);
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+        expect(find.byType(MediaRibbonCard), findsOneWidget);
+      });
+
+      testWidgets('a pull-to-refresh leaves the mounted map alone', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+        media.complete([photo]);
+        await settle(tester);
+        final state = tester.state(find.byType(FlutterMap));
+
+        // Photos reload here, but the earlier result is still on hand, so
+        // the hold for a first result must not take the map off the page.
+        unawaited(
+          tester
+              .state<RefreshIndicatorState>(find.byType(RefreshIndicator))
+              .show(),
+        );
+        await settle(tester);
+        await settle(tester);
+
+        expect(tester.state(find.byType(FlutterMap)), same(state));
+      });
+
+      testWidgets('no photos still leaves the map on its own row', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        media.complete(const []);
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+      });
+
+      testWidgets('a failed photo load does not strand the map', (
+        tester,
+      ) async {
+        final media = await pumpWithLatePhotos(tester);
+
+        media.completeError(StateError('no media'));
+        await settle(tester);
+
+        expect(find.byType(FlutterMap), findsOneWidget);
+      });
+    });
+
+    testWidgets('scrolling down builds the card and mounts its map', (
+      tester,
+    ) async {
+      await pumpPhone(tester);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(RecentSitesMapCard), findsOneWidget);
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the map survives scrolling back to the top', (tester) async {
+      await pumpPhone(tester);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final mapState = tester.state(find.byType(FlutterMap));
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(
+        tester.state(find.byType(FlutterMap, skipOffstage: false)),
+        same(mapState),
+      );
+    });
   });
 
   testWidgets('a live alert no longer pushes anything above the hero', (

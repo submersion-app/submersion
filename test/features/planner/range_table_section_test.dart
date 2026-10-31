@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -25,6 +26,7 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         ],
         child: const SingleChildScrollView(child: RangeTableSection()),

@@ -116,4 +116,84 @@ void main() {
       expect(sources.decoStopActual, MetricDataSource.calculated);
     });
   });
+
+  group('computer stops under a calculated ceiling (#2552)', () {
+    final recorded = [
+      _point(timestamp: 0, ceiling: 6.0),
+      _point(timestamp: 10, ceiling: 3.0),
+    ];
+    final calculated = _analysis(
+      ceilingCurve: [4.2, 2.1],
+      decoStopCurve: [6.0, 3.0],
+    );
+
+    test('flags the two models when the band comes from the computer', () {
+      final (result, _) = overlayComputerDecoData(
+        calculated,
+        recorded,
+        decoStopSource: MetricDataSource.computer,
+      );
+
+      expect(result.ceilingCurve, [4.2, 2.1]);
+      expect(result.computerStopsWithCalculatedCeiling, isTrue);
+    });
+
+    test('does not flag a calculated band', () {
+      final (result, _) = overlayComputerDecoData(
+        calculated,
+        recorded,
+        decoStopSource: MetricDataSource.calculated,
+      );
+
+      expect(result.computerStopsWithCalculatedCeiling, isFalse);
+    });
+
+    test('does not flag a band that fell back to calculated', () {
+      final (result, _) = overlayComputerDecoData(calculated, [
+        _point(timestamp: 0),
+        _point(timestamp: 10),
+      ], decoStopSource: MetricDataSource.computer);
+
+      expect(result.computerStopsWithCalculatedCeiling, isFalse);
+    });
+
+    test('does not flag a fallback that another computer metric overlays', () {
+      final (result, _) = overlayComputerDecoData(
+        calculated,
+        [
+          const DiveProfilePoint(timestamp: 0, depth: 30, ndl: 600),
+          const DiveProfilePoint(timestamp: 10, depth: 30, ndl: 540),
+        ],
+        ndlSource: MetricDataSource.computer,
+        decoStopSource: MetricDataSource.computer,
+      );
+
+      expect(result.computerStopsWithCalculatedCeiling, isFalse);
+    });
+
+    test('does not flag a ceiling line that also reads the computer', () {
+      final (result, _) = overlayComputerDecoData(
+        calculated,
+        recorded,
+        ceilingSource: MetricDataSource.computer,
+        decoStopSource: MetricDataSource.computer,
+      );
+
+      expect(result.ceilingCurve, [6.0, 3.0]);
+      expect(result.computerStopsWithCalculatedCeiling, isFalse);
+    });
+
+    test('survives a later copy of the analysis', () {
+      final (result, _) = overlayComputerDecoData(
+        calculated,
+        recorded,
+        decoStopSource: MetricDataSource.computer,
+      );
+
+      expect(
+        result.copyWith(events: const []).computerStopsWithCalculatedCeiling,
+        isTrue,
+      );
+    });
+  });
 }

@@ -209,99 +209,143 @@ class InsightsProfilePage extends ConsumerWidget {
             );
           }
 
-          final percentage = classified == 0
-              ? 0.0
-              : data.decoCount / classified * 100;
-
-          return Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDecoStat(
-                    context,
-                    context.l10n.insights_profile_deco_decoDives,
-                    data.decoCount.toString(),
-                    Colors.orange,
-                  ),
-                  _buildDecoStat(
-                    context,
-                    context.l10n.insights_profile_deco_noDeco,
-                    data.noDecoCount.toString(),
-                    Colors.green,
-                  ),
-                  _buildDecoStat(
-                    context,
-                    context.l10n.insights_profile_deco_decoRate,
-                    '${percentage.toStringAsFixed(1)}%',
-                    Colors.blue,
-                  ),
-                ],
-              ),
-              if (data.unknownCount > 0) ...[
-                const SizedBox(height: 8),
-                Text(
-                  context.l10n.insights_profile_deco_notRecordedHint(
-                    data.unknownCount,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              Semantics(
-                label: context.l10n.insights_profile_deco_semanticLabel(
-                  percentage.toStringAsFixed(1),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: percentage / 100,
-                    backgroundColor: Colors.green.withValues(alpha: 0.3),
-                    valueColor: const AlwaysStoppedAnimation(Colors.orange),
-                    minHeight: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // The bar paints the deco share in orange from the leading edge
-              // and leaves the no-deco remainder in green, so the legend has
-              // to name them in that order. Row and LinearProgressIndicator
-              // are both direction-aware, which keeps the pairing intact in
-              // RTL locales.
-              ExcludeSemantics(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n.insights_profile_deco_decoLabel,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.orange),
-                    ),
-                    Text(
-                      context.l10n.insights_profile_deco_noDeco,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.green),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
+          return _buildDecoBreakdown(context, data);
         },
-        loading: () => const SizedBox(
-          height: 100,
-          child: Center(child: CircularProgressIndicator()),
+        // In its own Consumer so a pass moving on rebuilds this card rather
+        // than the whole page, once per dive.
+        loading: () => Consumer(
+          builder: (context, ref, _) {
+            final progress = ref.watch(decoClassificationProgressProvider);
+            if (progress == null) {
+              return const SizedBox(
+                height: 100,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return _buildDecoProgress(context, progress);
+          },
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.insights_profile_deco_error,
         ),
       ),
+    );
+  }
+
+  /// The card during a first pass over the library (#3807): whatever is known
+  /// so far, then how far the pass has got.
+  Widget _buildDecoProgress(
+    BuildContext context,
+    DecoClassificationProgress progress,
+  ) {
+    final stats = progress.stats;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (stats.decoCount + stats.noDecoCount + stats.unknownCount > 0) ...[
+          _buildDecoBreakdown(context, stats),
+          const SizedBox(height: 16),
+        ],
+        LinearProgressIndicator(value: progress.analyzed / progress.total),
+        const SizedBox(height: 8),
+        Text(
+          context.l10n.insights_profile_deco_analyzing(
+            progress.analyzed,
+            progress.total,
+          ),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDecoBreakdown(BuildContext context, DecoObligationStats data) {
+    final classified = data.decoCount + data.noDecoCount;
+    final percentage = classified == 0
+        ? 0.0
+        : data.decoCount / classified * 100;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildDecoStat(
+              context,
+              context.l10n.insights_profile_deco_decoDives,
+              data.decoCount.toString(),
+              Colors.orange,
+            ),
+            _buildDecoStat(
+              context,
+              context.l10n.insights_profile_deco_noDeco,
+              data.noDecoCount.toString(),
+              Colors.green,
+            ),
+            _buildDecoStat(
+              context,
+              context.l10n.insights_profile_deco_decoRate,
+              '${percentage.toStringAsFixed(1)}%',
+              Colors.blue,
+            ),
+          ],
+        ),
+        if (data.unknownCount > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            context.l10n.insights_profile_deco_notRecordedHint(
+              data.unknownCount,
+            ),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Semantics(
+          label: context.l10n.insights_profile_deco_semanticLabel(
+            percentage.toStringAsFixed(1),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: percentage / 100,
+              backgroundColor: Colors.green.withValues(alpha: 0.3),
+              valueColor: const AlwaysStoppedAnimation(Colors.orange),
+              minHeight: 12,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // The bar paints the deco share in orange from the leading edge and
+        // leaves the no-deco remainder in green, so the legend has to name
+        // them in that order. Row and LinearProgressIndicator are both
+        // direction-aware, which keeps the pairing intact in RTL locales.
+        ExcludeSemantics(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.insights_profile_deco_decoLabel,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.orange),
+              ),
+              Text(
+                context.l10n.insights_profile_deco_noDeco,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.green),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
