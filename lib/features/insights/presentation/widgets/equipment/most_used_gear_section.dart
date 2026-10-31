@@ -61,8 +61,6 @@ class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
             GearReportShowAll(
               itemCount: data.length,
               expanded: _expanded,
-              showAllLabel: l10n.insights_equipment_showAll,
-              showLessLabel: l10n.insights_equipment_showLess,
               onChanged: (value) => setState(() => _expanded = value),
             ),
           ],

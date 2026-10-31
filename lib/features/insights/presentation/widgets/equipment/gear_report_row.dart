@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/l10n_extension.dart';
+
 /// How many rows a gear report section shows before "Show all".
 const gearReportRowLimit = 10;
 
@@ -72,24 +74,25 @@ class GearReportShowAll extends StatelessWidget {
     super.key,
     required this.itemCount,
     required this.expanded,
-    required this.showAllLabel,
-    required this.showLessLabel,
     required this.onChanged,
   });
 
   final int itemCount;
   final bool expanded;
-  final String showAllLabel;
-  final String showLessLabel;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     if (itemCount <= gearReportRowLimit) return const SizedBox.shrink();
+    final l10n = context.l10n;
     return Center(
       child: TextButton(
         onPressed: () => onChanged(!expanded),
-        child: Text(expanded ? showLessLabel : showAllLabel),
+        child: Text(
+          expanded
+              ? l10n.insights_equipment_showLess
+              : l10n.insights_equipment_showAll,
+        ),
       ),
     );
   }

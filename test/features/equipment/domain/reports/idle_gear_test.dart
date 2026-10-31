@@ -81,11 +81,14 @@ void main() {
     // Flagged UTC, as stored: the cutoff is the calendar day, whatever the
     // device's offset.
     expect(
-      _build([_item('a')], lastDives: {'a': DateTime.utc(2025, 10, 31, 12)}),
+      _build([_item('a')], lastDives: {'a': DateTime.utc(2025, 10, 31, 0, 30)}),
       isEmpty,
     );
     expect(
-      _build([_item('a')], lastDives: {'a': DateTime.utc(2025, 10, 30, 23)}),
+      _build(
+        [_item('a')],
+        lastDives: {'a': DateTime.utc(2025, 10, 30, 23, 30)},
+      ),
       hasLength(1),
     );
   });

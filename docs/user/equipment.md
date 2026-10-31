@@ -184,6 +184,21 @@ finding you have dealt with, and **Restore** it later from the dismissed list.
 bench. Tap **Add check-in**, tag what happened, and add a note. Check-ins feed
 the recurring-issue findings.
 
+## Reports
+
+**Insights > Equipment** shows what your gear has cost and how much you use it:
+
+- **Most used gear** ranks items by dives and hours, and follows the Insights
+  filter, so a date range or a trip gives usage for that period.
+- **Cost of ownership** adds purchase prices and service costs, with spending by
+  year and a list by cost per dive, per hour or in total. Each currency stands
+  alone, and a part's cost counts toward the item it is installed in.
+- **Idle gear** lists gear you own and have not dived in 6 months, 1 year or 2
+  years, including gear never dived.
+
+For a document to hand to someone, use the **Equipment Inventory** and **Service
+Report** PDFs in [Import & Export](import-export.md#supported-export-formats).
+
 ## Parts and assemblies
 
 Gear can be built from other gear. A regulator can list its first stage, second

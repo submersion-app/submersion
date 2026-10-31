@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_usage_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
 import 'package:submersion/features/equipment/domain/reports/service_report.dart';
@@ -110,7 +111,7 @@ final serviceReportProvider = FutureProvider.autoDispose
       final kinds = await ref.watch(allServiceKindsByIdProvider.future);
       final records = options.includeHistory
           ? await recordRepository.getRecordsForEquipmentIds(ids)
-          : const <String, Never>{};
+          : const <String, List<ServiceRecord>>{};
       final usage = ref.watch(equipmentUsageRepositoryProvider);
       ref.invalidateSelfWhen(usage.watchChanges());
       final diveCounts = options.includeHistory

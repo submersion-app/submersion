@@ -74,8 +74,6 @@ class _IdleGearSectionState extends ConsumerState<IdleGearSection> {
                   GearReportShowAll(
                     itemCount: rows.length,
                     expanded: _expanded,
-                    showAllLabel: l10n.insights_equipment_showAll,
-                    showLessLabel: l10n.insights_equipment_showLess,
                     onChanged: (value) => setState(() => _expanded = value),
                   ),
                 ],
