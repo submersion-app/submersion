@@ -6,6 +6,7 @@ import 'package:googleapis_auth/auth_io.dart' as gauth;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_token_store.dart';
@@ -171,10 +172,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
       });
       if (!_grantsDrive(credentials)) {
         _log.warning('Google consent granted sign-in without Drive access');
-        throw const CloudStorageException(
-          'Google Drive access was not allowed. Sign in again and tick the '
-          "Google Drive box on Google's consent page.",
-        );
+        throw const CloudStorageException(googleDriveAccessNotAllowed);
       }
       final email = _emailFromIdToken(credentials.idToken);
       if (!isSameAccount(expectedAccount, email)) {

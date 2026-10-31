@@ -56,6 +56,7 @@ void main() {
         repository.searchDiveSummaries('test'),
         throwsA(anything),
       );
+      await expectLater(repository.getDivePickerRows(), throwsA(anything));
       await expectLater(repository.getStatistics(), throwsA(anything));
       await expectLater(repository.getRecords(), throwsA(anything));
       await expectLater(
@@ -89,6 +90,10 @@ void main() {
       );
       await expectLater(
         repository.getDivesByIds(['test-id']),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.getDivesByIdsWithoutSamples(['test-id']),
         throwsA(anything),
       );
       await expectLater(repository.getDiveSummaries(), throwsA(anything));

@@ -52,6 +52,7 @@ Future<void> offerAddToDive(
     ..showSnackBar(
       SnackBar(
         content: Text(l10n.media_people_addToDiveOffer(choice.buddy.name)),
+        persist: false,
         action: SnackBarAction(
           label: l10n.media_people_addToDiveAction,
           onPressed: () => unawaited(add()),

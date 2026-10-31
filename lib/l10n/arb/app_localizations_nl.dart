@@ -1387,6 +1387,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_dismiss => 'Sluiten';
 
   @override
+  String get common_action_dismissAll => 'Alles sluiten';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Standaardset';
 
   @override
@@ -8603,7 +8606,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Geen buddy';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Geen instapmethode';
+
+  @override
   String get diveLog_filterChip_noRole => 'Geen rol';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Geen watertype';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8668,6 +8677,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Geen buddy toegewezen';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Geen instapmethode vastgelegd';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'Geen rol toegewezen';
 
   @override
@@ -8727,6 +8740,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Toon alleen duiken zonder buddy';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Toon alleen duiken zonder bekende instapmethode';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
@@ -32,6 +33,7 @@ void main() {
       decoOnly: false,
       noBuddyOnly: true,
       noRoleOnly: true,
+      noEntryMethodOnly: true,
       tagIds: const ['tag1', 'tag2'],
       equipmentIds: const ['g1'],
       diveIds: const ['d1', 'd2'],
@@ -305,6 +307,47 @@ void main() {
       ),
     );
     expect(diveFilterTablesTouched(wrongType), {'dives'});
+  });
+
+  group('not recorded choices (#3806)', () {
+    final salt = ConditionNode(
+      FieldPath(['waterType']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('salt')]),
+    );
+    final noWater = ConditionNode(
+      FieldPath(['waterType']),
+      QueryOp.isEmpty,
+      null,
+    );
+
+    test('water type alone lowers to the empty condition', () {
+      expect(const DiveFilterState(noWaterType: true).toQuery(), noWater);
+    });
+
+    test('water type ORs with the listed types', () {
+      expect(
+        const DiveFilterState(
+          waterTypes: [WaterType.salt],
+          noWaterType: true,
+        ).toQuery(),
+        OrNode([salt, noWater]),
+      );
+    });
+
+    test('entry method lowers to the empty condition', () {
+      expect(
+        const DiveFilterState(noEntryMethodOnly: true).toQuery(),
+        ConditionNode(FieldPath(['entryMethod']), QueryOp.isEmpty, null),
+      );
+    });
+
+    test('both compile, and read the site for the fallback', () {
+      final compiled = compileDiveFilter(
+        const DiveFilterState(noWaterType: true, noEntryMethodOnly: true),
+      );
+      expect(compiled.tablesTouched, contains('dive_sites'));
+    });
   });
 
   test('suspended axes lower to the query alone (#2773)', () {

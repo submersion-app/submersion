@@ -550,10 +550,11 @@ class TripRepository {
 
       if (rows.isEmpty) return [];
 
-      // Load full dive objects
+      // The assignment dialog lists these, so a wide date range decodes samples
+      // only for a dive whose row needs them (issue #3831).
       final diveRepository = DiveRepository();
       final diveIds = rows.map((r) => r.data['dive_id'] as String).toList();
-      final dives = await diveRepository.getDivesByIds(diveIds);
+      final dives = await diveRepository.getDivesByIdsWithoutSamples(diveIds);
 
       // Build a map for quick lookup
       final diveMap = {for (final d in dives) d.id: d};

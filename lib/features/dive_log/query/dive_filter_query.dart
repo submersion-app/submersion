@@ -122,6 +122,9 @@ extension DiveFilterQuery on DiveFilterState {
     }
     if (noBuddyOnly == true) parts.add(c('buddies', QueryOp.isEmpty, null));
     if (noRoleOnly == true) parts.add(c('role', QueryOp.isEmpty, null));
+    if (noEntryMethodOnly == true) {
+      parts.add(c('entryMethod', QueryOp.isEmpty, null));
+    }
     if (tagIds.isNotEmpty) parts.add(c('tags', QueryOp.inList, refs(tagIds)));
     if (equipmentIds.isNotEmpty) {
       parts.add(c('gear', QueryOp.inList, refs(equipmentIds)));
@@ -183,13 +186,21 @@ extension DiveFilterQuery on DiveFilterState {
         c('visibility', QueryOp.lte, NumberValue(maxVisibility!, null)),
       );
     }
-    if (waterTypes.isNotEmpty) {
-      parts.add(
+    // Not recorded is one more choice on this axis, so it ORs with the
+    // listed types. A list alone never matches it: `IN` is NULL on a NULL
+    // column, which SQL treats as not matching.
+    final waterChoices = <QueryNode>[
+      if (waterTypes.isNotEmpty)
         c(
           'waterType',
           QueryOp.inList,
           ListValue([for (final w in waterTypes) EnumValue(w.name)]),
         ),
+      if (noWaterType == true) c('waterType', QueryOp.isEmpty, null),
+    ];
+    if (waterChoices.isNotEmpty) {
+      parts.add(
+        waterChoices.length == 1 ? waterChoices.single : OrNode(waterChoices),
       );
     }
     // Any sighting of any listed species: one existential hop through the

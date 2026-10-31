@@ -1337,6 +1337,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_dismiss => '忽略';
 
   @override
+  String get common_action_dismissAll => '全部忽略';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => '默认套装';
 
   @override
@@ -8205,7 +8208,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => '无潜伴';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => '无入水方式';
+
+  @override
   String get diveLog_filterChip_noRole => '无角色';
+
+  @override
+  String get diveLog_filterChip_noWaterType => '无水体类型';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8270,6 +8279,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => '无潜伴';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly => '未记录入水方式';
+
+  @override
   String get diveLog_filter_noRoleOnly => '无角色';
 
   @override
@@ -8328,6 +8340,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => '仅显示无潜伴的潜水';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod => '仅显示入水方式未知的潜水';
 
   @override
   String get diveLog_filter_showOnlyNoRole => '仅显示未设置我的角色的潜水';

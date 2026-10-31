@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
@@ -71,16 +70,7 @@ void main() {
     });
   }
 
-  testWidgets('the photo count counts photos, not videos or documents', (
-    tester,
-  ) async {
-    MediaItem item(String id, MediaType type) => MediaItem(
-      id: id,
-      mediaType: type,
-      takenAt: DateTime(2026, 9, 30, 10),
-      createdAt: DateTime(2026, 9, 30, 10),
-      updatedAt: DateTime(2026, 9, 30, 10),
-    );
+  testWidgets('shows the photo count it is given', (tester) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -96,11 +86,7 @@ void main() {
               tripId: 'trip-1',
               isLiveaboard: false,
               kind: TripStoryDayKind.past,
-              media: [
-                item('p', MediaType.photo),
-                item('v', MediaType.video),
-                item('d', MediaType.document),
-              ],
+              photoCount: 1,
             ),
           ),
         ),

@@ -1434,6 +1434,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_dismiss => 'تجاهل';
 
   @override
+  String get common_action_dismissAll => 'تجاهل الكل';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'المجموعة الافتراضية';
 
   @override
@@ -8782,7 +8785,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'بدون زميل';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'بدون طريقة دخول';
+
+  @override
   String get diveLog_filterChip_noRole => 'بدون دور';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'بدون نوع مياه';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8847,6 +8856,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'بدون زميل غوص';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly => 'لم تُسجَّل طريقة دخول';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'بدون دور';
 
   @override
@@ -8905,6 +8917,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => 'عرض الغوصات بدون زميل غوص فقط';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'عرض الغوصات التي لا تُعرف طريقة دخولها فقط';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>

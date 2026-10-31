@@ -421,6 +421,14 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_media_is_orphaned '
         'ON media(is_orphaned)',
   ),
+  // Every per-dive and per-trip media read filters on dive_id and orders by
+  // taken_at (issue #3832).
+  (
+    name: 'idx_media_dive_taken',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_dive_taken '
+        'ON media(dive_id, taken_at)',
+  ),
   (
     name: 'idx_checklist_template_items_template_id',
     ddl:

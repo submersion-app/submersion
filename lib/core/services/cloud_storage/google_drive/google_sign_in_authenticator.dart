@@ -6,6 +6,7 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
@@ -118,12 +119,24 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
         await _forgetRefusedAccount();
         throw CloudAccountMismatchException(account.email);
       }
-      final authorization = await account.authorizationClient.authorizeScopes(
-        _scopes,
-      );
+      await account.authorizationClient.authorizeScopes(_scopes);
+
+      // authorizeScopes hands back whatever token the consent produced, and
+      // Google's consent page gives Drive a checkbox of its own, so that token
+      // can lack Drive. Only the no-prompt path compares the grant with the
+      // request. It is the check every cold launch already makes, so a grant
+      // that passes here is one that keeps working after a restart.
+      final authorization = await account.authorizationClient
+          .authorizationForScopes(_scopes);
+      if (authorization == null) {
+        _log.warning('Google consent granted sign-in without Drive access');
+        throw const CloudStorageException(googleDriveAccessNotAllowed);
+      }
 
       _installClient(account, authorization);
       _log.info('Authenticated with Google Drive as ${account.email}');
+    } on CloudStorageException {
+      rethrow;
     } on GoogleSignInException catch (e, stackTrace) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         if (_isPlatformRefusal(e.description)) {
@@ -164,8 +177,6 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
         e.description ?? e.code.name,
         stackTrace,
       );
-    } on CloudStorageException {
-      rethrow;
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException('Google Sign-In failed', e, stackTrace);

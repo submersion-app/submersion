@@ -12,8 +12,8 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #3537: Insights reads a dive's profile span in SQL
 /// ([profileSpanSecondsSql]), while the trip story's day rhythm bar reads it
-/// from the hydrated `Dive.profile`, which is the merged read
-/// (`getMergedProfile`). For a dive with a profile but no runtime, no exit
+/// from `Dive.profile`, which is the merged read (`getMergedProfile`) on a dive
+/// routed for its samples. For a dive with a profile but no runtime, no exit
 /// time and no bottom time, that span is the dive's duration, so the two
 /// must agree or the bar and Time patterns classify the dive differently.
 ///
@@ -131,7 +131,9 @@ void main() {
     expect(await sqlSpan(id), expectedSeconds, reason: 'profileSpanSecondsSql');
 
     // The trip story's dives, which the day rhythm bar lays out.
-    final tripDive = (await repository.getDivesByIds([id])).single;
+    final tripDive = (await repository.getDivesByIdsWithoutSamples([
+      id,
+    ])).single;
     expect(tripDive.effectiveRuntime, Duration(seconds: expectedSeconds));
     expect(
       await sqlExitMillis(id),

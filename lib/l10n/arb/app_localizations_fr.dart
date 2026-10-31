@@ -1395,6 +1395,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_dismiss => 'Ignorer';
 
   @override
+  String get common_action_dismissAll => 'Tout ignorer';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Ensemble par défaut';
 
   @override
@@ -8676,7 +8679,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sans binôme';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Sans méthode d\'entrée';
+
+  @override
   String get diveLog_filterChip_noRole => 'Aucun rôle';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Sans type d\'eau';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8741,6 +8750,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_filter_noBuddyOnly => 'Aucun binôme assigné';
+
+  @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Aucune méthode d\'entrée renseignée';
 
   @override
   String get diveLog_filter_noRoleOnly => 'Aucun rôle assigné';
@@ -8808,6 +8821,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Afficher uniquement les plongées sans binôme';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Afficher uniquement les plongées sans méthode d\'entrée connue';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>

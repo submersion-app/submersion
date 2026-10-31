@@ -57,4 +57,24 @@ void main() {
       contains('idx_dive_profile_series_dive_primary'),
     );
   });
+
+  // Without this index every per-dive media read walks the whole library,
+  // so a trip's cost was dives times library size (issue #3832).
+  test('a dive finds its media through idx_media_dive_taken', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+
+    final rows = await db
+        .customSelect(
+          'EXPLAIN QUERY PLAN SELECT * FROM media '
+          "WHERE dive_id = 'd1' ORDER BY taken_at",
+        )
+        .get();
+    final plan = rows.map((r) => r.read<String>('detail')).join('\n');
+
+    expect(plan, contains('idx_media_dive_taken'));
+    expect(plan, isNot(contains('TEMP B-TREE')));
+  });
 }

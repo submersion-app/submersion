@@ -1393,6 +1393,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_dismiss => 'Descartar';
 
   @override
+  String get common_action_dismissAll => 'Descartar todo';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'Conjunto predeterminado';
 
   @override
@@ -8655,7 +8658,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'Sin compañero';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'Sin método de entrada';
+
+  @override
   String get diveLog_filterChip_noRole => 'Sin rol';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'Sin tipo de agua';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8721,6 +8730,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'Sin compañero asignado';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly =>
+      'Sin método de entrada registrado';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'Sin rol asignado';
 
   @override
@@ -8783,6 +8796,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_filter_showOnlyNoBuddy =>
       'Mostrar solo inmersiones sin compañero';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'Mostrar solo inmersiones sin método de entrada conocido';
 
   @override
   String get diveLog_filter_showOnlyNoRole =>

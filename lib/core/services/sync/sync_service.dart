@@ -165,16 +165,6 @@ class SyncResult {
       'SyncResult(status: $status, records: $recordsSynced, conflicts: $conflictsFound)';
 }
 
-class SyncStepException implements Exception {
-  final String step;
-  final Object error;
-
-  SyncStepException(this.step, this.error);
-
-  @override
-  String toString() => 'Sync failed during $step: $error';
-}
-
 /// Progress callback for sync operations
 typedef SyncProgressCallback = void Function(SyncProgress progress);
 
@@ -860,79 +850,47 @@ class SyncService {
       if (await _shouldSkipPublishAfterAdopt(provider.providerId, deletions)) {
         // Just adopted a restored library and have nothing of our own yet: our
         // library == the adopted epoch the peers already published, so there
-        // is nothing to say. Skip the publish entirely (checked before the
-        // nonce so a skipped sync does not consume a nonce ring slot). Once a
-        // local change exists, the writer publishes it as a small changeset
-        // against the adopted watermark -- never a redundant full base (#358).
+        // is nothing to say. Skip the publish entirely. Once a local change
+        // exists, the writer publishes it as a small changeset against the
+        // adopted watermark, never a redundant full base (#358).
         _log.info('Skipping publish after adopt (no local changes yet)');
       } else {
         publishAttempted = true;
-        final uploadNonce = _uuid.v4();
-        // Record the nonce BEFORE publishing: a lost response (timeout, app
-        // death) still leaves our manifest carrying this nonce, and an
-        // unrecorded copy would read as a foreign twin on the next sync.
-        await _syncInitializer?.recordUploadNonce(
-          uploadNonce,
-          provider.providerId,
+        final write = await _changesetWriter.publish(
+          provider: provider,
+          deviceId: deviceId,
+          folderId: folderId,
+          deletions: deletions,
+          epochId: currentEpochId,
+          uploadNonce: _uuid.v4(),
+          // Recorded by the writer at the manifest, not here: this publish may
+          // write none (nothing to say), or one carrying a different nonce (a
+          // resumed base), and may fail after one landed (a compaction). A
+          // ring that guesses gets one of those wrong, and a wrong guess reads
+          // as a twin on the next sync: a new identity for this device, and
+          // another full base to upload (#733, #3822).
+          onManifestNonce: (nonce) =>
+              _recordUploadNonce(nonce, provider.providerId),
+          deviceName: await _deviceNameForManifest(),
+          appliedPeerHlc: appliedPeerHlc,
+          // Republish our log from what we actually hold now. Without this
+          // the cold-start above never converges: our manifest keeps
+          // claiming an HLC we no longer have, so the next sync detects the
+          // same "stale restore" and wipes every peer cursor again -- a full
+          // re-download of the whole fleet's data, every sync (#997).
+          forceBase: staleRestoreDetected,
+          // A full base republish -- what a wiped or replaced backend forces
+          // -- can run to hundreds of megabytes. Spread it across the back
+          // fifth of the bar so the user sees it advancing, instead of
+          // reading a motionless 80% as a hang and killing the app, which
+          // restarts the whole upload from part 0 (issue #1032).
+          onBasePartUploaded: (uploaded, total) => _reportProgress(
+            SyncPhase.uploading,
+            0.8 + 0.2 * (uploaded / total),
+            _l10n.settings_cloudSync_progress_uploadingLibrary(uploaded, total),
+          ),
         );
-        try {
-          final write = await _changesetWriter.publish(
-            provider: provider,
-            deviceId: deviceId,
-            folderId: folderId,
-            deletions: deletions,
-            epochId: currentEpochId,
-            uploadNonce: uploadNonce,
-            deviceName: await _deviceNameForManifest(),
-            appliedPeerHlc: appliedPeerHlc,
-            // Republish our log from what we actually hold now. Without this
-            // the cold-start above never converges: our manifest keeps
-            // claiming an HLC we no longer have, so the next sync detects the
-            // same "stale restore" and wipes every peer cursor again -- a full
-            // re-download of the whole fleet's data, every sync (#997).
-            forceBase: staleRestoreDetected,
-            // A full base republish -- what a wiped or replaced backend forces
-            // -- can run to hundreds of megabytes. Spread it across the back
-            // fifth of the bar so the user sees it advancing, instead of
-            // reading a motionless 80% as a hang and killing the app, which
-            // restarts the whole upload from part 0 (issue #1032).
-            onBasePartUploaded: (uploaded, total) => _reportProgress(
-              SyncPhase.uploading,
-              0.8 + 0.2 * (uploaded / total),
-              _l10n.settings_cloudSync_progress_uploadingLibrary(
-                uploaded,
-                total,
-              ),
-            ),
-          );
-          // A publish that did not stamp this nonce into the manifest -- a
-          // noop (nothing to say) or a heartbeat (which deliberately keeps
-          // the previous nonce) -- must give its speculative ring slot back.
-          // Otherwise every idle sync consumes a slot until the manifest's
-          // live nonce is evicted, and the device reads its own manifest as
-          // a foreign twin: a fresh identity plus a full base re-upload
-          // every ring-length idle syncs (#733).
-          publishSnapshotAt = write.snapshotAt;
-          if (write.kind == ChangesetWriteKind.noop ||
-              write.kind == ChangesetWriteKind.heartbeat) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-        } catch (e) {
-          // Keep the speculative nonce on a timeout (the publish may have
-          // landed); remove it only on definite failures, so repeated hard
-          // failures cannot evict the last good nonce from the ring.
-          final cause = e is SyncStepException ? e.error : e;
-          if (cause is! TimeoutException) {
-            await _syncInitializer?.removeUploadNonce(
-              uploadNonce,
-              provider.providerId,
-            );
-          }
-          rethrow;
-        }
+        publishSnapshotAt = write.snapshotAt;
       }
 
       // ---- Keyslot self-heal (encrypted libraries) ----
@@ -1357,10 +1315,13 @@ class SyncService {
     // Require the manifest to actually claim our id: a manifest at our filename
     // whose body names a different device is mislabeled, not evidence that
     // another install is syncing as us.
-    if (manifest == null ||
-        manifest.deviceId != deviceId ||
-        nonce == null ||
-        !initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+    if (manifest == null || manifest.deviceId != deviceId || nonce == null) {
+      return (deviceId: deviceId, adopted: false);
+    }
+    if (!initializer.isForeignUploadNonce(nonce, provider.providerId)) {
+      // Ours, and the one the next sync will read. Refresh it, so a run of
+      // publishes that fail at the manifest cannot push it out of the ring.
+      await initializer.recordUploadNonce(nonce, provider.providerId);
       return (deviceId: deviceId, adopted: false);
     }
     _log.warning(
@@ -1372,6 +1333,10 @@ class SyncService {
     // merging the converging files advance it instead of no-opping.
     await _syncRepository.ensureSyncClockConfigured();
     return (deviceId: newId, adopted: true);
+  }
+
+  Future<void> _recordUploadNonce(String nonce, String providerId) async {
+    await _syncInitializer?.recordUploadNonce(nonce, providerId);
   }
 
   /// Read a device's own changeset manifest from the cloud, or null if absent
@@ -4803,11 +4768,6 @@ class SyncService {
       await PeerCursorStore(db).resetForProvider(provider.providerId);
 
       final deletions = await _syncRepository.getAllDeletions();
-      final uploadNonce = _uuid.v4();
-      await _syncInitializer?.recordUploadNonce(
-        uploadNonce,
-        provider.providerId,
-      );
       // Publish the new library as a fresh epoch-stamped base. Peers on the old
       // epoch halt for adoption; adopters rebuild from this base.
       await _changesetWriter.publish(
@@ -4816,7 +4776,9 @@ class SyncService {
         folderId: syncFolder,
         deletions: deletions,
         epochId: marker.epochId,
-        uploadNonce: uploadNonce,
+        uploadNonce: _uuid.v4(),
+        onManifestNonce: (nonce) =>
+            _recordUploadNonce(nonce, provider.providerId),
         deviceName: await _deviceNameForManifest(),
       );
 

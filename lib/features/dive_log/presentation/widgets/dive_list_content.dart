@@ -755,6 +755,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
+            persist: false,
             action: SnackBarAction(
               label: context.l10n.diveLog_bulkDelete_undo,
               onPressed: () async {

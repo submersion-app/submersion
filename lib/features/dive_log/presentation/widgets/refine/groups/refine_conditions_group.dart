@@ -13,10 +13,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
+const kRefineNoEntryMethodSwitchKey = ValueKey('refine-no-entry-method');
+
 /// The Refine panel's Conditions group (#2773): depth, bottom time, deco,
-/// water temperature, visibility and water type. Bounds are typed in the
-/// diver's units and stored metric; a bound is written only when its field
-/// changes, so an untouched one never drifts through a rounded display.
+/// water temperature, visibility, water type and the dives with no entry
+/// method. Bounds are typed in the diver's units and stored metric; a bound
+/// is written only when its field changes, so an untouched one never drifts
+/// through a rounded display.
 class RefineConditionsGroup extends ConsumerStatefulWidget {
   const RefineConditionsGroup({
     super.key,
@@ -39,6 +42,8 @@ class RefineConditionsGroup extends ConsumerStatefulWidget {
     'minVisibility',
     'maxVisibility',
     'waterTypes',
+    'noWaterType',
+    'noEntryMethodOnly',
   };
 
   static int activeCount(DiveFilterState f) => [
@@ -47,7 +52,8 @@ class RefineConditionsGroup extends ConsumerStatefulWidget {
     f.decoOnly != null,
     f.minWaterTemp != null || f.maxWaterTemp != null,
     f.minVisibility != null || f.maxVisibility != null,
-    f.waterTypes.isNotEmpty,
+    f.waterTypes.isNotEmpty || f.noWaterType == true,
+    f.noEntryMethodOnly == true,
   ].where((active) => active).length;
 
   static String title(AppLocalizations l10n) =>
@@ -308,7 +314,32 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
                   ),
                 ),
               ),
+            // The chart's wording, so the slice and this chip read the same.
+            FilterChip(
+              label: Text(l10n.insights_chart_notRecorded),
+              selected: d.noWaterType ?? false,
+              onSelected: (selected) => write(
+                d.copyWith(
+                  noWaterType: selected ? true : null,
+                  clearNoWaterType: !selected,
+                ),
+              ),
+            ),
           ],
+        ),
+        SwitchListTile(
+          key: kRefineNoEntryMethodSwitchKey,
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.diveLog_filter_noEntryMethodOnly),
+          subtitle: Text(l10n.diveLog_filter_showOnlyNoEntryMethod),
+          secondary: const Icon(Icons.directions_boat),
+          value: d.noEntryMethodOnly ?? false,
+          onChanged: (v) => write(
+            d.copyWith(
+              noEntryMethodOnly: v ? true : null,
+              clearNoEntryMethodOnly: !v,
+            ),
+          ),
         ),
       ],
     );

@@ -40,9 +40,15 @@ void main() {
     }
   });
 
-  test('keys and aliases are unique within an entity', () {
+  test('a site with no position reads as gps (#3810)', () {
+    final sites = appQueryRegistry.entityFor(QuerySubject.sites);
+    expect(sites.field('gps')?.key, 'coordinates');
+    expect(sites.field('GPS')?.key, 'coordinates');
+  });
+
+  test('keys and aliases are unique within an entity, whatever the case', () {
     for (final e in appQueryRegistry.entities) {
-      final names = e.segmentNames.toList();
+      final names = [for (final n in e.segmentNames) n.toLowerCase()];
       expect(
         names.toSet().length,
         names.length,

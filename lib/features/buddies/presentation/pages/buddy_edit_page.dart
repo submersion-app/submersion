@@ -957,6 +957,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(text),
+        persist: false,
         action: existing == null
             ? null
             : SnackBarAction(

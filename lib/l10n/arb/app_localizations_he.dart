@@ -1374,6 +1374,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_dismiss => 'התעלם';
 
   @override
+  String get common_action_dismissAll => 'התעלם מהכל';
+
+  @override
   String get equipment_setEdit_defaultSwitch_title => 'סט ברירת מחדל';
 
   @override
@@ -8463,7 +8466,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filterChip_noBuddy => 'ללא שותף';
 
   @override
+  String get diveLog_filterChip_noEntryMethod => 'ללא שיטת כניסה';
+
+  @override
   String get diveLog_filterChip_noRole => 'ללא תפקיד';
+
+  @override
+  String get diveLog_filterChip_noWaterType => 'ללא סוג מים';
 
   @override
   String diveLog_filterChip_until(Object date) {
@@ -8528,6 +8537,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_noBuddyOnly => 'ללא שותף';
 
   @override
+  String get diveLog_filter_noEntryMethodOnly => 'לא נרשמה שיטת כניסה';
+
+  @override
   String get diveLog_filter_noRoleOnly => 'ללא תפקיד';
 
   @override
@@ -8586,6 +8598,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_showOnlyNoBuddy => 'הצגת צלילות ללא שותף בלבד';
+
+  @override
+  String get diveLog_filter_showOnlyNoEntryMethod =>
+      'הצגת צלילות ללא שיטת כניסה ידועה בלבד';
 
   @override
   String get diveLog_filter_showOnlyNoRole => 'הצגת צלילות ללא התפקיד שלך בלבד';

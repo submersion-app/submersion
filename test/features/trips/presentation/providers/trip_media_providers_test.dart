@@ -1,343 +1,282 @@
+import 'package:drift/drift.dart' show UpdateKind, Variable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_media_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip_media_preview.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
+import '../../../../helpers/test_database.dart';
+
+class _CountingRepository extends TripMediaRepository {
+  int previews = 0;
+  int fullLoads = 0;
+
+  @override
+  Future<TripMediaPreview> getPreview(String tripId, {String? diverId}) {
+    previews++;
+    return super.getPreview(tripId, diverId: diverId);
+  }
+
+  @override
+  Future<List<MediaItem>> getMediaForTrip(String tripId, {String? diverId}) {
+    fullLoads++;
+    return super.getMediaForTrip(tripId, diverId: diverId);
+  }
+}
+
+/// Past the trailing debounce of the media and dive-detail ticks.
+Future<void> _tickSettled() =>
+    Future<void>.delayed(MediaRepository.changeTickDebounce * 2);
+
 void main() {
-  group('mediaForTripProvider', () {
-    test('returns empty map when trip has no dives', () async {
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('trip-with-no-dives').overrideWith((ref) {
-            return Future.value(<Dive>[]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
+  late AppDatabase db;
+  late _CountingRepository repository;
+  final dive1 = Dive(id: 'd1', dateTime: DateTime(2024, 1, 15, 9));
+  final dive2 = Dive(id: 'd2', dateTime: DateTime(2024, 1, 15, 14));
+  final emptyDive = Dive(id: 'empty', dateTime: DateTime(2024, 1, 16, 9));
 
-      final result = await container.read(
-        mediaForTripProvider('trip-with-no-dives').future,
-      );
+  // customInsert rather than customStatement: only a declared update reaches
+  // Drift's change ticks.
+  Future<void> media(String id, String diveId, int takenAt) => db.customInsert(
+    'INSERT INTO media (id, dive_id, file_path, file_type, taken_at, '
+    "created_at, updated_at) VALUES (?, ?, 'p', 'photo', ?, 0, 0)",
+    variables: [
+      Variable.withString(id),
+      Variable.withString(diveId),
+      Variable.withInt(takenAt),
+    ],
+    updates: {db.media},
+  );
 
-      expect(result, isEmpty);
+  ProviderContainer container({List<Dive>? dives}) {
+    final tripDives = dives ?? [dive1, dive2, emptyDive];
+    final result = ProviderContainer(
+      overrides: [
+        tripMediaRepositoryProvider.overrideWithValue(repository),
+        divesForTripProvider('T').overrideWith((ref) async => tripDives),
+        diveIdsForTripProvider(
+          'T',
+        ).overrideWith((ref) async => [for (final dive in tripDives) dive.id]),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        // A trip read must never fall back to one query per dive.
+        mediaForDiveProvider.overrideWith(
+          (ref, diveId) => throw StateError('per-dive read of $diveId'),
+        ),
+      ],
+    );
+    addTearDown(result.dispose);
+    return result;
+  }
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    repository = _CountingRepository();
+    await db.customStatement(
+      'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+      "updated_at) VALUES ('T', 'T', 0, 0, 0, 0)",
+    );
+    for (final dive in [dive1, dive2, emptyDive]) {
+      await db.customStatement(
+        'INSERT INTO dives (id, dive_date_time, trip_id, created_at, '
+        "updated_at) VALUES (?, 0, 'T', 0, 0)",
+        [dive.id],
+      );
+    }
+  });
+  tearDown(tearDownTestDatabase);
+
+  group('tripMediaPreviewProvider', () {
+    test('an empty trip skips the query', () async {
+      final preview = await container(
+        dives: const [],
+      ).read(tripMediaPreviewProvider('T').future);
+
+      expect(preview, TripMediaPreview.empty);
+      expect(repository.previews, 0);
     });
 
-    test(
-      'returns map of dives to media when trip has dives with media',
-      () async {
-        final testDive1 = Dive(
-          id: 'dive-1',
-          dateTime: DateTime(2024, 1, 15, 9, 0),
-        );
-        final testDive2 = Dive(
-          id: 'dive-2',
-          dateTime: DateTime(2024, 1, 15, 14, 0),
-        );
-        final now = DateTime.now();
-        final testMedia1 = MediaItem(
-          id: 'media-1',
-          diveId: 'dive-1',
-          mediaType: MediaType.photo,
-          takenAt: DateTime(2024, 1, 15, 9, 30),
-          createdAt: now,
-          updatedAt: now,
-        );
-        final testMedia2 = MediaItem(
-          id: 'media-2',
-          diveId: 'dive-1',
-          mediaType: MediaType.photo,
-          takenAt: DateTime(2024, 1, 15, 9, 45),
-          createdAt: now,
-          updatedAt: now,
-        );
-        final testMedia3 = MediaItem(
-          id: 'media-3',
-          diveId: 'dive-2',
-          mediaType: MediaType.video,
-          takenAt: DateTime(2024, 1, 15, 14, 30),
-          createdAt: now,
-          updatedAt: now,
-        );
+    test('reads the trip once, however many dives it has', () async {
+      await media('m1', 'd1', 1000);
+      await media('m2', 'd2', 2000);
 
-        final container = ProviderContainer(
-          overrides: [
-            divesForTripProvider('test-trip').overrideWith((ref) {
-              return Future.value([testDive1, testDive2]);
-            }),
-            mediaForDiveProvider('dive-1').overrideWith((ref) {
-              return Future.value([testMedia1, testMedia2]);
-            }),
-            mediaForDiveProvider('dive-2').overrideWith((ref) {
-              return Future.value([testMedia3]);
-            }),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final result = await container.read(
-          mediaForTripProvider('test-trip').future,
-        );
-
-        expect(result.length, equals(2));
-        expect(result[testDive1]!.length, equals(2));
-        expect(result[testDive2]!.length, equals(1));
-      },
-    );
-
-    test('excludes dives with no media from result map', () async {
-      final testDive1 = Dive(
-        id: 'dive-1',
-        dateTime: DateTime(2024, 1, 15, 9, 0),
-      );
-      final testDive2 = Dive(
-        id: 'dive-2',
-        dateTime: DateTime(2024, 1, 15, 14, 0),
-      );
-      final now = DateTime.now();
-      final testMedia1 = MediaItem(
-        id: 'media-1',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 30),
-        createdAt: now,
-        updatedAt: now,
+      final preview = await container().read(
+        tripMediaPreviewProvider('T').future,
       );
 
-      final container = ProviderContainer(
+      expect(preview.byDiveId.keys, unorderedEquals(['d1', 'd2']));
+      expect(repository.previews, 1);
+      expect(repository.fullLoads, 0);
+    });
+
+    test('a media write refreshes it', () async {
+      final c = container();
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      await sub.read();
+
+      await media('m1', 'd1', 1000);
+      await _tickSettled();
+
+      expect((await sub.read()).mediaCount, 1);
+    });
+
+    test('deleting a dive refreshes it without a media write', () async {
+      await media('m1', 'd1', 1000);
+      final c = ProviderContainer(
         overrides: [
-          divesForTripProvider('test-trip').overrideWith((ref) {
-            return Future.value([testDive1, testDive2]);
-          }),
-          mediaForDiveProvider('dive-1').overrideWith((ref) {
-            return Future.value([testMedia1]);
-          }),
-          mediaForDiveProvider('dive-2').overrideWith((ref) {
-            return Future.value(<MediaItem>[]);
-          }),
+          tripMediaRepositoryProvider.overrideWithValue(repository),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
       );
-      addTearDown(container.dispose);
+      addTearDown(c.dispose);
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      expect((await sub.read()).mediaCount, 1);
 
-      final result = await container.read(
-        mediaForTripProvider('test-trip').future,
+      await db.customUpdate(
+        "DELETE FROM dives WHERE id = 'd1'",
+        updates: {db.dives},
+        updateKind: UpdateKind.delete,
       );
+      await _tickSettled();
 
-      // Only dive-1 should be in the map since dive-2 has no media
-      expect(result.length, equals(1));
-      expect(result.containsKey(testDive1), isTrue);
-      expect(result.containsKey(testDive2), isFalse);
+      expect((await sub.read()).mediaCount, 0);
+    });
+
+    test('an enrichment write does not re-read it', () async {
+      await media('m1', 'd1', 1000);
+      final c = container();
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      await sub.read();
+
+      await db.customInsert(
+        'INSERT INTO media_enrichment (id, media_id, dive_id, created_at) '
+        "VALUES ('e1', 'm1', 'd1', 0)",
+        updates: {db.mediaEnrichment},
+      );
+      await _tickSettled();
+      await sub.read();
+
+      expect(repository.previews, 1);
+    });
+
+    test('an unrelated dive detail write does not re-read it', () async {
+      final c = container();
+      final sub = c.listen(tripMediaPreviewProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      await sub.read();
+
+      // On the dive-detail tick the per-dive providers listen to, but no
+      // part of a trip's media.
+      var detailTicks = 0;
+      final detail = DiveRepository().watchDiveDetailChanges().listen(
+        (_) => detailTicks++,
+      );
+      addTearDown(detail.cancel);
+      await db.customInsert(
+        'INSERT INTO tags (id, name, created_at, updated_at) '
+        "VALUES ('t1', 'Reef', 0, 0)",
+        updates: {db.tags},
+      );
+      await _tickSettled();
+      await sub.read();
+
+      expect(detailTicks, 1);
+      expect(repository.previews, 1);
+    });
+  });
+
+  group('mediaForTripProvider', () {
+    Future<Map<Dive, List<MediaItem>>> read(ProviderContainer c) {
+      final sub = c.listen(mediaForTripProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      return sub.read();
+    }
+
+    test('returns an empty map when the trip has no dives', () async {
+      final result = await read(container(dives: const []));
+
+      expect(result, isEmpty);
+      expect(repository.fullLoads, 0);
+    });
+
+    test('groups a single read by dive, leaving out empty dives', () async {
+      await media('m1', 'd1', 1000);
+      await media('m2', 'd1', 2000);
+      await media('m3', 'd2', 3000);
+
+      final result = await read(container());
+
+      expect(result.keys, [dive1, dive2]);
+      expect(result[dive1]!.map((m) => m.id), ['m1', 'm2']);
+      expect(result[dive2]!.map((m) => m.id), ['m3']);
+      expect(repository.fullLoads, 1);
+    });
+
+    test('is released when nothing is watching it', () async {
+      final c = container();
+      final sub = c.listen(mediaForTripProvider('T').future, (_, _) {});
+      await sub.read();
+      expect(c.exists(mediaForTripProvider('T')), isTrue);
+
+      sub.close();
+      await c.pump();
+
+      expect(c.exists(mediaForTripProvider('T')), isFalse);
     });
   });
 
   group('mediaCountForTripProvider', () {
-    test('returns 0 when trip has no media', () async {
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('empty-trip').overrideWith((ref) {
-            return Future.value(<Dive>[]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final count = await container.read(
-        mediaCountForTripProvider('empty-trip').future,
+    test('returns 0 when the trip has no media', () async {
+      final count = await container().read(
+        mediaCountForTripProvider('T').future,
       );
 
-      expect(count, equals(0));
+      expect(count, 0);
     });
 
-    test('returns total count across all dives', () async {
-      final testDive1 = Dive(
-        id: 'dive-1',
-        dateTime: DateTime(2024, 1, 15, 9, 0),
-      );
-      final testDive2 = Dive(
-        id: 'dive-2',
-        dateTime: DateTime(2024, 1, 15, 14, 0),
-      );
-      final now = DateTime.now();
-      final testMedia1 = MediaItem(
-        id: 'media-1',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 30),
-        createdAt: now,
-        updatedAt: now,
-      );
-      final testMedia2 = MediaItem(
-        id: 'media-2',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 45),
-        createdAt: now,
-        updatedAt: now,
-      );
-      final testMedia3 = MediaItem(
-        id: 'media-3',
-        diveId: 'dive-2',
-        mediaType: MediaType.video,
-        takenAt: DateTime(2024, 1, 15, 14, 30),
-        createdAt: now,
-        updatedAt: now,
+    test('totals every dive past the preview limit', () async {
+      for (var i = 0; i < tripMediaPreviewLimit + 3; i++) {
+        await media('a$i', 'd1', i);
+      }
+      await media('b', 'd2', 0);
+
+      final count = await container().read(
+        mediaCountForTripProvider('T').future,
       );
 
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('test-trip').overrideWith((ref) {
-            return Future.value([testDive1, testDive2]);
-          }),
-          mediaForDiveProvider('dive-1').overrideWith((ref) {
-            return Future.value([testMedia1, testMedia2]);
-          }),
-          mediaForDiveProvider('dive-2').overrideWith((ref) {
-            return Future.value([testMedia3]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final count = await container.read(
-        mediaCountForTripProvider('test-trip').future,
-      );
-
-      expect(count, equals(3));
+      expect(count, tripMediaPreviewLimit + 4);
     });
   });
 
   group('flatMediaListForTripProvider', () {
-    test('returns empty list when trip has no media', () async {
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('test-trip').overrideWith((ref) {
-            return Future.value(<Dive>[]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
+    Future<List<MediaItem>> read(ProviderContainer c) {
+      final sub = c.listen(flatMediaListForTripProvider('T').future, (_, _) {});
+      addTearDown(sub.close);
+      return sub.read();
+    }
 
-      final result = await container.read(
-        flatMediaListForTripProvider('test-trip').future,
-      );
-
-      expect(result, isEmpty);
+    test('returns an empty list when the trip has no media', () async {
+      expect(await read(container()), isEmpty);
     });
 
-    test('returns flat list sorted by takenAt chronologically', () async {
-      final testDive1 = Dive(
-        id: 'dive-1',
-        dateTime: DateTime(2024, 1, 15, 9, 0),
-      );
-      final testDive2 = Dive(
-        id: 'dive-2',
-        dateTime: DateTime(2024, 1, 15, 14, 0),
-      );
-      final now = DateTime.now();
-      // Media from dive-1 taken at different times
-      final testMedia1 = MediaItem(
-        id: 'media-1',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 30), // First
-        createdAt: now,
-        updatedAt: now,
-      );
-      final testMedia2 = MediaItem(
-        id: 'media-2',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 45), // Second
-        createdAt: now,
-        updatedAt: now,
-      );
-      // Media from dive-2 taken in between
-      final testMedia3 = MediaItem(
-        id: 'media-3',
-        diveId: 'dive-2',
-        mediaType: MediaType.video,
-        takenAt: DateTime(2024, 1, 15, 14, 30), // Third
-        createdAt: now,
-        updatedAt: now,
-      );
+    test('sorts across dives chronologically', () async {
+      await media('late', 'd1', 3000);
+      await media('early', 'd2', 1000);
+      await media('middle', 'd1', 2000);
 
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('test-trip').overrideWith((ref) {
-            return Future.value([testDive1, testDive2]);
-          }),
-          mediaForDiveProvider('dive-1').overrideWith((ref) {
-            return Future.value([testMedia1, testMedia2]);
-          }),
-          mediaForDiveProvider('dive-2').overrideWith((ref) {
-            return Future.value([testMedia3]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
+      final result = await read(container());
 
-      final result = await container.read(
-        flatMediaListForTripProvider('test-trip').future,
-      );
-
-      expect(result.length, equals(3));
-      // Verify chronological order
-      expect(result[0].id, equals('media-1'));
-      expect(result[1].id, equals('media-2'));
-      expect(result[2].id, equals('media-3'));
-    });
-
-    test('flattens media from multiple dives into single list', () async {
-      final testDive1 = Dive(
-        id: 'dive-1',
-        dateTime: DateTime(2024, 1, 15, 9, 0),
-      );
-      final testDive2 = Dive(
-        id: 'dive-2',
-        dateTime: DateTime(2024, 1, 15, 14, 0),
-      );
-      final now = DateTime.now();
-      final testMedia1 = MediaItem(
-        id: 'media-1',
-        diveId: 'dive-1',
-        mediaType: MediaType.photo,
-        takenAt: DateTime(2024, 1, 15, 9, 30),
-        createdAt: now,
-        updatedAt: now,
-      );
-      final testMedia2 = MediaItem(
-        id: 'media-2',
-        diveId: 'dive-2',
-        mediaType: MediaType.video,
-        takenAt: DateTime(2024, 1, 15, 14, 30),
-        createdAt: now,
-        updatedAt: now,
-      );
-
-      final container = ProviderContainer(
-        overrides: [
-          divesForTripProvider('test-trip').overrideWith((ref) {
-            return Future.value([testDive1, testDive2]);
-          }),
-          mediaForDiveProvider('dive-1').overrideWith((ref) {
-            return Future.value([testMedia1]);
-          }),
-          mediaForDiveProvider('dive-2').overrideWith((ref) {
-            return Future.value([testMedia2]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final result = await container.read(
-        flatMediaListForTripProvider('test-trip').future,
-      );
-
-      expect(result.length, equals(2));
-      expect(result.any((m) => m.id == 'media-1'), isTrue);
-      expect(result.any((m) => m.id == 'media-2'), isTrue);
+      expect(result.map((m) => m.id), ['early', 'middle', 'late']);
     });
   });
 }

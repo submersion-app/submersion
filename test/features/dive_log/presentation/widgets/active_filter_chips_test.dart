@@ -118,6 +118,7 @@ void main() {
       'favourites': const DiveFilterState(favoritesOnly: true),
       'no buddy': const DiveFilterState(noBuddyOnly: true),
       'no role': const DiveFilterState(noRoleOnly: true),
+      'no entry method': const DiveFilterState(noEntryMethodOnly: true),
       'tags': const DiveFilterState(tagIds: ['a', 'b']),
       'buddy name': const DiveFilterState(buddyNameFilter: 'Jane'),
     };
