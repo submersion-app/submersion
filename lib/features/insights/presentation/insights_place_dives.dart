@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 /// The dives behind one row of the Insights country card (#2623): the
 /// Insights filter [scope] the row was counted under, narrowed to sites in
@@ -54,6 +55,43 @@ DiveFilterState calendarDayDivesFilter(
     NumberValue(day.toDouble(), null),
   ),
 ]);
+
+/// The dives behind one configuration bar of the tank configuration card
+/// (#3804): the Insights filter [scope], narrowed to [configuration].
+///
+/// Conditions rather than the `tankConfigurations` axis, as for
+/// [tankExtraDivesFilter]. Unlike the place and calendar rows these lists
+/// leave planned and excluded dives out: the card exists to be checked, so
+/// its list must equal its count.
+DiveFilterState tankConfigDivesFilter(
+  DiveFilterState scope,
+  TankBaseConfiguration configuration,
+) => _withConditions(scope, [
+  ConditionNode(
+    FieldPath(const ['tankConfig']),
+    QueryOp.eq,
+    EnumValue(configuration.name),
+  ),
+  ..._countedByStats,
+]);
+
+/// The dives behind one extras bar of the tank configuration card. A
+/// condition, not the `tankExtras` axis: that axis is OR, so tapping Deco
+/// gas under a Stage(s) scope would list more dives than the bar counted.
+DiveFilterState tankExtraDivesFilter(
+  DiveFilterState scope,
+  TankConfigurationExtra extra,
+) => _withConditions(scope, [
+  ConditionNode(FieldPath([extra.name]), QueryOp.eq, const BoolValue(true)),
+  ..._countedByStats,
+]);
+
+/// The two parts of `DiveStatsScope.predicate` the tank configuration card
+/// applies, which a dive filter does not.
+final List<QueryNode> _countedByStats = [
+  for (final key in const ['planned', 'excludedFromStats'])
+    ConditionNode(FieldPath([key]), QueryOp.eq, const BoolValue(false)),
+];
 
 /// Opens the dive list showing [filter], replacing its current filter so a
 /// leftover axis cannot hide some of the row's dives. The filter chips on

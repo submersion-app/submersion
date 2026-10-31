@@ -34,7 +34,8 @@ class QueryEntity {
   final List<String> textSearchTables;
 
   /// Text search alternatives whose binds come from the term itself rather
-  /// than from a LIKE, for names the database does not hold.
+  /// than from a LIKE: names the database does not hold, or a word that means
+  /// an exact value.
   final List<TextSearchExpansion> textSearchExpansions;
 
   const QueryEntity({
@@ -63,8 +64,9 @@ class QueryEntity {
   ];
 }
 
-/// One text search alternative matched in Dart rather than by a LIKE: a
-/// built-in row's translated labels live in the app, not in its table.
+/// One text search alternative worked out in Dart rather than by a LIKE: a
+/// built-in row's translated labels live in the app, not in its table, and a
+/// whole number names one exact dive number, not a substring.
 ///
 /// [values] maps the raw search term to the bind values; [sql] is a template
 /// over `{r}` whose `{values}` becomes one `?` per value. No values leaves the

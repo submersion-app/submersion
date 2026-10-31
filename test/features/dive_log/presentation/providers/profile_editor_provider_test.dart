@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 
 void main() {
@@ -72,6 +73,92 @@ void main() {
     expect(notifier.state.detectedOutliers, isNotNull);
   });
 
+  group('detected outliers go stale when the profile is edited', () {
+    late ProfileEditorNotifier outlierNotifier;
+
+    setUp(() {
+      outlierNotifier = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 4, depth: 10),
+          DiveProfilePoint(timestamp: 8, depth: 90),
+          DiveProfilePoint(timestamp: 12, depth: 10),
+          DiveProfilePoint(timestamp: 16, depth: 10),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      outlierNotifier.detectOutliers();
+      expect(outlierNotifier.state.detectedOutliers, isNotEmpty);
+    });
+
+    test('deleteSegment clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 4);
+      outlierNotifier.deleteSegment();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothing clears them', () {
+      outlierNotifier.applySmoothing();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothingToRange clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 12);
+      outlierNotifier.applySmoothingToRange();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('shiftSegmentDepth clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentDepth(1.0);
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('shiftSegmentTime clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentTime(1);
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('generateProfileFromWaypoints clears them', () {
+      outlierNotifier.addWaypoint(
+        const ProfileWaypoint(timestamp: 0, depth: 5),
+      );
+      outlierNotifier.addWaypoint(
+        const ProfileWaypoint(timestamp: 8, depth: 5),
+      );
+      outlierNotifier.generateProfileFromWaypoints();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('trimEndZeros clears them', () {
+      final trimNotifier = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 4, depth: 90),
+          DiveProfilePoint(timestamp: 8, depth: 10),
+          DiveProfilePoint(timestamp: 12, depth: 0),
+          DiveProfilePoint(timestamp: 16, depth: 0),
+          DiveProfilePoint(timestamp: 20, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      trimNotifier.detectOutliers();
+      expect(trimNotifier.state.detectedOutliers, isNotEmpty);
+
+      trimNotifier.trimEndZeros();
+
+      expect(trimNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('undo clears them', () {
+      outlierNotifier.applySmoothing();
+      outlierNotifier.detectOutliers();
+      outlierNotifier.undo();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+  });
+
   test('setSelectedRange stores range', () {
     notifier.setSelectedRange(start: 8, end: 40);
     expect(notifier.state.selectedRange, (start: 8, end: 40));
@@ -81,6 +168,227 @@ void main() {
     notifier.setSelectedRange(start: 8, end: 40);
     notifier.clearSelectedRange();
     expect(notifier.state.selectedRange, isNull);
+  });
+
+  group('range edits (issue #3909)', () {
+    /// A dive with a gap around the selection, room for a time shift to land.
+    ProfileEditorNotifier gappedNotifier() => ProfileEditorNotifier(
+      originalProfile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 60, depth: 10),
+        DiveProfilePoint(timestamp: 70, depth: 12),
+        DiveProfilePoint(timestamp: 130, depth: 0),
+      ],
+      editingService: ProfileEditingService(),
+    );
+
+    test('a time shift moves the selection with its samples', () {
+      final gapped = gappedNotifier()..setSelectedRange(start: 60, end: 70);
+
+      expect(gapped.shiftSegmentTime(5), isTrue);
+
+      expect(gapped.state.selectedRange, (start: 65, end: 75));
+      expect(gapped.state.editedProfile.map((p) => p.timestamp), [
+        0,
+        65,
+        75,
+        130,
+      ]);
+    });
+
+    test('repeating a time shift keeps moving the same samples', () {
+      final gapped = gappedNotifier()..setSelectedRange(start: 60, end: 70);
+
+      gapped
+        ..shiftSegmentTime(5)
+        ..shiftSegmentTime(5);
+
+      expect(gapped.state.editedProfile.map((p) => p.timestamp), [
+        0,
+        70,
+        80,
+        130,
+      ]);
+    });
+
+    test('a time shift that would overlap reports it and changes nothing', () {
+      notifier.setSelectedRange(start: 8, end: 24);
+      final before = notifier.state;
+
+      expect(notifier.shiftSegmentTime(5), isFalse);
+
+      expect(notifier.state, before);
+    });
+
+    test('undoing a time shift puts the selection back', () {
+      final gapped = gappedNotifier()..setSelectedRange(start: 60, end: 70);
+
+      gapped
+        ..shiftSegmentTime(5)
+        ..undo();
+
+      expect(gapped.state.selectedRange, (start: 60, end: 70));
+    });
+
+    test('undoing a delete brings back the selection it removed', () {
+      notifier
+        ..setSelectedRange(start: 8, end: 24)
+        ..deleteSegment();
+      expect(notifier.state.selectedRange, isNull);
+
+      notifier.undo();
+
+      expect(notifier.state.selectedRange, (start: 8, end: 24));
+    });
+
+    test('undoing an edit made with no selection leaves none', () {
+      notifier
+        ..applySmoothing()
+        ..setSelectedRange(start: 8, end: 24)
+        ..undo();
+
+      expect(notifier.state.selectedRange, isNull);
+    });
+
+    test('a delete that leaves samples reports success', () {
+      notifier.setSelectedRange(start: 8, end: 24);
+
+      expect(notifier.deleteSegment(interpolateGap: true), isTrue);
+
+      expect(notifier.state.editedProfile, isNotEmpty);
+      expect(notifier.state.hasChanges, isTrue);
+    });
+
+    for (final interpolateGap in [false, true]) {
+      test('a delete of every sample is refused, '
+          'interpolateGap: $interpolateGap', () {
+        notifier.setSelectedRange(start: 0, end: 76);
+        final before = notifier.state;
+
+        expect(notifier.deleteSegment(interpolateGap: interpolateGap), isFalse);
+
+        expect(notifier.state, before);
+      });
+    }
+
+    test('generating a profile clears the selection of replaced samples', () {
+      notifier
+        ..setSelectedRange(start: 8, end: 24)
+        ..addWaypoint(const ProfileWaypoint(timestamp: 0, depth: 0))
+        ..addWaypoint(const ProfileWaypoint(timestamp: 40, depth: 10))
+        ..generateProfileFromWaypoints();
+
+      expect(notifier.state.selectedRange, isNull);
+    });
+
+    test('trimming clears a selection that may reach the removed tail', () {
+      final tailed = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 60, depth: 0),
+          DiveProfilePoint(timestamp: 120, depth: 0),
+          DiveProfilePoint(timestamp: 180, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      )..setSelectedRange(start: 60, end: 180);
+
+      tailed.trimEndZeros();
+
+      expect(tailed.state.selectedRange, isNull);
+    });
+
+    test('a range edit with nothing selected reports it did nothing', () {
+      expect(notifier.state.selectedRange, isNull);
+
+      expect(notifier.shiftSegmentTime(5), isFalse);
+      expect(notifier.deleteSegment(), isFalse);
+      expect(notifier.applySmoothingToRange(), isFalse);
+      expect(notifier.state.hasChanges, isFalse);
+      expect(notifier.state.undoStack, isEmpty);
+    });
+
+    group('edits that invalidate detected outliers', () {
+      ProfileEditorNotifier detected() {
+        final detecting = ProfileEditorNotifier(
+          originalProfile: [
+            for (var i = 0; i < 12; i++)
+              DiveProfilePoint(
+                timestamp: i * 10,
+                depth: i >= 10 ? 0 : (i == 8 ? 90 : 10),
+              ),
+          ],
+          editingService: ProfileEditingService(),
+        );
+        detecting.setSelectedRange(start: 10, end: 30);
+        detecting.detectOutliers();
+        expect(detecting.state.detectedOutliers, isNotEmpty);
+        return detecting;
+      }
+
+      test('a delete renumbers the samples they point at', () {
+        final editing = detected();
+        expect(editing.deleteSegment(), isTrue);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a depth shift changes what they measured', () {
+        final editing = detected()..shiftSegmentDepth(1);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('smoothing changes what they measured', () {
+        final editing = detected()..applySmoothing();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('smoothing the selection changes what they measured', () {
+        final editing = detected()..applySmoothingToRange();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a time shift moves them', () {
+        final editing = detected();
+        expect(editing.shiftSegmentTime(5), isTrue);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a trim drops samples', () {
+        final editing = detected()..trimEndZeros();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a generated profile replaces the samples', () {
+        final editing = detected()
+          ..addWaypoint(const ProfileWaypoint(timestamp: 0, depth: 0))
+          ..addWaypoint(const ProfileWaypoint(timestamp: 60, depth: 10))
+          ..generateProfileFromWaypoints();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('an undo goes back to another profile', () {
+        final editing = detected()
+          ..applySmoothing()
+          ..undo();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+    });
+
+    test('smoothing a selection of two samples records no edit', () {
+      final editing = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 60, depth: 20),
+          DiveProfilePoint(timestamp: 120, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      editing.setSelectedRange(start: 0, end: 60);
+
+      expect(editing.applySmoothingToRange(), isFalse);
+
+      expect(editing.state.undoStack, isEmpty);
+      expect(editing.state.hasChanges, isFalse);
+    });
   });
 
   group('trimEndZeros', () {

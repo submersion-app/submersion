@@ -5,7 +5,9 @@ import 'package:submersion/core/services/export/uddf/uddf_site_classification_so
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -51,6 +53,10 @@ class UddfDivesExtras {
   /// and a dive with none is absent (issue #1874).
   final Map<String, DiveTankPressureExport> diveTankPressures;
 
+  /// Each exported dive's gas switches, by dive id. Not hydrated on a dive
+  /// either, and a dive with none is absent.
+  final Map<String, List<GasSwitchWithTank>> diveGasSwitches;
+
   /// Site type slugs and tag ids per exported site (issue #1765).
   final Map<String, List<String>> siteTypeIdsBySite;
   final Map<String, List<String>> siteTagIdsBySite;
@@ -69,6 +75,7 @@ class UddfDivesExtras {
     this.components = const [],
     this.diveRoles = const [],
     this.diveTankPressures = const {},
+    this.diveGasSwitches = const {},
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
     this.siteFeaturesBySite = const {},
@@ -104,6 +111,7 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
     classification: ref.read(siteClassificationRepositoryProvider),
     siteTypes: ref.read(siteTypeRepositoryProvider),
     siteFeatures: ref.read(siteFeatureRepositoryProvider),
+    dives: ref.read(diveRepositoryProvider),
   );
 });
 
@@ -114,7 +122,8 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
 /// [diverId]'s roles are read whatever the checkboxes: every dive writes
 /// its diver's own role, which is not a participant, so leaving
 /// participants out must not leave a custom one undefined. The sample
-/// pressures are too: they are the dive's own record, like its profile.
+/// pressures are too, and the gas switches when [dives] is given: they are
+/// the dive's own record, like its profile.
 ///
 /// Site types and tags (issue #1765) are not behind a checkbox either: they
 /// describe the exported sites, which always travel. They load only when
@@ -130,6 +139,7 @@ Future<UddfDivesExtras> resolveDivesExtras(
   SiteClassificationRepository? classification,
   SiteTypeRepository? siteTypes,
   SiteFeatureRepository? siteFeatures,
+  DiveRepository? dives,
 }) async {
   // The lean list-view load leaves certifications out, and every <buddy>
   // declaration carries one, so this path reads them too.
@@ -143,12 +153,16 @@ Future<UddfDivesExtras> resolveDivesExtras(
   final diveTankPressures = await tankPressures.getTankPressuresForDives(
     diveIds,
   );
+  final diveGasSwitches =
+      await dives?.getGasSwitchesForDives(diveIds) ??
+      const <String, List<GasSwitchWithTank>>{};
   if (classification == null) {
     return UddfDivesExtras(
       diveBuddies: diveBuddies,
       components: gear,
       diveRoles: diveRoles,
       diveTankPressures: diveTankPressures,
+      diveGasSwitches: diveGasSwitches,
     );
   }
 
@@ -164,6 +178,7 @@ Future<UddfDivesExtras> resolveDivesExtras(
     components: gear,
     diveRoles: diveRoles,
     diveTankPressures: diveTankPressures,
+    diveGasSwitches: diveGasSwitches,
     siteTypeIdsBySite: source.typeIdsBySite,
     siteTagIdsBySite: source.tagIdsBySite,
     // Features describe the exported sites, so like the types and tags they

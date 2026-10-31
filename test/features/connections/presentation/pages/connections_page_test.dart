@@ -27,6 +27,8 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
@@ -309,6 +311,26 @@ void main() {
     await _pump(tester, graph: (ref, budget) => ConnectionGraph.empty);
     expect(find.byKey(const ValueKey('connections-panel')), findsOneWidget);
     expect(find.textContaining('Data tools'), findsOneWidget);
+  });
+
+  testWidgets('a fully excluded logbook is told why the map is empty', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      graph: (ref, budget) => ConnectionGraph.empty,
+      extra: [
+        logbookDiveCountsProvider.overrideWith(
+          (ref) async => const LogbookDiveCounts(logged: 3, counted: 0),
+        ),
+      ],
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(
+      find.text('All your dives are excluded from statistics'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an empty result under a filter blames the filter', (

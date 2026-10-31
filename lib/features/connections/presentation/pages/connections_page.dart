@@ -37,6 +37,7 @@ import 'package:submersion/features/connections/presentation/widgets/connections
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/connections/presentation/widgets/timeline_control.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -475,6 +476,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         final empty = ConnectionsEmptyState(
           view: view,
           hasAnyDives: ref.watch(connectionsDateSpanProvider).value != null,
+          allDivesExcluded:
+              ref.watch(logbookDiveCountsProvider).valueOrNull?.allExcluded ??
+              false,
           hasActiveFilter: hasActiveFilter,
           buddiesWithoutSites:
               nothingShared &&
