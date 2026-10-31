@@ -380,7 +380,7 @@ class _DiveSeascapeStandaloneState
 
   SeascapeAxes? _buildAxes(SeascapeAxisInputs? inputs) {
     if (inputs == null) return null;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return buildSeascapeAxes(
       projection: seascapeProjection(inputs),
       minEast: inputs.minEast,

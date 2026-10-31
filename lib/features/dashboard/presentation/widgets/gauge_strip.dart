@@ -110,7 +110,7 @@ class GaugeStrip extends ConsumerWidget {
     Set<String> hidden,
   ) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final chips = <_Chip>[];
 
     // Gear, insurance and the flight window are hardened: an alert-tone chip

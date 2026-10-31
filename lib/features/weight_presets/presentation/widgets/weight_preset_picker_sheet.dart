@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 import 'package:submersion/features/weight_presets/presentation/providers/weight_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,7 +19,7 @@ class WeightPresetPickerSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final presetsAsync = ref.watch(weightPresetsProvider);
 
     return Column(

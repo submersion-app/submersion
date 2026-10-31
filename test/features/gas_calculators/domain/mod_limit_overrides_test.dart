@@ -12,6 +12,39 @@ const _profile = ModProfileLimits(
 );
 
 void main() {
+  group('ModProfileLimits equality', () {
+    // The limits providers select this value, so a field left out of props
+    // would keep serving the old limit after that setting changes.
+    ModProfileLimits copy({
+      double workingPpO2 = 1.4,
+      double decoPpO2 = 1.6,
+      double flushPpO2 = 1.6,
+      double setpointBar = 1.3,
+      double endLimitMeters = 30,
+      bool o2Narcotic = true,
+    }) => ModProfileLimits(
+      workingPpO2: workingPpO2,
+      decoPpO2: decoPpO2,
+      flushPpO2: flushPpO2,
+      setpointBar: setpointBar,
+      endLimitMeters: endLimitMeters,
+      o2Narcotic: o2Narcotic,
+    );
+
+    test('two limits with the same values are equal', () {
+      expect(copy(), _profile);
+    });
+
+    test('a change to any field makes them differ', () {
+      expect(copy(workingPpO2: 1.2), isNot(_profile));
+      expect(copy(decoPpO2: 1.5), isNot(_profile));
+      expect(copy(flushPpO2: 1.5), isNot(_profile));
+      expect(copy(setpointBar: 1.2), isNot(_profile));
+      expect(copy(endLimitMeters: 40), isNot(_profile));
+      expect(copy(o2Narcotic: false), isNot(_profile));
+    });
+  });
+
   group('resolveModLimits', () {
     test('no overrides follow the profile and are not marked', () {
       final r = resolveModLimits(ModLimitOverrides.none, _profile);

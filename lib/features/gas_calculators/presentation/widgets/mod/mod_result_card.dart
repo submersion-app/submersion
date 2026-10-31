@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The headline MOD, rounded down, and the limits that go with it: the
@@ -20,10 +19,9 @@ class ModResultCard extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final onContainer = colorScheme.onPrimaryContainer;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final result = ref.watch(modCalculatorResultProvider);
-    final endLimit = settings.endLimit;
+    final endLimit = units.settings.endLimit;
 
     // The headline and its other-unit echo are both floored, so neither can
     // read deeper than the gas may be taken.
@@ -31,7 +29,7 @@ class ModResultCard extends ConsumerWidget {
       floorToFractionDigits(units.convertDepth(result.modMeters), 1),
       1,
     );
-    final other = settings.depthUnit == DepthUnit.meters
+    final other = units.settings.depthUnit == DepthUnit.meters
         ? DepthUnit.feet
         : DepthUnit.meters;
     final otherValue = floorToFractionDigits(

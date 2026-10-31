@@ -5,6 +5,7 @@ import 'package:fit_tool/fit_tool.dart';
 // ignore: implementation_imports
 import 'package:fit_tool/src/utils/logger.dart' as fit_log;
 import 'package:logger/logger.dart' show Level, Logger;
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_constants.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_device_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_gas_extractor.dart';
@@ -126,9 +127,13 @@ class FitParserService {
     final maxDepth = depths.isEmpty
         ? (diveSummary?.maxDepth ?? 0.0)
         : depths.reduce(math.max);
-    final avgDepth = depths.isEmpty
-        ? diveSummary?.avgDepth
-        : depths.reduce((a, b) => a + b) / depths.length;
+    final avgDepth =
+        timeWeightedMean(
+          samples,
+          time: (s) => s.timestampMs,
+          value: (s) => s.depth,
+        ) ??
+        diveSummary?.avgDepth;
 
     final temps = samples
         .map((s) => s.temperature)

@@ -479,6 +479,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           // fullscreen call site (dive_detail_page.dart:4946-4990)
                           ceilingCurve: analysis?.ceilingCurve,
                           decoStopCurve: analysis?.decoStopCurve,
+                          labelCeilingAsCalculated:
+                              analysis?.computerStopsWithCalculatedCeiling ??
+                              false,
                           ascentRates: analysis?.ascentRates,
                           events: analysis?.events,
                           ndlCurve: analysis?.ndlCurve,
@@ -791,7 +794,7 @@ class _RangeStatsStrip extends ConsumerWidget {
     return RangeStatsPanel(
       diveId: diveId,
       profile: profile,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
       tanks: tanks,
       isRebreather: isRebreather,
       maxColumns: 8,

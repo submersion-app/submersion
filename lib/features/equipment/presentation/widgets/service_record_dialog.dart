@@ -188,8 +188,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final schedules =
         ref

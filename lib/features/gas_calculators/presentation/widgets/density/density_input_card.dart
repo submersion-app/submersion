@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 
@@ -28,7 +27,7 @@ class DensityInputCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 

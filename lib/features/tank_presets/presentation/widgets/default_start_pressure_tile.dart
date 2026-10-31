@@ -20,14 +20,13 @@ class DefaultStartPressureTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return ListTile(
       title: Text(context.l10n.tankPresets_defaultStartPressure),
       subtitle: Text(context.l10n.tankPresets_defaultStartPressure_subtitle),
       trailing: Text(
-        units.formatPressure(settings.defaultStartPressure),
+        units.formatPressure(units.settings.defaultStartPressure),
         style: Theme.of(context).textTheme.titleMedium,
       ),
       onTap: () async {
@@ -37,7 +36,8 @@ class DefaultStartPressureTile extends ConsumerWidget {
         );
         // A tolerance rather than ==: the value round-trips through the
         // diver's unit, so an unedited psi value can differ in the last bits.
-        if (bar == null || (bar - settings.defaultStartPressure).abs() < 1e-6) {
+        if (bar == null ||
+            (bar - units.settings.defaultStartPressure).abs() < 1e-6) {
           return;
         }
         if (!context.mounted) return;

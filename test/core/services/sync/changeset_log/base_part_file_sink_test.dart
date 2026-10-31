@@ -5,6 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
+import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
+
+import '../../../../helpers/recording_base_part_hasher.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -225,5 +231,285 @@ void main() {
     );
     expect(path, isNotNull);
     expect(seen, [(1, 3), (2, 3), (3, 3)]);
+  });
+  group('what a failed assemble means', () {
+    final part = bytes('payload');
+
+    Future<String?> assembling(
+      Future<Uint8List?> Function(int index) downloadPart, {
+      BasePartFileSink? using,
+      int partCount = 1,
+      String? wholeChecksum,
+    }) => (using ?? sink).assemble(
+      name: 'ssv1_x',
+      partCount: partCount,
+      wholeChecksum: wholeChecksum,
+      partChecksums: const [],
+      downloadPart: downloadPart,
+    );
+
+    test('a part the cloud lacks returns null', () async {
+      expect(await assembling((_) async => null), isNull);
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a part that fails its digest returns null', () async {
+      final path = await sink.assemble(
+        name: 'ssv1_x',
+        partCount: 1,
+        wholeChecksum: null,
+        partChecksums: const ['sha256:not-it'],
+        downloadPart: (_) async => part,
+      );
+      expect(path, isNull);
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a whole file that fails its digest returns null', () async {
+      expect(
+        await assembling((_) async => part, wholeChecksum: 'sha256:not-it'),
+        isNull,
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a corrupt envelope returns null', () async {
+      expect(
+        await assembling(
+          (_) async => throw const EnvelopeCorruptException('bad'),
+        ),
+        isNull,
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a key this device lacks returns null', () async {
+      expect(
+        await assembling(
+          (_) async => throw const SyncEncryptionRequired(message: 'locked'),
+        ),
+        isNull,
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a download error is an interruption, not a null', () async {
+      const dropped = CloudStorageException('connection lost');
+      await expectLater(
+        assembling((_) async => throw dropped),
+        throwsA(
+          isA<BaseFetchInterrupted>().having(
+            (e) => e.cause,
+            'cause',
+            same(dropped),
+          ),
+        ),
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a refused download comes out as itself', () async {
+      const refused = CloudAccessRefusedException('refused');
+      await expectLater(
+        assembling((_) async => throw refused),
+        throwsA(same(refused)),
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a hasher failure is an interruption', () async {
+      final failing = BasePartFileSink(
+        tempDirProvider: () async => dir,
+        openHasher: (_) async => RecordingBasePartHasher(failOnPart: 0),
+      );
+      await expectLater(
+        assembling((_) async => part, using: failing),
+        throwsA(
+          isA<BaseFetchInterrupted>().having(
+            (e) => e.cause,
+            'cause',
+            isA<BasePartHasherException>(),
+          ),
+        ),
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a hasher that fails on finish is an interruption', () async {
+      final failing = BasePartFileSink(
+        tempDirProvider: () async => dir,
+        openHasher: (_) async => RecordingBasePartHasher(failOnFinish: true),
+      );
+      await expectLater(
+        assembling(
+          (_) async => part,
+          using: failing,
+          wholeChecksum: 'sha256:whole',
+        ),
+        throwsA(isA<BaseFetchInterrupted>()),
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('a temp dir that cannot be resolved is an interruption', () async {
+      final noDir = BasePartFileSink(
+        tempDirProvider: () async => throw const FileSystemException('no dir'),
+      );
+      await expectLater(
+        assembling((_) async => part, using: noDir),
+        throwsA(isA<BaseFetchInterrupted>()),
+      );
+    });
+
+    test('a temp file that cannot be written is an interruption', () async {
+      final unwritable = BasePartFileSink(
+        tempDirProvider: () async => Directory(p.join(dir.path, 'gone')),
+      );
+      await expectLater(
+        assembling((_) async => part, using: unwritable),
+        throwsA(
+          isA<BaseFetchInterrupted>().having(
+            (e) => e.cause,
+            'cause',
+            isA<FileSystemException>(),
+          ),
+        ),
+      );
+    });
+
+    test('a missing part stays a null if the temp file fails too', () async {
+      final unwritable = BasePartFileSink(
+        tempDirProvider: () async => Directory(p.join(dir.path, 'gone')),
+      );
+      expect(
+        await assembling(
+          (i) async => i == 0 ? part : null,
+          using: unwritable,
+          partCount: 2,
+        ),
+        isNull,
+      );
+    });
+
+    test('no whole-file digest was promised, so none is computed', () async {
+      final finishFails = BasePartFileSink(
+        tempDirProvider: () async => dir,
+        openHasher: (_) async => RecordingBasePartHasher(failOnFinish: true),
+      );
+      expect(
+        await assembling((_) async => part, using: finishFails),
+        isNotNull,
+      );
+    });
+  });
+
+  group('through a hasher', () {
+    test('a real worker verifies parts and the whole file', () async {
+      final p0 = Uint8List.fromList(
+        List.generate(kOffIsolateMinBytes, (i) => i % 251),
+      );
+      final p1 = bytes('short last part');
+      final path = await sink.assemble(
+        name: 'ssv1_big',
+        partCount: 2,
+        wholeChecksum: BaseChunker.checksum(Uint8List.fromList([...p0, ...p1])),
+        partChecksums: [BaseChunker.checksum(p0), BaseChunker.checksum(p1)],
+        downloadPart: (i) async => i == 0 ? p0 : p1,
+      );
+      expect(path, isNotNull);
+      expect(File(path!).lengthSync(), p0.length + p1.length);
+    });
+
+    test('a real worker still rejects a corrupt part', () async {
+      final p0 = Uint8List.fromList(
+        List.generate(kOffIsolateMinBytes, (i) => i % 251),
+      );
+      final path = await sink.assemble(
+        name: 'ssv1_big',
+        partCount: 1,
+        wholeChecksum: null,
+        partChecksums: ['sha256:not-it'],
+        downloadPart: (_) async => p0,
+      );
+      expect(path, isNull);
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('the hasher is sized from the first part', () async {
+      final opened = <int>[];
+      final sized = BasePartFileSink(
+        tempDirProvider: () async => dir,
+        openHasher: (firstPartBytes) async {
+          opened.add(firstPartBytes);
+          return RecordingBasePartHasher();
+        },
+      );
+      await sized.assemble(
+        name: 'ssv1_x',
+        partCount: 2,
+        wholeChecksum: null,
+        partChecksums: const [],
+        downloadPart: (i) async => bytes(i == 0 ? 'longer' : 'short'),
+      );
+      expect(opened, [6]);
+    });
+
+    for (final (name, download) in <(String, Future<Uint8List?> Function(int))>[
+      ('a finished transfer', (_) async => Uint8List(1)),
+      ('a missing second part', (i) async => i == 0 ? Uint8List(1) : null),
+      (
+        'an interrupted transfer',
+        (i) async =>
+            i == 0 ? Uint8List(1) : throw const CloudStorageException('x'),
+      ),
+    ]) {
+      test('$name releases the hasher', () async {
+        final hasher = RecordingBasePartHasher();
+        final recording = BasePartFileSink(
+          tempDirProvider: () async => dir,
+          openHasher: (_) async => hasher,
+        );
+        await recording
+            .assemble(
+              name: 'ssv1_x',
+              partCount: 2,
+              wholeChecksum: null,
+              partChecksums: const [],
+              downloadPart: download,
+            )
+            .catchError((Object _) => null);
+        expect(hasher.disposals, 1);
+      });
+    }
+
+    test('no hasher opens when the first part is missing', () async {
+      var opens = 0;
+      final recording = BasePartFileSink(
+        tempDirProvider: () async => dir,
+        openHasher: (_) async {
+          opens++;
+          return RecordingBasePartHasher();
+        },
+      );
+      await recording.assemble(
+        name: 'ssv1_x',
+        partCount: 2,
+        wholeChecksum: null,
+        partChecksums: const [],
+        downloadPart: (_) async => null,
+      );
+      expect(opens, 0);
+    });
+
+    test('no parts cannot satisfy a promised whole-file digest', () async {
+      final path = await sink.assemble(
+        name: 'ssv1_x',
+        partCount: 0,
+        wholeChecksum: 'sha256:not-it',
+        partChecksums: const [],
+        downloadPart: (_) async => null,
+      );
+      expect(path, isNull);
+    });
   });
 }

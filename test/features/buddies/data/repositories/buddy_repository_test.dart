@@ -542,6 +542,17 @@ void main() {
       });
     });
 
+    group('resolveByName (#3871)', () {
+      test('says the person is new only when it created them', () async {
+        final first = await repository.resolveByName('Pat Kim');
+        final second = await repository.resolveByName('pat kim');
+
+        expect(first.created, isTrue);
+        expect(second.created, isFalse);
+        expect(second.buddy.id, first.buddy.id);
+      });
+    });
+
     // #3032: SQLite's LOWER() folds ASCII only, so a name whose accented
     // capital differed in case from the stored one minted a twin.
     group('accented capitals', () {

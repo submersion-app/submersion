@@ -133,6 +133,10 @@ class SigV4Signer {
   /// put the identical bytes on the wire. Do not pass host, x-amz-date,
   /// x-amz-content-sha256, or authorization in [extraHeaders]; sign
   /// computes those itself.
+  ///
+  /// [payloadHash], when given, is [hexSha256] of [payload], already computed:
+  /// hashing a large body takes long enough that a caller on the UI isolate
+  /// does it elsewhere. Everything else here is a handful of short HMACs.
   static Map<String, String> sign({
     required String method,
     required String host,
@@ -140,6 +144,7 @@ class SigV4Signer {
     Map<String, String> queryParams = const {},
     Map<String, String> extraHeaders = const {},
     required List<int> payload,
+    String? payloadHash,
     required String accessKeyId,
     required String secretAccessKey,
     required String region,
@@ -148,11 +153,11 @@ class SigV4Signer {
   }) {
     final amzDate = amzDateFormat(requestTime);
     final dateStamp = dateStampFormat(requestTime);
-    final payloadHash = hexSha256(payload);
+    final hash = payloadHash ?? hexSha256(payload);
 
     final headers = <String, String>{
       'host': host,
-      'x-amz-content-sha256': payloadHash,
+      'x-amz-content-sha256': hash,
       'x-amz-date': amzDate,
       for (final entry in extraHeaders.entries)
         entry.key.toLowerCase(): entry.value,
@@ -163,7 +168,7 @@ class SigV4Signer {
       canonicalUri: canonicalUri,
       queryParams: queryParams,
       headers: headers,
-      payloadHash: payloadHash,
+      payloadHash: hash,
     );
 
     final credentialScope = '$dateStamp/$region/$service/aws4_request';

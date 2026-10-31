@@ -3238,6 +3238,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_nameHint => 'Add meg a búvártárs nevét';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Kihagyás a merülőtárs-rangsorokból';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'A közös merülések továbbra is merülőtárssal végzett merülésnek számítanak.';
+
+  @override
   String get buddies_field_nameRequired => 'Név *';
 
   @override
@@ -3597,6 +3605,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Közös merülések';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Kihagyva a merülőtárs-rangsorokból';
 
   @override
   String get buddies_stat_favoriteSite => 'Kedvenc hely';
@@ -5682,6 +5694,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_action_markCompleted => 'Megjelölés befejezettként';
 
   @override
+  String get courses_action_chooseDive => 'Merülés választása';
+
+  @override
   String get courses_action_unlinkDive => 'Merülés leválasztása';
 
   @override
@@ -5877,6 +5892,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Javasolt merülések';
+
+  @override
+  String get courses_requirement_allDives => 'Összes merülés';
+
+  @override
+  String get courses_requirement_noDives => 'Nincs kapcsolható merülés';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Nincs a következőre illeszkedő merülés: „$query”';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Merülések keresése';
 
   @override
   String get courses_requirements_empty =>
@@ -8801,6 +8830,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'Plafon';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafon (szám.)';
 
   @override
   String get diveLog_legend_label_decoStops => 'Dekó megállók';
@@ -15146,6 +15178,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Részletek';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Merülésidő';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count merülés';
   }
@@ -16160,6 +16195,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_kind_storage => 'Tároló';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Búvárközpont';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Szerviz';
 
   @override
@@ -16388,6 +16426,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Típus';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Mentett búvárközpont';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Nincs';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Mentett búvárközpont eltávolítása';
 
   @override
   String get equipment_locations_notesLabel => 'Megjegyzések';
@@ -17965,6 +18013,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'Hozzáadva';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Feltöltés';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'Nyomás';
@@ -20685,7 +20736,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_range_title => 'Tartománytáblázat';
 
   @override
+  String get plannerCanvas_results_calculating => 'Számítás';
+
+  @override
+  String get plannerCanvas_results_failed => 'Nem sikerült kiszámítani';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Nincs szükség dekompresszióra';
+
+  @override
+  String get plannerCanvas_results_updating => 'Frissítés';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -23145,6 +23205,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_cloudSync_status_syncError => 'Szinkronizálási hiba';
+
+  @override
+  String get settings_cloudSync_status_signInNeeded =>
+      'Bejelentkezés szükséges';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return 'A(z) $account fiókba újra be kell jelentkezned.';
+  }
 
   @override
   String get settings_cloudSync_status_syncing => 'Szinkronizálás...';
@@ -29820,6 +29889,38 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Mind a(z) $count $value volt ($baseline az ezt rögzítő $coverage közül)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total merülésből $count $value volt, szemben az ezt rögzítő $coverage $baseline arányával';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Az ezt rögzítő $groupCoverage közül $count $value volt, szemben az ezt rögzítő $coverage $baseline arányával';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -30109,6 +30210,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Átl. lesüllyedés';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Merülések elemzése: $analyzed / $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Dekó merülések';
@@ -38273,6 +38379,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => 'Bejelentkezés újra';
+
+  @override
+  String get settings_accounts_differentAccount_title => 'Ez egy másik fiók';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'A Submersion a(z) $expected fiókot használja, de te a(z) $signedIn fiókkal jelentkeztél be.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Semmi sem lett szinkronizálva, és a(z) $signedIn fiók nem lett csatlakoztatva.';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {
@@ -53987,6 +54109,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Adjon meg 0 és 100 közötti értéket';
+
+  @override
+  String get diveCenters_gearHere_title => 'Saját felszerelés itt';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Bérelt felszerelés';

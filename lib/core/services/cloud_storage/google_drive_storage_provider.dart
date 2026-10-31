@@ -9,8 +9,10 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oauth_authenticator.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -90,9 +92,15 @@ class GoogleDriveStorageProvider
   }
 
   @override
-  Future<void> authenticate() async {
-    await _authenticator.authenticate();
+  Future<void> authenticate() => authenticateAs(null);
+
+  /// [authenticate], refusing an account other than [expectedAccount] with
+  /// [CloudAccountMismatchException]. Not on [CloudStorageProvider]: only
+  /// Google and Dropbox let a diver pick another account at sign-in.
+  Future<void> authenticateAs(String? expectedAccount) async {
+    await _authenticator.authenticate(expectedAccount: expectedAccount);
     _driveApi = null; // rebuilt lazily from the fresh auth client
+    _syncFolderId = null; // this sign-in may be another account's
     if (_api == null) {
       throw const CloudStorageException(
         'Google Sign-In did not produce an authorized client',
@@ -117,8 +125,8 @@ class GoogleDriveStorageProvider
     return null;
   }
 
-  /// The media store's 401 hook: Drive refused [rejected], so refresh the
-  /// token through the same shared re-auth the sync calls use. True when a
+  /// The media store's rejection hook: Drive refused [rejected], so drop it
+  /// and refresh through the shared re-auth the sync calls use. True when a
   /// fresh client is available for one retry.
   Future<bool> mediaAuthRejected(http.Client rejected) =>
       _reauthorize(rejected);
@@ -180,10 +188,13 @@ class GoogleDriveStorageProvider
   /// The desktop authenticator's auto-refreshing client already handles
   /// hourly expiry itself. A revoked or expired refresh token reaches here
   /// not as a 401 but as the refresh's own failure, an OAuth `invalid_grant`
-  /// ([_isRevokedGrant]); its handleAuthFailure() clears the token store, so
-  /// the retry's attemptSilentAuth() fails and the user is asked to sign in
+  /// ([isRevokedDriveGrant]); its handleAuthFailure() clears the token store,
+  /// so the retry's attemptSilentAuth() fails and the user is asked to sign in
   /// again. Missing that case left the dead token in place, failing every
   /// sync with a generic listing error (issue #2332).
+  ///
+  /// A token Drive refuses for lacking the Drive scope is the one rejection
+  /// not retried, since a refresh cannot add a scope; see [_noDriveAccess].
   ///
   /// A retry rejected the same way means the fresh authorization is no good
   /// either. It is reported as the same sign-in-again error rather than the
@@ -195,21 +206,44 @@ class GoogleDriveStorageProvider
     try {
       return await operation();
     } catch (e) {
+      if (isMissingDriveScope(e)) throw await _noDriveAccess(e, client);
       if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
       if (!await _reauthorize(client)) {
-        throw _signInExpired(e);
+        throw _authenticator.lastSilentAuthThrew
+            ? driveRefreshFailed(e)
+            : driveSignInExpired(e);
       }
       final retryClient = _authenticator.authClient;
       try {
         return await operation();
       } catch (retryError) {
+        if (isMissingDriveScope(retryError)) {
+          throw await _noDriveAccess(retryError, retryClient);
+        }
         if (!_isAuthRejection(retryError)) rethrow;
         _log.warning('Drive rejected the re-authorized sign-in: $retryError');
         await _dropRejectedAuth(retryClient);
-        throw _signInExpired(retryError);
+        throw driveSignInExpired(retryError);
       }
     }
+  }
+
+  /// Drops a grant Drive refused for lacking the Drive scope and returns the
+  /// error that asks for it.
+  ///
+  /// Dropping it turns a sign-in that can never sync into "not signed in",
+  /// which offers the sign-in again. Left in place, the account read as
+  /// signed in while sync, repair and wipe all failed on the raw 403, with
+  /// nothing on screen pointing at the Drive box (#3835). No cause on the
+  /// error: displayMessage appends it, and it is that raw header.
+  Future<CloudStorageException> _noDriveAccess(
+    Object refusal,
+    http.Client? client,
+  ) async {
+    _log.warning('Drive refused a sign-in without Drive access: $refusal');
+    await _dropRejectedAuth(client);
+    return const CloudAccessRefusedException(googleDriveAccessNotAllowed);
   }
 
   /// Replaces [rejected] with a freshly authorized client, sharing one
@@ -247,26 +281,13 @@ class GoogleDriveStorageProvider
     return rejected != null && current != null && !identical(current, rejected);
   }
 
+  /// The auth client raises [gauth.AccessDeniedException] for a real 401
+  /// before the Drive API sees it (see [isMissingDriveScope]), so that is the
+  /// form an expired token takes in production.
   static bool _isAuthRejection(Object e) =>
+      e is gauth.AccessDeniedException ||
       (e is drive.DetailedApiRequestError && e.status == 401) ||
-      _isRevokedGrant(e);
-
-  static CloudStorageException _signInExpired(Object cause) =>
-      CloudStorageException(
-        'Google Drive sign-in expired. Please sign in again.',
-        cause,
-      );
-
-  /// True when [e] is Google's token endpoint refusing the refresh token
-  /// itself (revoked, expired, or issued to another client). Any other
-  /// token-endpoint failure, a 5xx or a malformed response, is an outage
-  /// rather than a dead grant and must not sign the user out.
-  static bool _isRevokedGrant(Object e) =>
-      e is gauth.ServerRequestFailedException &&
-      switch (e.responseContent) {
-        {'error': 'invalid_grant'} => true,
-        _ => false,
-      };
+      isRevokedDriveGrant(e);
 
   /// Maps a Drive error to a CloudStorageException with an actionable
   /// message where one exists (quota); otherwise a generic wrapper.
@@ -280,6 +301,15 @@ class GoogleDriveStorageProvider
         e.errors.any((d) => d.reason == 'storageQuotaExceeded')) {
       return CloudStorageException(
         'Google Drive storage is full',
+        e,
+        stackTrace,
+      );
+    }
+    if (e is drive.DetailedApiRequestError &&
+        e.status == 403 &&
+        e.errors.any((d) => driveRefusedReasons.contains(d.reason))) {
+      return CloudAccessRefusedException(
+        '$operation failed: $e',
         e,
         stackTrace,
       );
@@ -758,6 +788,7 @@ class GoogleDriveStorageProvider
       // as "file not found" (which would create a duplicate).
       rethrow;
     } catch (e) {
+      if (_isAuthRejection(e)) rethrow;
       _log.warning('Failed to find file: $filename - $e');
       return null;
     }

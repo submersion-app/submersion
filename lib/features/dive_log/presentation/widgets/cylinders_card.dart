@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -26,7 +27,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_series_re
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_labels.dart';
@@ -57,7 +57,7 @@ class CylindersCard extends ConsumerWidget {
 
   final Dive dive;
   final UnitFormatter units;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final GasConsumptionDisplay display;
 
   @override

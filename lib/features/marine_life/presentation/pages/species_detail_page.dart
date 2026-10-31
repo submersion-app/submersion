@@ -302,8 +302,7 @@ class SpeciesDetailPage extends ConsumerWidget {
     WidgetRef ref,
     SpeciesInsights stats,
   ) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

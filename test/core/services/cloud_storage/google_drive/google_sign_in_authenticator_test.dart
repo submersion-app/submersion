@@ -93,25 +93,44 @@ class _FakePlatform extends GoogleSignInPlatform
   @override
   bool authorizationRequiresUserInteraction() => false;
 
-  /// How many times a scope authorization was requested. One per installed
-  /// client, so it counts clients without reaching into the authenticator.
+  /// How many times a scope authorization was requested without a prompt.
+  /// One per installed client, so it counts clients without reaching into the
+  /// authenticator.
   int authorizationCalls = 0;
+
+  /// Whether the account's grant really includes the requested scope. Mirrors
+  /// the iOS and macOS plugin: only the non-prompting path checks the granted
+  /// scopes, and the prompting path returns whatever token consent produced.
+  bool scopeGranted = true;
 
   @override
   Future<ClientAuthorizationTokenData?> clientAuthorizationTokensForScopes(
     ClientAuthorizationTokensForScopesParameters params,
   ) async {
+    if (params.request.promptIfUnauthorized) return authorizationToken;
     authorizationCalls++;
-    return authorizationToken;
+    final error = authorizationError;
+    if (error != null) throw error;
+    return scopeGranted ? authorizationToken : null;
   }
+
+  /// When set, a scope authorization throws, as it does with no network.
+  Object? authorizationError;
 
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(
     ServerAuthorizationTokensForScopesParameters params,
   ) async => null;
 
+  /// When set, signOut throws this after counting the call.
+  Object? signOutError;
+
   @override
-  Future<void> signOut(SignOutParams params) async => signOutCalls++;
+  Future<void> signOut(SignOutParams params) async {
+    signOutCalls++;
+    final error = signOutError;
+    if (error != null) throw error;
+  }
 
   @override
   Future<void> disconnect(DisconnectParams params) async {}
@@ -222,6 +241,91 @@ void main() {
     });
   });
 
+  test(
+    'a silent sign-in that throws says so, unlike having no grant',
+    () async {
+      platform
+        ..lightweightResult = _FakePlatform.resultsFor('diver@example.com')
+        ..authorizationError = Exception('no network');
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isTrue);
+
+      platform
+        ..authorizationError = null
+        ..authorizationToken = null;
+
+      expect(await auth.attemptSilentAuth(), isFalse);
+      expect(auth.lastSilentAuthThrew, isFalse);
+    },
+  );
+
+  group('a sign-in expected to be a particular account (#3811)', () {
+    setUp(() {
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'other@example.com',
+      );
+    });
+
+    test('another account is refused, not reported as a failure', () async {
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(
+          isA<CloudAccountMismatchException>().having(
+            (e) => e.signedInAs,
+            'signedInAs',
+            'other@example.com',
+          ),
+        ),
+      );
+      expect(auth.authClient, isNull);
+      expect(platform.authorizationCalls, 0);
+    });
+
+    test('the SDK forgets it, so a cold launch cannot return it', () async {
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+      expect(platform.signOutCalls, 1);
+    });
+
+    test('a failed SDK sign-out does not change the outcome', () async {
+      platform.signOutError = Exception('plugin down');
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+    });
+
+    test('the session already here survives', () async {
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'diver@example.com',
+      );
+      await auth.authenticate();
+      final client = auth.authClient;
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'other@example.com',
+      );
+
+      await expectLater(
+        auth.authenticate(expectedAccount: 'diver@example.com'),
+        throwsA(isA<CloudAccountMismatchException>()),
+      );
+
+      expect(identical(auth.authClient, client), isTrue);
+      expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('the same account signs in', () async {
+      await auth.authenticate(expectedAccount: 'Other@Example.com');
+
+      expect(auth.authClient, isNotNull);
+      expect(platform.signOutCalls, 0);
+    });
+  });
+
   group('authenticate', () {
     test('installs a client and exposes the account email', () async {
       platform.authenticateResult = _FakePlatform.resultsFor(
@@ -232,6 +336,29 @@ void main() {
 
       expect(auth.authClient, isNotNull);
       expect(await auth.userEmail, 'diver@example.com');
+    });
+
+    test('refuses a consent that left the Drive box unticked', () async {
+      // Google's consent page gives Drive a checkbox of its own, and the
+      // sign-in still succeeds without it. Installing that token left the
+      // account reading as signed in while every Drive call failed with
+      // insufficient_scope (#3835).
+      platform.authenticateResult = _FakePlatform.resultsFor(
+        'diver@example.com',
+      );
+      platform.scopeGranted = false;
+
+      await expectLater(
+        auth.authenticate(),
+        throwsA(
+          isA<CloudStorageException>()
+              .having((e) => e.message, 'message', contains('Google Drive box'))
+              .having((e) => e.cause, 'cause', isNull),
+        ),
+      );
+
+      expect(auth.authClient, isNull);
+      expect(await auth.userEmail, isNull);
     });
 
     test('maps user cancellation to a CloudStorageException', () async {

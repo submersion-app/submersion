@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
@@ -71,8 +70,7 @@ class RecordsPage extends ConsumerWidget {
     WidgetRef ref,
     DiveRecords records,
   ) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Every slot the page can render, not just the four superlative cards:
     // firstDive/lastDive carry no field predicate, so dives logged with only a

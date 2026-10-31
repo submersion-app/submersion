@@ -64,6 +64,19 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [downloadFile] throws, modelling a transient read failure.
   bool failDownloads = false;
 
+  /// Thrown instead of the default when [failDownloads] or [failLists] is
+  /// set, for a test that needs a particular failure.
+  CloudStorageException? readException;
+
+  /// When set, a download whose file id this matches throws: the same failure
+  /// as [failDownloads], for one kind of file. Throws [downloadFailure].
+  bool Function(String fileId)? failDownloadsWhere;
+
+  /// What [failDownloadsWhere] throws.
+  Object downloadFailure = const CloudStorageException(
+    'download failed (test)',
+  );
+
   /// Ordered log of cloud operations, for asserting protocol order (e.g.
   /// "marker written before wipe"). File ids equal filenames in this fake.
   /// Entries: `upload:<name>`, `delete:<name>`, `list`.
@@ -115,6 +128,11 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When set, every upload of a file with this name fails.
   String? failUploadsNamed;
 
+  /// When set, every upload of a file with this name lands and then fails the
+  /// way a real provider reports a lost response: [TimeoutException] wrapped
+  /// in a [CloudStorageException], never bare.
+  String? loseResponseForUploadsNamed;
+
   /// When set, the next upload of the named file is at once replaced by
   /// these bytes, as if another device wrote it just after.
   (String, Uint8List)? afterNextUpload;
@@ -142,6 +160,12 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     if (timeoutUploadsAfterWrite) {
       throw TimeoutException('upload timed out (test)');
     }
+    if (filename == loseResponseForUploadsNamed) {
+      throw CloudStorageException(
+        'Upload failed (test)',
+        TimeoutException('upload timed out (test)'),
+      );
+    }
     return UploadResult(
       fileId: filename,
       uploadTime: _files[filename]!.modified,
@@ -152,8 +176,10 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   Future<Uint8List> downloadFile(String fileId) async {
     if (hangOperations || hangDownloads) return _hang<Uint8List>();
     if (failDownloads) {
-      throw const CloudStorageException('download failed (test)');
+      throw readException ??
+          const CloudStorageException('download failed (test)');
     }
+    if (failDownloadsWhere?.call(fileId) ?? false) throw downloadFailure;
     final f = _files[fileId];
     if (f == null) {
       throw CloudStorageException('File not found: $fileId');
@@ -181,7 +207,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     operationLog.add('list');
     if (hangOperations) return _hang<List<CloudFileInfo>>();
     if (failLists) {
-      throw const CloudStorageException('list failed (test)');
+      throw readException ?? const CloudStorageException('list failed (test)');
     }
     return _files.entries
         .where((e) => namePattern == null || e.key.contains(namePattern))

@@ -263,6 +263,64 @@ void main() {
       }
     });
 
+    test(
+      'any pressure at all of a helium mix still blocks a nitrox target',
+      () {
+        // The exemption below is for a cylinder holding nothing, not for one
+        // holding little.
+        try {
+          computeBlend(
+            _inputs(
+              startBar: 1,
+              start: const GasMix(o2: 18, he: 45),
+              targetBar: 200,
+              target: const GasMix(o2: 32),
+            ),
+          );
+          fail('expected a BlendException');
+        } on BlendException catch (e) {
+          expect(e.error, BlendError.cannotRemoveHelium);
+        }
+      },
+    );
+
+    for (final model in BlendGasModel.values) {
+      test('an empty former-trimix cylinder fills as any empty cylinder does '
+          '(${model.name})', () {
+        // Pressure and mix are edited independently, so draining a trimix
+        // cylinder to 0 bar leaves its old mix in the form. Zero bar holds no
+        // gas, so that mix must not change the procedure (issue #3911).
+        BlendResult blendFrom(GasMix prior) => computeBlend(
+          GasBlenderInputs(
+            startPressureBar: 0,
+            start: prior,
+            targetPressureBar: 200,
+            target: const GasMix(o2: 32),
+            fillGas1: _o2,
+            fillGas2: _he,
+            fillGas3: _air,
+            model: model,
+          ),
+        );
+
+        final former = blendFrom(const GasMix(o2: 18, he: 45));
+        final baseline = blendFrom(_air);
+
+        expect(former.steps, hasLength(baseline.steps.length));
+        expect(former.steps.map((s) => s.fillGas), [null, _o2, _air]);
+        for (var i = 1; i < baseline.steps.length; i++) {
+          final step = former.steps[i];
+          final expected = baseline.steps[i];
+          expect(step.pressureBar, closeTo(expected.pressureBar, 1e-9));
+          expect(step.addedBar, closeTo(expected.addedBar, 1e-9));
+          expect(step.resultingMix.o2, closeTo(expected.resultingMix.o2, 1e-9));
+          expect(step.resultingMix.he, closeTo(0, 1e-9));
+        }
+        expect(former.steps.last.pressureBar, 200);
+        expect(former.steps.last.resultingMix.o2, closeTo(32, 0.01));
+      });
+    }
+
     test('a helium fill gas is skipped for a nitrox target', () {
       // The shipped fill order is O2 -> He -> air. A nitrox target must use
       // the helium-free gases in that order rather than blending with helium.

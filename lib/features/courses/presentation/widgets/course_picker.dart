@@ -6,7 +6,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -238,7 +237,7 @@ class _CourseMultiPickerSheetState
         .agency(course.agency)
         .localizedName(l10n);
     final started = l10n.courses_card_started(
-      UnitFormatter(ref.watch(settingsProvider)).formatDate(course.startDate),
+      ref.watch(unitFormatterProvider).formatDate(course.startDate),
     );
     final label =
         '$agency ${course.name}, $started'

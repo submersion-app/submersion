@@ -19,7 +19,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/documents/presentation/helpers/document_export_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transfer/presentation/widgets/csv_export_dialog.dart';
 import 'package:submersion/features/transfer/presentation/widgets/inventory_report_sheet.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
@@ -687,7 +686,7 @@ class _ComputersSectionContent extends ConsumerWidget {
     final computersAsync = ref.watch(allDiveComputersProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

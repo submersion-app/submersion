@@ -37,6 +37,22 @@ void main() {
       expect(find.byType(LineChart), findsNothing);
     });
 
+    testWidgets('paints on its own layer', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: DiveSparkline(profile: _makeProfile(10))),
+        ),
+      );
+
+      expect(
+        find.descendant(
+          of: find.byType(DiveSparkline),
+          matching: find.byType(RepaintBoundary),
+        ),
+        findsAtLeastNWidgets(1),
+      );
+    });
+
     testWidgets('respects custom width and height', (tester) async {
       final profile = _makeProfile(10);
 

@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_health/data_health_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+class _FakeSyncNotifier extends StateNotifier<SyncState>
+    implements SyncNotifier {
+  _FakeSyncNotifier() : super(const SyncState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 FeatureHealth _h(
   DataFeature feature,
@@ -41,6 +54,7 @@ void main() {
     List<FeatureHealth> health, {
     Size size = const Size(400, 800),
     double textScale = 1,
+    AccountGroup? signInGroup,
   }) async {
     visited = [];
     await tester.binding.setSurfaceSize(size);
@@ -72,7 +86,14 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [dataHealthProvider.overrideWithValue(health)],
+        overrides: [
+          dataHealthProvider.overrideWithValue(health),
+          syncStateProvider.overrideWith((ref) => _FakeSyncNotifier()),
+          for (final feature in DataFeature.values)
+            signInAgainGroupProvider(
+              feature,
+            ).overrideWith((ref) async => signInGroup),
+        ],
         child: MaterialApp.router(
           locale: const Locale('en'),
           routerConfig: router,
@@ -83,6 +104,98 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  group('Sign in again (#3811)', () {
+    const google = AccountGroup(
+      key: 'googledrive',
+      kind: AccountKind.googledrive,
+      label: 'Google Drive',
+      address: '',
+      rows: [],
+      status: AccountStatus.needsSignIn,
+      usages: [],
+      usagesKnown: true,
+      locations: {},
+      roles: {},
+      usageRoles: {},
+      rowStatuses: {},
+    );
+
+    List<FeatureHealth> withSync(HealthReason reason) => [
+      _h(DataFeature.backup, HealthLevel.healthy),
+      _h(DataFeature.sync, HealthLevel.failing, reason),
+      _h(DataFeature.sharedLibraries, HealthLevel.healthy),
+      _h(DataFeature.media, HealthLevel.healthy),
+    ];
+
+    testWidgets('a signed-out sync line offers it', (tester) async {
+      await pump(
+        tester,
+        withSync(HealthReason.syncSignedOut),
+        signInGroup: google,
+      );
+
+      expect(find.text('Sign in again'), findsOneWidget);
+    });
+
+    testWidgets('the rest of the line still opens the page', (tester) async {
+      await pump(
+        tester,
+        withSync(HealthReason.syncSignedOut),
+        signInGroup: google,
+      );
+
+      await tester.tap(find.text('Sync paused: sign in again'));
+      await tester.pumpAndSettle();
+
+      expect(visited, ['/settings/cloud-sync']);
+    });
+
+    testWidgets('a backup copy needing a sign-in offers it', (tester) async {
+      await pump(tester, [
+        _h(
+          DataFeature.backup,
+          HealthLevel.attention,
+          HealthReason.backupCloudSignIn,
+        ),
+        _h(DataFeature.sync, HealthLevel.healthy),
+        _h(DataFeature.sharedLibraries, HealthLevel.healthy),
+        _h(DataFeature.media, HealthLevel.healthy),
+      ], signInGroup: google);
+
+      expect(find.text('Last backup did not reach the cloud'), findsOneWidget);
+      expect(find.text('Sign in again'), findsOneWidget);
+    });
+
+    testWidgets('a line sign-in would not fix does not', (tester) async {
+      await pump(
+        tester,
+        withSync(HealthReason.syncFailed),
+        signInGroup: google,
+      );
+
+      expect(find.text('Sign in again'), findsNothing);
+    });
+
+    testWidgets('with no account to offer it reads as it did', (tester) async {
+      await pump(tester, withSync(HealthReason.syncSignedOut));
+
+      expect(find.text('Sync paused: sign in again'), findsOneWidget);
+      expect(find.text('Sign in again'), findsNothing);
+    });
+
+    testWidgets('it fits a narrow phone at large text', (tester) async {
+      await pump(
+        tester,
+        withSync(HealthReason.syncSignedOut),
+        size: const Size(320, 800),
+        textScale: 1.6,
+        signInGroup: google,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  });
 
   testWidgets('strip shows four labelled items with semantics', (tester) async {
     final handle = tester.ensureSemantics();

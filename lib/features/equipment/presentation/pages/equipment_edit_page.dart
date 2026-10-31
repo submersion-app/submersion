@@ -642,7 +642,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             key: ValueKey('attrs-${_selectedType.name}'),
             type: _selectedType,
             values: _attrValues,
-            units: UnitFormatter(ref.watch(settingsProvider)),
+            units: ref.watch(unitFormatterProvider),
             onChanged: (attr) => setState(() {
               _attrValues[attr.key] = attr;
               _hasChanges = true;
@@ -659,7 +659,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             type: _selectedType,
             group: AttributeGroup.appearance,
             values: _attrValues,
-            units: UnitFormatter(ref.watch(settingsProvider)),
+            units: ref.watch(unitFormatterProvider),
             onChanged: (attr) => setState(() {
               _attrValues[attr.key] = attr;
               _hasChanges = true;
@@ -923,9 +923,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                   // #1512: hand-rolled M/D/YYYY ignored the diver's preference,
                   // which the detail page for the same field already honours.
                   _purchaseDate != null
-                      ? UnitFormatter(
-                          ref.watch(settingsProvider),
-                        ).formatDate(_purchaseDate)
+                      ? ref
+                            .watch(unitFormatterProvider)
+                            .formatDate(_purchaseDate)
                       : context.l10n.equipment_edit_selectDate,
                 ),
                 style: OutlinedButton.styleFrom(
@@ -1013,7 +1013,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               type: _selectedType,
               group: AttributeGroup.purchase,
               values: _attrValues,
-              units: UnitFormatter(ref.watch(settingsProvider)),
+              units: ref.watch(unitFormatterProvider),
               onChanged: (attr) => setState(() {
                 _attrValues[attr.key] = attr;
                 _hasChanges = true;
