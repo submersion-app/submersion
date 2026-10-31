@@ -3253,6 +3253,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_field_nameHint => 'Ingresa el nombre del compañero';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Excluir de las clasificaciones de compañeros';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Las inmersiones juntos siguen contando como inmersiones con compañero.';
+
+  @override
   String get buddies_field_nameRequired => 'Nombre *';
 
   @override
@@ -3609,6 +3617,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Inmersiones Juntos';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Excluido de las clasificaciones de compañeros';
 
   @override
   String get buddies_stat_favoriteSite => 'Sitio Favorito';
@@ -20547,7 +20559,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_range_title => 'Tabla de rangos';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calculando';
+
+  @override
+  String get plannerCanvas_results_failed => 'No se pudo calcular';
+
+  @override
   String get plannerCanvas_results_noDeco => 'No se requiere descompresión';
+
+  @override
+  String get plannerCanvas_results_updating => 'Actualizando';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

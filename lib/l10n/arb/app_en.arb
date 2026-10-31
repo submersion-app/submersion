@@ -1833,6 +1833,8 @@
   "buddies_field_linkedProfile": "Linked profile",
   "buddies_field_linkedProfileNone": "Not linked",
   "buddies_field_nameHint": "Enter buddy name",
+  "buddies_field_excludedFromRankings": "Leave out of buddy rankings",
+  "buddies_field_excludedFromRankingsHint": "Dives together still count as buddy dives.",
   "buddies_field_nameRequired": "Name *",
   "buddies_field_notes": "Notes",
   "buddies_field_notesHint": "Add notes about this buddy...",
@@ -2043,6 +2045,7 @@
   "buddies_section_notes": "Notes",
   "buddies_section_sharedDives": "Shared Dives",
   "buddies_stat_divesTogether": "Dives Together",
+  "buddies_stat_excludedFromRankings": "Left out of buddy rankings",
   "buddies_stat_favoriteSite": "Favorite Site",
   "buddies_stat_firstDive": "First Dive",
   "buddies_stat_lastDive": "Last Dive",
@@ -12860,7 +12863,10 @@
   "plannerCanvas_rates_descent": "Descent rate",
   "plannerCanvas_rates_title": "Rates",
   "plannerCanvas_range_title": "Range table",
+  "plannerCanvas_results_calculating": "Calculating",
+  "plannerCanvas_results_failed": "Could not be calculated",
   "plannerCanvas_results_noDeco": "No decompression required",
+  "plannerCanvas_results_updating": "Updating",
   "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
   "@plannerCanvas_sac_useLogged": {
     "placeholders": {

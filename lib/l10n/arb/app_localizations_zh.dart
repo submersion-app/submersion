@@ -3077,6 +3077,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
+  String get buddies_field_excludedFromRankings => '不计入潜伴排行';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint => '共同潜水仍计为有潜伴的潜水。';
+
+  @override
   String get buddies_field_nameRequired => '姓名 *';
 
   @override
@@ -3415,6 +3421,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => '共同潜水次数';
+
+  @override
+  String get buddies_stat_excludedFromRankings => '不计入潜伴排行';
 
   @override
   String get buddies_stat_favoriteSite => '最爱潜水点';
@@ -19553,7 +19562,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_range_title => '范围表';
 
   @override
+  String get plannerCanvas_results_calculating => '正在计算';
+
+  @override
+  String get plannerCanvas_results_failed => '无法计算';
+
+  @override
   String get plannerCanvas_results_noDeco => '无需减压';
+
+  @override
+  String get plannerCanvas_results_updating => '正在更新';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

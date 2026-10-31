@@ -96,7 +96,9 @@ class BuddySummaryWidget extends ConsumerWidget {
       ),
     ).take(5).toList();
     final mostDivedBuddies = applyBuddyWithDiveCountSorting(
-      entries.where((e) => e.diveCount > 0).toList(),
+      entries
+          .where((e) => e.diveCount > 0 && !e.buddy.excludedFromRankings)
+          .toList(),
       const SortState(
         field: BuddySortField.diveCount,
         direction: SortDirection.descending,

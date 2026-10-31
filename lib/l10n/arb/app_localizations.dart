@@ -5047,6 +5047,18 @@ abstract class AppLocalizations {
   /// **'Enter buddy name'**
   String get buddies_field_nameHint;
 
+  /// No description provided for @buddies_field_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave out of buddy rankings'**
+  String get buddies_field_excludedFromRankings;
+
+  /// No description provided for @buddies_field_excludedFromRankingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives together still count as buddy dives.'**
+  String get buddies_field_excludedFromRankingsHint;
+
   /// No description provided for @buddies_field_nameRequired.
   ///
   /// In en, this message translates to:
@@ -5538,6 +5550,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives Together'**
   String get buddies_stat_divesTogether;
+
+  /// No description provided for @buddies_stat_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out of buddy rankings'**
+  String get buddies_stat_excludedFromRankings;
 
   /// No description provided for @buddies_stat_favoriteSite.
   ///
@@ -32694,11 +32712,29 @@ abstract class AppLocalizations {
   /// **'Range table'**
   String get plannerCanvas_range_title;
 
+  /// No description provided for @plannerCanvas_results_calculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating'**
+  String get plannerCanvas_results_calculating;
+
+  /// No description provided for @plannerCanvas_results_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not be calculated'**
+  String get plannerCanvas_results_failed;
+
   /// No description provided for @plannerCanvas_results_noDeco.
   ///
   /// In en, this message translates to:
   /// **'No decompression required'**
   String get plannerCanvas_results_noDeco;
+
+  /// No description provided for @plannerCanvas_results_updating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating'**
+  String get plannerCanvas_results_updating;
 
   /// No description provided for @plannerCanvas_sac_useLogged.
   ///

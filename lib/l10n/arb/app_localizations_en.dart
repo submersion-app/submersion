@@ -3209,6 +3209,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_field_nameHint => 'Enter buddy name';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Leave out of buddy rankings';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Dives together still count as buddy dives.';
+
+  @override
   String get buddies_field_nameRequired => 'Name *';
 
   @override
@@ -3562,6 +3570,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Dives Together';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'Left out of buddy rankings';
 
   @override
   String get buddies_stat_favoriteSite => 'Favorite Site';
@@ -20251,7 +20262,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_range_title => 'Range table';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calculating';
+
+  @override
+  String get plannerCanvas_results_failed => 'Could not be calculated';
+
+  @override
   String get plannerCanvas_results_noDeco => 'No decompression required';
+
+  @override
+  String get plannerCanvas_results_updating => 'Updating';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

@@ -3249,6 +3249,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_field_nameHint => 'Tauchpartnername eingeben';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Nicht in Buddy-Ranglisten anzeigen';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Gemeinsame Tauchgänge zählen weiterhin als Tauchgänge mit Buddy.';
+
+  @override
   String get buddies_field_nameRequired => 'Name *';
 
   @override
@@ -3608,6 +3616,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Gemeinsame Tauchgänge';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'Nicht in Buddy-Ranglisten';
 
   @override
   String get buddies_stat_favoriteSite => 'Lieblingsplatz';
@@ -20532,7 +20543,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_range_title => 'Bereichstabelle';
 
   @override
+  String get plannerCanvas_results_calculating => 'Wird berechnet';
+
+  @override
+  String get plannerCanvas_results_failed => 'Konnte nicht berechnet werden';
+
+  @override
   String get plannerCanvas_results_noDeco => 'Keine Dekompression erforderlich';
+
+  @override
+  String get plannerCanvas_results_updating => 'Wird aktualisiert';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {

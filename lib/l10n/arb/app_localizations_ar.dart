@@ -3317,6 +3317,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
+  String get buddies_field_excludedFromRankings => 'استبعاد من تصنيفات الرفاق';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'تظل الغطسات معاً محسوبة كغطسات مع رفيق.';
+
+  @override
   String get buddies_field_nameRequired => 'الاسم *';
 
   @override
@@ -3697,6 +3704,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'الغطسات معاً';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'مستبعد من تصنيفات الرفاق';
 
   @override
   String get buddies_stat_favoriteSite => 'الموقع المفضل';
@@ -20846,7 +20856,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_range_title => 'جدول النطاقات';
 
   @override
+  String get plannerCanvas_results_calculating => 'جارٍ الحساب';
+
+  @override
+  String get plannerCanvas_results_failed => 'تعذّر الحساب';
+
+  @override
   String get plannerCanvas_results_noDeco => 'لا يلزم تخفيف الضغط';
+
+  @override
+  String get plannerCanvas_results_updating => 'جارٍ التحديث';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
