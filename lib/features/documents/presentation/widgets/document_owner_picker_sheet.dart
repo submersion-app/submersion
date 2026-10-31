@@ -8,7 +8,6 @@ import 'package:submersion/features/documents/data/repositories/document_owner_o
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_owner_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Asks what a document is filed under: a kind, then one of the active
@@ -127,7 +126,7 @@ class _OwnerPickerSheetState extends ConsumerState<_OwnerPickerSheet> {
 
   Widget _records(DocumentOwnerKind kind) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return ref
         .watch(documentOwnerOptionsProvider(kind))
         .when(

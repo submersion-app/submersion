@@ -8,7 +8,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/delete_diver_dialog.dart';
 import 'package:submersion/features/divers/presentation/widgets/delete_diver_snackbar_text.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -318,7 +317,7 @@ class DiverProfileHubPage extends ConsumerWidget {
             Consumer(
               builder: (context, ref, _) {
                 final latest = ref.watch(latestDiverWeightProvider).valueOrNull;
-                final units = UnitFormatter(ref.watch(settingsProvider));
+                final units = ref.watch(unitFormatterProvider);
                 return _buildSectionTile(
                   context,
                   icon: Icons.monitor_weight,
@@ -433,9 +432,9 @@ class DiverProfileHubPage extends ConsumerWidget {
     }
 
     if (insurance.expiryDate != null) {
-      final formatted = UnitFormatter(
-        ref.watch(settingsProvider),
-      ).formatDate(insurance.expiryDate);
+      final formatted = ref
+          .watch(unitFormatterProvider)
+          .formatDate(insurance.expiryDate);
       return '$provider - $formatted';
     }
 

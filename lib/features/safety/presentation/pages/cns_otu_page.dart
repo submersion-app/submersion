@@ -59,7 +59,7 @@ class _CnsOtuPageState extends ConsumerState<CnsOtuPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final snapshotAsync = ref.watch(cnsOtuSnapshotProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // The diver's CURRENT conservatism, not whatever the last dive itself
     // was analyzed with: the live tissue readout shows what today's GF
     // settings mean for the residual loading right now.

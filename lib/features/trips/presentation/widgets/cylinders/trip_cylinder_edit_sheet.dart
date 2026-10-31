@@ -182,7 +182,7 @@ class _TripCylinderEditSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final presetsAsync = ref.watch(tankPresetsProvider);
     final presets = presetsAsync.value ?? const [];
     // A slot still on its preset needs the presets to save: without them an

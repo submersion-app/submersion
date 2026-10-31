@@ -14,6 +14,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/retirement_marker.dart';
@@ -62,6 +63,22 @@ void main() {
     await seedPeerLog(cloud, 'peer-1');
     return cloud;
   }
+
+  test('a dropped connection fails prepare and changes nothing', () async {
+    final cloud = await libraryInAccount();
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'mine-1', diveNumber: 7),
+    );
+    cloud.failDownloadsWhere = (id) => id.contains('.base.');
+
+    await expectLater(
+      serviceOn(cloud).prepareReplaceJoin(),
+      throwsA(isA<BaseFetchInterrupted>()),
+    );
+
+    expect(await hasDive('mine-1'), isTrue);
+    expect(await hasDive('lib-1'), isFalse);
+  });
 
   /// This device's own library: one dive and an account the library has
   /// not seen, with that account chosen for sync.

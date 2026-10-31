@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Presentational card for a [FlightWindowStatus]. Parents own the ticking:
@@ -25,7 +24,7 @@ class FlightWindowCard extends ConsumerWidget {
     // toLocal(), matching how dive times are displayed everywhere. The weekday
     // has no ordering to respect, so it stays locale-derived; the clock half
     // goes through the diver's 12h/24h preference.
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final weekdayFormat = DateFormat.E();
     String formatWhen(DateTime value) =>
         '${weekdayFormat.format(value)} ${units.formatTime(value)}';

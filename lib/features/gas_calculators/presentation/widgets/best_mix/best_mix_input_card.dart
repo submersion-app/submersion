@@ -28,8 +28,11 @@ class BestMixInputCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = units.settings;
+    final plannerWaterType = ref.watch(
+      settingsProvider.select((s) => s.defaultPlannerWaterType),
+    );
     final prefs = ref.watch(bestMixCalculatorNotifierProvider);
     final limits = ref.watch(bestMixCalculatorLimitsProvider);
     final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier);
@@ -135,7 +138,9 @@ class BestMixInputCard extends ConsumerWidget {
                             label: Text(type.localizedName(l10n)),
                           ),
                       ],
-                      selected: {bestMixCalculatorWaterType(prefs, settings)},
+                      selected: {
+                        bestMixCalculatorWaterType(prefs, plannerWaterType),
+                      },
                       showSelectedIcon: false,
                       onSelectionChanged: (selection) =>
                           notifier.setWaterType(selection.first),

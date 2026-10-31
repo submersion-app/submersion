@@ -30,12 +30,26 @@ import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 /// number renders as text, as with `LOWER()`.
 const String kUnicodeLowerFunction = 'unicode_lower';
 
+/// `row_digest(value, ...)`: a hash of its arguments, for telling whether a
+/// row changed without carrying the row out of the worker isolate (#3815).
+///
+/// Comparable only within one connection: Dart seeds its hashes per isolate,
+/// so a digest is never stored or compared across a reconnect. SQLite caps a
+/// function at 127 arguments.
+const String kRowDigestFunction = 'row_digest';
+
 /// Registers the app's SQL functions on [db].
 void registerAppSqlFunctions(CommonDatabase db) {
   db.createFunction(
     functionName: kUnicodeLowerFunction,
     function: _unicodeLower,
     argumentCount: const AllowedArgumentCount(1),
+    deterministic: true,
+  );
+  db.createFunction(
+    functionName: kRowDigestFunction,
+    function: Object.hashAll,
+    argumentCount: const AllowedArgumentCount.any(),
     deterministic: true,
   );
   registerTankConfigurationFunctions(db);

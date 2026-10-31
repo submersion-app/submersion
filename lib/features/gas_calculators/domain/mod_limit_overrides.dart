@@ -31,7 +31,7 @@ const double endLimitOverrideMaxMeters = 50;
 /// limits for CCR Tec. [endLimitMeters] and [o2Narcotic] are the diver's
 /// narcosis settings, shared by both calculators the same way the ppO2
 /// limits are.
-class ModProfileLimits {
+class ModProfileLimits extends Equatable {
   final double workingPpO2;
   final double decoPpO2;
   final double flushPpO2;
@@ -47,6 +47,16 @@ class ModProfileLimits {
     required this.endLimitMeters,
     required this.o2Narcotic,
   });
+
+  @override
+  List<Object?> get props => [
+    workingPpO2,
+    decoPpO2,
+    flushPpO2,
+    setpointBar,
+    endLimitMeters,
+    o2Narcotic,
+  ];
 }
 
 /// One diver's calculator overrides of their profile's ppO2 limits.

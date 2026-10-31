@@ -3317,6 +3317,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
+  String get buddies_field_excludedFromRankings => 'استبعاد من تصنيفات الرفاق';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'تظل الغطسات معاً محسوبة كغطسات مع رفيق.';
+
+  @override
   String get buddies_field_nameRequired => 'الاسم *';
 
   @override
@@ -3697,6 +3704,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'الغطسات معاً';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'مستبعد من تصنيفات الرفاق';
 
   @override
   String get buddies_stat_favoriteSite => 'الموقع المفضل';
@@ -5801,6 +5811,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_action_markCompleted => 'وضع علامة كمكتمل';
 
   @override
+  String get courses_action_chooseDive => 'اختيار غطسة';
+
+  @override
   String get courses_action_unlinkDive => 'إلغاء ربط الغطسة';
 
   @override
@@ -5991,6 +6004,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'غطسات مقترحة';
+
+  @override
+  String get courses_requirement_allDives => 'كل الغطسات';
+
+  @override
+  String get courses_requirement_noDives => 'لا توجد غطسات للربط';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'لا توجد غطسات تطابق \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'البحث في الغطسات';
 
   @override
   String get courses_requirements_empty =>
@@ -8951,6 +8978,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => 'السقف';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => 'السقف (محسوب)';
 
   @override
   String get diveLog_legend_label_decoStops => 'توقفات تخفيف الضغط';
@@ -15405,6 +15435,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'التفاصيل';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'وقت الغوص';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count غوصات';
   }
@@ -16445,6 +16478,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_kind_storage => 'تخزين';
 
   @override
+  String get equipment_location_kind_diveCenter => 'مركز غوص';
+
+  @override
   String get equipment_location_kind_serviceShop => 'ورشة صيانة';
 
   @override
@@ -16692,6 +16728,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'النوع';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'مركز غوص محفوظ';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'لا شيء';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'إزالة مركز الغوص المحفوظ';
 
   @override
   String get equipment_locations_notesLabel => 'ملاحظات';
@@ -18057,6 +18102,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'أضيف';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'تعبئة إضافية';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'الضغط';
@@ -20849,7 +20897,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_range_title => 'جدول النطاقات';
 
   @override
+  String get plannerCanvas_results_calculating => 'جارٍ الحساب';
+
+  @override
+  String get plannerCanvas_results_failed => 'تعذّر الحساب';
+
+  @override
   String get plannerCanvas_results_noDeco => 'لا يلزم تخفيف الضغط';
+
+  @override
+  String get plannerCanvas_results_updating => 'جارٍ التحديث';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -29857,6 +29914,38 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'كل الغطسات الـ$count كانت $value ($baseline من $coverage سُجّل فيها هذا)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count من $total كانت $value، مقابل $baseline من $coverage سُجّل فيها هذا';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count من $groupCoverage سُجّل فيها هذا كانت $value، مقابل $baseline من $coverage سُجّل فيها هذا';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -30135,6 +30224,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'متوسط النزول';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'جارٍ تحليل الغطسات: $analyzed من $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'غوصات تخفيف الضغط';
@@ -54594,6 +54688,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'أدخل قيمة من 0 إلى 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'معداتك هنا';
 
   @override
   String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';

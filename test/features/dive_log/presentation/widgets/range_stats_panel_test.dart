@@ -189,6 +189,75 @@ void main() {
       expect(find.text('60.0 L/min'), findsOneWidget);
     });
 
+    testWidgets('averages depth over time, for SAC and RMV too (#3891)', (
+      tester,
+    ) async {
+      // The default range, 150 s to 450 s: 60 s at 10 m, a 60 s ramp to
+      // 30 m, 180 s at 30 m. A sample average would say 20 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 150, depth: 10),
+          DiveProfilePoint(timestamp: 210, depth: 10),
+          DiveProfilePoint(timestamp: 270, depth: 30),
+          DiveProfilePoint(timestamp: 450, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      // (60 * 10 + 60 * 20 + 180 * 30) / 300 is 24 m, so 3.4 bar ambient:
+      // 50 bar over 5 min is 2.9 bar/min, 35.3 L/min of 12 L.
+      expect(find.text('24.0m'), findsOneWidget);
+      expect(find.text('2.9 bar/min'), findsOneWidget);
+      expect(find.text('35.3 L/min'), findsOneWidget);
+    });
+
+    testWidgets('interpolates depth at the range edges (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds only t=400, at 30 m, but starts on the
+      // ramp at 13.3 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 100, depth: 10),
+          DiveProfilePoint(timestamp: 400, depth: 30),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+      );
+
+      expect(find.text('23.1m'), findsOneWidget);
+      expect(find.text('13.3m'), findsOneWidget);
+      expect(find.text('30.0m'), findsOneWidget);
+    });
+
+    testWidgets('a range between two samples still has depth and SAC (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds no sample: 15 m to 25 m on the ramp.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('15.0m'), findsOneWidget);
+      expect(find.text('25.0m'), findsOneWidget);
+      expect(find.text('20.0m'), findsOneWidget);
+      // 50 bar over 5 min at 3 bar ambient: 3.3 bar/min, 40.0 L/min of 12 L.
+      expect(find.text('3.3 bar/min'), findsOneWidget);
+      expect(find.text('40.0 L/min'), findsOneWidget);
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 

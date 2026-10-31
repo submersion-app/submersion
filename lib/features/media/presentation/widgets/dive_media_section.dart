@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
@@ -15,7 +17,6 @@ import 'package:submersion/features/media/presentation/pages/photo_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/lightroom_suggestions_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -303,7 +304,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForDiveProvider(widget.diveId));
     _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -331,7 +332,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   Widget _buildCard(
     BuildContext context,
     AsyncValue<List<MediaItem>> mediaAsync,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {

@@ -35,7 +35,6 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -392,7 +391,7 @@ class _AlignPageBody extends ConsumerWidget {
     );
     final totalDistance = cumulative.isEmpty ? 0.0 : cumulative.last;
     final trustedDistance = correction.trustFraction * totalDistance;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // Computed once per build and shared by every layer that needs it below
     // -- each drag/slider frame already rebuilds this widget, so applying
     // the correction transform again per layer would repeat the same
@@ -758,9 +757,9 @@ class _ControlsPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               l10n.navTrack_align_trustSummary(
-                UnitFormatter(
-                  ref.watch(settingsProvider),
-                ).formatDistance(trustedDistance),
+                ref
+                    .watch(unitFormatterProvider)
+                    .formatDistance(trustedDistance),
                 trustedMinutes,
               ),
             ),
@@ -788,9 +787,7 @@ class _ControlsPanel extends ConsumerWidget {
                   key: const ValueKey('nav-track-align-terrain-summary'),
                   state._terrainResult!.summaryLine(
                     l10n,
-                    formatDepth: UnitFormatter(
-                      ref.watch(settingsProvider),
-                    ).formatDepth,
+                    formatDepth: ref.watch(unitFormatterProvider).formatDepth,
                   ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),

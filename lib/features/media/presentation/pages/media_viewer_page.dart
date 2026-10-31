@@ -15,6 +15,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -121,6 +123,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// guards kept missing.
   List<MediaItem> get _pageableMedia =>
       widget.mediaList.where((m) => !m.isDocument).toList();
+
+  final _metadataWriter = MetadataWriteService();
 
   late PageController _pageController;
   int _currentIndex = 0;
@@ -242,7 +246,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<void> _setTimeInDive(
     MediaItem item,
     List<DiveProfilePoint> profile,
-    AppSettings settings,
   ) async {
     final choice = await showSetMediaTimeDialog(
       context,
@@ -252,7 +255,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
         profileLengthSeconds: MediaDiveWindow.profileLengthSeconds(profile),
       ),
       isPinned: item.manualElapsedSeconds != null,
-      settings: settings,
+      settings: ref.read(settingsProvider),
     );
     if (choice == null || !mounted) return;
     await ref.read(mediaTimePinnerProvider).apply(item, choice);
@@ -408,7 +411,16 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     final diveAsync = currentDiveId == null
         ? const AsyncValue<Dive?>.data(null)
         : ref.watch(diveProvider(currentDiveId));
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          perdixOverlayEnabled: s.perdixOverlayEnabled,
+          perdixOverlayX: s.perdixOverlayX,
+          perdixOverlayY: s.perdixOverlayY,
+        ),
+      ),
+    );
 
     return fullscreenPopScope(
       child: Scaffold(
@@ -673,7 +685,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           : null,
                       canWriteMetadata:
                           enrichment?.depthMeters != null &&
-                          !currentItem.isVideo,
+                          _metadataWriter.canWriteTo(currentItem),
                       showPerdixToggle: perdixToggleAvailable,
                       perdixEnabled: settings.perdixOverlayEnabled,
                       onTogglePerdix: () => ref
@@ -720,25 +732,21 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           profile: diveProfile,
                           photoElapsedSeconds: enrichment.elapsedSeconds!,
                           photoDepthMeters: enrichment.depthMeters,
-                          settings: settings,
+                          settings: units.settings,
                           visible: _showOverlay,
                         ),
 
                       // Bottom metadata
                       _BottomMetadataOverlay(
                         item: currentItem,
-                        settings: settings,
+                        settings: units.settings,
                         onMomentTap: (tag) => _showMoment(currentItem, tag),
                         profileLengthSeconds: profileLength,
                         // Pinning needs a profile to pin against; a dive with
                         // none has no moments to choose from.
                         onSetTime: diveProfile == null || diveProfile.isEmpty
                             ? null
-                            : () => _setTimeInDive(
-                                currentItem,
-                                diveProfile,
-                                settings,
-                              ),
+                            : () => _setTimeInDive(currentItem, diveProfile),
                         siteName: diveAsync.whenOrNull(
                           data: (dive) => dive?.site?.name,
                         ),
@@ -789,7 +797,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       // Non-null here: the resolver is only ever built for
                       // items passing perdixPrecondition.
                       baseElapsedSeconds: enrichment!.elapsedSeconds!,
-                      settings: settings,
+                      settings: units.settings,
                       topReserve:
                           MediaQuery.paddingOf(context).top +
                           kMediaViewerToolbarHeight,
@@ -885,10 +893,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<void> _writeMetadataToPhoto(MediaItem item) async {
     final l10n = context.l10n;
     debugPrint('[MediaViewerPage] _writeMetadataToPhoto called');
-    if (item.platformAssetId == null) {
-      _showError(l10n.media_photoViewer_cannotWriteMetadata);
-      return;
-    }
 
     final settings = ref.read(settingsProvider);
 
@@ -942,7 +946,26 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     debugPrint('[MediaViewerPage] Loading dialog shown, calling service...');
 
     try {
-      final metadataService = MetadataWriteService();
+      // The stored platformAssetId belongs to the device that linked the
+      // photo. Sent as is from any other device, it names a different photo
+      // or none. Resolved under the spinner: on a device that has not seen
+      // this photo yet, it searches the gallery.
+      final resolution = await ref
+          .read(assetResolutionServiceProvider)
+          .resolveAssetId(item);
+      final assetId = resolution.localAssetId;
+      if (resolution.status != ResolutionStatus.resolved || assetId == null) {
+        dismissLoadingDialog();
+        _showError(switch (resolution.status) {
+          ResolutionStatus.accessDenied when resolution.limitedAccess =>
+            l10n.media_unavailablePlaceholder_limitedAccess,
+          ResolutionStatus.accessDenied =>
+            l10n.media_unavailablePlaceholder_accessDenied,
+          _ => l10n.media_photoViewer_cannotWriteMetadata,
+        });
+        return;
+      }
+
       final metadata = DiveMediaMetadata.fromMediaItem(
         item,
         siteName: siteName,
@@ -950,8 +973,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       final isVideo = item.mediaType == MediaType.video;
 
       debugPrint('[MediaViewerPage] Calling writeMetadata...');
-      final success = await metadataService.writeMetadata(
-        platformAssetId: item.platformAssetId!,
+      final success = await _metadataWriter.writeMetadata(
+        platformAssetId: assetId,
         metadata: metadata,
         isVideo: isVideo,
       );
@@ -1764,7 +1787,7 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
 /// Bottom overlay showing dive metadata for the current photo.
 class _BottomMetadataOverlay extends StatelessWidget {
   final MediaItem item;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final String? siteName;
 
   /// Length of the dive's profile, for the dive-window tolerance.

@@ -5047,6 +5047,18 @@ abstract class AppLocalizations {
   /// **'Enter buddy name'**
   String get buddies_field_nameHint;
 
+  /// No description provided for @buddies_field_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave out of buddy rankings'**
+  String get buddies_field_excludedFromRankings;
+
+  /// No description provided for @buddies_field_excludedFromRankingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives together still count as buddy dives.'**
+  String get buddies_field_excludedFromRankingsHint;
+
   /// No description provided for @buddies_field_nameRequired.
   ///
   /// In en, this message translates to:
@@ -5538,6 +5550,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives Together'**
   String get buddies_stat_divesTogether;
+
+  /// No description provided for @buddies_stat_excludedFromRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out of buddy rankings'**
+  String get buddies_stat_excludedFromRankings;
 
   /// No description provided for @buddies_stat_favoriteSite.
   ///
@@ -8898,6 +8916,12 @@ abstract class AppLocalizations {
   /// **'Mark as Completed'**
   String get courses_action_markCompleted;
 
+  /// No description provided for @courses_action_chooseDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get courses_action_chooseDive;
+
   /// No description provided for @courses_action_unlinkDive.
   ///
   /// In en, this message translates to:
@@ -9239,6 +9263,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suggested dives'**
   String get courses_requirement_suggestions;
+
+  /// No description provided for @courses_requirement_allDives.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get courses_requirement_allDives;
+
+  /// No description provided for @courses_requirement_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives to link'**
+  String get courses_requirement_noDives;
+
+  /// No description provided for @courses_requirement_noDivesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives match \"{query}\"'**
+  String courses_requirement_noDivesMatch(String query);
+
+  /// No description provided for @courses_requirement_searchDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Search dives'**
+  String get courses_requirement_searchDives;
 
   /// No description provided for @courses_requirements_empty.
   ///
@@ -13932,6 +13980,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ceiling'**
   String get diveLog_legend_label_ceiling;
+
+  /// No description provided for @diveLog_legend_label_ceilingCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling (calc)'**
+  String get diveLog_legend_label_ceilingCalculated;
 
   /// No description provided for @diveLog_legend_label_decoStops.
   ///
@@ -24529,6 +24583,12 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get equipment_detail_detailsTitle;
 
+  /// No description provided for @equipment_detail_diveTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Time'**
+  String get equipment_detail_diveTimeLabel;
+
   /// No description provided for @equipment_detail_divesCountPlural.
   ///
   /// In en, this message translates to:
@@ -26056,6 +26116,12 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get equipment_location_kind_storage;
 
+  /// Kind of place: a dive center or shop where the diver leaves gear between dives
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get equipment_location_kind_diveCenter;
+
   /// Kind of place: a shop or technician servicing gear
   ///
   /// In en, this message translates to:
@@ -26409,6 +26475,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kind'**
   String get equipment_locations_kindLabel;
+
+  /// Label of the field linking a place to one of the diver's saved dive centers
+  ///
+  /// In en, this message translates to:
+  /// **'Saved dive center'**
+  String get equipment_locations_savedCenterLabel;
+
+  /// Value of the saved dive center field when no center is linked
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_locations_savedCenterNone;
+
+  /// Tooltip of the button that removes the link to a saved dive center
+  ///
+  /// In en, this message translates to:
+  /// **'Remove saved dive center'**
+  String get equipment_locations_savedCenterClear;
 
   /// Label of a place's notes field
   ///
@@ -28635,6 +28719,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Added'**
   String get gasCalculators_blender_stepColumnAdded;
+
+  /// No description provided for @gasCalculators_blender_stepColumnTopUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Top up'**
+  String get gasCalculators_blender_stepColumnTopUp;
 
   /// No description provided for @gasCalculators_blender_stepColumnPressure.
   ///
@@ -32700,11 +32790,29 @@ abstract class AppLocalizations {
   /// **'Range table'**
   String get plannerCanvas_range_title;
 
+  /// No description provided for @plannerCanvas_results_calculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating'**
+  String get plannerCanvas_results_calculating;
+
+  /// No description provided for @plannerCanvas_results_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not be calculated'**
+  String get plannerCanvas_results_failed;
+
   /// No description provided for @plannerCanvas_results_noDeco.
   ///
   /// In en, this message translates to:
   /// **'No decompression required'**
   String get plannerCanvas_results_noDeco;
+
+  /// No description provided for @plannerCanvas_results_updating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating'**
+  String get plannerCanvas_results_updating;
 
   /// No description provided for @plannerCanvas_sac_useLogged.
   ///
@@ -47512,6 +47620,41 @@ abstract class AppLocalizations {
     String baseline,
   );
 
+  /// No description provided for @insights_focus_standouts_categoryAllRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} were {value} ({baseline} of the {coverage} with this recorded)'**
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categorySomeRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categoryPartRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
   /// No description provided for @insights_focus_standouts_numeric.
   ///
   /// In en, this message translates to:
@@ -48011,6 +48154,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Avg Descent'**
   String get insights_profile_avgDescent;
+
+  /// No description provided for @insights_profile_deco_analyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing dives: {analyzed} of {total}'**
+  String insights_profile_deco_analyzing(int analyzed, int total);
 
   /// No description provided for @insights_profile_deco_decoDives.
   ///
@@ -85280,6 +85429,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter 0 to 100'**
   String get numberInput_percentRange;
+
+  /// Heading on a dive center's page listing the diver's own gear left at that center
+  ///
+  /// In en, this message translates to:
+  /// **'Your gear here'**
+  String get diveCenters_gearHere_title;
 
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///

@@ -37,7 +37,7 @@ class MissionResultsSection extends ConsumerWidget {
     );
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // Keep showing the last outcome while a newer edit computes; a new
     // result replaces it when it lands. An engine error is said, never left
     // looking like a computation that does not end.

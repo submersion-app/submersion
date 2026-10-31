@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/application/z_axis_input.dart';
 import 'package:submersion/features/dive_3d/domain/entities/dive_3d_scene_data.dart';
@@ -69,11 +68,7 @@ final dive3dZAxisProvider = Provider.family<ZAxisInput?, Dive3dZAxisKey>((
   final zMetric = key.zMetric;
   final data = ref.watch(dive3dSceneDataProvider(key.diveId)).value;
   if (zMetric == null || data == null) return null;
-  return buildZAxisInput(
-    data,
-    zMetric,
-    UnitFormatter(ref.watch(settingsProvider)),
-  );
+  return buildZAxisInput(data, zMetric, ref.watch(unitFormatterProvider));
 });
 
 Scene3d _buildGeometry((Dive3dSceneData, SceneMetric, ZAxisInput?) input) =>

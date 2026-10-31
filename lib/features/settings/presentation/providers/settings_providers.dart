@@ -15,6 +15,7 @@ import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_preset.dart';
@@ -151,26 +152,35 @@ class SettingsKeys {
 }
 
 /// App settings state
-class AppSettings {
+class AppSettings implements UnitFormatterSettings {
+  @override
   final DepthUnit depthUnit;
+  @override
   final TemperatureUnit temperatureUnit;
+  @override
   final PressureUnit pressureUnit;
+  @override
   final VolumeUnit volumeUnit;
+  @override
   final WeightUnit weightUnit;
+  @override
   final AltitudeUnit altitudeUnit;
 
   /// Unit for geographic distances (site distances, track length, tide
   /// station distance, chamber distance, geofence radius). Issue #2030.
+  @override
   final DistanceUnit distanceUnit;
 
   /// Which gas-consumption lanes the single-value surfaces show: SAC
   /// (tank-pressure rate), RMV (surface volume rate), or both. Replaces the
   /// SAC unit toggle; each lane now has a fixed unit family.
+  @override
   final GasConsumptionDisplay gasConsumptionDisplay;
 
   /// Equation of state used everywhere the app converts cylinder pressure to
   /// gas volume: logged SAC, gas statistics, the planner, and the gas
   /// calculators (issue #828).
+  @override
   final GasModel gasModel;
 
   /// Default water type for a new dive plan. Salt unless the diver picks
@@ -179,6 +189,7 @@ class AppSettings {
 
   /// ISO 4217 code used as the default currency for new priced items
   /// (e.g. equipment purchase price).
+  @override
   final String defaultCurrency;
 
   /// Per-diver calibration deciding which measured visibility distances read
@@ -198,6 +209,7 @@ class AppSettings {
   ///
   /// Presentational only: coordinates are always stored as decimal degrees,
   /// so changing this re-renders every site without altering a stored value.
+  @override
   final CoordinateFormat coordinateFormat;
 
   /// The resolved scale for the current preference.
@@ -211,7 +223,9 @@ class AppSettings {
     goodM: visibilityScaleGoodM,
     moderateM: visibilityScaleModerateM,
   );
+  @override
   final TimeFormat timeFormat;
+  @override
   final DateFormatPreference dateFormat;
   final ThemeMode themeMode;
   final String themePresetId;
@@ -224,6 +238,7 @@ class AppSettings {
 
   /// Color accents: tint leading icons in lists and settings pages.
   final bool accentListIcons;
+  @override
   final String locale;
 
   /// ISO 639-1 code for reverse-geocoded place names (issue #1187). Synced
@@ -233,6 +248,7 @@ class AppSettings {
   final double defaultTankVolume;
 
   /// Bar, as a decimal so a value entered in psi keeps its value (#3091).
+  @override
   final double defaultStartPressure;
   final String? defaultTankPreset;
   final bool applyDefaultTankToImports;
@@ -252,32 +268,41 @@ class AppSettings {
   final int gfLow;
 
   /// Gradient Factor High (0-100, typically 70)
+  @override
   final int gfHigh;
 
   /// Maximum ppO2 for working/bottom gas (typically 1.4 bar)
+  @override
   final double ppO2MaxWorking;
 
   /// Maximum ppO2 for deco gas (typically 1.6 bar)
+  @override
   final double ppO2MaxDeco;
 
   /// Per-O2-band deco ppO2 limits (issue #3580), Dive Planner only: an
   /// optional, finer-grained alternative to [ppO2MaxDeco]. Off by default.
+  @override
   final bool ppO2DecoBandsEnabled;
 
   /// Deco ppO2 ceiling for a gas up to 28% O2.
+  @override
   final double ppO2DecoBand1;
 
   /// Deco ppO2 ceiling for a gas from 28% up to 45% O2.
+  @override
   final double ppO2DecoBand2;
 
   /// Deco ppO2 ceiling for a gas above 45% O2.
+  @override
   final double ppO2DecoBand3;
 
   /// Explicit MOD for 100% O2 (issue #3580), Dive Planner only: bypasses
   /// the ppO2 formula for a pure-O2 deco gas when on. Off by default.
+  @override
   final bool maxO2DepthEnabled;
 
   /// MOD in meters for pure O2 when [maxO2DepthEnabled] is on.
+  @override
   final double maxO2DepthMeters;
 
   /// CCR default low setpoint in bar (issue #2342).
@@ -287,6 +312,7 @@ class AppSettings {
   final double ccrSetpointHigh;
 
   /// ppO2 a CCR diluent may reach on a flush, which sets its MOD.
+  @override
   final double ccrDiluentModPpO2;
 
   /// CNS% warning threshold (typically 80%)
@@ -372,9 +398,11 @@ class AppSettings {
   final AscentGasSet ascentGasSet;
 
   /// Whether O2 is considered narcotic (true = more conservative)
+  @override
   final bool o2Narcotic;
 
   /// END limit in meters for MND calculations (typically 30)
+  @override
   final double endLimit;
 
   /// Whether the ICD calculator warns on isobaric counterdiffusion risk.
@@ -585,7 +613,7 @@ class AppSettings {
   final bool showDataSourceBadges;
 
   /// Draw the dive's gear on the diver figure in the dive detail equipment
-  /// card (issue #2326). Off by default.
+  /// card (issue #2326). On by default (issue #3889).
   final bool showDiveFigure;
 
   /// Warm up underwater photos and videos on screen from the depth each was
@@ -854,7 +882,7 @@ class AppSettings {
     this.tripServiceLeadDays = 14,
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
-    this.showDiveFigure = false,
+    this.showDiveFigure = true,
     this.autoColorCorrection = false,
     this.plannerDescentRate = 18.0,
     this.plannerAscentRate = 9.0,

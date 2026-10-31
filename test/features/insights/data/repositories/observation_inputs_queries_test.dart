@@ -156,6 +156,39 @@ void main() {
     expect(d2.buddies, isEmpty);
   });
 
+  test(
+    'a buddy excluded from the rankings is left out (issue #3624)',
+    () async {
+      await db
+          .into(db.buddies)
+          .insert(
+            const BuddiesCompanion(
+              id: Value('unknown'),
+              diverId: Value('A'),
+              name: Value('Unknown'),
+              excludedFromRankings: Value(true),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      await db
+          .into(db.diveBuddies)
+          .insert(
+            const DiveBuddiesCompanion(
+              id: Value('d1-unknown'),
+              diveId: Value('d1'),
+              buddyId: Value('unknown'),
+              createdAt: Value(0),
+            ),
+          );
+
+      final dives = await ObservationInputsQueries().dives(diverId: 'A');
+
+      final d1 = dives.singleWhere((d) => d.id == 'd1');
+      expect(d1.buddies, const [ObservationBuddy(id: 'sam', name: 'Sam')]);
+    },
+  );
+
   test('bottom time never stands in for runtime (issue #3059)', () async {
     await diveRow('table-era', diverId: 'B', when: feb1, bottomTime: 35 * 60);
     final dives = await ObservationInputsQueries().dives(diverId: 'B');

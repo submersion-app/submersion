@@ -573,7 +573,9 @@ void main() {
           equals([0.0, 18.4, 9.2]),
         );
         expect(dive.maxDepth, equals(18.4));
-        expect(dive.avgDepth, closeTo(9.2, 0.001));
+        // Over time, not samples: 30 s averaging 9.2 m, then 30 s averaging
+        // 13.8 m.
+        expect(dive.avgDepth, closeTo(11.5, 0.001));
       });
 
       test('merges temperature and heart rate onto depth samples', () async {
