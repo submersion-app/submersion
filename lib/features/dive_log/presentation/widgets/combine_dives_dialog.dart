@@ -713,7 +713,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         container.invalidate(diveNumberingInfoProvider);
 
         // Invalidate per-dive detail providers for all involved dive IDs
-        // (target and secondaries) for parity with dive_detail_page.dart.
+        // (target and secondaries) for parity with the dive detail page.
         for (final diveId in [targetId, ...secondaryIds]) {
           container.invalidate(diveProvider(diveId));
           container.invalidate(diveProfileProvider(diveId));

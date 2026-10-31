@@ -20340,6 +20340,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Decompression plan carries no bailout gas';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'No bailout gas reaches $depth: the deepest MOD carried is $deepestMod. Carry a gas usable at that depth; more of the same gas will not help.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'Decompression required but no deco gas carried';
 
