@@ -4345,6 +4345,7 @@
   "equipment_deleteDialog_title": "Felszerelés törlése",
   "equipment_detail_brandLabel": "Márka",
   "equipment_detail_detailsTitle": "Részletek",
+  "equipment_detail_diveTimeLabel": "Merülésidő",
   "equipment_detail_divesCountPlural": "{count} merülés",
   "equipment_detail_divesCountSingular": "{count} merülés",
   "equipment_detail_divesLabel": "Merülések",

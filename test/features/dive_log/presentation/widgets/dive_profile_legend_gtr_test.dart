@@ -42,7 +42,7 @@ Future<void> _pumpLegend(
           width: width,
           child: DiveProfileLegend(
             config: config,
-            zoomLevel: 1.0,
+            zoomLevel: ValueNotifier<double>(1.0),
             onZoomIn: () {},
             onZoomOut: () {},
             onResetZoom: () {},

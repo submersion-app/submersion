@@ -58,6 +58,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
@@ -611,6 +612,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
                 error: (e, s) => const SizedBox.shrink(),
               ),
+              EquipmentDiveTimeRow(equipmentId: equipmentId),
               tripCountAsync.when(
                 data: (count) => _buildCountLinkRow(
                   context,

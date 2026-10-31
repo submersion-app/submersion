@@ -7,7 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import '../../../../helpers/test_database.dart';
 
 /// The per-set diver figure switch round-trips through the repository, and
-/// a set saved without it reads off.
+/// a set saved without it reads on.
 void main() {
   late EquipmentSetRepository repo;
 
@@ -40,24 +40,24 @@ void main() {
     return showFigure == null ? set : set.copyWith(showFigure: showFigure);
   }
 
-  test('a set is off unless the diver turns the figure on', () async {
+  test('a set is on unless the diver hides the figure', () async {
     final created = await repo.createSet(newSet());
-    expect(created.showFigure, isFalse);
-    expect((await repo.getSetById(created.id))!.showFigure, isFalse);
+    expect(created.showFigure, isTrue);
+    expect((await repo.getSetById(created.id))!.showFigure, isTrue);
   });
 
-  test('turning it on persists through create and update', () async {
-    final created = await repo.createSet(newSet(showFigure: true));
-    expect((await repo.getSetById(created.id))!.showFigure, isTrue);
-
-    await repo.updateSet(created.copyWith(showFigure: false));
+  test('turning it off persists through create and update', () async {
+    final created = await repo.createSet(newSet(showFigure: false));
     expect((await repo.getSetById(created.id))!.showFigure, isFalse);
+
+    await repo.updateSet(created.copyWith(showFigure: true));
+    expect((await repo.getSetById(created.id))!.showFigure, isTrue);
   });
 
   test(
     'setShowFigure writes only the flag, never the rest of the set',
     () async {
-      final created = await repo.createSet(newSet());
+      final created = await repo.createSet(newSet(showFigure: false));
       // Another device renamed the set after a copy of it was loaded here.
       await repo.updateSet(
         (await repo.getSetById(created.id))!.copyWith(name: 'Renamed'),

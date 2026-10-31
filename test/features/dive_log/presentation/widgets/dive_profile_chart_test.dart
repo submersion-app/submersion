@@ -5963,6 +5963,24 @@ void main() {
       expect(find.byType(LineChart), findsNothing);
     });
 
+    testWidgets('paints on its own layer', (tester) async {
+      await tester.pumpWidget(
+        host(const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 60, depth: 12),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(DiveProfileMiniChart),
+          matching: find.byType(RepaintBoundary),
+        ),
+        findsAtLeastNWidgets(1),
+      );
+    });
+
     testWidgets('a profile starting after t=0 descends from the surface', (
       tester,
     ) async {

@@ -4345,6 +4345,7 @@
   "equipment_deleteDialog_title": "מחק ציוד",
   "equipment_detail_brandLabel": "מותג",
   "equipment_detail_detailsTitle": "פרטים",
+  "equipment_detail_diveTimeLabel": "זמן צלילה",
   "equipment_detail_divesCountPlural": "{count} צלילות",
   "equipment_detail_divesCountSingular": "{count} צלילה",
   "equipment_detail_divesLabel": "צלילות",

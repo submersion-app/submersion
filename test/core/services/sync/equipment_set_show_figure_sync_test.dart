@@ -9,7 +9,7 @@ import '../../../helpers/test_database.dart';
 /// A set record from a peer on a build before v229 has no `showFigure` key.
 /// Both receive paths fill the gap before `fromJson` runs, so such a record
 /// applies instead of being rejected: from the set this device already holds
-/// (#2553), or with the column's default (off) for a set new here.
+/// (#2553), or with the column's default (on) for a set new here.
 void main() {
   late SyncDataSerializer serializer;
   late AppDatabase db;
@@ -59,20 +59,20 @@ void main() {
     expect(await storedShowFigure(), isTrue);
   });
 
-  test('a single older record new here applies with the figure off', () async {
+  test('a single older record new here applies with the figure on', () async {
     final record = await olderPeerRecord();
     await forgetSet();
     await serializer.upsertRecord('equipmentSets', record);
-    expect(await storedShowFigure(), isFalse);
+    expect(await storedShowFigure(), isTrue);
   });
 
   test(
-    'a batch of older records new here applies with the figure off',
+    'a batch of older records new here applies with the figure on',
     () async {
       final record = await olderPeerRecord();
       await forgetSet();
       await serializer.upsertRecords('equipmentSets', [record]);
-      expect(await storedShowFigure(), isFalse);
+      expect(await storedShowFigure(), isTrue);
     },
   );
 }
