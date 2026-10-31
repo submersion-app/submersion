@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 
 /// A dive shown in the requirement tracker: either credited to a
-/// requirement (linkId set) or offered as a suggestion (linkId null).
+/// requirement (linkId set) or offered for crediting (linkId null).
 class RequirementDiveSummary extends Equatable {
   final String? linkId;
   final String diveId;
