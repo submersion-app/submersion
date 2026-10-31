@@ -19,7 +19,6 @@ import 'package:submersion/features/planner/presentation/chart/plan_waypoint_men
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Precision Instrument plan chart: three painter layers split by repaint
@@ -263,8 +262,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final ghost = ref.watch(contingencyGhostSeriesProvider);
     final sourceDive = ref.watch(sourceDiveOverlaySeriesProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final palette = PlanChartPalette.of(theme);
 
     if (series.isEmpty) {

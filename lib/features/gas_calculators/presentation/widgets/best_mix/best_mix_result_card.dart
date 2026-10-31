@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The recommended mix and its breakdown: ideal fraction, MOD, margin,
@@ -19,8 +18,7 @@ class BestMixResultCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final result = ref.watch(bestMixCalculatorResultProvider);
     final recommended = result.recommended;
     final ppO2 = result.limitPpO2;

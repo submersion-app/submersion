@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_sites/presentation/site_difficulty_disp
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/query/presentation/entity_query_chips.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -168,7 +167,7 @@ class SiteActiveFiltersBar extends ConsumerWidget {
     double? min,
     double? max,
   ) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     if (min != null && max != null) {
       return context.l10n.diveSites_list_activeFilter_depthRangeBoth(
         units.convertDepth(min).toStringAsFixed(0),

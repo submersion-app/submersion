@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -30,8 +29,7 @@ class SegmentList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // Resolved once per build, not once per row. The state's list order is
     // the authoring order (stateFromDivePlan sorts, and the notifier keeps
     // `order` in step with the list), which is what SegmentChain chains.

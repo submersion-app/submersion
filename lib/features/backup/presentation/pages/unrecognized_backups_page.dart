@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/orphaned_backup_scan.dart';
 import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Backup files sitting in the backups folder that the history has lost track
@@ -216,7 +215,7 @@ class _BackupTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final note = entry.note;
     final detail = Text(

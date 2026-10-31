@@ -87,7 +87,17 @@ class AppearanceGeneralTiles extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          themePresetId: s.themePresetId,
+          themeMode: s.themeMode,
+          locale: s.locale,
+          mapStyle: s.mapStyle,
+          trendGapThreshold: s.trendGapThreshold,
+        ),
+      ),
+    );
     final l10n = context.l10n;
 
     return Column(
@@ -194,7 +204,15 @@ class AppearanceAccentTiles extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          accentNavIcons: s.accentNavIcons,
+          accentSectionHeaders: s.accentSectionHeaders,
+          accentListIcons: s.accentListIcons,
+        ),
+      ),
+    );
     final notifier = ref.read(settingsProvider.notifier);
     final l10n = context.l10n;
 

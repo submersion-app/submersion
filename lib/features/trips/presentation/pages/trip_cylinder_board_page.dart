@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -56,7 +55,7 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
     final centers =
         ref.watch(allDiveCentersProvider).value ?? const <DiveCenter>[];
     final centerNames = {for (final c in centers) c.id: c.name};
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final forecast = ref.watch(tripFillForecastProvider(tripId)).value;
 
     final Widget body;

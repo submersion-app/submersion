@@ -8,7 +8,6 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_current_fill_card.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every fill, newest first, with the count since the last hydro
@@ -49,7 +48,7 @@ class PassportFillHistoryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final fills =
         ref.watch(fillsForEquipmentProvider(equipmentId)).value ??
         const <CylinderFill>[];

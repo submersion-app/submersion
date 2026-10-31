@@ -15,6 +15,7 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -475,8 +476,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final gasMix = _currentGasMix();
 
@@ -550,7 +550,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             ],
 
             // MOD display
-            _buildModInfo(gasMix, units, settings),
+            _buildModInfo(gasMix, units, units.settings),
           ],
         ),
       ),
@@ -688,7 +688,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   Widget _buildTripCylinderPicker(List<TripCylinderState> all) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final linked = widget.tank.tripCylinderId;
     // Slots other tanks hold are left out; this tank's own link always
     // stays in the list.
@@ -981,7 +981,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   Widget _buildModInfo(
     GasMix gasMix,
     UnitFormatter units,
-    AppSettings settings,
+    UnitFormatterSettings settings,
   ) {
     // The limit the role picked above calls for on this dive (issue #3752).
     final modPpO2 = modLimitPpO2(

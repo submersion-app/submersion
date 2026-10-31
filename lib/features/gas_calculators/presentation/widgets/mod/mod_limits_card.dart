@@ -18,7 +18,15 @@ class ModLimitsCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          ppO2MaxWorking: s.ppO2MaxWorking,
+          ppO2MaxDeco: s.ppO2MaxDeco,
+          ccrDiluentModPpO2: s.ccrDiluentModPpO2,
+        ),
+      ),
+    );
     final mode = ref.watch(modCalculatorNotifierProvider).mode;
     final limits = ref.watch(modCalculatorLimitsProvider);
     final notifier = ref.read(modCalculatorNotifierProvider.notifier);

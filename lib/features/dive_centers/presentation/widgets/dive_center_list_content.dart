@@ -536,8 +536,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         }
         final config = ref.watch(diveCenterTableConfigProvider);
         final notifier = ref.read(diveCenterTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         // Build DiveCenterRow records, resolving dive counts from per-center
         // providers (same source the list tiles use).

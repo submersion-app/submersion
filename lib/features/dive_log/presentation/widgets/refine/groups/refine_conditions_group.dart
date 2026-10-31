@@ -178,7 +178,7 @@ class _RefineConditionsGroupState extends ConsumerState<RefineConditionsGroup> {
       (_, _) => _seed(),
     );
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final d = widget.draft;
     void write(DiveFilterState next) => widget.onChanged(next);
     int? minutes(NumberRead read, int? previous) => switch (read) {

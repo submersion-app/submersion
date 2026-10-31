@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -22,7 +21,7 @@ class ExposureCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final totalsAsync = ref.watch(equipmentExposureTotalsProvider(equipmentId));
 
     return Card(

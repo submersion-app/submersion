@@ -7,7 +7,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
     show roundUpTo;
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -30,19 +29,18 @@ class RockBottomCalculator extends ConsumerWidget {
     final tank = ref.watch(rockBottomTankProvider);
     final includeSafetyStop = ref.watch(rockBottomSafetyStopProvider);
     final result = ref.watch(rockBottomResultProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final isMetricVolume = settings.volumeUnit == VolumeUnit.liters;
+    final isMetricVolume = units.settings.volumeUnit == VolumeUnit.liters;
     final depthSymbol = units.depthSymbol;
     final volumeSymbol = units.volumeSymbol;
     final pressureSymbol = units.pressureSymbol;
 
     // Reserve rounds UP onto a real-world grid: turning the dive early is
     // safe, turning it late is not.
-    final pressureGrid = settings.pressureUnit == PressureUnit.bar
+    final pressureGrid = units.settings.pressureUnit == PressureUnit.bar
         ? 10.0
         : 250.0;
     final displayPressure = roundUpTo(

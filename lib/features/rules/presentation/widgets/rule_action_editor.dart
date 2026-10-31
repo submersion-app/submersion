@@ -22,7 +22,6 @@ import 'package:submersion/features/rules/presentation/rule_labels.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_action_picker_sheet.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_value_input.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
@@ -272,7 +271,7 @@ class _ValueDialogState extends ConsumerState<_ValueDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final dive = widget.template.diveField;
     final site = widget.template.siteField;
     Widget input(String key, {String? label, RuleUnit? unit}) => RuleValueInput(

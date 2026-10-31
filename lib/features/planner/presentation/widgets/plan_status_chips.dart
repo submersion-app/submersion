@@ -184,7 +184,7 @@ class ContingencyPreviewChip extends ConsumerWidget {
     final preview = ref.watch(selectedContingencyProvider);
     if (preview == null) return const SizedBox.shrink();
 
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final lostTank = preview.lostTank;
     final String label;

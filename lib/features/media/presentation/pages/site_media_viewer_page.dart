@@ -16,7 +16,6 @@ import 'package:submersion/features/media/presentation/widgets/color_adjust/pick
 import 'package:submersion/features/media/presentation/widgets/media_fullscreen_controls.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_nav_arrows.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which list of site-related media backs the viewer's pager.
@@ -483,7 +482,7 @@ class _BottomMetadataOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Positioned(
       bottom: 0,
