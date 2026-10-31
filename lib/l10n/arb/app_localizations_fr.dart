@@ -3261,6 +3261,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_field_nameHint => 'Entrer le nom du binôme';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Exclure des classements de binômes';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Les plongées ensemble comptent toujours comme des plongées avec binôme.';
+
+  @override
   String get buddies_field_nameRequired => 'Nom *';
 
   @override
@@ -3617,6 +3625,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Plongées ensemble';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Exclu des classements de binômes';
 
   @override
   String get buddies_stat_favoriteSite => 'Site préféré';

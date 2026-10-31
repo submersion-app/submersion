@@ -38,6 +38,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // whole row, for the same reason as the tank columns.
     await _assertTripParentColumn();
 
+    // v330: buddies.excluded_from_rankings (issue #3624). Every buddy read
+    // selects the whole row, for the same reason as the tank columns.
+    await _assertBuddyExcludedFromRankingsColumn();
+
     // v331: equipment_locations.dive_center_id (issue #3623). Every place
     // read selects the whole row, for the same reason as the tank columns.
     await _assertEquipmentLocationCenterColumn();

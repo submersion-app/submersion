@@ -701,6 +701,7 @@ extension RungsFromV231 on AppDatabase {
       await _dropMisspelledPpO2DecoBandColumns();
     }
     if (from < 327) await reportProgress();
+
     // v329: the diver figure goes from opt-in to on by default (issue #3889),
     // so every stored set and diver is turned on once. Not in the backstop,
     // which runs on every open and would undo a later Hide.
@@ -708,6 +709,11 @@ extension RungsFromV231 on AppDatabase {
       await _turnDiverFigureOnForEveryone();
     }
     if (from < 329) await reportProgress();
+
+    // v330: buddies.excluded_from_rankings (issue #3624). Column only, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 330) await _assertBuddyExcludedFromRankingsColumn();
+    if (from < 330) await reportProgress();
 
     // v331: equipment_locations.dive_center_id, the saved center a Dive
     // center place stands for (issue #3623). Column only, no backfill;

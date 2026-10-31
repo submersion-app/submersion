@@ -3249,6 +3249,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddies_field_nameHint => 'Digite o nome do companheiro';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Excluir das classificações de duplas';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Os mergulhos juntos continuam a contar como mergulhos com dupla.';
+
+  @override
   String get buddies_field_nameRequired => 'Nome *';
 
   @override
@@ -3609,6 +3617,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Mergulhos Juntos';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Excluído das classificações de duplas';
 
   @override
   String get buddies_stat_favoriteSite => 'Local Favorito';
