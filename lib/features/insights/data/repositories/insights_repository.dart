@@ -370,7 +370,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           t.start_pressure,
           t.end_pressure,
@@ -390,7 +390,7 @@ class InsightsRepository with InsightsChartDives {
       // SAC value and not two.
       final Map<
         String,
-        ({double gas, DateTime dateTime, int durationSec, double avgDepth})
+        ({double gas, DateTime dateTime, int durationSec, double ambientBar})
       >
       diveSacs = {};
 
@@ -430,14 +430,14 @@ class InsightsRepository with InsightsChartDives {
               isUtc: true,
             ),
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
           );
         } else {
           diveSacs[diveId] = (
             gas: existing.gas + gasUsed,
             dateTime: existing.dateTime,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
           );
         }
       }
@@ -445,8 +445,7 @@ class InsightsRepository with InsightsChartDives {
       final points = <TrendDataPoint>[];
       for (final entry in diveSacs.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
         points.add(
           TrendDataPoint(date: d.dateTime, value: sac, diveId: entry.key),
@@ -582,7 +581,7 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
@@ -607,7 +606,7 @@ class InsightsRepository with InsightsChartDives {
         ({
           double gas,
           int durationSec,
-          double avgDepth,
+          double ambientBar,
           int dateTimeMs,
           int? diveNum,
           String? siteName,
@@ -643,7 +642,7 @@ class InsightsRepository with InsightsChartDives {
           dives[diveId] = (
             gas: used,
             durationSec: row.read<int>('duration_sec'),
-            avgDepth: row.read<double>('avg_depth'),
+            ambientBar: row.read<double>('ambient_bar'),
             dateTimeMs: row.read<int>('dive_date_time'),
             diveNum: row.read<int?>('dive_number'),
             siteName: row.read<String?>('site_name'),
@@ -652,7 +651,7 @@ class InsightsRepository with InsightsChartDives {
           dives[diveId] = (
             gas: existing.gas + used,
             durationSec: existing.durationSec,
-            avgDepth: existing.avgDepth,
+            ambientBar: existing.ambientBar,
             dateTimeMs: existing.dateTimeMs,
             diveNum: existing.diveNum,
             siteName: existing.siteName,
@@ -666,8 +665,7 @@ class InsightsRepository with InsightsChartDives {
 
       for (final entry in dives.entries) {
         final d = entry.value;
-        final sac =
-            d.gas / (d.durationSec / 60.0) / ((d.avgDepth / 10.0) + 1.0);
+        final sac = d.gas / (d.durationSec / 60.0) / d.ambientBar;
         if (sac <= 0) continue;
 
         final item = RankingItem(
@@ -773,7 +771,7 @@ class InsightsRepository with InsightsChartDives {
           ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent,
-          d.avg_depth,
+          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           COALESCE(d.runtime, d.bottom_time) AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
@@ -812,7 +810,7 @@ class InsightsRepository with InsightsChartDives {
         if (used <= 0) continue;
 
         final durationMin = row.read<int>('duration_sec') / 60.0;
-        final ambientBar = (row.read<double>('avg_depth') / 10.0) + 1.0;
+        final ambientBar = row.read<double>('ambient_bar');
         final sac = used / durationMin / ambientBar;
         if (sac > 0) {
           sacsByRole.putIfAbsent(role, () => []).add(sac);
@@ -857,7 +855,7 @@ class InsightsRepository with InsightsChartDives {
           AVG(
             CASE
               WHEN COALESCE(d.runtime, d.bottom_time) > 0 AND d.avg_depth > 0 AND t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1)
+                (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
               ELSE NULL
             END
           ) AS avg_sac

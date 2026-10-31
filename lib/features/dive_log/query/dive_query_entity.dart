@@ -58,10 +58,7 @@ final kDiveGearJoinSql =
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
 /// type chart, so a dive at a salt-water site is found by `waterType:salt`
 /// whether or not the value was ever copied onto the dive.
-const _effectiveWaterType =
-    "COALESCE(NULLIF({r}.water_type, ''), "
-    "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
-    'WHERE s.id = {r}.site_id))';
+final String _effectiveWaterType = diveEffectiveWaterTypeSql('{r}');
 
 /// A dive's effective entry method: its own, else its site's when the site
 /// lists exactly one (issue #3806). The SQL twin of
@@ -456,7 +453,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      tables: ['dive_tanks'],
+      // dive_sites: a dive with no water of its own reads its site's.
+      tables: ['dive_tanks', 'dive_sites'],
     ),
     QueryField(
       key: 'sacTrend',

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -357,6 +358,15 @@ class Dive extends Equatable {
   /// only its own value.
   WaterType? get effectiveWaterType => waterType ?? site?.waterType;
 
+  /// The water and surface pressure this dive happened in: what its deco
+  /// replay runs in and what every pressure read from its depth uses
+  /// (issue #3958).
+  DiveEnvironment get environment => DiveEnvironment.forConditions(
+    altitudeMeters: altitude,
+    waterType: effectiveWaterType,
+    surfacePressureBar: surfacePressure,
+  );
+
   /// Entry method of the dive, falling back to the assigned site's (issue
   /// #1427). The entry-method twin of [effectiveWaterType], with the same
   /// reasoning: the site's value is snapped onto a dive when the site is
@@ -515,7 +525,7 @@ class Dive extends Equatable {
 
     // Ambient pressure ratio in bar, matching the 1 bar reference that
     // gasVolume returns volumes against.
-    final avgPressureBar = (avgDepth! / 10) + 1;
+    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
     // Sum gas consumed across all tanks (in liters at 1 bar)
     double totalGasLiters = 0;
@@ -598,7 +608,7 @@ class Dive extends Equatable {
     final minutes = effectiveRuntime!.inSeconds / 60;
     if (minutes <= 0) return null;
 
-    final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
+    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
     final pressureUsed = referencePressureDrop(
       reference: sacReferenceTank!,
@@ -607,7 +617,7 @@ class Dive extends Equatable {
     if (pressureUsed == null) return null;
 
     // SAC in bar/min at surface
-    return pressureUsed / minutes / avgPressureAtm;
+    return pressureUsed / minutes / avgPressureBar;
   }
 
   /// Calculate bottom time from dive profile data.

@@ -441,7 +441,9 @@ class ScenarioEngine {
           plan.mode == domain.PlanMode.scr &&
               scrInjection != null &&
               scrSupply != null
-          ? const O2ToxicityCalculator().calculatePpO2CurveSCR(
+          ? O2ToxicityCalculator(
+              environment: settings.environment,
+            ).calculatePpO2CurveSCR(
               spliced.depths,
               injectionRateLpm: scrInjection,
               supplyO2Percent: scrSupply,

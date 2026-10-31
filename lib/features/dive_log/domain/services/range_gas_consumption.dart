@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -38,6 +39,7 @@ RangeGasConsumption rangeGasConsumption({
   required List<DiveProfilePoint> profile,
   required GasModel model,
   bool isRebreather = false,
+  DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   const none = (sac: null, rmv: null);
   final span = plottedSpan(profile);
@@ -77,7 +79,7 @@ RangeGasConsumption rangeGasConsumption({
     if (seconds <= 0 || avgDepth == null) return null;
     // Ambient pressure in bar, the 1 bar reference gasVolume returns volumes
     // against.
-    final ambientBar = avgDepth / 10 + 1;
+    final ambientBar = environment.pressureAtDepth(avgDepth);
     return amount / (seconds / 60) / ambientBar;
   }
 

@@ -169,7 +169,9 @@ class WeightHistoryRepository {
         WeightObservation(
           diveId: dive.id,
           diveDateTime: wallClockUtcFromMillis(dive.diveDateTime),
-          waterType: _waterType(dive.waterType ?? siteWaterTypes[dive.siteId]),
+          waterType:
+              _waterType(dive.waterType) ??
+              _waterType(siteWaterTypes[dive.siteId]),
           carriedKg: carried,
           placement: placement,
           equipmentIds: equipmentByDive[dive.id] ?? const [],
@@ -188,7 +190,7 @@ class WeightHistoryRepository {
   Future<Map<String, String>> _siteWaterTypes(List<Dive> diveRows) async {
     final siteIds = {
       for (final d in diveRows)
-        if (d.waterType == null && d.siteId != null) d.siteId!,
+        if (_waterType(d.waterType) == null && d.siteId != null) d.siteId!,
     };
     if (siteIds.isEmpty) return const {};
     final rows = await (_db.select(
@@ -197,12 +199,10 @@ class WeightHistoryRepository {
     return {for (final s in rows) s.id: s.waterType!};
   }
 
-  static WaterType? _waterType(String? name) => name == null
-      ? null
-      : WaterType.values.firstWhere(
-          (w) => w.name == name,
-          orElse: () => WaterType.salt,
-        );
+  /// By name, so a legacy empty string reads as none recorded, as the query
+  /// fields read it (issue #3958).
+  static WaterType? _waterType(String? name) =>
+      WaterType.values.asNameMap()[name];
 
   /// Ballast and placement for every [EquipmentType.weights] item among
   /// [equipmentIds], keyed by equipment id. Items that declare no usable mass

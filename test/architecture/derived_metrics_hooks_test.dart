@@ -8,6 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 /// profile the diver has since changed, until the next launch sweep.
 void main() {
   test('derived metrics are scheduled wherever sensor summaries are', () {
+    // Sweeps with no sensor twin. A site's water type reaches the SAC metrics
+    // of the dives that take it (issue #3958) and no sensor summary.
+    const derivedOnlySweeps = {
+      'lib/features/dive_sites/data/repositories/site_repository_impl.dart': 1,
+    };
     int count(String text, String call) => call.allMatches(text).length;
     final offenders = <String>[];
     for (final entity in Directory('lib').listSync(recursive: true)) {
@@ -26,7 +31,8 @@ void main() {
         text,
         'DerivedMetricsScheduler.instance.scheduleStaleSweep(',
       );
-      if (refreshes != derived || sweeps != derivedSweeps) {
+      final expectedDerivedSweeps = sweeps + (derivedOnlySweeps[path] ?? 0);
+      if (refreshes != derived || derivedSweeps != expectedDerivedSweeps) {
         offenders.add(
           '$path: $refreshes sensor vs $derived derived refreshes, '
           '$sweeps sensor vs $derivedSweeps derived sweeps',
