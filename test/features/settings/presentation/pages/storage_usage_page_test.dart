@@ -13,6 +13,7 @@ import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/orphaned_backup_scan.dart';
 import 'package:submersion/features/backup/presentation/providers/unrecognized_backup_providers.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/providers/database_reclaim_providers.dart';
@@ -60,6 +61,7 @@ void main() {
               Stream.value(cloudView ?? const StorageGcView(running: false)),
         ),
         deviceReclaimableBytesProvider.overrideWith((ref) async => 0),
+        changeLogStorageBytesProvider.overrideWith((ref) async => 7168),
         ...extra,
       ],
       child: const MaterialApp(
@@ -91,6 +93,15 @@ void main() {
 
     expect(expected, 15);
     expect(find.byType(StorageUsageRow), findsNWidgets(expected));
+  });
+
+  testWidgets('the database row shows the change log under it', (tester) async {
+    useTallSurface(tester);
+    await tester.pumpWidget(harness(sizes: {}));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Change log'), findsOneWidget);
+    expect(find.text('7.0 KB'), findsOneWidget);
   });
 
   testWidgets('the database row shows its reclaimable space', (tester) async {
@@ -205,7 +216,7 @@ void main() {
 
     // Each contributing row reads 1.0 KB, so a lone 2.0 KB is the total.
     expect(rowText('1.0 KB'), findsNWidgets(2));
-    expect(find.text('2.0 KB'), findsOneWidget);
+    expect(find.text('7.0 KB'), findsOneWidget);
     expect(rowText('2.0 KB'), findsNothing);
   });
 

@@ -8,6 +8,7 @@ import 'package:submersion/features/change_log/domain/entities/change_log_filter
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/change_log/presentation/change_log_labels.dart';
 import 'package:submersion/features/change_log/presentation/change_log_value_format.dart';
+import 'package:submersion/features/change_log/presentation/pages/change_log_settings_page.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_entry_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -67,7 +68,26 @@ class _ChangeLogPageState extends ConsumerState<ChangeLogPage> {
     final filter = _filter;
     final feed = ref.watch(changeLogFeedProvider(filter));
     return Scaffold(
-      appBar: AppBar(title: Text(_title(l, feed.value))),
+      appBar: AppBar(
+        title: Text(_title(l, feed.value)),
+        actions: [
+          if (!_isRecord)
+            PopupMenuButton<VoidCallback>(
+              key: const ValueKey('change_log_menu'),
+              onSelected: (action) => action(),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: () => context.push('/settings/change-log/settings'),
+                  child: Text(l.changeLog_menu_settings),
+                ),
+                PopupMenuItem(
+                  value: () => confirmClearChangeLog(context, ref),
+                  child: Text(l.changeLog_clear),
+                ),
+              ],
+            ),
+        ],
+      ),
       body: Column(
         children: [
           if (!_isRecord) _filters(l),

@@ -344,6 +344,18 @@ class ChangeLogRepository {
     return names;
   }
 
+  /// Roughly what the log's values take up in the database.
+  Future<int> storageBytes() async {
+    final row = await _db
+        .customSelect(
+          'SELECT COALESCE(SUM(LENGTH(CAST(old_value AS BLOB))), 0) '
+          '+ COALESCE(SUM(LENGTH(CAST(new_value AS BLOB))), 0) AS bytes '
+          'FROM change_log_fields',
+        )
+        .getSingle();
+    return row.read<int>('bytes');
+  }
+
   /// Removes [diverId]'s entries, and returns how many. Entries with no
   /// owner stay, because they are every diver's.
   Future<int> clearForDiver(String diverId) async {

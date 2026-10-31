@@ -137,6 +137,7 @@ abstract final class ChangeLogScope {
     required String label,
     required ChangeLogSource source,
     int? Function(T result)? summaryCount,
+    bool writeSummary = true,
     Duration lease = kChangeLogLease,
     required Future<T> Function() body,
   }) async {
@@ -155,12 +156,14 @@ abstract final class ChangeLogScope {
     }
     renewal?.cancel();
     if (held) await _endSuppression(db);
-    await summary(
-      db,
-      label: label,
-      source: source,
-      count: summaryCount?.call(result),
-    );
+    if (writeSummary) {
+      await summary(
+        db,
+        label: label,
+        source: source,
+        count: summaryCount?.call(result),
+      );
+    }
     return result;
   }
 

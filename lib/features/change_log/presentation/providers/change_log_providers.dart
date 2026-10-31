@@ -1,12 +1,15 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_preferences.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/data/services/change_log_maintenance.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 const int kChangeLogPageSize = 50;
 
@@ -16,6 +19,19 @@ final changeLogRepositoryProvider = Provider<ChangeLogRepository>(
 
 final changeLogRevertServiceProvider = Provider<ChangeLogRevertService>(
   (ref) => ChangeLogRevertService(),
+);
+
+final changeLogMaintenanceProvider = Provider<ChangeLogMaintenance>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ChangeLogMaintenance(
+    preferences: ChangeLogPreferences(prefs),
+    prefs: prefs,
+  );
+});
+
+/// What the log takes up, for the Storage usage page.
+final changeLogStorageBytesProvider = FutureProvider.autoDispose<int>(
+  (ref) => ref.watch(changeLogRepositoryProvider).storageBytes(),
 );
 
 /// The pages of the feed loaded so far.
