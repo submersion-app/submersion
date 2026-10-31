@@ -112,7 +112,7 @@ void main() {
             gasSwitches: [switchTo('t1', 90)],
             tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
           )!
-          .single;
+          .last;
 
       // 20 m at 90 s: 30 s averaging 25 m, then 480 s at 30 m.
       expect(segment.avgDepth, closeTo((30 * 25 + 480 * 30) / 510, 1e-9));
@@ -231,6 +231,99 @@ void main() {
   });
 
   group('calculateGasSwitchSegments', () {
+    group('time before the first switch', () {
+      const backGas = DiveTank(
+        id: 't1',
+        name: 'Back gas',
+        role: TankRole.backGas,
+        startPressure: 200,
+        endPressure: 100,
+        gasMix: GasMix(o2: 21, he: 0),
+      );
+      const stage = DiveTank(
+        id: 't2',
+        name: 'Stage',
+        role: TankRole.stage,
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: GasMix(o2: 50, he: 0),
+      );
+
+      GasSwitchWithTank switchTo(DiveTank tank, int timestamp) =>
+          GasSwitchWithTank(
+            gasSwitch: GasSwitch(
+              id: 'gs$timestamp',
+              diveId: 'd1',
+              timestamp: timestamp,
+              tankId: tank.id,
+              createdAt: DateTime.utc(2026),
+            ),
+            tankName: tank.name!,
+            gasMix: tank.gasMix.name,
+            o2Fraction: tank.gasMix.o2 / 100,
+          );
+
+      test('belongs to the starting cylinder', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.map((s) => s.tankId), ['t1', 't2']);
+        expect(segments.first.startTimestamp, 0);
+        expect(segments.first.endTimestamp, 3000);
+        expect(segments.first.tankName, 'Back gas');
+      });
+
+      test('prorates over the starting cylinder\'s own stint', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        // 100 bar over its 50 minutes at 3 ata, not over the 60 minute dive.
+        expect(segments.first.sacRate, closeTo(100 / 50 / 3.0, 0.02));
+      });
+
+      test('stops at the dive end when a switch falls after it', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3700)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.single.tankId, 't1');
+        expect(segments.single.endTimestamp, 3600);
+      });
+
+      test('a later switch past the dive end stops at it too', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000), switchTo(backGas, 3700)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.last.endTimestamp, 3600);
+      });
+
+      test('adds nothing when a switch opens the dive', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(backGas, 0), switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.map((s) => s.startTimestamp), [0, 3000]);
+      });
+    });
+
     test('a stage tank prorates over its own stint, not the whole dive '
         '(#110)', () {
       // 60-minute dive: back gas for 50 minutes, then a deco tank for the

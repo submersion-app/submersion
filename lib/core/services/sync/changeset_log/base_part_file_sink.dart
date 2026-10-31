@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_hasher_logged.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
@@ -17,6 +18,9 @@ import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 /// refills, and they read "nothing assembled" as "no readable library": the
 /// fence then drops the device's retirement marker and republishes from local.
 /// A dropped connection must not be able to say that.
+///
+/// A refused download is not one of these: no later sync gets past it, so it
+/// leaves [BasePartFileSink.assemble] as itself for the sync to offer a sign-in.
 class BaseFetchInterrupted implements Exception {
   BaseFetchInterrupted(this.cause);
 
@@ -49,7 +53,8 @@ class BasePartFileSink {
   /// be used: a part is missing, a checksum does not match, an envelope is
   /// corrupt, or it needs a key this device lacks. Throws
   /// [BaseFetchInterrupted], also with the partial file deleted, for any other
-  /// failure. See that class for why the two must stay apart.
+  /// failure but a refused download, which it throws as itself. See that class
+  /// for why these must stay apart.
   Future<String?> assemble({
     required String name,
     required int partCount,
@@ -121,7 +126,9 @@ class BasePartFileSink {
     if (!ok) await deleteQuietly(path);
     if (interruption != null) {
       Error.throwWithStackTrace(
-        BaseFetchInterrupted(interruption),
+        isAccessRefused(interruption)
+            ? interruption
+            : BaseFetchInterrupted(interruption),
         interruptionStack!,
       );
     }

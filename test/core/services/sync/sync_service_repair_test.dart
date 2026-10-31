@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
@@ -145,6 +146,26 @@ void main() {
       expect(epochStore.lastAcceptedMarker?.epochId, 'e-stuck');
     },
   );
+
+  test('rebuildBackendFromThisDevice reports a refused account', () async {
+    final service = buildService();
+    await service.writeLibraryEpochMarker(
+      cloud,
+      const LibraryEpochMarker(
+        epochId: 'e-stuck',
+        replacedAt: 1,
+        deviceId: 'offline-device',
+      ),
+    );
+    cloud
+      ..failLists = true
+      ..readException = const CloudAccessRefusedException('refused');
+
+    final result = await service.rebuildBackendFromThisDevice();
+
+    expect(result.status, SyncResultStatus.authError);
+    expect(result.accessRefused, isTrue);
+  });
 
   test('rebuildBackendFromThisDevice errors when no marker exists', () async {
     final result = await buildService().rebuildBackendFromThisDevice();
