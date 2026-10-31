@@ -16047,6 +16047,203 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_export_saved_maintenance => '保养记录已保存';
 
   @override
+  String get transfer_export_inventoryTitle => '装备清单';
+
+  @override
+  String get transfer_export_inventorySubtitle => '包含序列号和购买价格的 PDF';
+
+  @override
+  String get transfer_export_serviceReportTitle => '保养报告';
+
+  @override
+  String get transfer_export_serviceReportSubtitle => '包含到期项目和保养历史的 PDF';
+
+  @override
+  String get settings_export_progress_inventory => '正在生成清单...';
+
+  @override
+  String get settings_export_success_inventory => '清单已导出';
+
+  @override
+  String get settings_export_saved_inventory => '清单已保存';
+
+  @override
+  String get settings_export_progress_serviceReport => '正在生成保养报告...';
+
+  @override
+  String get settings_export_success_serviceReport => '保养报告已导出';
+
+  @override
+  String get settings_export_saved_serviceReport => '保养报告已保存';
+
+  @override
+  String get equipmentReport_sheet_continue => '继续';
+
+  @override
+  String get equipmentReport_sheet_groupBy => '分组方式';
+
+  @override
+  String get equipmentReport_sheet_groupByType => '装备类型';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => '位置';
+
+  @override
+  String get equipmentReport_sheet_location => '位置';
+
+  @override
+  String get equipmentReport_sheet_allLocations => '所有位置';
+
+  @override
+  String get equipmentReport_sheet_showPrices => '显示价格';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp => '用于海关清单时请关闭';
+
+  @override
+  String get equipmentReport_sheet_gear => '装备';
+
+  @override
+  String get equipmentReport_sheet_gearAll => '所有装备';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => '为旅行打包';
+
+  @override
+  String get equipmentReport_sheet_gearItem => '单件';
+
+  @override
+  String get equipmentReport_sheet_trip => '旅行';
+
+  @override
+  String get equipmentReport_sheet_item => '物品';
+
+  @override
+  String get equipmentReport_sheet_history => '保养历史';
+
+  @override
+  String get equipmentReport_sheet_showCosts => '显示费用';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => '装备清单';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => '保养报告';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return '打印于 $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return '$currency 合计';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => '未设置位置';
+
+  @override
+  String get equipmentReport_pdf_colItem => '物品';
+
+  @override
+  String get equipmentReport_pdf_colSerial => '序列号';
+
+  @override
+  String get equipmentReport_pdf_colBought => '购买日期';
+
+  @override
+  String get equipmentReport_pdf_colPaid => '支付金额';
+
+  @override
+  String get equipmentReport_pdf_pricesNote => '价格为实际支付金额，并非当前价值。';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件物品没有价格。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => '已逾期';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => '即将到期';
+
+  @override
+  String get equipmentReport_pdf_upToDate => '正常';
+
+  @override
+  String get equipmentReport_pdf_colService => '保养项目';
+
+  @override
+  String get equipmentReport_pdf_colDue => '到期';
+
+  @override
+  String get equipmentReport_pdf_colStatus => '状态';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => '已逾期';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => '即将到期';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => '正常';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => '一切正常。';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件物品没有保养计划。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => '日期';
+
+  @override
+  String get equipmentReport_pdf_colWork => '工作内容';
+
+  @override
+  String get equipmentReport_pdf_colShop => '服务商';
+
+  @override
+  String get equipmentReport_pdf_colCost => '费用';
+
+  @override
+  String get equipmentReport_pdf_noHistory => '没有保养记录';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit => '使用默认货币';
 
   @override
@@ -27448,6 +27645,149 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       '按规则统计的未处理发现（涵盖所有潜水）';
+
+  @override
+  String get insights_equipment_showAll => '显示全部';
+
+  @override
+  String get insights_equipment_showLess => '收起';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => '持有成本';
+
+  @override
+  String get insights_equipment_cost_subtitle => '购买加保养费用，涵盖你的所有潜水';
+
+  @override
+  String get insights_equipment_cost_spentTotal => '总支出';
+
+  @override
+  String get insights_equipment_cost_perDive => '每次潜水';
+
+  @override
+  String get insights_equipment_cost_byYear => '按年支出';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => '每次潜水';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => '每小时';
+
+  @override
+  String get insights_equipment_cost_metricTotal => '总计';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / 次';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / 小时';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount，共 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount，共 $count 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => '暂无潜水';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 笔购买没有日期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件物品没有费用记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty => '尚未记录购买价格或保养费用';
+
+  @override
+  String get insights_equipment_cost_error => '无法加载装备费用';
+
+  @override
+  String get insights_equipment_idle_title => '闲置装备';
+
+  @override
+  String get insights_equipment_idle_subtitle => '你拥有但近期未用于潜水的装备，涵盖你的所有潜水';
+
+  @override
+  String get insights_equipment_idle_over6Months => '超过 6 个月';
+
+  @override
+  String get insights_equipment_idle_over1Year => '超过 1 年';
+
+  @override
+  String get insights_equipment_idle_over2Years => '超过 2 年';
+
+  @override
+  String get insights_equipment_idle_neverDived => '从未下水';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 年',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个月',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty => '你的所有装备近期都有使用';
+
+  @override
+  String get insights_equipment_idle_error => '无法加载闲置装备';
 
   @override
   String get insights_equipment_findings_empty => '没有未处理的发现';
