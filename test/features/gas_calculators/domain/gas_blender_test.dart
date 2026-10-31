@@ -577,6 +577,22 @@ void main() {
       expect(result.settledPressureBar, 200);
     });
 
+    test('a zero target is rejected whatever the cylinder holds', () {
+      for (final startBar in [0.0, 50.0]) {
+        expect(
+          exceptionFrom(
+            topUpInputs(
+              startBar: startBar,
+              targetBar: 0,
+              target: const GasMix(o2: 32),
+            ),
+          ).error,
+          BlendError.targetPressureNotHigher,
+          reason: 'starting at $startBar bar',
+        );
+      }
+    });
+
     test('equal temperatures compare the typed pressures unchanged', () {
       expect(
         exceptionFrom(

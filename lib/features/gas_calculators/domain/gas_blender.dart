@@ -350,8 +350,9 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
 
   // The two pressures are only comparable when read at one temperature. Across
   // two, a warm cylinder can need gas to settle at the pressure it already
-  // shows, so leave the answer to the solve, which works in amounts of gas.
-  if (inputs.fillTempC == inputs.settledTempC && pf <= pi) {
+  // shows, so leave the answer to the solve, which works in amounts of gas. A
+  // target of nothing has no amount to solve for at any temperature.
+  if (pf <= 0 || (inputs.fillTempC == inputs.settledTempC && pf <= pi)) {
     throw const BlendException(BlendError.targetPressureNotHigher);
   }
   _validateMix(gasI);
