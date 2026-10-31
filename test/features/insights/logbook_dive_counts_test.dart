@@ -222,5 +222,52 @@ void main() {
         expect(after.allExcluded, isFalse);
       },
     );
+
+    test('keeps its value readable while a dive write refreshes it', () async {
+      final repository = DiveRepository();
+      await repository.createDive(
+        createTestDiveWithBottomTime(
+          id: 'd1',
+        ).copyWith(excludedFromStats: true),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          gasModelProvider.overrideWith((ref) => GasModel.real),
+        ],
+      );
+      addTearDown(container.dispose);
+      final seen = <AsyncValue<LogbookDiveCounts>>[];
+      final onScreen = container.listen(
+        logbookDiveCountsProvider,
+        (_, next) => seen.add(next),
+      );
+      addTearDown(onScreen.close);
+      await container.read(logbookDiveCountsProvider.future);
+      seen.clear();
+
+      final db = DatabaseService.instance.database;
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(notes: Value('touched')),
+      );
+
+      // The tick is debounced: one state for the reload, one for its result.
+      for (var i = 0; i < 100 && seen.length < 2; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+
+      expect(seen, hasLength(greaterThanOrEqualTo(2)));
+      expect(seen.first.isLoading, isTrue);
+      expect(
+        seen.map((state) => state.valueOrNull?.allExcluded),
+        everyElement(isTrue),
+        reason:
+            'a refresh must not blank a fully excluded logbook, or a screen '
+            'reading the counts would fall back to saying it has no dives',
+      );
+    });
   });
 }
