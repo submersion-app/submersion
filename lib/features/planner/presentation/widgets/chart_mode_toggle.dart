@@ -32,8 +32,11 @@ class ChartModeToggle extends ConsumerWidget {
 
     final mode = ref.watch(chartDisplayModeProvider);
     // A diver already in Bailout view keeps the chips: the selection survives
-    // an edit, and they are the only way back to the loop view.
-    if (bailout.value?.gasGap != null && mode != ChartDisplayMode.bailout) {
+    // an edit, and they are the only way back to the loop view. A failed run
+    // keeps its last value, which says nothing about the plan as it is now.
+    if (bailout.status != PlanResultStatus.failed &&
+        bailout.value?.gasGap != null &&
+        mode != ChartDisplayMode.bailout) {
       return const SizedBox.shrink();
     }
 
