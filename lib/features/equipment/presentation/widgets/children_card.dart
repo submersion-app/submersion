@@ -13,7 +13,6 @@ import 'package:submersion/features/equipment/presentation/utils/child_installed
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -48,7 +47,7 @@ class ChildrenCard extends ConsumerWidget {
     }
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final childrenAsync = ref.watch(childEquipmentProvider(equipment.id));
     // The rollup, not the own-clocks map, for the same reason the
     // Components card uses it (#2260).

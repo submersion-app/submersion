@@ -888,8 +888,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         }
         final config = ref.watch(equipmentTableConfigProvider);
         final notifier = ref.read(equipmentTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
         // Table columns read the rollup (issue #1487) so an assembly's next
         // service date is its earliest part's, and gain a components count.
         final rollup =

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Whether the scrubber picks a range (trim) or a single instant (split).
 enum TrackScrubberMode { range, single }
@@ -63,9 +62,9 @@ class _TrackTimelineScrubberState extends ConsumerState<TrackTimelineScrubber> {
 
   /// Wall-clock-as-UTC, rendered in the diver's 12h/24h preference rather
   /// than a hardcoded 24-hour clock.
-  String _label(num ms) => UnitFormatter(
-    ref.watch(settingsProvider),
-  ).formatTime(DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true));
+  String _label(num ms) => ref
+      .watch(unitFormatterProvider)
+      .formatTime(DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true));
 
   @override
   Widget build(BuildContext context) {

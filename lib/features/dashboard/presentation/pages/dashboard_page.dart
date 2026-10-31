@@ -57,7 +57,12 @@ class DashboardPage extends ConsumerWidget {
       HomeCardType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
       HomeCardType.yearInReview => show(yearInReview, (y) => y != null),
       HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
-      HomeCardType.recentSitesMap => show(sites, (s) => s.isNotEmpty),
+      // Holds for the first photo result: photos arriving later would pull
+      // the map into a shared row, and moving it under that Row remounts it,
+      // paying for the map twice on the way to the same layout.
+      HomeCardType.recentSitesMap =>
+        (media.hasValue || !media.isLoading) &&
+            show(sites, (s) => s.isNotEmpty),
       _ => true,
     };
 
@@ -109,24 +114,29 @@ class DashboardPage extends ConsumerWidget {
             ref.invalidate(activeEquipmentClocksProvider);
             ref.invalidate(activeCoursesProgressProvider);
           },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            // Keyed off chosenCards, not visibleCards: a strip forced back
-            // by a safety alert renders above the CTA rather than replacing
-            // it, so the diver keeps the route to re-enable their cards.
-            child: chosenCards.isEmpty
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (forceGaugeStrip) ...[
-                        const GaugeStrip(),
-                        const SizedBox(height: 16),
-                      ],
-                      const _AllCardsHiddenState(),
-                    ],
-                  )
-                : DashboardGrid(entries: entries),
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                // Keyed off chosenCards, not visibleCards: a strip forced back
+                // by a safety alert renders above the CTA rather than replacing
+                // it, so the diver keeps the route to re-enable their cards.
+                sliver: chosenCards.isEmpty
+                    ? SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (forceGaugeStrip) ...[
+                              const GaugeStrip(),
+                              const SizedBox(height: 16),
+                            ],
+                            const _AllCardsHiddenState(),
+                          ],
+                        ),
+                      )
+                    : DashboardGrid(entries: entries),
+              ),
+            ],
           ),
         ),
       ),

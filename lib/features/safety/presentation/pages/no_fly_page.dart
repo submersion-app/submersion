@@ -12,7 +12,6 @@ import 'package:submersion/features/safety/presentation/providers/flight_window_
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/presentation/widgets/flight_window_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -130,7 +129,7 @@ class NoFlyStatusCard extends ConsumerWidget {
     final untilLocal = status!.until.toLocal();
     // The weekday has no ordering to respect, so it stays locale-derived; the
     // clock half goes through the diver's 12h/24h preference.
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final untilText =
         '${DateFormat.E().format(untilLocal)} ${units.formatTime(untilLocal)}';
 

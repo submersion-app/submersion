@@ -9,7 +9,6 @@ import 'package:submersion/features/media/domain/value_objects/taken_at_source.d
 import 'package:submersion/features/media/domain/value_objects/unmatched_diagnostic.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A single row in the [FileReviewPane], representing one [ExtractedFile]
@@ -67,7 +66,7 @@ class FileReviewCard extends ConsumerWidget {
     final canAssign =
         allowDiveAssignment && assignTo != null && assignTo != targetDiveId;
     final reason = diagnostic;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return ListTile(
       isThreeLine: reason != null,

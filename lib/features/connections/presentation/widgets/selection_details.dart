@@ -15,7 +15,6 @@ import 'package:submersion/features/connections/presentation/widgets/details/kin
 import 'package:submersion/features/connections/presentation/widgets/details/selection_actions.dart';
 import 'package:submersion/features/connections/presentation/widgets/details/top_connection_row.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Details tab's body for a selected node or line, in the wide side
@@ -66,7 +65,7 @@ class _NodeDetails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final roles = ref.watch(diveRoleMapProvider).value;
     final entity = graph.nodeFor(node);
     final subtitle = switch (entity?.subtitle) {
@@ -164,7 +163,7 @@ class _EdgeDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final edge = graph.edges
         .where((e) => e.touches(a) && e.touches(b))
         .firstOrNull;

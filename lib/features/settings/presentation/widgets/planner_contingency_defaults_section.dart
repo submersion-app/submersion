@@ -17,8 +17,17 @@ class PlannerContingencyDefaultsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          plannerDeviationDepthDelta: s.plannerDeviationDepthDelta,
+          plannerDeviationTimeMinutes: s.plannerDeviationTimeMinutes,
+          plannerTurnPressureRule: s.plannerTurnPressureRule,
+          plannerTurnPressureFraction: s.plannerTurnPressureFraction,
+        ),
+      ),
+    );
     final notifier = ref.read(settingsProvider.notifier);
     final l10n = context.l10n;
 

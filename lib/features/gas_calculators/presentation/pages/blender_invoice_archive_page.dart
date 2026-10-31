@@ -46,8 +46,7 @@ class BlenderInvoiceArchivePage extends ConsumerWidget {
     final invoices = ref.watch(filteredBlenderArchivedInvoicesProvider);
     final allInvoices = ref.watch(blenderArchivedInvoicesProvider);
     final range = ref.watch(blenderInvoiceArchiveFilterProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final fallbackCurrency = ref.watch(blenderCurrencyProvider);
 
     // Summed from the already-filtered rows so the total on screen matches

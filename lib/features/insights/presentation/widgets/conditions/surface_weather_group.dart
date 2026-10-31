@@ -12,7 +12,6 @@ import 'package:submersion/features/insights/presentation/widgets/conditions/con
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Surface & weather group of the Conditions tab (issue #3118): air
@@ -43,7 +42,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
               stats.surfacePressure.isEmpty,
             ].any((empty) => !empty);
             if (!hasAny) return const SizedBox.shrink();
-            final units = UnitFormatter(ref.watch(settingsProvider));
+            final units = ref.watch(unitFormatterProvider);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -12,7 +12,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,7 +62,7 @@ class SiteSuggestionCard extends ConsumerWidget {
     if (currentSite?.id != proposal.dive.site?.id) {
       return const SizedBox.shrink();
     }
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // Past the guard the form and the database agree, so the shown site is
     // the persisted one; no fallback to proposal.dive.site is reachable.
     final hasSite = currentSite != null;
