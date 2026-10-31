@@ -22,10 +22,6 @@ void main() {
   late EquipmentItem item;
   late ProviderContainer container;
 
-  /// Long enough for a debounced dive tick to fire, for the cases that need
-  /// it to land at a known moment rather than eventually.
-  final tickDelivered = DiveRepository.changeTickDebounce * 2;
-
   Future<void> addTrip(String id) => db
       .into(db.trips)
       .insert(
@@ -65,6 +61,18 @@ void main() {
     await TripRepository().assignDiveToTrip('D', 'B');
     await addDive('E', 'A');
     await link('E');
+  }
+
+  /// Runs [write] and returns once its debounced dive tick has fired, for the
+  /// cases that need that tick to land at a known moment, not eventually.
+  Future<void> tickDelivered(Future<void> Function() write) async {
+    final tick = DiveRepository().watchTables(const {
+      'dives',
+      'dive_equipment',
+      'dive_tanks',
+    }).first;
+    await write();
+    await tick;
   }
 
   Future<int> tripCount() =>
@@ -143,8 +151,7 @@ void main() {
       subscription.close();
     }
 
-    await moveDiveAndAddAnother();
-    await Future<void>.delayed(tickDelivered);
+    await tickDelivered(moveDiveAndAddAnother);
 
     openPage();
     await rowReads({'A', 'B'});
@@ -157,8 +164,7 @@ void main() {
       subscription.pause();
     }
 
-    await moveDiveAndAddAnother();
-    await Future<void>.delayed(tickDelivered);
+    await tickDelivered(moveDiveAndAddAnother);
 
     for (final subscription in page) {
       subscription.resume();
@@ -171,8 +177,7 @@ void main() {
     await rowReads({'A'});
 
     // Let the new dive's own tick pass, so only the tank write can refresh.
-    await addDive('T', 'B');
-    await Future<void>.delayed(tickDelivered);
+    await tickDelivered(() => addDive('T', 'B'));
     expect(await tripCount(), 1);
 
     await db
