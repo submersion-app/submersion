@@ -404,6 +404,34 @@ void main() {
       expect(find.text('RMV'), findsNothing);
     });
 
+    testWidgets('shows SAC when only a stage is breathed (#3974)', (
+      tester,
+    ) async {
+      List<TankPressurePoint> series(String id, double from, double to) => [
+        TankPressurePoint(tankId: id, timestamp: 0, pressure: from),
+        TankPressurePoint(tankId: id, timestamp: 600, pressure: to),
+      ];
+
+      await pumpGas(
+        tester,
+        tanks: const [
+          backGas,
+          DiveTank(id: 'deco', volume: 7, role: TankRole.deco, order: 1),
+        ],
+        tankPressures: {
+          'bg': series('bg', 150, 150),
+          'deco': series('deco', 200, 150),
+        },
+      );
+
+      // The default range sees 25 bar of 7 L, which is 14.58 bar of 12 L,
+      // over 5 min at 2 bar ambient.
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('1.5 bar/min'), findsOneWidget);
+      expect(find.text('RMV'), findsOneWidget);
+      expect(find.text('17.5 L/min'), findsOneWidget);
+    });
+
     const ccrTanks = [
       DiveTank(id: 'dil', volume: 3, role: TankRole.diluent),
       DiveTank(

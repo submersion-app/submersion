@@ -20,9 +20,10 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// nothing: its logged start and end pressures say how much it dropped over
 /// the dive, not when. The time is what those series cover of the range
 /// between them, since nothing says what was breathed outside it. SAC follows
-/// `referencePressureDrop`; RMV sums every cylinder with a volume under
-/// [model]. Neither exists on a rebreather ([isRebreather]), whose cylinders
-/// do not drain with the diver's breathing (issue #3673).
+/// `referencePressureDrop`, with a cylinder whose readings reach the range and
+/// did not fall measured at zero (#3974); RMV sums every cylinder with a
+/// volume under [model]. Neither exists on a rebreather ([isRebreather]), whose
+/// cylinders do not drain with the diver's breathing (issue #3673).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
@@ -39,13 +40,18 @@ RangeGasConsumption rangeGasConsumption({
 
   final series = resolveTankPressureSeries(tanks, tankPressures);
   final pressures = <String, ({double start, double end})>{};
+  final idle = <String>{};
   for (final tank in tanks) {
     final points = series[tank.id];
     if (points == null || points.length < 2) continue;
     final start = pressureAtTime(points, startTimestamp);
     final end = pressureAtTime(points, endTimestamp);
-    if (start == null || end == null || start - end <= 0) continue;
-    pressures[tank.id] = (start: start, end: end);
+    if (start == null || end == null) continue;
+    if (start - end > 0) {
+      pressures[tank.id] = (start: start, end: end);
+    } else if (_readsWithin(points, startTimestamp, endTimestamp)) {
+      idle.add(tank.id);
+    }
   }
   if (pressures.isEmpty) return none;
 
@@ -68,7 +74,8 @@ RangeGasConsumption rangeGasConsumption({
     tanks: tanks,
     dropOf: (tank) {
       final p = pressures[tank.id];
-      return p == null ? null : p.start - p.end;
+      if (p != null) return p.start - p.end;
+      return idle.contains(tank.id) ? 0 : null;
     },
   );
   final sac = drop == null ? null : drop / minutes / ambientBar;
@@ -91,4 +98,11 @@ RangeGasConsumption rangeGasConsumption({
   final rmv = gasLiters > 0 ? gasLiters / minutes / ambientBar : null;
 
   return (sac: sac, rmv: rmv);
+}
+
+/// Whether [points] overlap the range. `pressureAtTime` holds the nearest
+/// reading outside a series, which reads as flat without measuring anything.
+bool _readsWithin(List<TankPressurePoint> points, int start, int end) {
+  final times = points.map((p) => p.timestamp);
+  return times.reduce(math.max) > start && times.reduce(math.min) < end;
 }

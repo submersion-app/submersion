@@ -227,8 +227,128 @@ void main() {
 
       // 24 bar of a 7 L stage over 5 min at 2 bar ambient: 16.8 L/min.
       expect(result.rmv, closeTo(16.8, 1e-9));
-      // SAC is in bar of the back gas, which did not drop.
-      expect(result.sac, isNull);
+      // SAC is in bar of the back gas, which adds its measured zero: 24 bar
+      // of 7 L is 14 bar of 12 L.
+      expect(result.sac, closeTo(1.4, 1e-9));
+    });
+
+    group('an idle reference cylinder (#3974)', () {
+      const stage = DiveTank(
+        id: 'st',
+        volume: 7,
+        role: TankRole.deco,
+        gasMix: GasMix(o2: 50),
+        order: 1,
+      );
+
+      RangeGasConsumption run({
+        List<DiveTank> tanks = const [backGas, stage],
+        required List<TankPressurePoint> reference,
+        int start = 0,
+        int end = 600,
+      }) => rangeGasConsumption(
+        tanks: tanks,
+        tankPressures: {
+          'bg': reference,
+          'st': _linear('st', from: 200, to: 150),
+        },
+        startTimestamp: start,
+        endTimestamp: end,
+        avgDepth: 6,
+        model: GasModel.ideal,
+      );
+
+      test('adds its measured zero to the stage it did not veto', () {
+        final result = run(reference: _linear('bg', from: 150, to: 150));
+
+        // 350 L of stage gas is 29.17 bar of 12 L, over 10 min at 1.6 bar.
+        expect(result.sac, closeTo(350 / 12 / 10 / 1.6, 1e-9));
+        expect(result.rmv, closeTo(21.875, 1e-9));
+      });
+
+      test('a reference warming a little is still a measured zero', () {
+        final result = run(reference: _linear('bg', from: 150, to: 151));
+
+        expect(result.sac, closeTo(350 / 12 / 10 / 1.6, 1e-9));
+      });
+
+      test('flat readings on part of the range still measure it', () {
+        final result = run(
+          reference: _linear('bg', from: 150, to: 150, end: 300),
+        );
+
+        expect(result.sac, closeTo(350 / 12 / 10 / 1.6, 1e-9));
+      });
+
+      test('readings that end before the range say nothing about it', () {
+        // pressureAtTime holds the last reading past the series, which looks
+        // flat without being a measurement.
+        final result = run(
+          reference: _linear('bg', from: 150, to: 150, end: 120),
+          start: 300,
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNotNull);
+      });
+
+      test('readings that start after the range say nothing about it', () {
+        final result = run(
+          reference: [
+            for (var t = 360; t <= 600; t += 60)
+              TankPressurePoint(tankId: 'bg', timestamp: t, pressure: 150),
+          ],
+          end: 300,
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNotNull);
+      });
+
+      test('a reference without readings is unknown, not zero', () {
+        final result = rangeGasConsumption(
+          tanks: const [backGas, stage],
+          tankPressures: {'st': _linear('st', from: 200, to: 150)},
+          startTimestamp: 0,
+          endTimestamp: 600,
+          avgDepth: 6,
+          model: GasModel.ideal,
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNotNull);
+      });
+
+      test('a stage of unknown size gives nothing to convert', () {
+        final result = run(
+          tanks: const [
+            backGas,
+            DiveTank(id: 'st', role: TankRole.deco, order: 1),
+          ],
+          reference: _linear('bg', from: 150, to: 150),
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNull);
+      });
+
+      test('an idle reference does not stretch the time counted', () {
+        // The flat series reads for all ten minutes, the stage's only for
+        // the first five: 50 bar of 7 L over five minutes, not ten.
+        final result = rangeGasConsumption(
+          tanks: const [backGas, stage],
+          tankPressures: {
+            'bg': _linear('bg', from: 150, to: 150),
+            'st': _linear('st', from: 200, to: 150, end: 300),
+          },
+          startTimestamp: 0,
+          endTimestamp: 600,
+          avgDepth: 6,
+          model: GasModel.ideal,
+        );
+
+        expect(result.sac, closeTo(350 / 12 / 5 / 1.6, 1e-9));
+      });
     });
 
     test('a rebreather range has no SAC and no RMV (#3673)', () {
