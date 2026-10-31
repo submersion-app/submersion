@@ -700,17 +700,17 @@ final timeAtDepthRangesProvider =
       );
     });
 
-/// Deco obligation counts: recorded signals first, the app's own analysis as
-/// the fallback (#623).
+/// The dives behind each deco obligation count: recorded signals first, the
+/// app's own analysis as the fallback (#623).
 ///
 /// A dive whose source recorded no deco columns is classified by the same
 /// analysis that draws the DECO badge on its detail page, so the card and the
 /// dive can no longer disagree. Dives with no profile at all stay unknown and
 /// are excluded from the rate rather than counted as no-deco.
-final decoObligationStatsProvider =
-    FutureProvider<({int decoCount, int noDecoCount, int unknownCount})>((
-      ref,
-    ) async {
+final decoDiveIdsProvider =
+    FutureProvider<
+      ({List<String> deco, List<String> noDeco, List<String> unknown})
+    >((ref) async {
       _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
@@ -721,9 +721,9 @@ final decoObligationStatsProvider =
         filter: filter,
       );
 
-      var deco = scan.recordedDeco.length;
-      var noDeco = scan.recordedNoDeco.length;
-      var unknown = scan.noProfile.length;
+      final deco = [...scan.recordedDeco];
+      final noDeco = [...scan.recordedNoDeco];
+      final unknown = [...scan.noProfile];
 
       final computed = await const DecoClassificationService().classify(
         ref,
@@ -732,13 +732,27 @@ final decoObligationStatsProvider =
       for (final diveId in scan.needsCompute.keys) {
         final hadDeco = computed[diveId];
         if (hadDeco == null) {
-          unknown++;
+          unknown.add(diveId);
         } else if (hadDeco) {
-          deco++;
+          deco.add(diveId);
         } else {
-          noDeco++;
+          noDeco.add(diveId);
         }
       }
 
-      return (decoCount: deco, noDecoCount: noDeco, unknownCount: unknown);
+      return (deco: deco, noDeco: noDeco, unknown: unknown);
+    });
+
+/// Deco obligation counts, as [decoDiveIdsProvider] sorts the dives.
+final decoObligationStatsProvider =
+    FutureProvider<({int decoCount, int noDecoCount, int unknownCount})>((
+      ref,
+    ) async {
+      _keepAliveWithExpiry(ref);
+      final ids = await ref.watch(decoDiveIdsProvider.future);
+      return (
+        decoCount: ids.deco.length,
+        noDecoCount: ids.noDeco.length,
+        unknownCount: ids.unknown.length,
+      );
     });

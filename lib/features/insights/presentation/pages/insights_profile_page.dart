@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
@@ -191,6 +192,20 @@ class InsightsProfilePage extends ConsumerWidget {
   Widget _buildDecoSection(BuildContext context, WidgetRef ref) {
     final decoAsync = ref.watch(decoObligationStatsProvider);
 
+    Future<void> openDeco(
+      String row,
+      List<String> Function(
+        ({List<String> deco, List<String> noDeco, List<String> unknown}) ids,
+      )
+      pick,
+    ) => openChartDives(
+      context,
+      ref,
+      chart: context.l10n.insights_profile_deco_title,
+      row: row,
+      load: (_, _, _) async => pick(await ref.read(decoDiveIdsProvider.future)),
+    );
+
     return StatSectionCard(
       title: context.l10n.insights_profile_deco_title,
       subtitle: context.l10n.insights_profile_deco_subtitle,
@@ -223,12 +238,24 @@ class InsightsProfilePage extends ConsumerWidget {
                     context.l10n.insights_profile_deco_decoDives,
                     data.decoCount.toString(),
                     Colors.orange,
+                    onTap: data.decoCount == 0
+                        ? null
+                        : () => openDeco(
+                            context.l10n.insights_profile_deco_decoDives,
+                            (ids) => ids.deco,
+                          ),
                   ),
                   _buildDecoStat(
                     context,
                     context.l10n.insights_profile_deco_noDeco,
                     data.noDecoCount.toString(),
                     Colors.green,
+                    onTap: data.noDecoCount == 0
+                        ? null
+                        : () => openDeco(
+                            context.l10n.insights_profile_deco_noDeco,
+                            (ids) => ids.noDeco,
+                          ),
                   ),
                   _buildDecoStat(
                     context,
@@ -240,13 +267,37 @@ class InsightsProfilePage extends ConsumerWidget {
               ),
               if (data.unknownCount > 0) ...[
                 const SizedBox(height: 8),
-                Text(
-                  context.l10n.insights_profile_deco_notRecordedHint(
-                    data.unknownCount,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Semantics(
+                  button: true,
+                  child: InkWell(
+                    onTap: () => openDeco(
+                      context.l10n.insights_chart_notRecorded,
+                      (ids) => ids.unknown,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            context.l10n.insights_profile_deco_notRecordedHint(
+                              data.unknownCount,
+                            ),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -309,28 +360,54 @@ class InsightsProfilePage extends ConsumerWidget {
     BuildContext context,
     String label,
     String value,
-    Color color,
-  ) {
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    final tile = Column(
+      children: [
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                size: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          ],
+        ),
+      ],
+    );
     return Semantics(
       label: statLabel(name: label, value: value),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
+      button: onTap != null,
+      onTap: onTap,
+      child: onTap == null
+          ? tile
+          : InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: tile,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
