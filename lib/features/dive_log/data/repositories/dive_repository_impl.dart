@@ -8932,12 +8932,8 @@ class DiveRepository {
     DiveDataSourcesData newPrimary, {
     required int now,
   }) async {
-    // Read first: the shown order puts the outgoing primary ahead until the
-    // flags below change.
-    final timing = dataSourceStrandTiming(
-      await _sourceRowsInShownOrder(diveId),
-      newPrimary,
-    );
+    final sources = await _sourceRowsInShownOrder(diveId);
+    final timing = dataSourceStrandTiming(sources, newPrimary);
 
     // Demote all readings for this dive to non-primary. Both writes
     // carry their own clock, beside the marks below (#2644).
@@ -9011,9 +9007,6 @@ class DiveRepository {
     // restamps it; the dive row itself was edited above, so it is a
     // real dive edit and is marked too (#1769 forbids that only for a
     // child-only change).
-    final sources = await (_db.select(
-      _db.diveDataSources,
-    )..where((t) => t.diveId.equals(diveId))).get();
     for (final source in sources) {
       await _syncRepository.markRecordPending(
         entityType: 'diveDataSources',
