@@ -39,9 +39,6 @@ void main() {
     profile: profile,
   );
 
-  /// The inputs exactly as [seeded] filled them, as an untouched form reads.
-  DiveTimeInputs untouched(SeededDiveTimes seeded) => seeded.shown;
-
   group('SeededDiveTimes.of', () {
     test('shows whole minutes and keeps the stored values exact', () {
       final seeded = SeededDiveTimes.of(imported(exitTime: exit));
@@ -86,6 +83,15 @@ void main() {
       expect(seeded.exact.runtime, runtime);
     });
 
+    test('times runtime from dateTime for a dive with no entry time', () {
+      final seeded = SeededDiveTimes.of(
+        Dive(id: 'd', dateTime: entry, exitTime: exit),
+      );
+
+      expect(seeded.shown.runtimeMinutes, 49);
+      expect(resolveDiveTimes(seeded.shown, seeded: seeded).runtime, runtime);
+    });
+
     test('never holds a negative runtime from reversed timestamps', () {
       final seeded = SeededDiveTimes.of(
         imported(
@@ -122,7 +128,7 @@ void main() {
     test('an untouched form saves every stored value exactly (#3901)', () {
       final seeded = SeededDiveTimes.of(imported(exitTime: exit));
 
-      final saved = resolveDiveTimes(untouched(seeded), seeded: seeded);
+      final saved = resolveDiveTimes(seeded.shown, seeded: seeded);
 
       expect(saved.entry, entry);
       expect(saved.exit, exit);
@@ -136,7 +142,7 @@ void main() {
         imported(exitTime: exit, run: reported),
       );
 
-      final saved = resolveDiveTimes(untouched(seeded), seeded: seeded);
+      final saved = resolveDiveTimes(seeded.shown, seeded: seeded);
 
       expect(saved.runtime, reported);
     });
@@ -144,7 +150,7 @@ void main() {
     test('an estimated exit stays unset and runtime stays stored', () {
       final seeded = SeededDiveTimes.of(imported());
 
-      final saved = resolveDiveTimes(untouched(seeded), seeded: seeded);
+      final saved = resolveDiveTimes(seeded.shown, seeded: seeded);
 
       expect(saved.exit, isNull);
       expect(saved.runtime, runtime);
@@ -153,7 +159,7 @@ void main() {
     test('an estimated exit does not turn bottom time into runtime', () {
       final seeded = SeededDiveTimes.of(imported(run: null));
 
-      final saved = resolveDiveTimes(untouched(seeded), seeded: seeded);
+      final saved = resolveDiveTimes(seeded.shown, seeded: seeded);
 
       expect(saved.exit, isNull);
       expect(saved.runtime, isNull);
@@ -304,6 +310,23 @@ void main() {
       expect(saved.exit, isNull);
       expect(saved.bottomTime, isNull);
       expect(saved.runtime, const Duration(minutes: 12));
+    });
+  });
+
+  group('ExactDiveTimes.end', () {
+    test('is the exit when there is one', () {
+      final times = ExactDiveTimes(entry: entry, exit: exit, runtime: runtime);
+
+      expect(times.end, exit);
+    });
+
+    test('is the runtime after entry with no exit', () {
+      expect(ExactDiveTimes(entry: entry, runtime: runtime).end, exit);
+    });
+
+    test('is unset with no exit and no positive runtime', () {
+      expect(ExactDiveTimes(entry: entry).end, isNull);
+      expect(ExactDiveTimes(entry: entry, runtime: Duration.zero).end, isNull);
     });
   });
 

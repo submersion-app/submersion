@@ -30,6 +30,15 @@ class ExactDiveTimes {
     this.bottomTime,
     this.runtime,
   });
+
+  /// When the dive ended: its exit, or failing that its runtime after entry.
+  DateTime? get end {
+    final runtime = this.runtime;
+    return exit ??
+        (runtime == null || runtime <= Duration.zero
+            ? null
+            : entry.add(runtime));
+  }
 }
 
 /// What the form's time inputs were filled with, next to the exact values
@@ -45,11 +54,8 @@ class SeededDiveTimes {
 
   factory SeededDiveTimes.of(Dive dive) {
     final entry = dive.effectiveEntryTime;
-    final bottomTime = dive.bottomTime ?? _bottomTimeFromProfile(dive);
-    final timedRuntime = dive.entryTime != null && dive.exitTime != null
-        ? dive.exitTime!.difference(dive.entryTime!)
-        : null;
-    final runtime = dive.runtime ?? timedRuntime;
+    final bottomTime = dive.bottomTime ?? dive.calculateBottomTimeFromProfile();
+    final runtime = dive.runtime ?? dive.exitTime?.difference(entry);
     // A dive with no exit shows one estimated from its runtime, or failing
     // that its bottom time. The estimate stays on the form: saved, it would
     // stand in for a recorded exit, and a bottom time must not reach runtime.
@@ -72,9 +78,6 @@ class SeededDiveTimes {
       ),
     );
   }
-
-  static Duration? _bottomTimeFromProfile(Dive dive) =>
-      dive.profile.isEmpty ? null : dive.calculateBottomTimeFromProfile();
 
   static DateTime _wholeMinute(DateTime time) =>
       DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);

@@ -83,6 +83,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// The dive's end as the flight-window warning reads it.
+  DateTime? flightWindowEnd(WidgetTester tester) => tester
+      .widget<FlightWindowWarningBanner>(find.byType(FlightWindowWarningBanner))
+      .diveEndTime;
+
   final entry = DateTime.utc(2026, 1, 1, 10, 0, 50);
   final exit = DateTime.utc(2026, 1, 1, 10, 50, 10);
 
@@ -138,7 +143,7 @@ void main() {
     expect(reloaded.bottomTime, const Duration(seconds: 2409));
   });
 
-  testWidgets('the estimated exit still ends the dive for the flight window', (
+  testWidgets('a dive with no exit ends at its entry plus runtime', (
     tester,
   ) async {
     final dive = await repository.createDive(
@@ -152,10 +157,63 @@ void main() {
 
     await pumpEditor(tester, dive.id, onSaved: (_) {});
 
-    final banner = tester.widget<FlightWindowWarningBanner>(
-      find.byType(FlightWindowWarningBanner),
+    expect(flightWindowEnd(tester), exit);
+  });
+
+  testWidgets('a moved entry carries the end past the estimated exit', (
+    tester,
+  ) async {
+    final dive = await repository.createDive(
+      Dive(
+        id: 'dive-3901-moved-entry',
+        dateTime: entry,
+        entryTime: entry,
+        runtime: const Duration(seconds: 2960),
+      ),
     );
-    expect(banner.diveEndTime, DateTime.utc(2026, 1, 1, 10, 50));
+
+    await pumpEditor(tester, dive.id, onSaved: (_) {});
+
+    final entryRow = find
+        .ancestor(of: find.text('Entry'), matching: find.byType(FormRow))
+        .first;
+    await tester.ensureVisible(entryRow);
+    await tester.pumpAndSettle();
+    await tester.tap(entryRow);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(DatePickerDialog),
+        matching: find.text('2'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK')); // date
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel')); // time
+    await tester.pumpAndSettle();
+
+    expect(
+      flightWindowEnd(tester),
+      DateTime.utc(2026, 1, 2, 10).add(const Duration(seconds: 2960)),
+    );
+  });
+
+  testWidgets('an exit estimated from bottom time still ends the dive', (
+    tester,
+  ) async {
+    final dive = await repository.createDive(
+      Dive(
+        id: 'dive-3901-bottom-time-end',
+        dateTime: entry,
+        entryTime: entry,
+        bottomTime: const Duration(seconds: 2409),
+      ),
+    );
+
+    await pumpEditor(tester, dive.id, onSaved: (_) {});
+
+    expect(flightWindowEnd(tester), entry.add(const Duration(minutes: 40)));
   });
 
   testWidgets('confirming the estimated exit in its picker stores it', (

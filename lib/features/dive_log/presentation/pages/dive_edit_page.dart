@@ -543,7 +543,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _suppressDirty = true;
 
   /// The form's entry date and time as an instant, the wall clock stamped
-  /// UTC as every dive time is. The save, the flight-window check and the
+  /// UTC as every dive time is. The shared gear note, the route sheet and the
   /// trip cylinders' state at the dive all read it here. Stored seconds hold
   /// until the diver moves the entry.
   DateTime _currentEntryTime() {
@@ -584,25 +584,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     runtimeMinutes: _savedNumber(_runtimeController, integer: true)?.toInt(),
   );
 
-  /// In-edit dive end time, wall-clock-as-UTC: exit fields when both are
-  /// set, otherwise entry + runtime. Null when neither is derivable. Feeds
-  /// the flight-window warning banner; an estimated exit counts here, though
-  /// the save does not store one.
-  DateTime? _currentDiveEndTime() {
-    final exit = _exitInput();
-    if (exit != null) return _seededTimes?.exitFor(exit) ?? exit;
-    final entry = _currentEntryTime();
-    final runtimeMinutes = switch (readNumber(
-      _runtimeController.text,
-      integer: true,
-    )) {
-      NumberValue(:final value) => value.toInt(),
-      // No exit to derive; the runtime field shows its own error.
-      NumberBlank() || NumberInvalid() => null,
-    };
-    if (runtimeMinutes == null || runtimeMinutes <= 0) return null;
-    return entry.add(Duration(minutes: runtimeMinutes));
-  }
+  /// In-edit dive end time, wall-clock-as-UTC, as the save will leave it: the
+  /// exit, otherwise entry + runtime. An exit estimated from the bottom time
+  /// has no runtime behind it, so it ends at entry + bottom time, which
+  /// follows the entry as the estimate on the form does not. Null when none
+  /// of these is derivable. Feeds the flight-window warning banner.
+  DateTime? _currentDiveEndTime() =>
+      resolveDiveTimes(_timeInputs(), seeded: _seededTimes).end ??
+      (_exitInput() == null ? null : _entryPlusBottomTime());
 
   /// The form's dive, with its unsaved times, for the shared gear note
   /// (issue #2853): a new dive has no id yet, and the note follows time
