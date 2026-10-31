@@ -9,8 +9,10 @@
 /// editor's conversion apply.
 ///
 /// The fragment lives here so Insights, its observations and the query
-/// language cannot give two answers for one dive (issue #3914). Callers pass
-/// the table alias their statement uses for `dives`.
+/// language cannot give two answers for one dive (issue #3914), and
+/// `Dive.recordedWeightKg` is its Dart twin, held to it by
+/// `dive_weight_sql_parity_test.dart`. Callers pass the table alias their
+/// statement uses for `dives`.
 library;
 
 /// The dive's total lead in kilograms, or NULL when it has none recorded.
