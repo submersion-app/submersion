@@ -129,6 +129,30 @@ class BailoutOutcome {
   }
 }
 
+/// Whether [plan] may have a bailout picture, cheaply enough to ask on every
+/// edit: a section header or chart toggle can hold its place from this while
+/// [BailoutSolver] computes the answer.
+///
+/// It is one way. False means [BailoutSolver.solve] returns null, but true
+/// does not promise a result: a loop plan that never leaves the surface
+/// passes here and solves to null, and predicting that takes the walk itself.
+bool planMayHaveBailout(domain.DivePlan plan) {
+  // Every loop mode (CCR, SCR, pSCR) gets the same bailout picture (issue
+  // #3743): the bottom-phase tissue walk is already mode-aware (breathingFor)
+  // and TankRoleResolver already derives bailout-role tanks generically for
+  // any non-OC plan, so only this gate needs to widen.
+  if (plan.mode == domain.PlanMode.oc) return false;
+  if (plan.segments.isEmpty) return false;
+  // Diluent is the diver's one explicit per-tank choice on a loop plan
+  // (TankRoleResolver); every other open-circuit cylinder carried defaults to
+  // bailout, so this is simply whatever the resolver left over, never a
+  // separate derivation of its own.
+  return const TankRoleResolver()
+      .apply(plan)
+      .tanks
+      .any((t) => t.role == TankRole.bailout);
+}
+
 /// Answers "what if the loop dies HERE": walks the CCR plan's bottom phase,
 /// and at bounded sample intervals computes the full open-circuit bailout
 /// (schedule on the bailout gases, stressed SAC) from that instant. The
@@ -168,20 +192,11 @@ class BailoutSolver {
         'BailoutSolver only accepts a BuhlmannState tissue seed',
       );
     }
-    // Every loop mode (CCR, SCR, pSCR) gets the same bailout picture (issue
-    // #3743): the bottom-phase tissue walk below is already mode-aware
-    // (breathingFor) and TankRoleResolver already derives bailout-role tanks
-    // generically for any non-OC plan, so only this gate needs to widen.
-    if (inputPlan.mode == domain.PlanMode.oc) return null;
-    // Diluent is the diver's one explicit per-tank choice on a loop plan
-    // (TankRoleResolver); every other open-circuit cylinder carried
-    // defaults to bailout, so this is simply whatever the resolver left
-    // over, never a separate derivation of its own.
+    if (!planMayHaveBailout(inputPlan)) return null;
     final plan = const TankRoleResolver().apply(inputPlan);
     final bailoutTanks = plan.tanks
         .where((t) => t.role == TankRole.bailout)
         .toList();
-    if (bailoutTanks.isEmpty) return null;
     final segments = withDiluentSwitchTime(
       expandRateSplitSegments(
         List<PlanSegment>.from(plan.segments)
@@ -193,7 +208,6 @@ class BailoutSolver {
       plan,
       gasSwitchStopSeconds: config.gasSwitchStopSeconds,
     );
-    if (segments.isEmpty) return null;
     final legs = const SegmentChain().resolve(segments);
 
     // The live plan's own water: an altitude of 0 is unset there (1.0 bar
