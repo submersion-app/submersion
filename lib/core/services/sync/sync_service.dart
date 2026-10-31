@@ -131,6 +131,11 @@ class SyncResult {
   /// before any sync can proceed.
   final LibraryEpochMarker? replaceMarker;
 
+  /// Set with [SyncResultStatus.authError] when a server refused the account.
+  /// Unset, the status only means there is no session here, which an offline
+  /// cold launch reads as too (issue #3811).
+  final bool accessRefused;
+
   const SyncResult({
     required this.status,
     this.message,
@@ -147,6 +152,7 @@ class SyncResult {
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.replaceMarker,
+    this.accessRefused = false,
   });
 
   bool get isSuccess =>
@@ -1030,6 +1036,13 @@ class SyncService {
       // toString carries the underlying cause the message omits, which is
       // what a user's diagnostics need to tell an outage from a sign-in.
       _log.warning('Sync failed: $e');
+      if (e.accessRefused) {
+        return SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+          accessRefused: true,
+        );
+      }
       return SyncResult(
         status: SyncResultStatus.networkError,
         message: _causedByTimeout(e)
@@ -1232,14 +1245,14 @@ class SyncService {
         message: _l10n.settings_cloudSync_result_noProvider,
       );
     }
-    final marker = await readLibraryEpochMarker(provider);
-    if (marker == null) {
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
-      );
-    }
     try {
+      final marker = await readLibraryEpochMarker(provider);
+      if (marker == null) {
+        return SyncResult(
+          status: SyncResultStatus.error,
+          message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
+        );
+      }
       await _reestablishEpochFromLocalLibrary(
         provider,
         marker,
@@ -1256,9 +1269,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_rebuildFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_rebuildFailed('$e'),
       );
     }
   }
@@ -1369,6 +1382,17 @@ class SyncService {
       return null;
     }
   }
+
+  /// What a library operation that failed on [e] reports: a refusal as one, so
+  /// its error offers a sign-in (issue #3811), anything else as [message].
+  SyncResult _libraryFailure(Object e, String message) =>
+      e is CloudStorageException && e.accessRefused
+      ? SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+          accessRefused: true,
+        )
+      : SyncResult(status: SyncResultStatus.error, message: message);
 
   /// True when [e] is a provider's report of a missed deadline. Providers put
   /// HTTP timeouts on every request and wrap a miss like any other failure,
@@ -4817,9 +4841,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
       );
     }
   }
@@ -5298,9 +5322,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_adoptFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_adoptFailed('$e'),
       );
     }
   }
@@ -5657,7 +5681,8 @@ class SyncService {
   /// fails its checksum (a publish still in flight -> retry next adopt). A
   /// fetch that was interrupted is not that: it says nothing about the cloud,
   /// so the failure propagates, as [BaseFetchInterrupted] for a base and as
-  /// itself for a manifest or changeset, and the caller aborts.
+  /// itself for a manifest, a changeset or a refused base, and the caller
+  /// aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.

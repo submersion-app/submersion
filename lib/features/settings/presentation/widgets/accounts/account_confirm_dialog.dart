@@ -5,7 +5,8 @@ import 'package:submersion/features/settings/presentation/widgets/accounts/accou
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A confirmation naming the features [usages] lists, below [paragraphs]
-/// and above [footer]. True only when the user picks [action].
+/// and above [footer]. True only when the user picks [action]. [cancel] names
+/// the way out, Cancel by default.
 Future<bool> confirmAccountAction(
   BuildContext context, {
   required String title,
@@ -13,6 +14,7 @@ Future<bool> confirmAccountAction(
   required List<AccountUsage> usages,
   required String action,
   String? footer,
+  String? cancel,
 }) async {
   final l10n = context.l10n;
   final confirmed = await showDialog<bool>(
@@ -51,7 +53,9 @@ Future<bool> confirmAccountAction(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+          child: Text(
+            cancel ?? MaterialLocalizations.of(ctx).cancelButtonLabel,
+          ),
         ),
         FilledButton(
           onPressed: () => Navigator.of(ctx).pop(true),

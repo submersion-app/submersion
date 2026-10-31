@@ -78,4 +78,32 @@ void main() {
       expect(tankPressureRange({'tank1': const [], 'tank2': const []}), isNull);
     });
   });
+
+  group('tankPressureScale', () {
+    test('pads the range across every tank by 5% of its span', () {
+      final scale = tankPressureScale({
+        'tank1': [
+          const TankPressurePoint(tankId: 'tank1', timestamp: 0, pressure: 200),
+        ],
+        'tank2': [
+          const TankPressurePoint(tankId: 'tank2', timestamp: 0, pressure: 100),
+        ],
+      });
+      expect(scale, (min: 95.0, max: 205.0));
+    });
+
+    test('returns null when there are no samples', () {
+      expect(tankPressureScale(const {}), isNull);
+    });
+
+    test('returns null when every sample is identical', () {
+      final scale = tankPressureScale({
+        'tank1': [
+          const TankPressurePoint(tankId: 'tank1', timestamp: 0, pressure: 0),
+          const TankPressurePoint(tankId: 'tank1', timestamp: 60, pressure: 0),
+        ],
+      });
+      expect(scale, isNull);
+    });
+  });
 }

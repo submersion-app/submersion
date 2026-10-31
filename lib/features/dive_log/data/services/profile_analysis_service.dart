@@ -39,7 +39,10 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 ///
 /// v2: a dive with several computers is analysed over the primary source's
 /// own samples, not every computer's interleaved by timestamp (#2888).
-const int analysisEngineVersion = 2;
+/// v3: a depth spike is repaired by time-weighted interpolation rather than
+/// the midpoint of its neighbours, so an unevenly sampled dive replays
+/// different depths (#3910).
+const int analysisEngineVersion = 3;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
@@ -149,27 +152,7 @@ enum SacSegmentationType {
   gasSwitch,
 
   /// Segments based on dive phases (descent, bottom, ascent, etc.)
-  depthPhase;
-
-  /// Display name for UI
-  String get displayName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'Time',
-      SacSegmentationType.depthBased => 'Depth',
-      SacSegmentationType.gasSwitch => 'Gas',
-      SacSegmentationType.depthPhase => 'Phase',
-    };
-  }
-
-  /// Icon name for UI
-  String get iconName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'timer',
-      SacSegmentationType.depthBased => 'layers',
-      SacSegmentationType.gasSwitch => 'swap_horiz',
-      SacSegmentationType.depthPhase => 'trending_down',
-    };
-  }
+  depthPhase,
 }
 
 /// Represents a phase of the dive for depth-phase segmentation.
@@ -197,17 +180,6 @@ enum DivePhase {
       DivePhase.ascent => 'Ascent',
       DivePhase.safetyStop => 'Safety Stop',
       DivePhase.deco => 'Deco',
-    };
-  }
-
-  /// Short label for compact display
-  String get shortLabel {
-    return switch (this) {
-      DivePhase.descent => '↓',
-      DivePhase.bottom => '—',
-      DivePhase.ascent => '↑',
-      DivePhase.safetyStop => '⏸',
-      DivePhase.deco => '⚠',
     };
   }
 }

@@ -63,6 +63,13 @@ class BestMixInputs {
   /// [BestMixMode.rec].
   final GasDensityTemperature temperature;
 
+  /// The water the ppO2 limit is judged in, when that is not the mode's own
+  /// ambient pressure model. The planner sets it: a plan's ppO2 is in the
+  /// plan's water while its END and density stay on the flat model (issue
+  /// #3913), so only the O2 fraction follows this. Null uses the mode's
+  /// model for the limit too.
+  final DiveEnvironment? ppO2Environment;
+
   const BestMixInputs({
     required this.depthMeters,
     required this.ppO2Limit,
@@ -74,6 +81,7 @@ class BestMixInputs {
     this.waterType = WaterType.salt,
     this.densityAware = false,
     this.temperature = GasDensityTemperature.zeroC,
+    this.ppO2Environment,
   });
 
   BestMixInputs copyWith({
@@ -87,6 +95,7 @@ class BestMixInputs {
     WaterType? waterType,
     bool? densityAware,
     GasDensityTemperature? temperature,
+    DiveEnvironment? ppO2Environment,
   }) => BestMixInputs(
     depthMeters: depthMeters ?? this.depthMeters,
     ppO2Limit: ppO2Limit ?? this.ppO2Limit,
@@ -98,6 +107,7 @@ class BestMixInputs {
     waterType: waterType ?? this.waterType,
     densityAware: densityAware ?? this.densityAware,
     temperature: temperature ?? this.temperature,
+    ppO2Environment: ppO2Environment ?? this.ppO2Environment,
   );
 
   bool get _isTec => mode != BestMixMode.rec;
@@ -237,7 +247,7 @@ MixAssessment _assess(
   final mod = maxOperatingDepthMeters(
     mix.o2 / 100,
     maxPpO2: inputs.limitPpO2,
-    environment: environment,
+    environment: inputs.ppO2Environment ?? environment,
   );
 
   final double end;
@@ -403,7 +413,10 @@ const double standardMixMinPpO2 = 0.18;
 /// dive just because its MOD and END are deep enough.
 List<StandardGasMix> coveringStandardMixes(BestMixInputs inputs) {
   final environment = environmentFor(inputs);
-  final ambient = _ambientAt(inputs.depthMeters, environment);
+  final ambient = _ambientAt(
+    inputs.depthMeters,
+    inputs.ppO2Environment ?? environment,
+  );
   final scored = <(StandardGasMix, double)>[];
   for (final mix in standardGasMixes) {
     if (mix.o2Percent / 100 * ambient + 1e-9 < standardMixMinPpO2) continue;
@@ -438,7 +451,10 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
   final environment = environmentFor(inputs);
   final ambient = _ambientAt(inputs.depthMeters, environment);
   final limitPpO2 = inputs.limitPpO2;
-  final ideal = limitPpO2 / ambient * 100;
+  final ideal =
+      limitPpO2 /
+      _ambientAt(inputs.depthMeters, inputs.ppO2Environment ?? environment) *
+      100;
 
   // Round DOWN so the resulting MOD is at or beyond the target depth.
   final o2 = floorToFractionDigits(ideal, 0).clamp(1.0, 100.0);

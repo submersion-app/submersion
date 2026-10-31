@@ -155,7 +155,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
   Future<String?> get userEmail async => _email;
 
   @override
-  Future<void> authenticate() async {
+  Future<void> authenticate({String? expectedAccount}) async {
     final base = _baseClientFactory();
     try {
       final credentials = await _obtainConsent(_clientId, scopes, base, (url) {
@@ -173,6 +173,14 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
       if (!_grantsDrive(credentials)) {
         _log.warning('Google consent granted sign-in without Drive access');
         throw const CloudStorageException(googleDriveAccessNotAllowed);
+      }
+      final email = _emailFromIdToken(credentials.idToken);
+      if (!isSameAccount(expectedAccount, email)) {
+        // Not revoked, unlike Dropbox: Google's revoke ends the account's
+        // whole grant to this app, which would sign out another device that
+        // uses that account on purpose.
+        _log.warning('Google consent returned a different account');
+        throw CloudAccountMismatchException(email!);
       }
       await _tokenStore.save(credentials);
       _installClient(credentials);
@@ -208,7 +216,11 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
     );
   }
 
+  @override
+  bool lastSilentAuthThrew = false;
+
   Future<bool> _runSilentAuth() async {
+    lastSilentAuthThrew = false;
     try {
       if (_authClient != null) return true;
 
@@ -227,6 +239,7 @@ class DesktopOAuthAuthenticator implements GoogleDriveAuthenticator {
       return true;
     } catch (e) {
       _log.warning('Silent sign-in failed: $e');
+      lastSilentAuthThrew = true;
       return false;
     }
   }
