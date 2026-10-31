@@ -264,6 +264,23 @@ void main() {
   });
 
   group('shiftSegmentTime', () {
+    test('refuses a shift to before the start of the dive', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 10, depth: 5),
+        DiveProfilePoint(timestamp: 60, depth: 5),
+      ];
+
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: 0,
+        endTimestamp: 10,
+        timeDelta: -5,
+      );
+
+      expect(shifted, isNull);
+    });
+
     test('shifts timestamps in range', () {
       final profile = [
         const DiveProfilePoint(timestamp: 0, depth: 10.0),

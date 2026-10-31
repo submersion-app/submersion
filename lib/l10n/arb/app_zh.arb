@@ -15169,7 +15169,7 @@
   "diveLog_profileEditor_saveFailed": "保存轮廓失败：{error}",
   "diveLog_profileEditor_errorLoadingDive": "加载潜水记录出错：{error}",
   "diveLog_profileEditor_noProfileData": "没有可用的轮廓数据",
-  "diveLog_profileEditor_timeShiftBlocked": "无法移动：所选范围会触及相邻的采样点",
+  "diveLog_profileEditor_timeShiftBlocked": "无法移动：所选范围在该方向上没有空间",
   "diveLog_profileEditor_deleteAllBlocked": "无法删除整个轮廓",
   "diveLog_profileEditor_undo": "撤消",
   "diveLog_profileEditor_mode_select": "选择",

@@ -15323,7 +15323,7 @@
   "diveLog_profileEditor_saveFailed": "Profil konnte nicht gespeichert werden: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Fehler beim Laden des Tauchgangs: {error}",
   "diveLog_profileEditor_noProfileData": "Keine Profildaten verfügbar",
-  "diveLog_profileEditor_timeShiftBlocked": "Verschieben nicht möglich: Die Auswahl würde einen benachbarten Messpunkt erreichen",
+  "diveLog_profileEditor_timeShiftBlocked": "Verschieben nicht möglich: Die Auswahl hat in dieser Richtung keinen Platz",
   "diveLog_profileEditor_deleteAllBlocked": "Das gesamte Profil kann nicht gelöscht werden",
   "diveLog_profileEditor_undo": "Rückgängig",
   "diveLog_profileEditor_mode_select": "Auswählen",

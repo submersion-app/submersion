@@ -49971,7 +49971,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Can\'t shift: the selection would reach an adjacent sample';
+      'Can\'t shift: the selection has no room to move that way';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

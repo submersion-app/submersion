@@ -163,6 +163,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       undoRangeStack: newRangeStack,
       selectedRange: previousRange,
       clearRange: previousRange == null,
+      clearOutliers: true,
       hasChanges: newStack.isNotEmpty,
     );
   }
@@ -181,10 +182,13 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     final range = state.selectedRange;
     if (range == null) return;
 
-    _pushUndo();
     final rangePoints = state.editedProfile
         .where((p) => p.timestamp >= range.start && p.timestamp <= range.end)
         .toList();
+    // Smoothing keeps both end points, so two samples would be an empty edit.
+    if (rangePoints.length <= 2) return;
+
+    _pushUndo();
     final smoothed = _service.smoothProfile(
       rangePoints,
       windowSize: windowSize,
@@ -248,7 +252,8 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
   }
 
   /// Moves the selected samples, and the selection with them. Returns false,
-  /// changing nothing, when they would reach a sample outside the selection.
+  /// changing nothing, when they would reach a sample outside the selection or
+  /// pass the start of the dive.
   bool shiftSegmentTime(int timeDelta) {
     final range = state.selectedRange;
     if (range == null) return false;
@@ -269,6 +274,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
         end: range.end + timeDelta,
       ),
       hasChanges: true,
+      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.shiftTime);
     return true;
@@ -293,6 +299,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: result,
       hasChanges: true,
       clearRange: true,
+      clearOutliers: true,
     );
     _recordEditKind(
       interpolateGap
@@ -358,6 +365,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: generated,
       hasChanges: true,
       clearRange: true,
+      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.generateFromWaypoints);
   }
@@ -375,6 +383,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: trimmed,
       hasChanges: true,
       clearRange: true,
+      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.trimEndZeros);
   }

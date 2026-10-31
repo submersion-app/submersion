@@ -51395,7 +51395,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'تعذّرت الإزاحة: سيصل التحديد إلى قراءة مجاورة';
+      'تعذّرت الإزاحة: لا توجد مساحة للتحديد في هذا الاتجاه';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

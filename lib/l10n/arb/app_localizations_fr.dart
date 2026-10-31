@@ -50875,7 +50875,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Décalage impossible : la sélection atteindrait un relevé voisin';
+      'Décalage impossible : la sélection n\'a pas de place dans cette direction';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

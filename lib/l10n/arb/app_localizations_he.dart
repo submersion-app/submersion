@@ -49686,7 +49686,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'לא ניתן להזיז: הבחירה תגיע לדגימה סמוכה';
+      'לא ניתן להזיז: אין לבחירה מקום בכיוון זה';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

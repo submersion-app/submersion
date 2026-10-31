@@ -50639,7 +50639,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Verschieben nicht möglich: Die Auswahl würde einen benachbarten Messpunkt erreichen';
+      'Verschieben nicht möglich: Die Auswahl hat in dieser Richtung keinen Platz';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

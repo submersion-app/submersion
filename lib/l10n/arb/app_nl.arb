@@ -15169,7 +15169,7 @@
   "diveLog_profileEditor_saveFailed": "Opslaan van profiel mislukt: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Fout bij het laden van de duik: {error}",
   "diveLog_profileEditor_noProfileData": "Geen profielgegevens beschikbaar",
-  "diveLog_profileEditor_timeShiftBlocked": "Verschuiven niet mogelijk: de selectie zou een aangrenzende meting bereiken",
+  "diveLog_profileEditor_timeShiftBlocked": "Verschuiven niet mogelijk: de selectie heeft geen ruimte in die richting",
   "diveLog_profileEditor_deleteAllBlocked": "Het volledige profiel kan niet worden verwijderd",
   "diveLog_profileEditor_undo": "Ongedaan maken",
   "diveLog_profileEditor_mode_select": "Selecteren",

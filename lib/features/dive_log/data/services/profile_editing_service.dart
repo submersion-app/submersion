@@ -213,7 +213,7 @@ class ProfileEditingService {
   /// Shift timestamps of all points within a range.
   ///
   /// Returns null if the shift would cause timestamps to overlap with
-  /// points outside the range.
+  /// points outside the range, or move a point before the start of the dive.
   List<DiveProfilePoint>? shiftSegmentTime(
     List<DiveProfilePoint> profile, {
     required int startTimestamp,
@@ -240,6 +240,7 @@ class ProfileEditingService {
     final shiftedStart = start + timeDelta;
     final shiftedEnd = end + timeDelta;
 
+    if (shiftedStart < 0) return null;
     if (lastBeforeRange != null && shiftedStart <= lastBeforeRange) {
       return null;
     }

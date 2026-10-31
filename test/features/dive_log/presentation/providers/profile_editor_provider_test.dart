@@ -210,6 +210,74 @@ void main() {
 
       expect(tailed.state.selectedRange, isNull);
     });
+
+    group('edits that invalidate detected outliers', () {
+      ProfileEditorNotifier detected() {
+        final detecting = ProfileEditorNotifier(
+          originalProfile: [
+            for (var i = 0; i < 12; i++)
+              DiveProfilePoint(
+                timestamp: i * 10,
+                depth: i >= 10 ? 0 : (i == 8 ? 90 : 10),
+              ),
+          ],
+          editingService: ProfileEditingService(),
+        );
+        detecting.setSelectedRange(start: 10, end: 30);
+        detecting.detectOutliers();
+        expect(detecting.state.detectedOutliers, isNotEmpty);
+        return detecting;
+      }
+
+      test('a delete renumbers the samples they point at', () {
+        final editing = detected();
+        expect(editing.deleteSegment(), isTrue);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a time shift moves them', () {
+        final editing = detected();
+        expect(editing.shiftSegmentTime(5), isTrue);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a trim drops samples', () {
+        final editing = detected()..trimEndZeros();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('a generated profile replaces the samples', () {
+        final editing = detected()
+          ..addWaypoint(const ProfileWaypoint(timestamp: 0, depth: 0))
+          ..addWaypoint(const ProfileWaypoint(timestamp: 60, depth: 10))
+          ..generateProfileFromWaypoints();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('an undo goes back to another profile', () {
+        final editing = detected()
+          ..applySmoothing()
+          ..undo();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+    });
+
+    test('smoothing a selection of two samples records no edit', () {
+      final editing = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 60, depth: 20),
+          DiveProfilePoint(timestamp: 120, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      editing.setSelectedRange(start: 0, end: 60);
+
+      editing.applySmoothingToRange();
+
+      expect(editing.state.undoStack, isEmpty);
+      expect(editing.state.hasChanges, isFalse);
+    });
   });
 
   group('trimEndZeros', () {

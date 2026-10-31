@@ -50768,7 +50768,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Impossibile spostare: la selezione raggiungerebbe un campione adiacente';
+      'Impossibile spostare: la selezione non ha spazio in quella direzione';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

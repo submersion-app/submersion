@@ -50472,7 +50472,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Az eltolás nem lehetséges: a kijelölés elérne egy szomszédos mérést';
+      'Az eltolás nem lehetséges: a kijelölésnek nincs helye ebben az irányban';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

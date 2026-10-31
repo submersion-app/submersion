@@ -80430,7 +80430,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_profileEditor_timeShiftBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Can\'t shift: the selection would reach an adjacent sample'**
+  /// **'Can\'t shift: the selection has no room to move that way'**
   String get diveLog_profileEditor_timeShiftBlocked;
 
   /// No description provided for @diveLog_profileEditor_deleteAllBlocked.

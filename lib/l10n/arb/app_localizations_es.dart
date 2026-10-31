@@ -50806,7 +50806,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'No se puede desplazar: la selección alcanzaría una muestra contigua';
+      'No se puede desplazar: la selección no tiene espacio en esa dirección';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

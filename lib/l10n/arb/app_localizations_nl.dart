@@ -50436,7 +50436,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_timeShiftBlocked =>
-      'Verschuiven niet mogelijk: de selectie zou een aangrenzende meting bereiken';
+      'Verschuiven niet mogelijk: de selectie heeft geen ruimte in die richting';
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>

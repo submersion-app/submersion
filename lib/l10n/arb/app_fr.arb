@@ -15169,7 +15169,7 @@
   "diveLog_profileEditor_saveFailed": "Échec de l’enregistrement du profil : {error}",
   "diveLog_profileEditor_errorLoadingDive": "Erreur lors du chargement de la plongée : {error}",
   "diveLog_profileEditor_noProfileData": "Aucune donnée de profil disponible",
-  "diveLog_profileEditor_timeShiftBlocked": "Décalage impossible : la sélection atteindrait un relevé voisin",
+  "diveLog_profileEditor_timeShiftBlocked": "Décalage impossible : la sélection n'a pas de place dans cette direction",
   "diveLog_profileEditor_deleteAllBlocked": "Impossible de supprimer tout le profil",
   "diveLog_profileEditor_undo": "Annuler",
   "diveLog_profileEditor_mode_select": "Sélectionner",

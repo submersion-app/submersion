@@ -316,9 +316,9 @@ tools:
 
 - **Select**: drag across the chart to pick a time range, then shift its depth
   or time, delete it, or smooth just that segment. Tap the chart to clear the
-  selection. A time shift cannot carry the selection onto the next sample, so
-  on a closely sampled dive it works only where the samples have a gap to move
-  into, or at the end of the dive.
+  selection. A time shift cannot carry the selection onto the next sample or
+  past the start of the dive, so on a closely sampled dive it works only where
+  the samples have a gap to move into, or at the end of the dive.
 - **Smooth**: apply **Light**, **Medium** or **Heavy** smoothing to flatten
   sensor jitter, to the whole profile or to a selection dragged on the chart.
 - **Outlier**: **Detect** spurious spikes and remove them. Outliers can also be

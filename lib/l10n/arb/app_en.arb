@@ -29478,7 +29478,7 @@
   "diveLog_profileEditor_saveFailed": "Failed to save profile: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Error loading dive: {error}",
   "diveLog_profileEditor_noProfileData": "No profile data available",
-  "diveLog_profileEditor_timeShiftBlocked": "Can't shift: the selection would reach an adjacent sample",
+  "diveLog_profileEditor_timeShiftBlocked": "Can't shift: the selection has no room to move that way",
   "diveLog_profileEditor_deleteAllBlocked": "Can't delete the whole profile",
   "diveLog_profileEditor_undo": "Undo",
   "diveLog_profileEditor_mode_select": "Select",

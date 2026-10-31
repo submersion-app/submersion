@@ -91,7 +91,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text("Can't shift: the selection would reach an adjacent sample"),
+        find.text("Can't shift: the selection has no room to move that way"),
         findsOneWidget,
       );
       expect(notifier.state.hasChanges, isFalse);

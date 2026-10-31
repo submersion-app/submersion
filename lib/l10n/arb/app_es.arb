@@ -15169,7 +15169,7 @@
   "diveLog_profileEditor_saveFailed": "No se pudo guardar el perfil: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Error al cargar la inmersión: {error}",
   "diveLog_profileEditor_noProfileData": "No hay datos de perfil disponibles",
-  "diveLog_profileEditor_timeShiftBlocked": "No se puede desplazar: la selección alcanzaría una muestra contigua",
+  "diveLog_profileEditor_timeShiftBlocked": "No se puede desplazar: la selección no tiene espacio en esa dirección",
   "diveLog_profileEditor_deleteAllBlocked": "No se puede eliminar todo el perfil",
   "diveLog_profileEditor_undo": "Deshacer",
   "diveLog_profileEditor_mode_select": "Seleccionar",
