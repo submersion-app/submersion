@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -149,14 +150,17 @@ class CnsOtuStatusCard extends StatelessWidget {
       return _clearCard(l10n, theme);
     }
 
-    final now = NoFlyService.wallClockNowUtc();
+    // True instants: CNS%, tissues and the "ended ... ago" line all measure
+    // elapsed time. Only daily OTU stays on clock digits, because it belongs
+    // to a calendar day rather than a span.
+    final now = clock.now().toUtc();
     final elapsed = now.isAfter(snap.lastDiveEnd)
         ? now.difference(snap.lastDiveEnd)
         : Duration.zero;
     final dailyOtu = CnsOtuLiveService.currentOtuDaily(
       dailyOtu: snap.dailyOtu,
       computedAt: snap.computedAt,
-      now: now,
+      now: NoFlyService.wallClockNowUtc(),
     );
 
     final exposure = snap.exposure;

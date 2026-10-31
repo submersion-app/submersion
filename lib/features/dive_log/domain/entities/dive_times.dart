@@ -1,3 +1,5 @@
+import 'package:submersion/core/util/wall_clock_utc.dart';
+
 /// Times-only projection of a dive row, used by the analysis lookback
 /// chains and surface-interval math so they never hydrate full [Dive]
 /// object graphs (large-DB performance program, WS2).
@@ -46,4 +48,17 @@ class DiveTimes {
   DateTime get effectiveExitTime =>
       exitTime ??
       (entryTime ?? dateTime).add(effectiveRuntime ?? Duration.zero);
+
+  /// [effectiveExitTime] as a true instant, read in the device's zone, for
+  /// measuring elapsed time against now.
+  ///
+  /// The start is converted before the runtime is added: added to clock
+  /// digits, a runtime that spans a DST change lands an hour from the real
+  /// end, and no later conversion can recover it (issue #3960).
+  DateTime get effectiveExitInstant {
+    final exit = exitTime;
+    if (exit != null) return fromWallClockUtc(exit).toUtc();
+    final start = fromWallClockUtc(entryTime ?? dateTime).toUtc();
+    return start.add(effectiveRuntime ?? Duration.zero);
+  }
 }
