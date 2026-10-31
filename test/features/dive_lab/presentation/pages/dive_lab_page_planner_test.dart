@@ -121,6 +121,18 @@ void main() {
     expect(find.byType(PopupMenuDivider), findsOneWidget);
   });
 
+  testWidgets('the app bar is titled Compare', (tester) async {
+    final router = _router();
+    addTearDown(router.dispose);
+    await tester.pumpWidget(_app(router, _inputs()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open lab'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.widgetWithText(AppBar, 'Compare'), findsOneWidget);
+  });
+
   testWidgets('Open in planner loads the hand-off and pushes the planner', (
     tester,
   ) async {

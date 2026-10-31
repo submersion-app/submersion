@@ -33,7 +33,7 @@ void main() {
     );
     await tester.pumpWidget(harness(dive.id));
     await tester.pump();
-    expect(find.text('What if'), findsOneWidget);
+    expect(find.text('Compare'), findsOneWidget);
     expect(find.text('New scenario'), findsOneWidget);
     expect(find.byType(ListTile), findsNothing);
   });

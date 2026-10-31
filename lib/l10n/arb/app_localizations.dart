@@ -82150,7 +82150,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLab_title.
   ///
   /// In en, this message translates to:
-  /// **'Dive Lab'**
+  /// **'Compare'**
   String get diveLab_title;
 
   /// No description provided for @diveLab_empty_ineligible.
@@ -82839,13 +82839,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_diveLab_name.
   ///
   /// In en, this message translates to:
-  /// **'What if'**
+  /// **'Compare'**
   String get diveDetailSection_diveLab_name;
 
   /// No description provided for @diveDetailSection_diveLab_description.
   ///
   /// In en, this message translates to:
-  /// **'Saved what-if scenarios from the Dive Lab'**
+  /// **'Plan, dive and saved what-ifs side by side'**
   String get diveDetailSection_diveLab_description;
 
   /// No description provided for @diveLab_panel_buoyancy.
@@ -82983,7 +82983,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLab_pdf_title.
   ///
   /// In en, this message translates to:
-  /// **'Dive Lab slate'**
+  /// **'What-if slate'**
   String get diveLab_pdf_title;
 
   /// No description provided for @diveLab_pdf_branch.
@@ -83019,7 +83019,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLab_sublab_notes.
   ///
   /// In en, this message translates to:
-  /// **'Shared via a Dive Lab scenario file'**
+  /// **'Shared via a what-if scenario file'**
   String get diveLab_sublab_notes;
 
   /// No description provided for @insights_trend_aggregation_monthly.
@@ -86081,7 +86081,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_menu_whatIf.
   ///
   /// In en, this message translates to:
-  /// **'What if…'**
+  /// **'Compare…'**
   String get diveLog_detail_menu_whatIf;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.

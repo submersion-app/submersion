@@ -85,7 +85,7 @@ enum DiveDetailSectionId {
       notes => 'Notes',
       documents => 'Documents',
       customFields => 'Custom Fields',
-      diveLab => 'What if',
+      diveLab => 'Compare',
       dataSources => 'Data Sources',
     };
   }
@@ -119,7 +119,7 @@ enum DiveDetailSectionId {
       notes => 'Dive notes/description',
       documents => 'Permits, receipts and other papers filed under the dive',
       customFields => 'User-defined custom fields',
-      diveLab => 'Saved what-if scenarios from the Dive Lab',
+      diveLab => 'Plan, dive and saved what-ifs side by side',
       dataSources => 'Connected dive computers, source management',
     };
   }

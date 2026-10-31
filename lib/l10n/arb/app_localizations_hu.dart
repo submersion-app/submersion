@@ -51570,7 +51570,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'A HealthKit nem érhető el ezen az eszközön';
 
   @override
-  String get diveLab_title => 'Merüléslabor';
+  String get diveLab_title => 'Összehasonlítás';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -51978,11 +51978,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'Mi lett volna, ha';
+  String get diveDetailSection_diveLab_name => 'Összehasonlítás';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'A merüléslaborban mentett „mi lett volna, ha” forgatókönyvek';
+      'Terv, merülés és mentett „mi lett volna, ha” forgatókönyvek egymás mellett';
 
   @override
   String get diveLab_panel_buoyancy => 'Felhajtóerő';
@@ -52062,7 +52062,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'Kijelöltek megosztása PDF-ként';
 
   @override
-  String get diveLab_pdf_title => 'Merüléslabor-lap';
+  String get diveLab_pdf_title => 'Forgatókönyv-lap';
 
   @override
   String get diveLab_pdf_branch => 'Elágazás';
@@ -52082,8 +52082,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_pdf_generated => 'Készítette: Submersion';
 
   @override
-  String get diveLab_sublab_notes =>
-      'Megosztva merüléslabor-forgatókönyvfájlon keresztül';
+  String get diveLab_sublab_notes => 'Megosztva forgatókönyvfájlon keresztül';
 
   @override
   String get insights_trend_aggregation_monthly => 'Havi átlag';
@@ -54115,7 +54114,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Mi lett volna, ha…';
+  String get diveLog_detail_menu_whatIf => 'Összehasonlítás…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';

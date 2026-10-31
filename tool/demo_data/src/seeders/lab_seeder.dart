@@ -10,7 +10,7 @@ import '../shape/dive_shape.dart';
 import '../story/story_plan.dart';
 import 'seed_context.dart';
 
-/// Saved Dive Lab what-ifs: the questions a diver asks of a dive afterwards,
+/// Saved Compare what-ifs: the questions a diver asks of a dive afterwards,
 /// answered by replaying it (other gradient factors, other gas) or by
 /// re-planning from partway through (leaving early).
 class LabSeeder implements DemoSeeder {

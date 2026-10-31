@@ -4,7 +4,7 @@ import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 
-/// The single "What if..." front door on dive detail: the Dive Lab when the
+/// The single "Compare..." front door on dive detail: the Compare page when the
 /// dive can be branched, else the rebuild-in-planner sheet, so a gauge dive
 /// with a profile keeps the path it has today.
 Future<void> openWhatIf(BuildContext context, Dive dive) {

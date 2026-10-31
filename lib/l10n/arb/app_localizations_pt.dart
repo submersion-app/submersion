@@ -51855,7 +51855,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'O HealthKit não está disponível neste dispositivo';
 
   @override
-  String get diveLab_title => 'Laboratório de mergulho';
+  String get diveLab_title => 'Comparar';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -52266,11 +52266,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ramifique este mergulho em qualquer momento e compare o que teria acontecido.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'E se';
+  String get diveDetailSection_diveLab_name => 'Comparar';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'Cenários hipotéticos guardados do laboratório de mergulho';
+      'Plano, mergulho e cenários hipotéticos guardados lado a lado';
 
   @override
   String get diveLab_panel_buoyancy => 'Flutuabilidade';
@@ -52349,7 +52349,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'Partilhar seleção como PDF';
 
   @override
-  String get diveLab_pdf_title => 'Ficha do laboratório de mergulho';
+  String get diveLab_pdf_title => 'Ficha do cenário';
 
   @override
   String get diveLab_pdf_branch => 'Ramificação';
@@ -52370,7 +52370,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_sublab_notes =>
-      'Partilhado através de um ficheiro de cenário do laboratório de mergulho';
+      'Partilhado através de um ficheiro de cenário';
 
   @override
   String get insights_trend_aggregation_monthly => 'Média mensal';
@@ -54411,7 +54411,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'E se…';
+  String get diveLog_detail_menu_whatIf => 'Comparar…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. mergulho original';

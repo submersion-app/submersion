@@ -48626,7 +48626,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '此设备不支持 HealthKit';
 
   @override
-  String get diveLab_title => '潜水实验室';
+  String get diveLab_title => '对比';
 
   @override
   String get diveLab_empty_ineligible => '此次潜水没有可供分支的剖面。';
@@ -49013,10 +49013,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
 
   @override
-  String get diveDetailSection_diveLab_name => '如果当时';
+  String get diveDetailSection_diveLab_name => '对比';
 
   @override
-  String get diveDetailSection_diveLab_description => '来自潜水实验室的已保存假设情形';
+  String get diveDetailSection_diveLab_description => '计划、潜水和已保存的假设情形并列对比';
 
   @override
   String get diveLab_panel_buoyancy => '浮力';
@@ -49093,7 +49093,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_saved_sharePdf => '将所选分享为 PDF';
 
   @override
-  String get diveLab_pdf_title => '潜水实验室卡片';
+  String get diveLab_pdf_title => '假设情形卡片';
 
   @override
   String get diveLab_pdf_branch => '分支点';
@@ -49113,7 +49113,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_pdf_generated => '由 Submersion 生成';
 
   @override
-  String get diveLab_sublab_notes => '通过潜水实验室情形文件分享';
+  String get diveLab_sublab_notes => '通过假设情形文件分享';
 
   @override
   String get insights_trend_aggregation_monthly => '每月平均';
@@ -51006,7 +51006,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => '如果当时…';
+  String get diveLog_detail_menu_whatIf => '对比…';
 
   @override
   String get plannerCanvas_sourceCompare_title => '对比原始潜水';

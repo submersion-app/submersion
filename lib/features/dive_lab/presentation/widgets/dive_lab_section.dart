@@ -10,8 +10,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The "What if" section on dive detail: this dive's saved scenarios with a
-/// one-line summary each, and the way into the Dive Lab.
+/// The Compare section on dive detail: this dive's saved scenarios with a
+/// one-line summary each, and the way into the Compare page.
 class DiveLabSection extends ConsumerWidget {
   const DiveLabSection({super.key, required this.diveId});
 

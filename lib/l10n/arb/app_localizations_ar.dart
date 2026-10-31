@@ -52482,7 +52482,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'HealthKit غير متوفر على هذا الجهاز';
 
   @override
-  String get diveLab_title => 'مختبر الغوص';
+  String get diveLab_title => 'مقارنة';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -52884,11 +52884,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'ماذا لو';
+  String get diveDetailSection_diveLab_name => 'مقارنة';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'سيناريوهات «ماذا لو» المحفوظة من مختبر الغوص';
+      'الخطة والغوصة وسيناريوهات «ماذا لو» المحفوظة جنبًا إلى جنب';
 
   @override
   String get diveLab_panel_buoyancy => 'الطفو';
@@ -52967,7 +52967,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'مشاركة المحدد كملف PDF';
 
   @override
-  String get diveLab_pdf_title => 'بطاقة مختبر الغوص';
+  String get diveLab_pdf_title => 'بطاقة السيناريو';
 
   @override
   String get diveLab_pdf_branch => 'نقطة التفرع';
@@ -52987,7 +52987,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_pdf_generated => 'أُنشئ بواسطة Submersion';
 
   @override
-  String get diveLab_sublab_notes => 'تمت المشاركة عبر ملف سيناريو مختبر الغوص';
+  String get diveLab_sublab_notes => 'تمت المشاركة عبر ملف سيناريو';
 
   @override
   String get insights_trend_aggregation_monthly => 'المتوسط الشهري';
@@ -55053,7 +55053,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'ماذا لو…';
+  String get diveLog_detail_menu_whatIf => 'مقارنة…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';

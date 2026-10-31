@@ -24,6 +24,14 @@ void main() {
       expect(DiveDetailSectionId.values.first, DiveDetailSectionId.profile);
       expect(DiveDetailSectionId.values.last, DiveDetailSectionId.dataSources);
     });
+
+    test('the Compare section is named for what it does', () {
+      expect(DiveDetailSectionId.diveLab.displayName, 'Compare');
+      expect(
+        DiveDetailSectionId.diveLab.description,
+        'Plan, dive and saved what-ifs side by side',
+      );
+    });
   });
 
   group('DiveDetailSectionConfig', () {

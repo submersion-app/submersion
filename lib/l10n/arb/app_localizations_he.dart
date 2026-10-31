@@ -50747,7 +50747,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'HealthKit אינו זמין במכשיר הזה';
 
   @override
-  String get diveLab_title => 'מעבדת צלילה';
+  String get diveLab_title => 'השוואה';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -51144,11 +51144,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'מה אם';
+  String get diveDetailSection_diveLab_name => 'השוואה';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'תרחישי \"מה אם\" שמורים ממעבדת הצלילה';
+      'תוכנית, צלילה ותרחישי \"מה אם\" שמורים זה לצד זה';
 
   @override
   String get diveLab_panel_buoyancy => 'ציפה';
@@ -51226,7 +51226,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'שיתוף הנבחרים כ-PDF';
 
   @override
-  String get diveLab_pdf_title => 'דף מעבדת הצלילה';
+  String get diveLab_pdf_title => 'דף התרחיש';
 
   @override
   String get diveLab_pdf_branch => 'נקודת הסתעפות';
@@ -51246,7 +51246,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_pdf_generated => 'נוצר על ידי Submersion';
 
   @override
-  String get diveLab_sublab_notes => 'שותף באמצעות קובץ תרחיש של מעבדת הצלילה';
+  String get diveLab_sublab_notes => 'שותף באמצעות קובץ תרחיש';
 
   @override
   String get insights_trend_aggregation_monthly => 'ממוצע חודשי';
@@ -53235,7 +53235,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'מה אם…';
+  String get diveLog_detail_menu_whatIf => 'השוואה…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

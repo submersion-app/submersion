@@ -51861,7 +51861,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'HealthKit non è disponibile su questo dispositivo';
 
   @override
-  String get diveLab_title => 'Laboratorio immersione';
+  String get diveLab_title => 'Confronta';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -52274,11 +52274,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'E se';
+  String get diveDetailSection_diveLab_name => 'Confronta';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'Scenari ipotetici salvati dal laboratorio immersione';
+      'Piano, immersione e scenari ipotetici salvati a confronto';
 
   @override
   String get diveLab_panel_buoyancy => 'Assetto';
@@ -52357,7 +52357,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'Condividi selezione come PDF';
 
   @override
-  String get diveLab_pdf_title => 'Scheda laboratorio immersione';
+  String get diveLab_pdf_title => 'Scheda scenario';
 
   @override
   String get diveLab_pdf_branch => 'Diramazione';
@@ -52377,8 +52377,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLab_pdf_generated => 'Generato da Submersion';
 
   @override
-  String get diveLab_sublab_notes =>
-      'Condiviso tramite un file scenario del laboratorio immersione';
+  String get diveLab_sublab_notes => 'Condiviso tramite un file scenario';
 
   @override
   String get insights_trend_aggregation_monthly => 'Media mensile';
@@ -54421,7 +54420,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'E se…';
+  String get diveLog_detail_menu_whatIf => 'Confronta…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. immersione originale';

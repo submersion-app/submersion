@@ -51528,7 +51528,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'HealthKit is niet beschikbaar op dit apparaat';
 
   @override
-  String get diveLab_title => 'Duiklab';
+  String get diveLab_title => 'Vergelijken';
 
   @override
   String get diveLab_empty_ineligible =>
@@ -51937,11 +51937,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.';
 
   @override
-  String get diveDetailSection_diveLab_name => 'Wat als';
+  String get diveDetailSection_diveLab_name => 'Vergelijken';
 
   @override
   String get diveDetailSection_diveLab_description =>
-      'Opgeslagen wat-als-scenario\'s uit het duiklab';
+      'Plan, duik en opgeslagen wat-als-scenario\'s naast elkaar';
 
   @override
   String get diveLab_panel_buoyancy => 'Drijfvermogen';
@@ -52020,7 +52020,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_saved_sharePdf => 'Selectie delen als PDF';
 
   @override
-  String get diveLab_pdf_title => 'Duiklab-slate';
+  String get diveLab_pdf_title => 'Scenario-slate';
 
   @override
   String get diveLab_pdf_branch => 'Vertakking';
@@ -52040,7 +52040,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_pdf_generated => 'Gemaakt met Submersion';
 
   @override
-  String get diveLab_sublab_notes => 'Gedeeld via een duiklab-scenariobestand';
+  String get diveLab_sublab_notes => 'Gedeeld via een scenariobestand';
 
   @override
   String get insights_trend_aggregation_monthly => 'Maandgemiddelde';
@@ -54062,7 +54062,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Wat als…';
+  String get diveLog_detail_menu_whatIf => 'Vergelijken…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. oorspronkelijke duik';
