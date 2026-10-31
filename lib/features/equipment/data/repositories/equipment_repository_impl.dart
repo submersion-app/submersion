@@ -50,10 +50,10 @@ CASE
                  ELSE 0
                END''';
 
-/// The dives behind the item page's Dives and Dive Time rows: `d` carries the
-/// item `?1`, directly or through a tank, and belongs to the diver `?2` when
-/// one is given. Each row reads a dive once however many ways it is linked,
-/// which a join against `dive_tanks` would not.
+/// The dives behind the item page's Dives and Dive Time rows: `d` happened,
+/// carries the item `?1`, directly or through a tank, and belongs to the diver
+/// `?2` when one is given. Each row reads a dive once however many ways it is
+/// linked, which a join against `dive_tanks` would not.
 final String _diveOnItemSql =
     '''
 (EXISTS (SELECT 1 FROM dive_equipment de
@@ -62,7 +62,8 @@ final String _diveOnItemSql =
                        WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
             -- A regulator on a tank, first or extra (#3375).
             OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
-          AND (?2 IS NULL OR d.diver_id = ?2)''';
+          AND (?2 IS NULL OR d.diver_id = ?2)
+          AND d.is_planned = 0''';
 
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
 /// its parent, its parts still fitted, whether it breathes a loop, and the
@@ -1248,10 +1249,14 @@ class EquipmentRepository {
 
   /// Dives [equipmentId] is on, for the item page's Dives row: linked
   /// directly or through a tank the registry matched to a cylinder, the link
-  /// set the dive list's equipment filter uses, so the row's count and the
-  /// list it opens agree. With [diverId], only that diver's dives, since the
-  /// dive list shows only the active profile (issue #2046); null counts every
-  /// diver's.
+  /// set the dive list's equipment filter uses. With [diverId], only that
+  /// diver's dives, since the dive list shows only the active profile (issue
+  /// #2046); null counts every diver's.
+  ///
+  /// A planned dive does not count: it has not happened, so it has put no
+  /// use on the item, whatever its date (issue #3932). The list the row opens
+  /// still shows it, marked as planned.
+  ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened, and the dive list it opens
   /// shows it too. Do not "fix" this.
@@ -1340,6 +1345,9 @@ class EquipmentRepository {
   /// dive with no supply cylinder recorded is still 100 percent O2 contact
   /// for the unit).
   ///
+  /// A planned dive is not a sample: it has not happened, so it has worn
+  /// nothing, and its date must not charge a clock today (issue #3932).
+  ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
   /// hours on it. Suppressing it here would push a real service interval
@@ -1416,7 +1424,8 @@ class EquipmentRepository {
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
           AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?6
-        WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
+        WHERE d.is_planned = 0
+          AND (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
         GROUP BY d.id
         ORDER BY d.dive_date_time
@@ -1689,9 +1698,10 @@ class EquipmentRepository {
   /// [EquipmentItem.parentDivesFrom]) and the SQL stops being run per item.
   /// The seven branches are the single-item query's, joined to that table.
   ///
-  /// Deliberately does NOT apply DiveStatsScope, for the single-item query's
-  /// reason: an excluded dive still wore this gear, and dropping it would
-  /// push a real service interval later than it should be.
+  /// Leaves planned dives out and deliberately does NOT apply DiveStatsScope,
+  /// for the single-item query's reasons: a plan has worn nothing, while an
+  /// excluded dive still wore this gear, and dropping it would push a real
+  /// service interval later than it should be.
   Future<Map<String, List<EquipmentExposureSample>>>
   _getExposureSamplesForOwners(
     List<
@@ -1795,7 +1805,8 @@ class EquipmentRepository {
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
           AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?
-        WHERE (je.via_parent = 0 OR o.installed_since IS NULL
+        WHERE d.is_planned = 0
+          AND (je.via_parent = 0 OR o.installed_since IS NULL
           OR d.dive_date_time >= o.installed_since)
         GROUP BY je.owner_id, d.id
         ORDER BY je.owner_id, d.dive_date_time
@@ -1922,6 +1933,9 @@ class EquipmentRepository {
   }
 
   /// Get trip count for equipment item (unique trips from dives using this equipment)
+  /// A planned dive has not used the item, so a trip with nothing but plans
+  /// for it does not count (issue #3932).
+  ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
   /// hours on it. Suppressing it here would push a real service interval
@@ -1937,6 +1951,7 @@ class EquipmentRepository {
         FROM dive_equipment de
         INNER JOIN dives d ON de.dive_id = d.id
         WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
+          AND d.is_planned = 0
       ''',
             variables: [Variable.withString(equipmentId)],
           )
@@ -1953,7 +1968,8 @@ class EquipmentRepository {
     }
   }
 
-  /// Get trip IDs for equipment item
+  /// Get trip IDs for equipment item: the trips
+  /// [getTripCountForEquipment] counts.
   // stats-scope-exempt: gear usage is physical, not descriptive
   Future<List<String>> getTripIdsForEquipment(String equipmentId) async {
     try {
@@ -1964,6 +1980,7 @@ class EquipmentRepository {
         FROM dive_equipment de
         INNER JOIN dives d ON de.dive_id = d.id
         WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
+          AND d.is_planned = 0
         ORDER BY d.dive_date_time DESC
       ''',
             variables: [Variable.withString(equipmentId)],
