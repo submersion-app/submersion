@@ -45,6 +45,8 @@ double pressureForVolume(GasMix m, double vol) {
 
 /// Why a blend cannot be produced. Mapped to a localized message by the UI.
 enum BlendError {
+  /// The target is not above the start pressure, neither as typed nor once
+  /// converted to the fill temperature, so there is nothing to top up.
   targetPressureNotHigher,
   invalidMix,
   identicalNitroxGases,
@@ -348,14 +350,32 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
   final fillK = celsiusToKelvin(inputs.fillTempC);
   final settledK = celsiusToKelvin(inputs.settledTempC);
 
-  if (pf <= pi) {
-    throw const BlendException(BlendError.targetPressureNotHigher);
-  }
   _validateMix(gasI);
   _validateMix(gasF);
   _validateMix(inputs.fillGas1);
   _validateMix(inputs.fillGas2);
   _validateMix(inputs.fillGas3);
+
+  // The start pressure is a gauge reading taken while the cylinder is at the
+  // fill temperature; the target is what it must read once settled.
+  final iVol = molarDensity(model, pi, gasI, fillK);
+  final fVol = molarDensity(model, pf, gasF, settledK);
+
+  // Where the gauge stops for the cylinder to settle at the target. When it is
+  // filled at its settled temperature that is the pressure the diver typed, so
+  // use it verbatim rather than an iteration's approximation of their number.
+  final fillToBar = inputs.fillTempC == inputs.settledTempC
+      ? pf
+      : pressureAt(model, fVol, gasF, fillK);
+
+  // The two typed pressures are read at different temperatures, so a warm
+  // cylinder can need gas to settle at the pressure it already shows. Only
+  // reject once the target is out of reach on both readings: the message names
+  // the typed target, so it has to be true of that number, and anything else
+  // the solver below answers more precisely.
+  if (pf <= pi && fillToBar <= pi) {
+    throw const BlendException(BlendError.targetPressureNotHigher);
+  }
 
   // A cylinder that holds pressure holds a gas somebody filled it with. Zero
   // oxygen and zero helium is pure nitrogen, which is not one of those, and
@@ -376,11 +396,6 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
   final banks = [inputs.fillGas1, inputs.fillGas2, inputs.fillGas3];
   final bankOrder = _selectFillGases(gasF, banks);
   final gases = [for (final i in bankOrder) banks[i]];
-
-  // The start pressure is a gauge reading taken while the cylinder is at the
-  // fill temperature; the target is what it must read once settled.
-  final iVol = molarDensity(model, pi, gasI, fillK);
-  final fVol = molarDensity(model, pf, gasF, settledK);
 
   final tops = _solveTops(
     start: gasI,
@@ -444,21 +459,15 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
   }
 
   // The final reading comes from the exact target state, not from the running
-  // total, which carries the drift of every intermediate inversion. When the
-  // cylinder is filled at its settled temperature that reading is the pressure
-  // the diver typed, so use it verbatim rather than handing back an
-  // iteration's approximation of their own number.
+  // total, which carries the drift of every intermediate inversion.
   if (steps.length > 1) {
     final last = steps.removeLast();
-    final finalBar = inputs.fillTempC == inputs.settledTempC
-        ? pf
-        : pressureAt(model, fVol, gasF, fillK);
     steps.add(
       BlendStep(
         fillGas: last.fillGas,
         fillGasIndex: last.fillGasIndex,
-        pressureBar: finalBar,
-        addedBar: finalBar - steps.last.pressureBar,
+        pressureBar: fillToBar,
+        addedBar: fillToBar - steps.last.pressureBar,
         resultingMix: last.resultingMix,
         addedVolumePerLiter: last.addedVolumePerLiter,
       ),

@@ -463,6 +463,142 @@ void main() {
     });
   });
 
+  group('a top-up at different fill and settled temperatures', () {
+    GasBlenderInputs topUpInputs({
+      required double startBar,
+      required double targetBar,
+      GasMix start = _air,
+      GasMix target = _air,
+      double fillC = 35,
+      double settledC = 20,
+      BlendGasModel model = BlendGasModel.zFactor,
+    }) => GasBlenderInputs(
+      startPressureBar: startBar,
+      start: start,
+      targetPressureBar: targetBar,
+      target: target,
+      fillGas1: _o2,
+      fillGas2: _he,
+      fillGas3: _air,
+      model: model,
+      fillTempC: fillC,
+      settledTempC: settledC,
+    );
+
+    BlendException exceptionFrom(GasBlenderInputs i) {
+      try {
+        computeBlend(i);
+      } on BlendException catch (e) {
+        return e;
+      }
+      fail('expected a BlendException');
+    }
+
+    const fillToBarByModel = {
+      BlendGasModel.ideal: 210.2336688,
+      BlendGasModel.vanDerWaals: 215.1402746,
+      BlendGasModel.zFactor: 211.7163296,
+    };
+
+    for (final entry in fillToBarByModel.entries) {
+      test('a warm cylinder needs gas to settle at its own reading '
+          '(${entry.key.name})', () {
+        final result = computeBlend(
+          topUpInputs(startBar: 200, targetBar: 200, model: entry.key),
+        );
+        expect(result.steps.map((s) => s.fillGas), [null, _air]);
+        expect(result.steps.last.fillGasIndex, 2);
+        expect(result.steps.last.pressureBar, closeTo(entry.value, 1e-3));
+        expect(result.steps.last.addedBar, closeTo(entry.value - 200, 1e-3));
+        expect(result.settledPressureBar, 200);
+      });
+    }
+
+    test('the ideal fill-to pressure is the absolute temperature ratio', () {
+      final result = computeBlend(
+        topUpInputs(startBar: 200, targetBar: 200, model: BlendGasModel.ideal),
+      );
+      expect(
+        result.steps.last.pressureBar,
+        closeTo(200 * 308.15 / 293.15, 1e-6),
+      );
+    });
+
+    test('a warm cylinder can settle below its current reading', () {
+      final result = computeBlend(topUpInputs(startBar: 205, targetBar: 200));
+      expect(result.steps.last.pressureBar, closeTo(211.716, 0.01));
+      expect(result.steps.last.addedBar, greaterThan(0));
+    });
+
+    test('a warm trimix top-up draws on every fill gas it needs', () {
+      const trimix = GasMix(o2: 18, he: 45);
+      final result = computeBlend(
+        topUpInputs(
+          startBar: 200,
+          start: trimix,
+          targetBar: 200,
+          target: trimix,
+        ),
+      );
+      expect(result.steps.first.pressureBar, 200);
+      expect(result.steps.map((s) => s.fillGas), [null, _o2, _he, _air]);
+      final gauge = result.steps.map((s) => s.pressureBar).toList();
+      for (var i = 1; i < gauge.length; i++) {
+        expect(gauge[i], greaterThan(gauge[i - 1]));
+      }
+      expect(result.steps.last.resultingMix.o2, closeTo(18, 0.01));
+      expect(result.steps.last.resultingMix.he, closeTo(45, 0.01));
+    });
+
+    test('a richer target at the same reading asks for a drain', () {
+      final e = exceptionFrom(
+        topUpInputs(
+          startBar: 200,
+          targetBar: 200,
+          target: const GasMix(o2: 32),
+        ),
+      );
+      expect(e.error, BlendError.negativeAmountRequired);
+      expect(e.drainToBar, isNotNull);
+      expect(e.drainToBar, lessThan(200));
+    });
+
+    test('a warm cylinder already past the fill-to pressure is rejected', () {
+      expect(
+        exceptionFrom(topUpInputs(startBar: 220, targetBar: 200)).error,
+        BlendError.targetPressureNotHigher,
+      );
+    });
+
+    test('equal temperatures compare the typed pressures unchanged', () {
+      expect(
+        exceptionFrom(
+          topUpInputs(startBar: 200, targetBar: 200, fillC: 20),
+        ).error,
+        BlendError.targetPressureNotHigher,
+      );
+    });
+
+    test('a cold cylinder at the target reading is still rejected', () {
+      expect(
+        exceptionFrom(
+          topUpInputs(startBar: 200, targetBar: 200, fillC: 10),
+        ).error,
+        BlendError.targetPressureNotHigher,
+      );
+    });
+
+    test('a cold cylinder below the target reading keeps drain guidance', () {
+      // 197 bar at 10 C is more gas than 200 bar at 20 C, even though the
+      // target reads higher, so "target must be higher" would be false here.
+      final e = exceptionFrom(
+        topUpInputs(startBar: 197, targetBar: 200, fillC: 10),
+      );
+      expect(e.error, BlendError.negativeAmountRequired);
+      expect(e.drainToBar, lessThan(197));
+    });
+  });
+
   group('gas model selection', () {
     GasBlenderInputs modelInputs(BlendGasModel model) => GasBlenderInputs(
       startPressureBar: 0,
