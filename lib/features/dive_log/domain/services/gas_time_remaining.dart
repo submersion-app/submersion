@@ -139,7 +139,6 @@ double _readAt(
   int time,
 ) {
   final beforeTime = timestamps[before];
-  if (time <= beforeTime) return series[before];
   final progress = (time - beforeTime) / (timestamps[before + 1] - beforeTime);
   return series[before] + (series[before + 1] - series[before]) * progress;
 }
