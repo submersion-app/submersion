@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
@@ -84,7 +85,9 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_segment_grou
 import 'package:submersion/features/dive_log/presentation/utils/sac_segments_availability.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
+import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
+import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/dive_lab_section.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -583,6 +586,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       DiveDetailSectionId.customFields: (_) {
         if (dive.customFields.isEmpty) return [];
         return [_buildCustomFieldsSection(context, dive)];
+      },
+      DiveDetailSectionId.diveLab: (topGap) {
+        if (!isDiveLabEligible(dive)) return [];
+        return [SizedBox(height: topGap), DiveLabSection(diveId: dive.id)];
       },
       DiveDetailSectionId.dataSources: (_) {
         return [
@@ -1318,7 +1325,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     _unlinkPreDiveChecklist(context, linkedPreDive!);
                     break;
                   case 'whatIf':
-                    showWhatIfSheet(context, dive);
+                    openWhatIf(context, dive);
                     break;
                   case 'delete':
                     _showDeleteConfirmation(context, ref);
@@ -1326,6 +1333,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 }
               },
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dives',
+                  rootId: diveId,
+                ),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 if (compactActions)
                   PopupMenuItem(
@@ -1581,7 +1593,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         _unlinkPreDiveChecklist(context, linkedPreDive!);
                         break;
                       case 'whatIf':
-                        showWhatIfSheet(context, dive);
+                        openWhatIf(context, dive);
                         break;
                       case 'delete':
                         _showDeleteConfirmation(context, ref);
@@ -1596,6 +1608,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     }
                   },
                   itemBuilder: (context) => [
+                    changeLogHistoryMenuItem(
+                      context,
+                      rootTable: 'dives',
+                      rootId: diveId,
+                    ),
                     PopupMenuItem(
                       value: 'open',
                       child: ListTile(

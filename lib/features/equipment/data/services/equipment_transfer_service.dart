@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -205,6 +206,24 @@ class EquipmentTransferService {
   /// skipped. A target that does not exist fails the foreign key and rolls
   /// the whole transfer back.
   Future<EquipmentTransferResult> transfer({
+    required List<String> equipmentIds,
+    required String toDiverId,
+    required String actingDiverId,
+    bool keepAccess = true,
+    bool moveRegistry = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.gearTransfer,
+    body: () => _transferInner(
+      equipmentIds: equipmentIds,
+      toDiverId: toDiverId,
+      actingDiverId: actingDiverId,
+      keepAccess: keepAccess,
+      moveRegistry: moveRegistry,
+    ),
+  );
+
+  Future<EquipmentTransferResult> _transferInner({
     required List<String> equipmentIds,
     required String toDiverId,
     required String actingDiverId,

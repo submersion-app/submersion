@@ -6,6 +6,7 @@ import 'gear_faults.dart';
 import 'gear_life_seeder.dart';
 import 'gear_seeder.dart';
 import 'gear_service_seeder.dart';
+import 'lab_seeder.dart';
 import 'media_seeder.dart';
 import 'misc_seeder.dart';
 import 'places_seeder.dart';
@@ -30,6 +31,7 @@ List<DemoSeeder> demoSeeders() => [
   TrainingLinksSeeder(),
   MediaSeeder(),
   PlanningSeeder(),
+  LabSeeder(),
   TrackSeeder(),
   MiscSeeder(),
   DerivedSeeder(),

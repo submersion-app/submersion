@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -336,7 +337,13 @@ class BuddyRepository {
   }
 
   /// Delete a buddy
-  Future<void> deleteBuddy(String id) async {
+  Future<void> deleteBuddy(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteBuddyInner(id),
+  );
+
+  Future<void> _deleteBuddyInner(String id) async {
     try {
       _log.info('Deleting buddy: $id');
       // Atomic (issue #553 review): tombstone the buddy's certs, delete the

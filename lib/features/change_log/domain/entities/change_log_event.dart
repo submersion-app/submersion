@@ -1,0 +1,186 @@
+import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
+
+enum ChangeLogAction {
+  insert('I'),
+  update('U'),
+  delete('D');
+
+  const ChangeLogAction(this.code);
+
+  /// The value in `change_log_events.action`.
+  final String code;
+
+  static ChangeLogAction fromCode(String code) =>
+      values.firstWhere((action) => action.code == code);
+}
+
+/// The record a change belongs to in the feed.
+typedef ChangeLogRoot = ({String table, String id});
+
+/// Stands for "keep this value" in a copyWith whose values may be null.
+const Object _keep = Object();
+
+/// One changed column. A value keeps the type SQLite stored it with, so it
+/// can be text, a number, bytes or null.
+class ChangeLogFieldChange extends Equatable {
+  const ChangeLogFieldChange({
+    required this.table,
+    required this.column,
+    this.oldValue,
+    this.newValue,
+  });
+
+  final String table;
+  final String column;
+  final Object? oldValue;
+  final Object? newValue;
+
+  /// A logged null is a real value, so passing null sets one.
+  ChangeLogFieldChange copyWith({
+    Object? oldValue = _keep,
+    Object? newValue = _keep,
+  }) => ChangeLogFieldChange(
+    table: table,
+    column: column,
+    oldValue: identical(oldValue, _keep) ? this.oldValue : oldValue,
+    newValue: identical(newValue, _keep) ? this.newValue : newValue,
+  );
+
+  @override
+  List<Object?> get props => [table, column, oldValue, newValue];
+}
+
+/// One changed record inside a change log entry.
+class ChangeLogEvent extends Equatable {
+  const ChangeLogEvent({
+    required this.id,
+    required this.operationId,
+    required this.table,
+    required this.recordId,
+    required this.action,
+    required this.changedAt,
+    required this.schemaVersion,
+    this.rootTable,
+    this.rootId,
+    this.fields = const [],
+  });
+
+  final int id;
+  final String operationId;
+  final String table;
+  final String recordId;
+  final ChangeLogAction action;
+  final DateTime changedAt;
+
+  /// The schema this was written under, which decides whether a later
+  /// migration has made its values unsafe to restore.
+  final int schemaVersion;
+  final String? rootTable;
+  final String? rootId;
+
+  /// The changed columns of an update, or every non-null column of a delete.
+  final List<ChangeLogFieldChange> fields;
+
+  ChangeLogRoot get root => (table: rootTable ?? table, id: rootId ?? recordId);
+
+  ChangeLogEvent copyWith({List<ChangeLogFieldChange>? fields}) =>
+      ChangeLogEvent(
+        id: id,
+        operationId: operationId,
+        table: table,
+        recordId: recordId,
+        action: action,
+        changedAt: changedAt,
+        schemaVersion: schemaVersion,
+        rootTable: rootTable,
+        rootId: rootId,
+        fields: fields ?? this.fields,
+      );
+
+  @override
+  List<Object?> get props => [
+    id,
+    operationId,
+    table,
+    recordId,
+    action,
+    changedAt,
+    schemaVersion,
+    rootTable,
+    rootId,
+    fields,
+  ];
+}
+
+/// What [events] did to each field overall: several saves to one field are
+/// one change from the first old value to the last new one, and a field saved
+/// back to where it started is no change. Each is listed under the first
+/// event that touched it.
+List<({ChangeLogEvent event, ChangeLogFieldChange field})> netFieldChanges(
+  Iterable<ChangeLogEvent> events,
+) {
+  final first = <(String, String, String), ChangeLogEvent>{};
+  final old = <(String, String, String), Object?>{};
+  final latest = <(String, String, String), Object?>{};
+  for (final event in events) {
+    if (event.action != ChangeLogAction.update) continue;
+    for (final field in event.fields) {
+      final key = (event.table, event.recordId, field.column);
+      if (!first.containsKey(key)) {
+        first[key] = event;
+        old[key] = field.oldValue;
+      }
+      latest[key] = field.newValue;
+    }
+  }
+  return [
+    for (final MapEntry(:key, value: event) in first.entries)
+      if (!const DeepCollectionEquality().equals(old[key], latest[key]))
+        (
+          event: event,
+          field: ChangeLogFieldChange(
+            table: event.table,
+            column: key.$3,
+            oldValue: old[key],
+            newValue: latest[key],
+          ),
+        ),
+  ];
+}
+
+/// What the feed shows of an entry: its first fields, how many there are,
+/// and what happened to its record when no field did.
+class ChangeLogPreview extends Equatable {
+  const ChangeLogPreview({
+    required this.fields,
+    required this.total,
+    this.rootAction,
+  });
+
+  final List<ChangeLogFieldChange> fields;
+  final int total;
+  final ChangeLogAction? rootAction;
+
+  ChangeLogPreview copyWith({
+    List<ChangeLogFieldChange>? fields,
+    int? total,
+    Object? rootAction = _keep,
+  }) => ChangeLogPreview(
+    fields: fields ?? this.fields,
+    total: total ?? this.total,
+    rootAction: identical(rootAction, _keep)
+        ? this.rootAction
+        : rootAction as ChangeLogAction?,
+  );
+
+  @override
+  List<Object?> get props => [fields, total, rootAction];
+}
+
+/// How a record is told apart from every other, across tables.
+String changeLogRecordKey(String table, Object id) => '$table|$id';
+
+/// Where a resolved foreign key is kept, by sync entity and JSON key.
+String changeLogReferenceKey(String entity, String key, Object value) =>
+    '$entity|$key|$value';

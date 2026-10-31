@@ -60,9 +60,20 @@ void main() {
 
   test('the inner join used by rankings does too', () async {
     final join = tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '');
+    final filter = topLevelTripFilter(diverId: null, conjunction: 'WHERE');
     final p = await plan(
       'SELECT t.id, COUNT(d.id) FROM trips t $join '
-      'WHERE $topLevelTripSql GROUP BY t.id',
+      '${filter.whereClause} GROUP BY t.id',
+    );
+    expect(p, contains('idx_dives_trip_id'));
+  });
+
+  test('and with a profile, through the visibility checks', () async {
+    final join = tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '');
+    final filter = topLevelTripFilter(diverId: 'x', conjunction: 'WHERE');
+    final sql = filter.whereClause.replaceAll('?', "'x'");
+    final p = await plan(
+      'SELECT t.id, COUNT(d.id) FROM trips t $join $sql GROUP BY t.id',
     );
     expect(p, contains('idx_dives_trip_id'));
   });

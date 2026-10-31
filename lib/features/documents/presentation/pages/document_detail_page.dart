@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -100,6 +101,11 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
                 itemBuilder: (context) {
                   final error = Theme.of(context).colorScheme.error;
                   return [
+                    changeLogHistoryMenuItem(
+                      context,
+                      rootTable: 'documents',
+                      rootId: doc.id,
+                    ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(

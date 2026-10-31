@@ -1,5 +1,8 @@
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 
+/// What identifies one warning row: the type and severity it groups by.
+typedef PlanIssueKey = (PlanIssueType, PlanIssueSeverity);
+
 /// One warning row standing in for every [PlanIssue] of the same type and
 /// severity. [issue] is the representative the row is rendered from and
 /// [count] how many raw issues it covers.
@@ -8,6 +11,8 @@ class GroupedPlanIssue {
 
   final PlanIssue issue;
   final int count;
+
+  PlanIssueKey get key => (issue.type, issue.severity);
 }
 
 /// Collapses issues the engine raised once per segment (gas density, END,

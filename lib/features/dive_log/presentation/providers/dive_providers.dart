@@ -8,6 +8,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -704,9 +705,15 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
 
   /// Restore multiple dives (for undo functionality)
   Future<void> restoreDives(List<domain.Dive> dives) async {
-    for (final dive in dives) {
-      await _repository.createDive(dive);
-    }
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.bulkEdit,
+      body: () async {
+        for (final dive in dives) {
+          await _repository.createDive(dive);
+        }
+      },
+    );
     final restoredIds = {for (final dive in dives) dive.id};
     await _ref.read(documentMutationsProvider).restoreSnapshot([
       for (final entry in _deletedDocuments)
@@ -1465,9 +1472,15 @@ class PaginatedDiveListNotifier
   }
 
   Future<void> restoreDives(List<domain.Dive> dives) async {
-    for (final dive in dives) {
-      await _repository.createDive(dive);
-    }
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.bulkEdit,
+      body: () async {
+        for (final dive in dives) {
+          await _repository.createDive(dive);
+        }
+      },
+    );
     final restoredIds = {for (final dive in dives) dive.id};
     await _ref.read(documentMutationsProvider).restoreSnapshot([
       for (final entry in _deletedDocuments)

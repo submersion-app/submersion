@@ -1,5 +1,6 @@
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -53,7 +54,13 @@ class ImportedFileReclaimer {
   /// leaves an unreferenced file -- the failure mode that existed before this
   /// sweep did, and one the next call cleans up -- rather than a surviving row
   /// pointing at bytes that are not there.
-  Future<void> reclaimOrphans() async {
+  Future<void> reclaimOrphans() => ChangeLogScope.automatic(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.mediaCleanup,
+    body: () => _reclaimOrphansInner(),
+  );
+
+  Future<void> _reclaimOrphansInner() async {
     final db = _database();
     try {
       final orphans = await db
