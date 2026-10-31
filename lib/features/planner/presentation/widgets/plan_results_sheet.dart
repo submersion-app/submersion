@@ -18,7 +18,6 @@ import 'package:submersion/features/planner/presentation/mission/mission_results
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_warnings_section.dart';
@@ -732,18 +731,6 @@ class _BailoutSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Every figure below was sized on a gas past its MOD, so none of them is
-    // shown: the error is the whole answer (#3961).
-    if (outcome.gasGap case final gap?) {
-      return _BailoutError(
-        message: bailoutGasGapMessage(
-          context.l10n,
-          units,
-          depthMeters: gap.depthMeters,
-          deepestModMeters: gap.deepestModMeters,
-        ),
-      );
-    }
     final worst = outcome.worstCase;
     final shortfallColor = outcome.sufficient
         ? theme.colorScheme.onSurface
@@ -789,8 +776,19 @@ class _BailoutSection extends StatelessWidget {
         if (!outcome.sufficient)
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: _BailoutError(
-              message: context.l10n.plannerCanvas_bailout_insufficient,
+            child: Row(
+              children: [
+                Icon(Icons.error, size: 18, color: theme.colorScheme.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    context.l10n.plannerCanvas_bailout_insufficient,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         if (outcome.bailoutTankUsages.isNotEmpty) ...[
@@ -818,31 +816,6 @@ class _BailoutSection extends StatelessWidget {
           const SizedBox(height: 4),
           _BailoutScheduleTable(rows: outcome.worstCaseRows, units: units),
         ],
-      ],
-    );
-  }
-}
-
-class _BailoutError extends StatelessWidget {
-  const _BailoutError({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(Icons.error, size: 18, color: theme.colorScheme.error),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            message,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.error,
-            ),
-          ),
-        ),
       ],
     );
   }

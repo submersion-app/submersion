@@ -56,7 +56,7 @@ void main() {
           id: 'bo',
           volume: 11.1,
           startPressure: 207,
-          gasMix: GasMix(o2: 32),
+          gasMix: GasMix(o2: 50),
           role: TankRole.bailout,
         ),
       );

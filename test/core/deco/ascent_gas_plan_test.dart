@@ -128,27 +128,5 @@ void main() {
         expect(plan.breakGasForDepth(6), isNull);
       });
     });
-
-    // Issue #3961: gasForDepth always answers, so a caller that must not
-    // breathe a gas past its MOD has to be able to ask first.
-    group('coverage', () {
-      const ean50 = AvailableGas(fN2: 0.50, fHe: 0.0, maxPpO2Mod: 22.0);
-      const o2 = AvailableGas(fN2: 0.0, fHe: 0.0, maxPpO2Mod: 6.0);
-      final shallowOnly = OptimalOcAscentGas(gases: [o2, ean50], maxPpO2: 1.6);
-
-      test('deepestMod is the deepest MOD of any gas, in any order', () {
-        expect(shallowOnly.deepestMod, 22.0);
-      });
-
-      test('coversDepth holds to the deepest MOD, and not past it', () {
-        expect(shallowOnly.coversDepth(0), isTrue);
-        expect(shallowOnly.coversDepth(22.0), isTrue);
-        expect(shallowOnly.coversDepth(22.01), isFalse);
-      });
-
-      test('a depth coversDepth rejects still gets a gas from gasForDepth', () {
-        expect(shallowOnly.gasForDepth(40).fN2, 0.50);
-      });
-    });
   });
 }

@@ -20649,14 +20649,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'O plano de descompressão não leva gás de bailout';
 
   @override
-  String plannerCanvas_issue_noEligibleBailoutGas(
-    String depth,
-    String deepestMod,
-  ) {
-    return 'Nenhum gás de bailout chega a $depth: a MOD mais profunda transportada é $deepestMod. Leve um gás utilizável a essa profundidade; mais do mesmo gás não resolve.';
-  }
-
-  @override
   String get plannerCanvas_issue_noDecoGas =>
       'Descompressão necessária mas sem gás de deco a bordo';
 

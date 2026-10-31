@@ -18,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 
@@ -39,23 +40,6 @@ class BailoutPoint {
     required this.ttsSeconds,
     required this.litersRequired,
     required this.schedule,
-  });
-}
-
-/// Where a plan's carried bailout gases stop reaching it (issue #3961): the
-/// deepest instant the loop could die at, past the MOD of every one of them.
-/// Nothing is eligible there, so no ascent from it can be sized, and more of
-/// the same gases cannot change that.
-class BailoutGasGap {
-  /// The deepest failure depth, which no carried bailout gas reaches.
-  final double depthMeters;
-
-  /// The deepest MOD among the carried bailout gases.
-  final double deepestModMeters;
-
-  const BailoutGasGap({
-    required this.depthMeters,
-    required this.deepestModMeters,
   });
 }
 
@@ -117,13 +101,6 @@ class BailoutOutcome {
   /// flat-hold-then-climb steps every other stop shows.
   final List<PlanStop> ocStops;
 
-  /// Null when a carried bailout gas is eligible at every sampled instant.
-  /// When set, the figures above were worked out on a gas past its MOD: they
-  /// have to answer something, but none of them may be shown as a bailout
-  /// plan. It can be set with [worstCase] itself in range, since that instant
-  /// is the one that needs the most liters, not the deepest.
-  final BailoutGasGap? gasGap;
-
   const BailoutOutcome({
     required this.points,
     required this.worstCase,
@@ -134,13 +111,9 @@ class BailoutOutcome {
     required this.bailoutTankUsages,
     required this.ceilingTrace,
     required this.ocStops,
-    this.gasGap,
   });
 
-  /// Whether the carried bailout gas gets the diver out: every failure depth
-  /// has an eligible gas, and there is enough of it.
-  bool get sufficient =>
-      gasGap == null && worstCase.litersRequired <= availableLiters;
+  bool get sufficient => worstCase.litersRequired <= availableLiters;
 
   /// The sampled point closest in runtime to [runtimeSeconds].
   BailoutPoint nearest(double runtimeSeconds) {
@@ -268,7 +241,17 @@ class BailoutSolver {
       environment: environment,
       policy: policy,
     );
-    final bailoutPlan = config.bailoutAscentGas(bailoutTanks, environment);
+    // Each bailout gas joins at its cylinder's MOD (issue #3567): the one
+    // the diver set, or the default for a bailout of its mix.
+    final bailoutPlan = OptimalOcAscentGas(
+      maxPpO2: config.ppO2Deco,
+      gases: ascentGasesFor(
+        bailoutTanks,
+        bottomPpO2: config.ppO2Working,
+        decoPpO2: config.decoLimits,
+        environment: environment,
+      ),
+    );
 
     final carriedLiters = bailoutTanks.fold<double>(
       0,
@@ -429,12 +412,6 @@ class BailoutSolver {
     }
     final worst = points[worstIndex];
     final spentAtWorst = spentAtPoints[worstIndex];
-    // Every point, not just the worst: that one needs the most liters, which
-    // a long shallow hold can claim from a brief trip past every MOD. Legs
-    // end on a sample, so the plan's deepest point is always among these.
-    final deepestPoint = points
-        .map((point) => point.depthMeters)
-        .reduce(math.max);
     final ccrRows = _legRowsUpTo(worst, legs, plan, environment);
     final ocSchedule = _scheduleRowsFor(
       worst,
@@ -447,12 +424,6 @@ class BailoutSolver {
       hypercapniaSeconds: hypercapniaSeconds,
     );
     return BailoutOutcome(
-      gasGap: bailoutPlan.coversDepth(deepestPoint)
-          ? null
-          : BailoutGasGap(
-              depthMeters: deepestPoint,
-              deepestModMeters: bailoutPlan.deepestMod,
-            ),
       points: points,
       worstCase: worst,
       availableLiters: math.max(0.0, carriedLiters - totalSpentAt(worstIndex)),

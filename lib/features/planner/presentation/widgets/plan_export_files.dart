@@ -48,7 +48,6 @@ PlanSlateLabels planSlateLabels(AppLocalizations l10n) => PlanSlateLabels(
   base: l10n.plannerCanvas_range_base,
   minutes: l10n.pdf_minutes,
   maxPrefix: l10n.pdf_slateMax,
-  noEligibleBailoutGas: l10n.plannerCanvas_issue_noEligibleBailoutGas,
 );
 
 /// The open plan's slate PDF, rendered from the plan as it is now. Null when

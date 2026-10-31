@@ -47,10 +47,6 @@ class PlanSlateLabels {
   /// The short "max" in front of the plan's deepest point in the header.
   final String maxPrefix;
 
-  /// What the bailout section says when no carried gas reaches [depth], the
-  /// deepest of them only reaching [deepestMod] (#3961).
-  final String Function(String depth, String deepestMod) noEligibleBailoutGas;
-
   const PlanSlateLabels({
     required this.runtimeTable,
     required this.gasPlan,
@@ -70,7 +66,6 @@ class PlanSlateLabels {
     required this.base,
     required this.minutes,
     required this.maxPrefix,
-    required this.noEligibleBailoutGas,
   });
 }
 
@@ -90,29 +85,6 @@ String planSlateGasLimitCell(
     PlanGasLimitGap.noVolume => labels.noVolume,
     null => '--',
   };
-}
-
-/// The slate's bailout section: the worst case's time and gas, or, when no
-/// carried gas reaches the plan, that instead of an ascent nothing can make
-/// (#3961). The depth rounds up and the MOD down, as the app's own words do.
-///
-/// Top-level so tests can assert the rendered string directly, as
-/// [planSlateHeaderLine] explains.
-String planSlateBailoutLine(
-  BailoutOutcome bailout,
-  UnitFormatter units,
-  PlanSlateLabels labels,
-) {
-  if (bailout.gasGap case final gap?) {
-    return labels.noEligibleBailoutGas(
-      units.formatDepthCeil(gap.depthMeters, decimals: 0),
-      units.formatDepthFloor(gap.deepestModMeters, decimals: 0),
-    );
-  }
-  final worst = bailout.worstCase;
-  return 'TTS ${planSlateMinutes(worst.ttsSeconds, labels)} @ ${units.formatDepth(worst.depthMeters)} '
-      '(${units.formatVolume(worst.litersRequired)} / '
-      '${units.formatVolume(bailout.availableLiters)})';
 }
 
 /// The slate's header line: plan date, mode, gradient factors, and the
@@ -187,14 +159,7 @@ class PlanSlatePdfService {
           if (bailout != null) ...[
             pw.SizedBox(height: 10),
             _sectionTitle(labels.bailout),
-            pw.Text(
-              planSlateBailoutLine(bailout, units, labels),
-              style: pw.TextStyle(
-                fontSize: 10,
-                fontWeight: bailout.gasGap == null ? null : pw.FontWeight.bold,
-                color: bailout.gasGap == null ? null : PdfColors.red900,
-              ),
-            ),
+            _bailoutSummary(bailout, units, labels),
           ],
           if (deviations.isNotEmpty || lostGas.isNotEmpty) ...[
             pw.SizedBox(height: 10),
@@ -420,6 +385,20 @@ class PlanSlatePdfService {
             ],
           ),
       ],
+    );
+  }
+
+  pw.Widget _bailoutSummary(
+    BailoutOutcome bailout,
+    UnitFormatter units,
+    PlanSlateLabels labels,
+  ) {
+    final worst = bailout.worstCase;
+    return pw.Text(
+      'TTS ${planSlateMinutes(worst.ttsSeconds, labels)} @ ${units.formatDepth(worst.depthMeters)} '
+      '(${units.formatVolume(worst.litersRequired)} / '
+      '${units.formatVolume(bailout.availableLiters)})',
+      style: const pw.TextStyle(fontSize: 10),
     );
   }
 

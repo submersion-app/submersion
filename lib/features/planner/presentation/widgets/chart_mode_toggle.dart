@@ -15,11 +15,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// selection style as the Base/+depth/+time contingency chips right next
 /// to it. Hidden for an OC plan or a loop plan with nothing to bail out
 /// to (no bailout-role tank carried), from [planMayHaveBailoutProvider], which
-/// holds the chips in place while [planBailoutProvider] computes. Also hidden
-/// when no carried bailout gas reaches the plan, which leaves no valid ascent
-/// to show (#3961), unless the chart is already on it. Every loop mode (CCR,
-/// SCR, pSCR) shares this toggle (issue #3743): the bailout picture is
-/// computed for any of them, not CCR alone.
+/// holds the chips in place while [planBailoutProvider] computes. Every loop
+/// mode (CCR, SCR, pSCR) shares this toggle
+/// (issue #3743): the bailout picture is computed for any of them, not
+/// CCR alone.
 class ChartModeToggle extends ConsumerWidget {
   const ChartModeToggle({super.key});
 
@@ -31,11 +30,6 @@ class ChartModeToggle extends ConsumerWidget {
     if (bailout.isFinishedEmpty) return const SizedBox.shrink();
 
     final mode = ref.watch(chartDisplayModeProvider);
-    // A diver already in Bailout view keeps the chips: the selection survives
-    // an edit, and they are the only way back to the loop view.
-    if (bailout.value?.gasGap != null && mode != ChartDisplayMode.bailout) {
-      return const SizedBox.shrink();
-    }
 
     Widget chip(ChartDisplayMode value, String label) => InkWell(
       borderRadius: BorderRadius.circular(12),

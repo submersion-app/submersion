@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 /// The depths at which an ascent leg from [fromDepth] to [toDepth] (an
 /// ascent: [fromDepth] deeper than [toDepth]) should be broken into its
 /// own gas, each boundary one of [ascentPlan]'s own switch depths between
@@ -83,10 +81,6 @@ class AvailableGas {
   final double maxPpO2Mod;
 
   double get fO2 => (1.0 - fN2 - fHe);
-
-  /// Eligible when at or above its MOD (depth <= MOD). A tiny tolerance keeps
-  /// the gas eligible exactly at its MOD despite float rounding.
-  bool eligibleAt(double depthMeters) => depthMeters <= maxPpO2Mod + 1e-9;
 }
 
 /// Open-circuit optimal ascent: at each depth picks the eligible gas with the
@@ -105,30 +99,18 @@ class OptimalOcAscentGas extends AscentGasPlan {
   /// The gases this plan chooses from, in the order given.
   List<AvailableGas> get gases => _gases;
 
-  /// The deepest depth any of these gases may be breathed from. Each gas is
-  /// eligible from its MOD all the way up, so this one depth says how much of
-  /// an ascent they cover: there are no gaps above it.
-  double get deepestMod => _gases.map((g) => g.maxPpO2Mod).reduce(math.max);
-
-  /// Whether any gas is eligible at [depthMeters]. A depth this rejects still
-  /// gets an answer from [gasForDepth], which has to return something, so a
-  /// caller that must not breathe a gas past its MOD asks here first (issue
-  /// #3961).
-  bool coversDepth(double depthMeters) =>
-      _gases.any((g) => g.eligibleAt(depthMeters));
-
   @override
   AscentGas gasForDepth(double depthMeters) {
     AvailableGas? best;
     for (final g in _gases) {
-      if (g.eligibleAt(depthMeters)) {
+      // Eligible when at or above its MOD (depth <= MOD). A tiny tolerance keeps
+      // the gas eligible exactly at its MOD despite float rounding.
+      if (depthMeters <= g.maxPpO2Mod + 1e-9) {
         if (best == null || _prefer(g, best)) best = g;
       }
     }
-    // Nothing is eligible past every MOD. That is ordinary for a logged dive
-    // that went past them, and a planner bailout carrying only shallow gas:
-    // see [coversDepth]. Answer with the gas that is closest to usable there
-    // (smallest fO2), which is not a claim that it is within its MOD.
+    // The back gas is always in [_gases], so best is never null in practice;
+    // fall back to the deepest-usable gas (smallest fO2) if it ever is.
     best ??= _deepestUsable();
     return AscentGas(fN2: best.fN2, fHe: best.fHe);
   }
@@ -181,7 +163,7 @@ class OptimalOcAscentGas extends AscentGasPlan {
     for (final g in _gases) {
       if (g.fO2 >= 0.9) continue; // skip O2 itself
       if (g.fO2 < 0.16) continue; // skip hypoxic back gas
-      if (g.eligibleAt(depthMeters)) {
+      if (depthMeters <= g.maxPpO2Mod + 1e-9) {
         if (best == null || _preferBreakGas(g, best)) best = g;
       }
     }

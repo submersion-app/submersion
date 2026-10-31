@@ -61,7 +61,6 @@ final _labels = PlanSlateLabels(
   base: 'Base',
   minutes: (value) => '$value min',
   maxPrefix: 'max',
-  noEligibleBailoutGas: (depth, deepestMod) => 'No gas: $depth, $deepestMod',
 );
 
 domain.DivePlan _plan({domain.PlanMode mode = domain.PlanMode.oc}) {
@@ -186,7 +185,6 @@ void main() {
         base: '',
         minutes: (value) => '$value Min.',
         maxPrefix: 'max.',
-        noEligibleBailoutGas: (depth, deepestMod) => '',
       ),
       gfLow: plan.gfLow!,
       gfHigh: plan.gfHigh!,

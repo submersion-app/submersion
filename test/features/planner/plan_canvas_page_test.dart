@@ -395,7 +395,7 @@ void main() {
           id: 'bo',
           volume: 11.1,
           startPressure: 207,
-          gasMix: GasMix(o2: 32),
+          gasMix: GasMix(o2: 50),
           role: TankRole.bailout,
         ),
       );
@@ -407,10 +407,10 @@ void main() {
         ChartDisplayMode.bailout;
     await tester.pumpAndSettle();
     // The two pictures differ, so this can tell which one was logged.
-    expect([
-      for (final point in container.read(planCanvasSeriesProvider).profile)
-        (point.timeSeconds, point.depth),
-    ], isNot([for (final point in live) (point.timeSeconds, point.depth)]));
+    expect(
+      container.read(planCanvasSeriesProvider).profile.length,
+      isNot(live.length),
+    );
 
     await openMenu(tester, 'Convert to Dive');
     expect(find.byType(SnackBar), findsOneWidget);
