@@ -1752,12 +1752,8 @@ class PlanEngine {
         seconds: primarySeconds,
       );
       if (stop.airBreakSeconds > 0) {
-        final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
-        final breakTankId = breakGas != null
-            ? _tankForGas(plan.tanks, breakGas.fO2, breakGas.fHe)
-            : stop.tankId;
         charge(
-          breakTankId,
+          stop.airBreakTankId,
           ascentLiters(stop.airBreakSeconds, stopPressure),
           atRuntime: stop.arrivalRuntimeSeconds + primarySeconds,
           seconds: stop.airBreakSeconds,
@@ -2688,6 +2684,15 @@ class PlanEngine {
       final onLoop = ascentPlan is LoopAscentGas;
       final fO2 = onLoop ? ascentPlan.supplyFO2 : 1.0 - gas.fN2 - gas.fHe;
       final fHe = onLoop ? ascentPlan.supplyFHe : gas.fHe;
+      final tankId =
+          loopSupplyTankId ??
+          _tankForGas(
+            plan.tanks,
+            fO2,
+            fHe,
+            isCcr: plan.mode == domain.PlanMode.ccr,
+          );
+      final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
       stops.add(
         PlanStop(
           depthMeters: stop.depthMeters,
@@ -2695,14 +2700,12 @@ class PlanEngine {
           airBreakSeconds: stop.airBreakSeconds,
           gasFO2: fO2,
           gasFHe: fHe,
-          tankId:
-              loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                fO2,
-                fHe,
-                isCcr: plan.mode == domain.PlanMode.ccr,
-              ),
+          tankId: tankId,
+          airBreakTankId: stop.airBreakSeconds == 0
+              ? null
+              : breakGas != null
+              ? _tankForGas(plan.tanks, breakGas.fO2, breakGas.fHe)
+              : tankId,
           arrivalRuntimeSeconds: arrival,
         ),
       );
@@ -2766,6 +2769,7 @@ class PlanEngine {
       required double fHe,
       required String? tankId,
       int airBreakSeconds = 0,
+      String? airBreakTankId,
       // Set whenever the row's gas is a loop's, through loopPpO2At, rather
       // than ambient x fO2: the real inspired ppO2
       // (the CCR setpoint, clamped once the diluent can no longer dilute
@@ -2804,6 +2808,7 @@ class PlanEngine {
           tankId: tankId,
           gasSwitch: switched,
           airBreakSeconds: airBreakSeconds,
+          airBreakTankId: airBreakTankId,
           ppO2: ppO2Override ?? environment.pressureAtDepth(pDepth) * fO2,
           // GasMix.end() goes negative once a helium-rich mix is shallower
           // than the depth at which it is as narcotic as air at the surface;
@@ -2932,6 +2937,7 @@ class PlanEngine {
         fHe: stop.gasFHe,
         tankId: stop.tankId,
         airBreakSeconds: stop.airBreakSeconds,
+        airBreakTankId: stop.airBreakTankId,
         ppO2Override: loopPpO2At(stop.depthMeters),
       );
       depth = stop.depthMeters;

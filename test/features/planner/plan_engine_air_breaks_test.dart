@@ -61,6 +61,28 @@ double _litersFor(PlanOutcome outcome, String tankId) =>
 
 void main() {
   group('PlanEngine air-break tank attribution', () {
+    test('names the break cylinder on the stop and on its schedule line', () {
+      final outcome = const PlanEngine().compute(
+        _plan(airBreaks: const AirBreakPolicy()),
+      );
+
+      final breakStop = outcome.stops.firstWhere((s) => s.airBreakSeconds > 0);
+      expect(breakStop.tankId, 'o2');
+      expect(breakStop.airBreakTankId, 'back');
+
+      final line = outcome.schedule.firstWhere((r) => r.airBreakSeconds > 0);
+      expect(line.tankId, 'o2');
+      expect(line.airBreakTankId, 'back');
+    });
+
+    test('names no break cylinder on a stop without an air break', () {
+      final outcome = const PlanEngine().compute(_plan());
+
+      expect(outcome.stops, isNotEmpty);
+      expect(outcome.stops.every((s) => s.airBreakTankId == null), isTrue);
+      expect(outcome.schedule.every((r) => r.airBreakTankId == null), isTrue);
+    });
+
     test(
       'splits O2-stop gas consumption between the O2 tank and the break-gas tank',
       () {

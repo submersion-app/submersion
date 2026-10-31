@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/bailout_chart_support.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -691,6 +692,8 @@ class BailoutSolver {
       required int runtime,
       required double fO2,
       required double fHe,
+      int airBreakSeconds = 0,
+      String? airBreakTankId,
       // Same convention as PlanEngine._buildSchedule: a travel row picks
       // its gas at the leg's deeper end but displays the arrival depth, so
       // ppO2/END are computed where the gas was chosen -- the leg's maximum
@@ -724,6 +727,8 @@ class BailoutSolver {
           gasFHe: fHe,
           tankId: tankForGas(fO2, fHe),
           gasSwitch: switched,
+          airBreakSeconds: airBreakSeconds,
+          airBreakTankId: airBreakTankId,
           ppO2: environment.pressureAtDepth(pDepth) * fO2,
           // Floored at 0 m, same as PlanEngine's END column.
           endMeters: math.max(
@@ -816,6 +821,13 @@ class BailoutSolver {
       }
       end += travelSeconds + stop.durationSeconds;
       final stopGas = bailoutPlan.gasForDepth(stop.depthMeters);
+      final stopTankId = tankForGas(stopGas.fO2, stopGas.fHe);
+      final breakTankId = bailoutBreakTankId(
+        stop,
+        stopTankId: stopTankId,
+        bailoutPlan: bailoutPlan,
+        tankForGas: tankForGas,
+      );
       add(
         kind: PlanScheduleRowKind.stop,
         depth: stop.depthMeters,
@@ -825,15 +837,27 @@ class BailoutSolver {
         runtime: end,
         fO2: stopGas.fO2,
         fHe: stopGas.fHe,
+        airBreakSeconds: stop.airBreakSeconds,
+        airBreakTankId: breakTankId,
       );
-      final stopTankId = tankForGas(stopGas.fO2, stopGas.fHe);
-      charge(
-        stopTankId,
-        (iterStartRuntime + travelSeconds - point.runtimeSeconds).toDouble(),
-        stop.durationSeconds.toDouble(),
-        stop.depthMeters,
-        stop.depthMeters,
-      );
+      // Run by run, in the scheduler's own order, because the hypercapnia
+      // phase can end part way through a stop and the rate changes there.
+      var runStart = (iterStartRuntime + travelSeconds - point.runtimeSeconds)
+          .toDouble();
+      final airBreaks = policy.airBreaks;
+      final runs = breakTankId != null && airBreaks != null
+          ? airBreakRuns(stop.durationSeconds, airBreaks)
+          : [(onBreak: false, seconds: stop.durationSeconds)];
+      for (final run in runs) {
+        charge(
+          run.onBreak ? breakTankId : stopTankId,
+          runStart,
+          run.seconds.toDouble(),
+          stop.depthMeters,
+          stop.depthMeters,
+        );
+        runStart += run.seconds;
+      }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
