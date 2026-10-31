@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/tank_pressure_export_fixtures.dart';
@@ -418,6 +420,151 @@ void main() {
         '30:170.25',
       ]);
       expect(written.map((s) => s.getAttribute('source')), [null, null]);
+    });
+  });
+
+  group('gas switch computers', () {
+    GasSwitchWithTank gasSwitch(int timestamp, String? computer) =>
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-$timestamp',
+            diveId: 'dive-a',
+            timestamp: timestamp,
+            tankId: 'tank-2',
+            createdAt: DateTime.utc(2026, 3, 1, 12),
+            computerId: computer,
+          ),
+          tankName: 'Stage',
+          gasMix: 'EAN50',
+          o2Fraction: 0.5,
+        );
+
+    final switches = {
+      'dive-a': [
+        gasSwitch(0, 'comp-a'),
+        gasSwitch(30, 'comp-b'),
+        // Entered by hand, and logged by a computer no source of this dive
+        // recorded: neither has a <source> to point at.
+        gasSwitch(60, null),
+        gasSwitch(90, 'comp-gone'),
+      ],
+    };
+
+    Future<String> backup(List<DiveSourceExport> sources) =>
+        UddfFullExportService().generateAllDataXmlForTest(
+          dives: [dive],
+          dataSources: sources,
+          diveGasSwitches: switches,
+        );
+
+    Future<String> divesOnly(List<DiveSourceExport> sources) =>
+        UddfExportService().generateDivesUddfContent(
+          [dive],
+          dataSources: sources,
+          extras: UddfDivesExtras(diveGasSwitches: switches),
+        );
+
+    List<(String?, String?)> computersIn(String xml) => [
+      for (final gs in XmlDocument.parse(xml).findAllElements('gasswitch'))
+        (
+          gs.getElement('time')?.innerText,
+          gs.getElement('computer')?.innerText,
+        ),
+    ];
+
+    for (final (name, generate) in [
+      ('full backup', backup),
+      ('dives-only export', divesOnly),
+    ]) {
+      group(name, () {
+        test('names the ordinal of a source that computer recorded', () async {
+          expect(computersIn(await generate(sources)), [
+            ('0', '0'),
+            ('30', '1'),
+            ('60', null),
+            ('90', null),
+          ]);
+        });
+
+        test('names it on a dive with a single source too', () async {
+          // A lone source adopts the pressure series and tanks a restore cannot
+          // place, but a switch with no computer applies to every computer.
+          expect(computersIn(await generate([sources.first])), [
+            ('0', '0'),
+            ('30', null),
+            ('60', null),
+            ('90', null),
+          ]);
+        });
+
+        test('parses each switch back with its ordinal', () async {
+          final parsed = await ExportService().importAllDataFromUddf(
+            await generate(sources),
+          );
+          final entries =
+              parsed.dives.single['gasSwitches'] as List<Map<String, dynamic>>;
+
+          expect(
+            [for (final e in entries) (e['timestamp'], e['computerOrdinal'])],
+            [(0, 0), (30, 1), (60, null), (90, null)],
+          );
+        });
+      });
+    }
+
+    test('the dives-only export writes a trimix switch in full', () async {
+      final trimix = GasSwitchWithTank(
+        gasSwitch: GasSwitch(
+          id: 'switch-trimix',
+          diveId: 'dive-a',
+          timestamp: 30,
+          tankId: 'tank-2',
+          depth: 21.5,
+          createdAt: DateTime.utc(2026, 3, 1, 12),
+        ),
+        tankName: 'Stage',
+        gasMix: '18/45',
+        o2Fraction: 0.18,
+        heFraction: 0.45,
+      );
+      final xml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        extras: UddfDivesExtras(
+          diveGasSwitches: {
+            'dive-a': [trimix],
+          },
+        ),
+      );
+
+      final written = XmlDocument.parse(
+        xml,
+      ).findAllElements('gasswitch').single;
+      expect(written.getElement('depth')?.innerText, '21.5');
+      expect(written.getElement('o2fraction')?.innerText, '0.18');
+      expect(written.getElement('hefraction')?.innerText, '0.45');
+    });
+
+    test('names none when the sources are left out', () async {
+      final xml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        dataSources: sources,
+        diveGasSwitches: switches,
+        options: const UddfExportOptions(includeRawData: false),
+      );
+
+      expect(xml, isNot(contains('<computer>')));
+    });
+
+    test('the dives-only export names none without the sources', () async {
+      final xml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        dataSources: sources,
+        extras: UddfDivesExtras(diveGasSwitches: switches),
+        options: const UddfExportOptions(includeRawData: false),
+      );
+
+      expect(xml, contains('<gasswitch>'));
+      expect(xml, isNot(contains('<computer>')));
     });
   });
 

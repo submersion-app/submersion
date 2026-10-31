@@ -1,19 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_overview_empty_state.dart';
 import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -90,7 +89,18 @@ class _OverviewBody extends ConsumerWidget {
     // is logged in-app yet -- otherwise the feature's target user (a long
     // pre-app career, no logged dives) would only ever see the empty state.
     if (stats.totalDives == 0 && !career.hasPriorExperience) {
-      return const _EmptyState();
+      // Nothing in scope is not an empty logbook: a filter or an exclusion can
+      // empty the scope too. An unknown count must not read as "no dives".
+      return ref
+          .watch(logbookDiveCountsProvider)
+          .when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => _ErrorCard(
+              onRetry: () => ref.invalidate(logbookDiveCountsProvider),
+            ),
+            data: (counts) =>
+                InsightsOverviewEmptyState(counts: counts, filtered: filtered),
+          );
     }
 
     final fmt = ref.watch(unitFormatterProvider);
@@ -131,74 +141,7 @@ class _OverviewBody extends ConsumerWidget {
           _DistributionsSection(stats: stats, fmt: fmt),
           // Explains why the statistics dive count and the logbook dive count
           // differ, so the discrepancy never has to be discovered (#526).
-          ref
-              .watch(excludedDiveCountProvider)
-              .maybeWhen(
-                data: (count) => count == 0
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Center(
-                          child: Text(
-                            key: const Key('insights-excluded-footnote'),
-                            context.l10n.insights_excludedDivesFootnote(count),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                      ),
-                orElse: () => const SizedBox.shrink(),
-              ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.waves,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n.diveLog_empty_title,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n.diveLog_empty_subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => showAddDiveBottomSheet(
-              context: context,
-              onLogManually: () => context.push('/dives/new'),
-              onPlanDive: () => context.push(
-                '/dives/new',
-                extra: const DivePrefill(isPlanned: true),
-              ),
-            ),
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.diveLog_empty_logFirstDive),
-          ),
+          const ExcludedDivesFootnote(),
         ],
       ),
     );

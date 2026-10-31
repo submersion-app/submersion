@@ -15,13 +15,64 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
+/// The base tank configurations in the order a diver reads them, commonest
+/// first, rather than the order the classifier checks them.
+const _tankConfigurationOptions = [
+  TankBaseConfiguration.singleBackmount,
+  TankBaseConfiguration.twinBackmount,
+  TankBaseConfiguration.sidemount,
+  TankBaseConfiguration.rebreather,
+  TankBaseConfiguration.other,
+  TankBaseConfiguration.noTanks,
+];
+
+/// A row of chips over one tank axis, always showing every option. Several
+/// chips match any of them.
+class _TankChips<T> extends StatelessWidget {
+  const _TankChips({
+    required this.options,
+    required this.selected,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final List<T> options;
+  final List<T> selected;
+  final String Function(T) label;
+  final ValueChanged<List<T>> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final option in options)
+        FilterChip(
+          label: Text(label(option)),
+          selected: selected.contains(option),
+          onSelected: (on) => onChanged(
+            on
+                ? [...selected, option]
+                : [
+                    for (final s in selected)
+                      if (s != option) s,
+                  ],
+          ),
+        ),
+    ],
+  );
+}
+
 /// The Refine panel's Gas and equipment group (#2773): dive type, gas mix,
-/// equipment used, gear attributes, suit thickness and dive computer.
+/// tank configuration, equipment used, gear attributes, suit thickness and
+/// dive computer.
 class RefineGasEquipmentGroup extends ConsumerStatefulWidget {
   const RefineGasEquipmentGroup({
     super.key,
@@ -37,6 +88,8 @@ class RefineGasEquipmentGroup extends ConsumerStatefulWidget {
     'diveTypeId',
     'minO2Percent',
     'maxO2Percent',
+    'tankConfigurations',
+    'tankExtras',
     'equipmentIds',
     'equipmentAttrConditions',
     'computerId',
@@ -45,6 +98,8 @@ class RefineGasEquipmentGroup extends ConsumerStatefulWidget {
   static int activeCount(DiveFilterState f) => [
     f.diveTypeId != null,
     f.minO2Percent != null || f.maxO2Percent != null,
+    f.tankConfigurations.isNotEmpty,
+    f.tankExtras.isNotEmpty,
     f.equipmentIds.isNotEmpty,
     f.equipmentAttrConditions.isNotEmpty,
     f.computerId != null,
@@ -188,6 +243,20 @@ class _RefineGasEquipmentGroupState
                 },
               ),
           ],
+        ),
+        RefineSubLabel(l10n.diveLog_filter_sectionTankConfiguration),
+        _TankChips(
+          options: _tankConfigurationOptions,
+          selected: d.tankConfigurations,
+          label: (c) => tankBaseConfigurationLabel(l10n, c),
+          onChanged: (v) => widget.onChanged(d.copyWith(tankConfigurations: v)),
+        ),
+        RefineSubLabel(l10n.diveLog_filter_sectionTankExtras),
+        _TankChips(
+          options: TankConfigurationExtra.values,
+          selected: d.tankExtras,
+          label: (e) => tankConfigurationExtraLabel(l10n, e),
+          onChanged: (v) => widget.onChanged(d.copyWith(tankExtras: v)),
         ),
         RefineSubLabel(l10n.diveLog_search_label_equipment),
         ref

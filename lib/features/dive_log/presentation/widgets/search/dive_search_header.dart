@@ -320,7 +320,7 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
 
   /// A dive found by its number: the search clears, as Close would, so the
   /// list shows every dive and can land on this one in its place, instead
-  /// of leaving the list filtered by the number as text (#3744).
+  /// of leaving the list filtered by the number (#3744).
   void _jumpTo(DiveSummary dive) {
     _focus.unfocus();
     closeDiveSearch(context, ref);
