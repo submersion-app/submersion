@@ -366,6 +366,38 @@ void main() {
       });
     }
 
+    test('the dives-only export writes a trimix switch in full', () async {
+      final trimix = GasSwitchWithTank(
+        gasSwitch: GasSwitch(
+          id: 'switch-trimix',
+          diveId: 'dive-a',
+          timestamp: 30,
+          tankId: 'tank-2',
+          depth: 21.5,
+          createdAt: DateTime.utc(2026, 3, 1, 12),
+        ),
+        tankName: 'Stage',
+        gasMix: '18/45',
+        o2Fraction: 0.18,
+        heFraction: 0.45,
+      );
+      final xml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        extras: UddfDivesExtras(
+          diveGasSwitches: {
+            'dive-a': [trimix],
+          },
+        ),
+      );
+
+      final written = XmlDocument.parse(
+        xml,
+      ).findAllElements('gasswitch').single;
+      expect(written.getElement('depth')?.innerText, '21.5');
+      expect(written.getElement('o2fraction')?.innerText, '0.18');
+      expect(written.getElement('hefraction')?.innerText, '0.45');
+    });
+
     test('names none when the sources are left out', () async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
         dives: [dive],
