@@ -1486,7 +1486,7 @@ class AppDatabase extends _$AppDatabase {
     327,
     // v330: buddies.excluded_from_rankings keeps a buddy out of the buddy
     // rankings (issue #3624). A defaulted column an older peer omits, so the
-    // floor does not move. 328 and 329 are claimed by PR #3869 and #3889's
+    // floor does not move. 328 is held by PR #3869, 329 by an unmerged
     // branch.
     330,
   ];

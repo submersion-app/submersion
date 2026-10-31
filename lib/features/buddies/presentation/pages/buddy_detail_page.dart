@@ -595,7 +595,8 @@ class _BuddyDetailContent extends ConsumerWidget {
   /// Says why a buddy with plenty of dives is missing from the rankings
   /// (issue #3624).
   Widget _buildExcludedFromRankingsNote(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
     return Row(
       children: [
         Icon(Icons.leaderboard_outlined, size: 20, color: color),
@@ -603,9 +604,7 @@ class _BuddyDetailContent extends ConsumerWidget {
         Expanded(
           child: Text(
             context.l10n.buddies_stat_excludedFromRankings,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: color),
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
           ),
         ),
       ],

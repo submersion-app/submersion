@@ -230,17 +230,11 @@ extension BuddyMigrations on AppDatabase {
 
   /// v330: buddies.excluded_from_rankings (issue #3624). Idempotent, so the
   /// ladder and the beforeOpen backstop can both call it.
-  Future<void> _assertBuddyExcludedFromRankingsColumn() async {
-    final cols = await customSelect("PRAGMA table_info('buddies')").get();
-    if (cols.isEmpty) return;
-    final names = cols.map((c) => c.read<String>('name')).toSet();
-    if (!names.contains('excluded_from_rankings')) {
-      await customStatement(
-        'ALTER TABLE buddies ADD COLUMN excluded_from_rankings '
-        'INTEGER NOT NULL DEFAULT 0',
-      );
-    }
-  }
+  Future<void> _assertBuddyExcludedFromRankingsColumn() => _addColumnIfMissing(
+    'buddies',
+    'excluded_from_rankings',
+    'INTEGER NOT NULL DEFAULT 0',
+  );
 
   /// v245: index certifications by buddy (#2365). `buddies.certifications`
   /// hops and the buddy detail's certification reads correlate on it.
