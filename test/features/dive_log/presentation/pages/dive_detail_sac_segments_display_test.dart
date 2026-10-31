@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -149,6 +150,10 @@ void main() {
           profileAnalysisProvider(
             dive.id,
           ).overrideWith((ref) async => analysisWithSegments()),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: 'no-pressure',
+          )).overrideWith((ref) async => ProfileAnalysis.empty()),
           phaseSegmentsProvider((
             diveId: dive.id,
             sourceId: null,
@@ -198,6 +203,22 @@ void main() {
     );
     return label.style?.fontWeight == FontWeight.bold;
   }
+
+  testWidgets('a source with no segments does not keep the last one\'s chart', (
+    tester,
+  ) async {
+    final dive = diveWithProfile();
+    await pumpWith(tester, dive: dive);
+    expect(find.byType(SacTimeColumns), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    ).read(activeDiveSourceProvider(dive.id).notifier).state = 'no-pressure';
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(SacTimeColumns), findsNothing);
+  });
 
   group('phase breakdown', () {
     testWidgets('labels each row with its phase beside the time chart', (

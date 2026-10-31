@@ -280,7 +280,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Sibling defense-in-depth to [_lastDecoPanelAnalysis] alongside the
   /// `watchDiveDetailChanges` change-tick debounce.
   ProfileAnalysis? _lastSacSegmentsAnalysis;
-  String? _lastSacSegmentsAnalysisDiveId;
+  DiveSourceKey? _lastSacSegmentsAnalysisKey;
 
   String get diveId => widget.diveId;
 
@@ -730,11 +730,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final computerId = ref.watch(
       activeSourceProfileProvider(dive.id).select((p) => p?.computerId),
     );
+    final sourceKey = (
+      diveId: dive.id,
+      sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
+    );
     final hasSegments = ref.watch(
-      sourceProfileAnalysisProvider((
-        diveId: dive.id,
-        sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-      )).select(
+      sourceProfileAnalysisProvider(sourceKey).select(
         (a) =>
             (a.value?.sacSegments?.isNotEmpty ?? false) ||
             sacSegmentsLackRecordedPressure(
@@ -745,7 +746,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       ),
     );
     return hasSegments ||
-        (_lastSacSegmentsAnalysisDiveId == dive.id &&
+        (_lastSacSegmentsAnalysisKey == sourceKey &&
             _lastSacSegmentsAnalysis != null);
   }
 
@@ -2313,18 +2314,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         current.sacSegments != null &&
         current.sacSegments!.isNotEmpty;
 
-    // Retain the last usable analysis for THIS dive and fall back to it when the
+    // Retain the last usable analysis for THIS source and fall back to it when the
     // provider momentarily yields null/empty (e.g. a mid-sync empty-profile
     // read), so a single transient null doesn't blink the card out. A dive that
     // has genuinely never produced segments falls through to the
     // SizedBox.shrink below and correctly shows nothing.
     if (isUsable) {
       _lastSacSegmentsAnalysis = current;
-      _lastSacSegmentsAnalysisDiveId = dive.id;
+      _lastSacSegmentsAnalysisKey = sourceKey;
     }
     final analysis = isUsable
         ? current
-        : (_lastSacSegmentsAnalysisDiveId == dive.id
+        : (_lastSacSegmentsAnalysisKey == sourceKey
               ? _lastSacSegmentsAnalysis
               : null);
 

@@ -59,11 +59,13 @@ class GasAnalysisService {
 
     void addStretch({
       required int startTime,
-      required int endTime,
+      required int until,
       required DiveTank tank,
       required String? tankName,
       required GasMix gasMix,
     }) {
+      // A switch can be recorded after the last sample.
+      final endTime = math.min(until, diveEndTimestamp);
       if (endTime - startTime < minSegmentDuration) return;
 
       // Get profile points for this segment
@@ -136,10 +138,7 @@ class GasAnalysisService {
     if (startingTank != null) {
       addStretch(
         startTime: profile.first.timestamp,
-        endTime: math.min(
-          sortedSwitches.first.gasSwitch.timestamp,
-          diveEndTimestamp,
-        ),
+        until: sortedSwitches.first.gasSwitch.timestamp,
         tank: startingTank,
         tankName: startingTank.name,
         gasMix: startingTank.gasMix,
@@ -158,11 +157,8 @@ class GasAnalysisService {
 
       addStretch(
         startTime: currentSwitch.gasSwitch.timestamp,
-        endTime: i + 1 < sortedSwitches.length
-            ? math.min(
-                sortedSwitches[i + 1].gasSwitch.timestamp,
-                diveEndTimestamp,
-              )
+        until: i + 1 < sortedSwitches.length
+            ? sortedSwitches[i + 1].gasSwitch.timestamp
             : diveEndTimestamp,
         tank: tank,
         tankName: currentSwitch.tankName,

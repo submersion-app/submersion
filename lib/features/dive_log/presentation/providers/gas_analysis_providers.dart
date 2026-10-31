@@ -50,6 +50,8 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
   if (dive == null) return null;
 
   final gasSwitches = await ref.watch(gasSwitchesProvider(key.diveId).future);
+  // Watched for a scoped source too: it is what reloads this when a pressure
+  // series changes.
   final tankPressures = await ref.watch(
     tankPressuresProvider(key.diveId).future,
   );
