@@ -86,7 +86,7 @@ void main() {
     group('headline with nothing in the statistics', () {
       Future<void> pumpHero(
         WidgetTester tester,
-        FutureOr<LogbookDiveCounts> counts,
+        FutureOr<LogbookDiveCounts> Function() counts,
       ) async {
         // The headline only renders below the desktop breakpoint.
         tester.view.physicalSize = const Size(500, 900);
@@ -108,7 +108,7 @@ void main() {
                 ),
               ),
               currentDiverProvider.overrideWith((ref) async => null),
-              logbookDiveCountsProvider.overrideWith((ref) => counts),
+              logbookDiveCountsProvider.overrideWith((ref) async => counts()),
             ].cast(),
             child: const MaterialApp(
               locale: Locale('en'),
@@ -126,7 +126,10 @@ void main() {
       testWidgets('an empty logbook is invited to log a first dive', (
         tester,
       ) async {
-        await pumpHero(tester, const LogbookDiveCounts(logged: 0, counted: 0));
+        await pumpHero(
+          tester,
+          () => const LogbookDiveCounts(logged: 0, counted: 0),
+        );
 
         expect(find.text('Ready to log your first dive?'), findsOneWidget);
       });
@@ -135,7 +138,7 @@ void main() {
         tester,
       ) async {
         final counts = Completer<LogbookDiveCounts>();
-        await pumpHero(tester, counts.future);
+        await pumpHero(tester, () => counts.future);
 
         expect(find.text('Ready to log your first dive?'), findsNothing);
 
@@ -148,10 +151,22 @@ void main() {
         );
       });
 
+      testWidgets('a failed count never reads as an empty logbook', (
+        tester,
+      ) async {
+        await pumpHero(tester, () => throw StateError('database'));
+
+        expect(find.text('Ready to log your first dive?'), findsNothing);
+        expect(find.text('Ready to explore the depths?'), findsOneWidget);
+      });
+
       testWidgets('a fully excluded logbook is told why it reads zero', (
         tester,
       ) async {
-        await pumpHero(tester, const LogbookDiveCounts(logged: 3, counted: 0));
+        await pumpHero(
+          tester,
+          () => const LogbookDiveCounts(logged: 3, counted: 0),
+        );
 
         expect(find.text('Ready to log your first dive?'), findsNothing);
         expect(

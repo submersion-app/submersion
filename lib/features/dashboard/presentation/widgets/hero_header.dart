@@ -158,7 +158,7 @@ class HeroHeader extends ConsumerWidget {
         .watch(logbookDiveCountsProvider)
         .when(
           loading: () => l10n.dashboard_hero_loading,
-          error: (_, _) => l10n.dashboard_hero_noDives,
+          error: (_, _) => l10n.dashboard_hero_error,
           data: (counts) => counts.allExcluded
               ? l10n.insights_empty_allExcluded_title
               : l10n.dashboard_hero_noDives,
