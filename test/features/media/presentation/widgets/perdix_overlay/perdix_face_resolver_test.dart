@@ -163,5 +163,134 @@ void main() {
       expect(r.resolve(10).tankPressureBar, 200.0);
       expect(r.resolve(35).tankPressureBar, 180.0);
     });
+
+    group('active cylinder with no pressure series (#4006)', () {
+      const airOnly = {
+        'tank-air': [
+          TankPressurePoint(tankId: 'tank-air', timestamp: 0, pressure: 150.0),
+          TankPressurePoint(tankId: 'tank-air', timestamp: 40, pressure: 150.0),
+        ],
+      };
+      const ean50Only = {
+        'tank-ean50': [
+          TankPressurePoint(
+            tankId: 'tank-ean50',
+            timestamp: 30,
+            pressure: 210.0,
+          ),
+          TankPressurePoint(
+            tankId: 'tank-ean50',
+            timestamp: 40,
+            pressure: 190.0,
+          ),
+        ],
+      };
+
+      test('does not show the previous cylinder after a switch', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: airOnly,
+        );
+
+        final before = r.resolve(20);
+        expect(before.gasLabel, 'Air');
+        expect(before.tankPressureBar, 150.0);
+
+        final after = r.resolve(35);
+        expect(after.gasLabel, 'EAN50');
+        expect(after.tankPressureBar, isNull);
+      });
+
+      test('stays empty through the final second of the dive', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: airOnly,
+        );
+
+        final last = r.resolve(40);
+        expect(last.gasLabel, 'EAN50');
+        expect(last.tankPressureBar, isNull);
+      });
+
+      test('does not show a later cylinder before its switch', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: switches,
+          tankPressures: ean50Only,
+        );
+
+        final before = r.resolve(10);
+        expect(before.gasLabel, 'Air');
+        expect(before.tankPressureBar, isNull);
+
+        final after = r.resolve(35);
+        expect(after.gasLabel, 'EAN50');
+        expect(after.tankPressureBar, 210.0);
+      });
+
+      test('does not show another cylinder on a dive with no switches', () {
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          tankPressures: ean50Only,
+        );
+
+        final d = r.resolve(35);
+        expect(d.gasLabel, 'Air');
+        expect(d.tankPressureBar, isNull);
+      });
+
+      test('a switch back brings the measured cylinder back', () {
+        final switchBack = GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'gs2',
+            diveId: 'd1',
+            timestamp: 35,
+            tankId: 'tank-air',
+            createdAt: DateTime(2026, 1, 1),
+          ),
+          tankName: 'Back',
+          gasMix: 'Air',
+          o2Fraction: 0.21,
+          heFraction: 0.0,
+        );
+        final r = PerdixFaceResolver(
+          profile: profile,
+          tanks: tanks,
+          gasSwitches: [...switches, switchBack],
+          tankPressures: airOnly,
+        );
+
+        expect(r.resolve(30).tankPressureBar, isNull);
+
+        final back = r.resolve(38);
+        expect(back.gasLabel, 'Air');
+        expect(back.tankPressureBar, 150.0);
+      });
+    });
+
+    test('with no known active cylinder, the only reading is still shown', () {
+      final r = PerdixFaceResolver(
+        profile: profile,
+        tankPressures: const {
+          'tank-air': [
+            TankPressurePoint(
+              tankId: 'tank-air',
+              timestamp: 0,
+              pressure: 150.0,
+            ),
+          ],
+        },
+      );
+
+      final d = r.resolve(35);
+      expect(d.gasLabel, isNull);
+      expect(d.tankPressureBar, 150.0);
+    });
   });
 }
