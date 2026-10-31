@@ -62,8 +62,10 @@ class ProfileEditingService {
 
   /// Remove outlier points by replacing them with linearly interpolated values.
   ///
-  /// For each outlier, replaces its depth with a linear interpolation between
-  /// its nearest non-outlier neighbors. All other fields are preserved.
+  /// For each outlier, replaces its depth with a linear interpolation over
+  /// time between its nearest non-outlier neighbors, falling back to sample
+  /// position when those neighbors span no time. All other fields are
+  /// preserved.
   List<DiveProfilePoint> removeOutliers(
     List<DiveProfilePoint> profile,
     List<OutlierResult> outliers,
@@ -102,8 +104,13 @@ class ProfileEditingService {
       // Interpolate
       double interpolatedDepth;
       if (leftDepth != null && rightDepth != null) {
-        // Linear interpolation based on index position
-        final ratio = (idx - leftIdx!) / (rightIdx! - leftIdx);
+        // Linear interpolation based on timestamp; the clamp keeps an
+        // out-of-order sample between its neighbors
+        final leftTime = profile[leftIdx!].timestamp;
+        final span = profile[rightIdx!].timestamp - leftTime;
+        final ratio = span > 0
+            ? ((profile[idx].timestamp - leftTime) / span).clamp(0.0, 1.0)
+            : (idx - leftIdx) / (rightIdx - leftIdx);
         interpolatedDepth = leftDepth + (rightDepth - leftDepth) * ratio;
       } else if (leftDepth != null) {
         interpolatedDepth = leftDepth;

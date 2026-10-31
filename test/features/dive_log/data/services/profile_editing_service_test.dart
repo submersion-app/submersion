@@ -223,6 +223,95 @@ void main() {
       final cleaned = service.removeOutliers(profile, []);
       expect(cleaned, profile);
     });
+
+    test('interpolates by timestamp on an unevenly sampled profile', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 10.0),
+        DiveProfilePoint(timestamp: 10, depth: 100.0), // outlier
+        DiveProfilePoint(timestamp: 100, depth: 20.0),
+      ];
+      final outliers = service.detectOutliers(profile);
+      expect(outliers.map((o) => o.index), [1]);
+
+      final cleaned = service.removeOutliers(profile, outliers);
+
+      // 10 + (20 - 10) * (10 - 0) / (100 - 0)
+      expect(cleaned[1].depth, closeTo(11.0, 1e-9));
+      expect(cleaned[1].timestamp, 10);
+    });
+
+    test('places each sample of an outlier run by its own timestamp', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 10.0),
+        DiveProfilePoint(timestamp: 5, depth: 90.0), // outlier
+        DiveProfilePoint(timestamp: 10, depth: 95.0), // outlier
+        DiveProfilePoint(timestamp: 100, depth: 30.0),
+      ];
+      final outliers = [
+        const OutlierResult(
+          index: 1,
+          timestamp: 5,
+          depth: 90.0,
+          depthDelta: 80.0,
+          zScore: 5.0,
+        ),
+        const OutlierResult(
+          index: 2,
+          timestamp: 10,
+          depth: 95.0,
+          depthDelta: 5.0,
+          zScore: 5.0,
+        ),
+      ];
+
+      final cleaned = service.removeOutliers(profile, outliers);
+
+      expect(cleaned[1].depth, closeTo(11.0, 1e-9));
+      expect(cleaned[2].depth, closeTo(12.0, 1e-9));
+    });
+
+    test('falls back to position when neighbours share a timestamp', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 10, depth: 10.0),
+        DiveProfilePoint(timestamp: 10, depth: 90.0), // outlier
+        DiveProfilePoint(timestamp: 10, depth: 20.0),
+      ];
+      final outliers = [
+        const OutlierResult(
+          index: 1,
+          timestamp: 10,
+          depth: 90.0,
+          depthDelta: 80.0,
+          zScore: 5.0,
+        ),
+      ];
+
+      final cleaned = service.removeOutliers(profile, outliers);
+
+      expect(cleaned[1].depth, closeTo(15.0, 1e-9));
+    });
+
+    test('stays between the neighbours on out-of-order timestamps', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 10.0),
+        DiveProfilePoint(timestamp: 200, depth: 90.0), // outlier
+        DiveProfilePoint(timestamp: 100, depth: 0.0),
+      ];
+      final outliers = [
+        const OutlierResult(
+          index: 1,
+          timestamp: 200,
+          depth: 90.0,
+          depthDelta: 80.0,
+          zScore: 5.0,
+        ),
+      ];
+
+      final cleaned = service.removeOutliers(profile, outliers);
+
+      // Unclamped, the ratio of 2 would extrapolate to -10 m.
+      expect(cleaned[1].depth, closeTo(0.0, 1e-9));
+    });
   });
 
   group('shiftSegmentDepth', () {
