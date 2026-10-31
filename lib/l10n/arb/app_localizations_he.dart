@@ -22561,6 +22561,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'שגיאת סנכרון';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'נדרשת התחברות';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account מבקש שתתחבר מחדש.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'מסנכרן...';
 
   @override
@@ -37295,6 +37303,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_accounts_signInAgain => 'התחברות מחדש';
 
   @override
+  String get settings_accounts_differentAccount_title => 'זה חשבון אחר';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion משתמש ב-$expected, אבל התחברת בתור $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'שום דבר לא סונכרן, ו-$signedIn לא חובר.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'בשימוש במכשיר זה עבור $features';
   }
@@ -38459,6 +38483,53 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'לא נרשם לחץ בלון במהלך הצלילה';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'זמן';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'שלב';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'גז';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'עומק';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'ירידה';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'קרקעית';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'עלייה';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'עצירת בטיחות';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'דקו';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end דק׳';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes דק׳';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'שיא $rate ב-$range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'ממוצע $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

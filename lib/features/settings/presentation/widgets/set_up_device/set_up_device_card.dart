@@ -163,7 +163,7 @@ class SetUpDeviceCard extends ConsumerWidget {
     // build.
     final subscription = container.listen(groups, (_, _) {});
     try {
-      if (!await canSignInOnThisBuild(container, kind)) return null;
+      if (!await canSignInOnThisBuild(container.read, kind)) return null;
       return (await container.read(groups.future)).holding(item.accountId);
     } on Object catch (e, stackTrace) {
       _log.warning(

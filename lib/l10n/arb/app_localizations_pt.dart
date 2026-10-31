@@ -23084,6 +23084,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Erro de sincronização';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'É necessário entrar';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account precisa que você entre novamente.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Sincronizando...';
 
   @override
@@ -38240,6 +38248,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_accounts_signInAgain => 'Entrar novamente';
 
   @override
+  String get settings_accounts_differentAccount_title =>
+      'É uma conta diferente';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'O Submersion usa $expected, mas você entrou com $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Nada foi sincronizado e $signedIn não foi conectada.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'Usada neste dispositivo para $features';
   }
@@ -39423,6 +39448,54 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'Nenhuma pressão do cilindro registrada durante o mergulho';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'Tempo';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gás';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Profundidade';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Descida';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fundo';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Subida';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop =>
+      'Paragem de segurança';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Deco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Pico de $rate em $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Média $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
