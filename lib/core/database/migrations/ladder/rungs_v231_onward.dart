@@ -720,5 +720,11 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 331) await _assertEquipmentLocationCenterColumn();
     if (from < 331) await reportProgress();
+
+    // v332: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Column only, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 332) await _assertDiveComputerAutoDownloadDisabledColumn();
+    if (from < 332) await reportProgress();
   }
 }

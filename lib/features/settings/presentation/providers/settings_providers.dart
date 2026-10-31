@@ -95,6 +95,12 @@ class SettingsKeys {
   static const String applyDefaultTankToImports =
       'apply_default_tank_to_imports';
 
+  /// Device-local: whether this device passively scans for known dive
+  /// computers while the Transfer tab's Dive Computers section is visible,
+  /// auto-connecting and downloading when one is reachable (issue #3361).
+  static const String autoConnectKnownComputers =
+      'auto_connect_known_computers';
+
   // Decompression & Safety settings
   static const String gfLow = 'gf_low';
   static const String gfHigh = 'gf_high';

@@ -255,9 +255,22 @@ import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailabl
 /// dialog surfaced from the app root) can be shown above the shell.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// Reports when a route is pushed on top of, or popped back to, the Dive
+/// Computers section of the Transfer tab (issue #3361), so
+/// `AutoConnectController` can pause its passive scan while the discovery
+/// wizard, a computer detail page or the download page covers it, and
+/// resume when the diver backs out to it again.
+///
+/// go_router merges `GoRouter.observers` into every `ShellRoute`'s own
+/// nested `Navigator` by default (`notifyRootObserver: true`, unchanged
+/// here), so this one `RouteObserver` sees pushes/pops for every shell
+/// branch, not only the root `Navigator`.
+final computersRouteObserver = RouteObserver<ModalRoute<void>>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
+    observers: [computersRouteObserver],
     initialLocation: '/dashboard',
     redirect: (context, state) async {
       // Skip redirect logic during database migration to prevent deadlock

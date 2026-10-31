@@ -37,10 +37,7 @@ void main() {
     expect(find.byKey(_switchKey), findsOneWidget);
     expect(find.text('Sync dive computer clocks'), findsOneWidget);
     expect(find.text('Find Computers'), findsOneWidget);
-    expect(
-      tester.widget<SwitchListTile>(find.byKey(_switchKey)).value,
-      isFalse,
-    );
+    expect(tester.widget<Switch>(find.byKey(_switchKey)).value, isFalse);
   });
 
   testWidgets('shows the switch above a populated list', (tester) async {
@@ -66,7 +63,7 @@ void main() {
       container.read(clockSyncSettingsNotifierProvider).globalEnabled,
       isTrue,
     );
-    expect(tester.widget<SwitchListTile>(find.byKey(_switchKey)).value, isTrue);
+    expect(tester.widget<Switch>(find.byKey(_switchKey)).value, isTrue);
   });
 
   testWidgets('reflects a setting that is already on', (tester) async {
@@ -80,6 +77,24 @@ void main() {
         .setGlobalEnabled(true);
     await tester.pumpAndSettle();
 
-    expect(tester.widget<SwitchListTile>(find.byKey(_switchKey)).value, isTrue);
+    expect(tester.widget<Switch>(find.byKey(_switchKey)).value, isTrue);
+  });
+
+  testWidgets('the info icon shows the explanation as a tap tooltip', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_build());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pump();
+
+    expect(
+      find.text(
+        "Sets the clock to this device's time after each download. "
+        'Applies to this device only.',
+      ),
+      findsOneWidget,
+    );
   });
 }

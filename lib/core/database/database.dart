@@ -299,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 331;
+  static const int currentSchemaVersion = 332;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1495,6 +1495,9 @@ class AppDatabase extends _$AppDatabase {
     // v331: equipment_locations.dive_center_id, the saved center a Dive
     // center place stands for (issue #3623).
     331,
+    // v332: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361).
+    332,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

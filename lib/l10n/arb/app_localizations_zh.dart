@@ -29978,6 +29978,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => '从 Apple Watch 导入';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return 'Downloading from $name...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching =>
+      'Searching for known computers...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle =>
+      'Auto-connect known computers';
+
+  @override
   String get transfer_computers_connectSubtitle => '发现并配对潜水电脑';
 
   @override
@@ -32576,6 +32593,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => '特此证明';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      'Keeps this computer out of the passive auto-connect scan, even while that switch is on.';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle =>
+      'Skip auto-connect for this computer';
 
   @override
   String get diveComputer_clockSync_appSettingOff => '应用设置：关';

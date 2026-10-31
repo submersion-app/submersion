@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_computer/domain/entities/dive_computer_
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_actions_card.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_auto_download_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_clock_sync_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_connections_card.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_info_card.dart';
@@ -72,6 +73,8 @@ class _Controls extends ConsumerWidget {
         DiveComputerActionsCard(computer: computer),
         const SizedBox(height: 16),
         DiveComputerClockSyncCard(computer: computer),
+        const SizedBox(height: 16),
+        DiveComputerAutoDownloadCard(computer: computer),
       ],
     );
   }

@@ -60,6 +60,7 @@ part 'helpers/course_link_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
 part 'helpers/data_source_migrations.dart';
 part 'helpers/derived_metrics_migrations.dart';
+part 'helpers/dive_computer_auto_download_migrations.dart';
 part 'helpers/dive_computer_connection_migrations.dart';
 part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
