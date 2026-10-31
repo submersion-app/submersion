@@ -193,6 +193,37 @@ void main() {
       );
     });
 
+    Future<void> setSiteWater(String id, String waterType) =>
+        (db.update(db.diveSites)..where((t) => t.id.equals(id))).write(
+          DiveSitesCompanion(waterType: Value(waterType)),
+        );
+
+    test('a site water edit makes the dives taking it stale', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await setSiteWater('s1', 'salt');
+
+      expect(await r.staleDiveIds(), ['d1']);
+      await r.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(await r.staleDiveIds(), isEmpty);
+    });
+
+    test('a site water edit leaves a dive with its own water alone', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', waterType: 'brackish', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+
+      await setSiteWater('s1', 'salt');
+
+      expect(await r.staleDiveIds(), isEmpty);
+    });
+
     test('a blank water type on the dive takes its site\'s', () async {
       await insertFreshSite('s1');
       await insertConditions('d1', waterType: '', siteId: 's1');

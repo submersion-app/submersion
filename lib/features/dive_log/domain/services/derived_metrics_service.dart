@@ -52,7 +52,7 @@ abstract final class DerivedMetricsService {
   static const double transitMeters = kFinalStopUnstableMeters / 2;
 
   /// Whether [m] was built by this engine from the dive as it is now;
-  /// [sourceStamp] is the dive's `diveSourceStampSql`.
+  /// [sourceStamp] is the dive's stamp from `DerivedMetricsRepository`.
   static bool isCurrent(DiveDerivedMetrics m, int sourceStamp) =>
       m.engineVersion >= version && m.sourceUpdatedAt == sourceStamp;
 
