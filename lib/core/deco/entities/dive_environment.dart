@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 
-/// Physical environment for decompression calculations.
+/// Physical environment of a dive: what decompression, oxygen exposure, gas
+/// curves and consumption all read pressure from.
 ///
 /// Replaces the engine's historical hardcoded assumptions (1.0 bar surface,
 /// exactly 10 m of water per bar). [standard] reproduces those assumptions
