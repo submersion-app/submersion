@@ -134,13 +134,13 @@ class PerdixFaceResolver {
 
   /// The active cylinder's reading, or null when it has none. The face shows
   /// this beside the active gas, so another cylinder's pressure would read as
-  /// a measurement of that gas (#4006). Any reading stands in only when no
-  /// cylinder is known to be active, and then no gas label is shown with it.
+  /// a measurement of that gas (#4006). With no cylinder known to be active,
+  /// a lone reading is all there is to show, and no gas label goes with it;
+  /// among several, picking one would be a guess.
   double? _tankPressureAt(int t, Map<String, double> pressures) {
-    if (pressures.isEmpty) return null;
     final activeTankId = _activeTankIdAt(t);
     if (activeTankId != null) return pressures[activeTankId];
-    return pressures.values.first;
+    return pressures.length == 1 ? pressures.values.single : null;
   }
 
   String? _activeTankIdAt(int t) {

@@ -273,24 +273,49 @@ void main() {
         expect(back.tankPressureBar, 150.0);
       });
     });
+  });
 
-    test('with no known active cylinder, the only reading is still shown', () {
+  group('no known active cylinder', () {
+    const first = [
+      TankPressurePoint(tankId: 'first', timestamp: 0, pressure: 150.0),
+    ];
+    const second = [
+      TankPressurePoint(tankId: 'second', timestamp: 0, pressure: 210.0),
+    ];
+
+    test('the only reading is still shown', () {
       final r = PerdixFaceResolver(
         profile: profile,
-        tankPressures: const {
-          'tank-air': [
-            TankPressurePoint(
-              tankId: 'tank-air',
-              timestamp: 0,
-              pressure: 150.0,
-            ),
-          ],
-        },
+        tankPressures: const {'first': first},
       );
 
       final d = r.resolve(35);
       expect(d.gasLabel, isNull);
       expect(d.tankPressureBar, 150.0);
+    });
+
+    test('several readings show none rather than a guess', () {
+      final r = PerdixFaceResolver(
+        profile: profile,
+        tankPressures: const {'first': first, 'second': second},
+      );
+
+      expect(r.resolve(35).tankPressureBar, isNull);
+    });
+
+    test('a sample before t=0 reads no cylinder on a dive with tanks', () {
+      final r = PerdixFaceResolver(
+        profile: [p(-10, 0.0), p(0, 2.0), p(30, 12.0)],
+        tanks: const [
+          DiveTank(id: 'first', gasMix: GasMix(o2: 21.0, he: 0.0), order: 0),
+          DiveTank(id: 'second', gasMix: GasMix(o2: 50.0, he: 0.0), order: 1),
+        ],
+        tankPressures: const {'first': first, 'second': second},
+      );
+
+      final d = r.resolve(-5);
+      expect(d.gasLabel, isNull);
+      expect(d.tankPressureBar, isNull);
     });
   });
 }
