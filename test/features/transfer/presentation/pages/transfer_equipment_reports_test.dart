@@ -45,7 +45,7 @@ class _FakeExport implements ExportService {
   Future<String> exportEquipmentInventory(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('inventory');
@@ -57,7 +57,7 @@ class _FakeExport implements ExportService {
   Future<String> exportServiceReport(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('service');

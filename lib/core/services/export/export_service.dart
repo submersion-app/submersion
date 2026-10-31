@@ -560,38 +560,42 @@ class ExportService {
   Future<String> exportEquipmentInventory(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) => _equipmentInventory.exportToPdf(
     report,
     options: options,
-    print: print,
+    settings: settings,
     sharePositionOrigin: sharePositionOrigin,
   );
 
   Future<String?> saveEquipmentInventoryToFile(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
-  }) => _equipmentInventory.saveToFile(report, options: options, print: print);
+    required ReportPrintSettings settings,
+  }) => _equipmentInventory.saveToFile(
+    report,
+    options: options,
+    settings: settings,
+  );
 
   Future<String> exportServiceReport(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) => _serviceReport.exportToPdf(
     report,
     options: options,
-    print: print,
+    settings: settings,
     sharePositionOrigin: sharePositionOrigin,
   );
 
   Future<String?> saveServiceReportToFile(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
-  }) => _serviceReport.saveToFile(report, options: options, print: print);
+    required ReportPrintSettings settings,
+  }) => _serviceReport.saveToFile(report, options: options, settings: settings);
 
   // ==================== KML Export ====================
 

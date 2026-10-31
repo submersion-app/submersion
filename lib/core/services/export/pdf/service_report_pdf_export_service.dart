@@ -33,10 +33,10 @@ class ServiceReportPdfExportService {
   Future<List<int>> generateBytes(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async {
-    final loc = print.localization ?? PdfLocalization.english();
-    final units = print.units;
+    final loc = settings.localization ?? PdfLocalization.english();
+    final units = settings.units;
     final l10n = loc.l10n;
     final pdf = pw.Document(theme: await _loadTheme(loc));
     pdf.addPage(
@@ -48,9 +48,9 @@ class ServiceReportPdfExportService {
         build: (context) => [
           reportHeader(
             title: l10n.equipmentReport_pdf_serviceTitle,
-            diverName: print.diverName,
+            diverName: settings.diverName,
             printedLine: l10n.equipmentReport_pdf_printedOn(
-              units.formatDate(print.printedAt),
+              units.formatDate(settings.printedAt),
             ),
             detail: report.scopeLabel,
           ),
@@ -74,7 +74,7 @@ class ServiceReportPdfExportService {
               style: const pw.TextStyle(fontSize: 10),
             )
           else
-            _dueTable(l10n, report, units, print.printedAt),
+            _dueTable(l10n, report, units, settings.printedAt),
           if (report.noScheduleCount > 0)
             reportFootnote(
               l10n.equipmentReport_pdf_noSchedule(report.noScheduleCount),
@@ -209,11 +209,11 @@ class ServiceReportPdfExportService {
   Future<String> exportToPdf(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async => sharePdfBytes(
-    await generateBytes(report, options: options, print: print),
-    _fileName(print.printedAt),
+    await generateBytes(report, options: options, settings: settings),
+    _fileName(settings.printedAt),
     sharePositionOrigin: sharePositionOrigin,
   );
 
@@ -221,9 +221,9 @@ class ServiceReportPdfExportService {
   Future<String?> saveToFile(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async => savePdfToFile(
-    await generateBytes(report, options: options, print: print),
-    _fileName(print.printedAt),
+    await generateBytes(report, options: options, settings: settings),
+    _fileName(settings.printedAt),
   );
 }

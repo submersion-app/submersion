@@ -70,7 +70,7 @@ void main() {
     await service.generateBytes(
       report,
       options: options,
-      print: ReportPrintSettings(
+      settings: ReportPrintSettings(
         diverName: diverName,
         units: units,
         printedAt: DateTime(2026, 10, 30),
@@ -104,6 +104,14 @@ void main() {
       _report([_item('Apex', brand: 'Apeks', model: 'XTX200')]),
     );
     expect(out, contains('Apeks XTX200'));
+  });
+
+  test('subtotals in two currencies never read as a sum', () async {
+    final out = await text(
+      _report([_item('a', price: 100), _item('b', price: 50, currency: 'EUR')]),
+    );
+    expect(out, isNot(contains(' + ')));
+    expect(out, isNot(contains('+')));
   });
 
   test('a part prints with its own serial', () async {
@@ -164,7 +172,7 @@ void main() {
     final bytes = await service.generateBytes(
       _report([_item('Apex')]),
       options: const InventoryReportOptions(),
-      print: ReportPrintSettings(
+      settings: ReportPrintSettings(
         diverName: null,
         units: units,
         printedAt: DateTime(2026, 10, 30),

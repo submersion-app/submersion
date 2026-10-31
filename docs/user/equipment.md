@@ -192,7 +192,7 @@ the recurring-issue findings.
   filter, so a date range or a trip gives usage for that period.
 - **Cost of ownership** adds purchase prices and service costs, with spending by
   year and a list by cost per dive, per hour or in total. Each currency stands
-  alone, and a part's cost counts toward the item it is installed in.
+  alone, and a part's cost counts toward its assembly.
 - **Idle gear** lists gear you own and have not dived in 6 months, 1 year or 2
   years, including gear never dived.
 

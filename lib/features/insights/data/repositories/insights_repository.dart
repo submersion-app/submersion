@@ -77,6 +77,10 @@ class RankingItem {
   final String? subtitle;
   final DateTime? date;
 
+  /// A stored category for the section to name in the viewer's language,
+  /// which a repository cannot do.
+  final String? kind;
+
   RankingItem({
     required this.id,
     required this.name,
@@ -84,6 +88,7 @@ class RankingItem {
     this.value,
     this.subtitle,
     this.date,
+    this.kind,
   });
 }
 
@@ -2544,7 +2549,7 @@ class InsightsRepository {
           e.type,
           e.brand,
           COUNT(*) AS use_count,
-          SUM(${diveSecondsSql('d')}) AS use_seconds
+          SUM($diveLengthSql) AS use_seconds
         FROM equipment e
         JOIN (
           -- Every link to a dive, each pair once: a dive carrying an item
@@ -2567,7 +2572,8 @@ class InsightsRepository {
           name: row.read<String>('name'),
           count: row.read<int>('use_count'),
           value: row.read<int>('use_seconds') / 3600,
-          subtitle: brand != null ? '$brand • $type' : type,
+          subtitle: brand == null || brand.isEmpty ? null : brand,
+          kind: type,
         );
       }).toList();
     } catch (e, stackTrace) {

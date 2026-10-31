@@ -14,6 +14,7 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late AppDatabase db;
   late ProviderContainer container;
+  late List<Object> baseOverrides;
 
   const tick = Duration(milliseconds: 500);
 
@@ -28,6 +29,18 @@ void main() {
           updatedAt: 1,
           purchasePrice: Value(price),
           purchaseDate: Value(bought),
+        ),
+      );
+
+  Future<void> component(String parent, String part) => db
+      .into(db.equipmentComponents)
+      .insert(
+        EquipmentComponentsCompanion.insert(
+          id: '$parent-$part',
+          parentEquipmentId: parent,
+          componentEquipmentId: part,
+          createdAt: 1,
+          updatedAt: 1,
         ),
       );
 
@@ -51,7 +64,7 @@ void main() {
   ProviderContainer build({DiveFilterState? filter}) {
     final made = ProviderContainer(
       overrides: [
-        ...overridesForContainer,
+        ...baseOverrides,
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         if (filter != null)
           insightsFilterProvider.overrideWith((ref) => filter),
@@ -63,7 +76,7 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    overridesForContainer = await getBaseOverrides();
+    baseOverrides = await getBaseOverrides();
     container = build();
   });
   tearDown(tearDownTestDatabase);
@@ -118,10 +131,29 @@ void main() {
     expect(next.byCurrency.single.rows.single.diveCount, 1);
   });
 
+  test('cost rolls an assembly part into its assembly', () async {
+    await item('set', price: 100);
+    await item('first', price: 40);
+    await component('set', 'first');
+
+    final cost = await container.read(costOfOwnershipProvider.future);
+    expect(cost.byCurrency.single.rows.single.item.id, 'set');
+    expect(cost.byCurrency.single.rows.single.cost, 140);
+  });
+
+  test('idle leaves out an assembly part', () async {
+    await item('set', bought: DateTime(2020).millisecondsSinceEpoch);
+    await item('first', bought: DateTime(2020).millisecondsSinceEpoch);
+    await component('set', 'first');
+
+    final idle = await container.read(idleGearProvider.future);
+    expect(idle.map((row) => row.item.id), ['set']);
+  });
+
   test('idle follows the chosen period', () async {
-    final nowMs = DateTime.now();
+    final now = DateTime.now();
     await item('a');
-    await dive('d1', DateTime(nowMs.year - 1, nowMs.month - 6, 1));
+    await dive('d1', DateTime(now.year - 1, now.month - 6, 1));
     await link('d1', 'a');
     container.listen(idleGearProvider, (_, _) {});
 
@@ -146,5 +178,3 @@ void main() {
     expect(idle.single.lastDive, DateTime.utc(2020, 1, 1));
   });
 }
-
-List<Object> overridesForContainer = const [];

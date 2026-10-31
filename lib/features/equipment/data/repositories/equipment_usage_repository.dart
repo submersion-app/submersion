@@ -48,7 +48,7 @@ class EquipmentUsageRepository {
       final rows = await _db.customSelect('''
         SELECT u.equipment_id AS equipment_id,
                COUNT(*) AS dive_count,
-               SUM(${diveSecondsSql('d')}) AS seconds
+               SUM($diveLengthSql) AS seconds
         FROM $_distinctPairsSql u
         JOIN dives d ON d.id = u.dive_id
         WHERE 1 = 1 ${diver.clause} ${DiveStatsScope.and(alias: 'd')}
@@ -95,34 +95,6 @@ class EquipmentUsageRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to read last dive dates',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Each item's dives as the item page counts them: every recorded dive,
-  /// statistics or not. Items with none are absent.
-  Future<Map<String, int>> getRecordedDiveCounts({String? diverId}) async {
-    try {
-      final diver = _diverFilter(diverId);
-      // stats-scope-exempt: the printed service history states how much an
-      // item has been used, which an excluded dive still adds to.
-      final rows = await _db.customSelect('''
-        SELECT u.equipment_id AS equipment_id, COUNT(*) AS dive_count
-        FROM $_distinctPairsSql u
-        JOIN dives d ON d.id = u.dive_id
-        WHERE 1 = 1 ${diver.clause}
-        GROUP BY u.equipment_id
-        ''', variables: diver.variables).get();
-      return {
-        for (final row in rows)
-          row.read<String>('equipment_id'): row.read<int>('dive_count'),
-      };
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to read recorded dive counts',
         error: e,
         stackTrace: stackTrace,
       );

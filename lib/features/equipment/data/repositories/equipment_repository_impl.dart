@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_share_
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -39,16 +40,6 @@ import 'package:submersion/features/transmitters/data/repositories/transmitter_r
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
-
-/// A dive `d`'s length in seconds, the first positive of its runtime and
-/// bottom time: a manual zero runtime beside a real bottom time is no figure,
-/// and must not count the dive as zero hours (or subtract any).
-const String _diveLengthSql = '''
-CASE
-                 WHEN d.runtime > 0 THEN d.runtime
-                 WHEN d.bottom_time > 0 THEN d.bottom_time
-                 ELSE 0
-               END''';
 
 /// The dives behind the item page's Dives and Dive Time rows: `d` carries the
 /// item `?1`, directly or through a tank, and belongs to the diver `?2` when
@@ -1305,7 +1296,7 @@ class EquipmentRepository {
       final result = await _db
           .customSelect(
             '''
-        SELECT COALESCE(SUM($_diveLengthSql), 0) AS seconds
+        SELECT COALESCE(SUM($diveLengthSql), 0) AS seconds
         FROM dives d
         WHERE $_diveOnItemSql
       ''',
@@ -1362,7 +1353,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               $_diveLengthSql AS duration_sec,
+               $diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,
@@ -1732,7 +1723,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               $_diveLengthSql AS duration_sec,
+               $diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,

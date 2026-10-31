@@ -121,7 +121,8 @@ class _CostOfOwnershipSectionState
             ],
             valueFormatter: (value) =>
                 formatMoney(value.toDouble(), cost.currency),
-            compactXLabelFormatter: (year) => "'${year.substring(2)}",
+            compactXLabelFormatter: (year) =>
+                year.length > 2 ? "'${year.substring(year.length - 2)}" : year,
           ),
         ],
         if (cost.undatedPurchases > 0)

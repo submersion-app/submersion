@@ -34,16 +34,16 @@ mixin EquipmentReportExports on StateNotifier<ExportState> {
       saved: l10n.settings_export_saved_inventory,
       load: inventoryReportProvider(options).future,
       isEmpty: (report) => report.isEmpty,
-      deliver: (report, print) => save
+      deliver: (report, settings) => save
           ? service.saveEquipmentInventoryToFile(
               report,
               options: options,
-              print: print,
+              settings: settings,
             )
           : service.exportEquipmentInventory(
               report,
               options: options,
-              print: print,
+              settings: settings,
             ),
     );
   }
@@ -62,13 +62,17 @@ mixin EquipmentReportExports on StateNotifier<ExportState> {
       saved: l10n.settings_export_saved_serviceReport,
       load: serviceReportProvider(options).future,
       isEmpty: (report) => report.isEmpty,
-      deliver: (report, print) => save
+      deliver: (report, settings) => save
           ? service.saveServiceReportToFile(
               report,
               options: options,
-              print: print,
+              settings: settings,
             )
-          : service.exportServiceReport(report, options: options, print: print),
+          : service.exportServiceReport(
+              report,
+              options: options,
+              settings: settings,
+            ),
     );
   }
 
@@ -79,7 +83,7 @@ mixin EquipmentReportExports on StateNotifier<ExportState> {
     required String saved,
     required ProviderListenable<Future<R>> load,
     required bool Function(R report) isEmpty,
-    required Future<String?> Function(R report, ReportPrintSettings print)
+    required Future<String?> Function(R report, ReportPrintSettings settings)
     deliver,
   }) async {
     final l10n = reportL10n;

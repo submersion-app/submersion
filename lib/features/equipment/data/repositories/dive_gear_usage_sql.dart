@@ -44,12 +44,15 @@ SELECT t.dive_id, r.transmitter_equipment_id, 'transmitter'
 ''';
 }
 
-/// SQL for one dive's length in seconds on the `dives` row [alias]: the first
-/// positive of runtime and bottom time, the rule the exposure samples use. A
-/// manual zero runtime beside a real bottom time is no figure.
-String diveSecondsSql(String alias) =>
-    'CASE WHEN $alias.runtime > 0 THEN $alias.runtime '
-    'WHEN $alias.bottom_time > 0 THEN $alias.bottom_time ELSE 0 END';
+/// A dive `d`'s length in seconds, the first positive of its runtime and
+/// bottom time: a manual zero runtime beside a real bottom time is no figure,
+/// and must not count the dive as zero hours (or subtract any).
+const String diveLengthSql = '''
+CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END''';
 
 /// The rows of [diveGearUsageSql] for [diveIds].
 Future<List<({String diveId, String equipmentId, String linkKind})>>

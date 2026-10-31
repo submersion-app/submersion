@@ -1,40 +1,30 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_usage_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
 import 'package:submersion/features/equipment/domain/reports/service_report.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-
-final equipmentUsageRepositoryProvider = Provider<EquipmentUsageRepository>(
-  (ref) => EquipmentUsageRepository(),
-);
 
 /// The inventory for [options]. Read once per export and released.
 final inventoryReportProvider = FutureProvider.autoDispose
     .family<InventoryReport, InventoryReportOptions>((ref, options) async {
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      final repository = ref.watch(equipmentRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchEquipmentChanges());
-      ref.invalidateSelfWhen(
-        ref.read(equipmentShareRepositoryProvider).watchChanges(),
-      );
       final fallback = ref.watch(defaultCurrencyProvider);
-      final locations = await ref.watch(
-        currentEquipmentLocationsProvider.future,
-      );
-      final items = await repository.getAllEquipment(diverId: diverId);
+      final loaded = await (
+        ref.watch(allEquipmentProvider.future),
+        ref.watch(equipmentComponentsIndexProvider.future),
+        ref.watch(currentEquipmentLocationsProvider.future),
+      ).wait;
       return buildInventoryReport(
-        items: items,
-        locations: locations,
+        items: withAssemblyParents(loaded.$1, loaded.$2),
+        locations: loaded.$3,
         options: options,
         diverId: diverId,
         fallbackCurrency: fallback,
@@ -53,6 +43,7 @@ Future<_ServiceScope> _scopeOf(
   Ref ref,
   ServiceReportOptions options,
   List<EquipmentItem> all,
+  ComponentsIndex index,
 ) async {
   switch (options.scope) {
     case ServiceReportScope.all:
@@ -65,26 +56,15 @@ Future<_ServiceScope> _scopeOf(
       final tripId = options.tripId!;
       final trip = await ref.watch(tripByIdProvider(tripId).future);
       final onTrip = await ref.watch(tripGearIdsProvider(tripId).future);
-      // Everything but wishlist gear, not just active gear: a past trip must
-      // keep what has been retired since, and gearOnTrip walks up the parents
-      // only inside the list it is given.
-      final known = [
-        for (final item in all)
-          if (!item.isWanted) item,
-      ];
       return (
-        gear: gearOnTrip(known, onTrip),
+        gear: gearWithParts(onTrip, all, index),
         tripEnd: trip?.endDate,
         label: trip?.name,
       );
     case ServiceReportScope.item:
       final itemId = options.itemId!;
-      final ids = withInstalledParts(itemId, all);
       return (
-        gear: [
-          for (final item in all)
-            if (ids.contains(item.id) && !item.isWanted) item,
-        ],
+        gear: gearWithParts({itemId}, all, index),
         tripEnd: null,
         label: all.where((item) => item.id == itemId).firstOrNull?.name,
       );
@@ -94,35 +74,41 @@ Future<_ServiceScope> _scopeOf(
 /// The service report for [options]. Read once per export and released.
 final serviceReportProvider = FutureProvider.autoDispose
     .family<ServiceReport, ServiceReportOptions>((ref, options) async {
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final repository = ref.watch(equipmentRepositoryProvider);
       final recordRepository = ref.watch(serviceRecordRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
       ref.invalidateSelfWhen(recordRepository.watchServiceRecordsChanges());
-      ref.invalidateSelfWhen(
-        ref.read(equipmentShareRepositoryProvider).watchChanges(),
-      );
       final fallback = ref.watch(defaultCurrencyProvider);
 
-      final all = await repository.getAllEquipment(diverId: diverId);
-      final scope = await _scopeOf(ref, options, all);
+      final stored = await ref.watch(allEquipmentProvider.future);
+      final index = await ref.watch(equipmentComponentsIndexProvider.future);
+      final scope = await _scopeOf(
+        ref,
+        options,
+        withAssemblyParents(stored, index),
+        index,
+      );
       final ids = [for (final item in scope.gear) item.id];
       final clocks = await evaluateServiceClocksForIds(ref, ids);
       final kinds = await ref.watch(allServiceKindsByIdProvider.future);
       final records = options.includeHistory
           ? await recordRepository.getRecordsForEquipmentIds(ids)
           : const <String, List<ServiceRecord>>{};
-      final usage = ref.watch(equipmentUsageRepositoryProvider);
-      ref.invalidateSelfWhen(usage.watchChanges());
-      final diveCounts = options.includeHistory
-          ? await usage.getRecordedDiveCounts(diverId: diverId)
-          : const <String, int>{};
+      // The stored rows: exposure reads the parent as install history, which
+      // is how a cell inherits the dives of the rebreather it sits in.
+      final exposures = await repository.getItemExposures([
+        for (final item in stored)
+          if (records.containsKey(item.id)) item,
+      ]);
       return buildServiceReport(
         gear: scope.gear,
         clocks: clocks,
         records: records,
         kindsById: kinds,
-        diveCounts: diveCounts,
+        diveCounts: {
+          for (final entry in exposures.entries)
+            entry.key: entry.value.samples.length,
+        },
         options: options,
         fallbackCurrency: fallback,
         tripEnd: scope.tripEnd,

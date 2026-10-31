@@ -85,6 +85,35 @@ void main() {
     expect(report.byCurrency.single.total, 1865);
   });
 
+  test('a root with no dives of its own takes its busiest part', () {
+    final row = _build(
+      [
+        _item('set', price: 100),
+        _item('first', parent: 'set'),
+        _item('second', parent: 'set'),
+      ],
+      usage: {
+        'first': const GearUsageTotals(diveCount: 40, hours: 50),
+        'second': const GearUsageTotals(diveCount: 10, hours: 12),
+      },
+    ).byCurrency.single.rows.single;
+
+    expect(row.diveCount, 40);
+    expect(row.hours, 50);
+  });
+
+  test('a root with its own dives keeps them over a busier part', () {
+    final row = _build(
+      [_item('set', price: 100), _item('first', parent: 'set')],
+      usage: {
+        'set': const GearUsageTotals(diveCount: 5, hours: 6),
+        'first': const GearUsageTotals(diveCount: 40, hours: 50),
+      },
+    ).byCurrency.single.rows.single;
+
+    expect(row.diveCount, 5);
+  });
+
   test('a part whose parent is not ever owned keeps its own row', () {
     final report = _build([
       _item('first', price: 300, parent: 'wish'),

@@ -33,7 +33,7 @@ List<IdleRow> buildIdleGear({
   final never = <IdleRow>[];
   for (final item in items) {
     if (!isIdleCandidate(item, diverId)) continue;
-    final last = lastDives[item.id];
+    final last = lastDives[item.id] ?? _latestPartDive(item, items, lastDives);
     if (last != null) {
       // A stored dive time is a wall clock flagged UTC, so it is compared by
       // its calendar day, not as an instant against the local cutoff.
@@ -50,6 +50,21 @@ List<IdleRow> buildIdleGear({
   dived.sort((a, b) => a.lastDive!.compareTo(b.lastDive!));
   never.sort((a, b) => compareTextForSort(a.item.name, b.item.name));
   return [...dived, ...never];
+}
+
+/// When only an assembly's parts were put on dives, the last of those is when
+/// the assembly was last in the water.
+DateTime? _latestPartDive(
+  EquipmentItem item,
+  List<EquipmentItem> items,
+  Map<String, DateTime> lastDives,
+) {
+  DateTime? latest;
+  for (final id in withInstalledParts(item.id, items)) {
+    final dive = lastDives[id];
+    if (dive != null && (latest == null || dive.isAfter(latest))) latest = dive;
+  }
+  return latest;
 }
 
 /// Calendar arithmetic, so a daylight saving change cannot move the line.

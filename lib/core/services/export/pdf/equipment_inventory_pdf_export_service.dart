@@ -33,10 +33,10 @@ class EquipmentInventoryPdfExportService {
   Future<List<int>> generateBytes(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async {
-    final loc = print.localization ?? PdfLocalization.english();
-    final units = print.units;
+    final loc = settings.localization ?? PdfLocalization.english();
+    final units = settings.units;
     final l10n = loc.l10n;
     final pdf = pw.Document(theme: await _loadTheme(loc));
     pdf.addPage(
@@ -48,9 +48,9 @@ class EquipmentInventoryPdfExportService {
         build: (context) => [
           reportHeader(
             title: l10n.equipmentReport_pdf_inventoryTitle,
-            diverName: print.diverName,
+            diverName: settings.diverName,
             printedLine: l10n.equipmentReport_pdf_printedOn(
-              units.formatDate(print.printedAt),
+              units.formatDate(settings.printedAt),
             ),
           ),
           summaryStrip([
@@ -97,7 +97,7 @@ class EquipmentInventoryPdfExportService {
       : [
           for (final total in group.subtotals)
             formatMoney(total.value, total.key),
-        ].join(' + ');
+        ].join(' · ');
 
   pw.Widget _table(
     AppLocalizations l10n,
@@ -169,11 +169,11 @@ class EquipmentInventoryPdfExportService {
   Future<String> exportToPdf(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async => sharePdfBytes(
-    await generateBytes(report, options: options, print: print),
-    _fileName(print.printedAt),
+    await generateBytes(report, options: options, settings: settings),
+    _fileName(settings.printedAt),
     sharePositionOrigin: sharePositionOrigin,
   );
 
@@ -181,9 +181,9 @@ class EquipmentInventoryPdfExportService {
   Future<String?> saveToFile(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async => savePdfToFile(
-    await generateBytes(report, options: options, print: print),
-    _fileName(print.printedAt),
+    await generateBytes(report, options: options, settings: settings),
+    _fileName(settings.printedAt),
   );
 }

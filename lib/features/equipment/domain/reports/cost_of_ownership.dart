@@ -147,10 +147,27 @@ CostOfOwnership buildCostOfOwnership({
     }
   }
 
+  final treeOf = <String, List<String>>{};
+  for (final item in owned.values) {
+    (treeOf[rootOf(item)] ??= []).add(item.id);
+  }
   final costed = {for (final b in buckets.values) ...b.costs.keys};
-  final leftOut = {
-    for (final item in owned.values) rootOf(item),
-  }.difference(costed);
+  final leftOut = treeOf.keys.toSet().difference(costed);
+
+  /// The root's own usage, or its busiest part's when only the parts were put
+  /// on dives, so an assembly in regular use never reads as undived.
+  GearUsageTotals? usageOf(String rootId) {
+    final own = usage[rootId];
+    if (own != null) return own;
+    GearUsageTotals? busiest;
+    for (final id in treeOf[rootId] ?? const <String>[]) {
+      final part = usage[id];
+      if (part != null && part.diveCount > (busiest?.diveCount ?? 0)) {
+        busiest = part;
+      }
+    }
+    return busiest;
+  }
 
   final byCurrency = [
     for (final entry in buckets.entries)
@@ -165,8 +182,8 @@ CostOfOwnership buildCostOfOwnership({
             CostRow(
               item: owned[cost.key]!,
               cost: cost.value,
-              diveCount: usage[cost.key]?.diveCount ?? 0,
-              hours: usage[cost.key]?.hours ?? 0,
+              diveCount: usageOf(cost.key)?.diveCount ?? 0,
+              hours: usageOf(cost.key)?.hours ?? 0,
             ),
         ], CostMetric.perDive),
       ),

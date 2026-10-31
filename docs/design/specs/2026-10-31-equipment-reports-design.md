@@ -64,6 +64,12 @@ reports and their tests cannot drift apart.
 `isFitted` already means active and not retired, sold or wanted. So Owned now
 holds active, spare, needs service, in service and loaned gear.
 
+**Parts.** Gear hangs together two ways: an item can be installed in another
+(`parentEquipmentId`), or be a part in an assembly's template
+(`equipment_components`). Every report treats both as parts. A template can
+share a part between assemblies, so a printed list nests it once, under a fitted
+assembly first, then the first by name.
+
 Shared gear stays out of the inventory and Cost of ownership, because another
 profile owns and paid for it. It stays in the Service report, because the diver
 takes it diving, and its service costs print there when Show costs is on, as
@@ -152,8 +158,8 @@ it reads the same as the item page, for example "12 dives left".
 
 - One block per item: name and serial on the heading, dive count on the right.
 - Table: Date, Work, Shop, Cost, newest first.
-- The dive count counts every recorded dive, as the item page does, from one
-  grouped query (`getRecordedDiveCounts`).
+- The dive count is the item's exposure, as on its item page's exposure card,
+  so a part installed in a rebreather counts the dives it inherits.
 - Items with no service records are left out of this part. If nothing chosen
   has any records, it prints a single "No service recorded" line, so the page is
   never empty.
@@ -161,11 +167,11 @@ it reads the same as the item page, for example "12 dives left".
 
 **Trip behaviour**
 
-- Gear is the trip's gear from `tripGearIdsProvider` through `gearOnTrip`:
-  packed, on the cylinder board, or installed in either. `gearOnTrip` is given
-  all of the diver's visible gear except wishlist items, not just active gear.
-  Otherwise a past trip would lose gear retired since then, and a part of a
-  retired assembly would drop out.
+- Gear is the trip's gear from `tripGearIdsProvider`: packed or on the cylinder
+  board, whatever its status, so a past trip keeps gear retired since then. Its
+  parts come along while they are still in service. A retired part has been
+  replaced, and its clock would otherwise print as overdue. One item follows the
+  same rule. Wishlist gear never counts.
 - A clock is listed when it is overdue or due soon today, or when its due date
   falls before the trip ends. That is everything `tripServiceAlertsProvider`
   warns about, plus usage clocks that are merely due soon, because the report
@@ -207,7 +213,8 @@ Insights filter is on.
   parent is not in Ever owned keeps its own row. Rolling up changes rows only:
   Spent in total is the same either way.
 - **Row Per dive and Per hour** use the top-level item's dives and hours, under
-  the rules in Constraints.
+  the rules in Constraints. When only its parts were put on dives, it uses its
+  busiest part's figures, so an assembly in use never reads as undived.
 - **Year** is the purchase date's year for the price, and the service date's
   year for a service cost.
 - A price with no purchase date counts in the totals and the list but not in the
@@ -240,7 +247,8 @@ means idle across everything.
   there is no purchase date, is older than the period. It reads "Never dived".
   Gear bought last week is not idle.
 - Longest idle first, never-dived after those.
-- Parts are not listed. They follow their parent.
+- Parts are not listed. They follow their parent. An item with no dives of its
+  own goes by the last dive of its parts.
 - A dive left out of statistics still counts as use here, because the gear was
   in the water. Planned dives do not count.
 - With nothing idle, it shows a short positive empty message.

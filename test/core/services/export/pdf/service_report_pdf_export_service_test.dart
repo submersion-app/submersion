@@ -105,7 +105,7 @@ void main() {
     await service.generateBytes(
       report,
       options: options,
-      print: ReportPrintSettings(
+      settings: ReportPrintSettings(
         diverName: 'Sam Diver',
         units: units,
         printedAt: _now,
@@ -278,7 +278,7 @@ void main() {
     final bytes = await service.generateBytes(
       _report([_item('Apex')]),
       options: const ServiceReportOptions(),
-      print: ReportPrintSettings(
+      settings: ReportPrintSettings(
         diverName: null,
         units: units,
         printedAt: _now,

@@ -91,6 +91,26 @@ void main() {
     expect(ranking.single.value, 1.5);
   });
 
+  test('hands back the brand and the stored type apart', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'reg',
+            name: 'reg',
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(brand: const Value('Apeks')),
+        );
+    await dive('d1', 1);
+    await link('d1', 'reg');
+
+    final item = (await repository.getMostUsedGear()).single;
+    expect(item.subtitle, 'Apeks');
+    expect(item.kind, 'regulator');
+  });
+
   test('a null limit returns every item, the default stops at ten', () async {
     for (var i = 0; i < 12; i++) {
       await equipment('e$i', 'other');

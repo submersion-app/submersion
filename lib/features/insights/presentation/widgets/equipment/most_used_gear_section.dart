@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/equipment/gear_report_row.dart';
@@ -23,18 +25,22 @@ class MostUsedGearSection extends ConsumerStatefulWidget {
 class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
   bool _expanded = false;
 
-  /// The repository row with its hours on the end of the subtitle. A row
+  /// The row's brand, its type in the viewer's language, and its hours. A row
   /// with no recorded time says nothing about hours rather than "0 hours".
-  RankingItem _withHours(AppLocalizations l10n, RankingItem item) {
+  RankingItem _described(AppLocalizations l10n, RankingItem item) {
     final hours = item.value?.round() ?? 0;
-    if (hours <= 0) return item;
-    final text = l10n.insights_equipment_mostUsedGear_hours(hours);
+    final subtitle = [
+      ?item.subtitle,
+      if (item.kind case final kind?)
+        EquipmentType.values.asNameMap()[kind]?.localizedName(l10n) ?? kind,
+      if (hours > 0) l10n.insights_equipment_mostUsedGear_hours(hours),
+    ].join(' • ');
     return RankingItem(
       id: item.id,
       name: item.name,
       count: item.count,
       value: item.value,
-      subtitle: item.subtitle == null ? text : '${item.subtitle} • $text',
+      subtitle: subtitle.isEmpty ? null : subtitle,
       date: item.date,
     );
   }
@@ -53,7 +59,7 @@ class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
             RankingList(
               items: [
                 for (final item in showAllSlice(data, expanded: _expanded))
-                  _withHours(l10n, item),
+                  _described(l10n, item),
               ],
               countLabel: l10n.insights_ranking_countLabel_dives,
               onItemTap: (item) => context.push('/equipment/${item.id}'),

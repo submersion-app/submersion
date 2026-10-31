@@ -227,6 +227,24 @@ void main() {
     expect(find.textContaining('no cost recorded'), findsNothing);
   });
 
+  testWidgets('a crowded chart survives a year with one digit', (tester) async {
+    await _pump(
+      tester,
+      () async => CostOfOwnership(
+        byCurrency: [
+          _usd(
+            byYear: [
+              for (var year = 5; year < 45; year++) (year: year, amount: 100.0),
+            ],
+          ),
+        ],
+        leftOutCount: 0,
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CategoryBarChart), findsOneWidget);
+  });
+
   testWidgets('leaves out the bars when no spending has a date', (
     tester,
   ) async {

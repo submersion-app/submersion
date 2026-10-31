@@ -5,15 +5,20 @@ import 'package:submersion/features/equipment/domain/reports/idle_gear.dart';
 
 final _now = DateTime(2026, 10, 31);
 
-EquipmentItem _item(String id, {DateTime? bought, DateTime? created}) =>
-    EquipmentItem(
-      id: id,
-      diverId: 'me',
-      name: id,
-      type: EquipmentType.mask,
-      purchaseDate: bought,
-      createdAt: created,
-    );
+EquipmentItem _item(
+  String id, {
+  DateTime? bought,
+  DateTime? created,
+  String? parent,
+}) => EquipmentItem(
+  id: id,
+  diverId: 'me',
+  name: id,
+  type: EquipmentType.mask,
+  purchaseDate: bought,
+  createdAt: created,
+  parentEquipmentId: parent,
+);
 
 List<IdleRow> _build(
   List<EquipmentItem> items, {
@@ -100,6 +105,27 @@ void main() {
   test('falls back to createdAt with no purchase date', () {
     expect(_build([_item('a', created: DateTime(2026, 10, 1))]), isEmpty);
     expect(_build([_item('a', created: DateTime(2020))]), hasLength(1));
+  });
+
+  test('a root with no dives of its own goes by its latest part', () {
+    final items = [
+      _item('set', bought: DateTime(2020)),
+      _item('first', parent: 'set'),
+      _item('second', parent: 'set'),
+    ];
+    expect(
+      _build(
+        items,
+        lastDives: {
+          'first': DateTime(2026, 9, 1),
+          'second': DateTime(2020, 1, 1),
+        },
+      ),
+      isEmpty,
+    );
+
+    final idle = _build(items, lastDives: {'first': DateTime(2023, 1, 1)});
+    expect(idle.single.lastDive, DateTime(2023, 1, 1));
   });
 
   test('never-dived gear of unknown age is not called idle', () {

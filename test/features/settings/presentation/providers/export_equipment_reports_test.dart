@@ -65,12 +65,12 @@ class _FakeExport implements ExportService {
   Future<String> exportEquipmentInventory(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async {
     if (fail) throw StateError('disk full');
     calls.add('share-inventory');
-    diverName = print.diverName;
+    diverName = settings.diverName;
     return '/shared.pdf';
   }
 
@@ -78,7 +78,7 @@ class _FakeExport implements ExportService {
   Future<String?> saveEquipmentInventoryToFile(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async {
     if (fail) throw StateError('disk full');
     calls.add('save-inventory');
@@ -89,7 +89,7 @@ class _FakeExport implements ExportService {
   Future<String> exportServiceReport(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('share-service');
@@ -100,7 +100,7 @@ class _FakeExport implements ExportService {
   Future<String?> saveServiceReportToFile(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required ReportPrintSettings print,
+    required ReportPrintSettings settings,
   }) async {
     calls.add('save-service');
     return cancel ? null : '/saved.pdf';

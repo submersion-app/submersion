@@ -217,24 +217,6 @@ void main() {
     });
   });
 
-  group('getRecordedDiveCounts', () {
-    test('counts every recorded dive once, stats scope or not', () async {
-      await item('a');
-      await dive('d1');
-      await dive('d2', excluded: true);
-      await dive('d3', planned: true);
-      await dive('d4', diver: 'them');
-      await link('d1', 'a');
-      await link('d2', 'a');
-      await link('d3', 'a');
-      await link('d4', 'a');
-      await tank('k1', 'd1', cylinder: 'a');
-
-      final counts = await repository.getRecordedDiveCounts(diverId: 'me');
-      expect(counts['a'], 3);
-    });
-  });
-
   group('getStatsDiveCount', () {
     test('counts only dives that count toward statistics', () async {
       await dive('d1');

@@ -49,11 +49,12 @@ void main() {
           name: 'Apex',
           count: 340,
           value: 412.4,
-          subtitle: 'Apeks • regulator',
+          subtitle: 'Apeks',
+          kind: 'regulator',
         ),
       ],
     );
-    expect(find.text('Apeks • regulator • 412 hours'), findsOneWidget);
+    expect(find.text('Apeks • Regulator • 412 hours'), findsOneWidget);
   });
 
   testWidgets('a row with no recorded time keeps its plain subtitle', (
@@ -67,11 +68,21 @@ void main() {
           name: 'Apex',
           count: 3,
           value: 0,
-          subtitle: 'regulator',
+          kind: 'regulator',
         ),
       ],
     );
-    expect(find.text('regulator'), findsOneWidget);
+    expect(find.text('Regulator'), findsOneWidget);
+  });
+
+  testWidgets('an unknown kind prints as stored', (tester) async {
+    await _pump(
+      tester,
+      () async => [
+        RankingItem(id: 'a', name: 'Apex', count: 3, kind: 'fromThefuture'),
+      ],
+    );
+    expect(find.text('fromThefuture'), findsOneWidget);
   });
 
   testWidgets('show all expands past ten and show less collapses', (

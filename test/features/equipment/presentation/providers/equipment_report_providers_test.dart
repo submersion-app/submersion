@@ -79,6 +79,39 @@ void main() {
         ).copyWith(cost: Value(cost)),
       );
 
+  Future<void> component(String parent, String part) => db
+      .into(db.equipmentComponents)
+      .insert(
+        EquipmentComponentsCompanion.insert(
+          id: '$parent-$part',
+          parentEquipmentId: parent,
+          componentEquipmentId: part,
+          createdAt: ms,
+          updatedAt: ms,
+        ),
+      );
+
+  Future<void> diveOn(String diveId, String equipmentId) async {
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: diveId,
+            diveDateTime: ms,
+            createdAt: ms,
+            updatedAt: ms,
+          ).copyWith(diverId: const Value('me')),
+        );
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: diveId,
+            equipmentId: equipmentId,
+          ),
+        );
+  }
+
   Future<void> trip(String id, {required List<String> packed}) async {
     await db
         .into(db.trips)
@@ -154,6 +187,29 @@ void main() {
     expect(report.totals.single.value, 100);
   });
 
+  test('inventory nests an assembly part under its assembly', () async {
+    await item('kept', price: 100);
+    await item('first', price: 40);
+    await component('kept', 'first');
+
+    final report = await inventory(const InventoryReportOptions());
+
+    expect(report.groups.single.rows.map((r) => (r.item.id, r.depth)), [
+      ('kept', 0),
+      ('first', 1),
+    ]);
+  });
+
+  test('all gear counts an assembly as one item with no schedule', () async {
+    await item('set');
+    await item('first');
+    await component('set', 'first');
+
+    final report = await service(const ServiceReportOptions());
+
+    expect(report.noScheduleCount, 1);
+  });
+
   test('all gear includes shared gear and drops lost gear', () async {
     await item('mine');
     await item('lost', status: 'lost');
@@ -205,6 +261,38 @@ void main() {
     expect(report.history.single.item.id, 'first');
   });
 
+  test('trip scope leaves a retired part of packed gear out', () async {
+    await item('computer');
+    await item(
+      'old cell',
+      status: 'retired',
+      isActive: false,
+      parent: 'computer',
+    );
+    await record('old cell', cost: 10);
+    await trip('t1', packed: ['computer']);
+
+    final report = await service(
+      const ServiceReportOptions(scope: ServiceReportScope.trip, tripId: 't1'),
+    );
+
+    expect(report.history, isEmpty);
+  });
+
+  test('trip scope brings a packed assembly\'s parts', () async {
+    await item('set');
+    await item('first');
+    await component('set', 'first');
+    await record('first', cost: 10);
+    await trip('t1', packed: ['set']);
+
+    final report = await service(
+      const ServiceReportOptions(scope: ServiceReportScope.trip, tripId: 't1'),
+    );
+
+    expect(report.history.single.item.id, 'first');
+  });
+
   test('trip scope leaves wishlist gear out', () async {
     await item('wish', status: 'wanted', isActive: false);
     await trip('t1', packed: ['wish']);
@@ -239,6 +327,30 @@ void main() {
     expect(report.scopeLabel, 'set');
     expect(report.history.single.item.id, 'first');
     expect(report.noScheduleCount, 1);
+  });
+
+  test('one item on an assembly brings its assembly parts', () async {
+    await item('set');
+    await item('first');
+    await component('set', 'first');
+    await record('first', cost: 10);
+
+    final report = await service(
+      const ServiceReportOptions(scope: ServiceReportScope.item, itemId: 'set'),
+    );
+
+    expect(report.history.single.item.id, 'first');
+  });
+
+  test('history counts the dives a part inherits from its parent', () async {
+    await item('ccr');
+    await item('cell', parent: 'ccr');
+    await record('cell', cost: 10);
+    await diveOn('d1', 'ccr');
+
+    final report = await service(const ServiceReportOptions());
+
+    expect(report.history.single.diveCount, 1);
   });
 
   test('one item leaves a wishlist part out', () async {
