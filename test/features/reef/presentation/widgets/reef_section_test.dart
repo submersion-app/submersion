@@ -24,7 +24,7 @@ typedef _Parts = ({
   ReefPart<List<ReefProtection>> protection,
 });
 
-_Parts _snapshot({
+_Parts _parts({
   ReefPart<ReefHabitat> habitat = const ReefPart.empty(),
   ReefPart<ReefHealth>? health,
   ReefPart<List<ReefProtection>> protection = const ReefPart.empty(),
@@ -78,7 +78,7 @@ void main() {
   testWidgets('shows habitat threat level when on a reef', (tester) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(
             ReefHabitat(onReef: true, threatLevel: 'High'),
           ),
@@ -95,7 +95,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(ReefHabitat(onReef: true)),
           health: ReefPart.ok(
             ReefHealth(
@@ -117,7 +117,7 @@ void main() {
   });
 
   testWidgets('titles the section Ecosystem', (tester) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
 
     expect(find.text('Ecosystem'), findsOneWidget);
@@ -127,7 +127,7 @@ void main() {
   testWidgets('hides the habitat row when the site is not on a reef', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('No mapped coral reef'), findsNothing);
@@ -136,7 +136,7 @@ void main() {
 
   testWidgets('keeps the habitat row when the check failed', (tester) async {
     await tester.pumpWidget(
-      _harness(_snapshot(habitat: const ReefPart.unavailable())),
+      _harness(_parts(habitat: const ReefPart.unavailable())),
     );
     await tester.pumpAndSettle();
 
@@ -146,7 +146,7 @@ void main() {
   testWidgets('shows the freshwater message for freshwater sites', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot(), waterType: WaterType.fresh));
+    await tester.pumpWidget(_harness(_parts(), waterType: WaterType.fresh));
     await tester.pumpAndSettle();
 
     expect(
@@ -160,7 +160,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           health: ReefPart.ok(
             ReefHealth(
               sst: 14.2,
@@ -184,7 +184,7 @@ void main() {
   testWidgets('distinguishes not-protected from could-not-check', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_snapshot()));
+    await tester.pumpWidget(_harness(_parts()));
     await tester.pumpAndSettle();
     expect(
       find.textContaining('Not in a marine protected area'),
@@ -192,7 +192,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _harness(_snapshot(protection: const ReefPart.unavailable())),
+      _harness(_parts(protection: const ReefPart.unavailable())),
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Could not check'), findsWidgets);
@@ -206,7 +206,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           habitat: const ReefPart.ok(ReefHabitat(onReef: true)),
           health: ReefPart.ok(
             ReefHealth(
@@ -233,7 +233,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Somewhere',
@@ -254,7 +254,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Somewhere',
@@ -272,7 +272,7 @@ void main() {
   testWidgets('does not render ProtectedSeas activity codes', (tester) async {
     await tester.pumpWidget(
       _harness(
-        _snapshot(
+        _parts(
           protection: const ReefPart.ok([
             ReefProtection(
               siteName: 'Molasses Reef Sanctuary Preserve',
