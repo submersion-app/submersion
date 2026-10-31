@@ -388,8 +388,8 @@ class UddfExportService {
                                 dive,
                               );
                               // One curve per cylinder, the one the app
-                              // draws; every source's series rides in the
-                              // <tankpressureseries> block (issue #2492).
+                              // draws; the <tankpressureseries> block keeps
+                              // what this cannot (issues #2492, #3917).
                               final divePressures =
                                   pressuresByDive[dive.id]?.displayedByTank;
                               for (final (index, point)
@@ -426,7 +426,7 @@ class UddfExportService {
                                       for (final entry
                                           in divePressures.entries) {
                                         final pressure =
-                                            UddfExportBuilders.findPressureAtTimestamp(
+                                            UddfSourceAttribution.findPressureAtTimestamp(
                                               entry.value,
                                               point.timestamp,
                                             );

@@ -350,10 +350,11 @@ class UddfExportBuilders {
                     }
                     if (tankPressures != null) {
                       for (final entry in tankPressures.entries) {
-                        final pressure = findPressureAtTimestamp(
-                          entry.value,
-                          point.timestamp,
-                        );
+                        final pressure =
+                            UddfSourceAttribution.findPressureAtTimestamp(
+                              entry.value,
+                              point.timestamp,
+                            );
                         if (pressure != null) {
                           builder.element(
                             'tankpressure',
@@ -806,8 +807,8 @@ class UddfExportBuilders {
     Map<String, String?> dataSourceDumps = const {},
     // The dives whose tank rows and tank pressure series the per-source
     // blocks beside <datasources> attribute (issue #2492), and those series.
-    // Only a dive with two or more [dataSources] entries writes any, so
-    // neither needs its own check in hasData below.
+    // A dive with fewer than two [dataSources] entries writes a series only
+    // when its waypoints cannot hold it (issue #3917).
     List<Dive> attributedDives = const [],
     Map<String, DiveTankPressureExport> diveTankPressures = const {},
     List<EquipmentComponent>? components,
@@ -880,7 +881,12 @@ class UddfExportBuilders {
         // Without this a logbook whose only extra payload is its data source
         // records would write no <applicationdata> at all, and the dumps in
         // <divecomputercontrol> would lose their descriptors.
-        (dataSources?.isNotEmpty ?? false);
+        (dataSources?.isNotEmpty ?? false) ||
+        UddfSourceAttribution.hasSeries(
+          dives: attributedDives,
+          pressures: diveTankPressures,
+          sources: dataSources ?? const [],
+        );
 
     if (!hasData) return;
 
@@ -2094,49 +2100,6 @@ class UddfExportBuilders {
   static String? startMixId(Dive dive) {
     final tank = dive.tanks.firstOrNull;
     return tank == null ? null : UddfGasMixWriters.mixId(tank.gasMix);
-  }
-
-  /// Find pressure at a given timestamp using binary search.
-  /// Points must be sorted by timestamp (ascending).
-  /// Returns null if no point exists within 2 seconds of [timestamp].
-  static double? findPressureAtTimestamp(
-    List<TankPressurePoint> points,
-    int timestamp,
-  ) {
-    if (points.isEmpty) return null;
-
-    // Binary search for the insertion point
-    int low = 0;
-    int high = points.length;
-    while (low < high) {
-      final mid = low + ((high - low) >> 1);
-      if (points[mid].timestamp < timestamp) {
-        low = mid + 1;
-      } else {
-        high = mid;
-      }
-    }
-
-    // Check the two candidates (before and at insertion point)
-    const maxDiff = 3; // exclusive — accepts diffs of 0, 1, 2
-    TankPressurePoint? closest;
-    int minDiff = maxDiff;
-
-    if (low > 0) {
-      final diff = (points[low - 1].timestamp - timestamp).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = points[low - 1];
-      }
-    }
-    if (low < points.length) {
-      final diff = (points[low].timestamp - timestamp).abs();
-      if (diff < minDiff) {
-        closest = points[low];
-      }
-    }
-
-    return closest?.pressure;
   }
 
   /// UDDF carries visibility as a distance in meters.

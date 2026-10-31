@@ -3233,14 +3233,14 @@ class UddfEntityImporter {
         );
       }
 
-      // A backup of a dive several sources recorded says which of them
-      // recorded each pressure series (issue #2492). Those series are
-      // written once the source rows exist, below, in place of the
-      // waypoint pressures, which hold only the series the app drew.
-      final perSourceSeries =
-          _entriesForDive(diveData, dataSourcesByDiveRef).isEmpty
-          ? const <RestoredTankSeries>[]
-          : restoredTankPressureSeries(diveData, tanks);
+      // A backup says which source recorded each pressure series of a dive
+      // several sources recorded (issue #2492), and keeps any series its
+      // waypoints cannot hold (issue #3917). Those series are written once
+      // the source rows exist, below, in place of the waypoint pressures,
+      // which hold only the series the app drew, on the depth clock.
+      final perSourceSeries = restoredTankPressureSeries(diveData, [
+        for (final tank in tanks) tank.id,
+      ]);
 
       // Store per-tank pressure data
       if (profileData != null && tanks.isNotEmpty && perSourceSeries.isEmpty) {
@@ -3364,6 +3364,19 @@ class UddfEntityImporter {
             createdAt: Value(now),
           ),
         );
+        // With no <source> entries nothing in the file names a source, so
+        // a backup's exact series are the row's above.
+        if (perSourceSeries.isNotEmpty) {
+          await repos.tankPressureRepository.insertTankSeries(diveId, [
+            for (final s in perSourceSeries)
+              (
+                tankId: s.tankId,
+                sourceId: dataSourceId,
+                computerId: null,
+                samples: s.samples,
+              ),
+          ]);
+        }
         // The pressure series were written before their source row existed
         // (issue #2440): attribute them now, so a later consolidation keeps
         // them apart from another source's series of the same cylinder.
