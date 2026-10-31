@@ -2306,10 +2306,11 @@ class PlanEngine {
       }
     }
 
-    final ascentHypoxia = _loopAscentHypoxia(
+    final ascentHypoxia = _ascentHypoxia(
       ascentPlan,
       stops,
       legs.isEmpty ? 0.0 : legs.last.endDepth,
+      environment,
     );
     // The surface is usually already reported: the descent left it on the same
     // supply.
@@ -2425,42 +2426,59 @@ class PlanEngine {
   /// Inspired ppO2 below this is not breathable.
   static const double _hypoxicPpO2 = 0.16;
 
-  /// The deepest point a computed ascent on the loop stops being breathable,
-  /// or null (issue #3896). The legs' own check cannot see this: a loop's ppO2
-  /// drops as the diver shallows, so a final supply that is safe where it was
-  /// authored can be hypoxic at the stops, on a gas the descent never breathed.
-  /// Stops are in ascent order and ppO2 only falls on the way up, so the first
-  /// hypoxic one is the deepest.
-  PlanIssue? _loopAscentHypoxia(
+  /// The deepest point a computed ascent stops being breathable, or null
+  /// (issues #3896, #4008). The legs' own check cannot see this: ppO2 drops as
+  /// the diver shallows, so a final gas that is safe where it was authored can
+  /// be hypoxic at the stops, on a gas the descent never breathed. A loop's
+  /// ppO2 only falls on the way up, so its stops and the surface are enough.
+  /// Open circuit recovers at each switch, so a gas is judged where it is
+  /// last breathed: on arrival at the switch that leaves it, not on the richer
+  /// gas [AscentGasPlan.gasForDepth] already answers with there.
+  PlanIssue? _ascentHypoxia(
     AscentGasPlan ascentPlan,
     List<PlanStop> stops,
     double lastDepth,
+    DiveEnvironment environment,
   ) {
-    if (ascentPlan is! LoopAscentGas || lastDepth <= 0) return null;
-    PlanIssue? issueAt(double depth, {int? runtime}) {
-      final ppO2 = ascentPlan.inspiredPpO2At(depth);
-      if (ppO2 >= _hypoxicPpO2) return null;
-      return PlanIssue(
-        type: PlanIssueType.hypoxicGas,
-        severity: PlanIssueSeverity.critical,
-        message:
-            'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
-            '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
-        atRuntime: runtime,
-        atDepth: depth,
-        value: ppO2,
-        threshold: _hypoxicPpO2,
-      );
+    if (lastDepth <= 0) return null;
+    double arrivalPpO2(double depth, double from) {
+      if (ascentPlan is LoopAscentGas) return ascentPlan.inspiredPpO2At(depth);
+      final gas = ascentPlan.gasForDepth(from);
+      return OpenCircuit(
+        fO2: gas.fO2,
+        fHe: gas.fHe,
+      ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
     }
 
-    for (final stop in stops) {
-      final issue = issueAt(
-        stop.depthMeters,
-        runtime: stop.arrivalRuntimeSeconds,
-      );
-      if (issue != null) return issue;
+    final stopDepths = {for (final stop in stops) stop.depthMeters};
+    final checkpoints = <({double depth, int? runtime})>[
+      for (final stop in stops)
+        (depth: stop.depthMeters, runtime: stop.arrivalRuntimeSeconds),
+      if (ascentPlan is! LoopAscentGas)
+        for (final depth in ascentPlan.switchDepthsBetween(lastDepth, 0))
+          if (!stopDepths.contains(depth)) (depth: depth, runtime: null),
+      (depth: 0.0, runtime: null),
+    ]..sort((a, b) => b.depth.compareTo(a.depth));
+
+    var from = lastDepth;
+    for (final (:depth, :runtime) in checkpoints) {
+      final ppO2 = arrivalPpO2(depth, from);
+      if (ppO2 < _hypoxicPpO2) {
+        return PlanIssue(
+          type: PlanIssueType.hypoxicGas,
+          severity: PlanIssueSeverity.critical,
+          message:
+              'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
+              '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
+          atRuntime: runtime,
+          atDepth: depth,
+          value: ppO2,
+          threshold: _hypoxicPpO2,
+        );
+      }
+      from = depth;
     }
-    return issueAt(0);
+    return null;
   }
 
   /// True when a deco/stage tank richer than the back gas is carried.
