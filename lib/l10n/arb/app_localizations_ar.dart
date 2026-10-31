@@ -58316,7 +58316,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String changeLog_retention_months(int count) {
-    return '$count أشهر';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهر',
+      many: '$count شهرًا',
+      few: '$count أشهر',
+      two: 'شهران',
+      one: 'شهر واحد',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -115,6 +115,20 @@ void main() {
     );
   });
 
+  test('a save right after a bulk action is its own entry', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.bulkEdit,
+      body: () => _editNotes(db, 'One'),
+    );
+    await settler.settle();
+
+    await _editNotes(db, 'Two');
+    await settler.settle();
+
+    expect(await _operations(db), hasLength(2));
+  });
+
   test('edits to two dives are two operations', () async {
     await insertDive(db, 'other', diverId: 'diver', notes: 'Flat');
     await clearLog(db);

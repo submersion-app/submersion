@@ -33,6 +33,14 @@ class ChangeLogFieldChange extends Equatable {
   final Object? oldValue;
   final Object? newValue;
 
+  ChangeLogFieldChange copyWith({Object? oldValue, Object? newValue}) =>
+      ChangeLogFieldChange(
+        table: table,
+        column: column,
+        oldValue: oldValue ?? this.oldValue,
+        newValue: newValue ?? this.newValue,
+      );
+
   @override
   List<Object?> get props => [table, column, oldValue, newValue];
 }
@@ -69,6 +77,20 @@ class ChangeLogEvent extends Equatable {
   final List<ChangeLogFieldChange> fields;
 
   ChangeLogRoot get root => (table: rootTable ?? table, id: rootId ?? recordId);
+
+  ChangeLogEvent copyWith({List<ChangeLogFieldChange>? fields}) =>
+      ChangeLogEvent(
+        id: id,
+        operationId: operationId,
+        table: table,
+        recordId: recordId,
+        action: action,
+        changedAt: changedAt,
+        schemaVersion: schemaVersion,
+        rootTable: rootTable,
+        rootId: rootId,
+        fields: fields ?? this.fields,
+      );
 
   @override
   List<Object?> get props => [

@@ -33,6 +33,8 @@ const demoShiftedTimeColumns = {
 
 /// Date-like columns that are not instants, with the reason.
 const demoNotDateColumns = <String, String>{
+  'change_log_context.suppressed_until':
+      'a lease the change log triggers read, cleared when its job ends',
   'dives.bottom_time': 'a duration in seconds',
   'dives.runtime': 'a duration in seconds',
   'divers.diving_since': 'a calendar year, not an instant',

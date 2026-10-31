@@ -1223,7 +1223,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
           // Apply import tags to all imported dives.
           // Tag application is non-fatal: dives are already imported, so we
           // keep the result and advance to summary even if tagging fails.
-          // Skip it entirely if cancellation was requested — the user asked
+          // Skip it entirely if cancellation was requested: the user asked
           // us to stop, not to do one more round of DB work.
           if (!token.isCancelled &&
               importTags.isNotEmpty &&

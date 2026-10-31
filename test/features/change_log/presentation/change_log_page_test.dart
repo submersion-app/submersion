@@ -187,6 +187,21 @@ void main() {
     expect(find.text('Deleted'), findsOneWidget);
   });
 
+  testWidgets('an edited then deleted record still reads as deleted', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await db.customStatement(
+        "UPDATE dives SET notes = 'Current' WHERE id = 'mine'",
+      );
+      await db.customStatement("DELETE FROM dives WHERE id = 'mine'");
+    });
+
+    await pump(tester);
+
+    expect(find.text('Deleted'), findsOneWidget);
+  });
+
   testWidgets('switching diver reloads the feed', (tester) async {
     await tester.runAsync(() async {
       await db.customStatement(

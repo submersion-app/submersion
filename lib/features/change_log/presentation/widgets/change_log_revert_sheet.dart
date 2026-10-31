@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
@@ -24,6 +25,8 @@ String changeLogBlockText(AppLocalizations l, ChangeLogBlock block) =>
     };
 
 enum _Choice { rest, all }
+
+final _log = LoggerService.forClass(ChangeLogRevertService);
 
 /// Plans, asks where it must, and reverts. A bulk action always asks first,
 /// since it can remove records. An edit asks only when something changed
@@ -72,7 +75,12 @@ Future<void> runChangeLogRevert(
     } else {
       await _showKept(context, ref, result);
     }
-  } catch (_) {
+  } catch (error, stackTrace) {
+    _log.error(
+      'Could not revert a change log entry',
+      error: error,
+      stackTrace: stackTrace,
+    );
     messenger.showSnackBar(SnackBar(content: Text(l.changeLog_revert_failed)));
   }
 }

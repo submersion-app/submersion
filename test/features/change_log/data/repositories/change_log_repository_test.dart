@@ -347,6 +347,38 @@ void main() {
     expect(preview?.total ?? 0, 0);
   });
 
+  test('a preview says a record went, even after an edit', () async {
+    await _editNotes(db, 'mine', 'One');
+    await db.customStatement("DELETE FROM dives WHERE id = 'mine'");
+    await repository.settleAll();
+    final operation = (await repository.getFeed(
+      diverId: 'me',
+      filter: _noFilter,
+    )).single;
+
+    final preview = (await repository.getPreviewFields([
+      operation.id,
+    ]))[operation.id]!;
+
+    expect(preview.rootAction, ChangeLogAction.delete);
+  });
+
+  test('a preview says a record was added, even with an edit', () async {
+    await insertDive(db, 'fresh', diverId: 'me');
+    await _editNotes(db, 'fresh', 'One');
+    await repository.settleAll();
+    final operation = (await repository.getFeed(
+      diverId: 'me',
+      filter: _noFilter,
+    )).single;
+
+    final preview = (await repository.getPreviewFields([
+      operation.id,
+    ]))[operation.id]!;
+
+    expect(preview.rootAction, ChangeLogAction.insert);
+  });
+
   test('record counts count roots, not events', () async {
     await insertDive(db, 'second', diverId: 'me');
     await clearLog(db);

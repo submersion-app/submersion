@@ -256,12 +256,14 @@ class ChangeLogRepository {
           variables: [...operationIds.map(Variable<String>.new)],
         )
         .get();
-    final rootActions = {
-      for (final row in actions)
-        row.read<String>('operation_id'): ChangeLogAction.fromCode(
-          row.read<String>('action'),
-        ),
-    };
+    // That the record arrived or went outranks any edit around it.
+    final rootActions = <String, ChangeLogAction>{};
+    for (final row in actions) {
+      final action = ChangeLogAction.fromCode(row.read<String>('action'));
+      if (action != ChangeLogAction.update) {
+        rootActions[row.read<String>('operation_id')] = action;
+      }
+    }
 
     return {
       for (final id in {...fields.keys, ...rootActions.keys})
@@ -338,6 +340,13 @@ class ChangeLogRepository {
     return _event(row.data, [for (final r in fields) _field(r.data)]);
   }
 
+  /// How the triggers see [table]. Declared by drift, so it never changes.
+  ChangeLogTableSpec? specOf(String table) => (_specs ??= {
+    for (final spec in changeLogSpecsFor(_db)) spec.table: spec,
+  })[table];
+
+  static Map<String, ChangeLogTableSpec>? _specs;
+
   /// The columns [table] really has in this file, which may be fewer than
   /// drift declares.
   Future<Set<String>> liveColumns(String table) async {
@@ -352,8 +361,7 @@ class ChangeLogRepository {
 
   /// Whether the record still exists, for offering a link to it.
   Future<bool> recordExists(String table, String id) async {
-    final specs = changeLogSpecsFor(_db);
-    final spec = specs.where((s) => s.table == table).firstOrNull;
+    final spec = specOf(table);
     if (spec == null) return false;
     final match = changeLogKeyMatch(spec, id);
     final row = await _db

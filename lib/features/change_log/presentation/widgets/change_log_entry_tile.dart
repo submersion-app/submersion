@@ -128,7 +128,6 @@ class ChangeLogEntryTile extends StatelessWidget {
 
   String? _actionText(BuildContext context) {
     final l = context.l10n;
-    if ((preview?.total ?? 0) > 0) return null;
     return switch (preview?.rootAction) {
       ChangeLogAction.insert => l.changeLog_action_added,
       ChangeLogAction.delete => l.changeLog_action_deleted,

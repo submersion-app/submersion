@@ -42,11 +42,6 @@ class ChangeLogRevertService {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  Map<String, ChangeLogTableSpec>? _specCache;
-  Map<String, ChangeLogTableSpec> get _specs => _specCache ??= {
-    for (final spec in changeLogSpecsFor(_db)) spec.table: spec,
-  };
-
   Future<ChangeLogRevertPlan> planField(int eventId, String column) async {
     final event = await _repository.getEvent(eventId);
     if (event == null) {
@@ -142,23 +137,13 @@ class ChangeLogRevertService {
     required ChangeLogDependencyIndex dependencies,
     Set<String> restoring = const {},
   }) async {
-    final first = <(String, String, String), ChangeLogFieldChange>{};
-    final last = <(String, String, String), (ChangeLogEvent, Object?)>{};
-    for (final event in events) {
-      if (event.action != ChangeLogAction.update) continue;
-      for (final field in event.fields) {
-        if (only != null && field.column != only) continue;
-        final key = (event.table, event.recordId, field.column);
-        first[key] ??= field;
-        last[key] = (event, field.newValue);
-      }
-    }
-
     final items = <ChangeLogRevertItem>[];
-    for (final MapEntry(:key, value: (event, logged)) in last.entries) {
-      final (table, recordId, column) = key;
-      final target = first[key]!.oldValue;
-      final returning = restoring.contains('$table|$recordId');
+    for (final (:event, :field) in netFieldChanges(events)) {
+      final column = field.column;
+      if (only != null && column != only) continue;
+      final logged = field.newValue;
+      final target = field.oldValue;
+      final returning = restoring.contains('${event.table}|${event.recordId}');
       final block = await _editBlock(
         event,
         column,
@@ -181,7 +166,7 @@ class ChangeLogRevertService {
       }
       final current = returning
           ? logged
-          : await _liveValue(table, recordId, column);
+          : await _liveValue(event.table, event.recordId, column);
       if (_same(current, target)) continue;
       items.add(
         ChangeLogRevertItem(
@@ -226,7 +211,7 @@ class ChangeLogRevertService {
     String recordId,
     String column,
   ) async {
-    final match = changeLogKeyMatch(_specs[table]!, recordId);
+    final match = changeLogKeyMatch(_repository.specOf(table)!, recordId);
     final row = await _db
         .customSelect(
           'SELECT "$column" AS v FROM "$table" WHERE ${match.where}',
@@ -348,7 +333,10 @@ class ChangeLogRevertService {
       if (event.root.table == 'dives' && dives.contains(event.root.id)) {
         continue;
       }
-      final match = changeLogKeyMatch(_specs[event.table]!, event.recordId);
+      final match = changeLogKeyMatch(
+        _repository.specOf(event.table)!,
+        event.recordId,
+      );
       await _db.customUpdate(
         'DELETE FROM "${event.table}" WHERE ${match.where}',
         variables: match.variables,
@@ -387,7 +375,7 @@ class ChangeLogRevertService {
     final hasUpdatedAt = (await _repository.liveColumns(
       table,
     )).contains('updated_at');
-    final match = changeLogKeyMatch(_specs[table]!, recordId);
+    final match = changeLogKeyMatch(_repository.specOf(table)!, recordId);
     await _db.customUpdate(
       'UPDATE "$table" SET '
       '${[for (final edit in edits) '"${edit.column}" = ?', if (hasUpdatedAt) '"updated_at" = ?'].join(', ')} WHERE ${match.where}',

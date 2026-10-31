@@ -58,6 +58,7 @@ class _Operation {
   _Operation({
     required this.id,
     required this.source,
+    required this.label,
     required this.diverId,
     required this.rootTable,
     required this.rootId,
@@ -72,6 +73,7 @@ class _Operation {
     : this(
         id: row['id']! as String,
         source: row['source']! as String,
+        label: row['label'] as String?,
         diverId: row['diver_id'] as String?,
         rootTable: row['root_table'] as String?,
         rootId: row['root_id'] as String?,
@@ -84,6 +86,7 @@ class _Operation {
 
   final String id;
   final String source;
+  final String? label;
   String? diverId;
   String? rootTable;
   String? rootId;
@@ -95,6 +98,11 @@ class _Operation {
   /// False until the first event, which is what tells "no root yet" from
   /// "touched several roots", both of which leave [rootId] null.
   bool hasEvents;
+
+  /// A save with no scope. A labelled bulk action is manual too, but it is
+  /// over when it ends, so the next save does not join it.
+  bool get isPlainSave =>
+      source == ChangeLogSource.manual.name && label == null;
 
   bool hasRoot(_Root root) => rootTable == root.table && rootId == root.id;
 }
@@ -178,10 +186,10 @@ class _SettlePass {
         ..rootLabel = null
         ..rootOrdinal = null;
     }
-    if (event.changedAt > operation.endedAt || operation.source == 'manual') {
+    if (event.changedAt > operation.endedAt || operation.isPlainSave) {
       operation.endedAt = event.changedAt;
     }
-    if (operation.source == 'manual') _latestManual[root] = operation;
+    if (operation.isPlainSave) _latestManual[root] = operation;
   }
 
   /// The operation [event] belongs to, by its scope or by the manual window.
@@ -243,7 +251,7 @@ class _SettlePass {
     final row = await _db
         .customSelect(
           'SELECT * FROM change_log_operations WHERE source = ? '
-          'AND root_table = ? AND root_id = ? '
+          'AND label IS NULL AND root_table = ? AND root_id = ? '
           'ORDER BY last_event_id DESC LIMIT 1',
           variables: [
             Variable.withString(ChangeLogSource.manual.name),

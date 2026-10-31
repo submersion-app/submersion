@@ -17071,7 +17071,7 @@
   "changeLog_settings_title": "إعدادات سجل التغييرات",
   "changeLog_retention_title": "الاحتفاظ بالإدخالات لمدة",
   "changeLog_retention_note": "يحتفظ كل جهاز بسجله الخاص. تتم إزالة الإدخالات الأقدم تلقائيًا.",
-  "changeLog_retention_months": "{count} أشهر",
+  "changeLog_retention_months": "{count, plural, one{شهر واحد} two{شهران} few{{count} أشهر} many{{count} شهرًا} other{{count} شهر}}",
   "changeLog_retention_forever": "إلى الأبد",
   "changeLog_clear": "مسح السجل",
   "changeLog_clear_title": "مسح سجل التغييرات؟",
