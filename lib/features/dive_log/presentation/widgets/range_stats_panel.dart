@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/range_gas_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/range_profile_stats.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -69,7 +69,11 @@ class RangeStatsPanel extends ConsumerWidget {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final stats = _calculateRangeStats(rangeState, tanks);
+    final stats = rangeProfileStats(
+      profile: profile,
+      startTimestamp: rangeState.startTimestamp!,
+      endTimestamp: rangeState.endTimestamp!,
+    );
     final gas = _gasConsumption(ref, rangeState, stats);
 
     return Card(
@@ -150,17 +154,19 @@ class RangeStatsPanel extends ConsumerWidget {
   /// source the chart draws, the same one [profile] (and so the range's
   /// average depth) comes from.
   ///
-  /// The duration is the selection's own span, so a range holding a single
-  /// sample of a sparse profile still has one; it needs only a depth.
+  /// The average depth comes from the plotted line, so a range holding no
+  /// sample of a sparse profile still has one; there is none off the end of
+  /// that line. The duration is what the pressure series cover of the range.
   RangeGasConsumption _gasConsumption(
     WidgetRef ref,
     RangeSelectionState rangeState,
-    _RangeStats stats,
+    RangeProfileStats stats,
   ) {
     final pressures = ref
         .watch(activeSourceTankPressuresProvider(diveId))
         .value;
-    if (pressures == null || pressures.isEmpty || stats.depthPointCount == 0) {
+    final avgDepth = stats.avgDepth;
+    if (pressures == null || pressures.isEmpty || avgDepth == null) {
       return (sac: null, rmv: null);
     }
     return rangeGasConsumption(
@@ -168,7 +174,7 @@ class RangeStatsPanel extends ConsumerWidget {
       tankPressures: pressures,
       startTimestamp: rangeState.startTimestamp!,
       endTimestamp: rangeState.endTimestamp!,
-      avgDepth: stats.avgDepth,
+      avgDepth: avgDepth,
       model: ref.watch(gasModelProvider),
       isRebreather: isRebreather,
     );
@@ -177,7 +183,7 @@ class RangeStatsPanel extends ConsumerWidget {
   Widget _buildStatsGrid(
     BuildContext context,
     WidgetRef ref,
-    _RangeStats stats,
+    RangeProfileStats stats,
     RangeGasConsumption gas,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -374,182 +380,23 @@ class RangeStatsPanel extends ConsumerWidget {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  String _formatSignedDepth(double delta) {
+  String _formatSignedDepth(double? delta) {
+    if (delta == null) return units.formatDepth(null);
     final converted = units.convertDepth(delta);
     final sign = converted > 0 ? '+' : '';
     return '$sign${converted.toStringAsFixed(1)}${units.depthSymbol}';
   }
 
-  String _formatRate(double rate) {
+  String _formatRate(double? rate) {
+    if (rate == null) return units.formatDepthRate(null);
     final converted = units.convertDepth(rate);
     return '${converted.toStringAsFixed(1)} ${units.depthRateSymbol}';
   }
 
-  String _formatSignedRate(double rate) {
+  String _formatSignedRate(double? rate) {
+    if (rate == null) return units.formatDepthRate(null);
     final converted = units.convertDepth(rate);
     final sign = converted > 0 ? '+' : '';
     return '$sign${converted.toStringAsFixed(1)} ${units.depthRateSymbol}';
   }
-
-  _RangeStats _calculateRangeStats(
-    RangeSelectionState rangeState,
-    List<DiveTank> tanks,
-  ) {
-    final rangePoints = profile
-        .where(
-          (p) =>
-              p.timestamp >= rangeState.startTimestamp! &&
-              p.timestamp <= rangeState.endTimestamp!,
-        )
-        .toList();
-
-    // Depth over the whole selection, even one between two samples
-    final window = samplesInWindow(
-      profile,
-      start: rangeState.startTimestamp!,
-      end: rangeState.endTimestamp!,
-      time: (p) => p.timestamp,
-      value: (p) => p.depth,
-    );
-
-    if (window.isEmpty) {
-      return const _RangeStats(
-        depthPointCount: 0,
-        elapsedSeconds: 0,
-        depthDelta: 0,
-        minDepth: 0,
-        maxDepth: 0,
-        avgDepth: 0,
-        maxDescentRate: 0,
-        maxAscentRate: 0,
-        avgVerticalSpeed: 0,
-      );
-    }
-
-    // Elapsed time
-    final elapsedSeconds = rangePoints.isEmpty
-        ? 0
-        : rangePoints.last.timestamp - rangePoints.first.timestamp;
-
-    // Depth stats (needed even for zero-duration to populate min/max/avg)
-    final depths = window.map((s) => s.value).toList();
-    final minDepth = depths.reduce(math.min);
-    final maxDepth = depths.reduce(math.max);
-    final avgDepth = timeWeightedMeanOfWindow(window)!;
-
-    // Depth delta (signed: positive = deeper)
-    final depthDelta = rangePoints.isEmpty
-        ? 0.0
-        : rangePoints.last.depth - rangePoints.first.depth;
-
-    // Guard: zero-duration range has no meaningful rates
-    if (elapsedSeconds <= 0) {
-      return _RangeStats(
-        depthPointCount: window.length,
-        elapsedSeconds: 0,
-        depthDelta: depthDelta,
-        minDepth: minDepth,
-        maxDepth: maxDepth,
-        avgDepth: avgDepth,
-        maxDescentRate: 0,
-        maxAscentRate: 0,
-        avgVerticalSpeed: 0,
-      );
-    }
-
-    final elapsedMinutes = elapsedSeconds / 60.0;
-
-    // Average vertical speed (m/min, signed)
-    final avgVerticalSpeed = depthDelta / elapsedMinutes;
-
-    // Max descent and ascent rates from consecutive point pairs
-    double maxDescentRate = 0;
-    double maxAscentRate = 0;
-    for (int i = 0; i < rangePoints.length - 1; i++) {
-      final dt = rangePoints[i + 1].timestamp - rangePoints[i].timestamp;
-      if (dt <= 0) continue;
-      final dd = rangePoints[i + 1].depth - rangePoints[i].depth;
-      final rate = dd / (dt / 60.0); // m/min
-      if (rate > 0 && rate > maxDescentRate) {
-        maxDescentRate = rate;
-      } else if (rate < 0 && rate.abs() > maxAscentRate) {
-        maxAscentRate = rate.abs();
-      }
-    }
-
-    // Temperature stats
-    final temps = rangePoints
-        .where((p) => p.temperature != null)
-        .map((p) => p.temperature!)
-        .toList();
-    double? minTemp, maxTemp;
-    if (temps.isNotEmpty) {
-      minTemp = temps.reduce(math.min);
-      maxTemp = temps.reduce(math.max);
-    }
-
-    // Heart rate stats
-    final heartRates = rangePoints
-        .where((p) => p.heartRate != null)
-        .map((p) => p.heartRate!)
-        .toList();
-    int? minHR, maxHR;
-    if (heartRates.isNotEmpty) {
-      minHR = heartRates.reduce(math.min);
-      maxHR = heartRates.reduce(math.max);
-    }
-
-    return _RangeStats(
-      depthPointCount: window.length,
-      elapsedSeconds: elapsedSeconds,
-      depthDelta: depthDelta,
-      minDepth: minDepth,
-      maxDepth: maxDepth,
-      avgDepth: avgDepth,
-      maxDescentRate: maxDescentRate,
-      maxAscentRate: maxAscentRate,
-      avgVerticalSpeed: avgVerticalSpeed,
-      minTemp: minTemp,
-      maxTemp: maxTemp,
-      minHR: minHR,
-      maxHR: maxHR,
-    );
-  }
-}
-
-/// Internal class to hold range statistics
-class _RangeStats {
-  /// Profile samples inside the range.
-  final int depthPointCount;
-  final int elapsedSeconds;
-  final double depthDelta;
-  final double minDepth;
-  final double maxDepth;
-  final double avgDepth;
-  final double maxDescentRate;
-  final double maxAscentRate;
-  final double avgVerticalSpeed;
-  final double? minTemp;
-  final double? maxTemp;
-  final int? minHR;
-  final int? maxHR;
-
-  const _RangeStats({
-    required this.depthPointCount,
-    required this.elapsedSeconds,
-    required this.depthDelta,
-    required this.minDepth,
-    required this.maxDepth,
-    required this.avgDepth,
-    required this.maxDescentRate,
-    required this.maxAscentRate,
-    required this.avgVerticalSpeed,
-    this.minTemp,
-    this.maxTemp,
-    this.minHR,
-    this.maxHR,
-  });
-
-  bool get hasTemperature => minTemp != null;
-  bool get hasHeartRate => minHR != null;
 }

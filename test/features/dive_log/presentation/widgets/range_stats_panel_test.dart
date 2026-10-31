@@ -46,6 +46,8 @@ Future<void> _pumpPanel(
   Map<String, List<TankPressurePoint>> tankPressures = const {},
   GasConsumptionDisplay display = GasConsumptionDisplay.both,
   bool isRebreather = false,
+  int duration = 600,
+  (int, int)? range,
 }) async {
   tester.view.physicalSize = Size(width, 600);
   tester.view.devicePixelRatio = 1.0;
@@ -65,9 +67,10 @@ Future<void> _pumpPanel(
     ],
   );
   addTearDown(container.dispose);
-  container.read(rangeSelectionProvider('d1').notifier)
-    ..initialize(600)
+  final selection = container.read(rangeSelectionProvider('d1').notifier)
+    ..initialize(duration)
     ..enableRangeMode();
+  if (range != null) selection.setRange(range.$1, range.$2);
 
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -139,6 +142,108 @@ void main() {
       tester.getTopLeft(find.text('Max Depth')).dy,
       tester.getTopLeft(find.text('Elapsed')).dy,
     );
+  });
+
+  group('the selected interval (#3890)', () {
+    /// The stat chip under [label], as the diver reads it.
+    String valueOf(WidgetTester tester, String label) {
+      final chip = find.ancestor(
+        of: find.text(label),
+        matching: find.byType(Column),
+      );
+      final texts = tester.widgetList<Text>(
+        find.descendant(of: chip.first, matching: find.byType(Text)),
+      );
+      return texts.last.data!;
+    }
+
+    /// Flat at 10 m, sampled every 30 s for two minutes.
+    final flatEvery30s = [
+      for (var t = 0; t <= 120; t += 30)
+        DiveProfilePoint(timestamp: t, depth: 10),
+    ];
+
+    testWidgets('Elapsed is the whole selection', (tester) async {
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (15, 105),
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '01:30');
+    });
+
+    testWidgets('a selection between two samples is not a surface interval', (
+      tester,
+    ) async {
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (15, 25),
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '00:10');
+      expect(valueOf(tester, 'Min Depth'), '10.0m');
+      expect(valueOf(tester, 'Max Depth'), '10.0m');
+      expect(valueOf(tester, 'Avg Depth'), '10.0m');
+    });
+
+    testWidgets('a selection between two samples shows SAC at its depth', (
+      tester,
+    ) async {
+      // No sample inside the range, so the depth comes from the plotted
+      // line: 10 bar/min of the series at 2 bar ambient.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (35, 55),
+        tanks: const [DiveTank(id: 'bg', volume: 12, role: TankRole.backGas)],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+    });
+
+    testWidgets('a value that cannot be derived is shown as unavailable', (
+      tester,
+    ) async {
+      // Trimmed: the plotted line starts at 5:00, after the selection ends.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 300, depth: 10),
+          DiveProfilePoint(timestamp: 360, depth: 12),
+          DiveProfilePoint(timestamp: 420, depth: 12),
+        ],
+        duration: 420,
+        range: (100, 200),
+        tanks: const [DiveTank(id: 'bg', volume: 12, role: TankRole.backGas)],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '01:40');
+      for (final label in const [
+        'Depth Delta',
+        'Min Depth',
+        'Max Depth',
+        'Avg Depth',
+        'Avg Vert Speed',
+        'Max Descent',
+        'Max Ascent',
+      ]) {
+        expect(valueOf(tester, label), '--', reason: label);
+      }
+      // SAC divides by the depth, so it has none to divide by.
+      expect(find.text('SAC'), findsNothing);
+      expect(find.text('RMV'), findsNothing);
+    });
   });
 
   group('gas consumption (#2928)', () {
