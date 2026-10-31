@@ -11,6 +11,8 @@ import 'package:submersion/features/change_log/data/repositories/change_log_repo
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
@@ -148,6 +150,36 @@ void main() {
 
       expect(await count('dives', "id = 'dive'"), 0);
     });
+  });
+
+  test('a deleted dive returns with its revision lineage', () async {
+    final series = ProfileSeriesRepository();
+    final root = await series.insertSeries(
+      diveId: 'dive',
+      samples: const [ProfileSample(timestamp: 0, depth: 1)],
+      now: 1000,
+    );
+    await series.insertSeries(
+      diveId: 'dive',
+      parentSeriesId: root,
+      revisionKind: 'Edit: profile_editor',
+      samples: const [ProfileSample(timestamp: 0, depth: 2)],
+      now: 2000,
+    );
+    final before = await series.getRevisionsForDive('dive');
+    await forget();
+    await SyncRepository().clearPendingRecords();
+
+    await DiveRepository().deleteDive('dive');
+    await service.execute(await service.planOperation(await newestOperation()));
+
+    expect(await series.getRevisionsForDive('dive'), before);
+    final pending = await SyncRepository().getPendingRecords();
+    expect(
+      pending.map((r) => r.entityType),
+      isNot(contains('diveProfileSeriesHistory')),
+      reason: 'revision lineage is local to this device',
+    );
   });
 
   test('a null with a non-null default comes back null', () async {

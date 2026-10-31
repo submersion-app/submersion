@@ -7129,6 +7129,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Merülések visszaállítva';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Merülések visszaállítva, de néhány rögzített adatot nem sikerült helyreállítani';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

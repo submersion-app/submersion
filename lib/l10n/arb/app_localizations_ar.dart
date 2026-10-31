@@ -7259,6 +7259,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'تمت استعادة الغوصات';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'تمت استعادة الغوصات، لكن تعذّر استرجاع بعض البيانات المسجّلة';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

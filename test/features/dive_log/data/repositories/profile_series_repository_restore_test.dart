@@ -196,4 +196,56 @@ void main() {
     expect(tombstones, isEmpty);
     expect(await repo.getSeriesById(id), isNotNull);
   });
+
+  group('restoreRevisions', () {
+    late String child;
+
+    setUp(() async {
+      child = await repo.insertSeries(
+        diveId: 'dive-1',
+        parentSeriesId: computerSeries,
+        revisionKind: 'Edit: profile_editor',
+        samples: samples,
+        now: now + 1,
+      );
+    });
+
+    Future<void> dropSeries(String id) =>
+        (db.delete(db.diveProfileSeries)..where((t) => t.id.equals(id))).go();
+
+    test('puts a node back with its parent link', () async {
+      final nodes = await repo.getRevisionsForDive('dive-1');
+      await repo.deleteRevisionsForDives(['dive-1']);
+      expect(await repo.getRevisionsForDive('dive-1'), isEmpty);
+
+      await repo.restoreRevisions(nodes);
+
+      expect(await repo.getRevisionsForDive('dive-1'), nodes);
+    });
+
+    test('skips a series that did not return', () async {
+      final nodes = await repo.getRevisionsForDive('dive-1');
+      await dropSeries(child);
+
+      await repo.restoreRevisions(nodes);
+
+      expect(
+        (await repo.getRevisionsForDive('dive-1')).map((r) => r.seriesId),
+        isNot(contains(child)),
+      );
+    });
+
+    test('leaves no parent when the parent did not return', () async {
+      final nodes = await repo.getRevisionsForDive('dive-1');
+      await dropSeries(computerSeries);
+
+      await repo.restoreRevisions(nodes);
+
+      expect(await repo.parentSeriesIdOf(child), isNull);
+      expect(
+        (await repo.getRevisionsForDive('dive-1')).map((r) => r.seriesId),
+        contains(child),
+      );
+    });
+  });
 }
