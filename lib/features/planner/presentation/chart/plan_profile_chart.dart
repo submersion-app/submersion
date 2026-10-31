@@ -17,6 +17,8 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_palett
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -602,17 +604,43 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                   ),
                                 ),
                               ),
-                              if (scrubTime != null)
-                                Positioned(
-                                  top: 12,
-                                  left: PlanChartGeometry.leftGutter + 4,
-                                  child: _ScrubReadout(
-                                    runtimeSeconds: scrubTime,
-                                    depthMeters: series.depthAt(scrubTime),
-                                    units: units,
-                                    palette: palette,
-                                  ),
+                              // The bailout status goes top centre: on a phone
+                              // the corners hold the readouts and the bottom
+                              // edge holds the chips. In one column with the
+                              // scrub readout, which reaches past the centre
+                              // on a narrow chart, so it clears the readout at
+                              // any text size.
+                              Positioned(
+                                top: 12,
+                                left: 0,
+                                right: 0,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 2,
+                                  children: [
+                                    if (scrubTime != null)
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left:
+                                                PlanChartGeometry.leftGutter +
+                                                4,
+                                          ),
+                                          child: _ScrubReadout(
+                                            runtimeSeconds: scrubTime,
+                                            depthMeters: series.depthAt(
+                                              scrubTime,
+                                            ),
+                                            units: units,
+                                            palette: palette,
+                                          ),
+                                        ),
+                                      ),
+                                    const PlanChartBailoutStatus(),
+                                  ],
                                 ),
+                              ),
                             ],
                           );
                         },

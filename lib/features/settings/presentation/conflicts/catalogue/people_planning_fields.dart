@@ -185,6 +185,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_equipmentSetName,
     FieldKind.shortText,
   ),
+  'excludedFromRankings': ConflictField(
+    (l) => l.buddies_stat_excludedFromRankings,
+    FieldKind.boolean,
+  ),
   'expiryDate': ConflictField(
     (l) => CertificationField.expiryDate.localizedDisplayName(l),
     FieldKind.date,

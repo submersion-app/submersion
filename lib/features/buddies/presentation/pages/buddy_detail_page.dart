@@ -581,10 +581,33 @@ class _BuddyDetailContent extends ConsumerWidget {
                 error: (error, _) =>
                     Text(context.l10n.buddies_error_unableToLoadStats),
               ),
+              if (buddy.excludedFromRankings) ...[
+                const SizedBox(height: 12),
+                _buildExcludedFromRankingsNote(context),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Says why a buddy with plenty of dives is missing from the rankings
+  /// (issue #3624).
+  Widget _buildExcludedFromRankingsNote(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        Icon(Icons.leaderboard_outlined, size: 20, color: color),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            context.l10n.buddies_stat_excludedFromRankings,
+            style: theme.textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 
