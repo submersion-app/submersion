@@ -194,9 +194,11 @@ plan, and a plan links to one dive.
    window: a download fits an unfilled planned dive whose planned day is the
    download's local day or the day before (so a dive pushed to the next day,
    or a night dive logged after midnight, still fills). Among several fits
-   the smallest start-time gap wins, as today. Dates are compared as local
-   calendar days, built with `DateTime(y, m, d + n)` so a DST change does
-   not move them.
+   the smallest start-time gap wins, which replaces today's rule of pairing
+   each day's earliest download with its earliest plan: without it a
+   just-after-midnight download would take the next morning's plan rather
+   than the previous night's. Dates are compared as local calendar days,
+   built with `DateTime(y, m, d + n)` so a DST change does not move them.
 3. **By hand, from either side.** From the dive: **Link a plan** on the
    Compare section and page lists saved plans that are not yet linked,
    newest first, then linked ones greyed with the dive they belong to;
@@ -207,8 +209,10 @@ plan, and a plan links to one dive.
    the plan was linked to another dive. **Unlink plan** on the Compare page
    and **Unlink dive** on the plan clear it. Neither creates or deletes a
    dive. Linking a plan by hand to a dive that was itself created by
-   Convert to dive from another plan is allowed; the newest link wins, as
-   the repository already does.
+   Convert to dive from another plan is allowed after confirming, and the
+   displaced plan loses its link and its badge, so one dive has one plan and
+   unlinking never brings an older plan back. `getPlanByLinkedDiveId` keeps
+   newest-wins for duplicates that already exist or arrive by sync.
 
 ### The plan after it is linked
 
@@ -294,6 +298,48 @@ review size; the issue stays open until both merge.
   file; the dive detail sections tripwire keeps `dataSources` last.
 - Demo logbook: one linked plan on a filled dive and one unfilled planned
   dive seeded so the demo shows both states; coverage check stays green.
+
+## Settled while building (#4003, 2026-10-31)
+
+Decided by the maintainer:
+
+- One PR, closing #4003, rather than the two the delivery section allows.
+- The section opens with Planned, As dived and the newest what-if on. Other
+  saved what-ifs start off and turn on from their chips; past three columns
+  the table scrolls sideways on a phone.
+- A by-hand link clears any other plan's link to that dive, after confirming.
+
+Builder's calls (the section below left these open):
+
+- Every value in a column comes from one definition. Bottom time is
+  `BottomTimeCalculator` over that line's samples, or `Dive.bottomTime` for a
+  dive with no profile.
+- "Leaving the bottom" for the NDL and deco rows is the last sample at 85% or
+  more of that line's max depth, not the end of bottom time. Bottom time's
+  threshold can sit a third of the way down the dive, past the deep stops,
+  where NDL reads far longer than it did at depth. 85% matches
+  `PlanOutcome.ndlAtBottom`, which is taken at the deepest authored leg.
+- Deco required is the stops the model asks for at that moment: the sum of
+  `decoStops` on the dive and on a what-if, `totalDecoSeconds` on the plan.
+  Deco done is the time after that moment with an obligation in force, the
+  Lab's own deco time; the plan has no done value.
+- "Deco at m:ss" is the first sample with NDL below zero; on the plan it is
+  the first `ceilingTrace` sample above the clear-ceiling epsilon, so it reads
+  in 30-second steps.
+- Surface GF on the plan is taken from `surfacedTissue` at the surface
+  pressure of the plan's altitude, matching the last sample of the dive's
+  curve.
+- A dived value overshoots the plan past a tolerance of 0.5 m, 30 seconds or
+  1 GF point, so a rounding difference never reads as an error.
+- A planned dive shows only "Waiting for the dive", with no what-if controls,
+  on the section and the page, plus Link a plan if it has no link.
+- Tapping a what-if's column header opens it on the Compare page; chips toggle,
+  so this replaces the saved scenario rows' route in.
+- Greyed plans in Link a plan stay tappable and confirm before moving the link.
+- Dives with no section (a gauge dive, or no profile and no link) are linked
+  from the planner side.
+- Compare page's planned schedule is a second table; the section's table sits
+  beside the chart at 720 px and wider.
 
 ## Left to the builder
 
