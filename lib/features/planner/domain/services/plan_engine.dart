@@ -716,10 +716,11 @@ class PlanEngine {
       environment: environment,
       policy: policy,
     );
-    // Deliberately flat (issue #3580 scope cut, see PlanCalculatorService's
-    // matching comment): O2ToxicityCalculator is a general-purpose, widely
-    // shared utility, used here only for CNS/OTU accumulation, not for the
-    // deco ppO2 critical/warning PlanIssue check below, which IS band-aware
+    // Deliberately the flat limits (issue #3580 scope cut, see
+    // PlanCalculatorService's matching comment): O2ToxicityCalculator is a
+    // general-purpose, widely shared utility, used here only for CNS/OTU
+    // accumulation from a ppO2 in the plan's water, not for the deco ppO2
+    // critical/warning PlanIssue check below, which IS band-aware
     // (config.decoLimits.ppO2For).
     final o2Calc = O2ToxicityCalculator(
       ppO2WarningThreshold: config.ppO2Working,
