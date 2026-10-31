@@ -2023,12 +2023,18 @@ class PlanEngine {
       // ppO2Deco) -- even for a bottom-role tank, which can still breach
       // it on a sufficiently deep hand-set MOD. A bottom-role tank under
       // that ceiling is a warning (it already exceeded its own, lower,
-      // bottom limit to get here at all). decoCeilingPpO2For, not
+      // bottom limit to get here at all). decoCeilingBreachedFor, not
       // check.limitPpO2: that is whatever limit THIS tank's own role
-      // calls for (bottom or deco), not necessarily the deco ceiling.
-      final isCritical =
-          check.ppO2 >
-          decoCeilingPpO2For(tank.gasMix, decoLimits, environment: environment);
+      // calls for (bottom or deco), not necessarily the deco ceiling. It is
+      // the check an authored leg gets, so the same ppO2 is classified the
+      // same way wherever it comes from (issue #3913).
+      final isCritical = decoCeilingBreachedFor(
+        tank.gasMix,
+        decoLimits,
+        depthMeters: tank.decoSwitchDepth!,
+        actualPpO2: check.ppO2,
+        environment: environment,
+      );
       issues.add(
         PlanIssue(
           type: isCritical
