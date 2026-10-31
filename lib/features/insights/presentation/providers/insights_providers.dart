@@ -112,9 +112,18 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
 /// comment claimed was reactive stayed stale for up to five minutes: merge two
 /// dives, open Insights, and every chart still counted the merged-away dive
 /// (issue #974).
-void _keepAliveWithExpiry(Ref ref) {
+///
+/// The tick follows the tables the Insights filter reads, as well as the fixed
+/// statistics tables: a tag rename changes which dives a text search matches
+/// without writing a dive (issue #3894). Pass `filtered: false` from a provider
+/// that deliberately ignores the filter, so a filter change leaves it alone.
+void _keepAliveWithExpiry(Ref ref, {bool filtered = true}) {
   ref.invalidateSelfWhen(
-    ref.watch(insightsRepositoryProvider).watchInsightsChanges(),
+    ref
+        .watch(insightsRepositoryProvider)
+        .watchInsightsChanges(
+          filter: filtered ? ref.watch(insightsFilterProvider) : null,
+        ),
   );
   // Keep alive for 5 minutes after last listener detaches
   final link = ref.keepAlive();
@@ -574,7 +583,7 @@ final speciesInsightsProvider = FutureProvider.family<SpeciesInsights, String>((
   ref,
   speciesId,
 ) async {
-  _keepAliveWithExpiry(ref);
+  _keepAliveWithExpiry(ref, filtered: false);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   return repository.getSpeciesInsights(

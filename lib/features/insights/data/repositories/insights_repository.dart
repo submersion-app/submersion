@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
@@ -215,7 +216,13 @@ class InsightsRepository {
   /// [DiveRepository.changeTickDebounce]-debounced so a multi-changeset sync
   /// recomputes the charts once on the settled state rather than once per
   /// intermediate commit.
-  Stream<void> watchInsightsChanges() => _db
+  ///
+  /// Pass the [filter] a provider scopes by to also follow the tables it reads
+  /// (#3894): a text search reaches tag, custom field and dive type names, so
+  /// renaming a tag changes which dives match without writing one. They join
+  /// this one debounced stream, never a second tick beside it, so a write to
+  /// both sets refreshes once.
+  Stream<void> watchInsightsChanges({DiveFilterState? filter}) => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
@@ -250,9 +257,22 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
+          ..._filterTableQueries(filter),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
+
+  /// One update query per table [filter] reads, as the query compiler reports
+  /// them, so a new filter field is followed without editing the list above.
+  List<TableUpdateQuery> _filterTableQueries(DiveFilterState? filter) {
+    if (filter == null) return const [];
+    final touched = diveFilterTablesTouched(filter);
+    return [
+      for (final table in _db.allTables)
+        if (touched.contains(table.actualTableName))
+          TableUpdateQuery.onTable(table),
+    ];
+  }
 
   /// Builds the always-on statistics scope plus, when the diver has active
   /// filter axes, the `AND <alias>.id IN (<subquery>)` fragment and its raw

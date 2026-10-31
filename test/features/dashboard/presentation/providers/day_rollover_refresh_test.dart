@@ -24,7 +24,8 @@ class _FakeInsightsRepository extends InsightsRepository {
   final yearsAsked = <int>[];
 
   @override
-  Stream<void> watchInsightsChanges() => const Stream.empty();
+  Stream<void> watchInsightsChanges({DiveFilterState? filter}) =>
+      const Stream.empty();
 
   @override
   Future<YearStats> getYearStats(int year, {String? diverId}) async {

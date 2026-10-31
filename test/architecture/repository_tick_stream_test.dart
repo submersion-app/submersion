@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
@@ -195,6 +197,10 @@ void main() {
           MediaSmartAlbumRepository().watchChanges(),
       'InsightsRepository.watchInsightsChanges': () =>
           InsightsRepository().watchInsightsChanges(),
+      'InsightsRepository.watchInsightsChanges with a filter': () =>
+          InsightsRepository().watchInsightsChanges(
+            filter: DiveFilterState(query: TextNode(const ['reef'])),
+          ),
       'ServiceRecordRepository.watchServiceRecordsChanges': () =>
           ServiceRecordRepository().watchServiceRecordsChanges(),
       'ServiceKindRepository.watchServiceKindsChanges': () =>
@@ -324,6 +330,134 @@ void main() {
         );
       },
     );
+
+    group('with a filter (#3894)', () {
+      final textSearch = DiveFilterState(query: TextNode(const ['reef']));
+
+      Future<void> insertDive() => db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd1',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      Future<void> insertTag() => db
+          .into(db.tags)
+          .insert(
+            TagsCompanion.insert(
+              id: 'tag1',
+              name: 'reef',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      test('fires on a tags write the filter reads', () async {
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(filter: textSearch),
+            insertTag,
+          ),
+          isTrue,
+        );
+      });
+
+      test('fires on a dive_types write the filter reads', () async {
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(filter: textSearch),
+            () => db
+                .into(db.diveTypes)
+                .insert(
+                  DiveTypesCompanion.insert(
+                    id: 'reef_type',
+                    name: 'Reef',
+                    createdAt: now,
+                    updatedAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+
+      test('fires on a dive_custom_fields write the filter reads', () async {
+        await insertDive();
+        // Let the dive's own tick pass, so only the field write can fire.
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(filter: textSearch),
+            () => db
+                .into(db.diveCustomFields)
+                .insert(
+                  DiveCustomFieldsCompanion.insert(
+                    id: 'field1',
+                    diveId: 'd1',
+                    fieldKey: 'site',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+
+      test('fires on a dive_profile_events write the filter reads', () async {
+        await insertDive();
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(
+              filter: const DiveFilterState(decoOnly: true),
+            ),
+            () => db
+                .into(db.diveProfileEvents)
+                .insert(
+                  DiveProfileEventsCompanion.insert(
+                    id: 'event1',
+                    diveId: 'd1',
+                    timestamp: 60,
+                    eventType: 'decoStop',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      });
+
+      test('stays narrow when the filter does not read the table', () async {
+        // Otherwise every chart reloads on writes no statistic reads.
+        expect(
+          await fires(
+            InsightsRepository().watchInsightsChanges(
+              filter: const DiveFilterState(minDepth: 10),
+            ),
+            insertTag,
+          ),
+          isFalse,
+        );
+      });
+
+      test('a write to a filter table and a dive is one tick', () async {
+        var ticks = 0;
+        final sub = InsightsRepository()
+            .watchInsightsChanges(filter: textSearch)
+            .listen((_) => ticks++);
+        addTearDown(sub.cancel);
+
+        await insertTag();
+        await insertDive();
+        await Future<void>.delayed(const Duration(milliseconds: 450));
+
+        expect(ticks, 1);
+      });
+    });
 
     test(
       'DiveRepository.watchTables fires on a write to a named table',
