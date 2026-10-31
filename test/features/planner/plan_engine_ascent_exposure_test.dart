@@ -116,8 +116,7 @@ void main() {
       expect(implicit.runtimeSeconds, explicit.runtimeSeconds);
       expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
       expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
-      expect(implicit.cnsEnd, closeTo(81.2962962962963, 1e-9));
-      expect(implicit.otuTotal, closeTo(76.88795362772149, 1e-9));
+      expect(explicit.cnsEnd, closeTo(81.30543579678768, 1e-9));
     });
 
     test('the missing travel no longer hides the CNS warning (#3897)', () {
@@ -200,14 +199,6 @@ void main() {
       );
       expect(outcome.stops.length, greaterThan(1));
 
-      var expectedCns = outcome.segmentOutcomes.last.cns;
-      var expectedOtu = outcome.segmentOutcomes.last.otu;
-      void travel(double from, double to, int seconds) {
-        final ppO2 = O2ToxicityCalculator.calculatePpO2((from + to) / 2, 0.32);
-        expectedCns += o2Calc.calculateCnsForSegment(ppO2, seconds);
-        expectedOtu += o2Calc.calculateOtuForSegment(ppO2, seconds);
-      }
-
       final environment = PlanEngine.environmentFor(
         _plan(
           depth: 35,
@@ -216,6 +207,15 @@ void main() {
           tanks: [_tank('back', _ean32)],
         ),
       );
+
+      var expectedCns = outcome.segmentOutcomes.last.cns;
+      var expectedOtu = outcome.segmentOutcomes.last.otu;
+      void travel(double from, double to, int seconds) {
+        final ppO2 = environment.pressureAtDepth((from + to) / 2) * 0.32;
+        expectedCns += o2Calc.calculateCnsForSegment(ppO2, seconds);
+        expectedOtu += o2Calc.calculateOtuForSegment(ppO2, seconds);
+      }
+
       var depth = 35.0;
       var end = outcome.segmentOutcomes.last.endRuntime;
       for (final stop in outcome.stops) {
@@ -267,12 +267,12 @@ void main() {
       }
 
       double fO2At(double depth) => depth <= switchDepth ? 0.5 : 0.21;
+      final environment = PlanEngine.environmentFor(plan);
       void travel(double from, double to, int seconds) => breathe(
-        O2ToxicityCalculator.calculatePpO2((from + to) / 2, fO2At(from)),
+        environment.pressureAtDepth((from + to) / 2) * fO2At(from),
         seconds,
       );
 
-      final environment = PlanEngine.environmentFor(plan);
       var crossings = 0;
       var depth = 45.0;
       var end = outcome.segmentOutcomes.last.endRuntime;
@@ -300,31 +300,44 @@ void main() {
       expect(outcome.cnsEnd, closeTo(expectedCns, 1e-9));
       expect(outcome.otuTotal, closeTo(expectedOtu, 1e-9));
     });
+  });
 
-    test('a semi-closed plan surfaces on the open-circuit ascent gas', () {
-      final plan = _plan(
-        depth: 20,
-        minutes: 10,
+  group('semi-closed computed ascent exposure', () {
+    for (final mode in const [domain.PlanMode.scr, domain.PlanMode.pscr]) {
+      domain.DivePlan loopPlan({double depth = 40, int minutes = 30}) => _plan(
+        depth: depth,
+        minutes: minutes,
         gas: _ean32,
-        tanks: [_tank('back', _ean32)],
-        mode: domain.PlanMode.scr,
+        tanks: [_tank('supply', _ean32, role: TankRole.diluent)],
+        mode: mode,
       );
 
-      final outcome = engine.compute(plan);
-      expect(outcome.stops, isEmpty);
+      test('$mode stops and travel match the same authored ascent', () {
+        final plan = loopPlan();
 
-      final seconds =
-          outcome.runtimeSeconds - outcome.segmentOutcomes.last.endRuntime;
-      final ppO2 = O2ToxicityCalculator.calculatePpO2(10, 0.32);
-      expect(
-        outcome.cnsEnd,
-        closeTo(
-          outcome.segmentOutcomes.last.cns +
-              o2Calc.calculateCnsForSegment(ppO2, seconds),
-          1e-9,
-        ),
-      );
-    });
+        final implicit = engine.compute(plan);
+        expect(implicit.stops.length, greaterThan(1));
+        final explicit = engine.compute(
+          _authored(plan, _computedAscent(implicit)),
+        );
+
+        expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
+        expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
+      });
+
+      test('$mode surfaces on the loop, not on its supply gas', () {
+        final plan = loopPlan(depth: 18, minutes: 10);
+
+        final implicit = engine.compute(plan);
+        expect(implicit.stops, isEmpty);
+        final explicit = engine.compute(
+          _authored(plan, _computedAscent(implicit)),
+        );
+
+        expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
+        expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
+      });
+    }
   });
 
   group('closed-circuit computed ascent exposure', () {

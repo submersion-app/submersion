@@ -5900,7 +5900,7 @@
   "plannerCanvas_issue_noUsableGas": "O mínimo rock bottom de {minGas} não deixa gás utilizável numa carga de {fill}",
   "plannerCanvas_issue_diluentModExceeded": "O diluente excede a MOD Dil a {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "O perfil ultrapassa o teto de descompressão de {ceiling}, saltando paragens obrigatórias",
-  "plannerCanvas_issue_noBailout": "O plano de descompressão CCR não leva gás de bailout",
+  "plannerCanvas_issue_noBailout": "O plano de descompressão não leva gás de bailout",
   "plannerCanvas_issue_noDecoGas": "Descompressão necessária mas sem gás de deco a bordo",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "As células mostram o tempo até a superfície; vermelho = não mergulhável como planejado",

@@ -5799,7 +5799,7 @@
   "plannerCanvas_issue_noUsableGas": "A rock-bottom minimum ({minGas}) nem hagy felhasználható gázt egy {fill} töltésben",
   "plannerCanvas_issue_diluentModExceeded": "A hígítógáz meghaladja a Dil-MOD-ot {depth} mélységben (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "A profil a {ceiling} dekompressziós plafon fölé megy, kötelező megállókat kihagyva",
-  "plannerCanvas_issue_noBailout": "A CCR dekompressziós terv nem tartalmaz bailout gázt",
+  "plannerCanvas_issue_noBailout": "A dekompressziós terv nem tartalmaz bailout gázt",
   "plannerCanvas_issue_noDecoGas": "Dekompresszió szükséges, de nincs dekó gáz",
   "plannerCanvas_range_base": "Alap",
   "plannerCanvas_range_legend": "A cellák a felszínre érés idejét mutatják; piros = a terv szerint nem merülhető",

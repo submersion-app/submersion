@@ -19556,7 +19556,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_issue_noBailout => 'CCR 减压计划未携带逃生气体';
+  String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
 
   @override
   String get plannerCanvas_issue_noDecoGas => '需要减压但未携带减压气体';

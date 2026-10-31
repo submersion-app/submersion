@@ -5799,7 +5799,7 @@
   "plannerCanvas_issue_noUsableGas": "Le minimum rock bottom de {minGas} ne laisse aucun gaz utilisable dans un gonflage de {fill}",
   "plannerCanvas_issue_diluentModExceeded": "Le diluant dépasse sa MOD Dil à {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Le profil dépasse le plafond de décompression de {ceiling} et saute des paliers obligatoires",
-  "plannerCanvas_issue_noBailout": "Le plan de décompression CCR n'emporte aucun gaz de bailout",
+  "plannerCanvas_issue_noBailout": "Le plan de décompression n'emporte aucun gaz de bailout",
   "plannerCanvas_issue_noDecoGas": "Décompression requise mais aucun gaz de déco emporté",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Les cellules indiquent le temps de remontée ; rouge = non plongeable comme prévu",

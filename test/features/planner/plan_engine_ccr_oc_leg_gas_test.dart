@@ -262,9 +262,10 @@ void main() {
       );
       final outcome = engine.compute(plan);
 
+      // Charged the way an SCR plan charges it: the loop's flow, not SAC.
       expect(
         _usage(outcome, 'bo').litersUsed,
-        closeTo(_sac * 20 * _pressureAt(plan, 30), 1e-6),
+        closeTo(engine.config.scrInjectionRateLpm * 20, 1e-6),
       );
       expect(
         _usage(outcome, 'o2').litersUsed,
