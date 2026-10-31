@@ -151,6 +151,36 @@ void main() {
       expect(segments.first.endSeconds, 1800);
     });
 
+    test(
+      'starts a rebreather dive on its diluent over an untagged cylinder',
+      () {
+        // An import gives a cylinder it knows nothing about the back gas role.
+        final segments = buildGasUsageSegments(
+          tanks: [
+            _tank(
+              id: 'oxygen',
+              o2: 100,
+              name: 'O2',
+              role: TankRole.oxygenSupply,
+            ),
+            _tank(id: 'bailout', o2: 21, name: 'Bailout', order: 1),
+            _tank(
+              id: 'diluent',
+              o2: 21,
+              he: 35,
+              name: 'Diluent',
+              order: 2,
+              role: TankRole.diluent,
+            ),
+          ],
+          gasSwitches: const [],
+          diveDurationSeconds: 1200,
+        );
+
+        expect(segments.single.tankName, 'Diluent');
+      },
+    );
+
     test('starts on the lowest-order tank when none is back gas', () {
       final segments = buildGasUsageSegments(
         tanks: [

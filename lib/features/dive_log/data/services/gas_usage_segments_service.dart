@@ -1,3 +1,6 @@
+import 'package:collection/collection.dart';
+
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -27,7 +30,8 @@ class GasUsageSegment {
 /// Builds gas-usage segments for the dive profile gas-timeline strip.
 ///
 /// Algorithm:
-/// 1. Pick the starting tank: the back gas, else the lowest [DiveTank.order].
+/// 1. Pick the starting tank: the diluent on a rebreather, else the back gas,
+///    else the lowest [DiveTank.order].
 /// 2. Sort gas switches by timestamp and clamp to dive bounds.
 /// 3. A switch at or before [firstSampleSeconds] is the dive's initial-gas
 ///    declaration rather than a mid-dive switch, and owns the window from t=0.
@@ -120,10 +124,15 @@ List<GasUsageSegment> buildGasUsageSegments({
 
 /// The cylinder a dive starts on when no switch declares it: the same choice
 /// the deco model and SAC make, so a stage or deco bottle listed first does not
-/// read as breathed from the surface. Only [tanks]' order settles a tie, since
-/// the list itself may be in any order. [tanks] is non-empty.
-DiveTank _startingTankOf(List<DiveTank> tanks) =>
-    sacReferenceTankOf([...tanks]..sort((a, b) => a.order.compareTo(b.order)))!;
+/// read as breathed from the surface. The diluent comes first because back gas
+/// is the role an import gives a cylinder it knows nothing about, which on a
+/// rebreather may be a bailout. [DiveTank.order] settles a tie, since the list
+/// itself may be in any order. [tanks] is non-empty.
+DiveTank _startingTankOf(List<DiveTank> tanks) {
+  final byOrder = [...tanks]..sort((a, b) => a.order.compareTo(b.order));
+  return byOrder.firstWhereOrNull((t) => t.role == TankRole.diluent) ??
+      sacReferenceTankOf(byOrder)!;
+}
 
 /// Index into [sorted] of the switch that declares the dive's starting gas, or
 /// null when the first switch is a genuine mid-dive change.
