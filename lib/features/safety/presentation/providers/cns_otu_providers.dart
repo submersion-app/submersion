@@ -53,7 +53,7 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
 
   return CnsOtuSnapshot(
     lastDiveId: lastDive.id,
-    lastDiveEnd: lastDive.effectiveExitTime,
+    lastDiveEnd: lastDive.effectiveExitInstant,
     // Null when the last dive has no profile: the readout then warns that
     // its exposure is unknown rather than reporting "no load".
     exposure: analysis?.o2Exposure,

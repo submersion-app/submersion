@@ -51,7 +51,7 @@ void main() {
   }
 
   /// Pumps the card with the clock fixed at [now], for a dive that truly
-  /// ended at [diveEnd], stored the way the app stores it: as clock digits.
+  /// ended at [diveEnd].
   Future<void> pumpAt(
     WidgetTester tester, {
     required DateTime now,
@@ -79,7 +79,7 @@ void main() {
               child: CnsOtuStatusCard(
                 snapshot: CnsOtuSnapshot(
                   lastDiveId: 'dive-1',
-                  lastDiveEnd: asWallClockUtc(diveEnd.toLocal()),
+                  lastDiveEnd: diveEnd.toUtc(),
                   exposure: O2Exposure(cnsEnd: cnsEnd),
                   dailyOtu: dailyOtu,
                   weeklyOtu: 0.0,

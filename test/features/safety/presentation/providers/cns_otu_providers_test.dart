@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -224,7 +225,7 @@ void main() {
     final snapshot = await snapshotOf(container);
     expect(snapshot, isNotNull);
     expect(snapshot!.lastDiveId, 'dive-1');
-    expect(snapshot.lastDiveEnd, lastDiveEnd);
+    expect(snapshot.lastDiveEnd, fromWallClockUtc(lastDiveEnd).toUtc());
     expect(snapshot.cnsAtDiveEnd, 42.0);
     expect(snapshot.exposure?.otu, exposure.otu);
     // 15 (dive-1) + 80 (dive-0), not just the last dive's own OTU.
@@ -256,9 +257,35 @@ void main() {
       });
 
       final snapshot = await snapshotOf(container);
-      expect(snapshot!.lastDiveEnd, entryTime.add(const Duration(minutes: 40)));
+      expect(
+        snapshot!.lastDiveEnd,
+        fromWallClockUtc(entryTime).toUtc().add(const Duration(minutes: 40)),
+      );
     },
   );
+
+  // Added to clock digits, the runtime would land an hour from the real end:
+  // in New York 01:30 EST plus 90 minutes is 04:00 EDT, not 03:00.
+  test('adds the runtime in real time when it spans a DST change', () async {
+    final change = dstTransition(forward: true)!;
+    final entry = asWallClockUtc(
+      change.subtract(const Duration(minutes: 30)).toLocal(),
+    );
+    final repo = _StubDiveRepository(
+      DiveTimes(
+        id: 'dive-2',
+        dateTime: entry,
+        entryTime: entry,
+        runtime: const Duration(minutes: 90),
+      ),
+    );
+    final container = containerFor(repo, {
+      'dive-2': const O2Exposure(cnsEnd: 10.0),
+    });
+
+    final snapshot = await snapshotOf(container);
+    expect(snapshot!.lastDiveEnd, change.add(const Duration(hours: 1)));
+  }, skip: zoneHasNoDst);
 
   test('weekly OTU skips a dive that starts after now', () async {
     final lastDive = DiveTimes(

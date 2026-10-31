@@ -84,11 +84,8 @@ void main() {
     await tester.pump();
   }
 
-  /// The clock digits the app stores for a dive that ended [ago] in real
-  /// time. Subtracting from the digits of now instead would be an hour off
-  /// for as long as [ago] spans a DST change.
-  DateTime storedEndAgo(Duration ago) =>
-      asWallClockUtc(clock.now().subtract(ago).toLocal());
+  /// The true instant of a dive that ended [ago] in real time.
+  DateTime endedAgo(Duration ago) => clock.now().subtract(ago).toUtc();
 
   CnsOtuSnapshot snapshotOf({
     required DateTime lastDiveEnd,
@@ -115,7 +112,7 @@ void main() {
   testWidgets('shows no active load once CNS and OTU have both cleared', (
     tester,
   ) async {
-    final lastDiveEnd = storedEndAgo(const Duration(hours: 30));
+    final lastDiveEnd = endedAgo(const Duration(hours: 30));
     await pumpCard(
       tester,
       snapshotOf(
@@ -128,7 +125,7 @@ void main() {
   });
 
   testWidgets('shows the live CNS/OTU card for a recent dive', (tester) async {
-    final lastDiveEnd = storedEndAgo(const Duration(minutes: 30));
+    final lastDiveEnd = endedAgo(const Duration(minutes: 30));
     await pumpCard(
       tester,
       snapshotOf(
@@ -158,7 +155,7 @@ void main() {
       // cnsStart 10, cnsEnd 50 -> the dive itself added 40 points. Long
       // enough ago that live CNS has decayed well below that 40-point delta,
       // so a delta re-derived from the LIVE value would read lower than 40.
-      final lastDiveEnd = storedEndAgo(const Duration(hours: 3));
+      final lastDiveEnd = endedAgo(const Duration(hours: 3));
       await pumpCard(
         tester,
         snapshotOf(
@@ -187,7 +184,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: yesterday,
+          lastDiveEnd: fromWallClockUtc(yesterday).toUtc(),
           exposure: const O2Exposure(otuStart: 230.0, otu: 20.0),
           dailyOtu: 250.0,
           // weeklyOtu alone keeps the card in its active state so the daily
@@ -208,7 +205,7 @@ void main() {
     await pumpCard(
       tester,
       snapshotOf(
-        lastDiveEnd: storedEndAgo(const Duration(minutes: 30)),
+        lastDiveEnd: endedAgo(const Duration(minutes: 30)),
         // The dive's own-day total (otuStart + otu) is not today's.
         exposure: const O2Exposure(otuStart: 200.0, otu: 20.0),
         dailyOtu: 45.0,
@@ -223,9 +220,7 @@ void main() {
     await pumpCard(
       tester,
       snapshotOf(
-        lastDiveEnd: storedEndAgo(
-          const Duration(days: 3, hours: 4, minutes: 30),
-        ),
+        lastDiveEnd: endedAgo(const Duration(days: 3, hours: 4, minutes: 30)),
         exposure: const O2Exposure(otu: 20.0),
         weeklyOtu: 200.0,
       ),
@@ -239,7 +234,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: storedEndAgo(const Duration(hours: 2)),
+          lastDiveEnd: endedAgo(const Duration(hours: 2)),
           exposure: null,
           dailyOtu: 30.0,
           weeklyOtu: 120.0,
@@ -259,7 +254,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: storedEndAgo(const Duration(days: 6)),
+          lastDiveEnd: endedAgo(const Duration(days: 6)),
           exposure: null,
         ),
       );
@@ -273,7 +268,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: storedEndAgo(const Duration(days: 7, minutes: 1)),
+          lastDiveEnd: endedAgo(const Duration(days: 7, minutes: 1)),
           exposure: null,
         ),
       );
@@ -288,7 +283,7 @@ void main() {
   ) async {
     // The last dive itself added no CNS/OTU, but a 7-day rolling total from
     // earlier dives is still above the daily/weekly limits worth tracking.
-    final lastDiveEnd = storedEndAgo(const Duration(hours: 10));
+    final lastDiveEnd = endedAgo(const Duration(hours: 10));
     await pumpCard(
       tester,
       snapshotOf(
@@ -309,7 +304,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: storedEndAgo(const Duration(minutes: 30)),
+          lastDiveEnd: endedAgo(const Duration(minutes: 30)),
           exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
           weeklyOtu: 50.0,
           endOfDiveCompartments: loadedCompartments(),
@@ -326,7 +321,7 @@ void main() {
         // epsilon, short enough that the loaded compartments have not yet
         // off-gassed down to hasResidualLoad's own epsilon. Without the
         // hasActiveLoad fix this used to read as "No active load".
-        final lastDiveEnd = storedEndAgo(const Duration(hours: 20));
+        final lastDiveEnd = endedAgo(const Duration(hours: 20));
         await pumpCard(
           tester,
           snapshotOf(
@@ -346,7 +341,7 @@ void main() {
       'no tissue card without end-of-dive compartments (e.g. gauge mode, '
       'withheld rebreather)',
       (tester) async {
-        final lastDiveEnd = storedEndAgo(const Duration(minutes: 30));
+        final lastDiveEnd = endedAgo(const Duration(minutes: 30));
         await pumpCard(
           tester,
           snapshotOf(
@@ -371,7 +366,7 @@ void main() {
             // weeklyOtu keeps the card itself in its active state so the
             // absence of the tissue section is what is actually being
             // checked, not the whole card falling to "clear".
-            lastDiveEnd: storedEndAgo(const Duration(days: 4)),
+            lastDiveEnd: endedAgo(const Duration(days: 4)),
             exposure: const O2Exposure(),
             weeklyOtu: 50.0,
             endOfDiveCompartments: loadedCompartments(),

@@ -154,9 +154,8 @@ class CnsOtuStatusCard extends StatelessWidget {
     // elapsed time. Only daily OTU stays on clock digits, because it belongs
     // to a calendar day rather than a span.
     final now = clock.now().toUtc();
-    final lastDiveEnd = snap.lastDiveEndInstant;
-    final elapsed = now.isAfter(lastDiveEnd)
-        ? now.difference(lastDiveEnd)
+    final elapsed = now.isAfter(snap.lastDiveEnd)
+        ? now.difference(snap.lastDiveEnd)
         : Duration.zero;
     final dailyOtu = CnsOtuLiveService.currentOtuDaily(
       dailyOtu: snap.dailyOtu,
@@ -176,7 +175,7 @@ class CnsOtuStatusCard extends StatelessWidget {
 
     final liveCns = CnsOtuLiveService.currentCns(
       cnsAtDiveEnd: exposure.cnsEnd,
-      lastDiveEnd: lastDiveEnd,
+      lastDiveEnd: snap.lastDiveEnd,
       now: now,
     );
 
@@ -196,7 +195,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     final currentTissue = endOfDiveCompartments != null
         ? TissueLiveService.currentStatus(
             endOfDiveCompartments: endOfDiveCompartments,
-            lastDiveEnd: lastDiveEnd,
+            lastDiveEnd: snap.lastDiveEnd,
             now: now,
             gfLow: gfLow,
             gfHigh: gfHigh,
@@ -211,7 +210,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     final tissueTimeline = tissueStatus != null
         ? TissueLiveService.surfaceIntervalTimeline(
             endOfDiveCompartments: endOfDiveCompartments!,
-            lastDiveEnd: lastDiveEnd,
+            lastDiveEnd: snap.lastDiveEnd,
             now: now,
             gfLow: gfLow,
             gfHigh: gfHigh,

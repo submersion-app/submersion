@@ -1,13 +1,12 @@
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
 
 /// Static inputs for the current CNS/OTU readout, captured from the diver's
 /// most recent dive and the OTU totals around it.
 ///
 /// [CnsOtuLiveService] re-derives the live CNS% from [cnsAtDiveEnd] and
-/// [lastDiveEndInstant] on every UI tick; everything else here is a plain snapshot
+/// [lastDiveEnd] on every UI tick; everything else here is a plain snapshot
 /// that only changes when the dive table is written to or a day ends (see
 /// `cnsOtuSnapshotProvider`).
 class CnsOtuSnapshot {
@@ -15,9 +14,9 @@ class CnsOtuSnapshot {
   /// its hero header.
   final String lastDiveId;
 
-  /// End of the most recent dive, wall-clock-as-UTC (the dive-time frame;
-  /// see [NoFlyService.wallClockNowUtc]). For elapsed time use
-  /// [lastDiveEndInstant].
+  /// End of the most recent dive as a true instant, not the wall-clock-as-UTC
+  /// dive-time frame: recovery runs on elapsed time, and two sets of clock
+  /// digits are an hour away from that across a DST change (issue #3960).
   final DateTime lastDiveEnd;
 
   /// That dive's own O2 exposure. [O2Exposure.cnsEnd] is the CNS% at the
@@ -67,11 +66,6 @@ class CnsOtuSnapshot {
     this.endOfDiveCompartments,
     this.surfaceEnvironment = DiveEnvironment.standard,
   });
-
-  /// [lastDiveEnd] as a true instant, read in the device's zone. Recovery
-  /// runs on elapsed time, and two sets of clock digits are an hour away from
-  /// that across a DST change (issue #3960).
-  DateTime get lastDiveEndInstant => fromWallClockUtc(lastDiveEnd).toUtc();
 
   /// Whether the last dive's own CNS% and OTU are known.
   bool get hasProfile => exposure != null;
