@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/query/presentation/query_label_lookup.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
@@ -76,6 +78,11 @@ class AppQueryLabels implements QueryLabels {
         return byName(EntryMethod.values)?.localizedName(_l10n) ?? value;
       case 'query_dives_diveMode':
         return byName(DiveMode.values)?.localizedName(_l10n) ?? value;
+      case 'query_dives_tankConfig':
+        final configuration = byName(TankBaseConfiguration.values);
+        return configuration == null
+            ? value
+            : tankBaseConfigurationLabel(_l10n, configuration);
       case 'query_dives_weekday':
         final i = _weekdays.indexOf(value);
         return i < 0 ? value : weekdayAbbreviation(_context, i + 1);

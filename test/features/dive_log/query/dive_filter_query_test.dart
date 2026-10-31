@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
 void main() {
@@ -307,6 +308,56 @@ void main() {
       ),
     );
     expect(diveFilterTablesTouched(wrongType), {'dives'});
+  });
+
+  group('tank configuration (#3804)', () {
+    ConditionNode extra(String key) =>
+        ConditionNode(FieldPath([key]), QueryOp.eq, const BoolValue(true));
+    final sidemount = ConditionNode(
+      FieldPath(['tankConfig']),
+      QueryOp.inList,
+      ListValue(const [EnumValue('sidemount')]),
+    );
+
+    test('a configuration lowers to a list', () {
+      expect(
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+        ).toQuery(),
+        sidemount,
+      );
+    });
+
+    test('a lone extra lowers to its own condition', () {
+      expect(
+        const DiveFilterState(
+          tankExtras: [TankConfigurationExtra.stages],
+        ).toQuery(),
+        extra('stages'),
+      );
+    });
+
+    test('several extras match any of them', () {
+      expect(
+        const DiveFilterState(
+          tankExtras: [
+            TankConfigurationExtra.stages,
+            TankConfigurationExtra.decoGas,
+          ],
+        ).toQuery(),
+        OrNode([extra('stages'), extra('decoGas')]),
+      );
+    });
+
+    test('the two axes combine with AND', () {
+      expect(
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+          tankExtras: [TankConfigurationExtra.stages],
+        ).toQuery(),
+        AndNode([sidemount, extra('stages')]),
+      );
+    });
   });
 
   group('not recorded choices (#3806)', () {

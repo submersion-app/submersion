@@ -373,6 +373,76 @@ void main() {
   });
 
   group('shiftSegmentTime', () {
+    test('a profile that starts before zero shifts within its own span', () {
+      // A secondary computer switched on before the merged timeline's zero.
+      const profile = [
+        DiveProfilePoint(timestamp: -30, depth: 0),
+        DiveProfilePoint(timestamp: -20, depth: 5),
+        DiveProfilePoint(timestamp: -10, depth: 5),
+        DiveProfilePoint(timestamp: 60, depth: 5),
+      ];
+
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: -20,
+        endTimestamp: -10,
+        timeDelta: 5,
+      );
+
+      expect(shifted?.map((p) => p.timestamp), [-30, -15, -5, 60]);
+    });
+
+    test('a profile that starts before zero stops at its first sample', () {
+      const profile = [
+        DiveProfilePoint(timestamp: -30, depth: 0),
+        DiveProfilePoint(timestamp: -20, depth: 5),
+        DiveProfilePoint(timestamp: 60, depth: 5),
+      ];
+
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: -30,
+        endTimestamp: -20,
+        timeDelta: -5,
+      );
+
+      expect(shifted, isNull);
+    });
+
+    test('a profile that starts after zero can shift back towards it', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 10, depth: 0),
+        DiveProfilePoint(timestamp: 20, depth: 5),
+        DiveProfilePoint(timestamp: 60, depth: 5),
+      ];
+
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: 10,
+        endTimestamp: 20,
+        timeDelta: -5,
+      );
+
+      expect(shifted?.map((p) => p.timestamp), [5, 15, 60]);
+    });
+
+    test('refuses a shift to before the start of the dive', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 10, depth: 5),
+        DiveProfilePoint(timestamp: 60, depth: 5),
+      ];
+
+      final shifted = service.shiftSegmentTime(
+        profile,
+        startTimestamp: 0,
+        endTimestamp: 10,
+        timeDelta: -5,
+      );
+
+      expect(shifted, isNull);
+    });
+
     test('shifts timestamps in range', () {
       final profile = [
         const DiveProfilePoint(timestamp: 0, depth: 10.0),

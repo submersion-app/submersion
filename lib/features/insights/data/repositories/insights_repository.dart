@@ -19,9 +19,6 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    as domain;
-import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -33,10 +30,12 @@ import 'package:submersion/features/insights/data/repositories/site_entry_method
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
@@ -3032,17 +3031,18 @@ class InsightsRepository {
   /// Counts the dives the diver has explicitly excluded from statistics, for
   /// the Overview footnote.
   ///
-  /// Deliberately counts only `excluded_from_stats`, not the whole
-  /// [DiveStatsScope]: this footnote exists to explain the diver's own choice
-  /// back to them. A planned dive is not something they chose to exclude, so
-  /// folding it in would make the number confusing rather than clarifying.
+  /// Deliberately counts logged dives with `excluded_from_stats`, not
+  /// everything outside the [DiveStatsScope]: this footnote exists to explain
+  /// the diver's own choice back to them. A planned dive has not happened, so
+  /// counting one, flagged or not, would make the number confusing rather than
+  /// clarifying.
   // stats-scope-exempt: counts the excluded, by definition
   Future<int> countExcludedDives({String? diverId}) async {
     final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
     final row = await _db
         .customSelect(
           'SELECT COUNT(*) AS c FROM dives '
-          'WHERE excluded_from_stats = 1 $diverFilter',
+          'WHERE excluded_from_stats = 1 AND is_planned = 0 $diverFilter',
           variables: diverId != null
               ? [Variable<String>(diverId)]
               : const <Variable<Object>>[],
@@ -3050,6 +3050,30 @@ class InsightsRepository {
         )
         .getSingle();
     return row.read<int>('c');
+  }
+
+  /// Counts the diver's logged dives and how many of them statistics include,
+  /// ignoring any view filter.
+  ///
+  /// Both come from one row so they agree on what a logged dive is: a planned
+  /// dive has not happened, so it is in neither, excluded or not.
+  Future<LogbookDiveCounts> countLogbookDives({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS logged, '
+          'COUNT(*) FILTER (WHERE ${DiveStatsScope.predicate()}) AS counted '
+          'FROM dives d WHERE d.is_planned = 0 $diverFilter',
+          variables: diverId != null
+              ? [Variable<String>(diverId)]
+              : const <Variable<Object>>[],
+          readsFrom: {_db.dives},
+        )
+        .getSingle();
+    return LogbookDiveCounts(
+      logged: row.read<int>('logged'),
+      counted: row.read<int>('counted'),
+    );
   }
 
   // ============================================================================
