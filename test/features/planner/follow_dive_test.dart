@@ -147,8 +147,8 @@ void main() {
 
   // Stored dive times are clock digits in a UTC DateTime, so reading one
   // directly as an instant puts it a UTC offset away from the real moment:
-  // hours too long west of UTC, and negative east of it, where the too-short
-  // fallback below then replaces the real interval.
+  // hours too long west of UTC, and negative east of it, where the sheet's
+  // too-short fallback then replaces the real interval.
   Future<Duration?> followAt(
     WidgetTester tester,
     DateTime now,
