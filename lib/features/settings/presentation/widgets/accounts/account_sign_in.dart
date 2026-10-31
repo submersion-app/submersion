@@ -128,15 +128,16 @@ Future<void> _clearBackupSignInNeed(
   ProviderContainer container,
   AccountGroup group,
 ) async {
-  const copyUses = {AccountUsageKind.databaseSync, AccountUsageKind.backupCopy};
-  if (!group.usages.any((u) => copyUses.contains(u.kind))) return;
   try {
     // Before the target, which probes every account.
     if (!container.read(backupSettingsProvider).lastCloudCopyNeedsSignIn) {
       return;
     }
     final target = await readBackupCopyTarget(container);
-    if (backupCopyGroupOf(target)?.key != group.key) return;
+    // By a row, not the key: signing in can regroup an own server.
+    final rowId = group.rows.first.id;
+    final copyRows = backupCopyGroupOf(target)?.rows ?? const [];
+    if (!copyRows.any((r) => r.id == rowId)) return;
     await container
         .read(backupSettingsProvider.notifier)
         .clearCloudCopyNeedsSignIn();
@@ -150,17 +151,27 @@ Future<void> _clearBackupSignInNeed(
 }
 
 /// What sync knows about signing in, which Data health reads: the failure on
-/// record, when it is this account's (sync's provider holds only one), and
-/// whether it is signed in. Left alone during a sync, whose status a refresh
-/// would overwrite.
+/// record (sync's provider holds only one) and whether it is signed in. Only
+/// for sync's account: another's sign-in changes neither, and a refresh would
+/// wipe whatever sync is showing. Left alone during a sync for the same reason.
 Future<void> _refreshSyncAfterSignIn(
   ProviderContainer container,
   AccountGroup group,
 ) async {
-  if (group.usages.any((u) => u.kind == AccountUsageKind.databaseSync)) {
+  final usesSync =
+      !group.usagesKnown ||
+      group.usages.any((u) => u.kind == AccountUsageKind.databaseSync);
+  if (!usesSync) return;
+  try {
     await container
         .read(syncFailureProvider.notifier)
         .clearFor(container.read(cloudStorageProviderProvider)?.providerId);
+  } catch (e, stack) {
+    _log.warning(
+      'Could not clear the sync failure',
+      error: e,
+      stackTrace: stack,
+    );
   }
   if (container.read(isSyncingProvider)) return;
   await container.read(syncStateProvider.notifier).refreshState();

@@ -1245,14 +1245,14 @@ class SyncService {
         message: _l10n.settings_cloudSync_result_noProvider,
       );
     }
-    final marker = await readLibraryEpochMarker(provider);
-    if (marker == null) {
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
-      );
-    }
     try {
+      final marker = await readLibraryEpochMarker(provider);
+      if (marker == null) {
+        return SyncResult(
+          status: SyncResultStatus.error,
+          message: _l10n.settings_cloudSync_result_noReplacementToRebuild,
+        );
+      }
       await _reestablishEpochFromLocalLibrary(
         provider,
         marker,
@@ -1269,9 +1269,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_rebuildFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_rebuildFailed('$e'),
       );
     }
   }
@@ -1382,6 +1382,17 @@ class SyncService {
       return null;
     }
   }
+
+  /// What a library operation that failed on [e] reports: a refusal as one, so
+  /// its error offers a sign-in (issue #3811), anything else as [message].
+  SyncResult _libraryFailure(Object e, String message) =>
+      e is CloudStorageException && e.accessRefused
+      ? SyncResult(
+          status: SyncResultStatus.authError,
+          message: e.message,
+          accessRefused: true,
+        )
+      : SyncResult(status: SyncResultStatus.error, message: message);
 
   /// True when [e] is a provider's report of a missed deadline. Providers put
   /// HTTP timeouts on every request and wrap a miss like any other failure,
@@ -4830,9 +4841,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_libraryReplaceFailed('$e'),
       );
     }
   }
@@ -5311,9 +5322,9 @@ class SyncService {
         error: e,
         stackTrace: stackTrace,
       );
-      return SyncResult(
-        status: SyncResultStatus.error,
-        message: _l10n.settings_cloudSync_result_adoptFailed('$e'),
+      return _libraryFailure(
+        e,
+        _l10n.settings_cloudSync_result_adoptFailed('$e'),
       );
     }
   }

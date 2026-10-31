@@ -140,6 +140,19 @@ void main() {
       deviceId: 'replacer',
     );
 
+    test('a refused cloud call reports the account', () async {
+      await epochStore.setPendingReplace(marker);
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().executeLibraryReplace(marker);
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
+
     test('wipes sync files, writes marker before wipe, publishes a stamped '
         'base, commits epoch', () async {
       // A local dive so the replace has a library to publish as the new base.
@@ -422,6 +435,18 @@ void main() {
       replacedAt: 1,
       deviceId: 'replacer',
     );
+
+    test('a refused cloud call reports the account', () async {
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().adoptReplacedLibrary();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
 
     test('aborts when a current-epoch replace is still uploading', () async {
       final service = buildService();

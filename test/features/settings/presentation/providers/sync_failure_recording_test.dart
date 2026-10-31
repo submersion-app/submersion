@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_failure_store.dart';
+import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -25,6 +26,20 @@ class _RefusedSyncService extends Fake implements SyncService {
   @override
   Future<SyncResult> performSync() async =>
       throw const CloudAccessRefusedException('refused');
+
+  static const _refused = SyncResult(
+    status: SyncResultStatus.authError,
+    message: 'refused',
+    accessRefused: true,
+  );
+
+  @override
+  Future<SyncResult> adoptReplacedLibrary() async => _refused;
+
+  @override
+  Future<SyncResult> rebuildBackendFromThisDevice({
+    SyncCleanupProgress? onProgress,
+  }) async => _refused;
 }
 
 void main() {
@@ -95,24 +110,43 @@ void main() {
     expect(SyncFailureStore(prefs).last?.message, 'refused');
   });
 
+  ProviderContainer refusedContainer() {
+    final container = ProviderContainer(
+      overrides: [
+        localeProvider.overrideWithValue('en'),
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(cloud),
+        syncServiceProvider.overrideWithValue(_RefusedSyncService()),
+      ],
+    );
+    addTearDown(container.dispose);
+    return container;
+  }
+
   test(
     'a refusal thrown out of the sync service is a sign-in failure',
     () async {
-      final container = ProviderContainer(
-        overrides: [
-          localeProvider.overrideWithValue('en'),
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          cloudStorageProviderProvider.overrideWithValue(cloud),
-          syncServiceProvider.overrideWithValue(_RefusedSyncService()),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      await container.read(syncStateProvider.notifier).performSync();
+      await refusedContainer().read(syncStateProvider.notifier).performSync();
 
       expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
     },
   );
+
+  test('a refused adopt is recorded as a sign-in failure', () async {
+    await refusedContainer()
+        .read(syncStateProvider.notifier)
+        .adoptReplacedLibrary();
+
+    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
+  });
+
+  test('a refused rebuild is recorded as a sign-in failure', () async {
+    await refusedContainer()
+        .read(syncStateProvider.notifier)
+        .rebuildBackendFromThisDevice();
+
+    expect(SyncFailureStore(prefs).last?.kind, SyncFailureKind.auth);
+  });
 
   test('success clears a stored failure', () async {
     await SyncFailureStore(prefs).record(

@@ -85,11 +85,15 @@ FeatureHealth evaluateSyncHealth(SyncHealthInputs i, DateTime now) {
       : null;
 
   final candidates = [
+    // First: a passphrase or an adoption gets nowhere while the server refuses
+    // the account, and only this reason offers the sign-in that gets past it.
+    if (currentFailure?.kind == SyncFailureKind.auth)
+      health(HealthLevel.failing, HealthReason.syncSignedOut),
     if (i.needsPassphrase)
       health(HealthLevel.failing, HealthReason.syncNeedsPassphrase),
     if (i.awaitingAdoption)
       health(HealthLevel.failing, HealthReason.syncAwaitingAdoption),
-    if (!i.authenticated || currentFailure?.kind == SyncFailureKind.auth)
+    if (!i.authenticated)
       health(HealthLevel.failing, HealthReason.syncSignedOut),
     if (currentFailure != null && currentFailure.kind == SyncFailureKind.other)
       health(

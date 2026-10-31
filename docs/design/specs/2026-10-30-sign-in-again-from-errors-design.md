@@ -103,6 +103,12 @@ first and which the account's status reflects.
 - `ChangesetReader`: a refusal rethrows out of the per-peer catch
   (`changeset_reader.dart:389`). Otherwise it is filed as one bad peer and the
   sync reports a clean finish. Cursors already written stay written.
+- `BasePartFileSink`: a refused part download leaves it as itself, not as
+  `BaseFetchInterrupted`, so a pull stops on it and the adopt and fence paths
+  abort with the reason.
+- `executeLibraryReplace`, `adoptReplacedLibrary` and
+  `rebuildBackendFromThisDevice` report a refusal as `authError` too. The last
+  two run outside `_runSyncOnce`, so the notifier records it for them.
 - `SyncFailureKind` gains `auth`. `_runSyncOnce` records it for a refused
   `authError` and for a refused exception reaching its outer catch. An
   `authError` that only means no session here is recorded as `network`: being
@@ -110,7 +116,9 @@ first and which the account's status reflects.
   outlive an offline cold launch.
 - `evaluateSyncHealth`: a current `auth` failure gives
   `HealthReason.syncSignedOut`, failing, the same as `!authenticated`. One
-  reason means one line, one button, and no new Data health text.
+  reason means one line, one button, and no new Data health text. It outranks
+  a needed passphrase and an awaited adoption, neither of which can proceed
+  while the server refuses the account.
 - Dropbox and S3 answer `isAuthenticated` from stored credentials, so `auth`
   is what makes a refusal visible for them.
 - A record with an unknown kind already reads as no failure
@@ -121,7 +129,8 @@ first and which the account's status reflects.
 - A failed copy records why, in a new `lastCloudCopyNeedsSignIn` preference
   written beside `lastCloudCopyMissing`. Every backup overwrites both.
 - It is set only when the upload failed with `accessRefused`, and cleared by a
-  sign-in to the copy's account from anywhere, as well as by the next backup.
+  sign-in to the copy's account from anywhere, by moving the copy to another
+  account, and by the next backup.
 - `_getOrCreateCloudBackupFolder` must let the reason out for the upload path.
   Its other callers keep their behaviour.
 - `HealthReason` gains `backupCloudSignIn`, level attention. It applies while
@@ -157,7 +166,8 @@ What it does:
    below).
 2. On success, `signInToGroup` clears the current `auth` failure when this is
    sync's account, and `lastCloudCopyNeedsSignIn` when it is the copy's. It does
-   that for a sign-in from anywhere, the account page included.
+   that for a sign-in from anywhere, the account page included. A sign-in to
+   an account sync does not use leaves sync's status alone.
 3. Retries **everything this account is failing**: a sync through
    `runSyncNow` when it is the sync account (so the replaced-library and
    first-contact gates still apply), and a backup through

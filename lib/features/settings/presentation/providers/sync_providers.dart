@@ -1454,6 +1454,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         status: SyncStatus.error,
         message: result.message ?? _l10n.settings_cloudSync_message_adoptFailed,
       );
+      await _recordRefusal(result);
       return;
     }
     await realignActiveDiverAfterDataReplace(
@@ -1564,6 +1565,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
             message: message,
           ),
         );
+  }
+
+  /// For an operation outside [performSync]: a refusal it met has to reach
+  /// Data health, or its error offers no sign-in (issue #3811).
+  Future<void> _recordRefusal(SyncResult result) async {
+    if (!result.accessRefused) return;
+    await _recordSyncFailure(SyncFailureKind.auth, result.message ?? '');
   }
 
   /// One sync, run inside [performSync]'s single flight. True when it
@@ -2036,6 +2044,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       // Keep the error visible: refreshState (which recomputes status from the
       // repository) must NOT run here, or it would clear the reason.
       state = state.copyWith(status: SyncStatus.error, message: result.message);
+      await _recordRefusal(result);
       return;
     }
     state = state.copyWith(

@@ -7,6 +7,8 @@ import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_confirm_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/accounts/account_sheet.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -42,9 +44,18 @@ Future<void> signInAgain(
   try {
     // Read before signing in: the sign-in refreshes both.
     final container = ProviderScope.containerOf(context, listen: false);
-    final syncGroup = (await ref.read(accountGroupsProvider.future)).syncing;
-    final copyGroup = backupCopyGroupOf(await readBackupCopyTarget(container));
-    final copyMissing = ref.read(backupSettingsProvider).lastCloudCopyMissing;
+    final AccountGroup? syncGroup;
+    final AccountGroup? copyGroup;
+    try {
+      syncGroup = (await container.read(accountGroupsProvider.future)).syncing;
+      copyGroup = backupCopyGroupOf(await readBackupCopyTarget(container));
+    } on Object {
+      if (context.mounted) showAccountsLoadFailed(context, ref);
+      return;
+    }
+    final copyMissing = container
+        .read(backupSettingsProvider)
+        .lastCloudCopyMissing;
     if (!context.mounted) return;
 
     final signedIn = await _signIn(context, ref, group, isCurrent: current);
@@ -94,38 +105,17 @@ Future<bool> _showDifferentAccountDialog(
   BuildContext context, {
   required String expected,
   required String signedIn,
-}) async {
+}) {
   final l10n = context.l10n;
-  final tryAgain = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(l10n.settings_accounts_differentAccount_title),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.settings_accounts_differentAccount_body(expected, signedIn),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              l10n.settings_accounts_differentAccount_nothingSynced(signedIn),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, false),
-          child: Text(l10n.settings_setUpDevice_notNow),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(dialogContext, true),
-          child: Text(l10n.settings_accounts_signInAgain),
-        ),
-      ],
-    ),
+  return confirmAccountAction(
+    context,
+    title: l10n.settings_accounts_differentAccount_title,
+    paragraphs: [
+      l10n.settings_accounts_differentAccount_body(expected, signedIn),
+      l10n.settings_accounts_differentAccount_nothingSynced(signedIn),
+    ],
+    usages: const [],
+    action: l10n.settings_accounts_signInAgain,
+    cancel: l10n.settings_setUpDevice_notNow,
   );
-  return tryAgain ?? false;
 }
