@@ -135,6 +135,25 @@ void main() {
     'b': bucket('b', 'second-dc', 1200),
   };
 
+  test('a dive that no longer exists has no breakdown', () async {
+    final result = ProviderContainer(
+      overrides: [
+        diveProvider(diveId).overrideWith((ref) async => null),
+        gasAnalysisServiceProvider.overrideWithValue(
+          const GasAnalysisService(),
+        ),
+      ],
+    );
+    addTearDown(result.dispose);
+
+    expect(
+      await result.read(
+        phaseSegmentsProvider((diveId: diveId, sourceId: null)).future,
+      ),
+      isNull,
+    );
+  });
+
   test('phases use the viewed source\'s samples', () async {
     final segments = await container(
       sources: twoComputers,

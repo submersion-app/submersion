@@ -308,6 +308,14 @@ void main() {
       expect(bars, [1.0, 0.5]);
     });
 
+    testWidgets('names a deco stop without a warning sign', (tester) async {
+      await _pump(tester, phases: [_segment(0, 20, phase: DivePhase.deco)]);
+
+      expect(find.text('Deco'), findsOneWidget);
+      expect(find.byIcon(Icons.hourglass_bottom), findsOneWidget);
+      expect(find.byIcon(Icons.warning), findsNothing);
+    });
+
     testWidgets('translates phase names and headings', (tester) async {
       await _pump(tester, locale: const Locale('de'));
 
@@ -472,6 +480,17 @@ void main() {
       expect(find.textContaining('0-5'), findsOneWidget);
     });
 
+    testWidgets('a screen reader can activate a column', (tester) async {
+      final handle = tester.ensureSemantics();
+      await _pump(tester);
+
+      tester.semantics.tap(find.semantics.byLabel('15-20 min, 5.0 L/min, 5m'));
+      await tester.pump();
+
+      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+      handle.dispose();
+    });
+
     testWidgets('announces each column to a screen reader', (tester) async {
       final handle = tester.ensureSemantics();
 
@@ -515,6 +534,7 @@ void main() {
       expect(sacTimeAxisTicks(40), [0, 10, 20, 30, 40]);
       expect(sacTimeAxisTicks(60), [0, 15, 30, 45, 60]);
       expect(sacTimeAxisTicks(180), [0, 60, 120, 180]);
+      expect(sacTimeAxisTicks(1000), [0, 240, 480, 720, 960]);
     });
 
     test('stops at the last whole step inside the dive', () {
