@@ -13,7 +13,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// The first-dive prompt is for a logbook with no dives. A filter is only the
 /// reason when some dive counts: with every dive excluded, clearing it would
-/// change nothing, so the exclusion is named instead (issue #3963).
+/// change nothing, so the exclusion is named instead (issue #3963). Dives that
+/// count, with no filter to hide them, mean the statistics have yet to catch
+/// up with a write, so nothing is claimed until they do.
 class InsightsOverviewEmptyState extends StatelessWidget {
   final LogbookDiveCounts counts;
   final bool filtered;
@@ -27,8 +29,9 @@ class InsightsOverviewEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (counts.logged == 0) return const _NoDivesLogged();
-    if (filtered && !counts.allExcluded) return const _NoFilterMatch();
-    return const _AllDivesExcluded();
+    if (counts.allExcluded) return const _AllDivesExcluded();
+    if (filtered) return const _NoFilterMatch();
+    return const Center(child: CircularProgressIndicator());
   }
 }
 

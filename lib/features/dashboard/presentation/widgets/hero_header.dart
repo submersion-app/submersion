@@ -94,16 +94,14 @@ class HeroHeader extends ConsumerWidget {
                         data: (career) {
                           final screenWidth = MediaQuery.sizeOf(context).width;
                           final isNarrow = screenWidth < 600;
-                          final counts = career.combinedDives == 0
-                              ? ref.watch(logbookDiveCountsProvider).valueOrNull
-                              : null;
                           return Text(
-                            _buildHeadlineStats(
-                              context,
-                              career,
-                              allDivesExcluded: counts?.allExcluded ?? false,
-                              isNarrow: isNarrow,
-                            ),
+                            career.combinedDives == 0
+                                ? _noDivesHeadline(context, ref)
+                                : _buildHeadlineStats(
+                                    context,
+                                    career,
+                                    isNarrow: isNarrow,
+                                  ),
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                             ),
@@ -152,16 +150,27 @@ class HeroHeader extends ConsumerWidget {
     return context.l10n.dashboard_greeting_evening;
   }
 
+  /// A career of zero is not an empty logbook when every dive is excluded, so
+  /// the first-dive prompt waits for the logbook counts.
+  String _noDivesHeadline(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return ref
+        .watch(logbookDiveCountsProvider)
+        .when(
+          loading: () => l10n.dashboard_hero_loading,
+          error: (_, _) => l10n.dashboard_hero_noDives,
+          data: (counts) => counts.allExcluded
+              ? l10n.insights_empty_allExcluded_title
+              : l10n.dashboard_hero_noDives,
+        );
+  }
+
   String _buildHeadlineStats(
     BuildContext context,
     CareerTotals career, {
-    required bool allDivesExcluded,
     bool isNarrow = false,
   }) {
     final dives = career.combinedDives;
-    // A career of zero is not an empty logbook when every dive is excluded.
-    if (allDivesExcluded) return context.l10n.insights_empty_allExcluded_title;
-    if (dives == 0) return context.l10n.dashboard_hero_noDives;
 
     final parts = <String>[];
 

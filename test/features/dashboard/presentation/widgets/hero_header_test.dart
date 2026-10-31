@@ -86,7 +86,7 @@ void main() {
     group('headline with nothing in the statistics', () {
       Future<void> pumpHero(
         WidgetTester tester,
-        LogbookDiveCounts counts,
+        FutureOr<LogbookDiveCounts> counts,
       ) async {
         // The headline only renders below the desktop breakpoint.
         tester.view.physicalSize = const Size(500, 900);
@@ -108,7 +108,7 @@ void main() {
                 ),
               ),
               currentDiverProvider.overrideWith((ref) async => null),
-              logbookDiveCountsProvider.overrideWith((ref) async => counts),
+              logbookDiveCountsProvider.overrideWith((ref) => counts),
             ].cast(),
             child: const MaterialApp(
               locale: Locale('en'),
@@ -129,6 +129,23 @@ void main() {
         await pumpHero(tester, const LogbookDiveCounts(logged: 0, counted: 0));
 
         expect(find.text('Ready to log your first dive?'), findsOneWidget);
+      });
+
+      testWidgets('holds the prompt back until the counts arrive', (
+        tester,
+      ) async {
+        final counts = Completer<LogbookDiveCounts>();
+        await pumpHero(tester, counts.future);
+
+        expect(find.text('Ready to log your first dive?'), findsNothing);
+
+        counts.complete(const LogbookDiveCounts(logged: 3, counted: 0));
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(
+          find.text('All your dives are excluded from statistics'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('a fully excluded logbook is told why it reads zero', (

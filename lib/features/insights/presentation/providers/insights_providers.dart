@@ -54,7 +54,7 @@ final logbookDiveCountsProvider = FutureProvider<LogbookDiveCounts>((
 ) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
   return repository.countLogbookDives(diverId: currentDiverId);
 });
 

@@ -196,6 +196,38 @@ void main() {
     });
   });
 
+  testWidgets('claims nothing while the statistics catch up with a write', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          filteredDiveStatisticsProvider.overrideWith((ref) async => _zero),
+          currentDiverProvider.overrideWith((ref) async => null),
+          logbookDiveCountsProvider.overrideWith(
+            (ref) async => const LogbookDiveCounts(logged: 1, counted: 1),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsOverviewPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text(_allExcludedTitle), findsNothing);
+    expect(find.text(_noMatchTitle), findsNothing);
+    expect(find.text(_onboardingTitle), findsNothing);
+  });
+
   group('while the logbook counts are unknown', () {
     testWidgets('loading shows a loader, never the onboarding', (tester) async {
       final pending = Completer<LogbookDiveCounts>();
