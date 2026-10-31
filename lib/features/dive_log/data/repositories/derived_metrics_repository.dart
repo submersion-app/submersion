@@ -67,8 +67,12 @@ class DerivedMetricsRepository {
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
+    // An empty string is a legacy "not recorded", as the query fields read it.
+    String? recorded(String? waterType) =>
+        waterType == null || waterType.isEmpty ? null : waterType;
+    final ownWaterType = recorded(dive.waterType);
     final siteId = dive.siteId;
-    final site = dive.waterType != null || siteId == null
+    final site = ownWaterType != null || siteId == null
         ? null
         : await (_db.select(
             _db.diveSites,
@@ -102,7 +106,7 @@ class DerivedMetricsRepository {
           altitudeMeters: dive.altitude,
           surfacePressureBar: dive.surfacePressure,
           waterType: WaterType.values
-              .asNameMap()[dive.waterType ?? site?.waterType],
+              .asNameMap()[ownWaterType ?? recorded(site?.waterType)],
         ),
       ),
     );

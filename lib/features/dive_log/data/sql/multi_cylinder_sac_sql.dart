@@ -31,13 +31,20 @@ String consumptionVolumeSql(String tank) {
       'ORDER BY $partner.tank_order, $partner.rowid LIMIT 1) END)';
 }
 
+/// The effective water type of the `dives` row aliased [dive]: its own, else
+/// its site's, an empty string meaning none was recorded. The SQL twin of
+/// `Dive.effectiveWaterType`.
+String diveEffectiveWaterTypeSql(String dive) =>
+    "COALESCE(NULLIF($dive.water_type, ''), "
+    "(SELECT NULLIF(dws.water_type, '') FROM dive_sites dws "
+    'WHERE dws.id = $dive.site_id))';
+
 /// The absolute pressure in bar at [depth] meters in the water of the `dives`
-/// row aliased [dive], as `Dive.environment` reads it: the dive's own water
-/// type, else its site's. [depth] is a SQL expression.
+/// row aliased [dive], as `Dive.environment` reads it. [depth] is a SQL
+/// expression.
 String diveAmbientBarSql(String dive, String depth) =>
     '$kDiveAmbientBarFunction($depth, $dive.altitude, $dive.surface_pressure, '
-    'COALESCE($dive.water_type, (SELECT amb_s.water_type FROM dive_sites amb_s '
-    'WHERE amb_s.id = $dive.site_id)))';
+    '${diveEffectiveWaterTypeSql(dive)})';
 
 /// SAC in bar per minute at the surface of the `dives` row aliased [dive]:
 /// the reference cylinder's drop (the first back gas, else the first

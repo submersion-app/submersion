@@ -193,6 +193,33 @@ void main() {
       );
     });
 
+    test('a blank water type on the dive takes its site\'s', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', waterType: '', siteId: 's1');
+
+      expect(
+        (await environmentOf('d1')).waterDensityKgM3,
+        DiveEnvironment.freshWaterDensity,
+      );
+    });
+
+    test('a blank water type on both reads the standard water', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion(
+              id: const Value('s1'),
+              name: const Value('Lake'),
+              waterType: const Value(''),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await insertConditions('d1', waterType: '', siteId: 's1');
+
+      expect(await environmentOf('d1'), DiveEnvironment.standard);
+    });
+
     test('the dive\'s water type wins over its site\'s', () async {
       await insertFreshSite('s1');
       await insertConditions('d1', waterType: 'salt', siteId: 's1');
