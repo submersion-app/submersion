@@ -23,12 +23,10 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
       final rows = await _db
           .customSelect(
             '''
-        SELECT ${tankConfigBaseSql('d')} AS base,
-          ${tankConfigExtrasSql('d')} AS extras,
-          COUNT(*) AS dives
+        SELECT ${tankConfigSummarySql('d')} AS summary, COUNT(*) AS dives
         FROM dives d
         WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY base, extras
+        GROUP BY summary
         ''',
             variables: [
               for (final p in [?diverId, ...df.params]) Variable(p),
@@ -39,10 +37,7 @@ extension InsightsRepositoryTankConfiguration on InsightsRepository {
       return TankConfigurationStats.fromGroups([
         for (final r in rows)
           (
-            result: (
-              base: TankBaseConfiguration.values.byName(r.read<String>('base')),
-              extras: decodeTankConfigExtras(r.read<String>('extras')),
-            ),
+            result: decodeTankConfigSummary(r.read<String>('summary')),
             dives: r.read<int>('dives'),
           ),
       ]);

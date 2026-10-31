@@ -16,6 +16,11 @@ conditions through `_withConditions`.
 
 **Spec:** [docs/design/specs/2026-10-30-tank-configuration-filter-design.md](../specs/2026-10-30-tank-configuration-filter-design.md)
 
+> **Changed during the build:** `tank_config_extras` became `tank_config_summary`
+> (`tankConfigSummarySql`, `decodeTankConfigSummary`), one value holding the base
+> and extras. With two functions the chart classified each dive at least twice,
+> about 340 ms over 10,000 dives on the Gas page; the summary takes about 110 ms.
+
 ## Global Constraints
 
 - No em-dashes anywhere. No mention of any AI tool in commits, code or docs.

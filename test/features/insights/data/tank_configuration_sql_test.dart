@@ -143,15 +143,14 @@ void main() {
     final row = await db
         .customSelect(
           'SELECT ${tankConfigBaseSql('d')} AS base, '
-          '${tankConfigExtrasSql('d')} AS extras '
+          '${tankConfigSummarySql('d')} AS summary '
           'FROM dives d WHERE d.id = ?',
           variables: [Variable(diveId)],
         )
         .getSingle();
-    return (
-      base: TankBaseConfiguration.values.byName(row.read<String>('base')),
-      extras: decodeTankConfigExtras(row.read<String>('extras')),
-    );
+    final summary = decodeTankConfigSummary(row.read<String>('summary'));
+    expect(row.read<String>('base'), summary.base.name);
+    return summary;
   }
 
   /// Seeds a dive and asserts SQL and the classifier both give the answer.
@@ -514,13 +513,17 @@ void main() {
     },
   );
 
-  group('decodeTankConfigExtras', () {
-    test('no extras', () {
-      expect(decodeTankConfigExtras(','), isEmpty);
+  group('decodeTankConfigSummary', () {
+    test('a base with no extras', () {
+      final result = decodeTankConfigSummary('sidemount,');
+      expect(result.base, TankBaseConfiguration.sidemount);
+      expect(result.extras, isEmpty);
     });
 
-    test('several extras', () {
-      expect(decodeTankConfigExtras(',stages,multiGas,'), {
+    test('a base with several extras', () {
+      final result = decodeTankConfigSummary('noTanks,stages,multiGas,');
+      expect(result.base, TankBaseConfiguration.noTanks);
+      expect(result.extras, {
         TankConfigurationExtra.stages,
         TankConfigurationExtra.multiGas,
       });

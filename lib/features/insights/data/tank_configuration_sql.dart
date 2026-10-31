@@ -13,11 +13,12 @@ import 'package:submersion/features/insights/domain/tank_configuration/tank_conf
 /// `tank_config_base(...)`: a dive's [TankBaseConfiguration] name.
 const String kTankConfigBaseFunction = 'tank_config_base';
 
-/// `tank_config_extras(...)`: a dive's [TankConfigurationExtra] names, each
-/// with a comma on both sides (`,stages,multiGas,`), and `,` for none.
-const String kTankConfigExtrasFunction = 'tank_config_extras';
+/// `tank_config_summary(...)`: a dive's base and extras from one
+/// classification, each name followed by a comma (`sidemount,stages,`). The
+/// first name is the base, so `,<extra>,` only ever finds an extra.
+const String kTankConfigSummaryFunction = 'tank_config_summary';
 
-/// The tables [tankConfigBaseSql] and [tankConfigExtrasSql] read besides
+/// The tables [tankConfigBaseSql] and [tankConfigSummarySql] read besides
 /// `dives`, for a query field's change ticks.
 const List<String> kTankConfigurationTables = [
   'dive_tanks',
@@ -34,13 +35,14 @@ const List<String> kTankConfigurationTables = [
 String tankConfigBaseSql(String dive) =>
     '$kTankConfigBaseFunction(${_argumentsSql(dive)})';
 
-/// A dive's extras in the form [decodeTankConfigExtras] reads.
-String tankConfigExtrasSql(String dive) =>
-    '$kTankConfigExtrasFunction(${_argumentsSql(dive)})';
+/// A dive's base and extras in the form [decodeTankConfigSummary] reads. One
+/// value, so a query after both classifies each dive once.
+String tankConfigSummarySql(String dive) =>
+    '$kTankConfigSummaryFunction(${_argumentsSql(dive)})';
 
 /// Whether the dive row aliased [dive] has [extra].
 String tankConfigHasExtraSql(String dive, TankConfigurationExtra extra) =>
-    "instr(${tankConfigExtrasSql(dive)}, ',${extra.name},') > 0";
+    "instr(${tankConfigSummarySql(dive)}, ',${extra.name},') > 0";
 
 /// The six arguments both functions take: dive mode, whether a primary
 /// profile exists, the primary source's id and computer, and the dive's
@@ -70,21 +72,30 @@ void registerTankConfigurationFunctions(CommonDatabase db) {
     deterministic: true,
   );
   db.createFunction(
-    functionName: kTankConfigExtrasFunction,
-    function: (arguments) => _encodeExtras(_classify(arguments).extras),
+    functionName: kTankConfigSummaryFunction,
+    function: (arguments) => _encodeSummary(_classify(arguments)),
     argumentCount: const AllowedArgumentCount(6),
     deterministic: true,
   );
 }
 
-String _encodeExtras(Set<TankConfigurationExtra> extras) =>
-    extras.isEmpty ? ',' : ',${extras.map((e) => e.name).join(',')},';
+String _encodeSummary(TankConfigurationResult result) => [
+  result.base.name,
+  for (final extra in result.extras) extra.name,
+  '',
+].join(',');
 
-/// The extras a [tankConfigExtrasSql] value names.
-Set<TankConfigurationExtra> decodeTankConfigExtras(String value) => {
-  for (final name in value.split(','))
-    if (name.isNotEmpty) TankConfigurationExtra.values.byName(name),
-};
+/// The base and extras a [tankConfigSummarySql] value names.
+TankConfigurationResult decodeTankConfigSummary(String value) {
+  final names = value.split(',');
+  return (
+    base: TankBaseConfiguration.values.byName(names.first),
+    extras: {
+      for (final name in names.skip(1))
+        if (name.isNotEmpty) TankConfigurationExtra.values.byName(name),
+    },
+  );
+}
 
 TankConfigurationResult _classify(SqliteArguments arguments) {
   final primarySourceId = arguments[2] as String?;
