@@ -5,7 +5,11 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/conflict_reference.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
+import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
@@ -232,13 +236,56 @@ class ChangeLogRepository {
       (fields[id] ??= []).add(_field(row.data));
       totals[id] = row.read<int>('total');
     }
-    return {
-      for (final entry in fields.entries)
-        entry.key: ChangeLogPreview(
-          fields: entry.value,
-          total: totals[entry.key]!,
+
+    final actions = await _db
+        .customSelect(
+          'SELECT e.operation_id, e.action FROM change_log_events e '
+          'JOIN change_log_operations o ON o.id = e.operation_id '
+          'WHERE e.operation_id IN ($marks) AND e.table_name = o.root_table '
+          'AND e.record_id = o.root_id ORDER BY e.id',
+          variables: [...operationIds.map(Variable<String>.new)],
+        )
+        .get();
+    final rootActions = {
+      for (final row in actions)
+        row.read<String>('operation_id'): ChangeLogAction.fromCode(
+          row.read<String>('action'),
         ),
     };
+
+    return {
+      for (final id in {...fields.keys, ...rootActions.keys})
+        id: ChangeLogPreview(
+          fields: fields[id] ?? const [],
+          total: totals[id] ?? 0,
+          rootAction: rootActions[id],
+        ),
+    };
+  }
+
+  /// Looks up the records that [fields] point at, by [changeLogReferenceKey].
+  /// A name is a nicety, so a failure leaves that value as it is.
+  Future<Map<String, List<ConflictReference>>> resolveReferences(
+    Iterable<ChangeLogFieldChange> fields,
+  ) async {
+    final resolver = ConflictReferenceResolver(SyncDataSerializer());
+    final references = <String, List<ConflictReference>>{};
+    for (final field in fields) {
+      final entity = changeLogEntityType(field.table);
+      final key = columnJsonKey(field.column);
+      for (final value in [field.oldValue, field.newValue]) {
+        if (value is! String) continue;
+        final at = changeLogReferenceKey(entity, key, value);
+        if (references.containsKey(at)) continue;
+        try {
+          final resolved = await resolver.resolve(entity, {key: value});
+          if (resolved.isNotEmpty) references[at] = resolved;
+        } catch (error) {
+          _log.warning('Could not resolve $key: $error');
+        }
+      }
+    }
+    return references;
   }
 
   /// Removes [diverId]'s entries, and returns how many. Entries with no

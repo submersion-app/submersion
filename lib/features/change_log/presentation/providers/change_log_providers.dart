@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
@@ -16,23 +17,29 @@ class ChangeLogFeedState {
   const ChangeLogFeedState({
     this.operations = const [],
     this.previews = const {},
+    this.references = const {},
     this.hasMore = false,
     this.isLoadingMore = false,
   });
 
   final List<ChangeLogOperation> operations;
   final Map<String, ChangeLogPreview> previews;
+
+  /// The records the previews' values point at, for the formatter.
+  final Map<String, List<ConflictReference>> references;
   final bool hasMore;
   final bool isLoadingMore;
 
   ChangeLogFeedState copyWith({
     List<ChangeLogOperation>? operations,
     Map<String, ChangeLogPreview>? previews,
+    Map<String, List<ConflictReference>>? references,
     bool? hasMore,
     bool? isLoadingMore,
   }) => ChangeLogFeedState(
     operations: operations ?? this.operations,
     previews: previews ?? this.previews,
+    references: references ?? this.references,
     hasMore: hasMore ?? this.hasMore,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
   );
@@ -75,9 +82,13 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
       for (final operation in page)
         if (!operation.isBulk) operation.id,
     ]);
+    final references = await repository.resolveReferences([
+      for (final preview in previews.values) ...preview.fields,
+    ]);
     return ChangeLogFeedState(
       operations: [...current.operations, ...page],
       previews: {...current.previews, ...previews},
+      references: {...current.references, ...references},
       hasMore: page.length == kChangeLogPageSize,
     );
   }

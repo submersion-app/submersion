@@ -79,13 +79,23 @@ class ChangeLogEvent extends Equatable {
   ];
 }
 
-/// What the feed shows of an entry: its first fields and how many there are.
+/// What the feed shows of an entry: its first fields, how many there are,
+/// and what happened to its record when no field did.
 class ChangeLogPreview extends Equatable {
-  const ChangeLogPreview({required this.fields, required this.total});
+  const ChangeLogPreview({
+    required this.fields,
+    required this.total,
+    this.rootAction,
+  });
 
   final List<ChangeLogFieldChange> fields;
   final int total;
+  final ChangeLogAction? rootAction;
 
   @override
-  List<Object?> get props => [fields, total];
+  List<Object?> get props => [fields, total, rootAction];
 }
+
+/// Where a resolved foreign key is kept, by sync entity and JSON key.
+String changeLogReferenceKey(String entity, String key, Object value) =>
+    '$entity|$key|$value';

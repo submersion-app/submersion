@@ -56642,4 +56642,404 @@ class AppLocalizationsNl extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Wijzigingslogboek';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Bekijk wat er is gewijzigd en zet het terug';
+
+  @override
+  String get changeLog_empty_title => 'Nog geen wijzigingen';
+
+  @override
+  String get changeLog_empty_body =>
+      'Wijzigingen in je duiken, duiklocaties, uitrusting en instellingen verschijnen hier.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'Geen wijzigingen komen overeen met dit filter.';
+
+  @override
+  String get changeLog_filter_all => 'Alles';
+
+  @override
+  String get changeLog_filter_dives => 'Duiken';
+
+  @override
+  String get changeLog_filter_sites => 'Duiklocaties';
+
+  @override
+  String get changeLog_filter_gear => 'Uitrusting';
+
+  @override
+  String get changeLog_filter_settings => 'Instellingen';
+
+  @override
+  String get changeLog_filter_source => 'Bron';
+
+  @override
+  String get changeLog_filter_anySource => 'Elke bron';
+
+  @override
+  String get changeLog_source_manual => 'Handmatige bewerking';
+
+  @override
+  String get changeLog_source_import => 'Import';
+
+  @override
+  String get changeLog_source_download => 'Duikcomputer';
+
+  @override
+  String get changeLog_source_rule => 'Regel';
+
+  @override
+  String get changeLog_source_sync => 'Synchronisatie';
+
+  @override
+  String get changeLog_source_automatic => 'Automatisch';
+
+  @override
+  String get changeLog_source_revert => 'Terugzetten';
+
+  @override
+  String get changeLog_source_system => 'Systeem';
+
+  @override
+  String get changeLog_thisDevice => 'Dit apparaat';
+
+  @override
+  String get changeLog_anotherDevice => 'een ander apparaat';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Gesynchroniseerd vanaf $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count meer';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records bekijken',
+      one: '$count record bekijken',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'Duik $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'Duik $number';
+  }
+
+  @override
+  String get changeLog_dive => 'Duik';
+
+  @override
+  String get changeLog_action_added => 'Toegevoegd';
+
+  @override
+  String get changeLog_action_deleted => 'Verwijderd';
+
+  @override
+  String get changeLog_action_edited => 'Bewerkt';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Geïmporteerd uit $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Gedownload van $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Gesynchroniseerde wijzigingen';
+
+  @override
+  String get changeLog_title_rule => 'Regel uitgevoerd';
+
+  @override
+  String get changeLog_title_revert => 'Wijziging teruggezet';
+
+  @override
+  String get changeLog_title_changes => 'Wijzigingen';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Bulkbewerking';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Bulkverwijdering';
+
+  @override
+  String get changeLog_label_merge => 'Records samengevoegd';
+
+  @override
+  String get changeLog_label_undoMerge => 'Samenvoeging ongedaan gemaakt';
+
+  @override
+  String get changeLog_label_undoRule => 'Regel ongedaan gemaakt';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Reparatie van gegevenskwaliteit';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Bibliotheek toegevoegd aan dit apparaat';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Bibliotheek vervangen';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Bibliotheek hersteld uit een back-up';
+
+  @override
+  String get changeLog_label_reparse => 'Duiken opnieuw verwerkt';
+
+  @override
+  String get changeLog_label_splitDive => 'Duik gesplitst';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Uitrusting overgedragen';
+
+  @override
+  String get changeLog_label_mediaRepair => 'Medialinks hersteld';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'Uitrustingsbestanden verplaatst naar Documenten';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Foto\'s gekoppeld aan cloudkopieën';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'Ongebruikte bestanden opgeruimd';
+
+  @override
+  String get changeLog_label_accountMigration =>
+      'Accountkoppelingen bijgewerkt';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vermeldingen',
+      one: '$count vermelding',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size aan gegevens';
+  }
+
+  @override
+  String get changeLog_table_settings => 'App-instellingen';
+
+  @override
+  String get changeLog_table_diverSettings => 'Duikerinstellingen';
+
+  @override
+  String get changeLog_history => 'Geschiedenis';
+
+  @override
+  String get changeLog_detail_title => 'Wijzigingsdetails';
+
+  @override
+  String get changeLog_detail_open => 'Record openen';
+
+  @override
+  String get changeLog_detail_history => 'Geschiedenis van dit record';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'En nog $count records',
+      one: 'En nog $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Terugzetten';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Alle $count terugzetten';
+  }
+
+  @override
+  String get changeLog_restore => 'Herstellen';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return '$field terugzetten?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince =>
+      'Dit veld is sinds dit item gewijzigd.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Ingesteld in dit item: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Nu: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Na terugzetten: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'Andere apparaten ontvangen dit als een nieuwe bewerking. Deze verschijnt in het logboek en kan ook worden teruggezet.';
+
+  @override
+  String get changeLog_revert_anyway => 'Toch terugzetten';
+
+  @override
+  String get changeLog_undoImport => 'Deze import ongedaan maken';
+
+  @override
+  String get changeLog_undoEntry => 'Deze wijziging ongedaan maken';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Verwijdert wat is toegevoegd en draait de overige wijzigingen terug. Vraagt het eerst en toont wat je sindsdien hebt bewerkt.';
+
+  @override
+  String get changeLog_bulk_title => 'Dit item ongedaan maken?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records zijn sinds dit item gewijzigd.',
+      one: '$count record is sinds dit item gewijzigd.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'De rest terugzetten';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Alles terugzetten';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wijzigingen teruggezet',
+      one: '$count wijziging teruggezet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records zijn behouden',
+      one: '$count record is behouden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Dit record bestaat niet meer.';
+
+  @override
+  String get changeLog_block_columnGone => 'Dit veld bestaat niet meer.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Een app-update heeft de opslag van deze waarde gewijzigd, dus die kan niet worden teruggezet.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'Het record waar dit bij hoort bestaat niet meer.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'Dit record is al terug.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Latere gegevens gebruiken dit record nog.';
+
+  @override
+  String get changeLog_reverted => 'Teruggezet';
+
+  @override
+  String get changeLog_revert_failed =>
+      'Kan deze wijziging niet terugzetten. Er is niets gewijzigd.';
+
+  @override
+  String get changeLog_menu_settings => 'Logboekinstellingen';
+
+  @override
+  String get changeLog_settings_title => 'Instellingen wijzigingslogboek';
+
+  @override
+  String get changeLog_retention_title => 'Items bewaren gedurende';
+
+  @override
+  String get changeLog_retention_note =>
+      'Elk apparaat houdt een eigen logboek bij. Oudere items worden automatisch verwijderd.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count maanden';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Altijd';
+
+  @override
+  String get changeLog_clear => 'Logboek wissen';
+
+  @override
+  String get changeLog_clear_title => 'Wijzigingslogboek wissen?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Dit verwijdert de items van de actieve duiker van dit apparaat. Je kunt ze daarna niet meer terugzetten.';
+
+  @override
+  String get changeLog_clear_confirm => 'Wissen';
+
+  @override
+  String get changeLog_day_today => 'Vandaag';
+
+  @override
+  String get changeLog_day_yesterday => 'Gisteren';
+
+  @override
+  String get changeLog_storage_label => 'Wijzigingslogboek';
 }

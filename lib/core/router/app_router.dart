@@ -112,6 +112,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_observa
 import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
+import 'package:submersion/features/change_log/presentation/pages/change_log_page.dart';
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/hidden_items_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
@@ -1439,6 +1440,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 ),
                 builder: (context, state) => SettingsSectionDetailPage(
                   sectionId: state.pathParameters['sectionId']!,
+                ),
+              ),
+              GoRoute(
+                path: 'change-log',
+                name: 'changeLog',
+                builder: (context, state) => ChangeLogPage(
+                  rootTable: state.uri.queryParameters['rootTable'],
+                  rootId: state.uri.queryParameters['rootId'],
                 ),
               ),
               GoRoute(
