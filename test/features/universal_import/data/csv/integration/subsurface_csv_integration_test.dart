@@ -91,6 +91,29 @@ void main() {
       );
     });
 
+    test('keeps both cylinders of a dive whose first has no size', () {
+      final bytes = diveListFile.readAsBytesSync();
+      final parsed = pipeline.parse(bytes);
+      final detected = pipeline.detect(parsed);
+      final config = _configFromPreset(detected.matchedPreset!);
+      final payload = pipeline.execute(primaryCsv: parsed, config: config);
+
+      // Dive 10 logs its pressures on cylinder 1, which has no size, and its
+      // size on cylinder 2, which has only an end pressure (#3930).
+      final dive = payload
+          .entitiesOf(ImportEntityType.dives)
+          .singleWhere((d) => d['diveNumber'] == 10);
+      final tanks = (dive['tanks'] as List).cast<Map<String, dynamic>>();
+
+      expect(tanks, hasLength(2));
+      expect(tanks[0]['volume'], isNull);
+      expect(tanks[0]['startPressure'], 148.0);
+      expect(tanks[0]['endPressure'], 143.3);
+      expect(tanks[1]['volume'], 11.094);
+      expect(tanks[1]['startPressure'], isNull);
+      expect(tanks[1]['endPressure'], 141.894);
+    });
+
     test('extracts unique sites with GPS coordinates', () {
       final bytes = diveListFile.readAsBytesSync();
       final parsed = pipeline.parse(bytes);

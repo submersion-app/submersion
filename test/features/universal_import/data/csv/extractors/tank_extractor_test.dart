@@ -114,18 +114,18 @@ void main() {
         expect(tanks[0]['endPressure'], 50.3);
       });
 
-      test('skips numbered tanks that have pressure but no volume', () {
+      test('keeps a numbered tank whose size is unknown (#3930)', () {
         final row = <String, dynamic>{
-          // Tank group 1: has volume => should be extracted.
+          // Tank group 1: has volume.
           'tankVolume_1': 12.0,
           'startPressure_1': 200.0,
           'endPressure_1': 50.0,
           'o2Percent_1': 21.0,
-          // Tank group 2: pressure only, no volume => should be skipped.
+          // Tank group 2: known pressures and gas, unknown size.
           'startPressure_2': 180.0,
           'endPressure_2': 30.0,
           'o2Percent_2': 32.0,
-          // Tank group 3: has volume => should be extracted.
+          // Tank group 3: has volume.
           'tankVolume_3': 7.0,
           'startPressure_3': 150.0,
           'endPressure_3': 20.0,
@@ -133,26 +133,81 @@ void main() {
 
         final tanks = extractor.extract(row, diveId);
 
-        expect(tanks, hasLength(2));
-        expect(tanks[0]['volume'], 12.0);
-        expect(tanks[1]['volume'], 7.0);
-        // Order should be sequential (0, 1), not (0, 2).
-        expect(tanks[0]['order'], 0);
-        expect(tanks[1]['order'], 1);
+        expect(tanks, hasLength(3));
+        expect(tanks[1]['volume'], isNull);
+        expect(tanks[1]['startPressure'], 180.0);
+        expect(tanks[1]['endPressure'], 30.0);
+        expect(tanks[1]['gasMix'], const GasMix(o2: 32));
+        expect(tanks.map((t) => t['order']), [0, 1, 2]);
       });
 
-      test('skips numbered tank with zero volume parsed from string', () {
+      test('reads a blank size cell as an unknown size', () {
         final row = <String, dynamic>{
-          'tankVolume_1': '12.0',
-          'startPressure_1': '200',
-          'tankVolume_2': '',
-          'startPressure_2': '180',
+          'tankVolume_1': '',
+          'startPressure_1': '180',
+        };
+
+        final tanks = extractor.extract(row, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['volume'], isNull);
+        expect(tanks[0]['startPressure'], 180.0);
+      });
+
+      test('keeps a numbered tank known only by its start pressure', () {
+        final tanks = extractor.extract({'startPressure_1': 200.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['startPressure'], 200.0);
+        expect(tanks[0]['endPressure'], isNull);
+        expect(tanks[0]['gasMix'], const GasMix());
+      });
+
+      test('keeps a numbered tank known only by its end pressure', () {
+        final tanks = extractor.extract({'endPressure_1': 80.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['endPressure'], 80.0);
+      });
+
+      test('keeps a numbered tank known only by its oxygen', () {
+        final tanks = extractor.extract({'o2Percent_1': 32.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['gasMix'], const GasMix(o2: 32));
+      });
+
+      test('keeps a numbered tank known only by its helium', () {
+        final tanks = extractor.extract({'hePercent_1': 35.0}, diveId);
+
+        expect(tanks, hasLength(1));
+        expect(tanks[0]['hePercent'], 35.0);
+      });
+
+      test('does not invent a tank from an unused group of zeros', () {
+        final row = <String, dynamic>{
+          'tankVolume_1': 12.0,
+          'startPressure_1': 200.0,
+          'tankVolume_2': '0',
+          'startPressure_2': '0',
+          'endPressure_2': '0',
+          'o2Percent_2': '0',
+          'hePercent_2': '0',
         };
 
         final tanks = extractor.extract(row, diveId);
 
         expect(tanks, hasLength(1));
         expect(tanks[0]['volume'], 12.0);
+      });
+
+      test('does not invent a tank from unreadable cells', () {
+        final tanks = extractor.extract({
+          'startPressure_1': 'n/a',
+          'o2Percent_1': 'air',
+        }, diveId);
+
+        expect(tanks, isEmpty);
       });
 
       test('converts integer volume to double', () {

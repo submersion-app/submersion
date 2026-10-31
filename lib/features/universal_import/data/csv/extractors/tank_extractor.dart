@@ -5,7 +5,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// Extracts tank records from a transformed CSV row.
 ///
 /// Two strategies are tried in order:
-/// 1. Numbered groups: tankVolume_1..6 with matching pressure/gas fields.
+/// 1. Numbered groups: tankVolume_1..6 with matching pressure/gas fields, any
+///    of which may be missing. A cylinder of unknown size has a null volume.
 /// 2. Flat fallback: single-tank fields (startPressure, endPressure, etc.).
 class TankExtractor {
   final Uuid _uuid;
@@ -32,26 +33,35 @@ class TankExtractor {
     final tanks = <Map<String, dynamic>>[];
 
     for (var i = 1; i <= 6; i++) {
-      final volume = row['tankVolume_$i'];
-      final start = row['startPressure_$i'];
-      final end = row['endPressure_$i'];
-      final o2 = row['o2Percent_$i'];
-      final he = row['hePercent_$i'];
+      final volume = _toDouble(row['tankVolume_$i']);
+      final start = _toDouble(row['startPressure_$i']);
+      final end = _toDouble(row['endPressure_$i']);
+      final o2 = _toDouble(row['o2Percent_$i']);
+      final he = _toDouble(row['hePercent_$i']);
 
-      // A numbered tank group requires at least a volume to be meaningful.
-      // Pressure-only entries without a volume are incomplete (e.g. Subsurface
-      // sometimes splits data across column groups) and are skipped.
-      if (_toDouble(volume) == null) continue;
+      // A group is a cylinder as soon as it records anything about one. A
+      // missing size rules out volume-based consumption, not the measured
+      // pressures or the gas (#3930). A zero records nothing: it is how an
+      // unused group can read, and the importer treats a zero size as unknown
+      // too.
+      final recordsCylinder = [
+        volume,
+        start,
+        end,
+        o2,
+        he,
+      ].any((value) => value != null && value > 0);
+      if (!recordsCylinder) continue;
 
       tanks.add(
         _buildTank(
           diveId: diveId,
           order: tanks.length,
-          volume: _toDouble(volume),
-          startPressure: _toDouble(start),
-          endPressure: _toDouble(end),
-          o2Percent: _toDouble(o2),
-          hePercent: _toDouble(he),
+          volume: volume,
+          startPressure: start,
+          endPressure: end,
+          o2Percent: o2,
+          hePercent: he,
         ),
       );
     }
