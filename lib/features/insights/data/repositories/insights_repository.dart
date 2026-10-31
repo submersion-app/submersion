@@ -26,7 +26,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
-import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/insights/data/repositories/site_entry_method_sql.dart';
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -2496,17 +2496,17 @@ class InsightsRepository {
   // ============================================================================
 
   /// Get most used gear
+  ///
+  /// A null [limit] returns every item. `value` holds the item's hours.
   Future<List<RankingItem>> getMostUsedGear({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2514,21 +2514,20 @@ class InsightsRepository {
           e.name,
           e.type,
           e.brand,
-          COUNT(DISTINCT u.dive_id) AS use_count
+          COUNT(*) AS use_count,
+          SUM(${diveSecondsSql('d')}) AS use_seconds
         FROM equipment e
         JOIN (
-          SELECT dive_id, equipment_id FROM dive_equipment
-          UNION
-          SELECT dive_id, equipment_id FROM dive_tanks
-          WHERE equipment_id IS NOT NULL
-          -- Tank regulators, first and extra (#3375).
-          UNION $tankRegulatorPairsSql
+          -- Every link to a dive, each pair once: a dive carrying an item
+          -- two ways is still one dive.
+          SELECT DISTINCT dive_id, equipment_id
+          FROM (${diveGearUsageSql()})
         ) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id
         ORDER BY use_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2538,6 +2537,7 @@ class InsightsRepository {
           id: row.read<String>('id'),
           name: row.read<String>('name'),
           count: row.read<int>('use_count'),
+          value: row.read<int>('use_seconds') / 3600,
           subtitle: brand != null ? '$brand • $type' : type,
         );
       }).toList();
