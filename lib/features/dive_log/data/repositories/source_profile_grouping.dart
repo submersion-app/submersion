@@ -52,6 +52,53 @@ Map<String, SourceProfile> _profilesBySource(
   List<ShownSource> shownSources,
   Map<String, String> shownIdByRow,
 ) {
+  final live = _liveSeriesByShownSource(series, shownSources, shownIdByRow);
+  return {
+    for (final s in shownSources)
+      s.id: SourceProfile(
+        sourceId: s.id,
+        computerId: s.computerId,
+        isEdited: s.id == shownSources.first.id && live.primaryIsEdited,
+        points: mergeSeriesPoints(live.byShownId[s.id]!),
+      ),
+  };
+}
+
+/// The series behind each source's profile in [sourceProfilesReduction], kept
+/// apart and filed under the source row that owns each one, for a reader that
+/// has to reproduce them rather than draw them (issue #3965).
+///
+/// Keyed by row, not by shown source: a row that collapsed into another's chip
+/// still owns its series, and a restore gives it them back. A series naming no
+/// row goes to the row the read gives it to.
+///
+/// Reads only identity and summary columns, so [series] may hold no samples.
+Map<String, List<ProfileSeries>> liveSeriesBySourceRow({
+  required List<ProfileSeries> series,
+  required List<ShownSource> shownSources,
+  required Map<String, String> shownIdByRow,
+}) {
+  final live = _liveSeriesByShownSource(series, shownSources, shownIdByRow);
+  final byRow = <String, List<ProfileSeries>>{};
+  for (final entry in live.byShownId.entries) {
+    for (final s in entry.value) {
+      final owner = shownIdByRow.containsKey(s.sourceId)
+          ? s.sourceId!
+          : entry.key;
+      byRow.putIfAbsent(owner, () => []).add(s);
+    }
+  }
+  return byRow;
+}
+
+/// [series] grouped by the shown source that speaks for it, without the ones
+/// a saved edit superseded. [shownSources] is never empty.
+({Map<String, List<ProfileSeries>> byShownId, bool primaryIsEdited})
+_liveSeriesByShownSource(
+  List<ProfileSeries> series,
+  List<ShownSource> shownSources,
+  Map<String, String> shownIdByRow,
+) {
   final primary = shownSources.first;
   final sourceIdByComputer = <String, String>{
     for (final s in shownSources)
@@ -82,17 +129,15 @@ Map<String, SourceProfile> _profilesBySource(
     }
     grouped[owner]!.add(s);
   }
-  return {
-    for (final s in shownSources)
-      s.id: SourceProfile(
-        sourceId: s.id,
-        computerId: s.computerId,
-        isEdited: s.id == primary.id && primaryIsEdited,
+  return (
+    byShownId: {
+      for (final s in shownSources)
         // The primary's superseded originals were already dropped above;
         // another source may still own an edit and its original.
-        points: mergeSeriesPoints(
-          s.id == primary.id ? grouped[s.id]! : liveSeriesOf(grouped[s.id]!),
-        ),
-      ),
-  };
+        s.id: s.id == primary.id
+            ? grouped[s.id]!
+            : liveSeriesOf(grouped[s.id]!),
+    },
+    primaryIsEdited: primaryIsEdited,
+  );
 }

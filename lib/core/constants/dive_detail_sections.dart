@@ -42,6 +42,7 @@ enum DiveDetailSectionId {
   /// order saved before it existed gains it there.
   documents,
   customFields,
+  diveLab,
   dataSources;
 
   /// The pre-split id that carried both [decoStatus] and [tissueLoading].
@@ -84,6 +85,7 @@ enum DiveDetailSectionId {
       notes => 'Notes',
       documents => 'Documents',
       customFields => 'Custom Fields',
+      diveLab => 'Compare',
       dataSources => 'Data Sources',
     };
   }
@@ -117,6 +119,7 @@ enum DiveDetailSectionId {
       notes => 'Dive notes/description',
       documents => 'Permits, receipts and other papers filed under the dive',
       customFields => 'User-defined custom fields',
+      diveLab => 'Plan, dive and saved what-ifs side by side',
       dataSources => 'Connected dive computers, source management',
     };
   }
@@ -148,6 +151,7 @@ enum DiveDetailSectionId {
       notes => Icons.notes,
       documents => Icons.folder_copy_outlined,
       customFields => Icons.tune,
+      diveLab => Icons.science_outlined,
       dataSources => Icons.watch_outlined,
     };
   }
@@ -178,6 +182,7 @@ enum DiveDetailSectionId {
       notes => l10n.diveDetailSection_notes_name,
       documents => l10n.documents_section_title,
       customFields => l10n.diveDetailSection_customFields_name,
+      diveLab => l10n.diveDetailSection_diveLab_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
   }
@@ -208,6 +213,7 @@ enum DiveDetailSectionId {
       notes => l10n.diveDetailSection_notes_description,
       documents => l10n.diveDetailSection_documents_description,
       customFields => l10n.diveDetailSection_customFields_description,
+      diveLab => l10n.diveDetailSection_diveLab_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
   }
@@ -310,6 +316,7 @@ class DiveDetailSectionConfig {
       id: DiveDetailSectionId.customFields,
       visible: true,
     ),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.diveLab, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.dataSources, visible: true),
   ];
 

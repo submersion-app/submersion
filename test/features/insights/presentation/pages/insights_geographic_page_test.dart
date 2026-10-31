@@ -13,6 +13,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/semantics_finders.dart';
 import '../../../../helpers/test_app.dart';
+import '../recording_insights_repository.dart';
 
 void main() {
   Future<void> pumpPage(
@@ -122,6 +123,10 @@ void main() {
   });
 
   group('drill-through (#2623)', () {
+    late RecordingInsightsRepository repository;
+
+    setUp(() => repository = RecordingInsightsRepository());
+
     Future<ProviderContainer> pumpRouted(WidgetTester tester) async {
       tester.view.physicalSize = const Size(1200, 3200);
       tester.view.devicePixelRatio = 1.0;
@@ -161,6 +166,7 @@ void main() {
               ],
             ),
             divesPerTripProvider.overrideWith((ref) async => const []),
+            insightsRepositoryProvider.overrideWithValue(repository),
           ],
         ),
       );
@@ -185,9 +191,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('dive list'), findsOneWidget);
+      expect(repository.lastFilter?.minDepth, 18);
+      expect(repository.lastFilter?.query, site('country', 'Bonaire'));
       final filter = container.read(diveFilterProvider);
-      expect(filter.minDepth, 18);
-      expect(filter.query, site('country', 'Bonaire'));
+      expect(filter.diveIds, ['d1']);
+      expect(filter.diveIdsLabel, 'Countries Visited: Bonaire');
     });
 
     testWidgets('a region row names its country to screen readers', (
@@ -214,11 +222,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('dive list'), findsOneWidget);
-      final filter = container.read(diveFilterProvider);
-      expect(filter.minDepth, 18);
+      expect(repository.lastFilter?.minDepth, 18);
       expect(
-        filter.query,
+        repository.lastFilter?.query,
         AndNode([site('region', 'Yucatan'), site('country', 'Mexico')]),
+      );
+      expect(
+        container.read(diveFilterProvider).diveIdsLabel,
+        'Regions Explored: Yucatan, Mexico',
       );
     });
   });

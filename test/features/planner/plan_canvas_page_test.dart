@@ -532,7 +532,13 @@ void main() {
 
     await tester.tap(find.text('New Dive Plan'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Reef wall');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      'Reef wall',
+    );
     await tester.tap(find.text('Save').last);
     await tester.pumpAndSettle();
 

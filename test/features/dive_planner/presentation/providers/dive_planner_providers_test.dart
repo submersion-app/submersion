@@ -1073,6 +1073,42 @@ void main() {
       expect(state.surfaceInterval, isNull);
     });
 
+    group('drops exposure carried in from a series dive', () {
+      late DivePlanNotifier notifier;
+
+      setUp(() {
+        notifier = DivePlanNotifier(PlanCalculatorService());
+        notifier.loadPlan(
+          notifier.state.copyWith(initialCns: 30, initialOtu: 120),
+        );
+      });
+
+      tearDown(() => notifier.dispose());
+
+      void expectNoExposure() {
+        expect(notifier.state.initialCns, isNull);
+        expect(notifier.state.initialOtu, isNull);
+      }
+
+      test('when following a dive', () {
+        notifier.setFollowedDive(
+          diveId: 'dive-9',
+          surfaceInterval: const Duration(hours: 2),
+        );
+        expectNoExposure();
+      });
+
+      test('when no longer following one', () {
+        notifier.clearFollowedDive();
+        expectNoExposure();
+      });
+
+      test('when clearing the repetitive dive settings', () {
+        notifier.clearRepetitiveDiveSettings();
+        expectNoExposure();
+      });
+    });
+
     test('setLinkedDive records and clears the converted dive', () {
       final notifier = DivePlanNotifier(PlanCalculatorService());
       addTearDown(notifier.dispose);

@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/dive_lab_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
@@ -288,6 +290,9 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.customFields:
         if (dive.customFields.isEmpty) return null;
         return DiveCustomFieldsSection(dive: dive);
+      case DiveDetailSectionId.diveLab:
+        if (!isDiveLabEligible(dive)) return null;
+        return DiveLabSection(diveId: dive.id);
       case DiveDetailSectionId.dataSources:
         return DiveDetailDataSourcesSection(dive: dive, actions: actions);
     }

@@ -121,6 +121,9 @@ void main() {
   /// and the exact expression, with the reason. Naming the expression (not
   /// the whole file) keeps a file that also shows a Markdown field checked.
   const plainAllowed = <String, String>{
+    'lib/features/dive_lab/presentation/pages/dive_lab_page.dart '
+            'result.notes':
+        'hand-off notes are sentences the app writes, not diver text',
     'lib/features/pre_dive/presentation/widgets/session_item_tile.dart '
             'item.notes':
         'pre-dive item notes are a one-line field',

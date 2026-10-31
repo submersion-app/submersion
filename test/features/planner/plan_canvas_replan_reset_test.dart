@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/planner_results.dart';
@@ -71,6 +72,36 @@ void main() {
     final after = container.read(divePlanNotifierProvider);
     expect(after.sourceDiveId, isNull);
     expect(after.segments, isEmpty);
+  });
+
+  testWidgets('leaving a series keeps it, whichever dive is selected', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final showPlanner = ValueNotifier(true);
+    await tester.pumpWidget(harness(showPlanner));
+    await tester.pumpAndSettle();
+
+    final notifier = notifierOf(tester);
+    notifier.addSimplePlan(maxDepth: 40, bottomTimeMinutes: 20);
+    final container = ProviderScope.containerOf(hostKey.currentContext!);
+    notifier.loadPlan(
+      container.read(divePlanNotifierProvider).copyWith(sourceDiveId: 'dive-1'),
+    );
+    final series = container.read(planSeriesNotifierProvider.notifier);
+    series.addDive();
+    series.select(0);
+    await tester.pump();
+
+    showPlanner.value = false;
+    await tester.pumpAndSettle();
+
+    expect(container.read(planSeriesNotifierProvider).dives, hasLength(2));
+    expect(container.read(divePlanNotifierProvider).sourceDiveId, 'dive-1');
   });
 
   testWidgets('leaving an ordinary plan keeps it', (tester) async {

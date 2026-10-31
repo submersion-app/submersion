@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -169,9 +170,80 @@ void main() {
     ]);
   });
 
+  group('a series the samples cannot hold (issue #3917)', () {
+    Map<String, DiveTankPressureExport> recorded(List<(int, double)> samples) =>
+        {
+          'dive-a': DiveTankPressureExport(
+            primarySourceId: 'src-primary',
+            series: [
+              testTankSeries(
+                's-primary',
+                diveId: 'dive-a',
+                tankId: 'tank-1',
+                sourceId: 'src-primary',
+                samples: samples,
+              ),
+            ],
+          ),
+        };
+
+    test(
+      'restores a single-source series no depth sample lines up with',
+      () async {
+        final xml = await UddfFullExportService().generateAllDataXmlForTest(
+          dives: [dive],
+          dataSources: [source('src-primary', 0, primary: true)],
+          diveTankPressures: recorded([(5, 199), (15, 191)]),
+        );
+
+        await restore(xml);
+
+        expect(await restoredSeries(), [
+          ('src-primary.uddf', '5:199.0 15:191.0'),
+        ]);
+      },
+    );
+
+    test('restores a reading at its own time, not a nearby sample', () async {
+      final xml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        dataSources: [source('src-primary', 0, primary: true)],
+        diveTankPressures: recorded([(9, 195), (21, 185)]),
+      );
+
+      await restore(xml);
+
+      expect(await restoredSeries(), [
+        ('src-primary.uddf', '9:195.0 21:185.0'),
+      ]);
+    });
+
+    test('restores the series of a backup without its sources', () async {
+      final xml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        dataSources: [source('src-primary', 0, primary: true)],
+        diveTankPressures: recorded([(5, 199), (15, 191)]),
+        options: const UddfExportOptions(includeRawData: false),
+      );
+
+      await restore(xml);
+
+      // Under the one source the restore creates, as sample pressures are.
+      final series = await TankPressureSeriesRepository().getSeriesForDive(
+        (await db.select(db.dives).getSingle()).id,
+      );
+      final row = await db.select(db.diveDataSources).getSingle();
+      expect(series.single.sourceId, row.id);
+      expect(
+        [for (final s in series.single.samples) (s.timestamp, s.pressure)],
+        [(5, 199.0), (15, 191.0)],
+      );
+    });
+  });
+
   test('a single-source backup still restores the sample pressures', () async {
-    // No extension block for one source: the waypoints carry the readings
-    // and the lone restored source adopts them.
+    // No extension block for readings on depth samples: the waypoints carry
+    // them and the lone restored source adopts them.
     final xml = await UddfFullExportService().generateAllDataXmlForTest(
       dives: [dive],
       dataSources: [source('src-primary', 0, primary: true)],

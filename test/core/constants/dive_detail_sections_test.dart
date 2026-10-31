@@ -16,13 +16,21 @@ void main() {
       // Its localized switches use plain English literals rather than new
       // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
       // Lowered for the retired reefHealth section, whose satellite water
-      // conditions moved into the Environment card (issue #3282).
-      expect(DiveDetailSectionId.values.length, 24);
+      // conditions moved into the Environment card (issue #3282), and raised for the Dive Lab section.
+      expect(DiveDetailSectionId.values.length, 25);
     });
 
     test('values match expected IDs', () {
       expect(DiveDetailSectionId.values.first, DiveDetailSectionId.profile);
       expect(DiveDetailSectionId.values.last, DiveDetailSectionId.dataSources);
+    });
+
+    test('the Compare section is named for what it does', () {
+      expect(DiveDetailSectionId.diveLab.displayName, 'Compare');
+      expect(
+        DiveDetailSectionId.diveLab.description,
+        'Plan, dive and saved what-ifs side by side',
+      );
     });
   });
 
