@@ -54,7 +54,10 @@ void main() {
   group('range operations the profile cannot take (issue #3909)', () {
     late ProfileEditorNotifier notifier;
 
-    Future<void> pumpPanel(WidgetTester tester) async {
+    Future<void> pumpPanel(
+      WidgetTester tester, {
+      EditorMode mode = EditorMode.select,
+    }) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -62,7 +65,7 @@ void main() {
           locale: const Locale('en'),
           home: Scaffold(
             body: EditorContextPanel(
-              mode: EditorMode.select,
+              mode: mode,
               notifier: notifier,
               selectedRange: notifier.state.selectedRange,
             ),
@@ -153,6 +156,50 @@ void main() {
 
       expect(find.byType(SnackBar), findsNothing);
       expect(notifier.state.hasChanges, isTrue);
+    });
+
+    testWidgets('a time shift past the start of the dive says so', (
+      tester,
+    ) async {
+      notifier.setSelectedRange(start: 0, end: 8);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Time -5s'));
+      await tester.pump();
+
+      expect(
+        find.text("Can't shift: the selection has no room to move that way"),
+        findsOneWidget,
+      );
+      expect(notifier.state.hasChanges, isFalse);
+    });
+
+    testWidgets('Apply to Selection smooths at the chosen strength', (
+      tester,
+    ) async {
+      final points = List.generate(
+        8,
+        (i) => DiveProfilePoint(timestamp: i * 4, depth: i.isEven ? 10 : 20),
+      );
+      notifier = ProfileEditorNotifier(
+        originalProfile: points,
+        editingService: ProfileEditingService(),
+      );
+      notifier.setSelectedRange(start: 0, end: 28);
+      await pumpPanel(tester, mode: EditorMode.smooth);
+
+      await tester.tap(find.text('Heavy'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply to Selection'));
+      await tester.pump();
+
+      expect(
+        notifier.state.editedProfile.map((p) => p.depth).toList(),
+        ProfileEditingService()
+            .smoothProfile(points, windowSize: 7)
+            .map((p) => p.depth)
+            .toList(),
+      );
     });
   });
 }

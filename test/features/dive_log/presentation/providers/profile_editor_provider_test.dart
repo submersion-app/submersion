@@ -297,6 +297,16 @@ void main() {
       expect(tailed.state.selectedRange, isNull);
     });
 
+    test('a range edit with nothing selected reports it did nothing', () {
+      expect(notifier.state.selectedRange, isNull);
+
+      expect(notifier.shiftSegmentTime(5), isFalse);
+      expect(notifier.deleteSegment(), isFalse);
+      expect(notifier.applySmoothingToRange(), isFalse);
+      expect(notifier.state.hasChanges, isFalse);
+      expect(notifier.state.undoStack, isEmpty);
+    });
+
     group('edits that invalidate detected outliers', () {
       ProfileEditorNotifier detected() {
         final detecting = ProfileEditorNotifier(
