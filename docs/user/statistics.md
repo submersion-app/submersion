@@ -52,8 +52,9 @@ tank configurations, solo and buddy dives, and more.
   A chevron marks anything that opens this way.
 - **"Based on 42 of 310 dives"** under a Conditions card opens the dives with
   nothing recorded for that card.
-- **The Deco and No deco tiles** open their dives too. The deco rate does not,
-  because it is a share rather than a count.
+- **The Deco and No deco tiles** open their dives too, as does the line saying
+  how many dives have no deco data. The deco rate does not, because it is a
+  share rather than a count.
 
 The dive list opens with one chip naming what you opened, such as
 `Dives by Day of Week: Sat (142)`, and holds exactly the dives the number counted
