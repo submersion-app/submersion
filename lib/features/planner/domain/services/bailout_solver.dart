@@ -49,7 +49,8 @@ class BailoutOutcome {
 
   /// Surface liters left in bailout-role tanks at the worst-case instant
   /// (compressibility-corrected): what they carried, less what an authored
-  /// off-loop segment had already breathed from them by then (#3898).
+  /// off-loop segment, with any problem-solving time the plan charges it, had
+  /// already breathed from them by then (#3898).
   final double availableLiters;
 
   /// The worst-case point's OC schedule, as printable table lines: every
@@ -77,7 +78,8 @@ class BailoutOutcome {
   /// same way the main per-tank gas list reads: used/end liters and
   /// pressure, one row per [bailoutTanks] entry. Sums to the same total as
   /// [BailoutPoint.litersRequired] for [worstCase], plus whatever an authored
-  /// off-loop segment had already breathed from them by then.
+  /// off-loop segment had already breathed from them by then, the same gas
+  /// [availableLiters] leaves out.
   final List<PlanTankUsage> bailoutTankUsages;
 
   /// The worst-case point's own ceiling, sampled the same way
@@ -285,16 +287,15 @@ class BailoutSolver {
     double totalSpentAt(int index) =>
         spentAtPoints[index].values.fold(0.0, (sum, liters) => sum + liters);
     final bailoutTankIds = {for (final tank in bailoutTanks) tank.id};
+    bool isOffLoop(ResolvedLeg leg) => modeFor(plan, leg.segment) != plan.mode;
     final offLoopBottomLeg = PlanEngine.lastLegAtMaxDepth(
       plan,
-      legs.where((leg) => modeFor(plan, leg.segment) != plan.mode),
+      legs.where(isOffLoop),
     );
 
     for (final leg in legs) {
       final segment = leg.segment;
-      final offLoop =
-          modeFor(plan, segment) != plan.mode &&
-          bailoutTankIds.contains(leg.tankId);
+      final offLoop = isOffLoop(leg) && bailoutTankIds.contains(leg.tankId);
       if (offLoop && identical(leg, offLoopBottomLeg)) {
         spent[leg.tankId] =
             (spent[leg.tankId] ?? 0) +
