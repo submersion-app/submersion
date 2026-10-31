@@ -26098,6 +26098,12 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get equipment_location_kind_storage;
 
+  /// Kind of place: a dive center or shop where the diver leaves gear between dives
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get equipment_location_kind_diveCenter;
+
   /// Kind of place: a shop or technician servicing gear
   ///
   /// In en, this message translates to:
@@ -26451,6 +26457,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kind'**
   String get equipment_locations_kindLabel;
+
+  /// Label of the field linking a place to one of the diver's saved dive centers
+  ///
+  /// In en, this message translates to:
+  /// **'Saved dive center'**
+  String get equipment_locations_savedCenterLabel;
+
+  /// Value of the saved dive center field when no center is linked
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_locations_savedCenterNone;
+
+  /// Tooltip of the button that removes the link to a saved dive center
+  ///
+  /// In en, this message translates to:
+  /// **'Remove saved dive center'**
+  String get equipment_locations_savedCenterClear;
 
   /// Label of a place's notes field
   ///
@@ -85328,6 +85352,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter 0 to 100'**
   String get numberInput_percentRange;
+
+  /// Heading on a dive center's page listing the diver's own gear left at that center
+  ///
+  /// In en, this message translates to:
+  /// **'Your gear here'**
+  String get diveCenters_gearHere_title;
 
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///

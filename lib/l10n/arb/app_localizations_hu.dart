@@ -16192,6 +16192,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_kind_storage => 'Tároló';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Búvárközpont';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Szerviz';
 
   @override
@@ -16420,6 +16423,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Típus';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Mentett búvárközpont';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Nincs';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Mentett búvárközpont eltávolítása';
 
   @override
   String get equipment_locations_notesLabel => 'Megjegyzések';
@@ -53669,6 +53682,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Adjon meg 0 és 100 közötti értéket';
+
+  @override
+  String get diveCenters_gearHere_title => 'Saját felszerelés itt';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Bérelt felszerelés';

@@ -15910,6 +15910,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_kind_storage => 'אחסון';
 
   @override
+  String get equipment_location_kind_diveCenter => 'מרכז צלילה';
+
+  @override
   String get equipment_location_kind_serviceShop => 'מעבדת שירות';
 
   @override
@@ -16135,6 +16138,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'סוג';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'מרכז צלילה שמור';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'ללא';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'הסר מרכז צלילה שמור';
 
   @override
   String get equipment_locations_notesLabel => 'הערות';
@@ -52803,6 +52815,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
+
+  @override
+  String get diveCenters_gearHere_title => 'הציוד שלך כאן';
 
   @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';

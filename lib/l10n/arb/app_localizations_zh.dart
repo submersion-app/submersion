@@ -15484,6 +15484,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_kind_storage => '存放处';
 
   @override
+  String get equipment_location_kind_diveCenter => '潜水中心';
+
+  @override
   String get equipment_location_kind_serviceShop => '维修店';
 
   @override
@@ -15701,6 +15704,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => '类型';
+
+  @override
+  String get equipment_locations_savedCenterLabel => '已保存的潜水中心';
+
+  @override
+  String get equipment_locations_savedCenterNone => '无';
+
+  @override
+  String get equipment_locations_savedCenterClear => '移除已保存的潜水中心';
 
   @override
   String get equipment_locations_notesLabel => '备注';
@@ -50586,6 +50598,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => '请输入 0 到 100 之间的数';
+
+  @override
+  String get diveCenters_gearHere_title => '存放在此的装备';
 
   @override
   String get diveCenters_rental_sectionTitle => '租赁装备';

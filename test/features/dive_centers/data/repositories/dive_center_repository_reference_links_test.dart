@@ -103,6 +103,66 @@ void main() {
     await expectUntouched('dive-b', centerId: 'center-b');
   });
 
+  group('places linked to the center', () {
+    Future<void> seedPlace(String id, String centerId) async {
+      await db
+          .into(db.equipmentLocations)
+          .insert(
+            EquipmentLocationsCompanion.insert(
+              id: id,
+              name: id,
+              kind: const Value('diveCenter'),
+              diveCenterId: Value(centerId),
+              notes: const Value('Locker 12'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+    }
+
+    Future<EquipmentLocationRow> placeRow(String id) => (db.select(
+      db.equipmentLocations,
+    )..where((t) => t.id.equals(id))).getSingle();
+
+    Future<int> pendingPlaces(String id) async {
+      final rows = await db.select(db.syncRecords).get();
+      return rows
+          .where(
+            (r) => r.entityType == 'equipmentLocations' && r.recordId == id,
+          )
+          .length;
+    }
+
+    test('deleteDiveCenter keeps the place, clears the link and queues it '
+        'for sync', () async {
+      await seedCenter('center-a');
+      await seedPlace('place-a', 'center-a');
+
+      await repository.deleteDiveCenter('center-a');
+
+      final row = await placeRow('place-a');
+      expect(row.diveCenterId, isNull);
+      expect(row.name, 'place-a');
+      expect(row.kind, 'diveCenter');
+      expect(row.notes, 'Locker 12');
+      expect(row.updatedAt, greaterThan(stale));
+      expect(await pendingPlaces('place-a'), 1);
+    });
+
+    test('a place linked to another center is untouched', () async {
+      await seedCenter('center-a');
+      await seedCenter('center-b');
+      await seedPlace('place-b', 'center-b');
+
+      await repository.deleteDiveCenter('center-a');
+
+      final row = await placeRow('place-b');
+      expect(row.diveCenterId, 'center-b');
+      expect(row.updatedAt, stale);
+      expect(await pendingPlaces('place-b'), 0);
+    });
+  });
+
   test('deleteDiveCenter tells dive-list watchers the dives changed', () async {
     await seedCenter('center-a');
     await seedDive('dive-a', centerId: 'center-a');

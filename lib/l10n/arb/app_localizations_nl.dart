@@ -16142,6 +16142,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_location_kind_storage => 'Opslag';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Duikcentrum';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Servicewerkplaats';
 
   @override
@@ -16369,6 +16372,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Soort';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Opgeslagen duikcentrum';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Geen';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Opgeslagen duikcentrum verwijderen';
 
   @override
   String get equipment_locations_notesLabel => 'Notities';
@@ -53617,6 +53630,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Voer 0 tot 100 in';
+
+  @override
+  String get diveCenters_gearHere_title => 'Je uitrusting hier';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Huuruitrusting';

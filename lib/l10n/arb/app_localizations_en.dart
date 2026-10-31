@@ -16016,6 +16016,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_location_kind_storage => 'Storage';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Dive center';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Service shop';
 
   @override
@@ -16243,6 +16246,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Kind';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Saved dive center';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'None';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'Remove saved dive center';
 
   @override
   String get equipment_locations_notesLabel => 'Notes';
@@ -53107,6 +53119,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Enter 0 to 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'Your gear here';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';

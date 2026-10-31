@@ -16249,6 +16249,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_location_kind_storage => 'Deposito';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Centro immersioni';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Centro assistenza';
 
   @override
@@ -16477,6 +16480,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Tipo';
+
+  @override
+  String get equipment_locations_savedCenterLabel =>
+      'Centro immersioni salvato';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'Nessuno';
+
+  @override
+  String get equipment_locations_savedCenterClear =>
+      'Rimuovi centro immersioni salvato';
 
   @override
   String get equipment_locations_notesLabel => 'Note';
@@ -53970,6 +53984,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Inserisci un valore da 0 a 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'La tua attrezzatura qui';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';
