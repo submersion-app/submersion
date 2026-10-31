@@ -159,6 +159,10 @@ class InsightsRepository {
   final _log = LoggerService.forClass(InsightsRepository);
   final _profileSeries = ProfileSeriesRepository();
 
+  /// Late because the constructor builds a large graph of repositories, which
+  /// only a filtered [watchInsightsChanges] needs.
+  late final _diveRepository = DiveRepository();
+
   /// How many dives' packed series the profile aggregates read at once.
   ///
   /// The aggregates run over the whole filtered library, and a packed series
@@ -260,7 +264,7 @@ class InsightsRepository {
           // As the query compiler reports them, so a new filter field is
           // followed without editing this list.
           if (filter != null)
-            for (final table in DiveRepository().tablesNamed(
+            for (final table in _diveRepository.tablesNamed(
               diveFilterTablesTouched(filter),
             ))
               TableUpdateQuery.onTable(table),
