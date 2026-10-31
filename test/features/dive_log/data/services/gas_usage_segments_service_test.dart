@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -9,12 +10,14 @@ DiveTank _tank({
   double he = 0,
   String? name,
   int order = 0,
+  TankRole role = TankRole.backGas,
 }) {
   return DiveTank(
     id: id,
     name: name,
     gasMix: GasMix(o2: o2, he: he),
     order: order,
+    role: role,
   );
 }
 
@@ -130,6 +133,41 @@ void main() {
       expect(segments, hasLength(1));
       expect(segments.single.tankName, 'First');
       expect(segments.single.gasMix.o2, 21);
+    });
+
+    test('starts on the back gas when a deco bottle is listed first', () {
+      final segments = buildGasUsageSegments(
+        tanks: [
+          _tank(id: 'deco', o2: 50, name: 'Deco', role: TankRole.deco),
+          _tank(id: 'back', o2: 21, name: 'Back', order: 1),
+        ],
+        gasSwitches: [
+          _switch(tankId: 'deco', timestamp: 1800, o2Fraction: 0.5),
+        ],
+        diveDurationSeconds: 2400,
+      );
+
+      expect(segments.map((s) => s.tankName), ['Back', 'Deco']);
+      expect(segments.first.endSeconds, 1800);
+    });
+
+    test('starts on the lowest-order tank when none is back gas', () {
+      final segments = buildGasUsageSegments(
+        tanks: [
+          _tank(
+            id: 'late',
+            o2: 50,
+            name: 'Late',
+            order: 2,
+            role: TankRole.deco,
+          ),
+          _tank(id: 'first', o2: 32, name: 'First', role: TankRole.stage),
+        ],
+        gasSwitches: const [],
+        diveDurationSeconds: 1200,
+      );
+
+      expect(segments.single.tankName, 'First');
     });
 
     test('switch back to the same gas merges with the previous segment', () {
@@ -342,6 +380,23 @@ void main() {
         expect(result['first'], [(start: 0, end: 2400)]);
       },
     );
+
+    test('the back gas owns the time before the first switch when a deco '
+        'bottle is listed first', () {
+      final result = buildActiveTankIntervals(
+        tanks: [
+          _tank(id: 'deco', o2: 50, role: TankRole.deco),
+          _tank(id: 'back', o2: 21, order: 1),
+        ],
+        gasSwitches: [
+          _switch(tankId: 'deco', timestamp: 1800, o2Fraction: 0.5),
+        ],
+        diveDurationSeconds: 2400,
+      );
+
+      expect(result['back'], [(start: 0, end: 1800)]);
+      expect(result['deco'], [(start: 1800, end: 2400)]);
+    });
 
     test('deco bottle owns only its switch window', () {
       final result = buildActiveTankIntervals(
