@@ -69,6 +69,7 @@ domain.DivePlan _plan(List<PlanSegment> segments, {DiveTank? bailout}) =>
       mode: domain.PlanMode.ccr,
       gfLow: 50,
       gfHigh: 80,
+      problemSolvingMinutes: 0,
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),
       tanks: [_diluentTank, bailout ?? _bailout()],
@@ -102,6 +103,74 @@ void main() {
         outcome.worstCase.litersRequired + _spent(plan, minutes: 10),
         1e-6,
       ),
+    );
+  });
+
+  test('problem-solving gas the plan spends on the cylinder is gone too', () {
+    final plan = _plan([_descent, _ocHold()]);
+    final withoutTime = solver.solve(plan)!;
+    final withTime = solver.solve(plan.copyWith(problemSolvingMinutes: 2))!;
+    final resolved = solver.config.resolvedFor(plan);
+    final pressure = PlanEngine.environmentFor(plan).pressureAtDepth(30);
+
+    expect(
+      withoutTime.availableLiters - withTime.availableLiters,
+      closeTo(resolved.sacBottom * resolved.buddyFactor * 2 * pressure, 1e-6),
+    );
+  });
+
+  test('problem-solving gas adds to what the cylinder already spent', () {
+    final plan = _plan([
+      PlanSegment.travel(
+        id: 'descent',
+        fromDepth: 0,
+        targetDepth: 15,
+        tankId: 'dil',
+        gasMix: _air,
+        order: 0,
+        ratePerMinute: 18,
+      ),
+      _ocHold(depth: 15, minutes: 10, order: 1),
+      _ocHold(depth: 30, minutes: 10, order: 2),
+    ]);
+    final withTime = plan.copyWith(problemSolvingMinutes: 2);
+    final used = const PlanEngine()
+        .compute(withTime)
+        .tankUsages
+        .firstWhere((u) => u.tankId == 'bo')
+        .litersUsed;
+    final carried = solver.solve(_plan([_descent, _loopHold()]))!;
+
+    expect(
+      solver.solve(withTime)!.availableLiters,
+      closeTo(carried.availableLiters - used, 1e-6),
+    );
+  });
+
+  test('a rate-split leg spends what the plan charges it, once', () {
+    final plan = _plan([
+      _descent,
+      const PlanSegment(
+        id: 'split',
+        targetDepth: 40,
+        durationSeconds: 600,
+        tankId: 'bo',
+        gasMix: _air,
+        order: 1,
+        diveModeOverride: domain.PlanMode.oc,
+        splitAtConfiguredRate: true,
+      ),
+    ]);
+    final used = const PlanEngine()
+        .compute(plan)
+        .tankUsages
+        .firstWhere((u) => u.tankId == 'bo')
+        .litersUsed;
+    final carried = solver.solve(_plan([_descent, _loopHold()]))!;
+
+    expect(
+      solver.solve(plan)!.availableLiters,
+      closeTo(carried.availableLiters - used, 1e-6),
     );
   });
 

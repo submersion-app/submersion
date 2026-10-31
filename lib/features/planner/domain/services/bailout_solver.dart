@@ -278,18 +278,28 @@ class BailoutSolver {
     // Gas authored off-loop segments have breathed from each bailout cylinder
     // so far, and its snapshot at each point, same index. It is gone by the
     // time the loop dies at that point, charged as PlanEngine charges those
-    // segments in the main plan (#3898).
+    // segments in the main plan (#3898), problem-solving time included so the
+    // two rows for a cylinder agree.
     final spent = <String, double>{};
     final spentAtPoints = <Map<String, double>>[];
     double totalSpentAt(int index) =>
         spentAtPoints[index].values.fold(0.0, (sum, liters) => sum + liters);
     final bailoutTankIds = {for (final tank in bailoutTanks) tank.id};
+    final offLoopBottomLeg = PlanEngine.lastLegAtMaxDepth(
+      plan,
+      legs.where((leg) => modeFor(plan, leg.segment) != plan.mode),
+    );
 
     for (final leg in legs) {
       final segment = leg.segment;
       final offLoop =
           modeFor(plan, segment) != plan.mode &&
           bailoutTankIds.contains(leg.tankId);
+      if (offLoop && identical(leg, offLoopBottomLeg)) {
+        spent[leg.tankId] =
+            (spent[leg.tankId] ?? 0) +
+            config.problemSolvingLiters(plan, environment);
+      }
       var covered = 0;
       while (covered < segment.durationSeconds) {
         final chunk = (segment.durationSeconds - covered) < sampleInterval
@@ -364,10 +374,12 @@ class BailoutSolver {
 
     if (points.isEmpty) return null;
     var worstIndex = 0;
+    var worstDemand = points.first.litersRequired + totalSpentAt(0);
     for (var i = 1; i < points.length; i++) {
-      if (points[i].litersRequired + totalSpentAt(i) >
-          points[worstIndex].litersRequired + totalSpentAt(worstIndex)) {
+      final demand = points[i].litersRequired + totalSpentAt(i);
+      if (demand > worstDemand) {
         worstIndex = i;
+        worstDemand = demand;
       }
     }
     final worst = points[worstIndex];

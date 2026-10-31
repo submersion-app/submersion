@@ -66,14 +66,6 @@ class PlanSegment extends Equatable {
   /// Order of this segment in the plan (0-indexed).
   final int order;
 
-  /// Whether [diveModeOverride] takes this segment off a CCR loop: a mid-plan
-  /// bailout, breathing the cylinder [tankId] names directly rather than a
-  /// diluent through the loop.
-  bool get leavesCcrLoop {
-    final override = diveModeOverride;
-    return override != null && override != PlanMode.ccr;
-  }
-
   const PlanSegment({
     required this.id,
     required this.targetDepth,
@@ -85,6 +77,14 @@ class PlanSegment extends Equatable {
     this.splitAtConfiguredRate = false,
     this.order = 0,
   });
+
+  /// Whether [diveModeOverride] takes this segment off a CCR loop: a mid-plan
+  /// bailout, breathing the cylinder [tankId] names directly rather than a
+  /// diluent through the loop.
+  bool get leavesCcrLoop {
+    final override = diveModeOverride;
+    return override != null && override != PlanMode.ccr;
+  }
 
   /// Duration formatted as MM:SS.
   String get durationFormatted {

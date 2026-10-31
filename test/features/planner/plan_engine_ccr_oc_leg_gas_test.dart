@@ -212,6 +212,47 @@ void main() {
       expect(total, greaterThan(_sac * 20 * _pressureAt(plan, 30)));
     });
 
+    test('a rate-split leg is charged once, travel and hold apart', () {
+      // Travel from 10 m to 30 m at the plan's descent rate, averaging 20 m,
+      // then the rest of the segment level at 30 m.
+      final plan = _plan(
+        segments: [
+          PlanSegment.travel(
+            id: 'to-10',
+            fromDepth: 0,
+            targetDepth: 10,
+            tankId: 'dil',
+            gasMix: _air,
+            order: 0,
+            ratePerMinute: 18,
+          ),
+          const PlanSegment(
+            id: 'split',
+            targetDepth: 30,
+            durationSeconds: 600,
+            tankId: 'bo',
+            gasMix: _air,
+            order: 1,
+            diveModeOverride: domain.PlanMode.oc,
+            splitAtConfiguredRate: true,
+          ),
+        ],
+      );
+      final travelSeconds = PlanSegment.travelSeconds(
+        metres: 20,
+        ratePerMinute: engine.config.resolvedFor(plan).descentRate,
+      );
+
+      expect(
+        _usage(engine.compute(plan), 'bo').litersUsed,
+        closeTo(
+          _sac * (travelSeconds / 60) * _pressureAt(plan, 20) +
+              _sac * ((600 - travelSeconds) / 60) * _pressureAt(plan, 30),
+          1e-6,
+        ),
+      );
+    });
+
     test('a leg overridden to a semi-closed loop is off the CCR loop too', () {
       final plan = _plan(
         segments: [

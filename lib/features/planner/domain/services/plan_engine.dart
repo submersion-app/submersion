@@ -482,6 +482,20 @@ class PlanEngineConfig extends Equatable {
     SegmentPhase.ascent || SegmentPhase.stop => sacDeco,
   };
 
+  /// Surface liters of [plan]'s problem-solving time at max depth, shared
+  /// with a buddy; nothing when the plan sets none or never leaves the
+  /// surface.
+  double problemSolvingLiters(
+    domain.DivePlan plan,
+    DiveEnvironment environment,
+  ) {
+    if (problemSolvingMinutes <= 0 || plan.maxDepth <= 0) return 0;
+    return sacBottom *
+        buddyFactor *
+        problemSolvingMinutes *
+        environment.pressureAtDepth(plan.maxDepth);
+  }
+
   /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
   /// override when set, else [sacBottom] (already resolved against this
   /// plan - call this on a [resolvedFor] config) times the diver's
@@ -1235,11 +1249,9 @@ class PlanEngine {
 
     // Only when the diver is off the loop at the bottom: a problem solved on
     // the loop draws nothing the plan charges by the minute.
-    final bottomTankId = _bottomTankId(plan, offLoopLegs);
-    if (bottomTankId != null &&
-        config.problemSolvingMinutes > 0 &&
-        plan.maxDepth > 0) {
-      charge(bottomTankId, _problemSolvingLiters(plan, environment));
+    final bottomLeg = lastLegAtMaxDepth(plan, offLoopLegs);
+    if (bottomLeg != null) {
+      charge(bottomLeg.tankId, config.problemSolvingLiters(plan, environment));
     }
 
     return [
@@ -1301,29 +1313,21 @@ class PlanEngine {
       (leg.durationSeconds / 60.0) *
       environment.pressureAtDepth(leg.avgDepth);
 
-  /// The cylinder the last of [legs] at the plan's max depth breathes, or
-  /// null when none of them reaches it.
-  String? _bottomTankId(domain.DivePlan plan, Iterable<ResolvedLeg> legs) {
-    String? bottomTankId;
+  /// The last of [legs] at [plan]'s max depth, which is what problem-solving
+  /// time is charged to, or null when none of them reaches it.
+  static ResolvedLeg? lastLegAtMaxDepth(
+    domain.DivePlan plan,
+    Iterable<ResolvedLeg> legs,
+  ) {
+    ResolvedLeg? bottomLeg;
     for (final leg in legs) {
       if (leg.endDepth >= plan.maxDepth - 0.1 ||
           leg.startDepth >= plan.maxDepth - 0.1) {
-        bottomTankId = leg.tankId;
+        bottomLeg = leg;
       }
     }
-    return bottomTankId;
+    return bottomLeg;
   }
-
-  /// Surface liters of the plan's problem-solving time at max depth, shared
-  /// with a buddy.
-  double _problemSolvingLiters(
-    domain.DivePlan plan,
-    DiveEnvironment environment,
-  ) =>
-      config.sacBottom *
-      config.buddyFactor *
-      config.problemSolvingMinutes *
-      environment.pressureAtDepth(plan.maxDepth);
 
   /// SAC-based consumption: bottom SAC while the dive is still working
   /// (descending, or level at depth), deco SAC once it is heading up (ascent
@@ -1360,12 +1364,10 @@ class PlanEngine {
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
-    if (config.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
-      charge(
-        _bottomTankId(plan, legs),
-        _problemSolvingLiters(plan, environment),
-      );
-    }
+    charge(
+      lastLegAtMaxDepth(plan, legs)?.tankId,
+      config.problemSolvingLiters(plan, environment),
+    );
 
     // Computed ascent: travel legs and stops on the deco SAC.
     final policy = _policyFor(plan);
