@@ -199,21 +199,33 @@ class InsightsProgressionPage extends ConsumerWidget {
         data: (stats) {
           // Thickness bars ascending, then the suits a thickness cannot
           // place (issue #1824). Empty buckets are left off the chart.
-          final chartData = [
+          final rows = [
             for (final d in stats.byThickness)
-              (label: label(d.mm), count: d.count),
+              (
+                label: label(d.mm),
+                count: d.count,
+                bucket: 'mm',
+                mm: d.mm as double?,
+              ),
             if (stats.unknownThicknessCount > 0)
               (
                 label: context
                     .l10n
                     .insights_progression_divesBySuitThickness_unknown,
                 count: stats.unknownThicknessCount,
+                bucket: 'unknown',
+                mm: null,
               ),
             if (stats.drysuitCount > 0)
               (
                 label: EquipmentType.drysuit.localizedName(context.l10n),
                 count: stats.drysuitCount,
+                bucket: 'drysuit',
+                mm: null,
               ),
+          ];
+          final chartData = [
+            for (final r in rows) (label: r.label, count: r.count),
           ];
           if (chartData.isEmpty) {
             return StatEmptyState(
@@ -235,6 +247,21 @@ class InsightsProgressionPage extends ConsumerWidget {
             child: CategoryBarChart(
               data: chartData,
               barColor: Theme.of(context).colorScheme.tertiary,
+              onOpenBar: (index) => openChartDives(
+                context,
+                ref,
+                chart: context
+                    .l10n
+                    .insights_progression_divesBySuitThickness_title,
+                row: rows[index].label,
+                load: (repository, diverId, scope) =>
+                    repository.getSuitThicknessDiveIds(
+                      bucket: rows[index].bucket,
+                      mm: rows[index].mm,
+                      diverId: diverId,
+                      filter: scope,
+                    ),
+              ),
             ),
           );
         },

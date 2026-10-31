@@ -7,9 +7,12 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -250,6 +253,120 @@ void main() {
         'Entry Method: ${chart.data[0].label}',
         condition('entryMethod', QueryOp.eq, const EnumValue('boat')),
       );
+    });
+  });
+
+  group('charts with their own query', () {
+    List<dynamic> conditions() => [
+      conditionsRowsProvider.overrideWith((ref) async => const []),
+      waterTypeDistributionProvider.overrideWith((ref) async => const []),
+      entryMethodDistributionProvider.overrideWith((ref) async => const []),
+      visibilityDistributionProvider.overrideWith(
+        (ref) async => [
+          DistributionSegment(label: 'good', count: 3, percentage: 100),
+        ],
+      ),
+      siteTypeDistributionProvider.overrideWith(
+        (ref) async => [
+          DistributionSegment(
+            label: 'Reef',
+            count: 2,
+            percentage: 100,
+            key: 'custom-id',
+          ),
+        ],
+      ),
+    ];
+
+    testWidgets('a visibility segment asks for its key', (tester) async {
+      await pumpPage(
+        tester,
+        const InsightsConditionsPage(embedded: true),
+        conditions(),
+      );
+
+      final chart = tester.widget<DistributionPieChart>(
+        inCard('Visibility Distribution', find.byType(DistributionPieChart)),
+      );
+      await chart.onOpenSegment!(0);
+      await tester.pumpAndSettle();
+
+      expect(repository.lastAsked, 'visibility:good');
+    });
+
+    testWidgets('a site type asks for its id, not its name', (tester) async {
+      await pumpPage(
+        tester,
+        const InsightsConditionsPage(embedded: true),
+        conditions(),
+      );
+
+      await tester.ensureVisible(find.text('Reef'));
+      await tester.tap(find.text('Reef'));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastAsked, 'siteType:custom-id');
+    });
+
+    testWidgets('a suit bar asks for its bucket', (tester) async {
+      await pumpPage(tester, const InsightsProgressionPage(embedded: true), [
+        depthProgressionTrendProvider.overrideWith((ref) async => const []),
+        runtimeTrendProvider.overrideWith((ref) async => const []),
+        bottomTimeTrendProvider.overrideWith((ref) async => const []),
+        divesBySuitThicknessProvider.overrideWith(
+          (ref) async => (
+            byThickness: const [(mm: 5.0, count: 4)],
+            unknownThicknessCount: 1,
+            drysuitCount: 2,
+          ),
+        ),
+      ]);
+
+      final chart = tester.widget<CategoryBarChart>(
+        inCard('Dives by Suit Thickness', find.byType(CategoryBarChart)),
+      );
+      await chart.onOpenBar!(0);
+      await tester.pumpAndSettle();
+      expect(repository.lastAsked, 'suit:mm:5.0');
+    });
+
+    testWidgets('Not recorded opens its own slice on Solo vs Buddy', (
+      tester,
+    ) async {
+      await pumpPage(tester, const InsightsSocialPage(embedded: true), [
+        soloVsBuddyCountProvider.overrideWith(
+          (ref) async => (solo: 1, buddy: 2, notRecorded: 3),
+        ),
+        topBuddiesProvider.overrideWith((ref) async => const []),
+        topDiveCentersProvider.overrideWith((ref) async => const []),
+      ]);
+
+      await tester.tap(find.text('Not recorded'));
+      await tester.pumpAndSettle();
+
+      final filter = container.read(diveFilterProvider);
+      expect(filter.diveIds, ['unrecorded-dive']);
+      expect(filter.diveIdsLabel, 'Solo vs Buddy Dives: Not recorded');
+    });
+
+    testWidgets('a gas mix row asks for its gas', (tester) async {
+      await pumpPage(tester, const InsightsGasPage(embedded: true), [
+        gasMixDistributionProvider.overrideWith(
+          (ref) async => [
+            DistributionSegment(label: 'Nitrox', count: 4, percentage: 100),
+          ],
+        ),
+        sacTrendProvider.overrideWith((ref) async => const []),
+        tankConfigurationStatsProvider.overrideWith(
+          (ref) async => TankConfigurationStats.fromDives(const []),
+        ),
+        sacByTankRoleProvider.overrideWith((ref) async => const {}),
+      ]);
+
+      await tester.tap(find.text('Nitrox'));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastAsked, 'gasMix:Nitrox');
     });
   });
 

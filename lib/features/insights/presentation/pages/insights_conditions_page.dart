@@ -132,6 +132,19 @@ class InsightsConditionsPage extends ConsumerWidget {
                 // would otherwise reuse green.
                 Colors.purple.shade300,
               ],
+              onOpenSegment: (index) => openChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_visibility_title,
+                row: data[index].label,
+                load: (repository, diverId, scope) =>
+                    repository.getVisibilityDiveIds(
+                      scale: ref.read(settingsProvider).visibilityScale,
+                      bucket: raw[index].label,
+                      diverId: diverId,
+                      filter: scope,
+                    ),
+              ),
             ),
           );
         },
@@ -236,6 +249,18 @@ class InsightsConditionsPage extends ConsumerWidget {
             child: HorizontalCategoryBarChart(
               data: data,
               barColor: Colors.teal.shade400,
+              onOpenRow: (index) => openChartDives(
+                context,
+                ref,
+                chart: context.l10n.insights_conditions_siteType_title,
+                row: data[index].label,
+                load: (repository, diverId, scope) =>
+                    repository.getSiteTypeDiveIds(
+                      siteTypeId: raw[index].key!,
+                      diverId: diverId,
+                      filter: scope,
+                    ),
+              ),
             ),
           );
         },

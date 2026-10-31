@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -3886,22 +3887,12 @@ class DiveRepository {
       // which skipped the profile-derived step and reported a dive that only
       // has a profile as zero minutes. Bucketing stays in SQL so the whole
       // distribution comes back as at most 14 rows, not one row per dive.
-      const depthBucketSizeMeters = 10;
-      const depthBucketCount = 13; // 0-10m, 10-20m, ..., 120-130m
       final depthWhereClause = diverId != null
           ? 'WHERE d.max_depth IS NOT NULL AND d.diver_id = ?'
           : 'WHERE d.max_depth IS NOT NULL';
-      // The inner CAST forces real division whatever affinity the column
-      // value carries; the outer one truncates toward zero. Truncation is
-      // not floor for a negative, so the MAX/MIN pair clamps both ends: a
-      // stray negative depth lands in the first bucket, and anything at or
-      // past 130 m lands in the open-ended last one.
-      const depthBucketExpression =
-          'MIN(MAX(CAST(CAST(d.max_depth AS REAL) / $depthBucketSizeMeters '
-          'AS INTEGER), 0), $depthBucketCount)';
       final depthRows = await _db
           .customSelect(
-            'SELECT $depthBucketExpression AS bucket, '
+            'SELECT $depthBucketSql AS bucket, '
             'COUNT(*) AS count, '
             'SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time '
             'FROM dives d '
