@@ -592,31 +592,26 @@ void main() {
       },
     );
 
-    test('adoption stops at a changeset that fails its checksum', () async {
-      await DiveRepository().createDive(
-        createTestDiveWithBottomTime(id: 'cloud-dive'),
-      );
-      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+    /// Publishes [dive] as 'replacer's changeset at seq 2, on top of a seeded
+    /// base, with a head that claims it. [checksum] replaces the real one, for
+    /// a test of a changeset that fails it.
+    Future<void> seedChangesetAfterBase(
+      Map<String, dynamic> dive, {
+      String? checksum,
+    }) async {
       await seedPeerLog(cloud, 'replacer', epochId: 'e1');
       final folder = await cloud.getOrCreateSyncFolder();
-      // A whole row, valid JSON and a head that claims it, so only the
-      // checksum can refuse it.
+      final data = SyncData(dives: [dive]);
       await cloud.uploadFile(
-        Uint8List.fromList(
-          utf8.encode(
-            jsonEncode({
-              'version': syncFormatVersion,
-              'exportedAt': 1,
-              'deviceId': 'replacer',
-              'checksum': 'not the checksum',
-              'data': {
-                'dives': [
-                  {...row!, 'id': 'injected'},
-                ],
-              },
-              'deletions': <String, dynamic>{},
-              'seq': 2,
-            }),
+        await const ChangesetCodec().encodeChangeset(
+          SyncPayload(
+            version: syncFormatVersion,
+            exportedAt: 1,
+            deviceId: 'replacer',
+            checksum: checksum ?? SyncDataSerializer.checksumOf(data),
+            data: data,
+            deletions: const {},
+            seq: 2,
           ),
         ),
         ChangesetLogLayout.changesetName('replacer', 2),
@@ -632,6 +627,40 @@ void main() {
         ChangesetLogLayout.manifestName('replacer'),
         folderId: folder,
       );
+    }
+
+    test('adoption applies a changeset published after the base', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'later'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 2);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'later'),
+        isNotNull,
+      );
+    });
+
+    test('adoption stops at a changeset that fails its checksum', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      // A whole row and a head that claims it, so only the checksum can
+      // refuse it.
+      await seedChangesetAfterBase({
+        ...row!,
+        'id': 'injected',
+      }, checksum: 'not the checksum');
       final service = buildService();
       await service.writeLibraryEpochMarker(cloud, marker);
 
