@@ -28,8 +28,10 @@ EquipmentStatus? offeredStatusAfterMove(
       }
       return EquipmentStatus.loaned;
     case EquipmentLocationKind.storage:
-      // Back home: only gear that was away comes back to Active. A spare or
-      // a needs-service item stored on the shelf keeps its status.
+    case EquipmentLocationKind.diveCenter:
+      // Back home, or left where the diver dives: only gear that was away
+      // comes back to Active. A spare or a needs-service item put on the
+      // shelf or left at a center keeps its status.
       const away = {
         EquipmentStatus.inService,
         EquipmentStatus.loaned,

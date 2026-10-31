@@ -232,6 +232,11 @@ class ProfileAnalysis {
   /// computer-supplied ppO2 was available). Used to label the chart tooltip.
   final bool ppO2FromSensorAverage;
 
+  /// True when [decoStopCurve] holds the computer's recorded stops while
+  /// [ceilingCurve] stays the calculated curve, so the chart draws two models
+  /// on one axis and labels the ceiling as calculated (issue #2552).
+  final bool computerStopsWithCalculatedCeiling;
+
   /// SAC rate at each point (bar/min at surface) - null if no pressure data
   final List<double>? sacCurve;
 
@@ -337,6 +342,7 @@ class ProfileAnalysis {
     this.o2SensorCurves,
     this.o2CellMvCurves,
     this.ppO2FromSensorAverage = false,
+    this.computerStopsWithCalculatedCeiling = false,
     this.sacCurve,
     this.smoothedSacCurve,
     this.sacSegments,
@@ -438,6 +444,7 @@ class ProfileAnalysis {
     List<List<double?>>? o2SensorCurves,
     List<List<int?>>? o2CellMvCurves,
     bool? ppO2FromSensorAverage,
+    bool? computerStopsWithCalculatedCeiling,
     List<double>? sacCurve,
     List<double>? smoothedSacCurve,
     List<SacSegment>? sacSegments,
@@ -476,6 +483,9 @@ class ProfileAnalysis {
       o2CellMvCurves: o2CellMvCurves ?? this.o2CellMvCurves,
       ppO2FromSensorAverage:
           ppO2FromSensorAverage ?? this.ppO2FromSensorAverage,
+      computerStopsWithCalculatedCeiling:
+          computerStopsWithCalculatedCeiling ??
+          this.computerStopsWithCalculatedCeiling,
       sacCurve: sacCurve ?? this.sacCurve,
       smoothedSacCurve: smoothedSacCurve ?? this.smoothedSacCurve,
       sacSegments: sacSegments ?? this.sacSegments,

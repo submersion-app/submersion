@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/widgets/media_group_header.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
@@ -69,6 +70,7 @@ void main() {
     void Function(MediaLibraryEntry)? onTileTap,
     Set<String> selectedIds = const {},
     bool isSelectionMode = false,
+    TextDirection textDirection = TextDirection.ltr,
   }) {
     return ProviderScope(
       overrides: _badgeOverrides().cast(),
@@ -76,20 +78,134 @@ void main() {
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: MediaLibraryGroupedList(
-            groups: groups,
-            hasMore: hasMore,
-            onLoadMore: onLoadMore ?? () {},
-            onTileTap: onTileTap ?? (_) {},
-            columns: 4,
-            selectedIds: selectedIds,
-            isSelectionMode: isSelectionMode,
+        home: Directionality(
+          textDirection: textDirection,
+          child: Scaffold(
+            body: MediaLibraryGroupedList(
+              groups: groups,
+              hasMore: hasMore,
+              onLoadMore: onLoadMore ?? () {},
+              onTileTap: onTileTap ?? (_) {},
+              columns: 4,
+              selectedIds: selectedIds,
+              isSelectionMode: isSelectionMode,
+            ),
           ),
         ),
       ),
     );
   }
+
+  void setSize(WidgetTester tester) {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+  }
+
+  group('builds only what is near the viewport (issue #3826)', () {
+    int tiles() =>
+        find.byType(MediaLibraryTile, skipOffstage: false).evaluate().length;
+    int headers() =>
+        find.byType(MediaGroupHeader, skipOffstage: false).evaluate().length;
+
+    for (final (groups, each) in [
+      (1, 60),
+      (1, 180),
+      (1, 1000),
+      (500, 3),
+      (3000, 3),
+    ]) {
+      testWidgets('$groups group(s) of $each', (tester) async {
+        setSize(tester);
+        await tester.pumpWidget(
+          host([
+            for (var g = 0; g < groups; g++)
+              diveGroup(
+                diveId: 'd$g',
+                diveNumber: g,
+                entries: [for (var i = 0; i < each; i++) entry('$g-$i')],
+              ),
+          ]),
+        );
+        await tester.pump();
+
+        // Three pane heights at most, the visible one and two beyond it,
+        // whatever the gallery holds.
+        expect(tiles(), lessThan(100));
+        expect(headers(), lessThan(30));
+
+        final position = tester
+            .state<ScrollableState>(find.byType(Scrollable).first)
+            .position;
+        position.jumpTo(position.maxScrollExtent / 2);
+        await tester.pump();
+
+        expect(tiles(), lessThan(100));
+        expect(headers(), lessThan(30));
+      });
+    }
+  });
+
+  testWidgets('the gallery is exactly as tall as its headers and thumbnails', (
+    tester,
+  ) async {
+    setSize(tester);
+    await tester.pumpWidget(
+      host([
+        diveGroup(
+          diveId: 'd1',
+          diveNumber: 1,
+          entries: [for (var i = 0; i < 10; i++) entry('$i')],
+        ),
+      ]),
+    );
+    await tester.pump();
+
+    // A 48 header, then 3 rows of (800 - 16 - 3 * 4) / 4 = 193 with 2 gaps of
+    // 4, then 8 of padding, in a pane 600 tall.
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(position.maxScrollExtent, 48 + 3 * 193 + 2 * 4 + 8 - 600);
+  });
+
+  testWidgets('thumbnails sit as the old grids put them', (tester) async {
+    setSize(tester);
+    await tester.pumpWidget(
+      host([
+        diveGroup(
+          diveId: 'd1',
+          diveNumber: 1,
+          entries: [for (var i = 0; i < 5; i++) entry('$i')],
+        ),
+      ]),
+    );
+    await tester.pump();
+
+    final tiles = find.byType(MediaLibraryTile);
+    expect(tester.getRect(tiles.at(0)), const Rect.fromLTWH(8, 48, 193, 193));
+    expect(tester.getRect(tiles.at(3)), const Rect.fromLTWH(599, 48, 193, 193));
+    expect(tester.getRect(tiles.at(4)), const Rect.fromLTWH(8, 245, 193, 193));
+  });
+
+  testWidgets('right to left mirrors the thumbnails', (tester) async {
+    setSize(tester);
+    await tester.pumpWidget(
+      host([
+        diveGroup(
+          diveId: 'd1',
+          diveNumber: 1,
+          entries: [for (var i = 0; i < 5; i++) entry('$i')],
+        ),
+      ], textDirection: TextDirection.rtl),
+    );
+    await tester.pump();
+
+    final tiles = find.byType(MediaLibraryTile);
+    expect(tester.getRect(tiles.at(0)).right, 792);
+    expect(tester.getRect(tiles.at(3)).left, 8);
+    expect(tester.getRect(tiles.at(4)).right, 792);
+  });
 
   testWidgets('a dive header reads as number and site', (tester) async {
     await tester.pumpWidget(

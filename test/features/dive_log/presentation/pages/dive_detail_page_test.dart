@@ -878,6 +878,7 @@ void main() {
           ppO2Curve: List.generate(6, (i) => 0.96),
           o2SensorCurves: sensors,
           ppO2FromSensorAverage: true,
+          computerStopsWithCalculatedCeiling: true,
         );
 
         final overrides = await getBaseOverrides();
@@ -926,6 +927,7 @@ void main() {
         final chart = charts.firstWhere((c) => c.o2SensorCurves != null);
         expect(chart.o2SensorCurves, sensors);
         expect(chart.ppO2FromSensorAverage, isTrue);
+        expect(chart.labelCeilingAsCalculated, isTrue);
       },
     );
 
