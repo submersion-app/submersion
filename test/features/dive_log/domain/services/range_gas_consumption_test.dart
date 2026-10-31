@@ -324,6 +324,22 @@ void main() {
         expect(result.rmv, closeTo(60, 1e-9));
       });
 
+      test('readings sharing one timestamp cover no time', () {
+        final result = over(
+          0,
+          600,
+          pressures: const {
+            'bg': [
+              TankPressurePoint(tankId: 'bg', timestamp: 300, pressure: 200),
+              TankPressurePoint(tankId: 'bg', timestamp: 300, pressure: 150),
+            ],
+          },
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNull);
+      });
+
       test('nothing when the profile does not reach the readings', () {
         final result = over(
           0,

@@ -62,12 +62,13 @@ RangeGasConsumption rangeGasConsumption({
       startTimestamp,
       endTimestamp,
     );
+    final seconds = windows.breathedSeconds;
     final avgDepth = rangeAverageDepth(profile: profile, windows: windows);
-    if (avgDepth == null) return null;
+    if (seconds <= 0 || avgDepth == null) return null;
     // Ambient pressure in bar, the 1 bar reference gasVolume returns volumes
     // against.
     final ambientBar = avgDepth / 10 + 1;
-    return amount / (windows.breathedSeconds / 60) / ambientBar;
+    return amount / (seconds / 60) / ambientBar;
   }
 
   final reference = sacReferenceTankOf(tanks)!;
@@ -114,8 +115,8 @@ RangeGasConsumption rangeGasConsumption({
 
 /// The stretches of [start] to [end] that [series] read between them, in time
 /// order and not overlapping. A pressure that fell has a series overlapping
-/// the range, so none is empty, even when the range sits between two of its
-/// readings.
+/// the range, even when the range sits between two of its readings, so a
+/// stretch has a length unless all of a series' readings share one timestamp.
 List<TankUsageWindow> _coverage(
   Iterable<List<TankPressurePoint>> series,
   int start,
