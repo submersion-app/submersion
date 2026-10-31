@@ -1,3 +1,4 @@
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
@@ -8,6 +9,20 @@ import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 DateTime diveEnd(Dive dive) =>
     dive.exitTime ??
     dive.effectiveEntryTime.add(dive.effectiveRuntime ?? Duration.zero);
+
+/// [diveEnd] as a true instant, read in the device's zone, for measuring
+/// elapsed time against now. Stored dive times are clock digits, so two of
+/// them disagree with real time across a daylight saving change.
+///
+/// The start is converted before the runtime is added: added to clock digits,
+/// a runtime that spans a change lands an hour from the real end.
+DateTime diveEndInstant(Dive dive) {
+  final exit = dive.exitTime;
+  if (exit != null) return fromWallClockUtc(exit);
+  return fromWallClockUtc(
+    dive.effectiveEntryTime,
+  ).add(dive.effectiveRuntime ?? Duration.zero);
+}
 
 /// The logged dives a plan following [followedId] shows (issue #3565),
 /// oldest first: the followed dive and the dives before it, back to the
@@ -44,7 +59,8 @@ List<Dive> loggedDiveChain(
 /// The surface interval a plan starts with when it follows a dive that ended
 /// at [end]: the time since, when the dive was recent, so the plan is for
 /// now; else [defaultSeriesSurfaceInterval]. Under ten minutes reads as a
-/// clock mismatch rather than a real interval, as it always has.
+/// clock mismatch rather than a real interval, as it always has. [end] and
+/// [now] are true instants; see [diveEndInstant].
 Duration followSurfaceInterval(DateTime end, {required DateTime now}) {
   final elapsed = now.difference(end);
   if (elapsed < const Duration(minutes: 10) || elapsed >= followLookback) {

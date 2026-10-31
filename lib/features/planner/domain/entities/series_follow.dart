@@ -11,6 +11,10 @@ class SeriesLoggedDive extends Equatable {
   final DateTime start;
   final DateTime end;
 
+  /// [end] as a true instant, for measuring elapsed time against now. [start]
+  /// and [end] are clock digits, like the rest of the dive log.
+  final DateTime endInstant;
+
   /// The OTU of this dive alone, for the rolling daily total: 0 for a dive
   /// that ended too long before the followed one to count.
   final double otu;
@@ -21,6 +25,7 @@ class SeriesLoggedDive extends Equatable {
     this.name,
     required this.start,
     required this.end,
+    required this.endInstant,
     this.otu = 0,
   });
 
@@ -30,6 +35,7 @@ class SeriesLoggedDive extends Equatable {
     String? name,
     DateTime? start,
     DateTime? end,
+    DateTime? endInstant,
     double? otu,
   }) {
     return SeriesLoggedDive(
@@ -38,12 +44,21 @@ class SeriesLoggedDive extends Equatable {
       name: name ?? this.name,
       start: start ?? this.start,
       end: end ?? this.end,
+      endInstant: endInstant ?? this.endInstant,
       otu: otu ?? this.otu,
     );
   }
 
   @override
-  List<Object?> get props => [id, diveNumber, name, start, end, otu];
+  List<Object?> get props => [
+    id,
+    diveNumber,
+    name,
+    start,
+    end,
+    endInstant,
+    otu,
+  ];
 }
 
 /// The logged dives a series follows (issue #3565): the followed dive, last,

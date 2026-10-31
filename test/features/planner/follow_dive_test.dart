@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_series_p
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/dst_transition.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -195,6 +197,32 @@ void main() {
 
     expect(interval, const Duration(hours: 2));
   });
+
+  testWidgets('FollowDiveSheet counts real hours across a clock change', (
+    tester,
+  ) async {
+    // Surfaced an hour before the clocks went forward and followed two hours
+    // after: three hours passed, though the clock digits say four.
+    final change = dstTransition(forward: true)!;
+    final interval = await followAt(
+      tester,
+      change.add(const Duration(hours: 2)).toLocal(),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: asWallClockUtc(
+          change.subtract(const Duration(hours: 2)).toLocal(),
+        ),
+        exitTime: asWallClockUtc(
+          change.subtract(const Duration(hours: 1)).toLocal(),
+        ),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 3));
+  }, skip: zoneHasNoDst);
 
   testWidgets('FollowDiveSheet shows an empty state with no logged dives', (
     tester,

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -8,7 +9,6 @@ import 'package:submersion/features/planner/domain/services/logged_dive_chain.da
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
-import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Offers to follow the most recent logged dive with one tap, when it ended
@@ -62,7 +62,7 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
         ? l10n.plannerSeries_loggedDiveNumber(number)
         : units.formatDate(dive.effectiveEntryTime);
     final ago = formatHoursMinutes(
-      NoFlyService.wallClockNowUtc().difference(diveEnd(dive)),
+      clock.now().difference(diveEndInstant(dive)),
     );
 
     return Padding(

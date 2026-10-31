@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -40,6 +42,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         name: dive.name,
         start: dive.effectiveEntryTime,
         end: end,
+        endInstant: diveEndInstant(dive),
         otu: analysis?.o2Exposure.otu ?? 0,
       ),
     );
@@ -58,16 +61,11 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
 
 /// Makes the series follow the logged dive [diveId], starting the first dive
 /// after the time since it ended when that was recent, else after an hour.
-/// Returns the follow, or null when the dive could not be read. [now] is in
-/// the dive log's wall-clock-as-UTC frame, like the dives' own times.
+/// Returns the follow, or null when the dive could not be read.
 ///
 /// The notifier is read first: the widget behind [ref] can be gone by the
 /// time the analysis lands, and the follow still applies.
-Future<SeriesFollow?> followLoggedDive(
-  WidgetRef ref,
-  String diveId, {
-  DateTime? now,
-}) async {
+Future<SeriesFollow?> followLoggedDive(WidgetRef ref, String diveId) async {
   final notifier = ref.read(planSeriesNotifierProvider.notifier);
   final follow = await ref.container.awaitFuture(
     seriesFollowProvider(diveId).future,
@@ -76,8 +74,8 @@ Future<SeriesFollow?> followLoggedDive(
   notifier.followDive(
     follow,
     surfaceInterval: followSurfaceInterval(
-      follow.followed.end,
-      now: now ?? NoFlyService.wallClockNowUtc(),
+      follow.followed.endInstant,
+      now: clock.now(),
     ),
   );
   return follow;

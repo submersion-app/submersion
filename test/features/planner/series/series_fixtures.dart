@@ -103,6 +103,7 @@ SeriesLoggedDive seriesLoggedDive(
     diveNumber: number,
     start: end.subtract(Duration(minutes: minutes)),
     end: end,
+    endInstant: end,
     otu: otu,
   );
 }

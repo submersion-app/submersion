@@ -438,6 +438,7 @@ void main() {
           diveNumber: 7,
           start: end.subtract(const Duration(minutes: 45)),
           end: end,
+          endInstant: end,
           otu: otu,
         ),
       ],

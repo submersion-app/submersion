@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 
+import '../../../helpers/dst_transition.dart';
 import 'series_fixtures.dart';
 
 void main() {
@@ -74,6 +76,35 @@ void main() {
 
       expect(loggedDiveChain(dives, 'd2').map((d) => d.id), ['d1', 'd2']);
     });
+  });
+
+  group('diveEndInstant', () {
+    test('reads a stored exit in the device zone', () {
+      final dive = Dive(
+        id: 'd',
+        dateTime: DateTime.utc(2026, 7, 1, 9),
+        exitTime: DateTime.utc(2026, 7, 1, 10),
+      );
+
+      expect(diveEndInstant(dive), DateTime(2026, 7, 1, 10));
+    });
+
+    test('adds the runtime to the real start across a clock change', () {
+      final change = dstTransition(forward: true)!;
+      final start = change.subtract(const Duration(minutes: 30));
+      final dive = Dive(
+        id: 'd',
+        dateTime: asWallClockUtc(start.toLocal()),
+        runtime: const Duration(hours: 1),
+      );
+
+      expect(
+        diveEndInstant(
+          dive,
+        ).isAtSameMomentAs(start.add(const Duration(hours: 1))),
+        isTrue,
+      );
+    }, skip: zoneHasNoDst);
   });
 
   group('followSurfaceInterval', () {
