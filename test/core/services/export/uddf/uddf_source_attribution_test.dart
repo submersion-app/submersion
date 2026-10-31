@@ -252,27 +252,173 @@ void main() {
     });
   }
 
-  test('writes no series for a dive with a single source', () async {
-    // A lone restored source owns every series unambiguously, so the
-    // samples already say everything a restore needs.
-    final xml = await UddfExportService().generateDivesUddfContent(
-      [dive],
-      diveTankPressures: pressures,
-      dataSources: [sources.first],
-    );
+  // Issue #3917: a dive with fewer than two sources has only one source to
+  // restore its series under, so nothing needs telling apart, but the
+  // samples are a projection onto the depth clock and cannot always hold
+  // what was recorded.
+  group('a dive with fewer than two sources', () {
+    final lone = [sources.first];
 
-    expect(seriesIn(xml), isEmpty);
-    expect(xml, isNot(contains('<tanksources>')));
-  });
+    Map<String, DiveTankPressureExport> recorded(List<(int, double)> samples) =>
+        {
+          'dive-a': DiveTankPressureExport(
+            primarySourceId: 'src-primary',
+            series: [
+              testTankSeries(
+                's-primary',
+                diveId: 'dive-a',
+                tankId: 'tank-1',
+                sourceId: 'src-primary',
+                computerId: 'comp-a',
+                samples: samples,
+              ),
+            ],
+          ),
+        };
 
-  test('writes no series when the sources are left out', () async {
-    // Without <source> entries a restore creates one source for the dive,
-    // so the series would collapse into one interleaved recording anyway.
-    final xml = await divesExport(
-      options: const UddfExportOptions(includeRawData: false),
-    );
+    String samplesOf(XmlElement series) => [
+      for (final sample in series.findElements('sample'))
+        '${sample.getAttribute('divetime')}:'
+            '${sample.getAttribute('pressure')}',
+    ].join(' ');
 
-    expect(seriesIn(xml), isEmpty);
+    for (final (name, generate)
+        in <
+          (
+            String,
+            Future<String> Function(
+              Dive,
+              Map<String, DiveTankPressureExport>,
+              List<DiveSourceExport>,
+            ),
+          )
+        >[
+          (
+            'dives-only export',
+            (d, p, s) => UddfExportService().generateDivesUddfContent(
+              [d],
+              diveTankPressures: p,
+              dataSources: s,
+            ),
+          ),
+          (
+            'full backup',
+            (d, p, s) => UddfFullExportService().generateAllDataXmlForTest(
+              dives: [d],
+              diveTankPressures: p,
+              dataSources: s,
+            ),
+          ),
+        ]) {
+      group(name, () {
+        test('writes a series no depth sample lines up with', () async {
+          // Five seconds from every depth sample: the samples hold nothing.
+          final xml = await generate(
+            dive,
+            recorded([(5, 199), (15, 191)]),
+            lone,
+          );
+
+          final written = seriesIn(xml).single;
+          expect(written.getAttribute('source'), '0');
+          expect(written.getAttribute('computer'), '0');
+          expect(samplesOf(written), '5:199.0 15:191.0');
+          expect(
+            XmlDocument.parse(xml).findAllElements('tankpressure'),
+            isEmpty,
+          );
+          // One source owns every tank, so the tank rows stay unwritten.
+          expect(xml, isNot(contains('<tanksources>')));
+        });
+
+        test('keeps the time of a reading the samples would move', () async {
+          final xml = await generate(dive, recorded([(9, 195)]), lone);
+
+          expect(samplesOf(seriesIn(xml).single), '9:195.0');
+        });
+
+        test('keeps a series the samples would repeat', () async {
+          // Depth every second: each reading is near several depth samples,
+          // so the samples alone come back as a staircase of copies.
+          final everySecond = dive.copyWith(
+            profile: [
+              for (var t = 0; t <= 20; t++)
+                DiveProfilePoint(timestamp: t, depth: 12),
+            ],
+          );
+
+          final xml = await generate(
+            everySecond,
+            recorded([(0, 200), (10, 190), (20, 180)]),
+            lone,
+          );
+
+          expect(samplesOf(seriesIn(xml).single), '0:200.0 10:190.0 20:180.0');
+        });
+
+        test('keeps a series of a dive with no depth samples', () async {
+          final xml = await generate(
+            dive.copyWith(profile: const []),
+            recorded([(5, 199)]),
+            lone,
+          );
+
+          expect(samplesOf(seriesIn(xml).single), '5:199.0');
+        });
+
+        test('writes no series the samples hold exactly', () async {
+          // Readings on depth samples, even only some of them, come back
+          // from the samples unchanged.
+          final xml = await generate(
+            dive,
+            recorded([(0, 200), (10, 190)]),
+            lone,
+          );
+
+          expect(seriesIn(xml), isEmpty);
+        });
+
+        test('writes the series with no source in the file', () async {
+          final xml = await generate(dive, recorded([(5, 199)]), const []);
+
+          final written = seriesIn(xml).single;
+          expect(written.getAttribute('source'), isNull);
+          expect(written.getAttribute('computer'), isNull);
+          expect(samplesOf(written), '5:199.0');
+        });
+
+        test('parses the series back into the dive', () async {
+          final parsed = await ExportService().importAllDataFromUddf(
+            await generate(dive, recorded([(5, 199), (15, 191)]), const []),
+          );
+          final entries =
+              parsed.dives.single['tankPressureSeries']
+                  as List<Map<String, dynamic>>;
+
+          expect(entries.single['samples'], const [
+            (timestamp: 5, pressure: 199.0),
+            (timestamp: 15, pressure: 191.0),
+          ]);
+        });
+      });
+    }
+
+    test('writes only the series the app draws of two recordings', () async {
+      // With the sources left out a restore has one source to give them
+      // all to, and two recordings of one stretch under one source would
+      // zigzag again (#2440). The legacy reading lies past the last depth
+      // sample, so what the app draws goes in the block and nothing else.
+      final xml = await divesExport(
+        options: const UddfExportOptions(includeRawData: false),
+      );
+
+      final written = seriesIn(xml);
+      expect(written.map(samplesOf), [
+        '0:200.0 10:190.0 20:180.0',
+        '30:170.25',
+      ]);
+      expect(written.map((s) => s.getAttribute('source')), [null, null]);
+    });
   });
 
   test('skips rows that name nothing it could restore', () {

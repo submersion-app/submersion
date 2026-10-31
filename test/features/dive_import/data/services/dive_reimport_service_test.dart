@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
@@ -1012,6 +1013,68 @@ void main() {
       );
       expect(deco.map((p) => p.pressure), [207.0, 207.0]);
     });
+
+    test(
+      'takes a backup\'s exact pressure series over its waypoints',
+      () async {
+        // The waypoints are a projection onto the depth clock: resyncing the
+        // file a restore kept must not trade the series it restored for them
+        // (issue #3917).
+        final diveId = await seedDive(notes: '', buddy: '');
+        await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+        await seedTank(diveId, id: 'tank-b', tankOrder: 1);
+        await TankPressureRepository().insertTankPressures(diveId, {
+          'tank-a': [(timestamp: 9, pressure: 195.0)],
+          'tank-b': [(timestamp: 0, pressure: 207.0)],
+        });
+
+        await service.applyReimport(
+          diveId: diveId,
+          diveData: {
+            'tanks': [
+              {'order': 0, 'uddfTankId': 'tank_a'},
+              {'order': 1, 'uddfTankId': 'tank_b'},
+            ],
+            'profile': const [
+              {
+                'timestamp': 10,
+                'depth': 12.0,
+                'allTankPressures': [
+                  {'tankIndex': 0, 'pressure': 195.0},
+                ],
+              },
+            ],
+            UddfSourceAttribution.seriesKey: <Map<String, dynamic>>[
+              {
+                'tankRef': 'tank_a',
+                'sourceOrdinal': null,
+                'computerOrdinal': null,
+                'samples': const <({int timestamp, double pressure})>[
+                  (timestamp: 9, pressure: 195.0),
+                  (timestamp: 21, pressure: 185.0),
+                ],
+              },
+            ],
+          },
+          now: DateTime(2026, 9, 3),
+        );
+
+        final back = await TankPressureRepository().getPressuresForTank(
+          diveId,
+          'tank-a',
+        );
+        expect(back.map((p) => (p.timestamp, p.pressure)), [
+          (9, 195.0),
+          (21, 185.0),
+        ]);
+        // A tank the block does not name keeps its history.
+        final deco = await TankPressureRepository().getPressuresForTank(
+          diveId,
+          'tank-b',
+        );
+        expect(deco.map((p) => p.pressure), [207.0]);
+      },
+    );
 
     test('carries over one existing row per parsed tank when the parser '
         'omits order', () async {

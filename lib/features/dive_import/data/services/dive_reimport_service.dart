@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
@@ -574,10 +575,12 @@ class DiveReimportService {
     }
   }
 
-  /// Rebuilds per-tank pressure series from `diveData['profile']`'s
-  /// `allTankPressures` entries. Skipped entirely when the fresh parse
-  /// carries no pressure sample at all, so neither a metadata-only reparse
-  /// nor a profile without air integration can blank out existing history.
+  /// Rebuilds per-tank pressure series from a backup's exact series when the
+  /// parse has them, as the import did, else from `diveData['profile']`'s
+  /// `allTankPressures` entries, which hold readings only on the depth clock
+  /// (issue #3917). Skipped entirely when the fresh parse carries no pressure
+  /// sample at all, so neither a metadata-only reparse nor a profile without
+  /// air integration can blank out existing history.
   ///
   /// Scoped to the tanks the fresh samples actually cover, not every tank the
   /// parse reports: [_carryOverTanks] keeps a tank the parse no longer
@@ -590,12 +593,32 @@ class DiveReimportService {
     required _ParsedTanks tanks,
     required String? sourceId,
   }) async {
-    final profileData = _profileOf(diveData);
-    if (profileData == null) return;
+    final series = restoredTankPressureSeries(diveData, tanks.idsByIndex);
+    final pressuresByTank = series.isEmpty
+        ? _waypointPressures(diveData, tanks)
+        : <String, List<({int timestamp, double pressure})>>{};
+    for (final s in series) {
+      pressuresByTank.putIfAbsent(s.tankId, () => []).addAll(s.samples);
+    }
+    if (pressuresByTank.isEmpty) return;
 
+    await _tankPressureRepository.replaceTankPressuresForTanks(
+      diveId,
+      pressuresByTank.keys,
+      pressuresByTank,
+      sourceId: sourceId,
+    );
+  }
+
+  /// The per-tank readings in `diveData['profile']`'s `allTankPressures`
+  /// entries.
+  Map<String, List<({int timestamp, double pressure})>> _waypointPressures(
+    Map<String, dynamic> diveData,
+    _ParsedTanks tanks,
+  ) {
     final pressuresByTank =
         <String, List<({int timestamp, double pressure})>>{};
-    for (final p in profileData) {
+    for (final p in _profileOf(diveData) ?? const <Map<String, dynamic>>[]) {
       final timestamp = p['timestamp'] as int? ?? 0;
       final allTankPressures = (p['allTankPressures'] as List?)
           ?.cast<Map<String, dynamic>>();
@@ -610,14 +633,7 @@ class DiveReimportService {
         ));
       }
     }
-    if (pressuresByTank.isEmpty) return;
-
-    await _tankPressureRepository.replaceTankPressuresForTanks(
-      diveId,
-      pressuresByTank.keys,
-      pressuresByTank,
-      sourceId: sourceId,
-    );
+    return pressuresByTank;
   }
 
   /// Rebuilds `dive_profile_series` from `diveData['profile']`, attributed to
