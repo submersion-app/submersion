@@ -93,9 +93,47 @@ void main() {
     });
   });
 
+  group('samePlace', () {
+    test('needs every field to match', () {
+      expect(
+        ImportSiteLocation.samePlace(
+          {'city': 'Dahab', 'country': ' EGYPT '},
+          {'city': 'dahab', 'country': 'egypt'},
+        ),
+        isTrue,
+      );
+      expect(
+        ImportSiteLocation.samePlace(
+          {'city': 'Dahab', 'country': 'Egypt'},
+          {'country': 'Egypt'},
+        ),
+        isFalse,
+      );
+    });
+
+    test('two sites that state no place are not in the same one', () {
+      expect(
+        ImportSiteLocation.samePlace({'name': 'Reef'}, {'country': ' '}),
+        isFalse,
+      );
+    });
+  });
+
   group('namesakeOf', () {
     const egypt = DiveSite(id: 'e', name: 'Blue Hole', country: 'Egypt');
     const belize = DiveSite(id: 'b', name: 'Blue Hole', country: 'Belize');
+
+    test('prefers the namesake in exactly that place over a blank one', () {
+      const unplaced = DiveSite(id: 'u', name: 'Blue Hole');
+
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'country': 'Belize'},
+          const [belize, unplaced],
+        ),
+        belize,
+      );
+    });
 
     test('takes the namesake the file does not contradict', () {
       expect(

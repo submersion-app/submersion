@@ -116,6 +116,18 @@ void main() {
     expect(sites.map((s) => s['region']), ['Dahab', 'Lighthouse Reef']);
   });
 
+  test('a file without the place columns splits on the locality too', () async {
+    final payload = await const SubmersionDivesCsvParser().parse(
+      _bytes(
+        'Dive Number,Date,Time,Site,Location\n'
+        '1,2026-01-01,10:00,Blue Hole,"Dahab · South Sinai, Egypt"\n'
+        '2,2026-01-02,10:00,Blue Hole,"Sharm · South Sinai, Egypt"\n',
+      ),
+    );
+
+    expect(payload.entitiesOf(ImportEntityType.sites), hasLength(2));
+  });
+
   test('a name with no place to go on stays one site', () async {
     final payload = await const SubmersionDivesCsvParser().parse(
       _bytes(

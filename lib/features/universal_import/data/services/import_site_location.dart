@@ -95,24 +95,44 @@ abstract final class ImportSiteLocation {
     return false;
   }
 
+  /// Whether [a] and [b] state a place and it is the same one: every place
+  /// field matches, and at least one is filled.
+  static bool samePlace(Map<String, dynamic> a, Map<String, dynamic> b) {
+    var stated = false;
+    for (final key in _placeKeys) {
+      final left = _placeText(a[key]);
+      if (left != _placeText(b[key])) return false;
+      stated = stated || left != null;
+    }
+    return stated;
+  }
+
   /// Which of [namesakes], existing sites sharing [site]'s name, it refers
-  /// to: the last one its place does not contradict, or simply the last when
-  /// it contradicts them all.
+  /// to. There must be at least one. The last in exactly its place wins, then
+  /// the last its place does not contradict, then simply the last.
   ///
   /// `ImportDuplicateChecker` and `UddfEntityImporter` both go through here,
   /// so the site a diver is shown as the match is the one the dive links to.
   static DiveSite namesakeOf(
     Map<String, dynamic> site,
     List<DiveSite> namesakes,
-  ) => namesakes.lastWhere(
-    (namesake) => !placesConflict(site, {
-      'city': namesake.city,
-      'island': namesake.island,
-      'region': namesake.region,
-      'country': namesake.country,
-    }),
-    orElse: () => namesakes.last,
-  );
+  ) {
+    final latestFirst = namesakes.reversed;
+    return latestFirst
+            .where((namesake) => samePlace(site, _placeOf(namesake)))
+            .firstOrNull ??
+        latestFirst
+            .where((namesake) => !placesConflict(site, _placeOf(namesake)))
+            .firstOrNull ??
+        namesakes.last;
+  }
+
+  static Map<String, dynamic> _placeOf(DiveSite site) => {
+    'city': site.city,
+    'island': site.island,
+    'region': site.region,
+    'country': site.country,
+  };
 
   static String? _placeText(Object? value) {
     final text = value?.toString().trim().toLowerCase();

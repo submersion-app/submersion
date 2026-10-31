@@ -17,12 +17,15 @@ import 'package:submersion/features/universal_import/data/parsers/import_parser.
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/site_location_text.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
 
-/// Where a site is, as a row of the dives CSV says.
+/// Where a site is, as a row of the dives CSV says. [location] is the Location
+/// cell of a file without the place columns, which tells two sites apart by a
+/// locality the fields read from it leave out.
 typedef _SitePlace = ({
   String? city,
   String? island,
   String? region,
   String? country,
+  String? location,
 });
 
 /// Reads Submersion's dives CSV export (either unit mode) back into dive,
@@ -295,14 +298,17 @@ class SubmersionDivesCsvParser implements ImportParser {
         island: table.text(row, DiveCsvColumns.siteIsland),
         region: table.text(row, DiveCsvColumns.siteRegion),
         country: table.text(row, DiveCsvColumns.siteCountry),
+        location: null,
       );
     }
-    final location = parseSiteLocationText(table.text(row, 'Location'));
+    final cell = table.text(row, 'Location');
+    final location = parseSiteLocationText(cell);
     return (
       city: null,
       island: null,
       region: location.region,
       country: location.country,
+      location: cell,
     );
   }
 

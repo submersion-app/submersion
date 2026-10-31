@@ -56,6 +56,51 @@ void main() {
     });
   });
 
+  test('both namesakes in two files pair by place, however each file '
+      'numbered them', () {
+    FilePayload both(String id, String first, String second) => FilePayload(
+      fileId: id,
+      fileName: '$id.csv',
+      payload: ImportPayload(
+        entities: {
+          ImportEntityType.sites: [
+            {'uddfId': 'csv-site-0', 'name': 'Blue Hole', 'country': first},
+            {'uddfId': 'csv-site-1', 'name': 'Blue Hole', 'country': second},
+          ],
+        },
+      ),
+    );
+
+    final merged = merger.merge([
+      both('a', 'Egypt', 'Belize'),
+      both('b', 'Belize', 'Egypt'),
+    ]);
+
+    expect(merged.entitiesOf(ImportEntityType.sites).map((s) => s['country']), [
+      'Egypt',
+      'Belize',
+    ]);
+  });
+
+  test('namesakes that state no place do not pair on that', () {
+    FilePayload unplaced(String id) => FilePayload(
+      fileId: id,
+      fileName: '$id.uddf',
+      payload: ImportPayload(
+        entities: {
+          ImportEntityType.sites: [
+            {'uddfId': '$id-1', 'name': 'Blue Hole'},
+            {'uddfId': '$id-2', 'name': 'Blue Hole'},
+          ],
+        },
+      ),
+    );
+
+    final merged = merger.merge([unplaced('a'), unplaced('b')]);
+
+    expect(merged.entitiesOf(ImportEntityType.sites), hasLength(4));
+  });
+
   test('the same place in two files still folds', () {
     final merged = merger.merge([
       file('a', {'country': 'Egypt'}),
