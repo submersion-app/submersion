@@ -130,10 +130,15 @@ class PdfPageRenderer {
       // passing the scaled-up target there left a page shorter than the
       // crop window (issue #3996 -- the real cause: the page rendered
       // correctly but small, in the corner of an oversized blank canvas).
+      // coverage:ignore-start
+      // Needs a real pdfium build (PDFIUM_PATH), which CI does not provide;
+      // exercised by the PDFIUM_PATH-gated tests in pdf_page_renderer_test.dart
+      // and by manual desktop smoke tests.
       final pageImage = await page.render(
         fullWidth: page.width * scale,
         fullHeight: page.height * scale,
       );
+      // coverage:ignore-end
       if (pageImage == null) return null;
       // Own copy of the pixels, so they outlive the native buffer that
       // dispose frees.
