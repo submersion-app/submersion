@@ -76,7 +76,11 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     );
   }
 
+  @override
+  bool lastSilentAuthThrew = false;
+
   Future<bool> _runSilentAuth() async {
+    lastSilentAuthThrew = false;
     try {
       if (_authClient != null) return true;
 
@@ -101,15 +105,20 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
       return true;
     } catch (e) {
       _log.warning('Silent sign-in failed: $e');
+      lastSilentAuthThrew = true;
       return false;
     }
   }
 
   @override
-  Future<void> authenticate() async {
+  Future<void> authenticate({String? expectedAccount}) async {
     try {
       await _ensureInitialized();
       final account = await _googleSignIn.authenticate(scopeHint: _scopes);
+      if (!isSameAccount(expectedAccount, account.email)) {
+        await _forgetRefusedAccount();
+        throw CloudAccountMismatchException(account.email);
+      }
       await account.authorizationClient.authorizeScopes(_scopes);
 
       // authorizeScopes hands back whatever token the consent produced, and
@@ -171,6 +180,24 @@ class GoogleSignInAuthenticator implements GoogleDriveAuthenticator {
     } catch (e, stackTrace) {
       _log.error('Google Sign-In failed', error: e, stackTrace: stackTrace);
       throw CloudStorageException('Google Sign-In failed', e, stackTrace);
+    }
+  }
+
+  /// The SDK switched its current user as soon as the account was picked, so
+  /// the next cold launch's lightweight sign-in could return it. That cannot
+  /// be undone: the SDK has no way back to the previous user. Signing out
+  /// costs the expected account a sign-in after a restart, which is the safe
+  /// side of syncing into the wrong Drive, and the client held in this process
+  /// is not affected.
+  Future<void> _forgetRefusedAccount() async {
+    try {
+      await _googleSignIn.signOut();
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not sign the refused Google account out of the SDK',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 

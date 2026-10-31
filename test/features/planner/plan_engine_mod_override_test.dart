@@ -156,6 +156,52 @@ void main() {
     expect(reported.first.value, closeTo(ppO2, 1e-9));
   });
 
+  group('a stage override near the deco ceiling (issue #3913)', () {
+    Iterable<PlanIssueType> ppO2IssuesAt(double ppO2) {
+      final environment = PlanEngine.environmentFor(_plan());
+      final depth = environment.depthAtPressure(ppO2 / 0.40);
+      return engine
+          .compute(_plan(ean40Travel: true, ean40Mod: depth))
+          .issues
+          .map((i) => i.type)
+          .where(
+            (t) =>
+                t == PlanIssueType.ppO2Critical || t == PlanIssueType.ppO2High,
+          );
+    }
+
+    test('reading 1.60 is a working-limit warning, not critical', () {
+      expect(ppO2IssuesAt(1.603), [PlanIssueType.ppO2High]);
+    });
+
+    test('reading 1.61 is critical', () {
+      expect(ppO2IssuesAt(1.606), [PlanIssueType.ppO2Critical]);
+    });
+
+    test('an explicit O2 depth is compared as a depth, with no slack', () {
+      const oxygen = GasMix(o2: 100);
+      final plan = _plan().copyWith(
+        maxO2DepthMeters: 6,
+        tanks: [
+          ..._plan().tanks.take(1),
+          const DiveTank(
+            id: 'o2',
+            volume: 11.1,
+            startPressure: 207,
+            gasMix: oxygen,
+            isTravelGas: true,
+            decoSwitchDepth: 6.02,
+          ),
+        ],
+      );
+
+      expect(
+        engine.compute(plan).issues.map((i) => i.type),
+        contains(PlanIssueType.ppO2Critical),
+      );
+    });
+  });
+
   test('an override within the limit raises nothing', () {
     final outcome = engine.compute(_plan(ean40Mod: 21));
     expect(

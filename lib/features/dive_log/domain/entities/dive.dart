@@ -450,6 +450,15 @@ class Dive extends Equatable {
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
+  /// The lead the detail page shows, or null when none is recorded: the weight
+  /// entries when there are any, else a positive legacy [weightAmount]. The
+  /// Dart spelling of `recordedWeightKgSql` (issue #3914).
+  double? get recordedWeightKg {
+    if (weights.isNotEmpty) return totalWeight;
+    final legacy = weightAmount;
+    return legacy != null && legacy > 0 ? legacy : null;
+  }
+
   // CCR/SCR computed properties
 
   /// Whether this is a CCR dive

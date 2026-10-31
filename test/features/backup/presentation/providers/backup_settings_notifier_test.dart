@@ -166,6 +166,37 @@ void main() {
       expect(notifier.state.copyAccountId, isNull);
     });
 
+    group('a sign-in need belongs to the account that refused', () {
+      setUp(() => prefs.setLastCloudCopyNeedsSignIn(true));
+
+      test('setCopyTo drops it', () async {
+        await notifier.setCopyTo(_row('acct-b', AccountKind.s3));
+
+        expect(notifier.state.lastCloudCopyNeedsSignIn, isFalse);
+        expect(prefs.getSettings().lastCloudCopyNeedsSignIn, isFalse);
+      });
+
+      test('setCopyFollowsSync drops it', () async {
+        await notifier.setCopyFollowsSync();
+
+        expect(notifier.state.lastCloudCopyNeedsSignIn, isFalse);
+        expect(prefs.getSettings().lastCloudCopyNeedsSignIn, isFalse);
+      });
+
+      test('setNoCopy drops it', () async {
+        await notifier.setNoCopy();
+
+        expect(notifier.state.lastCloudCopyNeedsSignIn, isFalse);
+        expect(prefs.getSettings().lastCloudCopyNeedsSignIn, isFalse);
+      });
+
+      test('pinCopyTo keeps it: the copy stays where it was', () async {
+        await notifier.pinCopyTo(_row('acct-c', AccountKind.dropbox));
+
+        expect(prefs.getSettings().lastCloudCopyNeedsSignIn, isTrue);
+      });
+    });
+
     test('pinCopyTo stores the row without turning the copy on', () async {
       await notifier.pinCopyTo(_row('acct-c', AccountKind.icloud));
 
