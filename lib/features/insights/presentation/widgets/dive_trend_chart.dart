@@ -17,7 +17,7 @@ import 'package:submersion/features/insights/presentation/widgets/date_axis.dart
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
 import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_break_band_painter.dart';
-import 'package:submersion/features/insights/presentation/widgets/trend_break_spots.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_chart_derived.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_reference_line.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -148,12 +148,12 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// grid readable while panning.
   ChartViewport _viewport = ChartViewport.reset;
 
-  /// Buckets as last drawn, so a tap on the data series can resolve which
-  /// dive it landed on.
-  List<TrendBucket> _drawnBuckets = const [];
+  /// What the data alone decides, as last drawn: the buckets a tap resolves
+  /// its dive from, the scale, the fits, the axis and the spots.
+  TrendChartDerived? _derived;
 
-  /// Secondary buckets as last drawn, parallel to [_secondaryBarStart].
-  List<List<TrendBucket>> _drawnSecondary = const [];
+  /// What [_derived] was computed from; lists compare by identity.
+  Object? _derivedKey;
 
   /// Index of the first secondary bar in the drawn bars, or -1.
   int _secondaryBarStart = -1;
@@ -162,14 +162,10 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   static const _tooltipLabelWidth = 16;
   static const _tooltipValueWidth = 12;
 
-  /// The x scale as last built, and what it was built from.
-  TrendTimeScale _scale = TrendTimeScale.identity;
-  Object? _scaleKey;
+  TrendTimeScale get _scale => _derived?.scale ?? TrendTimeScale.identity;
 
-  /// Bucket index behind each drawn spot of the primary and each secondary
-  /// data bar; null at a break's null spot.
-  List<int?> _drawnSource = const [];
-  List<List<int?>> _drawnSecondarySource = const [];
+  /// How many secondary series were last drawn.
+  int get _drawnSecondaryCount => _derived?.secondary.length ?? 0;
 
   /// Axis position of the pointer over the plot, from the touch callback,
   /// so the readout can tell a hover over a band from one over the data.
@@ -199,16 +195,18 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// break's null spot, an overlay bar, or a bucket of several dives (an
   /// aggregated bucket has no single dive to open).
   String? _diveIdForSpot(int barIndex, int spotIndex) {
+    final derived = _derived;
+    if (derived == null) return null;
     final List<TrendBucket> drawn;
     final List<int?> source;
     if (barIndex == 0) {
-      drawn = _drawnBuckets;
-      source = _drawnSource;
+      drawn = derived.buckets;
+      source = derived.primary.source;
     } else if (_secondaryBarStart >= 0 &&
         barIndex >= _secondaryBarStart &&
-        barIndex - _secondaryBarStart < _drawnSecondary.length) {
-      drawn = _drawnSecondary[barIndex - _secondaryBarStart];
-      source = _drawnSecondarySource[barIndex - _secondaryBarStart];
+        barIndex - _secondaryBarStart < derived.secondary.length) {
+      drawn = derived.secondary[barIndex - _secondaryBarStart];
+      source = derived.secondaryPlaced[barIndex - _secondaryBarStart].source;
     } else {
       return null;
     }
@@ -328,6 +326,34 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     );
   }
 
+  /// Recomputed only when what it reads changes: pan and zoom rebuild the
+  /// chart on every pointer move, and the data does not move with them.
+  TrendChartDerived _currentDerived() {
+    final key = (
+      widget.points,
+      widget.secondarySeries,
+      widget.aggregation,
+      widget.gapThreshold,
+      widget.showRollingMean,
+      widget.showLinearFit,
+      widget.referenceLine?.value,
+    );
+    final cached = _derived;
+    if (cached != null && key == _derivedKey) return cached;
+    final next = TrendChartDerived.compute(
+      points: widget.points,
+      secondary: [for (final s in widget.secondarySeries) s.points],
+      aggregation: widget.aggregation,
+      gapThreshold: widget.gapThreshold,
+      showRollingMean: widget.showRollingMean,
+      showLinearFit: widget.showLinearFit,
+      referenceValue: widget.referenceLine?.value,
+    );
+    _derivedKey = key;
+    _derived = next;
+    return next;
+  }
+
   Widget _buildChart(BuildContext context, double plotWidth) {
     final points = widget.points;
     final aggregation = widget.aggregation;
@@ -337,51 +363,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final theme = Theme.of(context);
     final color = widget.pointColor ?? theme.colorScheme.primary;
 
-    final buckets = aggregate(points, aggregation);
-    _drawnBuckets = buckets;
-    final secondary = [
-      for (final s in widget.secondarySeries) aggregate(s.points, aggregation),
-    ];
-    _drawnSecondary = secondary;
-    // The x range spans every drawn bucket; the primary may be empty when
-    // the secondaries carry the data.
-    // One pass for the ends: sorting every bucket of every series just to
-    // read its first and last would cost n log n on each pan and zoom.
-    final allBuckets = [...buckets, ...secondary.expand((b) => b)];
-    // Every plotted date feeds the scale, so no point (a month bucket dated
-    // the 1st included) can land inside a band. Rebuilt only when what it
-    // reads changes: pan and zoom rebuild on every pointer move.
-    final scaleKey = (
-      points,
-      widget.secondarySeries,
-      aggregation,
-      widget.gapThreshold,
-    );
-    if (scaleKey != _scaleKey) {
-      _scaleKey = scaleKey;
-      // Per dive, every bucket is a dive, so the bucket dates are the lot.
-      final raw = aggregation == TrendAggregation.none;
-      _scale = TrendTimeScale.build([
-        for (final b in allBuckets) b.date,
-        if (!raw) ...[
-          for (final p in points) p.date,
-          for (final s in widget.secondarySeries)
-            for (final p in s.points) p.date,
-        ],
-      ], widget.gapThreshold);
-    }
-    var firstDate = allBuckets.first.date;
-    var lastDate = firstDate;
-    for (final b in allBuckets) {
-      if (b.date.isBefore(firstDate)) firstDate = b.date;
-      if (b.date.isAfter(lastDate)) lastDate = b.date;
-    }
+    final derived = _currentDerived();
+    final yAxis = derived.yAxis;
 
     // The window the viewport exposes, not the whole series. Ticks are chosen
     // from the visible span so a chart zoomed into a few weeks stops being
     // labelled by year.
-    final fullMin = _x(firstDate);
-    final fullMax = _x(lastDate);
+    final fullMin = _x(derived.firstDate);
+    final fullMax = _x(derived.lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
     // Runs inside build, before anything reads the viewport.
     _viewport = _seater.seat(
@@ -401,28 +390,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       dateFormat: widget.dateFormat,
     );
 
-    // The fits can run outside the bucket range, so the axis has to see them.
-    // Computed once here and threaded into the axis, the legend labels and
-    // the bars. Each of the three used to recompute them, so a large logbook
-    // paid for the same O(n) fit three times on every rebuild, and pan/zoom
-    // rebuilds on every pointer move.
-    final smoothed = widget.showRollingMean
-        ? rollingMean(
-            points,
-            periodOf: _scale.isIdentity ? null : _scale.periodOf,
-          )
-        : const <TrendDataPoint>[];
-    final fit = widget.showLinearFit && points.isNotEmpty
-        ? linearFit(points)
-        : null;
-    final yAxis = ChartAxis.forTrend(<double>[
-      ...allBuckets.expand((b) => [b.min, b.max]),
-      ...smoothed.map((p) => p.value),
-      if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
-      // A threshold outside the data would otherwise sit off the plot.
-      ?widget.referenceLine?.value,
-    ]);
-
     // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
     // the chart on every pointer move, and the data does not move with them.
     final overviewKey = (
@@ -441,7 +408,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       // x range runs between bucket dates, and a dive later in the last
       // week or month would fall past it and pile up at the strip's edge.
       _overviewPoints = [
-        for (final b in allBuckets)
+        for (final b in derived.allBuckets)
           Offset(
             ((_x(b.date) - fullMin) / fullSpan).clamp(0.0, 1.0),
             ySpan <= 0 ? 0.5 : ((b.mean - yAxis.min) / ySpan).clamp(0.0, 1.0),
@@ -450,16 +417,13 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     }
 
     final isRaw = aggregation == TrendAggregation.none;
-    final bars = _bars(
+    final bars = _bars(context, derived, color, isRaw);
+    final seriesLabels = _seriesLabels(
       context,
-      buckets,
-      color,
       isRaw,
-      smoothed,
-      fit,
-      secondary,
+      derived.smoothed,
+      derived.fit,
     );
-    final seriesLabels = _seriesLabels(context, isRaw, smoothed, fit);
     final highlight = widget.highlightRange;
 
     // Every plotted point, secondaries included: the condition charts
@@ -576,29 +540,23 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// Index 0 is always the data series. When aggregating, indices 1 and 2 are
   /// the invisible bucket min and max that [_bands] fills between.
   ///
-  /// Every series is placed through [_scale] and lifts the pen at each
+  /// Every series is placed through the scale and lifts the pen at each
   /// collapsed gap (issue #3251); the bar indices are the same either way.
   List<LineChartBarData> _bars(
     BuildContext context,
-    List<TrendBucket> buckets,
+    TrendChartDerived derived,
     Color color,
     bool isRaw,
-    List<TrendDataPoint> smoothed,
-    LinearFit? fit,
-    List<List<TrendBucket>> secondary,
   ) {
-    final primary = _bucketSpots(buckets, (b) => b.mean);
-    _drawnSource = primary.source;
-    final bars = <LineChartBarData>[_dataBar(primary.spots, color, isRaw)];
+    final bars = <LineChartBarData>[
+      _dataBar(derived.primary.spots, color, isRaw),
+    ];
 
     if (!isRaw) {
-      for (final selector in <double Function(TrendBucket)>[
-        (b) => b.min,
-        (b) => b.max,
-      ]) {
+      for (final spots in [derived.lowSpots, derived.highSpots]) {
         bars.add(
           LineChartBarData(
-            spots: _bucketSpots(buckets, selector).spots,
+            spots: spots,
             isCurved: false,
             barWidth: 0,
             color: Colors.transparent,
@@ -608,19 +566,10 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       }
     }
 
-    // Both fits read the RAW dives, never the buckets. Fitting over monthly
-    // means would smooth twice, and the line would visibly move when the
-    // dropdown changed, implying the underlying trend had changed when only
-    // the drawing did.
-    if (smoothed.isNotEmpty) {
+    if (derived.smoothed.isNotEmpty) {
       bars.add(
         LineChartBarData(
-          spots: spotsAcrossBreaks(
-            smoothed,
-            (p) => p.date,
-            (p) => p.value,
-            _scale,
-          ).spots,
+          spots: derived.smoothedSpots,
           isCurved: false,
           color: widget.rollingColor ?? Theme.of(context).colorScheme.primary,
           barWidth: 2.2,
@@ -630,14 +579,10 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       );
     }
 
-    if (fit != null && buckets.isNotEmpty) {
+    if (derived.fit != null) {
       bars.add(
         LineChartBarData(
-          // One fit, drawn only across the periods with dives, so it steps
-          // at a band rather than sloping through years with no dives.
-          spots: fitAcrossBreaks(fit, [
-            for (final b in buckets) b.date,
-          ], _scale),
+          spots: derived.fitSpots,
           isCurved: false,
           color: widget.rateColor ?? Theme.of(context).colorScheme.tertiary,
           barWidth: 1.8,
@@ -648,29 +593,20 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     }
 
     // Secondaries come last so every index above is unchanged by them.
-    _secondaryBarStart = secondary.isEmpty ? -1 : bars.length;
-    final secondarySource = <List<int?>>[];
-    for (var i = 0; i < secondary.length; i++) {
-      final placed = _bucketSpots(secondary[i], (b) => b.mean);
-      secondarySource.add(placed.source);
+    _secondaryBarStart = derived.secondary.isEmpty ? -1 : bars.length;
+    for (var i = 0; i < derived.secondaryPlaced.length; i++) {
       bars.add(
         _dataBar(
-          placed.spots,
+          derived.secondaryPlaced[i].spots,
           widget.secondarySeries[i].color,
           isRaw,
           radius: widget.secondarySeries[i].pointRadius,
         ),
       );
     }
-    _drawnSecondarySource = secondarySource;
 
     return bars;
   }
-
-  ({List<FlSpot> spots, List<int?> source}) _bucketSpots(
-    List<TrendBucket> buckets,
-    double Function(TrendBucket) valueOf,
-  ) => spotsAcrossBreaks(buckets, (b) => b.date, valueOf, _scale);
 
   /// A per-dive series: dots only in raw mode (a stroke between two dives
   /// eight months apart would assert something happened in between), dotted
