@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
 import 'package:submersion/features/insights/presentation/formatters/water_temp_band_label.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
@@ -29,7 +28,7 @@ class WaterTempBandMetricsTable extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final isRmv = ref.watch(insightsGasLaneProvider) == GasConsumptionLane.rmv;
     String formatConsumption(double v) =>
         isRmv ? units.formatRmv(v) : units.formatSac(v);

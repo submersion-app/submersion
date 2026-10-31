@@ -13,7 +13,15 @@ class CcrPpO2LimitTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          ccrSetpointLow: s.ccrSetpointLow,
+          ccrSetpointHigh: s.ccrSetpointHigh,
+          ccrDiluentModPpO2: s.ccrDiluentModPpO2,
+        ),
+      ),
+    );
 
     return ListTile(
       leading: const Icon(Icons.loop),

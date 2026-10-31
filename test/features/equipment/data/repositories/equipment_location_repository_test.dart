@@ -73,6 +73,75 @@ void main() {
     );
   });
 
+  group('saved dive center link', () {
+    setUp(() async {
+      for (final id in ['reef', 'bay']) {
+        await db
+            .into(db.diveCenters)
+            .insert(
+              DiveCentersCompanion.insert(
+                id: id,
+                name: id,
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+    });
+
+    Future<EquipmentLocation> linked() => repo.createLocation(
+      diverId: 'me',
+      name: 'Reef locker',
+      kind: EquipmentLocationKind.diveCenter,
+      diveCenterId: 'reef',
+    );
+
+    test('createLocation stores the link', () async {
+      final place = await linked();
+      expect(place.diveCenterId, 'reef');
+    });
+
+    test('a new place has no link by default', () async {
+      final place = await repo.createLocation(
+        diverId: 'me',
+        name: 'Garage',
+        kind: EquipmentLocationKind.storage,
+      );
+      expect(place.diveCenterId, isNull);
+    });
+
+    test('updateLocation can move and clear the link', () async {
+      final place = await linked();
+      await repo.updateLocation(place.copyWith(diveCenterId: 'bay'));
+      expect((await repo.getLocation(place.id))!.diveCenterId, 'bay');
+      await repo.updateLocation(place.copyWith(clearDiveCenterId: true));
+      expect((await repo.getLocation(place.id))!.diveCenterId, isNull);
+    });
+
+    test('renaming keeps the link', () async {
+      final place = await linked();
+      await repo.updateLocation(place.copyWith(name: 'Shelf 3'));
+      final saved = (await repo.getLocation(place.id))!;
+      expect(saved.name, 'Shelf 3');
+      expect(saved.diveCenterId, 'reef');
+    });
+
+    test('archiving keeps the link', () async {
+      final place = await linked();
+      await repo.setArchived(place.id, archived: true);
+      expect((await repo.getLocation(place.id))!.diveCenterId, 'reef');
+    });
+
+    test('deleting the center row keeps the place, unlinked', () async {
+      final place = await linked();
+      await (db.delete(db.diveCenters)..where((t) => t.id.equals('reef'))).go();
+      final saved = (await repo.getLocation(place.id))!;
+      expect(saved.name, 'Reef locker');
+      expect(saved.kind, EquipmentLocationKind.diveCenter);
+      expect(saved.diveCenterId, isNull);
+    });
+  });
+
   test('update renames and rekinds', () async {
     final loc = await repo.createLocation(
       diverId: 'me',

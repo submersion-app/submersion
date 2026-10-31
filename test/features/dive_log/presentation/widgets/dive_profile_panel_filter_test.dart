@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -63,7 +65,7 @@ class _StubDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-List<Override> _perDiveOverrides(Dive dive) => [
+List<Override> _perDiveOverrides(Dive dive, {ProfileAnalysis? analysis}) => [
   diveProvider(dive.id).overrideWith((ref) => Future.value(dive)),
   diveDataSourcesProvider(
     dive.id,
@@ -71,7 +73,9 @@ List<Override> _perDiveOverrides(Dive dive) => [
   sourceProfilesProvider(
     dive.id,
   ).overrideWith((ref) => Future.value(<String, SourceProfile>{})),
-  profileAnalysisProvider(dive.id).overrideWith((ref) => Future.value(null)),
+  profileAnalysisProvider(
+    dive.id,
+  ).overrideWith((ref) => Future.value(analysis)),
   gasSwitchesProvider(dive.id).overrideWith((ref) => Future.value([])),
   tankPressuresProvider(dive.id).overrideWith((ref) => Future.value({})),
 ];
@@ -79,6 +83,7 @@ List<Override> _perDiveOverrides(Dive dive) => [
 Future<ProviderContainer> _pumpPanel(
   WidgetTester tester, {
   required String highlightedId,
+  ProfileAnalysis? farDiveAnalysis,
 }) async {
   await tester.pumpWidget(
     testApp(
@@ -103,7 +108,7 @@ Future<ProviderContainer> _pumpPanel(
         ),
         highlightedDiveIdProvider.overrideWith((ref) => highlightedId),
         ..._perDiveOverrides(_houseDive),
-        ..._perDiveOverrides(_farDive),
+        ..._perDiveOverrides(_farDive, analysis: farDiveAnalysis),
       ],
       child: const SizedBox(height: 350, width: 600, child: DiveProfilePanel()),
     ),
@@ -116,6 +121,24 @@ Future<ProviderContainer> _pumpPanel(
 }
 
 void main() {
+  testWidgets('labels a ceiling calculated under computer stops', (
+    tester,
+  ) async {
+    await _pumpPanel(
+      tester,
+      highlightedId: 'dive-far',
+      farDiveAnalysis: ProfileAnalysis.empty().copyWith(
+        computerStopsWithCalculatedCeiling: true,
+      ),
+    );
+    await tester.pump();
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    expect(chart.labelCeilingAsCalculated, isTrue);
+  });
+
   group('DiveProfilePanel and the active dive filter', () {
     testWidgets('stops previewing a highlighted dive the filter excludes', (
       tester,

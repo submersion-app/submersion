@@ -234,6 +234,46 @@ void main() {
       expect(find.text('Never'), findsNothing);
     });
 
+    testWidgets('leaves out a buddy excluded from the rankings (#3624)', (
+      tester,
+    ) async {
+      final unknown = _entry(
+        _buddy(id: 'b1', name: 'Unknown').copyWith(excludedFromRankings: true),
+        diveCount: 12,
+      );
+      final anna = _entry(_buddy(id: 'b2', name: 'Anna'), diveCount: 3);
+
+      await tester.pumpWidget(await _widget([unknown, anna]));
+      await tester.pump();
+
+      final names = tester
+          .widgetList<ListTile>(find.byType(ListTile))
+          .map((tile) => (tile.title as Text).data)
+          .toList();
+      expect(names, ['Anna']);
+      expect(
+        find.text('2'),
+        findsOneWidget,
+        reason: 'Total Buddies counts both',
+      );
+    });
+
+    testWidgets('keeps an excluded buddy in Recent Buddies (#3624)', (
+      tester,
+    ) async {
+      final unknown = _entry(
+        _buddy(id: 'b1', name: 'Unknown').copyWith(excludedFromRankings: true),
+        diveCount: 12,
+        lastDiveAt: _now,
+      );
+
+      await tester.pumpWidget(await _widget([unknown]));
+      await tester.pump();
+
+      expect(find.text('Unknown'), findsOneWidget);
+      expect(find.text('Most Dives'), findsNothing);
+    });
+
     testWidgets('hides the card entirely when nobody has a recorded dive', (
       tester,
     ) async {

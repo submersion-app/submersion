@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_profile_char
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -31,6 +32,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 List<dynamic> _overrides() => [
+  ...plannerResultsInline(),
   settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
 ];
 

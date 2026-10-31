@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_polyline_layer.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Colour key for the active track colorization mode.
@@ -36,7 +35,7 @@ class TrackColorLegend extends ConsumerWidget {
         lowLabel = l10n.gpsTrack_legend_slower;
         highLabel = l10n.gpsTrack_legend_faster;
       } else {
-        final units = UnitFormatter(ref.watch(settingsProvider));
+        final units = ref.watch(unitFormatterProvider);
         lowLabel = units.formatSpeed(range.min);
         highLabel = units.formatSpeed(range.max);
       }

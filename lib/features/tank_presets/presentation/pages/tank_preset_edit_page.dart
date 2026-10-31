@@ -118,8 +118,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -176,7 +175,8 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                             labelText: context.l10n.tankPresets_edit_volume,
                             suffixText: units.volumeSymbol,
                             helperText:
-                                settings.volumeUnit == VolumeUnit.cubicFeet
+                                units.settings.volumeUnit ==
+                                    VolumeUnit.cubicFeet
                                 ? context.l10n.tankPresets_edit_volumeHelperCuft
                                 : context
                                       .l10n
@@ -262,7 +262,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                   const SizedBox(height: 32),
 
                   // Info Card showing calculated values
-                  _buildInfoCard(settings, units),
+                  _buildInfoCard(units),
                 ],
               ),
             ),
@@ -275,7 +275,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
         NumberBlank() || NumberInvalid() => null,
       };
 
-  Widget _buildInfoCard(AppSettings settings, UnitFormatter units) {
+  Widget _buildInfoCard(UnitFormatter units) {
     // Nothing to show until both read; an unreadable field shows its error.
     final volumeDisplay = _readable(_volumeController);
     final pressureDisplay = _readable(_workingPressureController);
@@ -289,7 +289,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
     double volumeLiters;
     double volumeCuft;
 
-    if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+    if (units.settings.volumeUnit == VolumeUnit.cubicFeet) {
       volumeCuft = volumeDisplay;
       volumeLiters = (volumeDisplay * 28.3168) / pressureBar;
     } else {

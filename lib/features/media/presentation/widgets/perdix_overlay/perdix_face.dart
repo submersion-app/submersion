@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 
 /// Perdix-style dive computer face. Pure presentation: renders one
@@ -25,7 +25,7 @@ class PerdixFace extends StatelessWidget {
   });
 
   final PerdixFaceData data;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final double width;
 
   /// Draws a grabber bar above the readout. Set by [DraggablePerdixOverlay];

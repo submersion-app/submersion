@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/equation_of_state.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Fill temperature, settled temperature and equation of state.
@@ -33,9 +32,9 @@ class BlenderConditionsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final fahrenheit = settings.temperatureUnit == TemperatureUnit.fahrenheit;
+    final units = ref.watch(unitFormatterProvider);
+    final fahrenheit =
+        units.settings.temperatureUnit == TemperatureUnit.fahrenheit;
     final ladder = fahrenheit ? _fahrenheitLadder : _celsiusLadder;
 
     return Card(

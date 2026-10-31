@@ -8,7 +8,18 @@ import 'package:submersion/features/courses/domain/entities/course_requirement.d
 
 import '../../../../helpers/test_database.dart';
 
-Future<void> _seedDiverAndCourse({int startDate = 5000}) async {
+/// A course date as the app stores it: a local timestamp.
+int _courseDate(int day, [int hour = 0]) =>
+    DateTime(2020, 1, day, hour).millisecondsSinceEpoch;
+
+/// A dive time as the app stores it: wall-clock digits flagged as UTC.
+int _diveTime(int day, [int hour = 0]) =>
+    DateTime.utc(2020, 1, day, hour).millisecondsSinceEpoch;
+
+Future<void> _seedDiverAndCourse({
+  int startDate = 5000,
+  int? completionDate,
+}) async {
   final db = DatabaseService.instance.database;
   await db.customStatement(
     "INSERT INTO divers (id, name, created_at, updated_at) "
@@ -16,8 +27,9 @@ Future<void> _seedDiverAndCourse({int startDate = 5000}) async {
   );
   await db.customStatement(
     "INSERT INTO courses (id, diver_id, name, agency, start_date, "
-    "created_at, updated_at) "
-    "VALUES ('course-1', 'diver-1', 'AOW', 'padi', $startDate, 1000, 1000)",
+    "completion_date, created_at, updated_at) "
+    "VALUES ('course-1', 'diver-1', 'AOW', 'padi', $startDate, "
+    "${completionDate ?? 'NULL'}, 1000, 1000)",
   );
 }
 
@@ -364,7 +376,7 @@ void main() {
   group('getSuggestedDives', () {
     test('suggests course-assigned and post-start dives, excludes linked '
         'and other-diver dives, newest first, capped at 10', () async {
-      await _seedDiverAndCourse(startDate: 5000);
+      await _seedDiverAndCourse(startDate: _courseDate(50));
 
       final db = DatabaseService.instance.database;
       await db.customStatement(
@@ -372,11 +384,19 @@ void main() {
         "VALUES ('diver-2', 'Other', 1000, 1000)",
       );
 
-      await _seedDive('before-start', dateTime: 4000);
-      await _seedDive('after-start', dateTime: 6000);
-      await _seedDive('assigned-old', dateTime: 3000, courseId: 'course-1');
-      await _seedDive('other-diver', dateTime: 7000, diverId: 'diver-2');
-      await _seedDive('linked', dateTime: 8000);
+      await _seedDive('before-start', dateTime: _diveTime(49));
+      await _seedDive('after-start', dateTime: _diveTime(51));
+      await _seedDive(
+        'assigned-old',
+        dateTime: _diveTime(48),
+        courseId: 'course-1',
+      );
+      await _seedDive(
+        'other-diver',
+        dateTime: _diveTime(52),
+        diverId: 'diver-2',
+      );
+      await _seedDive('linked', dateTime: _diveTime(53));
 
       final req = await repository.createRequirement(
         courseId: 'course-1',
@@ -392,6 +412,165 @@ void main() {
       expect(ids, isNot(contains('other-diver')));
       expect(ids, isNot(contains('linked')));
       expect(suggested.first.linkId, isNull);
+    });
+
+    // The course dates are what a diver remembers an old course by, so a
+    // completed course ranks on them rather than on how recent a dive is.
+    test('a completed course ranks dives by distance from its dates, '
+        'before and after', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
+      );
+
+      await _seedDive('in-course', dateTime: _diveTime(51));
+      await _seedDive('just-after', dateTime: _diveTime(54));
+      await _seedDive('just-before', dateTime: _diveTime(48));
+      await _seedDive('months-before', dateTime: _diveTime(10));
+      await _seedDive('years-after', dateTime: _diveTime(900));
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'in-course',
+        'just-after',
+        'just-before',
+        'months-before',
+        'years-after',
+      ]);
+    });
+
+    test('a completed course is not crowded out by later dives', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
+      );
+
+      await _seedDive('in-course', dateTime: _diveTime(51));
+      for (var i = 0; i < 12; i++) {
+        await _seedDive('later-$i', dateTime: _diveTime(500 + i));
+      }
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested, hasLength(10));
+      expect(suggested.first.diveId, 'in-course');
+    });
+
+    // Every comparison is by whole wall-clock day: a course date is a local
+    // timestamp, and Mark as Completed records the moment it was tapped.
+    test('the whole completion day counts as inside the course', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
+      );
+
+      await _seedDive('last-day-evening', dateTime: _diveTime(52, 23));
+      await _seedDive('hour-before-start', dateTime: _diveTime(49, 23));
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'last-day-evening',
+        'hour-before-start',
+      ]);
+    });
+
+    test('a course completed late in the day ends with that day', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52, 17),
+      );
+
+      await _seedDive('morning-after', dateTime: _diveTime(53, 8));
+      await _seedDive('last-day', dateTime: _diveTime(52, 9));
+      await _seedDive('first-day', dateTime: _diveTime(50, 9));
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), [
+        'last-day',
+        'first-day',
+        'morning-after',
+      ]);
+    });
+
+    test(
+      'a course in progress suggests a dive early on its start day',
+      () async {
+        await _seedDiverAndCourse(startDate: _courseDate(50, 17));
+
+        await _seedDive('start-morning', dateTime: _diveTime(50, 1));
+        await _seedDive('day-before', dateTime: _diveTime(49, 22));
+
+        final suggested = await repository.getSuggestedDives('course-1');
+
+        expect(suggested.map((s) => s.diveId).toList(), ['start-morning']);
+      },
+    );
+
+    test('a completed course lists dives assigned to it first', () async {
+      await _seedDiverAndCourse(
+        startDate: _courseDate(50),
+        completionDate: _courseDate(52),
+      );
+
+      await _seedDive('near', dateTime: _diveTime(53));
+      await _seedDive(
+        'assigned-far',
+        dateTime: _diveTime(900),
+        courseId: 'course-1',
+      );
+
+      final suggested = await repository.getSuggestedDives('course-1');
+
+      expect(suggested.map((s) => s.diveId).toList(), ['assigned-far', 'near']);
+    });
+  });
+
+  group('getCreditableDives', () {
+    test('lists every uncredited dive of the diver, newest first', () async {
+      await _seedDiverAndCourse(startDate: 5000);
+
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('diver-2', 'Other', 1000, 1000)",
+      );
+
+      await _seedDive('before-start', dateTime: 4000);
+      await _seedDive('after-start', dateTime: 6000);
+      await _seedDive('other-diver', dateTime: 7000, diverId: 'diver-2');
+      await _seedDive('linked', dateTime: 8000);
+
+      final req = await repository.createRequirement(
+        courseId: 'course-1',
+        name: 'Deep adventure dive',
+        kind: RequirementKind.dive,
+      );
+      await repository.linkDive(requirementId: req.id, diveId: 'linked');
+
+      final creditable = await repository.getCreditableDives('course-1');
+
+      expect(creditable.map((s) => s.diveId).toList(), [
+        'after-start',
+        'before-start',
+      ]);
+    });
+
+    test('is not capped the way suggestions are', () async {
+      await _seedDiverAndCourse();
+      for (var i = 0; i < 12; i++) {
+        await _seedDive('dive-$i', dateTime: 9000 + i);
+      }
+
+      final creditable = await repository.getCreditableDives('course-1');
+
+      expect(creditable, hasLength(12));
+    });
+
+    test('is empty for a course that no longer exists', () async {
+      expect(await repository.getCreditableDives('missing'), isEmpty);
     });
   });
 

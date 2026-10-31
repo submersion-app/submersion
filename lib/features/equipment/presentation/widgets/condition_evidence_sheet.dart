@@ -9,7 +9,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/condition_evidence_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The dives a finding was built from: the sentence, then one row per dive
@@ -39,8 +38,7 @@ class _EvidenceSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final thresholds = ref.watch(exposureThresholdsProvider);
     final divesAsync = ref.watch(
       conditionEvidenceDivesProvider((

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_list_row.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
@@ -37,7 +36,7 @@ class TracksListPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync = ref.watch(tracksListProvider);
     final items = itemsAsync.value ?? const <TrackListItem>[];
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final delete = onDelete;
     final header = TracksListHeader(
       showControls: showControls,
