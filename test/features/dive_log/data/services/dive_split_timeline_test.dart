@@ -380,6 +380,29 @@ void main() {
       expect(diverEvent.timestamp, 80);
     });
 
+    test(
+      'dates the dive by a promoted source whose clock was realigned',
+      () async {
+        await seedRecording('a', startMinutes: 0);
+        await seedRecording('b', startMinutes: 0);
+        await consolidation.apply(targetDiveId: 'a', secondaryDiveIds: ['b']);
+        final promoted = await sourceOf('a', 'dc-b');
+        final clocks = SourceClockRepository(database: db);
+        await clocks.shift(
+          await clocks.snapshot([promoted.id]),
+          const Duration(minutes: 5),
+        );
+
+        await splitter.split(diveId: 'a', sourceId: 'src-a');
+
+        // No offset to take off, so the samples stay, but the date still follows.
+        final dive = await diveRow('a');
+        expect(dive.entryTime, minutesIn(5));
+        expect(dive.diveDateTime, minutesIn(5));
+        await expectOnOwnClock('a', 'dc-b');
+      },
+    );
+
     test('takes the moment a photo is pinned to along', () async {
       await seedRecording('a', startMinutes: 0);
       await seedRecording('b', startMinutes: 2);

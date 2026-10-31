@@ -598,12 +598,6 @@ class DiveSplitService {
         final promotedOffset = promoted.timeOffsetSeconds ?? 0;
         if (promotedOffset != 0) {
           await _rezeroTimeline(diveId, promotedOffset, now: now);
-          diveUpdate = diveUpdate.copyWith(
-            diveDateTime: Value(
-              promoted.entryTime?.millisecondsSinceEpoch ??
-                  diveRow.diveDateTime + promotedOffset * 1000,
-            ),
-          );
         }
 
         // The safety review grades the primary's own samples, so the stored
@@ -611,6 +605,10 @@ class DiveSplitService {
         await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
 
         diveUpdate = diveUpdate.copyWith(
+          diveDateTime: Value(
+            promoted.entryTime?.millisecondsSinceEpoch ??
+                diveRow.diveDateTime + promotedOffset * 1000,
+          ),
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
           diveComputerSerial: Value(promoted.computerSerial),
