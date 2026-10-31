@@ -136,7 +136,10 @@ class GasAnalysisService {
     if (startingTank != null) {
       addStretch(
         startTime: profile.first.timestamp,
-        endTime: sortedSwitches.first.gasSwitch.timestamp,
+        endTime: math.min(
+          sortedSwitches.first.gasSwitch.timestamp,
+          diveEndTimestamp,
+        ),
         tank: startingTank,
         tankName: startingTank.name,
         gasMix: startingTank.gasMix,
@@ -156,7 +159,10 @@ class GasAnalysisService {
       addStretch(
         startTime: currentSwitch.gasSwitch.timestamp,
         endTime: i + 1 < sortedSwitches.length
-            ? sortedSwitches[i + 1].gasSwitch.timestamp
+            ? math.min(
+                sortedSwitches[i + 1].gasSwitch.timestamp,
+                diveEndTimestamp,
+              )
             : diveEndTimestamp,
         tank: tank,
         tankName: currentSwitch.tankName,

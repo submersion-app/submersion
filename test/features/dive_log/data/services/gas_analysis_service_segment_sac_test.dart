@@ -101,6 +101,29 @@ void main() {
         expect(segments.first.sacRate, closeTo(100 / 50 / 3.0, 0.02));
       });
 
+      test('stops at the dive end when a switch falls after it', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3700)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.single.tankId, 't1');
+        expect(segments.single.endTimestamp, 3600);
+      });
+
+      test('a later switch past the dive end stops at it too', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000), switchTo(backGas, 3700)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.last.endTimestamp, 3600);
+      });
+
       test('adds nothing when a switch opens the dive', () {
         final segments = service.calculateGasSwitchSegments(
           profile: flatProfile(3600, 20),
