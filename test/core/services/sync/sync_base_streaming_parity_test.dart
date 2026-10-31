@@ -241,9 +241,7 @@ void main() {
     await setUpTestDatabase();
     final tmpDir = await Directory.systemTemp.createTemp('parity');
     final tmp = File('${tmpDir.path}/base.json');
-    await tmp.writeAsBytes(
-      utf8.encode(SyncDataSerializer().serializePayload(payload)),
-    );
+    await tmp.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
     final counts2 = await SyncService(
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
@@ -284,9 +282,7 @@ void main() {
       await setUpTestDatabase();
       final tmpDir = await Directory.systemTemp.createTemp('parity_big');
       final tmp = File('${tmpDir.path}/base.json');
-      await tmp.writeAsBytes(
-        utf8.encode(SyncDataSerializer().serializePayload(payload)),
-      );
+      await tmp.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
       await SyncService(
         syncRepository: SyncRepository(),
         serializer: SyncDataSerializer(),
@@ -321,9 +317,7 @@ void main() {
       await setUpTestDatabase();
       final tmpDir = await Directory.systemTemp.createTemp('parity_fallback');
       final tmp = File('${tmpDir.path}/base.json');
-      await tmp.writeAsBytes(
-        utf8.encode(SyncDataSerializer().serializePayload(payload)),
-      );
+      await tmp.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
       final svc = SyncService(
         syncRepository: SyncRepository(),
         serializer: SyncDataSerializer(),
@@ -349,9 +343,7 @@ void main() {
       final tmpDir = await Directory.systemTemp.createTemp('parity_progress');
       try {
         final tmp = File('${tmpDir.path}/base.json');
-        await tmp.writeAsBytes(
-          utf8.encode(SyncDataSerializer().serializePayload(payload)),
-        );
+        await tmp.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
         final seen = <double>[];
         await svc.debugApplyBaseFile(tmp.path, onProgress: seen.add);
         return seen;

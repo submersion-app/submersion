@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/nearby_transfer.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 
 /// Transfer file names are built from values the peer sends (issue #3731).
 void main() {
@@ -22,4 +24,18 @@ void main() {
       expect(() => files.incoming(bad, 'id'), throwsArgumentError);
     }
   });
+
+  test(
+    'a delta unpacks to the bytes it was given, whatever its size',
+    () async {
+      for (final size in [16, kOffIsolateMinBytes]) {
+        final json = utf8.encode('{"a":"${'x' * size}"}');
+
+        final out = await files.prepareDelta('peer', 'id$size', json);
+        final unpacked = await files.gunzip(out.file);
+
+        expect(await unpacked.readAsBytes(), json);
+      }
+    },
+  );
 }

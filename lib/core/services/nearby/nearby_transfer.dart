@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/utils/off_isolate.dart';
+
 /// How long a sender keeps a full copy, and a receiver keeps its partial
 /// one, for a resume after a dropped link.
 const nearbyResumeWindow = Duration(hours: 24);
@@ -126,10 +128,10 @@ class NearbyTransferFiles {
   Future<NearbyOutgoing> prepareDelta(
     String peerId,
     String id,
-    String json,
+    Uint8List json,
   ) async {
     final out = _file('nearby-delta', [peerId, id], '.gz');
-    await out.writeAsBytes(gzip.encode(utf8.encode(json)));
+    await out.writeAsBytes(await _gzipped(json));
     return NearbyOutgoing(
       id: id,
       kind: 'delta',
@@ -137,6 +139,9 @@ class NearbyTransferFiles {
       byteLength: await out.length(),
     );
   }
+
+  static Future<List<int>> _gzipped(Uint8List bytes) =>
+      runOffIsolate(() => gzip.encode(bytes), bytes: bytes.length);
 
   /// Removes the remembered full copy for [peerId], if any.
   Future<void> discardOutgoing(String peerId) async {
