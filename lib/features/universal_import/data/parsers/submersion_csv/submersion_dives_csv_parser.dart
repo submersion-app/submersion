@@ -17,6 +17,17 @@ import 'package:submersion/features/universal_import/data/parsers/import_parser.
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/site_location_text.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
 
+/// Where a site is, as a row of the dives CSV says. [location] is the Location
+/// cell of a file without the place columns, which tells two sites apart by a
+/// locality the fields read from it leave out.
+typedef _SitePlace = ({
+  String? city,
+  String? island,
+  String? region,
+  String? country,
+  String? location,
+});
+
 /// Reads Submersion's dives CSV export (either unit mode) back into dive,
 /// site and dive type maps for the entity importer.
 class SubmersionDivesCsvParser implements ImportParser {
@@ -80,7 +91,7 @@ class SubmersionDivesCsvParser implements ImportParser {
         ),
     ];
     final dives = <Map<String, dynamic>>[];
-    final sitesByName = <String, Map<String, dynamic>>{};
+    final sitesByPlace = <(String, _SitePlace), Map<String, dynamic>>{};
     final diveTypesBySlug = <String, Map<String, dynamic>>{};
 
     for (final (i, row) in table.rows.indexed) {
@@ -193,12 +204,19 @@ class SubmersionDivesCsvParser implements ImportParser {
 
       final siteName = table.text(row, 'Site');
       if (siteName != null) {
-        final site = sitesByName.putIfAbsent(
-          siteName,
+        // The file has no site id, and a name is not one: two places can
+        // share it (#4015). One site writes the same cells on every dive, so
+        // rows that differ in any of them, a blank included, are two sites.
+        final place = _sitePlace(table, row);
+        final site = sitesByPlace.putIfAbsent(
+          (siteName, place),
           () => <String, dynamic>{
-            'uddfId': 'csv-site-${sitesByName.length}',
+            'uddfId': 'csv-site-${sitesByPlace.length}',
             'name': siteName,
-            ..._sitePlace(table, row),
+            'city': place.city,
+            'island': place.island,
+            'region': place.region,
+            'country': place.country,
           }..removeWhere((_, value) => value == null),
         );
         dive['site'] = <String, dynamic>{'uddfId': site['uddfId']};
@@ -210,8 +228,8 @@ class SubmersionDivesCsvParser implements ImportParser {
     return ImportPayload(
       entities: {
         if (dives.isNotEmpty) ImportEntityType.dives: dives,
-        if (sitesByName.isNotEmpty)
-          ImportEntityType.sites: sitesByName.values.toList(),
+        if (sitesByPlace.isNotEmpty)
+          ImportEntityType.sites: sitesByPlace.values.toList(),
         if (diveTypesBySlug.isNotEmpty)
           ImportEntityType.diveTypes: diveTypesBySlug.values.toList(),
       },
@@ -270,23 +288,28 @@ class SubmersionDivesCsvParser implements ImportParser {
     return ids;
   }
 
-  /// A new site's place fields. Files since #1814 carry them in their own
+  /// A row's place fields. Files since #1814 carry them in their own
   /// columns; an older file only has the Location display text, which is
   /// parsed best-effort.
-  static Map<String, dynamic> _sitePlace(
-    SubmersionCsvTable table,
-    List<String> row,
-  ) {
+  static _SitePlace _sitePlace(SubmersionCsvTable table, List<String> row) {
     if (table.hasColumn(DiveCsvColumns.siteCountry)) {
-      return {
-        'city': table.text(row, DiveCsvColumns.siteCity),
-        'island': table.text(row, DiveCsvColumns.siteIsland),
-        'region': table.text(row, DiveCsvColumns.siteRegion),
-        'country': table.text(row, DiveCsvColumns.siteCountry),
-      };
+      return (
+        city: table.text(row, DiveCsvColumns.siteCity),
+        island: table.text(row, DiveCsvColumns.siteIsland),
+        region: table.text(row, DiveCsvColumns.siteRegion),
+        country: table.text(row, DiveCsvColumns.siteCountry),
+        location: null,
+      );
     }
-    final location = parseSiteLocationText(table.text(row, 'Location'));
-    return {'region': location.region, 'country': location.country};
+    final cell = table.text(row, 'Location');
+    final location = parseSiteLocationText(cell);
+    return (
+      city: null,
+      island: null,
+      region: location.region,
+      country: location.country,
+      location: cell,
+    );
   }
 
   /// The dive's custom fields. The JSON Custom Fields column keeps empty

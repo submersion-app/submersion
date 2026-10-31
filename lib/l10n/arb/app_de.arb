@@ -2406,6 +2406,7 @@
   "diveImport_uddf_trips": "Reisen",
   "diveLog_bulkDelete_confirm": "Möchten Sie wirklich {count} {count, plural, =1{Tauchgang} other{Tauchgänge}} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
   "diveLog_bulkDelete_restored": "Tauchgänge wiederhergestellt",
+  "diveLog_bulkDelete_restoredIncomplete": "Tauchgänge wiederhergestellt, aber einige aufgezeichnete Daten konnten nicht zurückgeholt werden",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{Tauchgang} other{Tauchgänge}} gelöscht",
   "diveLog_bulkDelete_title": "Tauchgänge löschen",
   "diveLog_bulkDelete_undo": "Rückgängig",

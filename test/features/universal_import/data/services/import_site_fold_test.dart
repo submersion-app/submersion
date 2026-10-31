@@ -26,6 +26,40 @@ void main() {
       expect(second['uddfId'], 'bbb');
     });
 
+    test('namesakes without coordinates stay apart when they state different '
+        'places (#4015)', () async {
+      final folded = foldImportSites([
+        {'uddfId': 'a', 'name': 'Blue Hole', 'country': 'Egypt'},
+        {'uddfId': 'b', 'name': 'Blue Hole', 'country': 'Belize'},
+        {'uddfId': 'c', 'name': 'Blue Hole', 'country': 'Belize'},
+      ]);
+
+      expect(folded.sites.map((s) => s['uddfId']), ['a', 'b']);
+      expect(folded.aliases, {'c': 'b'});
+    });
+
+    test('coordinates that agree outrank a place that does not, since GPS '
+        'drift can land one reef in two regions', () async {
+      final folded = foldImportSites([
+        {
+          'uddfId': 'a',
+          'name': 'House Reef',
+          'latitude': 19.5,
+          'longitude': -155.9,
+          'region': 'Kona',
+        },
+        {
+          'uddfId': 'b',
+          'name': 'House Reef',
+          'latitude': 19.5001,
+          'longitude': -155.9,
+          'region': 'Kohala',
+        },
+      ]);
+
+      expect(folded.sites.map((s) => s['uddfId']), ['a']);
+    });
+
     test('without foldSameName keeps namesakes apart but still folds '
         'unnamed entries', () async {
       final folded = foldImportSites([

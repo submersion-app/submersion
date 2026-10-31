@@ -3,6 +3,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/payload_ref_keys.dart';
 
 /// One parsed file's payload plus its batch identity.
@@ -43,7 +44,9 @@ class _Survivor {
 ///   into each other; only repeats of one id do (issue #1807). Across files,
 ///   a name held by one record on each side folds; when either side holds
 ///   several, records pair only by a shared source id and the rest stay
-///   apart rather than merging two namesakes on a guess.
+///   apart rather than merging two namesakes on a guess. Sites go by what
+///   they state (#4015): two in different places never fold, and namesakes
+///   in the same place pair whatever ids their files gave them.
 /// - Dives are NEVER folded; cross-file dive duplicates are left for the
 ///   duplicate checker so the user decides.
 class PayloadMerger {
@@ -407,9 +410,10 @@ class PayloadMerger {
   /// fold into its first occurrence, named or not. Records with different ids stay
   /// distinct (issue #1807), and each earlier-file [survivors] entry takes
   /// at most one of them: by name when the name is held by exactly one
-  /// record on each side, otherwise only by a shared source id. A record
-  /// with no match is added to [out] and, if named, becomes a survivor for
-  /// later files.
+  /// record on each side, otherwise only by a shared source id or, for a
+  /// site, a stated place. A site never takes a survivor that states a
+  /// different place (#4015). A record with no match is added to [out] and,
+  /// if named, becomes a survivor for later files.
   void _foldFileReferences({
     required ImportEntityType type,
     required String fileId,
@@ -445,10 +449,18 @@ class PayloadMerger {
       if (key != null) (byKey[key] ??= []).add(item);
     }
 
+    // A source id is no proof either: every dives CSV numbers its sites from
+    // csv-site-0, so the same id in two files can be two places.
+    bool canFold(_Survivor survivor, Map<String, dynamic> item) =>
+        type != ImportEntityType.sites ||
+        !ImportSiteLocation.placesConflict(survivor.item, item);
+
     final matches = Map<Map<String, dynamic>, _Survivor>.identity();
     for (final MapEntry(:key, value: group) in byKey.entries) {
       final candidates = [...?survivors[key]];
-      if (group.length == 1 && candidates.length == 1) {
+      if (group.length == 1 &&
+          candidates.length == 1 &&
+          canFold(candidates.single, group.single)) {
         matches[group.single] = candidates.single;
         continue;
       }
@@ -456,7 +468,15 @@ class PayloadMerger {
         final sourceId = _sourceId(type, item, fileId);
         if (sourceId == null) continue;
         final index = candidates.indexWhere(
-          (s) => s.sourceIds.contains(sourceId),
+          (s) => s.sourceIds.contains(sourceId) && canFold(s, item),
+        );
+        if (index >= 0) matches[item] = candidates.removeAt(index);
+      }
+      if (type != ImportEntityType.sites) continue;
+      for (final item in group) {
+        if (matches.containsKey(item)) continue;
+        final index = candidates.indexWhere(
+          (s) => ImportSiteLocation.samePlace(s.item, item),
         );
         if (index >= 0) matches[item] = candidates.removeAt(index);
       }

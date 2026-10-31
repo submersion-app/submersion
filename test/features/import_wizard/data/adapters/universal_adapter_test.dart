@@ -1128,6 +1128,38 @@ void main() {
       );
     });
 
+    testWidgets('same-name sites read apart by their place (#4015)', (
+      tester,
+    ) async {
+      const payload = ImportPayload(
+        entities: {
+          ui.ImportEntityType.sites: [
+            {
+              'name': 'Blue Hole',
+              'city': 'Dahab',
+              'region': 'South Sinai',
+              'country': 'Egypt',
+            },
+            {'name': 'Blue Hole', 'country': 'Belize'},
+          ],
+        },
+      );
+
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(payload: payload),
+        callback: (adapter) async {
+          final bundle = await adapter.buildBundle();
+          final items = bundle.groups[ImportEntityType.sites]!.items;
+
+          expect(items.map((item) => item.subtitle), [
+            'Dahab · South Sinai, Egypt',
+            'Belize',
+          ]);
+        },
+      );
+    });
+
     testWidgets('site with no location info has empty subtitle', (
       tester,
     ) async {
