@@ -50,9 +50,11 @@ final focusMetricSeriesProvider =
         case FocusMetric.cns:
         case FocusMetric.otu:
           final repository = ref.watch(insightsRepositoryProvider);
-          ref.invalidateSelfWhen(repository.watchInsightsChanges());
-          final diverId = ref.watch(currentDiverIdProvider);
           final filter = ref.watch(insightsFilterProvider);
+          ref.invalidateSelfWhen(
+            repository.watchInsightsChanges(filter: filter),
+          );
+          final diverId = ref.watch(currentDiverIdProvider);
           return switch (metric) {
             FocusMetric.rmv => repository.getSacVolumePerDive(
               diverId: diverId,
@@ -123,9 +125,9 @@ final focusFactorRowsProvider = FutureProvider<List<FocusFactorRow>>((
   ref,
 ) async {
   final repository = ref.watch(insightsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchInsightsChanges());
-  final diverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges(filter: filter));
+  final diverId = ref.watch(currentDiverIdProvider);
   final scale = ref.watch(settingsProvider.select((s) => s.visibilityScale));
   return repository.getFocusFactorRows(
     diverId: diverId,
