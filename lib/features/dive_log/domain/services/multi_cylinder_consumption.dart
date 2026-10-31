@@ -47,11 +47,15 @@ DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
 /// A cylinder whose size cannot be related to the reference, or that was
 /// carried but not breathed, adds nothing.
 ///
-/// Null when [reference] has no positive drop. A rebreather dive has no
-/// SAC at all (issue #3673), so its callers never reach here.
+/// [reference] is the unit of account, so one that was measured and did not
+/// fall adds zero and the others still count (#3974). Null when [reference]
+/// has no known pressures, since nothing says how much it gave, and when
+/// nothing adds up to a drop. A rebreather dive has no SAC at all (issue
+/// #3673), so its callers never reach here.
 ///
-/// [dropOf] reads a cylinder's drop, its start minus end pressure by
-/// default; a part of the dive passes the drop over that part (#2928).
+/// [dropOf] reads a cylinder's drop, zero when it did not fall and null when
+/// it was not measured: its start minus end pressure by default; a part of
+/// the dive passes the drop over that part (#2928).
 double? referencePressureDrop({
   required DiveTank reference,
   required List<DiveTank> tanks,
@@ -73,7 +77,7 @@ double? referencePressureDrop({
       total += drop;
     }
   }
-  return total;
+  return total > 0 ? total : null;
 }
 
 /// Two logged mixes within this many percentage points of O2 and of He
@@ -98,5 +102,5 @@ double? _drop(DiveTank tank) {
   final end = tank.endPressure;
   if (start == null || end == null) return null;
   final drop = start - end;
-  return drop > 0 ? drop : null;
+  return drop > 0 ? drop : 0;
 }

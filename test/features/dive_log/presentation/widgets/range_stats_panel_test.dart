@@ -404,6 +404,30 @@ void main() {
       expect(find.text('RMV'), findsNothing);
     });
 
+    testWidgets('shows SAC when only a stage is breathed (#3974)', (
+      tester,
+    ) async {
+      List<TankPressurePoint> series(String id, double from, double to) => [
+        TankPressurePoint(tankId: id, timestamp: 0, pressure: from),
+        TankPressurePoint(tankId: id, timestamp: 600, pressure: to),
+      ];
+
+      await pumpGas(
+        tester,
+        tanks: const [
+          backGas,
+          DiveTank(id: 'deco', volume: 7, role: TankRole.deco, order: 1),
+        ],
+        tankPressures: {
+          'bg': series('bg', 150, 150),
+          'deco': series('deco', 200, 150),
+        },
+      );
+
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('RMV'), findsOneWidget);
+    });
+
     const ccrTanks = [
       DiveTank(id: 'dil', volume: 3, role: TankRole.diluent),
       DiveTank(
