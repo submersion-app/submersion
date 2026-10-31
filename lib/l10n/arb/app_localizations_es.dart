@@ -8696,6 +8696,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Sin tipo de agua';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Hasta $date';
   }
@@ -8808,6 +8813,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionGasMix => 'Mezcla de gas (O₂%)';
+
+  @override
+  String get diveLog_filter_sectionTankConfiguration =>
+      'Configuración de botellas';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Extras de botellas';
 
   @override
   String get diveLog_filter_sectionMinRating => 'Valoración mínima';
@@ -20544,7 +20556,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'El plan de descompresión CCR no lleva gas de bailout';
+      'El plan de descompresión no lleva gas de bailout';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -29032,6 +29044,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Gráfico circular de distribución con $count segmentos';
   }
@@ -29054,6 +29071,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Sin registrar';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'No se pudieron abrir estas inmersiones';
+
+  @override
+  String get insights_chart_viewDives => 'Ver inmersiones';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -48456,6 +48485,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count configuraciones de botellas';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count extras de botellas';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Vida marina';
 
   @override
@@ -50770,7 +50809,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Selecciona un rango en el gráfico para habilitar las operaciones';
+      'Arrastra por el gráfico para seleccionar un rango y habilitar las operaciones';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Prof. +1 m';
@@ -50876,6 +50915,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'No hay datos de perfil disponibles';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'No se puede desplazar: la selección no tiene espacio en esa dirección';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'No se puede eliminar todo el perfil';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'No se puede suavizar: selecciona al menos tres muestras';
 
   @override
   String get diveLog_profileEditor_undo => 'Deshacer';
@@ -52360,6 +52411,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Excluida';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Todas tus inmersiones están excluidas de las estadísticas';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Siguen en tu cuaderno. Edita una inmersión para volver a contarla.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -54487,6 +54546,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Tiene perfil';
+
+  @override
+  String get query_dives_tankConfig => 'Configuración de botellas';
+
+  @override
+  String get query_dives_stages => 'Stage(s)';
+
+  @override
+  String get query_dives_decoGas => 'Gas de deco';
+
+  @override
+  String get query_dives_multiGas => 'Varios gases';
 
   @override
   String get query_dives_id => 'ID de inmersión';

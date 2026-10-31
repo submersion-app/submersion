@@ -8502,6 +8502,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'ללא סוג מים';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'עד $date';
   }
@@ -8610,6 +8615,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionGasMix => 'תערובת גזים (O₂%)';
+
+  @override
+  String get diveLog_filter_sectionTankConfiguration => 'תצורת בלונים';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'תוספות בלונים';
 
   @override
   String get diveLog_filter_sectionMinRating => 'דירוג מינימלי';
@@ -20096,7 +20107,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'תוכנית דקומפרסיה CCR ללא גז חילוץ (bailout)';
+      'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -28278,6 +28289,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'תרשים עוגה עם $count מקטעים';
   }
@@ -28298,6 +28314,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'לא נרשם';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => 'לא ניתן לפתוח צלילות אלה';
+
+  @override
+  String get insights_chart_viewDives => 'הצגת צלילות';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -47369,6 +47396,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count תצורות בלונים';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count תוספות בלונים';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'חיים ימיים';
 
   @override
@@ -49649,7 +49686,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'בחרו טווח בגרף כדי לאפשר פעולות';
+      'גררו על הגרף כדי לבחור טווח ולאפשר פעולות';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'עומק +1m';
@@ -49754,6 +49791,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => 'אין נתוני פרופיל זמינים';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'לא ניתן להזיז: אין לבחירה מקום בכיוון זה';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'לא ניתן למחוק את הפרופיל כולו';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'לא ניתן להחליק: בחרו לפחות שלוש דגימות';
 
   @override
   String get diveLog_profileEditor_undo => 'ביטול פעולה';
@@ -51183,6 +51232,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'מוחרגת';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'כל הצלילות שלך מוחרגות מהסטטיסטיקות';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'הן עדיין ביומן שלך. ערוך צלילה כדי לכלול אותה שוב.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -53271,6 +53328,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'יש פרופיל';
+
+  @override
+  String get query_dives_tankConfig => 'תצורת בלונים';
+
+  @override
+  String get query_dives_stages => 'סטייג\'ים';
+
+  @override
+  String get query_dives_decoGas => 'גז דקו';
+
+  @override
+  String get query_dives_multiGas => 'ריבוי גזים';
 
   @override
   String get query_dives_id => 'מזהה צלילה';

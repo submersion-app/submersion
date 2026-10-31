@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -404,8 +405,14 @@ class UddfImportParsers {
     final heText = getElementText(mixElement, 'he');
 
     // UDDF stores gas values as fractions (0.21 for 21%).
-    final o2 = o2Text != null ? (double.tryParse(o2Text) ?? 0.21) * 100 : 21.0;
-    final he = heText != null ? (double.tryParse(heText) ?? 0.0) * 100 : 0.0;
+    final o2 = o2Text != null
+        ? UddfGasMixWriters.cleanPercent(
+            (double.tryParse(o2Text) ?? 0.21) * 100,
+          )
+        : 21.0;
+    final he = heText != null
+        ? UddfGasMixWriters.cleanPercent((double.tryParse(heText) ?? 0.0) * 100)
+        : 0.0;
 
     return GasMix(o2: o2, he: he);
   }

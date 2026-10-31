@@ -13675,6 +13675,12 @@ abstract class AppLocalizations {
   /// **'No Water Type'**
   String get diveLog_filterChip_noWaterType;
 
+  /// No description provided for @diveLog_filterChip_namedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String diveLog_filterChip_namedDives(String label, int count);
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:
@@ -13890,6 +13896,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas Mix (O₂%)'**
   String get diveLog_filter_sectionGasMix;
+
+  /// No description provided for @diveLog_filter_sectionTankConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get diveLog_filter_sectionTankConfiguration;
+
+  /// No description provided for @diveLog_filter_sectionTankExtras.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank extras'**
+  String get diveLog_filter_sectionTankExtras;
 
   /// No description provided for @diveLog_filter_sectionMinRating.
   ///
@@ -32691,7 +32709,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_issue_noBailout.
   ///
   /// In en, this message translates to:
-  /// **'CCR decompression plan carries no bailout gas'**
+  /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
 
   /// No description provided for @plannerCanvas_issue_noDecoGas.
@@ -46557,6 +46575,12 @@ abstract class AppLocalizations {
   /// **'Bar chart with {count} categories'**
   String insights_chart_barSemanticLabel(Object count);
 
+  /// Screen reader label of a tappable bar chart row
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {count}'**
+  String insights_chart_barRowSemanticLabel(String count, String label);
+
   /// No description provided for @insights_chart_distributionSemanticLabel.
   ///
   /// In en, this message translates to:
@@ -46592,6 +46616,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not recorded'**
   String get insights_chart_notRecorded;
+
+  /// No description provided for @insights_chart_linkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{chart}: {row}'**
+  String insights_chart_linkLabel(String chart, String row);
+
+  /// No description provided for @insights_chart_openDivesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open these dives'**
+  String get insights_chart_openDivesFailed;
+
+  /// No description provided for @insights_chart_viewDives.
+  ///
+  /// In en, this message translates to:
+  /// **'View dives'**
+  String get insights_chart_viewDives;
 
   /// No description provided for @insights_chart_trendSemanticLabel.
   ///
@@ -77097,6 +77139,18 @@ abstract class AppLocalizations {
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
 
+  /// No description provided for @diveLog_filterChip_tankConfigCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank configurations'**
+  String diveLog_filterChip_tankConfigCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_tankExtrasCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank extras'**
+  String diveLog_filterChip_tankExtrasCount(Object count);
+
   /// No description provided for @diveLog_filter_sectionSpecies.
   ///
   /// In en, this message translates to:
@@ -80361,7 +80415,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_profileEditor_selectRangeHint.
   ///
   /// In en, this message translates to:
-  /// **'Select a range on the chart to enable operations'**
+  /// **'Drag across the chart to select a range and enable operations'**
   String get diveLog_profileEditor_selectRangeHint;
 
   /// Profile editor button: shift the selected segment 1 metre shallower. The shift is always exactly one metre because dive profiles are stored in metres, so keep the metric unit in the translation.
@@ -80537,6 +80591,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data available'**
   String get diveLog_profileEditor_noProfileData;
+
+  /// No description provided for @diveLog_profileEditor_timeShiftBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t shift: the selection has no room to move that way'**
+  String get diveLog_profileEditor_timeShiftBlocked;
+
+  /// No description provided for @diveLog_profileEditor_deleteAllBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t delete the whole profile'**
+  String get diveLog_profileEditor_deleteAllBlocked;
+
+  /// No description provided for @diveLog_profileEditor_smoothTooFewBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t smooth: select at least three samples'**
+  String get diveLog_profileEditor_smoothTooFewBlocked;
 
   /// Tooltip for the profile editor's undo button.
   ///
@@ -82850,6 +82922,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Excluded'**
   String get diveLog_edit_summary_excluded;
+
+  /// Shown when logged dives exist but every one is excluded from statistics
+  ///
+  /// In en, this message translates to:
+  /// **'All your dives are excluded from statistics'**
+  String get insights_empty_allExcluded_title;
+
+  /// Below the all-excluded title: the dives are safe and how to count one again
+  ///
+  /// In en, this message translates to:
+  /// **'They are still in your logbook. Edit a dive to count it again.'**
+  String get insights_empty_allExcluded_subtitle;
 
   /// Overview footnote naming how many dives are excluded
   ///
@@ -86152,6 +86236,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Has profile'**
   String get query_dives_hasProfile;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get query_dives_tankConfig;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Stage(s)'**
+  String get query_dives_stages;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas'**
+  String get query_dives_decoGas;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-gas'**
+  String get query_dives_multiGas;
 
   /// Field label in the query builder
   ///

@@ -8671,6 +8671,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Nincs víztípus';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Eddig: $date';
   }
@@ -8784,6 +8789,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionGasMix => 'Gázkeverék (O₂%)';
+
+  @override
+  String get diveLog_filter_sectionTankConfiguration => 'Palackkonfiguráció';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Palack extrák';
 
   @override
   String get diveLog_filter_sectionMinRating => 'Minimum értékelés';
@@ -20479,7 +20490,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'A CCR dekompressziós terv nem tartalmaz bailout gázt';
+      'A dekompressziós terv nem tartalmaz bailout gázt';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -28872,6 +28883,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Megoszlási kördiagram $count szegmenssel';
   }
@@ -28892,6 +28908,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Nem sikerült megnyitni ezeket a merüléseket';
+
+  @override
+  String get insights_chart_viewDives => 'Merülések megtekintése';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -48153,6 +48181,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count palackkonfiguráció';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count palack extra';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Tengeri élővilág';
 
   @override
@@ -50435,7 +50473,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Jelöljön ki egy tartományt a grafikonon a műveletek engedélyezéséhez';
+      'Húzzon a grafikonon egy tartomány kijelöléséhez és a műveletek engedélyezéséhez';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Mélység +1m';
@@ -50541,6 +50579,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => 'Nincs elérhető profiladat';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Az eltolás nem lehetséges: a kijelölésnek nincs helye ebben az irányban';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'A teljes profil nem törölhető';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'A simítás nem lehetséges: jelöljön ki legalább három mérést';
 
   @override
   String get diveLog_profileEditor_undo => 'Visszavonás';
@@ -52016,6 +52066,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Kizárva';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Minden merülésed ki van zárva a statisztikákból';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'A naplódban továbbra is megvannak. Szerkessz egy merülést, hogy újra beleszámítson.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -54143,6 +54201,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Van profil';
+
+  @override
+  String get query_dives_tankConfig => 'Palackkonfiguráció';
+
+  @override
+  String get query_dives_stages => 'Stage palack(ok)';
+
+  @override
+  String get query_dives_decoGas => 'Dekó gáz';
+
+  @override
+  String get query_dives_multiGas => 'Több gáz';
 
   @override
   String get query_dives_id => 'Merülés azonosító';

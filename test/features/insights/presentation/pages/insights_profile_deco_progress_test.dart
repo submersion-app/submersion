@@ -138,4 +138,19 @@ void main() {
     expect(find.text('Deco Dives'), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsWidgets);
   });
+
+  testWidgets('partial counts open nothing while the pass runs (#3805)', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      progress: (
+        stats: (decoCount: 3, noDecoCount: 9, unknownCount: 2),
+        analyzed: 12,
+        total: 40,
+      ),
+    );
+
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
 }

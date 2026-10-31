@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:xml/xml.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -5,8 +7,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_source_export.
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// Submersion's extension blocks that say which `<source>` of a dive
-/// recorded what (issue #2492): each tank row, and each tank pressure
-/// series.
+/// recorded what (issue #2492): each tank row, each tank pressure series,
+/// and each depth series (issue #3965). A gas switch names its computer the
+/// same way (#3966), in a `<computer>` of its own `<gasswitch>`.
 ///
 /// The standard `<tankpressure>` in a waypoint names a cylinder and nothing
 /// else, and holds one reading per cylinder per sample. So a backup of a
@@ -16,8 +19,14 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// computer either, so every restored tank row read as the primary
 /// source's (#2716).
 ///
+/// `<samples>` has the same problem with depth: it is one stream of every
+/// source's readings interleaved, and a `<waypoint>` names no source, so a
+/// restore gave the primary source all of them and the others none. It stays
+/// that stream, which older builds and other applications read, and each
+/// series travels again below.
+///
 /// Shared by the full backup and the dives-only export so the two cannot
-/// drift apart. Both blocks live in `<applicationdata><submersion>` beside
+/// drift apart. The blocks live in `<applicationdata><submersion>` beside
 /// the `<datasources>` block whose entries they point at:
 ///
 /// ```xml
@@ -29,6 +38,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 ///     <sample divetime="12" pressure="198.5"/>
 ///   </series>
 /// </tankpressureseries>
+/// <sourceprofiles>
+///   <series diveref="dive_..." source="1" computer="1" primary="false">
+///     ...base64...
+///   </series>
+/// </sourceprofiles>
 /// ```
 ///
 /// `source` is the `ordinal` of a `<source>` entry of the same dive, which
@@ -38,6 +52,15 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// naming a computer is needed; it is absent when the row named none. Each
 /// series stays a series of its own, since one source can record a tank in
 /// two stretches. Pressures are bar, unconverted, so a round trip is exact.
+/// A `<sourceprofiles>` series is base64 over a [ProfileSeriesCodec] blob, as
+/// `<dcdump>` is over a dump: every field of every sample, exactly, at a
+/// fraction of the size of writing them out, since each of these recordings
+/// is also in `<samples>`. `primary` is the series' own flag, not the source's.
+///
+/// A switch names its computer inside its `<gasswitch>`, because nothing in
+/// the file identifies a switch for a block to point at: two computers can
+/// log one second on one merged cylinder. It takes no `source`, as
+/// `gas_switches` stores none.
 class UddfSourceAttribution {
   const UddfSourceAttribution._();
 
@@ -45,12 +68,24 @@ class UddfSourceAttribution {
   /// `dataSources` the import wizard keeps for the same reason (#1735).
   static const String seriesKey = 'tankPressureSeries';
   static const String tanksKey = 'tankSources';
+  static const String profilesKey = 'sourceProfiles';
 
-  /// Writes both blocks for every dive of [dives] that has two or more
-  /// entries in [sources], with its series from [pressures]. Writes nothing
-  /// when no dive does.
+  /// [sources] by the dive each belongs to.
+  static Map<String, List<DiveSourceExport>> groupByDive(
+    List<DiveSourceExport> sources,
+  ) {
+    final byDive = <String, List<DiveSourceExport>>{};
+    for (final source in sources) {
+      (byDive[source.diveId] ??= []).add(source);
+    }
+    return byDive;
+  }
+
+  /// Writes the blocks for every dive of [dives] that has two or more
+  /// entries in [sources], with its pressure series from [pressures] and its
+  /// depth series from [sources]. Writes nothing when no dive does.
   ///
-  /// A dive with one source needs neither: the restore gives that lone
+  /// A dive with one source needs none: the restore gives that lone
   /// source every series it writes from the samples and every tank it can
   /// claim. A dive with none in the file (raw data left out) restores as a
   /// single new source, so the blocks could not keep anything apart either.
@@ -60,10 +95,7 @@ class UddfSourceAttribution {
     required Map<String, DiveTankPressureExport> pressures,
     required List<DiveSourceExport> sources,
   }) {
-    final sourcesByDive = <String, List<DiveSourceExport>>{};
-    for (final source in sources) {
-      (sourcesByDive[source.diveId] ??= []).add(source);
-    }
+    final sourcesByDive = groupByDive(sources);
     final attributed = [
       for (final dive in dives)
         if ((sourcesByDive[dive.id]?.length ?? 0) >= 2) dive,
@@ -96,34 +128,91 @@ class UddfSourceAttribution {
             _computerOrdinal(sourcesByDive[dive.id]!, s.computerId, s.sourceId),
           ),
     ];
+    if (series.isNotEmpty) {
+      builder.element(
+        'tankpressureseries',
+        nest: () {
+          for (final (diveId, s, ordinal, computer) in series) {
+            builder.element(
+              'series',
+              attributes: {
+                'diveref': 'dive_$diveId',
+                'tankref': 'tank_${s.tankId}',
+                'source': ?ordinal?.toString(),
+                'computer': ?computer?.toString(),
+              },
+              nest: () {
+                for (final sample in s.samples) {
+                  builder.element(
+                    'sample',
+                    attributes: {
+                      'divetime': '${sample.timestamp}',
+                      'pressure': '${sample.pressure}',
+                    },
+                  );
+                }
+              },
+            );
+          }
+        },
+      );
+    }
+
+    _writeProfiles(builder, [
+      for (final dive in attributed) sourcesByDive[dive.id]!,
+    ]);
+  }
+
+  /// The `<sourceprofiles>` block for [sourcesPerDive], each list being one
+  /// dive's sources; nothing when none of them owns a depth series.
+  static void _writeProfiles(
+    XmlBuilder builder,
+    List<List<DiveSourceExport>> sourcesPerDive,
+  ) {
+    final series = [
+      for (final sources in sourcesPerDive)
+        for (final source in sources)
+          for (final s in source.profileSeries) (sources, source.diveId, s),
+    ];
     if (series.isEmpty) return;
     builder.element(
-      'tankpressureseries',
+      'sourceprofiles',
       nest: () {
-        for (final (diveId, s, ordinal, computer) in series) {
+        for (final (sources, diveId, s) in series) {
+          final ordinal = _ordinalOf(sources, s.sourceId);
+          final computer = _computerOrdinal(sources, s.computerId, s.sourceId);
           builder.element(
             'series',
             attributes: {
               'diveref': 'dive_$diveId',
-              'tankref': 'tank_${s.tankId}',
               'source': ?ordinal?.toString(),
               'computer': ?computer?.toString(),
+              'primary': '${s.isPrimary}',
             },
-            nest: () {
-              for (final sample in s.samples) {
-                builder.element(
-                  'sample',
-                  attributes: {
-                    'divetime': '${sample.timestamp}',
-                    'pressure': '${sample.pressure}',
-                  },
-                );
-              }
-            },
+            nest: base64Encode(s.blob),
           );
         }
       },
     );
+  }
+
+  /// Writes the `<computer>` of a `<gasswitch>` that [computerId] logged, the
+  /// ordinal of one of its dive's [sources] that computer recorded. Writes
+  /// nothing for a switch with no computer, which stays the whole dive's, or
+  /// one no source recorded.
+  ///
+  /// A dive with one source needs this too, unlike the blocks: that source
+  /// adopts what a restore cannot place, but a switch left unattributed
+  /// applies to every computer rather than to it.
+  static void writeSwitchComputer(
+    XmlBuilder builder,
+    String? computerId,
+    List<DiveSourceExport> sources,
+  ) {
+    final ordinal = _computerOrdinal(sources, computerId, null);
+    if (ordinal != null) {
+      builder.element('computer', nest: ordinal.toString());
+    }
   }
 
   /// The `<tank>` attributes for [tank], or null when neither its source
@@ -233,9 +322,48 @@ class UddfSourceAttribution {
     return byDiveRef;
   }
 
+  /// Every `<series>` of every `<sourceprofiles>` block, keyed by its
+  /// `diveref`, in document order.
+  ///
+  /// Each entry holds `sourceOrdinal` and `computerOrdinal` (either null when
+  /// absent), `isPrimary` and `blob`, the series' base64 text. Nothing decodes
+  /// it here: a dive not selected for import never needs its samples.
+  static Map<String, List<Map<String, dynamic>>> parseProfiles(
+    XmlElement uddfElement,
+  ) {
+    final byDiveRef = <String, List<Map<String, dynamic>>>{};
+    for (final (diveRef, series) in _diveRows(
+      uddfElement,
+      'sourceprofiles',
+      'series',
+    )) {
+      byDiveRef.putIfAbsent(diveRef, () => []).add({
+        'sourceOrdinal': _int(series, 'source'),
+        'computerOrdinal': _int(series, 'computer'),
+        'isPrimary': series.getAttribute('primary') == 'true',
+        'blob': series.innerText.trim(),
+      });
+    }
+    return byDiveRef;
+  }
+
   /// The [rowName] children of every [blockName] block, with their dive and
   /// tank refs; a row missing either is skipped.
   static Iterable<(String, String, XmlElement)> _rows(
+    XmlElement uddfElement,
+    String blockName,
+    String rowName,
+  ) sync* {
+    for (final (diveRef, row) in _diveRows(uddfElement, blockName, rowName)) {
+      final tankRef = row.getAttribute('tankref');
+      if (tankRef == null || tankRef.isEmpty) continue;
+      yield (diveRef, tankRef, row);
+    }
+  }
+
+  /// The [rowName] children of every [blockName] block, with their dive ref;
+  /// a row without one is skipped.
+  static Iterable<(String, XmlElement)> _diveRows(
     XmlElement uddfElement,
     String blockName,
     String rowName,
@@ -245,10 +373,8 @@ class UddfSourceAttribution {
         for (final block in submersion.findElements(blockName)) {
           for (final row in block.findElements(rowName)) {
             final diveRef = row.getAttribute('diveref');
-            final tankRef = row.getAttribute('tankref');
             if (diveRef == null || diveRef.isEmpty) continue;
-            if (tankRef == null || tankRef.isEmpty) continue;
-            yield (diveRef, tankRef, row);
+            yield (diveRef, row);
           }
         }
       }

@@ -17,6 +17,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     this.formatCount,
     this.countWidth = 40,
     this.scaleTo,
+    this.onRowTap,
   });
 
   final List<({String label, int count})> data;
@@ -34,6 +35,11 @@ class HorizontalCategoryBarChart extends StatelessWidget {
   /// Shares of a whole pass the whole, so each bar's length matches its
   /// share.
   final int? scaleTo;
+
+  /// Called with the index in [data] of a tapped row. Null leaves the chart
+  /// read-only; when set, every row with dives is a button at the minimum
+  /// touch target, with a chevron.
+  final void Function(int index)? onRowTap;
 
   @override
   Widget build(BuildContext context) {
@@ -67,60 +73,88 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     final maxCount =
         scaleTo ?? data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
 
+    Widget row(({String label, int count}) item) => Row(
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            item.label,
+            style: theme.textTheme.bodySmall,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Expanded(
+          child: FractionallySizedBox(
+            alignment: AlignmentDirectional.centerStart,
+            widthFactor: maxCount == 0
+                ? 0
+                : (item.count / maxCount).clamp(0.0, 1.0),
+            child: Container(
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: countWidth,
+          // Shrinks a count too long for the column (a large text scale, a
+          // 4-digit count with its share) instead of wrapping it onto a
+          // second line.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerEnd,
+            child: Text(
+              _countText(item.count),
+              style: theme.textTheme.bodySmall,
+              textAlign: TextAlign.end,
+              maxLines: 1,
+            ),
+          ),
+        ),
+        if (onRowTap != null && item.count > 0)
+          const Icon(Icons.chevron_right, size: 16),
+      ],
+    );
+
     return Semantics(
       label: context.l10n.insights_chart_barSemanticLabel(data.length),
       child: Column(
         children: [
-          for (final item in data)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      item.label,
-                      style: theme.textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Expanded(
-                    child: FractionallySizedBox(
-                      alignment: AlignmentDirectional.centerStart,
-                      widthFactor: maxCount == 0
-                          ? 0
-                          : (item.count / maxCount).clamp(0.0, 1.0),
-                      child: Container(
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+          for (final (index, item) in data.indexed)
+            if (onRowTap case final onTap? when item.count > 0)
+              Semantics(
+                container: true,
+                button: true,
+                label: context.l10n.insights_chart_barRowSemanticLabel(
+                  _countText(item.count),
+                  item.label,
+                ),
+                child: InkWell(
+                  onTap: () => onTap(index),
+                  borderRadius: BorderRadius.circular(8),
+                  child: ExcludeSemantics(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minHeight: kMinInteractiveDimension,
                       ),
+                      child: row(item),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: countWidth,
-                    // Shrinks a count too long for the column (a large text
-                    // scale, a 4-digit count with its share) instead of
-                    // wrapping it onto a second line.
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text(
-                        formatCount?.call(item.count) ?? '${item.count}',
-                        style: theme.textTheme.bodySmall,
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: row(item),
               ),
-            ),
         ],
       ),
     );
   }
+
+  String _countText(int count) => formatCount?.call(count) ?? '$count';
 }

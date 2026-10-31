@@ -118,4 +118,126 @@ void main() {
     expect(find.byIcon(Icons.bar_chart), findsOneWidget);
     expect(find.byType(FractionallySizedBox), findsNothing);
   });
+
+  group('tappable rows (#3804)', () {
+    const rows = [(label: 'Sidemount', count: 6), (label: 'Other', count: 4)];
+
+    testWidgets('a row shows a chevron, and one with no dives opens nothing', (
+      tester,
+    ) async {
+      int? opened;
+      await tester.pumpWidget(
+        _wrap(
+          HorizontalCategoryBarChart(
+            data: const [
+              (label: 'Wreck', count: 10),
+              (label: 'Lake', count: 0),
+            ],
+            onRowTap: (i) => opened = i,
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      await tester.tap(find.text('Lake'));
+      await tester.pump();
+
+      expect(opened, isNull);
+    });
+
+    testWidgets('a chart with no callback has no tap targets', (tester) async {
+      await tester.pumpWidget(
+        _wrap(const HorizontalCategoryBarChart(data: rows)),
+      );
+
+      expect(find.byType(InkWell), findsNothing);
+    });
+
+    testWidgets('a row reports its index, wherever it is tapped', (
+      tester,
+    ) async {
+      final tapped = <int>[];
+      await tester.pumpWidget(
+        _wrap(HorizontalCategoryBarChart(data: rows, onRowTap: tapped.add)),
+      );
+
+      final second = tester.getRect(find.byType(InkWell).last);
+      await tester.tapAt(second.centerRight - const Offset(4, 0));
+      await tester.tapAt(second.centerLeft + const Offset(4, 0));
+      await tester.tap(find.text('Sidemount'));
+
+      expect(tapped, [1, 1, 0]);
+    });
+
+    testWidgets('a row meets the minimum touch target', (tester) async {
+      await tester.pumpWidget(
+        _wrap(HorizontalCategoryBarChart(data: rows, onRowTap: (_) {})),
+      );
+
+      expect(
+        tester.getSize(find.byType(InkWell).first).height,
+        greaterThanOrEqualTo(kMinInteractiveDimension),
+      );
+    });
+
+    testWidgets('a row is a button carrying its label and count', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          HorizontalCategoryBarChart(
+            data: rows,
+            formatCount: (n) => '$n dives',
+            countWidth: 72,
+            onRowTap: (_) {},
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.byType(InkWell).first),
+        matchesSemantics(
+          label: 'Sidemount, 6 dives',
+          isButton: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+          isFocusable: true,
+        ),
+      );
+    });
+
+    testWidgets('in Arabic at double text size a row fits and takes the tap', (
+      tester,
+    ) async {
+      final tapped = <int>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ar'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: MediaQuery.withClampedTextScaling(
+              minScaleFactor: 2,
+              maxScaleFactor: 2,
+              child: SizedBox(
+                width: 300,
+                child: HorizontalCategoryBarChart(
+                  data: const [(label: 'أسطوانة خلفية مفردة', count: 131)],
+                  formatCount: (n) => '$n · ٦٢٪',
+                  countWidth: 72,
+                  onRowTap: tapped.add,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final row = tester.getRect(find.byType(InkWell));
+      await tester.tapAt(row.centerLeft + const Offset(4, 0));
+      await tester.tapAt(row.centerRight - const Offset(4, 0));
+      expect(tapped, [0, 0]);
+    });
+  });
 }
