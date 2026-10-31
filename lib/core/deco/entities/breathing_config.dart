@@ -77,6 +77,18 @@ class ClosedCircuit extends BreathingConfig {
   }
 }
 
+/// A semi-closed rebreather: a loop fed from one supply cylinder, whose mix
+/// is the gas the diver carries but not the gas the diver inspires.
+sealed class SemiClosedBreathing extends BreathingConfig {
+  const SemiClosedBreathing();
+
+  /// Supply gas O2 fraction (0-1).
+  double get supplyFO2;
+
+  /// Supply gas He fraction (0-1).
+  double get supplyFHe;
+}
+
 /// CMF semi-closed rebreather at steady state.
 ///
 /// The loop behaves like open circuit on the steady-state loop mix derived
@@ -84,7 +96,7 @@ class ClosedCircuit extends BreathingConfig {
 /// supply's He:N2 ratio is preserved in the loop (metabolism only removes
 /// O2). If the flow is insufficient (hypoxic), the supply mix is used and
 /// callers surface that as a warning.
-class Scr extends BreathingConfig {
+class Scr extends SemiClosedBreathing {
   Scr({
     required this.supplyFO2,
     this.supplyFHe = 0.0,
@@ -92,7 +104,9 @@ class Scr extends BreathingConfig {
     this.vo2 = ScrCalculator.defaultVo2,
   }) : _loop = _steadyStateLoop(supplyFO2, supplyFHe, injectionRateLpm, vo2);
 
+  @override
   final double supplyFO2;
+  @override
   final double supplyFHe;
   final double injectionRateLpm;
   final double vo2;
@@ -144,7 +158,7 @@ class Scr extends BreathingConfig {
 /// give a ~0.285 bar O2 drop on air. Because the drop is a fixed pressure, a
 /// lean gas is hypoxic near the surface (drop exceeds the supply ppO2) but
 /// breathable at depth — the real behavior that makes pSCR demand rich gas.
-class PassiveScr extends BreathingConfig {
+class PassiveScr extends SemiClosedBreathing {
   PassiveScr({
     required this.supplyFO2,
     this.supplyFHe = 0.0,
@@ -153,10 +167,10 @@ class PassiveScr extends BreathingConfig {
     this.pscrRatio = 100.0,
   });
 
-  /// Supply gas O2 fraction (0-1).
+  @override
   final double supplyFO2;
 
-  /// Supply gas He fraction (0-1).
+  @override
   final double supplyFHe;
 
   /// Metabolic O2 consumption in surface mL/min (Subsurface `o2consumption`).

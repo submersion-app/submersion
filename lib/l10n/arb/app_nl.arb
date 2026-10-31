@@ -5900,7 +5900,7 @@
   "plannerCanvas_issue_noUsableGas": "Rock-bottom-minimum van {minGas} laat geen bruikbaar gas over in een vulling van {fill}",
   "plannerCanvas_issue_diluentModExceeded": "Diluent overschrijdt de Dil-MOD op {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Het profiel gaat boven het decompressieplafond van {ceiling} en slaat verplichte stops over",
-  "plannerCanvas_issue_noBailout": "CCR-decompressieplan heeft geen bailoutgas aan boord",
+  "plannerCanvas_issue_noBailout": "Decompressieplan heeft geen bailoutgas aan boord",
   "plannerCanvas_issue_noDecoGas": "Decompressie vereist maar geen decogas meegenomen",
   "plannerCanvas_range_base": "Basis",
   "plannerCanvas_range_legend": "Cellen tonen de tijd naar de oppervlakte; rood = niet duikbaar zoals gepland",

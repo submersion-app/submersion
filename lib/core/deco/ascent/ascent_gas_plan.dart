@@ -27,9 +27,9 @@ class AscentGas {
   final double fN2;
   final double fHe;
 
-  /// The oxygen left after the inert gases. On a closed-circuit plan the
+  /// The oxygen left after the inert gases. On a rebreather loop the
   /// fractions are normalized against alveolar pressure, so this is not an
-  /// inspired fraction: ask `CcrLoopAscentGas.inspiredPpO2At` for the ppO2.
+  /// inspired fraction: ask `LoopAscentGas.inspiredPpO2At` for the ppO2.
   double get fO2 => 1.0 - fN2 - fHe;
 }
 
