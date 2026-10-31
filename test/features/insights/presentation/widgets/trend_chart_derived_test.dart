@@ -87,7 +87,6 @@ void main() {
   group('fits', () {
     test('neither runs unless asked for', () {
       final derived = TrendChartDerived.compute(points: both);
-      expect(derived.smoothed, isEmpty);
       expect(derived.fit, isNull);
       expect(derived.fitSpots, isEmpty);
       expect(derived.smoothedSpots, isEmpty);
@@ -100,7 +99,7 @@ void main() {
         showRollingMean: true,
       );
       final expected = rollingMean(both, periodOf: derived.scale.periodOf);
-      expect(derived.smoothed.map((p) => p.value), [
+      expect(derived.smoothedSpots.where((s) => !s.isNull()).map((s) => s.y), [
         for (final p in expected) p.value,
       ]);
       expect(derived.smoothedSpots, contains(FlSpot.nullSpot));
@@ -114,7 +113,7 @@ void main() {
         showLinearFit: true,
       );
       final fit = linearFit(both)!;
-      expect(derived.smoothed, hasLength(both.length));
+      expect(derived.smoothedSpots, hasLength(both.length));
       expect(derived.fit!.slopePerDay, fit.slopePerDay);
       expect(derived.fit!.intercept, fit.intercept);
     });
@@ -153,7 +152,7 @@ void main() {
       final fit = derived.fit!;
       final expected = ChartAxis.forTrend([
         ...derived.allBuckets.expand((b) => [b.min, b.max]),
-        ...derived.smoothed.map((p) => p.value),
+        ...derived.smoothedSpots.map((s) => s.y),
         fit.valueAt(derived.firstDate),
         fit.valueAt(derived.lastDate),
       ]);

@@ -7,9 +7,6 @@ import 'package:submersion/features/insights/domain/trend_time_scale.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_break_spots.dart';
 
-/// A series placed on the chart: its spots, and the bucket behind each.
-typedef PlacedBuckets = ({List<FlSpot> spots, List<int?> source});
-
 /// Everything a trend chart draws that follows from its data alone, computed
 /// together so no part can disagree with another.
 ///
@@ -26,7 +23,6 @@ class TrendChartDerived {
     required this.scale,
     required this.firstDate,
     required this.lastDate,
-    required this.smoothed,
     required this.fit,
     required this.yAxis,
     required this.primary,
@@ -97,7 +93,7 @@ class TrendChartDerived {
       ?referenceValue,
     ]);
 
-    PlacedBuckets place(
+    PlacedSpots place(
       List<TrendBucket> series,
       double Function(TrendBucket) valueOf,
     ) => spotsAcrossBreaks(series, (b) => b.date, valueOf, scale);
@@ -109,7 +105,6 @@ class TrendChartDerived {
       scale: scale,
       firstDate: firstDate,
       lastDate: lastDate,
-      smoothed: smoothed,
       fit: fit,
       yAxis: yAxis,
       primary: place(buckets, (b) => b.mean),
@@ -147,22 +142,21 @@ class TrendChartDerived {
   final DateTime firstDate;
   final DateTime lastDate;
 
-  /// The rolling mean; empty when off or below the minimum for a fit.
-  final List<TrendDataPoint> smoothed;
-
   /// The linear fit; null when off or below the minimum for a fit.
   final LinearFit? fit;
 
   final ChartAxis yAxis;
 
-  final PlacedBuckets primary;
+  final PlacedSpots primary;
 
   /// The bucket bounds the spread band fills between; empty per dive.
   final List<FlSpot> lowSpots;
   final List<FlSpot> highSpots;
 
+  /// The rolling mean; empty when off or below the minimum for a fit.
   final List<FlSpot> smoothedSpots;
+
   final List<FlSpot> fitSpots;
 
-  final List<PlacedBuckets> secondaryPlaced;
+  final List<PlacedSpots> secondaryPlaced;
 }

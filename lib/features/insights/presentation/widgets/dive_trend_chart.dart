@@ -88,6 +88,10 @@ class DiveTrendChart extends StatefulWidget {
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
   /// May be empty when [secondarySeries] carries the data.
+  ///
+  /// Compared by identity, like [secondarySeries]: everything drawn from them
+  /// is reused until a different list arrives, so pass a new list to change
+  /// the data rather than editing this one.
   final List<TrendDataPoint> points;
 
   /// Extra series on the same axes, bucketed like [points] and named in
@@ -226,8 +230,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// The strip's points, rebuilt with the chart only while it is showing.
   List<Offset> _overviewPoints = const [];
 
-  /// What [_overviewPoints] was last built from; lists compare by identity.
-  Object? _overviewKey;
+  /// What [_overviewPoints] was last built from.
+  TrendChartDerived? _overviewSource;
 
   final TrendWindowSeater _seater = TrendWindowSeater();
 
@@ -392,17 +396,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
     // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
     // the chart on every pointer move, and the data does not move with them.
-    final overviewKey = (
-      points,
-      widget.secondarySeries,
-      aggregation,
-      fullMin,
-      fullSpan,
-      yAxis.min,
-      yAxis.max,
-    );
-    if ((_viewport.isZoomed || _stripActive) && overviewKey != _overviewKey) {
-      _overviewKey = overviewKey;
+    if ((_viewport.isZoomed || _stripActive) &&
+        !identical(derived, _overviewSource)) {
+      _overviewSource = derived;
       final ySpan = yAxis.max - yAxis.min;
       // The strip plots the buckets the chart draws, not the raw dives: the
       // x range runs between bucket dates, and a dive later in the last
@@ -418,12 +414,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
     final isRaw = aggregation == TrendAggregation.none;
     final bars = _bars(context, derived, color, isRaw);
-    final seriesLabels = _seriesLabels(
-      context,
-      isRaw,
-      derived.smoothed,
-      derived.fit,
-    );
+    final seriesLabels = _seriesLabels(context, isRaw, derived);
     final highlight = widget.highlightRange;
 
     // Every plotted point, secondaries included: the condition charts
@@ -516,8 +507,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   List<String> _seriesLabels(
     BuildContext context,
     bool isRaw,
-    List<TrendDataPoint> smoothed,
-    LinearFit? fit,
+    TrendChartDerived derived,
   ) {
     final l10n = context.l10n;
     final mode = switch (widget.aggregation) {
@@ -531,8 +521,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
         l10n.insights_trend_tooltip_lowest,
         l10n.insights_trend_tooltip_highest,
       ],
-      if (smoothed.isNotEmpty) l10n.insights_trend_legend_rollingAverage,
-      if (fit != null) l10n.insights_trend_legend_rate,
+      if (derived.smoothedSpots.isNotEmpty)
+        l10n.insights_trend_legend_rollingAverage,
+      if (derived.fit != null) l10n.insights_trend_legend_rate,
       for (final s in widget.secondarySeries) s.label,
     ];
   }
@@ -566,7 +557,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       }
     }
 
-    if (derived.smoothed.isNotEmpty) {
+    if (derived.smoothedSpots.isNotEmpty) {
       bars.add(
         LineChartBarData(
           spots: derived.smoothedSpots,
