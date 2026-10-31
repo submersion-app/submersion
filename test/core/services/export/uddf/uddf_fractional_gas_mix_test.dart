@@ -91,6 +91,30 @@ void main() {
         expect(linkedMixesIn(xml), const [GasMix(o2: 28), GasMix(o2: 29)]);
       });
 
+      test('binary noise on a logged gas does not make it a new mix', () async {
+        // The native bridges compute fraction * 100.0, so a downloaded 28% can
+        // be stored a few ULPs off the 28% typed in for the other cylinder.
+        final xml = await write(const [
+          GasMix(o2: 28),
+          GasMix(o2: 28.000000000000004),
+        ]);
+
+        expect(linkedMixesIn(xml), const [GasMix(o2: 28), GasMix(o2: 28)]);
+        expect(definitionsIn(xml).keys, ['mix_28_0', 'mix_21_0']);
+      });
+
+      test('writes each fraction without binary noise', () async {
+        // 32.9 / 100 is 0.32899999999999996 and 100 - 32.9 is a noisy n2.
+        final xml = await write(const [GasMix(o2: 32.9, he: 0.1)]);
+
+        final mix = XmlDocument.parse(xml)
+            .findAllElements('mix')
+            .firstWhere((m) => m.getAttribute('id') == 'mix_32.9_0.1');
+        expect(mix.getElement('o2')?.innerText, '0.329');
+        expect(mix.getElement('n2')?.innerText, '0.67');
+        expect(mix.getElement('he')?.innerText, '0.001');
+      });
+
       test('two cylinders of one gas share one definition', () async {
         const mixes = [GasMix(o2: 32.1), GasMix(o2: 32.1)];
         final xml = await write(mixes);

@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -405,21 +406,16 @@ class UddfImportParsers {
 
     // UDDF stores gas values as fractions (0.21 for 21%).
     final o2 = o2Text != null
-        ? _percentOf(double.tryParse(o2Text) ?? 0.21)
+        ? UddfGasMixWriters.cleanPercent(
+            (double.tryParse(o2Text) ?? 0.21) * 100,
+          )
         : 21.0;
     final he = heText != null
-        ? _percentOf(double.tryParse(heText) ?? 0.0)
+        ? UddfGasMixWriters.cleanPercent((double.tryParse(heText) ?? 0.0) * 100)
         : 0.0;
 
     return GasMix(o2: o2, he: he);
   }
-
-  /// [fraction] as a percentage, without the binary error of the
-  /// multiplication: 0.29 * 100 is 28.999999999999996, which would change a
-  /// logged 29% on every restore. Ten decimals sit far below any analyzer's
-  /// precision and far above that error.
-  static double _percentOf(double fraction) =>
-      double.parse((fraction * 100).toStringAsFixed(10));
 
   /// A datetime carrying trailing timezone info: a "Z", or an offset in any
   /// of the shapes ISO 8601 allows ("+02:00", "+0200", "+02"). Group 1 is the
