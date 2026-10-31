@@ -2090,6 +2090,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 units: units,
                 tanks: dive.tanks,
                 isRebreather: dive.isRebreather,
+                environment: dive.environment,
               ),
             ],
           ],

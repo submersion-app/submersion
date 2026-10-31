@@ -99,7 +99,13 @@ class DiveEnvironment extends Equatable {
   static const double _gravity = 9.80665;
 
   /// Pressure increase per meter of depth, in bar.
-  double get barPerMeter => waterDensityKgM3 * _gravity / 100000.0;
+  ///
+  /// EN13319 is defined by this figure, and [en13319Density] only rounds it:
+  /// through the density it comes out 1e-10 high, enough to carry a ppO2 that
+  /// sits exactly on a limit over it.
+  double get barPerMeter => waterDensityKgM3 == en13319Density
+      ? 0.1
+      : waterDensityKgM3 * _gravity / 100000.0;
 
   /// Absolute ambient pressure at [depthMeters], in bar.
   double pressureAtDepth(double depthMeters) =>

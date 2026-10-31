@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -364,6 +365,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         events: analysis?.events,
         ndlCurve: analysis?.ndlCurve,
         sacCurve: analysis?.smoothedSacCurve,
+        environment: analysis?.environment ?? DiveEnvironment.standard,
         ppO2Curve: analysis?.ppO2Curve,
         o2SensorCurves: analysis?.o2SensorCurves,
         o2CellMvCurves: analysis?.o2CellMvCurves,

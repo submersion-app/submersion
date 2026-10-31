@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
@@ -66,6 +67,12 @@ class DerivedMetricsRepository {
       _db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
+    final siteId = dive.siteId;
+    final site = siteId == null
+        ? null
+        : await (_db.select(
+            _db.diveSites,
+          )..where((t) => t.id.equals(siteId))).getSingleOrNull();
 
     final seriesRows = await _series.getPrimaryRowsForDives([diveId]);
     final tankRows = await (_db.select(
@@ -91,6 +98,12 @@ class DerivedMetricsRepository {
         diveMode: DiveMode.fromCode(dive.diveMode),
         sourceUpdatedAt: stamp,
         computedAtMs: DateTime.now().millisecondsSinceEpoch,
+        environment: DiveEnvironment.forConditions(
+          altitudeMeters: dive.altitude,
+          surfacePressureBar: dive.surfacePressure,
+          waterType: WaterType.values
+              .asNameMap()[dive.waterType ?? site?.waterType],
+        ),
       ),
     );
 

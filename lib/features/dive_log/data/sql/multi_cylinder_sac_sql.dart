@@ -3,6 +3,7 @@
 /// statistics, the query language and the dive overview agree on one dive.
 library;
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
@@ -29,6 +30,14 @@ String consumptionVolumeSql(String tank) {
       '<= $sameGasTolerancePct)) '
       'ORDER BY $partner.tank_order, $partner.rowid LIMIT 1) END)';
 }
+
+/// The absolute pressure in bar at [depth] meters in the water of the `dives`
+/// row aliased [dive], as `Dive.environment` reads it: the dive's own water
+/// type, else its site's. [depth] is a SQL expression.
+String diveAmbientBarSql(String dive, String depth) =>
+    '$kDiveAmbientBarFunction($depth, $dive.altitude, $dive.surface_pressure, '
+    'COALESCE($dive.water_type, (SELECT amb_s.water_type FROM dive_sites amb_s '
+    'WHERE amb_s.id = $dive.site_id)))';
 
 /// SAC in bar per minute at the surface of the `dives` row aliased [dive]:
 /// the reference cylinder's drop (the first back gas, else the first
@@ -71,5 +80,5 @@ String diveSacPressureSql(String dive) {
       "AND t3.tank_role = 'backGas')) "
       'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
       '/ (COALESCE($dive.runtime, $dive.bottom_time) / 60.0) '
-      '/ (($dive.avg_depth / 10.0) + 1)) END)';
+      '/ ${diveAmbientBarSql(dive, '$dive.avg_depth')}) END)';
 }
