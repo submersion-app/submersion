@@ -522,6 +522,12 @@ void main() {
         order: 1,
       );
 
+      /// 6 m throughout, so the ambient pressure over any range is 1.6 bar.
+      const flatAt6m = [
+        DiveProfilePoint(timestamp: 0, depth: 6),
+        DiveProfilePoint(timestamp: 3600, depth: 6),
+      ];
+
       RangeGasConsumption run({
         List<DiveTank> tanks = const [backGas, stage],
         required List<TankPressurePoint> reference,
@@ -535,7 +541,7 @@ void main() {
         },
         startTimestamp: start,
         endTimestamp: end,
-        avgDepth: 6,
+        profile: flatAt6m,
         model: GasModel.ideal,
       );
 
@@ -592,7 +598,7 @@ void main() {
           tankPressures: {'st': _linear('st', from: 200, to: 150)},
           startTimestamp: 0,
           endTimestamp: 600,
-          avgDepth: 6,
+          profile: flatAt6m,
           model: GasModel.ideal,
         );
 
@@ -624,7 +630,7 @@ void main() {
           },
           startTimestamp: 0,
           endTimestamp: 600,
-          avgDepth: 6,
+          profile: flatAt6m,
           model: GasModel.ideal,
         );
 
