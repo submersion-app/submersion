@@ -1,6 +1,8 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -122,10 +124,12 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
         ? analysis.decoStatuses.last.compartments
         : null;
 
-    final end = (dive.entryTime ?? dive.dateTime).add(
-      dive.effectiveRuntime ?? Duration.zero,
-    );
-    var interval = DateTime.now().difference(end);
+    // Stored dive times are clock digits, so read them in the device's zone:
+    // as instants they sit a UTC offset away from when the dive really ended.
+    final end = fromWallClockUtc(
+      dive.entryTime ?? dive.dateTime,
+    ).add(dive.effectiveRuntime ?? Duration.zero);
+    var interval = clock.now().difference(end);
     if (interval < const Duration(minutes: 10)) {
       interval = const Duration(hours: 1);
     }

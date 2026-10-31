@@ -1,4 +1,5 @@
 import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,6 +17,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/safety/domain/entities/cns_otu_snapshot.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
 
+import '../../../../helpers/dst_transition.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// Fake repository that fails if the lookup is ever run, so the test can
@@ -41,6 +43,7 @@ class _StubDiveRepository extends Fake implements DiveRepository {
   final DiveTimes? lastDive;
   final List<DiveTimes> weekDives;
   String? queriedDiverId;
+  int lastDiveQueries = 0;
   ({DateTime start, DateTime end, String? diverId})? weeklyRangeQueried;
 
   _StubDiveRepository(this.lastDive, {this.weekDives = const []});
@@ -54,6 +57,7 @@ class _StubDiveRepository extends Fake implements DiveRepository {
     required DateTime notAfter,
   }) async {
     queriedDiverId = diverId;
+    lastDiveQueries++;
     return lastDive;
   }
 
@@ -167,6 +171,29 @@ void main() {
     addTearDown(container.dispose);
     return container;
   }
+
+  // The totals only move when this provider reruns, and the day that loses an
+  // hour reaches midnight an hour sooner than its clock digits say.
+  test('refetches at the real local midnight of a spring-forward day', () {
+    final change = dstTransition(forward: true)!.toLocal();
+    final start = DateTime(change.year, change.month, change.day, 0, 30);
+    final midnight = DateTime(change.year, change.month, change.day + 1);
+
+    fakeAsync((async) {
+      final repo = _StubDiveRepository(null);
+      final container = containerFor(repo, const {});
+      final subscription = container.listen(cnsOtuSnapshotProvider, (_, _) {});
+      addTearDown(subscription.close);
+      async.flushMicrotasks();
+      expect(repo.lastDiveQueries, 1);
+
+      async.elapse(midnight.difference(start) - const Duration(minutes: 1));
+      expect(repo.lastDiveQueries, 1, reason: 'still the same local day');
+
+      async.elapse(const Duration(minutes: 2));
+      expect(repo.lastDiveQueries, 2, reason: 'the local day has changed');
+    }, initialTime: start);
+  }, skip: zoneHasNoDst);
 
   test('builds a snapshot from the most recent dive\'s analysis and sums OTU '
       'across the dives in the rolling weekly window', () async {

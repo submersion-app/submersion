@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -149,14 +150,18 @@ class CnsOtuStatusCard extends StatelessWidget {
       return _clearCard(l10n, theme);
     }
 
-    final now = NoFlyService.wallClockNowUtc();
-    final elapsed = now.isAfter(snap.lastDiveEnd)
-        ? now.difference(snap.lastDiveEnd)
+    // True instants: CNS%, tissues and the "ended ... ago" line all measure
+    // elapsed time. Only daily OTU stays on clock digits, because it belongs
+    // to a calendar day rather than a span.
+    final now = clock.now().toUtc();
+    final lastDiveEnd = snap.lastDiveEndInstant;
+    final elapsed = now.isAfter(lastDiveEnd)
+        ? now.difference(lastDiveEnd)
         : Duration.zero;
     final dailyOtu = CnsOtuLiveService.currentOtuDaily(
       dailyOtu: snap.dailyOtu,
       computedAt: snap.computedAt,
-      now: now,
+      now: NoFlyService.wallClockNowUtc(),
     );
 
     final exposure = snap.exposure;
@@ -171,7 +176,7 @@ class CnsOtuStatusCard extends StatelessWidget {
 
     final liveCns = CnsOtuLiveService.currentCns(
       cnsAtDiveEnd: exposure.cnsEnd,
-      lastDiveEnd: snap.lastDiveEnd,
+      lastDiveEnd: lastDiveEnd,
       now: now,
     );
 
@@ -191,7 +196,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     final currentTissue = endOfDiveCompartments != null
         ? TissueLiveService.currentStatus(
             endOfDiveCompartments: endOfDiveCompartments,
-            lastDiveEnd: snap.lastDiveEnd,
+            lastDiveEnd: lastDiveEnd,
             now: now,
             gfLow: gfLow,
             gfHigh: gfHigh,
@@ -206,7 +211,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     final tissueTimeline = tissueStatus != null
         ? TissueLiveService.surfaceIntervalTimeline(
             endOfDiveCompartments: endOfDiveCompartments!,
-            lastDiveEnd: snap.lastDiveEnd,
+            lastDiveEnd: lastDiveEnd,
             now: now,
             gfLow: gfLow,
             gfHigh: gfHigh,
