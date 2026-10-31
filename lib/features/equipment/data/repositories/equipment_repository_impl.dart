@@ -1932,9 +1932,10 @@ class EquipmentRepository {
     ];
   }
 
-  /// Get trip count for equipment item (unique trips from dives using this equipment)
-  /// A planned dive has not used the item, so a trip with nothing but plans
-  /// for it does not count (issue #3932).
+  /// Get trip count for equipment item (unique trips from dives using this equipment):
+  /// the trips of the dives [getDiveCountForEquipment] counts, however the
+  /// item is linked. A planned dive has not used the item, so a trip with
+  /// nothing but plans for it does not count (issue #3932).
   ///
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
   /// from statistics still physically happened: it cycled this gear and put
@@ -1948,12 +1949,13 @@ class EquipmentRepository {
           .customSelect(
             '''
         SELECT COUNT(DISTINCT d.trip_id) as count
-        FROM dive_equipment de
-        INNER JOIN dives d ON de.dive_id = d.id
-        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
-          AND d.is_planned = 0
+        FROM dives d
+        WHERE d.trip_id IS NOT NULL AND $_diveOnItemSql
       ''',
-            variables: [Variable.withString(equipmentId)],
+            variables: [
+              Variable.withString(equipmentId),
+              const Variable<String>(null),
+            ],
           )
           .getSingle();
 
@@ -1977,13 +1979,14 @@ class EquipmentRepository {
           .customSelect(
             '''
         SELECT DISTINCT d.trip_id
-        FROM dive_equipment de
-        INNER JOIN dives d ON de.dive_id = d.id
-        WHERE de.equipment_id = ? AND d.trip_id IS NOT NULL
-          AND d.is_planned = 0
+        FROM dives d
+        WHERE d.trip_id IS NOT NULL AND $_diveOnItemSql
         ORDER BY d.dive_date_time DESC
       ''',
-            variables: [Variable.withString(equipmentId)],
+            variables: [
+              Variable.withString(equipmentId),
+              const Variable<String>(null),
+            ],
           )
           .get();
 

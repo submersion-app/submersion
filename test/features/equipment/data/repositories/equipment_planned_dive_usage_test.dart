@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/loaded_service_clocks.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/equipment/domain/entities/exposure_threshold
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -103,7 +105,7 @@ void main() {
   });
 
   test(
-    'a plan left out of the rows is left out once its date passes',
+    'a plan never carried out does not count once its date passes',
     () async {
       await addDive(
         'late',
@@ -256,6 +258,53 @@ void main() {
 
     expect(await repo.getTripCountForEquipment(item.id), 1);
     expect(await repo.getTripIdsForEquipment(item.id), ['been']);
+  });
+
+  test(
+    'the Trips row reaches a trip through a tank, as the Dives row does',
+    () async {
+      await addTrip('been');
+      await addDive('actual', actualDate, tripId: 'been');
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'k1',
+              diveId: 'actual',
+            ).copyWith(regulatorEquipmentId: Value(item.id)),
+          );
+
+      expect(await repo.getDiveCountForEquipment(item.id), 1);
+      expect(await repo.getTripCountForEquipment(item.id), 1);
+      expect(await repo.getTripIdsForEquipment(item.id), ['been']);
+    },
+  );
+
+  test('the Trips row refreshes when a plan on the trip is logged', () async {
+    await addTrip('upcoming');
+    await addDive('plan', planDate, planned: true, tripId: 'upcoming');
+    await link('plan', item.id);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final count = container.listen(
+      equipmentTripCountProvider(item.id),
+      (_, _) {},
+    );
+    addTearDown(count.close);
+    final ids = container.listen(equipmentTripIdsProvider(item.id), (_, _) {});
+    addTearDown(ids.close);
+    expect(await container.read(equipmentTripCountProvider(item.id).future), 0);
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), []);
+
+    await (db.update(db.dives)..where((t) => t.id.equals('plan'))).write(
+      const DivesCompanion(isPlanned: Value(false)),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+
+    expect(await container.read(equipmentTripCountProvider(item.id).future), 1);
+    expect(await container.read(equipmentTripIdsProvider(item.id).future), [
+      'upcoming',
+    ]);
   });
 
   group('a two-dive service clock', () {

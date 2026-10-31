@@ -423,7 +423,9 @@ final equipmentDiveTimeProvider = FutureProvider.family<int, String>((
 /// Trip count for equipment provider.
 ///
 /// Reaches trips through the equipment's dives, so it takes the trips tick as
-/// well: deleting a trip changes the count without writing `equipment`.
+/// well: deleting a trip changes the count without writing `equipment`. The
+/// dive tick covers a link changing and a plan being logged, which writes only
+/// `dives`.
 final equipmentTripCountProvider = FutureProvider.family<int, String>((
   ref,
   equipmentId,
@@ -431,12 +433,15 @@ final equipmentTripCountProvider = FutureProvider.family<int, String>((
   final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
+  );
   return repository.getTripCountForEquipment(equipmentId);
 });
 
 /// Trip IDs for equipment provider.
 ///
-/// Same junction read as [equipmentTripCountProvider].
+/// Same read as [equipmentTripCountProvider].
 final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   ref,
   equipmentId,
@@ -444,6 +449,9 @@ final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(_itemDiveTables),
+  );
   return repository.getTripIdsForEquipment(equipmentId);
 });
 
