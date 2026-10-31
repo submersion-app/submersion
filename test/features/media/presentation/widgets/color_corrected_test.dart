@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -86,12 +87,141 @@ void main() {
     return container;
   }
 
+  /// Pumps [item]'s tile (or [tree]) with diver auto on over [service], in
+  /// one long-lived scope so a second call updates rather than remounts.
+  Future<void> pumpTile(
+    WidgetTester tester,
+    ColorAnalysisService service,
+    MediaItem item, {
+    Widget? tree,
+  }) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          colorEnrichmentProvider.overrideWith((ref, id) async => null),
+          diverAutoColorCorrectionProvider.overrideWithValue(true),
+          colorAnalysisServiceProvider.overrideWithValue(service),
+        ],
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child:
+              tree ??
+              ColorCorrected(
+                item: item,
+                analysisSource: source,
+                child: const SizedBox(width: 10, height: 10),
+              ),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
   ColorFiltered? filter(WidgetTester tester) {
     final found = find.byType(ColorFiltered);
     return found.evaluate().isEmpty
         ? null
         : tester.widget<ColorFiltered>(found);
   }
+
+  group('a tile that stops needing its queued analysis (issue #3868)', () {
+    /// A service with both decode slots held, so anything asked for queues.
+    /// Built in the test body: the gate must share the test's fake clock.
+    /// `finish` ends every decode, whose timeouts would otherwise outlive
+    /// the test.
+    ({ColorAnalysisService service, Future<void> Function() finish}) held(
+      WidgetTester tester,
+    ) {
+      final gate = Completer<Uint8List?>();
+      final service = ColorAnalysisService(decodeRgba: (_) => gate.future);
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
+      return (
+        service: service,
+        finish: () async {
+          gate.complete(null);
+          await tester.pump();
+          await tester.pump();
+        },
+      );
+    }
+
+    testWidgets('leaving the screen releases its place in the queue', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+
+      await tester.pumpWidget(const SizedBox());
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    testWidgets('showing another photo releases the one it had queued', (
+      tester,
+    ) async {
+      final photo = item();
+      final other = photo.copyWith(id: 'm2');
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+
+      await pumpTile(tester, service, other);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      expect(service.isPending(colorStatsKey(other)), isTrue);
+      await finish();
+    });
+
+    testWidgets('showing a photo off any dive releases the one it had queued', (
+      tester,
+    ) async {
+      final photo = item();
+      final offDive = item(diveId: null, depth: null).copyWith(id: 'm2');
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+
+      await pumpTile(tester, service, offDive);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    testWidgets('a rebuild keeps its place in the queue', (tester) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+
+      await pumpTile(tester, service, photo);
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finish();
+    });
+
+    testWidgets('a second tile keeps a shared key queued', (tester) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      Widget tile(String key) => ColorCorrected(
+        key: ValueKey(key),
+        item: photo,
+        analysisSource: source,
+        child: const SizedBox(width: 10, height: 10),
+      );
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile('a'), tile('b')]),
+      );
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile('b')]),
+      );
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finish();
+    });
+  });
 
   testWidgets('no adjustment and auto off draws the child as it is', (
     tester,

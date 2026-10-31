@@ -189,4 +189,189 @@ void main() {
     await service.statsFor('a', source);
     expect(decodes, 4);
   });
+
+  group('the queue after a fling (issue #3868)', () {
+    late List<String> started;
+    late List<Completer<Uint8List?>> gates;
+    late ColorAnalysisService service;
+
+    /// A source that names its key, so the decoder can record the order.
+    ImageProvider sourceOf(String key) =>
+        MemoryImage(Uint8List.fromList(key.codeUnits));
+
+    /// Answers the [index]th started decode, then lets the queue move on.
+    Future<void> finish(int index) async {
+      gates[index].complete(solidRgba(20, 100, 160));
+      await pumpEventQueue();
+    }
+
+    setUp(() {
+      started = [];
+      gates = [];
+      service = ColorAnalysisService(
+        decodeRgba: (provider) {
+          started.add(String.fromCharCodes((provider as MemoryImage).bytes));
+          final gate = Completer<Uint8List?>();
+          gates.add(gate);
+          return gate.future;
+        },
+      );
+    });
+
+    test('the newest request starts ahead of an older backlog', () async {
+      for (var i = 0; i < 32; i++) {
+        unawaited(service.statsFor('old-$i', sourceOf('old-$i')));
+      }
+      final visible = service.statsFor('visible', sourceOf('visible'));
+      await pumpEventQueue();
+      expect(started, ['old-0', 'old-1']);
+
+      await finish(0);
+      expect(started, ['old-0', 'old-1', 'visible']);
+
+      await finish(2);
+      expect(await visible, isNotNull);
+    });
+
+    test('asking again moves a queued key to the front', () async {
+      for (final key in ['a', 'b', 'c', 'd']) {
+        unawaited(service.statsFor(key, sourceOf(key)));
+      }
+      await pumpEventQueue();
+      unawaited(service.statsFor('c', sourceOf('c')));
+
+      await finish(0);
+      expect(started, ['a', 'b', 'c']);
+    });
+
+    test('asking again for a running key does not start it twice', () async {
+      final first = service.statsFor('a', sourceOf('a'));
+      final second = service.statsFor('a', sourceOf('a'));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      unawaited(service.statsFor('c', sourceOf('c')));
+      await pumpEventQueue();
+
+      await finish(0);
+      expect(started, ['a', 'b', 'c']);
+      expect(await first, await second);
+    });
+
+    test('a queued key with no consumers left never decodes', () async {
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      service.request('kept', sourceOf('kept'));
+      final obsolete = service.request('obsolete', sourceOf('obsolete'));
+
+      obsolete.cancel();
+      expect(service.isPending('obsolete'), isFalse);
+      expect(await obsolete.stats, isNull);
+
+      await finish(0);
+      await finish(1);
+      expect(started, ['a', 'b', 'kept']);
+      expect(service.hasAnswer('obsolete'), isFalse);
+    });
+
+    test('a key dropped from the queue can be asked for again', () async {
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      service.request('k', sourceOf('k')).cancel();
+
+      final again = service.request('k', sourceOf('k'));
+      await finish(0);
+      expect(started, ['a', 'b', 'k']);
+      await finish(2);
+      expect(await again.stats, isNotNull);
+    });
+
+    test('a key stays queued until its last consumer cancels', () async {
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      final first = service.request('shared', sourceOf('shared'));
+      final second = service.request('shared', sourceOf('shared'));
+
+      first.cancel();
+      expect(service.isPending('shared'), isTrue);
+
+      await finish(0);
+      expect(started, ['a', 'b', 'shared']);
+      await finish(2);
+      expect(await second.stats, isNotNull);
+      expect(await first.stats, isNotNull);
+    });
+
+    test('cancelling twice counts once', () async {
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      final first = service.request('shared', sourceOf('shared'));
+      service.request('shared', sourceOf('shared'));
+
+      first
+        ..cancel()
+        ..cancel();
+      expect(service.isPending('shared'), isTrue);
+    });
+
+    test('a caller that cannot cancel keeps a shared key alive', () async {
+      // A share awaits its stats with no widget to go away, so a tile
+      // leaving the same key behind must not take the share's answer.
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      final tile = service.request('shared', sourceOf('shared'));
+      final share = service.statsFor('shared', sourceOf('shared'));
+
+      tile.cancel();
+      await finish(0);
+      await finish(2);
+      expect(await share, isNotNull);
+    });
+
+    test('cancelling a running key still caches its answer', () async {
+      final running = service.request('k', sourceOf('k'));
+      await pumpEventQueue();
+
+      running.cancel();
+      expect(service.isPending('k'), isTrue);
+
+      await finish(0);
+      expect(service.peek('k'), isNotNull);
+    });
+
+    test('a spent request cannot cancel a later one for its key', () async {
+      // Failed, so not remembered: the next ask queues the key afresh.
+      final spent = service.request('k', sourceOf('k'));
+      gates.single.complete(null);
+      await pumpEventQueue();
+      unawaited(service.statsFor('a', sourceOf('a')));
+      unawaited(service.statsFor('b', sourceOf('b')));
+      service.request('k', sourceOf('k'));
+
+      spent.cancel();
+      expect(service.isPending('k'), isTrue);
+    });
+
+    test('a cache hit answers at once and has nothing to cancel', () async {
+      final miss = service.request('k', sourceOf('k'));
+      await finish(0);
+      final stats = await miss.stats;
+
+      final hit = service.request('k', sourceOf('k'));
+      hit.cancel();
+      expect(await hit.stats, stats);
+      expect(service.peek('k'), stats);
+      expect(started, ['k']);
+    });
+
+    test('decodes never exceed two once the queue has moved', () async {
+      for (final key in ['a', 'b', 'c', 'd', 'e']) {
+        unawaited(service.statsFor(key, sourceOf(key)));
+      }
+      await pumpEventQueue();
+      expect(started, hasLength(2));
+      await finish(0);
+      expect(started, hasLength(3));
+      await finish(1);
+      expect(started, hasLength(4));
+    });
+  });
 }

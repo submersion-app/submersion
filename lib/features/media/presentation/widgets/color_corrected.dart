@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/media/data/services/color_analysis_service.dart';
 import 'package:submersion/features/media/domain/color/auto_correction.dart';
 import 'package:submersion/features/media/domain/color/channel_stats.dart';
 import 'package:submersion/features/media/domain/color/color_correction_policy.dart';
@@ -36,9 +37,30 @@ class ColorCorrected extends ConsumerStatefulWidget {
 
 class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
   String? _requestedKey;
+  ColorStatsRequest? _request;
 
   /// The last stats this tile drew, and for which item.
   ({String id, ChannelStats stats})? _last;
+
+  @override
+  void didUpdateWidget(ColorCorrected oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_requestedKey != colorStatsKey(widget.item)) _cancelRequest();
+  }
+
+  @override
+  void dispose() {
+    _cancelRequest();
+    super.dispose();
+  }
+
+  /// Gives up this tile's place in the analysis queue (issue #3868). Another
+  /// tile showing the same image keeps its own.
+  void _cancelRequest() {
+    _request?.cancel();
+    _request = null;
+    _requestedKey = null;
+  }
 
   /// Stats for [key], asking for them when the service has no answer.
   ///
@@ -57,7 +79,8 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     final source = widget.analysisSource;
     if (source != null && !(_requestedKey == key && service.isPending(key))) {
       _requestedKey = key;
-      service.statsFor(key, source).then((stats) {
+      final request = _request = service.request(key, source);
+      request.stats.then((stats) {
         if (mounted && stats != null) setState(() {});
       });
     }
