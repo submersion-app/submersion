@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/range_profile_stats.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 
 /// Gas consumption over part of a dive: [sac] in bar/min at the surface, in
@@ -12,23 +13,26 @@ import 'package:submersion/features/dive_log/domain/services/tank_pressure_looku
 typedef RangeGasConsumption = ({double? sac, double? rmv});
 
 /// SAC and RMV between [startTimestamp] and [endTimestamp] (seconds from the
-/// dive's start), at [avgDepth] meters, for the profile range panel (#2928).
+/// dive's start), for the profile range panel (#2928).
 ///
 /// The same two lanes as `Dive.sac` and `Dive.rmvFor`, with each cylinder's
 /// start and end pressure read from its transmitter series at the range
 /// edges instead of the whole dive's. A cylinder without a series adds
 /// nothing: its logged start and end pressures say how much it dropped over
 /// the dive, not when. The time is what those series cover of the range
-/// between them, since nothing says what was breathed outside it. SAC follows
-/// `referencePressureDrop`; RMV sums every cylinder with a volume under
-/// [model]. Neither exists on a rebreather ([isRebreather]), whose cylinders
-/// do not drain with the diver's breathing (issue #3673).
+/// between them, since nothing says what was breathed outside it. The depth
+/// is [profile]'s average over that same time (#3973), so reaching a selection
+/// into time without pressure readings leaves the rate alone; with no depth
+/// there, there is neither figure. SAC follows `referencePressureDrop`; RMV
+/// sums every cylinder with a volume under [model]. Neither exists on a
+/// rebreather ([isRebreather]), whose cylinders do not drain with the diver's
+/// breathing (issue #3673).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
   required int startTimestamp,
   required int endTimestamp,
-  required double avgDepth,
+  required List<DiveProfilePoint> profile,
   required GasModel model,
   bool isRebreather = false,
 }) {
@@ -54,10 +58,16 @@ RangeGasConsumption rangeGasConsumption({
   final readings = [
     for (final id in pressures.keys) ...series[id]!.map((p) => p.timestamp),
   ];
-  final coveredSeconds =
-      math.min(endTimestamp, readings.reduce(math.max)) -
-      math.max(startTimestamp, readings.reduce(math.min));
-  final minutes = coveredSeconds / 60;
+  final coveredStart = math.max(startTimestamp, readings.reduce(math.min));
+  final coveredEnd = math.min(endTimestamp, readings.reduce(math.max));
+  final minutes = (coveredEnd - coveredStart) / 60;
+
+  final avgDepth = rangeAverageDepth(
+    profile: profile,
+    startTimestamp: coveredStart,
+    endTimestamp: coveredEnd,
+  );
+  if (avgDepth == null) return none;
 
   // Ambient pressure in bar, the 1 bar reference gasVolume returns volumes
   // against.

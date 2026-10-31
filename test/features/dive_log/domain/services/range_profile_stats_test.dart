@@ -270,4 +270,48 @@ void main() {
       });
     });
   });
+
+  group('rangeAverageDepth (#3973)', () {
+    double? average(List<DiveProfilePoint> profile, int start, int end) =>
+        rangeAverageDepth(
+          profile: profile,
+          startTimestamp: start,
+          endTimestamp: end,
+        );
+
+    test('agrees with the average rangeProfileStats reports', () {
+      final profile = [_sample(0, 10), _sample(60, 30), _sample(300, 30)];
+
+      expect(
+        average(profile, 30, 120),
+        rangeProfileStats(
+          profile: profile,
+          startTimestamp: 30,
+          endTimestamp: 120,
+        ).avgDepth,
+      );
+    });
+
+    test('interpolates the edges of the window', () {
+      // 20 m to 30 m over the first 30 s, then 30 m for 60 s.
+      final profile = [_sample(0, 10), _sample(60, 30), _sample(300, 30)];
+
+      expect(
+        average(profile, 30, 120),
+        closeTo((30 * 25 + 60 * 30) / 90, 1e-9),
+      );
+    });
+
+    test('follows the surface lead-in', () {
+      // The first sample sits one interval in, so the line starts at 0 m.
+      final profile = [_sample(10, 20), _sample(20, 20)];
+
+      expect(average(profile, 0, 10), closeTo(10, 1e-9));
+    });
+
+    test('is null off the line', () {
+      expect(average(_flat, 300, 600), isNull);
+      expect(average(const [], 0, 60), isNull);
+    });
+  });
 }
