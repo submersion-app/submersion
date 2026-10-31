@@ -623,8 +623,9 @@ class BailoutSolver {
     // Same per-leg liters formula as _ascentLiters (a travel leg's linear
     // depth range, the stop's own depth across a stop, split at the
     // hypercapnia-phase boundary, issue #3743), just split by which tank
-    // supplied it instead of summed into one total -- so this always adds
-    // up to exactly the same worst-case total shown next to it.
+    // supplied it instead of summed into one total -- so this adds up to the
+    // worst-case total shown next to it, to within the whole-second rounding
+    // of a leg split at a gas switch.
     void charge(
       String? tankId,
       double secondsSinceBailoutStart,
