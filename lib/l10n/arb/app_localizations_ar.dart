@@ -23420,6 +23420,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'خطأ في المزامنة';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'يلزم تسجيل الدخول';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return 'يتطلب $account تسجيل الدخول مجددًا.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'جارٍ المزامنة...';
 
   @override
@@ -38737,6 +38745,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_accounts_signInAgain => 'تسجيل الدخول مرة أخرى';
 
   @override
+  String get settings_accounts_differentAccount_title => 'هذا حساب مختلف';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'يستخدم Submersion الحساب $expected، لكنك سجّلت الدخول باستخدام $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'لم تتم مزامنة أي شيء، ولم يتم ربط $signedIn.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'مستخدم على هذا الجهاز لـ $features';
   }
@@ -39909,6 +39933,53 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'لم يُسجَّل ضغط الأسطوانة أثناء الغوصة';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'الوقت';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'المرحلة';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'الغاز';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'العمق';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'النزول';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'القاع';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'الصعود';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'توقف الأمان';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'تخفيف ضغط';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end دقيقة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'الذروة $rate عند $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'المتوسط $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

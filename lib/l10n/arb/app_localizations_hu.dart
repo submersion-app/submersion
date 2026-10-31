@@ -23037,6 +23037,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Szinkronizálási hiba';
 
   @override
+  String get settings_cloudSync_status_signInNeeded =>
+      'Bejelentkezés szükséges';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return 'A(z) $account fiókba újra be kell jelentkezned.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Szinkronizálás...';
 
   @override
@@ -38046,6 +38055,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_accounts_signInAgain => 'Bejelentkezés újra';
 
   @override
+  String get settings_accounts_differentAccount_title => 'Ez egy másik fiók';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'A Submersion a(z) $expected fiókot használja, de te a(z) $signedIn fiókkal jelentkeztél be.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Semmi sem lett szinkronizálva, és a(z) $signedIn fiók nem lett csatlakoztatva.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'Ezen az eszközön használva: $features';
   }
@@ -39229,6 +39254,53 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'Merülés közben nem lett rögzítve palacknyomás';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'Idő';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fázis';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gáz';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Mélység';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Süllyedés';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fenék';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Emelkedés';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Biztonsági megálló';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Dekó';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end perc';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Csúcs $rate, $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Átlag $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

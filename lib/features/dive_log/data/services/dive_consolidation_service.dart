@@ -1287,7 +1287,7 @@ class DiveConsolidationService {
       await _navTracks.restoreLinks([
         ...snapshot.navTrackRows,
         ...routesLinkedSince,
-      ]);
+      ], survivingDiveId: mergedId);
       await _foldLinks.restore([
         ...snapshot.linkedRows,
         ...linkedSince,

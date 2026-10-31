@@ -140,6 +140,19 @@ void main() {
       deviceId: 'replacer',
     );
 
+    test('a refused cloud call reports the account', () async {
+      await epochStore.setPendingReplace(marker);
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().executeLibraryReplace(marker);
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
+
     test('wipes sync files, writes marker before wipe, publishes a stamped '
         'base, commits epoch', () async {
       // A local dive so the replace has a library to publish as the new base.
@@ -340,6 +353,18 @@ void main() {
     // must still halt the sync, but under their own message: blaming the
     // marker sends the user hunting for a corrupt file that does not exist
     // (issue #2332).
+    test('a refused read returns authError with its message', () async {
+      cloud = _EpochListFailCloud(
+        const CloudAccessRefusedException('Dropbox authorization expired.'),
+      );
+      cloud.operationLog.clear();
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.message, 'Dropbox authorization expired.');
+    });
+
     test('a cloud error reading the marker halts with the provider message, '
         'not an unreadable marker', () async {
       cloud = _EpochListFailCloud(
@@ -410,6 +435,18 @@ void main() {
       replacedAt: 1,
       deviceId: 'replacer',
     );
+
+    test('a refused cloud call reports the account', () async {
+      cloud
+        ..failLists = true
+        ..readException = const CloudAccessRefusedException('refused');
+
+      final result = await buildService().adoptReplacedLibrary();
+
+      expect(result.status, SyncResultStatus.authError);
+      expect(result.accessRefused, isTrue);
+      expect(result.message, 'refused');
+    });
 
     test('aborts when a current-epoch replace is still uploading', () async {
       final service = buildService();

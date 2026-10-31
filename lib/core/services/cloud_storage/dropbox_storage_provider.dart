@@ -62,8 +62,10 @@ class DropboxStorageProvider
   Uri beginAuthorization() => _auth.beginAuthorization();
 
   /// Completes the copy-paste OAuth flow with the pasted [code].
-  Future<DropboxAuthData> completeAuthorization(String code) =>
-      _auth.completeAuthorization(code);
+  Future<DropboxAuthData> completeAuthorization(
+    String code, {
+    String? expectedAccount,
+  }) => _auth.completeAuthorization(code, expectedAccount: expectedAccount);
 
   /// The stored connection (account labels for the UI), or null.
   Future<DropboxAuthData?> loadAuth() => _auth.loadAuth();
