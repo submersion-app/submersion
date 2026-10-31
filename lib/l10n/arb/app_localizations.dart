@@ -27127,6 +27127,336 @@ abstract class AppLocalizations {
   /// **'Maintenance log saved'**
   String get settings_export_saved_maintenance;
 
+  /// No description provided for @transfer_export_inventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment Inventory'**
+  String get transfer_export_inventoryTitle;
+
+  /// No description provided for @transfer_export_inventorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF with serial numbers and what you paid'**
+  String get transfer_export_inventorySubtitle;
+
+  /// No description provided for @transfer_export_serviceReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Report'**
+  String get transfer_export_serviceReportTitle;
+
+  /// No description provided for @transfer_export_serviceReportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF of what is due, with service history'**
+  String get transfer_export_serviceReportSubtitle;
+
+  /// No description provided for @settings_export_progress_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Building inventory...'**
+  String get settings_export_progress_inventory;
+
+  /// No description provided for @settings_export_success_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory exported'**
+  String get settings_export_success_inventory;
+
+  /// No description provided for @settings_export_saved_inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory saved'**
+  String get settings_export_saved_inventory;
+
+  /// No description provided for @settings_export_progress_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Building service report...'**
+  String get settings_export_progress_serviceReport;
+
+  /// No description provided for @settings_export_success_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report exported'**
+  String get settings_export_success_serviceReport;
+
+  /// No description provided for @settings_export_saved_serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report saved'**
+  String get settings_export_saved_serviceReport;
+
+  /// No description provided for @equipmentReport_sheet_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get equipmentReport_sheet_continue;
+
+  /// No description provided for @equipmentReport_sheet_groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get equipmentReport_sheet_groupBy;
+
+  /// No description provided for @equipmentReport_sheet_groupByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear type'**
+  String get equipmentReport_sheet_groupByType;
+
+  /// No description provided for @equipmentReport_sheet_groupByLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipmentReport_sheet_groupByLocation;
+
+  /// No description provided for @equipmentReport_sheet_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get equipmentReport_sheet_location;
+
+  /// No description provided for @equipmentReport_sheet_allLocations.
+  ///
+  /// In en, this message translates to:
+  /// **'All locations'**
+  String get equipmentReport_sheet_allLocations;
+
+  /// No description provided for @equipmentReport_sheet_showPrices.
+  ///
+  /// In en, this message translates to:
+  /// **'Show prices'**
+  String get equipmentReport_sheet_showPrices;
+
+  /// No description provided for @equipmentReport_sheet_showPricesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off for a customs list'**
+  String get equipmentReport_sheet_showPricesHelp;
+
+  /// No description provided for @equipmentReport_sheet_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get equipmentReport_sheet_gear;
+
+  /// No description provided for @equipmentReport_sheet_gearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All gear'**
+  String get equipmentReport_sheet_gearAll;
+
+  /// No description provided for @equipmentReport_sheet_gearTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed for a trip'**
+  String get equipmentReport_sheet_gearTrip;
+
+  /// No description provided for @equipmentReport_sheet_gearItem.
+  ///
+  /// In en, this message translates to:
+  /// **'One item'**
+  String get equipmentReport_sheet_gearItem;
+
+  /// No description provided for @equipmentReport_sheet_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get equipmentReport_sheet_trip;
+
+  /// No description provided for @equipmentReport_sheet_item.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get equipmentReport_sheet_item;
+
+  /// No description provided for @equipmentReport_sheet_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Service history'**
+  String get equipmentReport_sheet_history;
+
+  /// No description provided for @equipmentReport_sheet_showCosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show costs'**
+  String get equipmentReport_sheet_showCosts;
+
+  /// No description provided for @equipmentReport_pdf_inventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment inventory'**
+  String get equipmentReport_pdf_inventoryTitle;
+
+  /// No description provided for @equipmentReport_pdf_serviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service report'**
+  String get equipmentReport_pdf_serviceTitle;
+
+  /// No description provided for @equipmentReport_pdf_printedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Printed {date}'**
+  String equipmentReport_pdf_printedOn(String date);
+
+  /// No description provided for @equipmentReport_pdf_items.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String equipmentReport_pdf_items(int count);
+
+  /// No description provided for @equipmentReport_pdf_currencyTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{currency} total'**
+  String equipmentReport_pdf_currencyTotal(String currency);
+
+  /// No description provided for @equipmentReport_pdf_noLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'No location set'**
+  String get equipmentReport_pdf_noLocation;
+
+  /// No description provided for @equipmentReport_pdf_colItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get equipmentReport_pdf_colItem;
+
+  /// No description provided for @equipmentReport_pdf_colSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial'**
+  String get equipmentReport_pdf_colSerial;
+
+  /// No description provided for @equipmentReport_pdf_colBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought'**
+  String get equipmentReport_pdf_colBought;
+
+  /// No description provided for @equipmentReport_pdf_colPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get equipmentReport_pdf_colPaid;
+
+  /// No description provided for @equipmentReport_pdf_pricesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices are what was paid, not current value.'**
+  String get equipmentReport_pdf_pricesNote;
+
+  /// No description provided for @equipmentReport_pdf_noPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no price.} other{{count} items have no price.}}'**
+  String equipmentReport_pdf_noPrice(int count);
+
+  /// No description provided for @equipmentReport_pdf_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'overdue'**
+  String get equipmentReport_pdf_overdue;
+
+  /// No description provided for @equipmentReport_pdf_dueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'due soon'**
+  String get equipmentReport_pdf_dueSoon;
+
+  /// No description provided for @equipmentReport_pdf_upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'up to date'**
+  String get equipmentReport_pdf_upToDate;
+
+  /// No description provided for @equipmentReport_pdf_colService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get equipmentReport_pdf_colService;
+
+  /// No description provided for @equipmentReport_pdf_colDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get equipmentReport_pdf_colDue;
+
+  /// No description provided for @equipmentReport_pdf_colStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get equipmentReport_pdf_colStatus;
+
+  /// No description provided for @equipmentReport_pdf_statusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipmentReport_pdf_statusOverdue;
+
+  /// No description provided for @equipmentReport_pdf_statusDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get equipmentReport_pdf_statusDueSoon;
+
+  /// No description provided for @equipmentReport_pdf_statusUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get equipmentReport_pdf_statusUpToDate;
+
+  /// No description provided for @equipmentReport_pdf_allUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is up to date.'**
+  String get equipmentReport_pdf_allUpToDate;
+
+  /// No description provided for @equipmentReport_pdf_noSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no service schedule.} other{{count} items have no service schedule.}}'**
+  String equipmentReport_pdf_noSchedule(int count);
+
+  /// No description provided for @equipmentReport_pdf_colDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get equipmentReport_pdf_colDate;
+
+  /// No description provided for @equipmentReport_pdf_colWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get equipmentReport_pdf_colWork;
+
+  /// No description provided for @equipmentReport_pdf_colShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get equipmentReport_pdf_colShop;
+
+  /// No description provided for @equipmentReport_pdf_colCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get equipmentReport_pdf_colCost;
+
+  /// No description provided for @equipmentReport_pdf_noHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded'**
+  String get equipmentReport_pdf_noHistory;
+
+  /// No description provided for @equipmentReport_pdf_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String equipmentReport_pdf_dives(int count);
+
   /// No description provided for @equipment_serviceKinds_defaultCurrencyInherit.
   ///
   /// In en, this message translates to:
@@ -47060,6 +47390,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open findings by rule, across all dives'**
   String get insights_equipment_findings_subtitleAllDives;
+
+  /// No description provided for @insights_equipment_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get insights_equipment_showAll;
+
+  /// No description provided for @insights_equipment_showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get insights_equipment_showLess;
+
+  /// No description provided for @insights_equipment_mostUsedGear_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} hour} other{{count} hours}}'**
+  String insights_equipment_mostUsedGear_hours(int count);
+
+  /// No description provided for @insights_equipment_cost_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost of ownership'**
+  String get insights_equipment_cost_title;
+
+  /// No description provided for @insights_equipment_cost_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase plus service, across all your dives'**
+  String get insights_equipment_cost_subtitle;
+
+  /// No description provided for @insights_equipment_cost_spentTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Spent in total'**
+  String get insights_equipment_cost_spentTotal;
+
+  /// No description provided for @insights_equipment_cost_perDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Per dive'**
+  String get insights_equipment_cost_perDive;
+
+  /// No description provided for @insights_equipment_cost_byYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by year'**
+  String get insights_equipment_cost_byYear;
+
+  /// No description provided for @insights_equipment_cost_metricPerDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Per dive'**
+  String get insights_equipment_cost_metricPerDive;
+
+  /// No description provided for @insights_equipment_cost_metricPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Per hour'**
+  String get insights_equipment_cost_metricPerHour;
+
+  /// No description provided for @insights_equipment_cost_metricTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get insights_equipment_cost_metricTotal;
+
+  /// No description provided for @insights_equipment_cost_rowPerDive.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / dive'**
+  String insights_equipment_cost_rowPerDive(String amount);
+
+  /// No description provided for @insights_equipment_cost_rowPerHour.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} / hour'**
+  String insights_equipment_cost_rowPerHour(String amount);
+
+  /// No description provided for @insights_equipment_cost_rowOverDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} over {count} dive} other{{amount} over {count} dives}}'**
+  String insights_equipment_cost_rowOverDives(String amount, int count);
+
+  /// No description provided for @insights_equipment_cost_rowOverHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{amount} over {count} hour} other{{amount} over {count} hours}}'**
+  String insights_equipment_cost_rowOverHours(String amount, int count);
+
+  /// No description provided for @insights_equipment_cost_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'no dives yet'**
+  String get insights_equipment_cost_noDives;
+
+  /// No description provided for @insights_equipment_cost_undated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} purchase has no date} other{{count} purchases have no date}}'**
+  String insights_equipment_cost_undated(int count);
+
+  /// No description provided for @insights_equipment_cost_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item has no cost recorded} other{{count} items have no cost recorded}}'**
+  String insights_equipment_cost_leftOut(int count);
+
+  /// No description provided for @insights_equipment_cost_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchase prices or service costs recorded yet'**
+  String get insights_equipment_cost_empty;
+
+  /// No description provided for @insights_equipment_cost_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load gear costs'**
+  String get insights_equipment_cost_error;
+
+  /// No description provided for @insights_equipment_idle_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Idle gear'**
+  String get insights_equipment_idle_title;
+
+  /// No description provided for @insights_equipment_idle_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear you own and have not dived lately, across all your dives'**
+  String get insights_equipment_idle_subtitle;
+
+  /// No description provided for @insights_equipment_idle_over6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 6 months'**
+  String get insights_equipment_idle_over6Months;
+
+  /// No description provided for @insights_equipment_idle_over1Year.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 1 year'**
+  String get insights_equipment_idle_over1Year;
+
+  /// No description provided for @insights_equipment_idle_over2Years.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 2 years'**
+  String get insights_equipment_idle_over2Years;
+
+  /// No description provided for @insights_equipment_idle_neverDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Never dived'**
+  String get insights_equipment_idle_neverDived;
+
+  /// No description provided for @insights_equipment_idle_years.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} yr} other{{count} yrs}}'**
+  String insights_equipment_idle_years(int count);
+
+  /// No description provided for @insights_equipment_idle_months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} mo} other{{count} mo}}'**
+  String insights_equipment_idle_months(int count);
+
+  /// No description provided for @insights_equipment_idle_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'All your gear has been dived recently'**
+  String get insights_equipment_idle_empty;
+
+  /// No description provided for @insights_equipment_idle_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load idle gear'**
+  String get insights_equipment_idle_error;
 
   /// No description provided for @insights_equipment_findings_empty.
   ///

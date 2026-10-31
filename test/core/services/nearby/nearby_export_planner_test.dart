@@ -108,7 +108,7 @@ void main() {
   });
 
   group('filterByWriter', () {
-    test('keeps only rows above the peer mark for their writer', () {
+    test('keeps only rows above the peer mark for their writer', () async {
       final p = payload(
         tags: [
           {'id': 'old', 'hlc': hlc(5, 'aaa')},
@@ -125,7 +125,7 @@ void main() {
       );
       final peers = marks({'aaa': hlc(10, 'aaa'), 'bbb': hlc(1, 'bbb')});
 
-      final out = NearbyExportPlanner.filterByWriter(p, peers);
+      final out = await NearbyExportPlanner.filterByWriter(p, peers);
 
       expect(out.data.tags.map((r) => r['id']), [
         'new',
@@ -139,7 +139,7 @@ void main() {
       expect(SyncDataSerializer.checksumOf(out.data), out.checksum);
     });
 
-    test('a media row stays when only a fact clock is newer', () {
+    test('a media row stays when only a fact clock is newer', () async {
       final p = payload(
         tags: const [],
         media: [
@@ -147,7 +147,7 @@ void main() {
           {'id': 'm2', 'hlc': hlc(5, 'aaa'), 'verifyFactsHlc': hlc(2, 'bbb')},
         ],
       );
-      final out = NearbyExportPlanner.filterByWriter(
+      final out = await NearbyExportPlanner.filterByWriter(
         p,
         marks({'aaa': hlc(10, 'aaa'), 'bbb': hlc(20, 'bbb')}),
       );

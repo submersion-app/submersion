@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives, K left"
@@ -53,8 +54,31 @@ List<String> formatServiceTriggerLines(
   double? hoursSinceAnchor,
   double? hoursRemaining,
   Map<ExposureUnit, ClockUsage> usageByUnit = const {},
+}) => serviceTriggerLinesFor(
+  context.l10n,
+  units: units,
+  now: now,
+  dueDate: dueDate,
+  divesSinceAnchor: divesSinceAnchor,
+  divesRemaining: divesRemaining,
+  hoursSinceAnchor: hoursSinceAnchor,
+  hoursRemaining: hoursRemaining,
+  usageByUnit: usageByUnit,
+);
+
+/// [formatServiceTriggerLines] for a caller with no [BuildContext], such as a
+/// PDF, so the printed report reads the same as the item page.
+List<String> serviceTriggerLinesFor(
+  AppLocalizations l10n, {
+  required UnitFormatter units,
+  required DateTime now,
+  DateTime? dueDate,
+  int? divesSinceAnchor,
+  int? divesRemaining,
+  double? hoursSinceAnchor,
+  double? hoursRemaining,
+  Map<ExposureUnit, ClockUsage> usageByUnit = const {},
 }) {
-  final l10n = context.l10n;
   final parts = <String>[];
   if (dueDate != null) {
     final formatted = units.formatDate(dueDate);

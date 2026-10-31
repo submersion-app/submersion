@@ -79,7 +79,7 @@ class BasePartFileSource {
       final parts = hasher = await _openHasher(min(length, partSize));
       var index = 0;
       if (length == 0) {
-        // Mirror BaseChunker.slice(empty) == [Uint8List(0)]: one empty part.
+        // An empty file still publishes one part, which is empty.
         final empty = Uint8List(0);
         partChecksums.add(await parts.addPart(empty));
         if (skipPart?.call(0) != true) await upload(0, empty);
