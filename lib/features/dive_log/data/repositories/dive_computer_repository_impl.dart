@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_computer/domain/services/dive_computer_
     show computerModelsCompatible, identityPartsCompatible;
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -1137,11 +1138,15 @@ class DiveComputerRepository {
           ? [Variable(normalizedDiverId)]
           : <Variable>[];
 
-      // Search for dives within the tolerance window
+      // Search for dives within the tolerance window.
+      //
+      // [durationSeconds] is the computer's runtime, so total_seconds is the
+      // whole Dive.effectiveRuntime chain rather than the bottom time.
       final result = await _db
           .customSelect(
             '''
-        SELECT id, dive_date_time, entry_time, bottom_time, max_depth,
+        SELECT id, dive_date_time, entry_time, max_depth,
+          ${effectiveRuntimeSecondsSql('dives')} as total_seconds,
           COALESCE(entry_time, dive_date_time) as effective_time,
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
@@ -1186,7 +1191,7 @@ class DiveComputerRepository {
       for (final row in result) {
         final diveId = row.data['id'] as String;
         final timeDiff = row.data['time_diff'] as int;
-        final diveDuration = row.data['bottom_time'] as int?;
+        final diveDuration = row.data['total_seconds'] as int?;
         final diveMaxDepth = row.data['max_depth'] as double?;
 
         final durationDiff = (durationSeconds != null && diveDuration != null)

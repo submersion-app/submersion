@@ -149,27 +149,7 @@ enum SacSegmentationType {
   gasSwitch,
 
   /// Segments based on dive phases (descent, bottom, ascent, etc.)
-  depthPhase;
-
-  /// Display name for UI
-  String get displayName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'Time',
-      SacSegmentationType.depthBased => 'Depth',
-      SacSegmentationType.gasSwitch => 'Gas',
-      SacSegmentationType.depthPhase => 'Phase',
-    };
-  }
-
-  /// Icon name for UI
-  String get iconName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'timer',
-      SacSegmentationType.depthBased => 'layers',
-      SacSegmentationType.gasSwitch => 'swap_horiz',
-      SacSegmentationType.depthPhase => 'trending_down',
-    };
-  }
+  depthPhase,
 }
 
 /// Represents a phase of the dive for depth-phase segmentation.
@@ -197,17 +177,6 @@ enum DivePhase {
       DivePhase.ascent => 'Ascent',
       DivePhase.safetyStop => 'Safety Stop',
       DivePhase.deco => 'Deco',
-    };
-  }
-
-  /// Short label for compact display
-  String get shortLabel {
-    return switch (this) {
-      DivePhase.descent => '↓',
-      DivePhase.bottom => '—',
-      DivePhase.ascent => '↑',
-      DivePhase.safetyStop => '⏸',
-      DivePhase.deco => '⚠',
     };
   }
 }
