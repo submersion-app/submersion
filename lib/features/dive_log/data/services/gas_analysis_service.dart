@@ -73,12 +73,12 @@ class GasAnalysisService {
         orElse: () => tanks.first,
       );
 
-      // Get profile points for this segment
-      final segmentProfile = profile
-          .where((p) => p.timestamp >= startTime && p.timestamp < endTime)
-          .toList();
+      // Skip a segment no sample falls in
+      final hasSamples = profile.any(
+        (p) => p.timestamp >= startTime && p.timestamp < endTime,
+      );
 
-      if (segmentProfile.isEmpty) continue;
+      if (!hasSamples) continue;
 
       // Calculate depth statistics
       final (:avgDepth, :minDepth, :maxDepth) = _segmentDepths(
@@ -199,11 +199,11 @@ class GasAnalysisService {
     // Calculate SAC for each phase segment
     final segments = <SacSegment>[];
     for (final seg in mergedSegments) {
-      final segmentProfile = profile
-          .where((p) => p.timestamp >= seg.start && p.timestamp < seg.end)
-          .toList();
+      final hasSamples = profile.any(
+        (p) => p.timestamp >= seg.start && p.timestamp < seg.end,
+      );
 
-      if (segmentProfile.isEmpty) continue;
+      if (!hasSamples) continue;
 
       // Find active tank for this segment
       final tank = activeTankAt(
@@ -328,7 +328,7 @@ class GasAnalysisService {
           ? recordedSeconds
           : usageRange.end - usageRange.start;
 
-      // Get profile points during tank usage
+      // Calculate average depth during usage
       final avgDepthDuringUse = timeWeightedMeanBetween(
         profile,
         start: usageRange.start,
