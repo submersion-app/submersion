@@ -51114,6 +51114,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'מוחרגת';
 
   @override
+  String get insights_empty_allExcluded_title =>
+      'כל הצלילות שלך מוחרגות מהסטטיסטיקות';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'הן עדיין ביומן שלך. ערוך צלילה כדי לכלול אותה שוב.';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

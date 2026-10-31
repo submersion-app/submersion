@@ -52857,6 +52857,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'مستبعدة';
 
   @override
+  String get insights_empty_allExcluded_title =>
+      'جميع غطساتك مستبعدة من الإحصائيات';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'لا تزال في سجلك. عدّل غطسة لاحتسابها مجددًا.';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

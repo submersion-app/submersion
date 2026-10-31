@@ -15687,6 +15687,8 @@
   "diveLog_bulkEdit_fieldExcludeFromGasStats": "从气体统计中排除",
   "diveLog_filter_excludedOnly": "仅显示已排除的潜水",
   "diveLog_edit_summary_excluded": "已排除",
+  "insights_empty_allExcluded_title": "您的所有潜水都已从统计中排除",
+  "insights_empty_allExcluded_subtitle": "它们仍保留在日志中。编辑潜水即可重新计入统计。",
   "insights_excludedDivesFootnote": "{count, plural, other{{count} 次潜水已从统计中排除}}",
   "diveLog_edit_group_statistics": "统计",
   "diveLog_edit_summary_gasExcluded": "已排除气体",

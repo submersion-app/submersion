@@ -31007,6 +31007,14 @@
   "@diveLog_edit_summary_excluded": {
     "description": "Collapsed summary fragment: dive excluded from statistics"
   },
+  "insights_empty_allExcluded_title": "All your dives are excluded from statistics",
+  "insights_empty_allExcluded_subtitle": "They are still in your logbook. Edit a dive to count it again.",
+  "@insights_empty_allExcluded_title": {
+    "description": "Shown when logged dives exist but every one is excluded from statistics"
+  },
+  "@insights_empty_allExcluded_subtitle": {
+    "description": "Below the all-excluded title: the dives are safe and how to count one again"
+  },
   "insights_excludedDivesFootnote": "{count, plural, one{1 dive excluded from statistics} other{{count} dives excluded from statistics}}",
   "@insights_excludedDivesFootnote": {
     "description": "Overview footnote naming how many dives are excluded",

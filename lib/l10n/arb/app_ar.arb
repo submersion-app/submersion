@@ -15687,6 +15687,8 @@
   "diveLog_bulkEdit_fieldExcludeFromGasStats": "استبعاد من إحصائيات الغاز",
   "diveLog_filter_excludedOnly": "المستبعدة من الإحصائيات فقط",
   "diveLog_edit_summary_excluded": "مستبعدة",
+  "insights_empty_allExcluded_title": "جميع غطساتك مستبعدة من الإحصائيات",
+  "insights_empty_allExcluded_subtitle": "لا تزال في سجلك. عدّل غطسة لاحتسابها مجددًا.",
   "insights_excludedDivesFootnote": "{count, plural, zero{لا غطسات مستبعدة من الإحصائيات} one{غطسة واحدة مستبعدة من الإحصائيات} two{غطستان مستبعدتان من الإحصائيات} few{{count} غطسات مستبعدة من الإحصائيات} many{{count} غطسة مستبعدة من الإحصائيات} other{{count} غطسة مستبعدة من الإحصائيات}}",
   "diveLog_edit_group_statistics": "الإحصائيات",
   "diveLog_edit_summary_gasExcluded": "الغاز مستبعد",

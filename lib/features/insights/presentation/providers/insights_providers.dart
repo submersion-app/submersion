@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_gas
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
@@ -40,6 +41,21 @@ final excludedDiveCountProvider = FutureProvider<int>((ref) async {
   final currentDiverId = ref.watch(currentDiverIdProvider);
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
   return repository.countExcludedDives(diverId: currentDiverId);
+});
+
+/// The diver's logged dives against the ones statistics count.
+///
+/// Tells a genuinely empty logbook from a statistic that is zero because of a
+/// filter or an exclusion, so first-dive prompts only reach a diver who has
+/// no dives. Unaffected by the Insights filter for the same reason as
+/// [excludedDiveCountProvider].
+final logbookDiveCountsProvider = FutureProvider<LogbookDiveCounts>((
+  ref,
+) async {
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
+  return repository.countLogbookDives(diverId: currentDiverId);
 });
 
 /// Overview totals scoped by the Insights filter. Kept separate from

@@ -51906,6 +51906,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'Uitgesloten';
 
   @override
+  String get insights_empty_allExcluded_title =>
+      'Al je duiken zijn uitgesloten van statistieken';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Ze staan nog in je logboek. Bewerk een duik om hem weer mee te tellen.';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

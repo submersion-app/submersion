@@ -82740,6 +82740,18 @@ abstract class AppLocalizations {
   /// **'Excluded'**
   String get diveLog_edit_summary_excluded;
 
+  /// Shown when logged dives exist but every one is excluded from statistics
+  ///
+  /// In en, this message translates to:
+  /// **'All your dives are excluded from statistics'**
+  String get insights_empty_allExcluded_title;
+
+  /// Below the all-excluded title: the dives are safe and how to count one again
+  ///
+  /// In en, this message translates to:
+  /// **'They are still in your logbook. Edit a dive to count it again.'**
+  String get insights_empty_allExcluded_subtitle;
+
   /// Overview footnote naming how many dives are excluded
   ///
   /// In en, this message translates to:

@@ -48970,6 +48970,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_summary_excluded => '已排除';
 
   @override
+  String get insights_empty_allExcluded_title => '您的所有潜水都已从统计中排除';
+
+  @override
+  String get insights_empty_allExcluded_subtitle => '它们仍保留在日志中。编辑潜水即可重新计入统计。';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

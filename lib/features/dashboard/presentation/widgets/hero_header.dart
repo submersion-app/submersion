@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -93,10 +94,14 @@ class HeroHeader extends ConsumerWidget {
                         data: (career) {
                           final screenWidth = MediaQuery.sizeOf(context).width;
                           final isNarrow = screenWidth < 600;
+                          final counts = career.combinedDives == 0
+                              ? ref.watch(logbookDiveCountsProvider).valueOrNull
+                              : null;
                           return Text(
                             _buildHeadlineStats(
                               context,
                               career,
+                              allDivesExcluded: counts?.allExcluded ?? false,
                               isNarrow: isNarrow,
                             ),
                             style: theme.textTheme.bodyLarge?.copyWith(
@@ -150,9 +155,12 @@ class HeroHeader extends ConsumerWidget {
   String _buildHeadlineStats(
     BuildContext context,
     CareerTotals career, {
+    required bool allDivesExcluded,
     bool isNarrow = false,
   }) {
     final dives = career.combinedDives;
+    // A career of zero is not an empty logbook when every dive is excluded.
+    if (allDivesExcluded) return context.l10n.insights_empty_allExcluded_title;
     if (dives == 0) return context.l10n.dashboard_hero_noDives;
 
     final parts = <String>[];

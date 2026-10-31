@@ -15687,6 +15687,8 @@
   "diveLog_bulkEdit_fieldExcludeFromGasStats": "Exclure des statistiques de gaz",
   "diveLog_filter_excludedOnly": "Uniquement les exclues des statistiques",
   "diveLog_edit_summary_excluded": "Exclue",
+  "insights_empty_allExcluded_title": "Toutes vos plongées sont exclues des statistiques",
+  "insights_empty_allExcluded_subtitle": "Elles restent dans votre carnet. Modifiez une plongée pour la compter à nouveau.",
   "insights_excludedDivesFootnote": "{count, plural, one{{count} plongée exclue des statistiques} other{{count} plongées exclues des statistiques}}",
   "diveLog_edit_group_statistics": "Statistiques",
   "diveLog_edit_summary_gasExcluded": "Gaz exclu",

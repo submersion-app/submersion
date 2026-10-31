@@ -52289,6 +52289,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'Excluida';
 
   @override
+  String get insights_empty_allExcluded_title =>
+      'Todas tus inmersiones están excluidas de las estadísticas';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Siguen en tu cuaderno. Edita una inmersión para volver a contarla.';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -15687,6 +15687,8 @@
   "diveLog_bulkEdit_fieldExcludeFromGasStats": "החרג מסטטיסטיקות הגז",
   "diveLog_filter_excludedOnly": "רק המוחרגות מהסטטיסטיקות",
   "diveLog_edit_summary_excluded": "מוחרגת",
+  "insights_empty_allExcluded_title": "כל הצלילות שלך מוחרגות מהסטטיסטיקות",
+  "insights_empty_allExcluded_subtitle": "הן עדיין ביומן שלך. ערוך צלילה כדי לכלול אותה שוב.",
   "insights_excludedDivesFootnote": "{count, plural, one{צלילה אחת מוחרגת מהסטטיסטיקות} two{שתי צלילות מוחרגות מהסטטיסטיקות} many{{count} צלילות מוחרגות מהסטטיסטיקות} other{{count} צלילות מוחרגות מהסטטיסטיקות}}",
   "diveLog_edit_group_statistics": "סטטיסטיקות",
   "diveLog_edit_summary_gasExcluded": "הגז הוחרג",

@@ -51946,6 +51946,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_summary_excluded => 'Kizárva';
 
   @override
+  String get insights_empty_allExcluded_title =>
+      'Minden merülésed ki van zárva a statisztikákból';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'A naplódban továbbra is megvannak. Szerkessz egy merülést, hogy újra beleszámítson.';
+
+  @override
   String insights_excludedDivesFootnote(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
