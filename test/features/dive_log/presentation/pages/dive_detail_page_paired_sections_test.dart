@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
@@ -342,7 +344,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Empty dive => _hasEnvironmentData is false, Environment renders nothing.
+      // Empty dive => watchHasEnvironmentData is false, Environment renders nothing.
       final dive = Dive(id: 'no-cond', dateTime: DateTime(2026, 3, 15, 10, 0));
       final settings = _settingsWithVisibleSections([
         DiveDetailSectionId.details,
@@ -715,6 +717,51 @@ void main() {
       final sacPos = tester.getTopLeft(find.text(_sacTitle));
       expect(cylPos.dx, lessThan(sacPos.dx));
       expect((cylPos.dy - sacPos.dy).abs(), lessThan(4));
+    });
+
+    testWidgets('stays paired while the model reloads', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-buoyancy-reload');
+      final settings = _settingsWithOrder([
+        DiveDetailSectionId.weights,
+        DiveDetailSectionId.buoyancy,
+      ]);
+      // The model reloads behind every refresh of the dive it reads. The
+      // gate holds that reload open so it spans a frame.
+      final trigger = StateProvider<int>((ref) => 0);
+      final gate = Completer<void>();
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: settings,
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            buoyancyTwinProvider(dive.id).overrideWith((ref) async {
+              if (ref.watch(trigger) > 0) await gate.future;
+              return buoyancyOutcome();
+            }),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(trigger.notifier).state = 1;
+      await tester.pump();
+
+      expect(container.read(buoyancyTwinProvider(dive.id)).isReloading, isTrue);
+      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
+      expect(_pairContaining('Weight'), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(_pairContaining(_buoyancyTitle), findsOneWidget);
     });
 
     testWidgets('fits side by side at the 700px threshold', (tester) async {
