@@ -50,6 +50,7 @@ Future<File> _databaseWithoutLogTables(int userVersion) async {
   );
   addTearDown(before.close);
   await before.customSelect('SELECT 1').get();
+  await dropChangeLogTriggers(before);
   for (final table in _logTables) {
     await before.customStatement('DROP TABLE IF EXISTS $table');
   }
@@ -117,7 +118,6 @@ void main() {
     expect(row.data['id'], 1);
     expect(row.data['operation_id'], isNull);
     expect(row.data['suppressed_until'], isNull);
-    expect(row.data['trigger_hash'], isNull);
   });
 
   test('a v327 database upgrades to the new tables', () async {

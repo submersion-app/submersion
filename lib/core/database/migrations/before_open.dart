@@ -794,6 +794,6 @@ extension BeforeOpenBackstops on AppDatabase {
     // never got (before_open_view_configs.dart).
     await _assertViewConfigsUniqueIndex();
 
-    await _assertChangeLogTables(); // v328 (#3922)
+    await _assertChangeLog(); // v328 (#3922), always last
   }
 }
