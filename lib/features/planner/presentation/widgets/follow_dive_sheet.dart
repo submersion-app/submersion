@@ -126,9 +126,11 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
 
     // Stored dive times are clock digits, so read them in the device's zone:
     // as instants they sit a UTC offset away from when the dive really ended.
-    final end = fromWallClockUtc(
-      dive.entryTime ?? dive.dateTime,
-    ).add(dive.effectiveRuntime ?? Duration.zero);
+    final end = dive.exitTime != null
+        ? fromWallClockUtc(dive.exitTime!)
+        : fromWallClockUtc(
+            dive.effectiveEntryTime,
+          ).add(dive.effectiveRuntime ?? Duration.zero);
     var interval = clock.now().difference(end);
     if (interval < const Duration(minutes: 10)) {
       interval = const Duration(hours: 1);

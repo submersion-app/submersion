@@ -7,7 +7,7 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 /// most recent dive and the OTU totals around it.
 ///
 /// [CnsOtuLiveService] re-derives the live CNS% from [cnsAtDiveEnd] and
-/// [lastDiveEnd] on every UI tick; everything else here is a plain snapshot
+/// [lastDiveEndInstant] on every UI tick; everything else here is a plain snapshot
 /// that only changes when the dive table is written to or a day ends (see
 /// `cnsOtuSnapshotProvider`).
 class CnsOtuSnapshot {

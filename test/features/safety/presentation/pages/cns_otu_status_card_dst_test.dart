@@ -118,8 +118,7 @@ void main() {
     late DateTime now;
 
     setUp(() {
-      final change = dstTransition(forward: true);
-      if (change == null) return;
+      final change = dstTransition(forward: true)!;
       diveEnd = change.subtract(const Duration(minutes: 30));
       now = change.add(const Duration(hours: 1));
     });
@@ -172,8 +171,7 @@ void main() {
     late DateTime now;
 
     setUp(() {
-      final change = dstTransition(forward: false);
-      if (change == null) return;
+      final change = dstTransition(forward: false)!;
       diveEnd = change.subtract(const Duration(minutes: 90));
       now = change.add(const Duration(hours: 1));
     });

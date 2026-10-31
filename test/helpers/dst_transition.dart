@@ -7,16 +7,15 @@
 /// this with [zoneHasNoDst].
 library;
 
-/// The first true instant, in UTC, at or after [from] at which this zone's
-/// clocks change, or null within a year of [from] when they never do.
+/// The first true instant, in UTC, in 2027 at which this zone's clocks change,
+/// or null when they never do.
 ///
 /// [forward] picks the direction: true for the spring change that loses a
 /// local hour, false for the autumn one that repeats it.
-DateTime? dstTransition({required bool forward, DateTime? from}) {
+DateTime? dstTransition({required bool forward}) {
   const step = Duration(minutes: 15);
-  final start = from?.toUtc() ?? DateTime.utc(2027);
-  final end = start.add(const Duration(days: 366));
-  var previous = start;
+  final end = DateTime.utc(2028);
+  var previous = DateTime.utc(2027);
   var offset = previous.toLocal().timeZoneOffset;
   while (previous.isBefore(end)) {
     final next = previous.add(step);
@@ -30,4 +29,4 @@ DateTime? dstTransition({required bool forward, DateTime? from}) {
 
 /// Whether this zone has no DST change to sit on, for a test's `skip:`: without
 /// one, wall-clock and elapsed time cannot disagree.
-bool get zoneHasNoDst => dstTransition(forward: true) == null;
+final bool zoneHasNoDst = dstTransition(forward: true) == null;
