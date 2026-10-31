@@ -2289,9 +2289,9 @@ class PlanEngine {
       // OC: split at every gas-switch depth crossed, so each sub-leg prints
       // -- and is later charged in _computeTankUsages' matching split --
       // the gas actually eligible there, not only the one valid at the
-      // deepest point (#3225). boundaries is just [from, to] on a regular
-      // inter-stop leg, so this is a no-op split everywhere but the long
-      // bottom-to-first-stop leg.
+      // deepest point (#3225). A regular inter-stop leg crosses no switch, so
+      // this only divides the long leg to the first stop, or to the surface
+      // on an ascent with no stops.
       var legArrival = arrival - duration;
       for (final span in splitAscentLeg(
         ascentPlan,
