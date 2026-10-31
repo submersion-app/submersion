@@ -224,7 +224,7 @@ Optional settings on a set:
   computer, the whole set is added to dives downloaded or imported from it.
 - **Geofences:** suggest the set for dives near chosen places. Center a
   geofence on a dive site or a dropped pin and set its radius.
-- **Show diver figure:** draw the set's gear on a diver.
+- **Show diver figure:** draw the set's gear on a diver. This is on by default.
 
 ### Using a set on a dive
 
