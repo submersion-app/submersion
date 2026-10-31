@@ -9,8 +9,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   final openStatus = FlightWindowStatus(
     state: FlightWindowState.open,
-    flightAt: DateTime.utc(2126, 8, 10, 9),
-    deadline: DateTime.utc(2126, 8, 9, 15),
+    flightAt: DateTime(2126, 8, 10, 9).toUtc(),
+    deadline: DateTime(2126, 8, 9, 15).toUtc(),
     category: NoFlyCategory.repetitive,
     interval: const Duration(hours: 18),
   );
@@ -57,6 +57,11 @@ void main() {
       find.textContaining('after the latest safe surfacing time'),
       findsNothing,
     );
+  });
+
+  testWidgets('shows the deadline on the device clock', (tester) async {
+    await pump(tester, tripId: 't1', diveEndTime: DateTime.utc(2126, 8, 9, 16));
+    expect(find.textContaining('3:00'), findsOneWidget);
   });
 
   testWidgets('silent without a trip', (tester) async {

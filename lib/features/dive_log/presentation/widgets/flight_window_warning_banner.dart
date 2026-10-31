@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -10,6 +11,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Warn, never block: the diver may be logging a past trip or know better.
 class FlightWindowWarningBanner extends ConsumerWidget {
   final String? tripId;
+
+  /// In-edit dive end time, wall-clock-as-UTC.
   final DateTime? diveEndTime;
 
   const FlightWindowWarningBanner({
@@ -25,13 +28,14 @@ class FlightWindowWarningBanner extends ConsumerWidget {
     if (id == null || end == null) return const SizedBox.shrink();
 
     final status = ref.watch(tripFlightWindowProvider(id)).valueOrNull;
-    if (status == null || !end.isAfter(status.deadline)) {
+    // The dive end is clock digits and the deadline a true instant.
+    if (status == null ||
+        !fromWallClockUtc(end).toUtc().isAfter(status.deadline)) {
       return const SizedBox.shrink();
     }
 
     final scheme = Theme.of(context).colorScheme;
-    // Wall-clock-as-UTC deadline: format components directly, no toLocal().
-    final time = DateFormat.E().add_jm().format(status.deadline);
+    final time = DateFormat.E().add_jm().format(status.deadline.toLocal());
     return Container(
       width: double.infinity,
       color: scheme.errorContainer,

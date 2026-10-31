@@ -1,6 +1,9 @@
+import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -11,6 +14,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
+import '../../../../helpers/dst_transition.dart';
 import '../../../../helpers/mock_providers.dart';
 
 class _StubTripRepository extends Fake implements TripRepository {
@@ -92,7 +96,10 @@ void main() {
 
     expect(status!.state, FlightWindowState.open);
     expect(status.category, NoFlyCategory.repetitive);
-    expect(status.deadline, flightAt.subtract(const Duration(hours: 18)));
+    expect(
+      status.deadline,
+      fromWallClockUtc(flightAt).toUtc().subtract(const Duration(hours: 18)),
+    );
   });
 
   test('a deco dive in the lookback escalates to the deco interval', () async {
@@ -112,7 +119,10 @@ void main() {
     final status = await container.read(tripFlightWindowProvider('t1').future);
 
     expect(status!.category, NoFlyCategory.deco);
-    expect(status.deadline, flightAt.subtract(const Duration(hours: 24)));
+    expect(
+      status.deadline,
+      fromWallClockUtc(flightAt).toUtc().subtract(const Duration(hours: 24)),
+    );
   });
 
   test('returns null when the trip has no flight set', () async {
@@ -147,4 +157,131 @@ void main() {
 
     expect(status!.state, FlightWindowState.conflict);
   });
+
+  // Issue #3926: the flight and any dives are stored as clock digits, so an
+  // interval taken off them gains or loses an hour across a DST change. These
+  // sit on the process zone's own change: the Test job's Sydney and the
+  // Timezone Tests job's New York and Adelaide all have one. In a zone with no
+  // DST the two readings cannot differ.
+  group('across a daylight-saving change', () {
+    const interval = Duration(hours: 18);
+
+    Future<FlightWindowStatus?> windowAt(
+      DateTime now, {
+      required DateTime flight,
+      List<NoFlyDiveInput> dives = const [],
+    }) {
+      final container = _container(
+        trip: _trip(returnFlightAt: asWallClockUtc(flight.toLocal())),
+        dives: dives,
+        diverId: 'diver-1',
+      );
+      return withClock(
+        Clock.fixed(now.toLocal()),
+        () => container.read(tripFlightWindowProvider('t1').future),
+      );
+    }
+
+    test('the deadline leaves the full interval when clocks go on', () async {
+      final change = dstTransition(forward: true)!;
+      final flight = change.add(const Duration(hours: 6));
+
+      final status = await windowAt(
+        change.subtract(const Duration(hours: 14)),
+        flight: flight,
+      );
+
+      expect(status!.state, FlightWindowState.open);
+      expect(status.deadline, flight.subtract(interval));
+    });
+
+    test('the deadline leaves only the interval when clocks go back', () async {
+      final change = dstTransition(forward: false)!;
+      final flight = change.add(const Duration(hours: 6));
+
+      final status = await windowAt(
+        change.subtract(const Duration(hours: 14)),
+        flight: flight,
+      );
+
+      expect(status!.state, FlightWindowState.open);
+      expect(status.deadline, flight.subtract(interval));
+    });
+
+    test('closes once less than the interval is left', () async {
+      // The digits still read open here: they leave an hour less than the
+      // interval, which is the window the issue reports.
+      final change = dstTransition(forward: true)!;
+      final flight = change.add(const Duration(hours: 6));
+
+      final status = await windowAt(
+        flight.subtract(const Duration(hours: 17, minutes: 30)),
+        flight: flight,
+      );
+
+      expect(status!.state, FlightWindowState.closed);
+    });
+
+    test('the countdown runs in elapsed time', () async {
+      // The change falls between now and the deadline, so the digits between
+      // them overstate the time left by an hour.
+      final change = dstTransition(forward: true)!;
+      final now = change.subtract(const Duration(hours: 2));
+
+      final status = await windowAt(
+        now,
+        flight: change.add(const Duration(hours: 24)),
+      );
+
+      expect(status!.remaining(now), const Duration(hours: 8));
+    });
+
+    test('a restriction past departure in elapsed time conflicts', () async {
+      // A 12 h single-dive restriction ends half an hour after this flight,
+      // although its digits read half an hour before it.
+      final change = dstTransition(forward: true)!;
+
+      final status = await windowAt(
+        change.add(const Duration(hours: 1)),
+        flight: change.add(const Duration(hours: 7, minutes: 30)),
+        dives: [
+          NoFlyDiveInput(
+            endTime: asWallClockUtc(
+              change.subtract(const Duration(hours: 4)).toLocal(),
+            ),
+            hadDecoObligation: false,
+          ),
+        ],
+      );
+
+      expect(status!.state, FlightWindowState.conflict);
+    });
+
+    test('closes on time when the change falls before the deadline', () {
+      // Four real hours to the deadline; a timer set from the digits would
+      // wait five.
+      final change = dstTransition(forward: true)!;
+      final start = change.subtract(const Duration(hours: 1)).toLocal();
+      final flight = change.add(const Duration(hours: 21));
+
+      fakeAsync((async) {
+        final container = _container(
+          trip: _trip(returnFlightAt: asWallClockUtc(flight.toLocal())),
+          dives: const [],
+          diverId: 'diver-1',
+        );
+        final subscription = container.listen(
+          tripFlightWindowProvider('t1'),
+          (_, _) {},
+        );
+        addTearDown(subscription.close);
+        async.flushMicrotasks();
+        expect(subscription.read().value!.state, FlightWindowState.open);
+
+        async.elapse(const Duration(hours: 4, seconds: 2));
+
+        expect(subscription.read().value!.state, FlightWindowState.closed);
+      }, initialTime: start);
+    });
+  }, skip: zoneHasNoDst);
 }

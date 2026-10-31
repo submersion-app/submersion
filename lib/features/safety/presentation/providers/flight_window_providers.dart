@@ -1,14 +1,17 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
+
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
 /// Forward-looking dive window for one trip's return flight, or null when
-/// the trip has no flight set (or it already departed).
+/// the trip has no flight set (or it already departed). Its times are true
+/// UTC instants.
 ///
 /// Category floor is repetitive: a trip is multi-day diving by definition,
 /// so the single-dive interval would overstate the window. A deco dive in
@@ -22,29 +25,19 @@ final tripFlightWindowProvider =
       final flightAt = trip?.returnFlightAt;
       if (flightAt == null) return null;
 
-      final diveRepository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
-
       final preset = ref.watch(settingsProvider.select((s) => s.noFlyPreset));
-      final diverId = ref.watch(currentDiverIdProvider);
+      final current = await ref.watch(noFlyStatusProvider.future);
 
-      final now = NoFlyService.wallClockNowUtc();
-      const service = NoFlyService();
-
-      NoFlyStatus? current;
-      if (diverId != null) {
-        final dives = await diveRepository.getNoFlyDiveInputs(
-          since: now.subtract(NoFlyService.lookback),
-          diverId: diverId,
-        );
-        current = service.evaluate(dives: dives, preset: preset, now: now);
-      }
-
+      // The flight is stored wall-clock-as-UTC. Read it in the device's zone
+      // to get a real instant before taking a guideline interval off it, as
+      // noFlyStatusProvider does for dive end times: interval arithmetic on
+      // clock digits is an hour off across a DST change (issue #3926).
+      final now = clock.now().toUtc();
       final category = current?.category == NoFlyCategory.deco
           ? NoFlyCategory.deco
           : NoFlyCategory.repetitive;
-      final status = service.flightWindow(
-        flightAt: flightAt,
+      final status = const NoFlyService().flightWindow(
+        flightAt: fromWallClockUtc(flightAt).toUtc(),
         preset: preset,
         prospectiveCategory: category,
         currentNoFlyUntil: current?.until,

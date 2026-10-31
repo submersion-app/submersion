@@ -239,7 +239,7 @@ class GaugeStrip extends ConsumerWidget {
       switch (flight.state) {
         case FlightWindowState.open:
           if (_shown(hidden, HomeChipType.flightWindow)) {
-            final remaining = flight.remaining(NoFlyService.wallClockNowUtc());
+            final remaining = flight.remaining(DateTime.now().toUtc());
             chips.add(
               _chip(
                 context,
