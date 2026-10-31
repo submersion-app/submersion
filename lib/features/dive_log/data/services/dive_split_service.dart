@@ -22,6 +22,13 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 /// freshly created dive; the logbook entry (site, notes, buddies, tags,
 /// equipment, media) stays on the original dive.
 ///
+/// Consolidation slid the source onto the dive's timeline and recorded by how
+/// much in `timeOffsetSeconds`. Everything that moves goes back to the
+/// source's own clock (issue #3916), so a timestamp means the same moment
+/// measured from the new dive's start as it did before the two were
+/// consolidated. When the primary is the one that leaves, the dive itself
+/// starts over on the source promoted in its place.
+///
 /// Mirrors the consolidation service's sync discipline: one transaction,
 /// per-row tombstones for every moved row (the original dive survives, so
 /// peers would otherwise keep upsert copies forever), markRecordPending for
@@ -81,6 +88,8 @@ class DiveSplitService {
 
     final newDiveId = _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
+    // How far along this dive's timeline the source's own clock starts.
+    final sourceOffset = source.timeOffsetSeconds ?? 0;
 
     // Series move by computer attribution. A computer-less source cannot be
     // attributed at the row level by computer, so only non-primary
@@ -155,10 +164,12 @@ class DiveSplitService {
                   id: Value(newDiveId),
                   // Dive.dateTime derives from diveDateTime; date the new
                   // dive by its own source's entry time so it sorts where
-                  // that computer actually recorded it.
+                  // that computer actually recorded it. A source with no
+                  // entry time still goes back to its own clock below, so
+                  // it starts as far along the old dive as that clock did.
                   diveDateTime: Value(
                     source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.diveDateTime,
+                        _later(diveRow.diveDateTime, sourceOffset)!,
                   ),
                   diveNumber: const Value(null),
                   siteId: const Value(null),
@@ -182,10 +193,11 @@ class DiveSplitService {
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
                   entryTime: Value(
                     source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.entryTime,
+                        _later(diveRow.entryTime, sourceOffset),
                   ),
                   exitTime: Value(
-                    source.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
+                    source.exitTime?.millisecondsSinceEpoch ??
+                        _later(diveRow.exitTime, sourceOffset),
                   ),
                   surfaceIntervalSeconds: Value(
                     source.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
@@ -220,7 +232,8 @@ class DiveSplitService {
         now: now,
       );
 
-      // 2. The source row becomes the new dive's primary source.
+      // 2. The source row becomes the new dive's primary source, on that
+      // dive's time base: steps 5 to 7b take its offset off what it moves.
       final newSourceId = _uuid.v4();
       await _db
           .into(_db.diveDataSources)
@@ -231,6 +244,7 @@ class DiveSplitService {
                   id: Value(newSourceId),
                   diveId: Value(newDiveId),
                   isPrimary: const Value(true),
+                  timeOffsetSeconds: const Value(0),
                 ),
           );
       await (_db.delete(
@@ -433,7 +447,7 @@ class DiveSplitService {
           sourceId: newSourceId,
           isPrimary: source.isPrimary ? s.isPrimary : true,
           activatedAt: Value(s.activatedAt),
-          samples: s.samples,
+          samples: [for (final p in s.samples) p.shiftedBy(-sourceOffset)],
           now: now,
         );
       }
@@ -445,7 +459,7 @@ class DiveSplitService {
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
           sourceId: newSourceId,
-          samples: s.samples,
+          samples: [for (final p in s.samples) p.shiftedBy(-sourceOffset)],
           now: now,
         );
       }
@@ -461,6 +475,7 @@ class DiveSplitService {
                   .copyWith(
                     id: Value(freshId),
                     diveId: Value(newDiveId),
+                    timestamp: Value(row.timestamp - sourceOffset),
                     tankId: Value(
                       row.tankId == null
                           ? null
@@ -494,6 +509,7 @@ class DiveSplitService {
                     id: Value(freshId),
                     diveId: Value(newDiveId),
                     tankId: Value(tankIdMap[row.tankId]!),
+                    timestamp: Value(row.timestamp - sourceOffset),
                   ),
             );
         await _sync.markRecordPending(
@@ -574,6 +590,26 @@ class DiveSplitService {
           );
         }
 
+        // The dive now starts when the promoted source did, so that moment
+        // becomes the zero of everything left on its timeline. Without this
+        // the promoted source's first sample would read as its offset past
+        // its own entry time.
+        final promotedOffset = promoted.timeOffsetSeconds ?? 0;
+        if (promotedOffset != 0) {
+          await _rezeroTimeline(
+            diveId,
+            promotedOffset,
+            sources.where((s) => s.id != source.id),
+            now: now,
+          );
+          diveUpdate = diveUpdate.copyWith(
+            diveDateTime: Value(
+              promoted.entryTime?.millisecondsSinceEpoch ??
+                  _later(diveRow.diveDateTime, promotedOffset)!,
+            ),
+          );
+        }
+
         diveUpdate = diveUpdate.copyWith(
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
@@ -591,10 +627,12 @@ class DiveSplitService {
           ),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
           entryTime: Value(
-            promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,
+            promoted.entryTime?.millisecondsSinceEpoch ??
+                _later(diveRow.entryTime, promotedOffset),
           ),
           exitTime: Value(
-            promoted.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
+            promoted.exitTime?.millisecondsSinceEpoch ??
+                _later(diveRow.exitTime, promotedOffset),
           ),
           surfaceIntervalSeconds: Value(
             promoted.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
@@ -623,5 +661,77 @@ class DiveSplitService {
 
     SyncEventBus.notifyLocalChange();
     return newDiveId;
+  }
+
+  /// [epochMs] moved [seconds] later, for a time that only the dive can give
+  /// a source with no window of its own. Null stays null.
+  int? _later(int? epochMs, int seconds) =>
+      epochMs == null ? null : epochMs + seconds * 1000;
+
+  /// Makes the moment [offset] seconds along [diveId]'s timeline its new
+  /// zero. Everything on the timeline moves back by [offset] together, so
+  /// the strands of [remaining] stay aligned with one another and each of
+  /// their recorded offsets stays true. Run after the departing source's
+  /// rows are gone.
+  Future<void> _rezeroTimeline(
+    String diveId,
+    int offset,
+    Iterable<DiveDataSourcesData> remaining, {
+    required int now,
+  }) async {
+    await _profileSeries.shiftSamples(
+      await _profileSeries.getSeriesForDive(diveId),
+      -offset,
+      now: now,
+    );
+    await _tankSeries.shiftSamples(
+      await _tankSeries.getSeriesForDive(diveId),
+      -offset,
+      now: now,
+    );
+    final events = await (_db.select(
+      _db.diveProfileEvents,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    for (final row in events) {
+      await (_db.update(
+        _db.diveProfileEvents,
+      )..where((t) => t.id.equals(row.id))).write(
+        DiveProfileEventsCompanion(timestamp: Value(row.timestamp - offset)),
+      );
+      await _sync.markRecordPending(
+        entityType: 'diveProfileEvents',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    final switches = await (_db.select(
+      _db.gasSwitches,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    for (final row in switches) {
+      await (_db.update(
+        _db.gasSwitches,
+      )..where((t) => t.id.equals(row.id))).write(
+        GasSwitchesCompanion(timestamp: Value(row.timestamp - offset)),
+      );
+      await _sync.markRecordPending(
+        entityType: 'gasSwitches',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    for (final source in remaining) {
+      await (_db.update(
+        _db.diveDataSources,
+      )..where((t) => t.id.equals(source.id))).write(
+        DiveDataSourcesCompanion(
+          timeOffsetSeconds: Value((source.timeOffsetSeconds ?? 0) - offset),
+        ),
+      );
+      await _sync.markRecordPending(
+        entityType: 'diveDataSources',
+        recordId: source.id,
+        localUpdatedAt: now,
+      );
+    }
   }
 }
