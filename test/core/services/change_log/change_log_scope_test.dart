@@ -172,6 +172,33 @@ void main() {
     expect((await _context(db))['operation_id'], isNull);
   });
 
+  test('a killed scope is not brought back', () async {
+    await db
+        .into(db.changeLogOperations)
+        .insert(
+          ChangeLogOperationsCompanion.insert(
+            id: 'killed',
+            source: 'import',
+            startedAt: 0,
+            endedAt: 0,
+          ),
+        );
+    await db.customStatement(
+      "UPDATE change_log_context SET operation_id = 'killed', "
+      'scope_expires_at = 1',
+    );
+
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.rule,
+      body: () async {},
+    );
+    await _edit(db, 'After');
+
+    expect((await _context(db))['operation_id'], isNull);
+    expect((await logEvents(db)).single['operation_id'], isNull);
+  });
+
   test('an expired scope stops labelling', () async {
     await ChangeLogScope.run(
       db,

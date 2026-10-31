@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
@@ -299,6 +300,8 @@ class ChangeLogRevertService {
     final table = event.table;
     final columns = await _repository.liveColumns(table);
     final values = <String, Object?>{
+      for (final column in await _repository.nullableDefaultedColumns(table))
+        if (!changeLogDeleteCopySkips(column)) column: null,
       for (final field in event.fields)
         if (columns.contains(field.column)) field.column: field.oldValue,
       if (columns.contains('updated_at')) 'updated_at': now,

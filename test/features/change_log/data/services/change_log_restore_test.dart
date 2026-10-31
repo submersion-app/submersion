@@ -150,6 +150,22 @@ void main() {
     });
   });
 
+  test('a null with a non-null default comes back null', () async {
+    await db.customStatement(
+      'INSERT INTO diver_settings (id, diver_id, default_tank_preset, '
+      "created_at, updated_at) VALUES ('s1', 'me', NULL, 0, 0)",
+    );
+    await forget();
+    await db.customStatement("DELETE FROM diver_settings WHERE id = 's1'");
+
+    await service.execute(await service.planOperation(await newestOperation()));
+
+    final row = await db
+        .customSelect('SELECT default_tank_preset FROM diver_settings')
+        .getSingle();
+    expect(row.data['default_tank_preset'], isNull);
+  });
+
   test('a restored child with a missing parent is blocked', () async {
     await db.customStatement("DELETE FROM dive_tanks WHERE id = 'tank'");
     final operation = await newestOperation();

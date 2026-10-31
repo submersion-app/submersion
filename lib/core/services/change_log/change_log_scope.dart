@@ -195,9 +195,12 @@ abstract final class ChangeLogScope {
               endedAt: now,
             ),
           );
+      // A lapsed lease is a job that died, so it is not handed back later.
       final context = await db
           .customSelect(
-            'SELECT operation_id FROM change_log_context WHERE id = 1',
+            'SELECT CASE WHEN scope_expires_at > ? THEN operation_id END '
+            'AS operation_id FROM change_log_context WHERE id = 1',
+            variables: [Variable<int>(now)],
           )
           .getSingle();
       await db.customStatement(

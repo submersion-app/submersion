@@ -359,6 +359,20 @@ class ChangeLogRepository {
     return {for (final row in rows) row.read<String>('name')};
   }
 
+  /// Columns of [table] that may be null but default to a value. A delete
+  /// copy leaves nulls out, so a restore has to write these null itself or
+  /// the default would take their place.
+  Future<Set<String>> nullableDefaultedColumns(String table) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT name FROM pragma_table_info(?) '
+          'WHERE "notnull" = 0 AND dflt_value IS NOT NULL',
+          variables: [Variable<String>(table)],
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('name')};
+  }
+
   /// Whether the record still exists, for offering a link to it.
   Future<bool> recordExists(String table, String id) async {
     final spec = specOf(table);

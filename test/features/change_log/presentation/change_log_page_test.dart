@@ -296,6 +296,35 @@ void main() {
     expect(container.read(provider).value!.operations.length, greaterThan(50));
   });
 
+  testWidgets('Any source clears a chosen source', (tester) async {
+    await tester.runAsync(
+      () => db.customStatement(
+        "UPDATE dives SET notes = 'Edited' WHERE id = 'mine'",
+      ),
+    );
+    await pump(tester);
+    // Wide enough for the whole row of chips.
+    tester.view.physicalSize = const Size(1600, 1000);
+    await tester.pump();
+
+    Future<void> choose(String source) async {
+      await tester.tap(find.byKey(const ValueKey('change_log_source_filter')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.text(source).last);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await settle(tester);
+    }
+
+    await choose('Rule');
+    expect(find.textContaining('Edited', findRichText: true), findsNothing);
+
+    await choose('Any source');
+
+    expect(find.textContaining('Edited', findRichText: true), findsOneWidget);
+  });
+
   testWidgets('entries are grouped by day', (tester) async {
     await tester.runAsync(
       () => db.customStatement(

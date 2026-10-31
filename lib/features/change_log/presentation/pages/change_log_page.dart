@@ -36,6 +36,14 @@ enum _RecordGroup {
   };
 }
 
+/// A source menu item. A wrapper because a menu treats a null value as being
+/// dismissed, which would leave Any source unable to clear a choice.
+class _SourceChoice {
+  const _SourceChoice(this.source);
+
+  final ChangeLogSource? source;
+}
+
 /// Settings > Data > Change log (issue #3922): every change to the active
 /// diver's records, newest first, or one record's when [rootId] is set.
 class ChangeLogPage extends ConsumerStatefulWidget {
@@ -128,14 +136,17 @@ class _ChangeLogPageState extends ConsumerState<ChangeLogPage> {
               onSelected: (_) => setState(() => _group = group),
             ),
           ),
-        PopupMenuButton<ChangeLogSource?>(
+        PopupMenuButton<_SourceChoice>(
           key: const ValueKey('change_log_source_filter'),
-          onSelected: (source) => setState(() => _source = source),
+          onSelected: (choice) => setState(() => _source = choice.source),
           itemBuilder: (_) => [
-            PopupMenuItem(child: Text(l.changeLog_filter_anySource)),
+            PopupMenuItem(
+              value: const _SourceChoice(null),
+              child: Text(l.changeLog_filter_anySource),
+            ),
             for (final source in ChangeLogSource.values)
               PopupMenuItem(
-                value: source,
+                value: _SourceChoice(source),
                 child: Text(changeLogSourceLabel(l, source)),
               ),
           ],
