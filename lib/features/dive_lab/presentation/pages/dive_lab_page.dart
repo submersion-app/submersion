@@ -27,7 +27,6 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -81,7 +80,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     final actions = ref.read(labShareActionsProvider);
     final draft = ref.read(labDraftProvider(diveId));
     final scenario = draft
@@ -180,7 +179,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
     final labRoute = ModalRoute.of(context);
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     final draft = ref.read(labDraftProvider(diveId));
     if (!draft.isSeeded) return;
     try {
@@ -217,19 +216,28 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
           : units.formatDate(dive.entryTime ?? dive.dateTime);
       // newPlan() seeds exactly the defaults a fresh plan gets (reserve, GF,
       // water, SAC from the diver's settings); the rebuild sheet does the same.
+      // Whatever the planner held is put back if the hand-off fails, so a
+      // refused scenario never costs the diver an unsaved plan.
       final notifier = ref.read(divePlanNotifierProvider.notifier);
+      final previous = ref.read(divePlanNotifierProvider);
       notifier.newPlan();
       final defaults = ref.read(divePlanNotifierProvider);
-      final result = buildScenarioPlanHandoff(
-        request: request,
-        outcome: outcome,
-        scenario: scenario,
-        dive: dive,
-        profile: inputs.profile,
-        gasSwitches: [for (final s in switches) s.gasSwitch],
-        defaults: defaults,
-        planName: l10n.diveLab_handoff_planName(title, scenario.name),
-      );
+      final ScenarioPlanHandoffResult result;
+      try {
+        result = buildScenarioPlanHandoff(
+          request: request,
+          outcome: outcome,
+          scenario: scenario,
+          dive: dive,
+          profile: inputs.profile,
+          gasSwitches: [for (final s in switches) s.gasSwitch],
+          defaults: defaults,
+          planName: l10n.diveLab_handoff_planName(title, scenario.name),
+        );
+      } catch (_) {
+        notifier.loadPlan(previous);
+        rethrow;
+      }
       notifier.loadPlan(result.plan);
       if (result.notes.isNotEmpty) {
         messenger.showSnackBar(
@@ -270,7 +278,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     final l10n = context.l10n;
     final draft = ref.read(labDraftProvider(diveId));
     if (!draft.isSeeded) return;
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     final scenario = draft.toScenario(diveId);
     final defaultName =
         draft.name ??
@@ -473,6 +481,7 @@ class _LabBody extends ConsumerWidget {
       outcome: outcome.value,
       recomputing: outcome.isLoading,
       buoyancy: buoyancy,
+      error: outcome.hasError ? outcome.error : null,
     );
 
     return LayoutBuilder(

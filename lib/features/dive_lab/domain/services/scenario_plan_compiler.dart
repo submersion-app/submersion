@@ -89,8 +89,6 @@ CompiledScenario compileScenarioPlan({
 
   for (final i in interventions) {
     switch (i) {
-      case LoseTankIntervention(:final tankId):
-        tanks = tanks.where((t) => t.id != tankId).toList();
       case SwitchGasIntervention(:final tank):
         switch (tank) {
           case ExistingTankRef(:final tankId):
@@ -146,10 +144,13 @@ CompiledScenario compileScenarioPlan({
           gasSwitchStopSeconds = switchStop;
         }
         if (extra != null && extra > 0) extraLastStopSeconds = extra;
-      case ShiftAscentIntervention() ||
+      case LoseTankIntervention() ||
+          ShiftAscentIntervention() ||
           AscendNowIntervention() ||
           ChangeGfIntervention():
-        break; // applied elsewhere (segments / settings)
+        // Applied elsewhere: a lost tank is already out of the tank list
+        // (availableScenarioTanks above), the rest shape segments/settings.
+        break;
     }
   }
 

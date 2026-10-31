@@ -52,9 +52,14 @@ final labShareActionsProvider = Provider<LabShareActions>(
   (_) => const LabShareActions(),
 );
 
-/// Letters, digits, dashes and underscores only.
+/// Letters and digits of any script, dashes and underscores only; every
+/// other run of characters (spaces, path separators, punctuation) becomes
+/// one underscore.
 String labSafeFileName(String name) {
-  final cleaned = name.trim().replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+  final cleaned = name.trim().replaceAll(
+    RegExp(r'[^\p{L}\p{N}_-]+', unicode: true),
+    '_',
+  );
   return cleaned.isEmpty ? 'scenario' : cleaned;
 }
 

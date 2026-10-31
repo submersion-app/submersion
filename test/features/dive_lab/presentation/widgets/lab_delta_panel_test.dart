@@ -110,4 +110,21 @@ void main() {
     await tester.pump();
     expect(find.text('Computing…'), findsOneWidget);
   });
+
+  testWidgets('an engine error is shown instead of an empty panel', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        LabDeltaPanel(
+          inputs: _inputs(),
+          outcome: null,
+          error: StateError('engine down'),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining('engine down'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
 }

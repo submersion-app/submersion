@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 
 void main() {
   late ProviderContainer c;
@@ -60,5 +61,36 @@ void main() {
     expect(s.branchSeconds, 600);
     expect(s.interventions.single, const ShareGasIntervention());
     expect(s.effectiveMode, ScenarioMode.replay);
+  });
+
+  DiveScenario saved() => DiveScenario(
+    id: 's1',
+    diveId: 'd',
+    name: 'Lost deco',
+    branchSeconds: 600,
+    mode: ScenarioMode.replan,
+    interventions: const [AscendNowIntervention()],
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
+  test('forgetSaved unlinks the draft from a deleted scenario, keeping it', () {
+    n().loadScenario(saved());
+    n().forgetSaved('other');
+    expect(d().scenarioId, 's1');
+    n().forgetSaved('s1');
+    expect(d().scenarioId, isNull);
+    expect(d().name, isNull);
+    expect(d().interventions, hasLength(1));
+    expect(d().branchSeconds, 600);
+  });
+
+  test('renameSaved follows a rename of the loaded scenario only', () {
+    n().loadScenario(saved());
+    n().renameSaved('other', 'Nope');
+    expect(d().name, 'Lost deco');
+    n().renameSaved('s1', 'Lost deco gas');
+    expect(d().name, 'Lost deco gas');
+    expect(d().scenarioId, 's1');
   });
 }

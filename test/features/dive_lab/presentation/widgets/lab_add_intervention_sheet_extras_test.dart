@@ -15,7 +15,9 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../domain/support/synthetic_dives.dart';
 
-LabRequestInputs _ccrInputs() {
+LabRequestInputs _ccrInputs({
+  ScenarioSettings settings = const ScenarioSettings(),
+}) {
   final d = squareDive(withDeco50: false, withPressures: false);
   return LabRequestInputs(
     dive: Dive(id: 'd', diveNumber: 1, dateTime: DateTime(2026)),
@@ -48,7 +50,7 @@ LabRequestInputs _ccrInputs() {
     setpointLow: 0.7,
     startCns: 0,
     startOtu: 0,
-    settings: const ScenarioSettings(),
+    settings: settings,
   );
 }
 
@@ -113,5 +115,39 @@ void main() {
     expect(policy.extraLastStopSeconds, 60);
     expect(policy.ascentRate, isNull);
     expect(draft.effectiveMode, ScenarioMode.replan);
+  });
+
+  testWidgets('an untouched ascent rate stays unset on a fractional setting', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(600, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        locale: const Locale('en'),
+        child: _Host(
+          _ccrInputs(settings: const ScenarioSettings(ascentRate: 9.5)),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(_Host)),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ascent policy'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    final policy = container
+        .read(labDraftProvider('d'))
+        .interventions
+        .whereType<AscentPolicyIntervention>()
+        .single;
+    expect(policy.ascentRate, isNull);
   });
 }

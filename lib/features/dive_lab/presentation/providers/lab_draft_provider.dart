@@ -58,12 +58,13 @@ class LabDraft extends Equatable {
     String? name,
     String? notes,
     bool clearNotes = false,
+    bool clearSaved = false,
   }) => LabDraft(
     branchSeconds: branchSeconds ?? this.branchSeconds,
     mode: mode ?? this.mode,
     interventions: interventions ?? this.interventions,
-    scenarioId: scenarioId ?? this.scenarioId,
-    name: name ?? this.name,
+    scenarioId: clearSaved ? null : (scenarioId ?? this.scenarioId),
+    name: clearSaved ? null : (name ?? this.name),
     notes: clearNotes ? null : (notes ?? this.notes),
   );
 
@@ -148,6 +149,21 @@ class LabDraftNotifier extends StateNotifier<LabDraft> {
   /// Records that the draft now edits the saved scenario [id].
   void markSaved(String id, String name) {
     state = state.copyWith(scenarioId: id, name: name);
+  }
+
+  /// The saved scenario [id] was deleted: a draft editing it keeps its
+  /// branch and interventions but is unsaved again, so the next save mints
+  /// a new row instead of resurrecting the deleted one.
+  void forgetSaved(String id) {
+    if (state.scenarioId != id) return;
+    state = state.copyWith(clearSaved: true);
+  }
+
+  /// The saved scenario [id] was renamed elsewhere (the saved list); a draft
+  /// editing it follows, so its next save does not undo the rename.
+  void renameSaved(String id, String name) {
+    if (state.scenarioId != id) return;
+    state = state.copyWith(name: name);
   }
 }
 

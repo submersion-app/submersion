@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -96,6 +97,11 @@ class _LabAddInterventionSheetState
 
   // ascentPolicy
   int _ascentRateMPerMin = 9;
+
+  /// The stepper's starting value, the settings rate rounded to its whole
+  /// metres; an untouched stepper records no rate, whatever the setting's
+  /// fraction.
+  late final int _initialAscentRateMPerMin;
   bool _lastStopSix = false;
   int _extraLastStopMinutes = 0;
   int _gasSwitchStopSeconds = 0;
@@ -114,6 +120,7 @@ class _LabAddInterventionSheetState
     _gfHigh = widget.inputs.settings.gfHighPercent;
     _buddyFactor = widget.inputs.settings.buddyFactor;
     _ascentRateMPerMin = widget.inputs.settings.ascentRate.round().clamp(3, 18);
+    _initialAscentRateMPerMin = _ascentRateMPerMin;
     _lastStopSix = widget.inputs.settings.lastStopDepth >= 5.0;
     _gasSwitchStopSeconds = widget.inputs.settings.gasSwitchStopSeconds;
     final tanks = widget.inputs.tanks;
@@ -217,7 +224,7 @@ class _LabAddInterventionSheetState
         final s = widget.inputs.settings;
         final lastStop = _lastStopSix ? 6.0 : 3.0;
         return AscentPolicyIntervention(
-          ascentRate: _ascentRateMPerMin.toDouble() == s.ascentRate
+          ascentRate: _ascentRateMPerMin == _initialAscentRateMPerMin
               ? null
               : _ascentRateMPerMin.toDouble(),
           lastStopDepth: lastStop == s.lastStopDepth ? null : lastStop,
@@ -302,7 +309,7 @@ class _LabAddInterventionSheetState
   Widget _editorFor(
     InterventionKind kind,
     UnitFormatter units,
-    dynamic l10n,
+    AppLocalizations l10n,
     ThemeData theme,
   ) {
     switch (kind) {
@@ -347,75 +354,76 @@ class _LabAddInterventionSheetState
     return null;
   }
 
-  Widget _hypotheticalFields(UnitFormatter units, dynamic l10n) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      const SizedBox(height: 8),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _hypotheticalFields(UnitFormatter units, AppLocalizations l10n) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _o2,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.diveLab_sheet_o2,
-                errorText: _numberError(_o2),
-                errorMaxLines: 4,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _he,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.diveLab_sheet_he,
-                errorText: _numberError(_he),
-                errorMaxLines: 4,
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _volume,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.diveLab_sheet_volume(units.volumeSymbol),
-                errorText: _numberError(_volume),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _pressure,
-              keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.diveLab_sheet_startPressure(
-                  units.pressureSymbol,
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _o2,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.diveLab_sheet_o2,
+                    errorText: _numberError(_o2),
+                    errorMaxLines: 4,
+                  ),
                 ),
-                errorText: _numberError(_pressure),
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _he,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.diveLab_sheet_he,
+                    errorText: _numberError(_he),
+                    errorMaxLines: 4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _volume,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.diveLab_sheet_volume(units.volumeSymbol),
+                    errorText: _numberError(_volume),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _pressure,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.diveLab_sheet_startPressure(
+                      units.pressureSymbol,
+                    ),
+                    errorText: _numberError(_pressure),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-    ],
-  );
+      );
 
-  Widget _bailOutEditor(UnitFormatter units, dynamic l10n) {
+  Widget _bailOutEditor(UnitFormatter units, AppLocalizations l10n) {
     final tanks = widget.inputs.tanks;
     final bailout = tanks.where((t) => t.role == TankRole.bailout).toList();
     return Column(
@@ -467,7 +475,7 @@ class _LabAddInterventionSheetState
 
   Widget _ascentPolicyEditor(
     UnitFormatter units,
-    dynamic l10n,
+    AppLocalizations l10n,
     ThemeData theme,
   ) {
     final rateShown = units.convertDepth(_ascentRateMPerMin.toDouble());
@@ -533,7 +541,7 @@ class _LabAddInterventionSheetState
     );
   }
 
-  Widget _switchGasEditor(UnitFormatter units, dynamic l10n) {
+  Widget _switchGasEditor(UnitFormatter units, AppLocalizations l10n) {
     final tanks = widget.inputs.tanks;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -559,7 +567,7 @@ class _LabAddInterventionSheetState
     );
   }
 
-  Widget _loseTankEditor(dynamic l10n) {
+  Widget _loseTankEditor(AppLocalizations l10n) {
     final tanks = widget.inputs.tanks;
     final losable = tanks.where(_isLosable).toList();
     if (losable.isEmpty) return Text(l10n.diveLab_sheet_noCandidates);
@@ -574,7 +582,7 @@ class _LabAddInterventionSheetState
     );
   }
 
-  Widget _shiftAscentEditor(dynamic l10n, ThemeData theme) {
+  Widget _shiftAscentEditor(AppLocalizations l10n, ThemeData theme) {
     return Row(
       children: [
         IconButton(
@@ -605,7 +613,7 @@ class _LabAddInterventionSheetState
     );
   }
 
-  Widget _gfEditor(dynamic l10n) {
+  Widget _gfEditor(AppLocalizations l10n) {
     Widget slider(String label, int value, ValueChanged<int> onChanged) =>
         Expanded(
           child: Column(
@@ -639,7 +647,7 @@ class _LabAddInterventionSheetState
     );
   }
 
-  Widget _shareGasEditor(dynamic l10n, ThemeData theme) {
+  Widget _shareGasEditor(AppLocalizations l10n, ThemeData theme) {
     return Row(
       children: [
         Text(l10n.diveLab_sheet_buddyFactor),

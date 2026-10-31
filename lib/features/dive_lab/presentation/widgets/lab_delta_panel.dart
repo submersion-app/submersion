@@ -29,9 +29,14 @@ class LabDeltaPanel extends ConsumerWidget {
     required this.outcome,
     this.recomputing = false,
     this.buoyancy,
+    this.error,
   });
 
   final LabRequestInputs inputs;
+
+  /// Why the latest run produced no outcome; shown in place of the panel so
+  /// an engine failure never reads as a run that is still computing.
+  final Object? error;
 
   /// Buoyancy twin verdicts for both timelines; null while unavailable.
   final BuoyancyComparison? buoyancy;
@@ -54,6 +59,18 @@ class LabDeltaPanel extends ConsumerWidget {
     String tankName(String id) => labTankName(inputs.tanks, id);
 
     if (value == null) {
+      final failure = error;
+      if (failure != null && !loading) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            '$failure',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        );
+      }
       return Padding(
         padding: const EdgeInsets.all(16),
         child: loading

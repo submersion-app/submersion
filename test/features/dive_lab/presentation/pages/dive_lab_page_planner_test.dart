@@ -160,6 +160,40 @@ void main() {
     );
   });
 
+  testWidgets('a failed hand-off leaves the planner as it was', (tester) async {
+    final router = _router();
+    addTearDown(router.dispose);
+    final inputs = _inputs();
+    // An outcome computed in replay mode carries no compiled plan, so the
+    // hand-off refuses it, after the point where the planner was reset.
+    await tester.pumpWidget(
+      _app(
+        router,
+        inputs,
+        runner: (request) async => const ScenarioEngine().run(
+          inputs.toRequest(
+            request.scenario.copyWith(mode: ScenarioMode.replay),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open lab')),
+    );
+    final planner = container.read(divePlanNotifierProvider.notifier);
+    planner.newPlan();
+    planner.loadPlan(
+      container.read(divePlanNotifierProvider).copyWith(name: 'keep me'),
+    );
+    await _openLabAndMenu(tester);
+    await tester.tap(find.text('Open in planner'));
+    await tester.pumpAndSettle();
+    expect(container.read(divePlanNotifierProvider).name, 'keep me');
+    expect(find.textContaining("Couldn't open in planner"), findsOneWidget);
+    expect(find.byType(DiveLabPage), findsOneWidget);
+  });
+
   testWidgets('Open in planner is disabled on a rebreather dive', (
     tester,
   ) async {

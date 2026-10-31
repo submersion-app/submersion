@@ -316,6 +316,7 @@ class _ScenarioTile extends ConsumerWidget {
               ref,
               scenario.id,
               scenario.name,
+              diveId: diveId,
             ),
           ),
           PopupMenuButton<String>(
@@ -328,6 +329,9 @@ class _ScenarioTile extends ConsumerWidget {
                 );
                 if (entered == null) return;
                 await repository.saveScenario(scenario.copyWith(name: entered));
+                ref
+                    .read(labDraftProvider(diveId).notifier)
+                    .renameSaved(scenario.id, entered);
               } else if (value == 'duplicate') {
                 await repository.duplicateScenario(scenario.id);
               } else if (value == 'share') {
@@ -355,16 +359,22 @@ class _ScenarioTile extends ConsumerWidget {
   }
 }
 
-/// One confirmation path for every delete entry point. The repository is
-/// read before the await so no ref crosses the async gap.
+/// One confirmation path for every delete entry point. The repository and
+/// the draft notifier are read before the await so no ref crosses the async
+/// gap. With [diveId], a draft that was editing the deleted scenario is
+/// unlinked from it (see [LabDraftNotifier.forgetSaved]).
 Future<void> confirmAndDeleteScenario(
   BuildContext context,
   WidgetRef ref,
   String id,
-  String name,
-) async {
+  String name, {
+  String? diveId,
+}) async {
   final l10n = context.l10n;
   final repository = ref.read(diveScenarioRepositoryProvider);
+  final draft = diveId == null
+      ? null
+      : ref.read(labDraftProvider(diveId).notifier);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -381,5 +391,8 @@ Future<void> confirmAndDeleteScenario(
       ],
     ),
   );
-  if (confirmed ?? false) await repository.deleteScenario(id);
+  if (confirmed ?? false) {
+    await repository.deleteScenario(id);
+    draft?.forgetSaved(id);
+  }
 }
