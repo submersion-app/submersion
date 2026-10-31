@@ -16751,6 +16751,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_searchTooltip => 'البحث في المعدات';
 
   @override
+  String equipment_list_showMore(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إظهار $count عنصر إضافي',
+      many: 'إظهار $count عنصرًا إضافيًا',
+      few: 'إظهار $count عناصر إضافية',
+      two: 'إظهار عنصرين إضافيين',
+      one: 'إظهار 1 إضافي',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_list_sortTitle => 'ترتيب المعدات';
 
   @override

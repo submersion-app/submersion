@@ -4833,6 +4833,7 @@
   "equipment_locations_notesHint": "Adres, telefoon, kluisjesnummer",
   "equipment_list_retryButton": "Opnieuw proberen",
   "equipment_list_searchTooltip": "Uitrusting zoeken",
+  "equipment_list_showMore": "{count, plural, =1{1 meer weergeven} other{{count} meer weergeven}}",
   "equipment_list_sortTitle": "Uitrusting sorteren",
   "equipment_list_sortTooltip": "Sorteren",
   "equipment_menu_delete": "Verwijderen",

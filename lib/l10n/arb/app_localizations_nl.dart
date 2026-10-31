@@ -16405,6 +16405,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_searchTooltip => 'Uitrusting zoeken';
 
   @override
+  String equipment_list_showMore(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meer weergeven',
+      one: '1 meer weergeven',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_list_sortTitle => 'Uitrusting sorteren';
 
   @override

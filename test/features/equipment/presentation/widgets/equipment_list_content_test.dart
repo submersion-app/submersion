@@ -2590,6 +2590,103 @@ void main() {
     });
   });
 
+  group('show more within a type group (#3993)', () {
+    Future<void> pumpList(
+      WidgetTester tester, {
+      required List<EquipmentItem> items,
+      String? selectedId,
+    }) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final overrides = await _buildPhoneOverrides(items: items);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: EquipmentListContent(
+            showAppBar: false,
+            selectedId: selectedId,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    List<String> rowNames(WidgetTester tester) => tester
+        .widgetList<EquipmentListTile>(find.byType(EquipmentListTile))
+        .map((t) => t.item.name)
+        .toList();
+
+    List<EquipmentItem> bcds(int count) => [
+      for (var i = 0; i < count; i++)
+        _makeEquipment(
+          id: 'bcd$i',
+          name: 'BCD ${String.fromCharCode(65 + i)}',
+          type: EquipmentType.bcd,
+        ),
+    ];
+
+    testWidgets('a group of 4 or fewer shows every item, no show-more row', (
+      tester,
+    ) async {
+      await pumpList(tester, items: bcds(4));
+
+      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C', 'BCD D']);
+      expect(find.textContaining('more'), findsNothing);
+    });
+
+    testWidgets('a group of 5 or more is capped at 3 with a show-more row', (
+      tester,
+    ) async {
+      await pumpList(tester, items: bcds(6));
+
+      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C']);
+      expect(find.text('Show 3 more'), findsOneWidget);
+    });
+
+    testWidgets('tapping the show-more row reveals the rest of the group', (
+      tester,
+    ) async {
+      await pumpList(tester, items: bcds(6));
+
+      await tester.tap(find.text('Show 3 more'));
+      await tester.pumpAndSettle();
+
+      expect(rowNames(tester), [
+        'BCD A',
+        'BCD B',
+        'BCD C',
+        'BCD D',
+        'BCD E',
+        'BCD F',
+      ]);
+      expect(find.textContaining('more'), findsNothing);
+    });
+
+    testWidgets(
+      'a selection hidden past the cap expands its group instead of being '
+      'unreachable',
+      (tester) async {
+        // e.g. opened from dive detail or set detail: selectedId names an
+        // item the diver tapped elsewhere, which can be one the cap would
+        // otherwise hide.
+        await pumpList(tester, items: bcds(6), selectedId: 'bcd5');
+
+        expect(rowNames(tester), [
+          'BCD A',
+          'BCD B',
+          'BCD C',
+          'BCD D',
+          'BCD E',
+          'BCD F',
+        ]);
+        expect(find.textContaining('more'), findsNothing);
+      },
+    );
+  });
+
   group('filter panel (#1274, PR #1435 review)', () {
     final items = [
       _makeEquipment(

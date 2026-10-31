@@ -4960,6 +4960,7 @@
   "equipment_locations_notesHint": "地址、电话、储物柜编号",
   "equipment_list_retryButton": "重试",
   "equipment_list_searchTooltip": "搜索装备",
+  "equipment_list_showMore": "{count, plural, =1{显示另外 1 项} other{显示另外 {count} 项}}",
   "equipment_list_sortTitle": "排序装备",
   "equipment_list_sortTooltip": "排序",
   "equipment_menu_delete": "删除",

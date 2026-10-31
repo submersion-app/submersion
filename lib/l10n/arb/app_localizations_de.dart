@@ -16499,6 +16499,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_searchTooltip => 'Ausrüstung suchen';
 
   @override
+  String equipment_list_showMore(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere anzeigen',
+      one: '1 weiteres anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_list_sortTitle => 'Ausrüstung sortieren';
 
   @override

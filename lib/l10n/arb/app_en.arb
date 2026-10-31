@@ -9728,6 +9728,7 @@
   "@equipment_locations_notesHint": {"description": "Hint of a place's notes field"},
   "equipment_list_retryButton": "Retry",
   "equipment_list_searchTooltip": "Search Equipment",
+  "equipment_list_showMore": "{count, plural, =1{Show 1 more} other{Show {count} more}}",
   "equipment_list_sortTitle": "Sort Equipment",
   "equipment_list_sortTooltip": "Sort",
   "equipment_clone_nameCopy": "{name} (copy)",

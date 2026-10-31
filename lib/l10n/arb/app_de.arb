@@ -4958,6 +4958,7 @@
   "equipment_locations_notesHint": "Adresse, Telefon, Spindnummer",
   "equipment_list_retryButton": "Erneut versuchen",
   "equipment_list_searchTooltip": "Ausrüstung suchen",
+  "equipment_list_showMore": "{count, plural, =1{1 weiteres anzeigen} other{{count} weitere anzeigen}}",
   "equipment_list_sortTitle": "Ausrüstung sortieren",
   "equipment_list_sortTooltip": "Sortieren",
   "equipment_menu_delete": "Löschen",
