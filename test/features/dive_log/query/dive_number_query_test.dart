@@ -53,13 +53,13 @@ void main() {
       expect(kDiveNumberTextSearch.values('500'), ['500']);
       expect(kDiveNumberTextSearch.values('#500'), ['500']);
       expect(kDiveNumberTextSearch.values('0500'), ['500']);
-      expect(kDiveNumberTextSearch.values(' 500 '), ['500']);
       expect(kDiveNumberTextSearch.values('٥٠٠'), ['500']);
     });
 
     test('anything else leaves the alternative out', () {
       expect(kDiveNumberTextSearch.values('manta'), isEmpty);
       expect(kDiveNumberTextSearch.values('5.5'), isEmpty);
+      expect(kDiveNumberTextSearch.values(' 500 '), isEmpty);
       expect(kDiveNumberTextSearch.values('500 501'), isEmpty);
       expect(kDiveNumberTextSearch.values('99999999999999999999999'), isEmpty);
     });

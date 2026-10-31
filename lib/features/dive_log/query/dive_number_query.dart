@@ -47,7 +47,7 @@ const kDiveNumberTextSearch = TextSearchExpansion(
 );
 
 Iterable<String> _diveNumberTerms(String term) {
-  final number = _diveNumberOfWord(term.trim());
+  final number = _diveNumberOfWord(term);
   return number == null ? const [] : ['$number'];
 }
 
