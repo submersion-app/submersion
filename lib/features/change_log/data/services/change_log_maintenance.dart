@@ -32,9 +32,10 @@ class ChangeLogMaintenance {
   Future<int> pruneIfDue() async {
     final now = _now();
     final last = _prefs.getInt(lastPrunedKey);
-    if (last != null &&
-        now.difference(DateTime.fromMillisecondsSinceEpoch(last)) < _interval) {
-      return 0;
+    if (last != null) {
+      final since = now.difference(DateTime.fromMillisecondsSinceEpoch(last));
+      // A negative gap is a clock moved back, not a recent prune.
+      if (!since.isNegative && since < _interval) return 0;
     }
     try {
       final removed = await prune();

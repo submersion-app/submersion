@@ -1,6 +1,6 @@
 # Global change log
 
-Status: awaiting approval. Target release: v1.8.4. Delivery: one PR.
+Status: approved. Target release: v1.8.4. Delivery: one PR.
 
 Mockups: [change log page and entry detail](assets/2026-10-30-global-change-log-mockup.html).
 

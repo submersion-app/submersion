@@ -135,6 +135,16 @@ void main() {
     expect(await maintenance().pruneIfDue(), 1);
   });
 
+  test('a clock moved back does not stop pruning', () async {
+    await prefs.setInt(
+      ChangeLogMaintenance.lastPrunedKey,
+      now.add(const Duration(days: 400)).millisecondsSinceEpoch,
+    );
+    await editAged('Old', 13);
+
+    expect(await maintenance().pruneIfDue(), 1);
+  });
+
   test('pruning leaves unsettled events alone', () async {
     final old = await editAged('Old', 13);
     await db.customStatement(

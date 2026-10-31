@@ -212,6 +212,7 @@ class ChangeLogEntryDetail {
 final changeLogEntryDetailProvider = FutureProvider.autoDispose
     .family<ChangeLogEntryDetail?, String>((ref, id) async {
       final repository = ref.watch(changeLogRepositoryProvider);
+      final service = ref.watch(changeLogRevertServiceProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return null;
@@ -225,7 +226,7 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
       final rootId = operation.rootId;
       final plan = operation.isBulk || operation.isSummary
           ? null
-          : await ref.watch(changeLogRevertServiceProvider).planOperation(id);
+          : await service.planOperation(id);
       return ChangeLogEntryDetail(
         operation: operation,
         events: events,
