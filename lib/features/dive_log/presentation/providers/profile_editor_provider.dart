@@ -150,6 +150,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editKinds: previousKinds,
       undoEditKindsStack: newKindsStack,
       hasChanges: newStack.isNotEmpty,
+      clearOutliers: true,
     );
   }
 
@@ -265,6 +266,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: result,
       hasChanges: true,
       clearRange: true,
+      clearOutliers: true,
     );
     _recordEditKind(
       interpolateGap
@@ -325,7 +327,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       waypoints,
       intervalSeconds: intervalSeconds,
     );
-    state = state.copyWith(editedProfile: generated, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: generated,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.generateFromWaypoints);
   }
 
@@ -338,7 +344,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     if (trimmed.length == profile.length) return;
 
     _pushUndo();
-    state = state.copyWith(editedProfile: trimmed, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: trimmed,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.trimEndZeros);
   }
 }
