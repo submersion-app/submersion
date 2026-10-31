@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
+import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
@@ -16,6 +17,8 @@ import 'package:submersion/features/insights/presentation/pages/insights_social_
 import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
+import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 
@@ -443,5 +446,67 @@ void main() {
       'Dive Types: Wreck',
       condition('types', QueryOp.eq, const RefValue('wreck', 'wreck')),
     );
+  });
+
+  testWidgets('Overview: a depth row opens its own bucket', (tester) async {
+    DepthRangeStat range(int min, int count) => DepthRangeStat(
+      label: '$min',
+      minDepth: min,
+      maxDepth: min + 10,
+      count: count,
+      totalDurationSeconds: 600,
+    );
+    final stats = DiveStatistics(
+      totalDives: 3,
+      totalTimeSeconds: 3600,
+      maxDepth: 30,
+      avgMaxDepth: 20,
+      avgTemperature: 24,
+      totalSites: 1,
+      depthDistribution: [range(0, 0), range(10, 3)],
+    );
+    await pumpPage(tester, const InsightsOverviewPage(embedded: true), [
+      diveStatisticsProvider.overrideWith((ref) async => stats),
+      filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+      filteredDiveRecordsProvider.overrideWith((ref) async => DiveRecords()),
+      diveTypeDistributionProvider.overrideWith((ref) async => const []),
+    ]);
+
+    final row = find.byType(DistributionBarRow);
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+
+    expect(find.text('dive list'), findsOneWidget);
+    expect(repository.lastAsked, 'depth:1');
+  });
+
+  testWidgets('Conditions: the air temperature trend opens its gaps', (
+    tester,
+  ) async {
+    ConditionsRow row(String id, double? airTemp) => ConditionsRow(
+      diveId: id,
+      dateTime: DateTime.utc(2026, 1, 1),
+      airTemp: airTemp,
+    );
+    await pumpPage(tester, const InsightsConditionsPage(embedded: true), [
+      conditionsRowsProvider.overrideWith(
+        (ref) async => [row('recorded', 20), row('blank', null)],
+      ),
+      waterTypeDistributionProvider.overrideWith((ref) async => const []),
+      entryMethodDistributionProvider.overrideWith((ref) async => const []),
+      visibilityDistributionProvider.overrideWith((ref) async => const []),
+      siteTypeDistributionProvider.overrideWith((ref) async => const []),
+    ]);
+
+    final line = tester.widget<ConditionsCoverageLine>(
+      find.byType(ConditionsCoverageLine).first,
+    );
+    await line.onOpenUnrecorded!();
+    await tester.pumpAndSettle();
+
+    final filter = container.read(diveFilterProvider);
+    expect(filter.diveIds, ['blank']);
+    expect(filter.diveIdsLabel, endsWith(': Not recorded'));
   });
 }
