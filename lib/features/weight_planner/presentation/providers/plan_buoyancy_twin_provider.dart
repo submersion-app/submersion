@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -11,7 +13,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_weight_e
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
 /// Interior-sample spacing (seconds) for constant-depth plan segments so the
@@ -51,6 +55,14 @@ List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
   return samples;
 }
 
+/// What is left in a cylinder as a mass the twin can weigh. The engine prices a
+/// shortfall as a negative pressure (#3190), but an empty cylinder holds no gas
+/// rather than less than none.
+double? _endPressureBar(PlanTankUsage? usage) {
+  final remaining = usage?.remainingPressure;
+  return remaining == null ? null : math.max(remaining, 0.0);
+}
+
 /// Forward buoyancy twin for the plan being edited. Recomputes synchronously
 /// on plan edits (plans have few segments; no isolate needed). Null when the
 /// plan has no tanks or no resolvable lead, and when the twin or an input it
@@ -72,7 +84,7 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
   final model = ref.watch(weightCalibrationProvider).valueOrNull;
   final equipment = ref.watch(allEquipmentProvider).valueOrNull;
   final latestWeight = ref.watch(latestDiverWeightProvider).valueOrNull;
-  final planResult = ref.watch(planResultsProvider);
+  final planOutcome = ref.watch(planOutcomeProvider);
   final prediction = ref.watch(planWeightPredictionProvider);
 
   if (model == null || equipment == null || state.tanks.isEmpty) return null;
@@ -91,8 +103,12 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
     for (final id in state.equipmentIds) ?itemsById[id],
   ];
 
-  final consumptionByTank = {
-    for (final g in planResult.gasConsumptions) g.tankId: g,
+  // The figures the plan canvas shows, computed ascent and loop draw included
+  // (issue #4010). With nothing planned yet there is no end pressure to give,
+  // and the twin falls back on its reserve convention rather than a full tank.
+  final usageByTank = {
+    if (state.segments.isNotEmpty)
+      for (final usage in planOutcome.tankUsages) usage.tankId: usage,
   };
   final tanks = <TwinTankInput>[
     for (final t in state.tanks)
@@ -109,8 +125,8 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
         material: t.material,
         o2Percent: t.gasMix.o2,
         hePercent: t.gasMix.he,
-        startPressureBar: consumptionByTank[t.id]?.startPressure,
-        endPressureBar: consumptionByTank[t.id]?.remainingPressure,
+        startPressureBar: usageByTank[t.id]?.startPressure,
+        endPressureBar: _endPressureBar(usageByTank[t.id]),
       ),
   ];
 
