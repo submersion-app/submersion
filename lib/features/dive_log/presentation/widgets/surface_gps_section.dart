@@ -20,7 +20,6 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const double _kFocusZoom = 16.0;
@@ -94,7 +93,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
     final exit = dive.exitLocation;
     final site = dive.site?.location;
     final isExpanded = ref.watch(surfaceGpsSectionExpandedProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     String? driftText;
     if (entry != null && exit != null) {

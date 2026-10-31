@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest dives matching the typed query over the WHOLE log, ignoring
@@ -54,7 +53,7 @@ class _DiveJumpListState extends ConsumerState<DiveJumpList> {
     }
     final dives = _shown;
     if (dives.isEmpty) return const SizedBox.shrink();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     final number = _shownNumber;
     bool numbered(DiveSummary d) => number != null && d.diveNumber == number;

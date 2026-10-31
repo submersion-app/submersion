@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Lets the user pick between the dives an ambiguous timestamp match
 /// offered, closest entry first. Resolves to the dive id, or null.
@@ -42,7 +41,7 @@ class AmbiguousDiveTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dive = ref.watch(diveProvider(diveId)).value;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final parts = dive == null
         ? const <String>[]
         : [

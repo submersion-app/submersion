@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_sighting_record.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The dives on which one species was seen, newest first, for the species
@@ -36,7 +35,7 @@ class _SpeciesSightingsSectionState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final recordsAsync = ref.watch(speciesSightingsProvider(widget.speciesId));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return recordsAsync.when(
       loading: () => const SizedBox.shrink(),

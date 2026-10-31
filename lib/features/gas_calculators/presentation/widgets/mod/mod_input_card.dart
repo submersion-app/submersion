@@ -26,8 +26,15 @@ class ModInputCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          ccrSetpointHigh: s.ccrSetpointHigh,
+          defaultPlannerWaterType: s.defaultPlannerWaterType,
+        ),
+      ),
+    );
     final prefs = ref.watch(modCalculatorNotifierProvider);
     final limits = ref.watch(modCalculatorLimitsProvider);
     final notifier = ref.read(modCalculatorNotifierProvider.notifier);
@@ -165,7 +172,12 @@ class ModInputCard extends ConsumerWidget {
                             label: Text(type.localizedName(l10n)),
                           ),
                       ],
-                      selected: {modCalculatorWaterType(prefs, settings)},
+                      selected: {
+                        modCalculatorWaterType(
+                          prefs,
+                          settings.defaultPlannerWaterType,
+                        ),
+                      },
                       showSelectedIcon: false,
                       onSelectionChanged: (selection) =>
                           notifier.setWaterType(selection.first),

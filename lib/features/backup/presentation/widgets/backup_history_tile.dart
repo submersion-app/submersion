@@ -50,7 +50,7 @@ class BackupHistoryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final note = record.note;
     final counts = switch (record.type) {
       BackupType.preMigration =>

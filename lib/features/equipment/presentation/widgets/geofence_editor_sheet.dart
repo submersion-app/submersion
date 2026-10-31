@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Result of the geofence editor: a center + radius (+ optional label).
@@ -91,8 +90,7 @@ class _GeofenceEditorSheetState extends ConsumerState<_GeofenceEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final formatter = UnitFormatter(settings);
+    final formatter = ref.watch(unitFormatterProvider);
     final sitesAsync = ref.watch(sitesProvider);
     final hasCenter = _latitude != null && _longitude != null;
 

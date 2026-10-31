@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_note_sheet.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The dive center detail page's rental gear notes (issue #2075), grouped
@@ -23,7 +22,7 @@ class RentalGearSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final notes =
         ref.watch(diveCenterGearNotesProvider(centerId)).value ??
         const <DiveCenterGearNote>[];

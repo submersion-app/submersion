@@ -7,7 +7,6 @@ import 'package:submersion/features/planner/domain/services/range_table_service.
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The classic slate range grid: depth variants (rows) x time variants
@@ -18,7 +17,7 @@ class RangeTableSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
     return PlanResultSection<RangeTable>(
       view: planResultView(ref.watch(planRangeTableProvider), planId),

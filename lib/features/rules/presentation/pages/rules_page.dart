@@ -12,7 +12,6 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/rules/presentation/rule_labels.dart';
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
 
@@ -92,9 +91,9 @@ class _EmptyRules extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     // 30.48 m is 100 ft: a round example in either unit.
-    final example = UnitFormatter(
-      ref.watch(settingsProvider),
-    ).formatDepth(30.48, decimals: 0);
+    final example = ref
+        .watch(unitFormatterProvider)
+        .formatDepth(30.48, decimals: 0);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -237,7 +236,7 @@ class _RuleTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final prefs = ref.watch(queryUnitPrefsProvider);
     final problem = ruleProblemText(l10n, rule);
     final broken = rule.actions.any((a) => ruleActionIsBroken(a, nameOf));

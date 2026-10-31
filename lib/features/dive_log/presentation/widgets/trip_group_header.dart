@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -66,7 +65,7 @@ class TripGroupHeader extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final countText = section.isPartial
         ? l10n.diveLog_listPage_tripGroupDiveCountPartial(
