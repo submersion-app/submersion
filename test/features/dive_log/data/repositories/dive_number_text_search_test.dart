@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/syntax/query_parser.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -46,30 +50,44 @@ void main() {
     return {for (final d in rows) d.id};
   }
 
-  test('a number finds its dive and still finds the text', () async {
+  test('a number finds its dive and the text, not dive 1500', () async {
     expect(await list(TextNode(const ['500'])), {'numbered', 'text'});
-  });
-
-  test('the number is exact: 500 is not 1500', () async {
-    final found = await list(TextNode(const ['500']));
-    expect(found, isNot(contains('contains')));
   });
 
   test('a number no dive has leaves the text matches', () async {
     await repository.createDive(
       domain.Dive(
-        id: 'quoted',
+        id: 'psi',
         diveNumber: 7,
         dateTime: DateTime(2026, 1, 1),
         notes: 'filled to 9000 psi',
       ),
     );
-    expect(await list(TextNode(const ['9000'])), {'quoted'});
+    expect(await list(TextNode(const ['9000'])), {'psi'});
   });
 
   test('the forms the jump row reads work here too', () async {
     for (final word in ['#500', '٥٠٠', '۵۰۰', '５００', '0500']) {
       expect(await list(TextNode([word])), contains('numbered'), reason: word);
+    }
+  });
+
+  test('the words the search bar parses reach the number', () async {
+    for (final typed in ['500', '#500', '"500"']) {
+      final parsed = QueryParser(
+        appQueryRegistry,
+        diveQueryEntity,
+        ParseContext(
+          prefs: kMetricPrefs,
+          now: DateTime(2026, 1, 1),
+          names: const MapNameResolver({}),
+        ),
+      ).parse(typed);
+      expect(
+        await list((parsed as ParseOk).node!),
+        contains('numbered'),
+        reason: typed,
+      );
     }
   });
 

@@ -53,6 +53,7 @@ void main() {
       expect(kDiveNumberTextSearch.values('500'), ['500']);
       expect(kDiveNumberTextSearch.values('#500'), ['500']);
       expect(kDiveNumberTextSearch.values('0500'), ['500']);
+      expect(kDiveNumberTextSearch.values(' 500 '), ['500']);
       expect(kDiveNumberTextSearch.values('٥٠٠'), ['500']);
     });
 

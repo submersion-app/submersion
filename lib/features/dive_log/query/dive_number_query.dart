@@ -21,7 +21,7 @@ String _asciiDigits(String digits) => String.fromCharCodes(
 
 /// The dive number [word] spells (`500`, `#500`, or the same in Arabic-Indic
 /// or full-width digits), or null for anything else.
-int? diveNumberOfWord(String word) {
+int? _diveNumberOfWord(String word) {
   final match = _bareNumber.firstMatch(word);
   if (match == null) return null;
   return int.tryParse(_asciiDigits(match.group(1)!));
@@ -33,19 +33,21 @@ int? diveNumberOfWord(String word) {
 /// list leads with it.
 int? bareDiveNumber(QueryNode? node) {
   if (node is! TextNode || node.words.length != 1) return null;
-  return diveNumberOfWord(node.words.single);
+  return _diveNumberOfWord(node.words.single);
 }
 
 /// A search word that is a whole number also finds the dives with exactly
 /// that number, wherever dive text is searched (#3653). The number is exact,
-/// unlike the text it joins: `500` finds dive 500, not dive 1500.
+/// unlike the text it joins: `500` finds dive 500, not dive 1500. The bind is
+/// a string, and the bare INTEGER column's affinity compares it as a number,
+/// so wrapping the column in an expression would match nothing.
 const kDiveNumberTextSearch = TextSearchExpansion(
   sql: '{r}.dive_number IN ({values})',
   values: _diveNumberTerms,
 );
 
 Iterable<String> _diveNumberTerms(String term) {
-  final number = diveNumberOfWord(term.trim());
+  final number = _diveNumberOfWord(term.trim());
   return number == null ? const [] : ['$number'];
 }
 

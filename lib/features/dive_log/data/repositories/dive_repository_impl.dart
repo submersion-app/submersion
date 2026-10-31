@@ -3491,8 +3491,8 @@ class DiveRepository {
   /// dive types, or dive number, returning lightweight [DiveSummary] rows.
   ///
   /// Matches through the Dives search row's own text search
-  /// (`diveQueryEntity.textSearchSql`), so the two can never disagree on what
-  /// a term finds (issue #2884).
+  /// (`textSearchSql` and `textSearchExpansions` on `diveQueryEntity`), so the
+  /// two can never disagree on what a term finds (issue #2884).
   ///
   /// Exactly four SQL statements regardless of match count (match ids,
   /// summary rows, batched tags, batched dive types), bounded to the [limit]
