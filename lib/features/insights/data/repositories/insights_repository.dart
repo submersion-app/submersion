@@ -1827,7 +1827,10 @@ class InsightsRepository {
   // Social & Buddies Statistics
   // ============================================================================
 
-  /// Get top buddies by dive count
+  /// Get top buddies by dive count.
+  ///
+  /// Counts distinct dives, because one buddy can hold several `dive_buddies`
+  /// links to a dive and those links are still one dive (issue #3895).
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
     int limit = 10,
@@ -1844,7 +1847,7 @@ class InsightsRepository {
         SELECT
           b.id,
           b.name,
-          COUNT(db.dive_id) AS dive_count
+          COUNT(DISTINCT db.dive_id) AS dive_count
         FROM buddies b
         JOIN dive_buddies db ON db.buddy_id = b.id
         JOIN dives d ON d.id = db.dive_id
