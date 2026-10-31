@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
@@ -135,6 +136,26 @@ void main() {
     expect(reloaded.exitTime, isNull);
     expect(reloaded.runtime, const Duration(seconds: 2960));
     expect(reloaded.bottomTime, const Duration(seconds: 2409));
+  });
+
+  testWidgets('the estimated exit still ends the dive for the flight window', (
+    tester,
+  ) async {
+    final dive = await repository.createDive(
+      Dive(
+        id: 'dive-3901-end-time',
+        dateTime: entry,
+        entryTime: entry,
+        runtime: const Duration(seconds: 2960),
+      ),
+    );
+
+    await pumpEditor(tester, dive.id, onSaved: (_) {});
+
+    final banner = tester.widget<FlightWindowWarningBanner>(
+      find.byType(FlightWindowWarningBanner),
+    );
+    expect(banner.diveEndTime, DateTime.utc(2026, 1, 1, 10, 50));
   });
 
   testWidgets('confirming the estimated exit in its picker stores it', (
