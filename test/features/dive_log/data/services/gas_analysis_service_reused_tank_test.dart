@@ -277,6 +277,33 @@ void main() {
       expect(segments, hasLength(1));
       expect(segments!.single.tankId, 'left');
       expect(segments.single.sacRate, closeTo(50 / 20 / 3, 1e-9));
+      expect(segments.single.gasConsumed, closeTo(50, 1e-9));
+    });
+
+    test('measures a transmitter drop over the time it was breathed', () {
+      // Left drops 100 bar over its twenty minutes of a forty-minute phase.
+      TankPressurePoint point(int t, double bar) =>
+          TankPressurePoint(tankId: 'left', timestamp: t, pressure: bar);
+      final dive = makeDive(const [left, right]);
+
+      final segments = service.calculatePhaseSegments(
+        profile: dive.profile,
+        tanks: dive.tanks,
+        gasSwitches: alternating,
+        tankPressures: {
+          'left': [
+            point(0, 200),
+            point(600, 150),
+            point(1200, 150),
+            point(1800, 100),
+            point(2400, 100),
+          ],
+        },
+      );
+
+      expect(segments, hasLength(1));
+      expect(segments!.single.sacRate, closeTo(100 / 20 / 3, 1e-9));
+      expect(segments.single.gasConsumed, closeTo(100, 1e-9));
     });
 
     test('keeps a phase in a later period on its share of the drop', () {

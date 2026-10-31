@@ -213,6 +213,13 @@ class GasAnalysisService {
       final maxD = depths.reduce(math.max);
 
       // Calculate SAC
+      final usageWindows = _prorationWindows(
+        tank: tank,
+        tanks: tanks,
+        profile: profile,
+        gasSwitches: gasSwitches,
+      );
+
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
@@ -220,17 +227,15 @@ class GasAnalysisService {
         tankPressures: resolvedPressures[tank.id],
         startTime: seg.start,
         endTime: seg.end,
-        prorationWindows: _prorationWindows(
-          tank: tank,
-          tanks: tanks,
-          profile: profile,
-          gasSwitches: gasSwitches,
-        ),
+        prorationWindows: usageWindows,
       );
 
       if (sacRate == null) continue;
 
-      final durationMin = (seg.end - seg.start) / 60.0;
+      // A phase can outlast its cylinder's breathing time; only what was
+      // breathed of it drew on this tank.
+      final durationMin =
+          usageWindows.breathedBetween(seg.start, seg.end) / 60.0;
       final ambientPressureBar = (avgDepth / 10.0) + 1.0;
       final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
@@ -589,8 +594,12 @@ class GasAnalysisService {
     double? pressureUsed;
     double? startPressure;
     double? endPressure;
-    // The time pressureUsed was breathed over.
-    var breathedSec = durationSec;
+    // A phase can outlast the tank's breathing time, which is what its drop
+    // happened over. None at all is a segment a stale switch handed to it.
+    final breathedInSegment = prorationWindows.breathedBetween(
+      startTime,
+      endTime,
+    );
 
     // Try time-series pressure data first
     if (tankPressures != null && tankPressures.length >= 2) {
@@ -617,9 +626,7 @@ class GasAnalysisService {
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;
           final breathedBefore = prorationWindows.breathedBefore(startTime);
-          breathedSec =
-              prorationWindows.breathedBefore(endTime) - breathedBefore;
-          pressureUsed = tankPressureUsed * breathedSec / totalDuration;
+          pressureUsed = tankPressureUsed * breathedInSegment / totalDuration;
           // Estimate absolute pressures for this segment
           startPressure =
               tank.startPressure! -
@@ -632,7 +639,8 @@ class GasAnalysisService {
     if (pressureUsed == null || pressureUsed <= 0) return null;
 
     // Calculate SAC under the configured gas model
-    final durationMin = breathedSec / 60.0;
+    final durationMin =
+        (breathedInSegment > 0 ? breathedInSegment : durationSec) / 60.0;
     final ambientPressureBar = (avgDepth / 10.0) + 1.0;
 
     // Use volume-corrected SAC when tank data available
