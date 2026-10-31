@@ -2044,9 +2044,9 @@ class PlanEngine {
 
   /// The deepest point a computed ascent on the loop stops being breathable,
   /// or null (issue #3896). The legs' own check cannot see this: a loop's ppO2
-  /// falls with depth, so a final supply that is safe where it was authored
-  /// can be hypoxic at the stops, on a gas the descent never breathed. Stops
-  /// are in ascent order and ppO2 only falls on the way up, so the first
+  /// drops as the diver shallows, so a final supply that is safe where it was
+  /// authored can be hypoxic at the stops, on a gas the descent never breathed.
+  /// Stops are in ascent order and ppO2 only falls on the way up, so the first
   /// hypoxic one is the deepest.
   PlanIssue? _loopAscentHypoxia(
     AscentGasPlan ascentPlan,
