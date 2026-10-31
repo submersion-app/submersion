@@ -6,6 +6,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/insights/domain/observations/observation_inputs.dart';
 
 /// Read-only SQL for the observation rules (#2381): one row per in-scope
@@ -27,8 +28,7 @@ class ObservationInputsQueries {
             'SELECT d.id AS id, d.dive_date_time AS ms, '
             'd.max_depth AS max_depth, '
             '${measuredRuntimeSecondsSql('d')} AS runtime_s, '
-            '(SELECT SUM(w.amount_kg) FROM dive_weights w '
-            'WHERE w.dive_id = d.id) AS weight_kg, '
+            '${recordedWeightKgSql('d')} AS weight_kg, '
             'd.site_id AS site_id, ds.name AS site_name, '
             'ds.country AS country, '
             'EXISTS (SELECT 1 FROM dive_profile_series s '
