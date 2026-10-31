@@ -3,6 +3,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 
@@ -35,6 +36,7 @@ class DiveMergeSnapshot {
     this.buddyRoleRows = const [],
     this.profileSeriesRows = const [],
     this.tankSeriesRows = const [],
+    this.profileRevisions = const [],
     this.navTrackRows = const [],
     this.linkedRows = const [],
   });
@@ -108,6 +110,10 @@ class DiveMergeSnapshot {
   /// dropped the row-per-sample tables this class used to snapshot too.
   final List<DiveProfileSeriesRow> profileSeriesRows;
   final List<TankPressureSeriesRow> tankSeriesRows;
+
+  /// The revision nodes of [profileSeriesRows], which their delete cascades
+  /// away and no series row carries (issue #4014).
+  final List<ProfileSeriesRevision> profileRevisions;
 
   /// The routes linked to the captured dives (issue #3918), with `points`
   /// left empty: an undo restores only their link columns.
@@ -203,6 +209,13 @@ class DiveMergeSnapshot {
         database: db,
         syncRepository: SyncRepository(database: db),
       ).getRowsForDives(diveIds),
+      profileRevisions: [
+        for (final nodes in (await ProfileSeriesRepository(
+          database: db,
+          syncRepository: SyncRepository(database: db),
+        ).getRevisionsForDives(diveIds)).values)
+          ...nodes,
+      ],
       navTrackRows: await NavTrackRepository().linkedRowsForDives(diveIds),
       linkedRows: await DiveFoldLinks().read(diveIds),
     );

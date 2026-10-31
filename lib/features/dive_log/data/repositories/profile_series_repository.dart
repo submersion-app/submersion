@@ -751,6 +751,38 @@ class ProfileSeriesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Puts back revision nodes read by [getRevisionsForDives], once their
+  /// series have returned from the delete whose cascade took them. Lineage is
+  /// local to this device, so nothing that restores the series carries it.
+  /// A series that did not return is skipped, and a child whose parent did
+  /// not return keeps no parent, as that parent's own delete leaves it.
+  Future<void> restoreRevisions(
+    Iterable<ProfileSeriesRevision> revisions,
+  ) async {
+    await _db.transaction(() async {
+      for (final r in revisions) {
+        await _db.customStatement(
+          'INSERT OR REPLACE INTO $_historyTable '
+          '(series_id, dive_id, parent_series_id, root_series_id, '
+          'content_hash, revision_kind, created_at) '
+          'SELECT ?, ?, (SELECT id FROM dive_profile_series WHERE id = ?), '
+          '?, ?, ?, ? '
+          'WHERE EXISTS (SELECT 1 FROM dive_profile_series WHERE id = ?)',
+          [
+            r.seriesId,
+            r.diveId,
+            r.parentSeriesId,
+            r.rootSeriesId,
+            r.contentHash,
+            r.revisionKind,
+            r.createdAt,
+            r.seriesId,
+          ],
+        );
+      }
+    });
+  }
+
   /// Writes `is_primary` = [value] on every matching series, marking each
   /// changed row pending. The write and the pending stamps are one
   /// transaction: a failure between them would leave rows whose flag moved

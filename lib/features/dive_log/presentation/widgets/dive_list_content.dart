@@ -24,6 +24,7 @@ import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -218,7 +219,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return external ?? SelectionController();
   }
 
-  List<Dive>? _deletedDives;
+  DeletedDives? _deletedDives;
   DiveMergeOutcome? _lastMergeOutcome;
   final ScrollController _scrollController = ScrollController();
   String? _lastScrolledToId;
@@ -751,7 +752,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-              context.l10n.diveLog_bulkDelete_snackbar(deletedDives.length),
+              context.l10n.diveLog_bulkDelete_snackbar(
+                deletedDives.dives.length,
+              ),
             ),
             duration: const Duration(seconds: 5),
             showCloseIcon: true,
@@ -759,7 +762,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             action: SnackBarAction(
               label: context.l10n.diveLog_bulkDelete_undo,
               onPressed: () async {
-                if (_deletedDives != null && _deletedDives!.isNotEmpty) {
+                if (_deletedDives != null && _deletedDives!.dives.isNotEmpty) {
                   await ref
                       .read(paginatedDiveListProvider.notifier)
                       .restoreDives(_deletedDives!);

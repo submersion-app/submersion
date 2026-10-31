@@ -8,14 +8,15 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
@@ -39,8 +40,6 @@ import 'package:submersion/features/dive_log/presentation/providers/narrow_dives
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/documents/data/repositories/document_repository.dart';
-import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
@@ -521,13 +520,22 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
   );
 });
 
+/// The logbook's bulk Delete and its Undo.
+final diveBulkDeleteServiceProvider = Provider<DiveBulkDeleteService>((ref) {
+  final documents = ref.watch(documentMutationsProvider);
+  return DiveBulkDeleteService(
+    dives: ref.watch(diveRepositoryProvider),
+    changeLog: ref.watch(changeLogRepositoryProvider),
+    revert: ref.watch(changeLogRevertServiceProvider),
+    restoreDocuments: documents.restoreSnapshot,
+    rearmDocuments: documents.rearmReminders,
+  );
+});
+
 /// Dive list notifier for mutations
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
 
-  /// The documents of the last bulk-deleted dives, for [restoreDives] to
-  /// put back on undo (issue #2613).
-  List<DocumentSnapshotEntry> _deletedDocuments = const [];
   final Ref _ref;
   String? _currentDiverId;
   late final DiveListLoader _list;
@@ -678,52 +686,6 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     }
   }
 
-  /// Bulk delete multiple dives
-  /// Returns the deleted dives for potential undo
-  Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
-    // Get the dives before deleting for undo capability
-    final divesToDelete = await _repository.getDivesByIds(ids);
-    _deletedDocuments = await DocumentRepository().captureForOwners(
-      DocumentOwnerKind.dive,
-      ids,
-    );
-    await _repository.bulkDeleteDives(ids);
-    await _loadDives();
-    _ref.invalidate(diveStatisticsProvider);
-    _ref.invalidate(diveNumberingInfoProvider);
-    // Invalidate related providers for all deleted dives
-    for (final dive in divesToDelete) {
-      _invalidateRelatedProviders(dive);
-    }
-    return divesToDelete;
-  }
-
-  /// Restore multiple dives (for undo functionality)
-  Future<void> restoreDives(List<domain.Dive> dives) async {
-    await ChangeLogScope.bulk(
-      DatabaseService.instance.databaseOrNull,
-      label: ChangeLogLabels.bulkEdit,
-      body: () async {
-        for (final dive in dives) {
-          await _repository.createDive(dive);
-        }
-      },
-    );
-    final restoredIds = {for (final dive in dives) dive.id};
-    await _ref.read(documentMutationsProvider).restoreSnapshot([
-      for (final entry in _deletedDocuments)
-        if (restoredIds.contains(entry.document.owner.id)) entry,
-    ]);
-    _deletedDocuments = const [];
-    await _loadDives();
-    _ref.invalidate(diveStatisticsProvider);
-    _ref.invalidate(diveNumberingInfoProvider);
-    // Invalidate related providers for all restored dives
-    for (final dive in dives) {
-      _invalidateRelatedProviders(dive);
-    }
-  }
-
   /// Toggle favorite status for a dive
   Future<void> toggleFavorite(String diveId) async {
     await _repository.toggleFavorite(diveId);
@@ -795,10 +757,6 @@ final _log = LoggerService.forClass(PaginatedDiveListNotifier);
 class PaginatedDiveListNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
   final DiveRepository _repository;
-
-  /// The documents of the last bulk-deleted dives, for [restoreDives] to
-  /// put back on undo (issue #2613).
-  List<DocumentSnapshotEntry> _deletedDocuments = const [];
   final Ref _ref;
   String? _currentDiverId;
 
@@ -1428,13 +1386,9 @@ class PaginatedDiveListNotifier
     _invalidateOldProvider();
   }
 
-  Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
-    final divesToDelete = await _repository.getDivesByIds(ids);
-    _deletedDocuments = await DocumentRepository().captureForOwners(
-      DocumentOwnerKind.dive,
-      ids,
-    );
-    await _repository.bulkDeleteDives(ids);
+  /// Deletes [ids] and returns what [restoreDives] needs to undo it.
+  Future<DeletedDives> bulkDeleteDives(List<String> ids) async {
+    final deleted = await _ref.read(diveBulkDeleteServiceProvider).delete(ids);
 
     // Optimistic: remove items by IDs
     final idSet = ids.toSet();
@@ -1456,34 +1410,20 @@ class PaginatedDiveListNotifier
 
     _invalidateStatistics();
     _ref.invalidate(diveNumberingInfoProvider);
-    for (final dive in divesToDelete) {
+    for (final dive in deleted.dives) {
       _invalidateRelatedProviders(dive);
     }
     _invalidateOldProvider();
-    return divesToDelete;
+    return deleted;
   }
 
-  Future<void> restoreDives(List<domain.Dive> dives) async {
-    await ChangeLogScope.bulk(
-      DatabaseService.instance.databaseOrNull,
-      label: ChangeLogLabels.bulkEdit,
-      body: () async {
-        for (final dive in dives) {
-          await _repository.createDive(dive);
-        }
-      },
-    );
-    final restoredIds = {for (final dive in dives) dive.id};
-    await _ref.read(documentMutationsProvider).restoreSnapshot([
-      for (final entry in _deletedDocuments)
-        if (restoredIds.contains(entry.document.owner.id)) entry,
-    ]);
-    _deletedDocuments = const [];
+  Future<void> restoreDives(DeletedDives deleted) async {
+    await _ref.read(diveBulkDeleteServiceProvider).restore(deleted);
     // Restore is complex (ordering), reload first page
     await loadFirstPage();
     _invalidateStatistics();
     _ref.invalidate(diveNumberingInfoProvider);
-    for (final dive in dives) {
+    for (final dive in deleted.dives) {
       _invalidateRelatedProviders(dive);
     }
     _invalidateOldProvider();
