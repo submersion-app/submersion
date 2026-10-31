@@ -67,7 +67,7 @@ class _FocusSentenceState extends ConsumerState<FocusSentence> {
     _threshold = TextEditingController(
       text: _thresholdText(
         selection.threshold,
-        _units(selection.metric, ref.read(settingsProvider)),
+        FocusMetricUnits(selection.metric, ref.read(unitFormatterProvider)),
       ),
     );
   }
@@ -119,7 +119,7 @@ class _FocusSentenceState extends ConsumerState<FocusSentence> {
     }
     _threshold.text = _thresholdText(
       mean,
-      _units(selection.metric, ref.read(settingsProvider)),
+      FocusMetricUnits(selection.metric, ref.read(unitFormatterProvider)),
     );
     setState(() => _thresholdError = null);
     _set(selection.copyWith(threshold: mean));

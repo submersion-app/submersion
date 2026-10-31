@@ -90,17 +90,14 @@ final calcDecoStatusProvider = Provider<DecoStatus>((ref) {
   final timeMinutes = ref.watch(calcTimeProvider);
   final fN2 = ref.watch(calcN2FractionProvider);
   final fHe = ref.watch(calcHeFractionProvider);
-  final settings = ref.watch(
-    settingsProvider.select(
-      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
-    ),
-  );
+  final gfLow = ref.watch(gfLowDecimalProvider);
+  final gfHigh = ref.watch(gfHighDecimalProvider);
 
   // Create algorithm with user's GF settings and the configured
   // altitude/salinity environment (same seam the planner engine uses).
   final algorithm = BuhlmannAlgorithm(
-    gfLow: settings.gfLowDecimal,
-    gfHigh: settings.gfHighDecimal,
+    gfLow: gfLow,
+    gfHigh: gfHigh,
     environment: ref.watch(calcEnvironmentProvider),
   );
 

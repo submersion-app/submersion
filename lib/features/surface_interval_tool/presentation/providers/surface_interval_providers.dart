@@ -150,16 +150,10 @@ final siPostDiveCompartmentsProvider = Provider<List<TissueCompartment>>((ref) {
   final time = ref.watch(siFirstDiveTimeProvider);
   final fN2 = ref.watch(siFirstDiveFN2Provider);
   final fHe = ref.watch(siFirstDiveFHeProvider);
-  final settings = ref.watch(
-    settingsProvider.select(
-      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
-    ),
-  );
+  final gfLow = ref.watch(gfLowDecimalProvider);
+  final gfHigh = ref.watch(gfHighDecimalProvider);
 
-  final algorithm = BuhlmannAlgorithm(
-    gfLow: settings.gfLowDecimal,
-    gfHigh: settings.gfHighDecimal,
-  );
+  final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
 
   // Simulate first dive at constant depth
   algorithm.calculateSegment(
@@ -189,16 +183,10 @@ final siSecondDiveNdlProvider = Provider<int>((ref) {
   final secondDiveDepth = ref.watch(siSecondDiveDepthProvider);
   final fN2 = ref.watch(siSecondDiveFN2Provider);
   final fHe = ref.watch(siSecondDiveFHeProvider);
-  final settings = ref.watch(
-    settingsProvider.select(
-      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
-    ),
-  );
+  final gfLow = ref.watch(gfLowDecimalProvider);
+  final gfHigh = ref.watch(gfHighDecimalProvider);
 
-  final algorithm = BuhlmannAlgorithm(
-    gfLow: settings.gfLowDecimal,
-    gfHigh: settings.gfHighDecimal,
-  );
+  final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
   algorithm.setCompartments(recoveredCompartments);
 
   return algorithm.calculateNdl(
@@ -286,20 +274,14 @@ final siMinimumIntervalProvider = Provider<SiMinimumInterval>((ref) {
   final secondDiveTime = ref.watch(siSecondDiveTimeProvider);
   final fN2 = ref.watch(siSecondDiveFN2Provider);
   final fHe = ref.watch(siSecondDiveFHeProvider);
-  final settings = ref.watch(
-    settingsProvider.select(
-      (s) => (gfLowDecimal: s.gfLowDecimal, gfHighDecimal: s.gfHighDecimal),
-    ),
-  );
+  final gfLow = ref.watch(gfLowDecimalProvider);
+  final gfHigh = ref.watch(gfHighDecimalProvider);
 
   final requiredNdlSeconds = secondDiveTime * 60;
 
   /// NDL for the second dive after [surfaceIntervalMinutes] of off-gassing.
   int ndlAfter(int surfaceIntervalMinutes) {
-    final algorithm = BuhlmannAlgorithm(
-      gfLow: settings.gfLowDecimal,
-      gfHigh: settings.gfHighDecimal,
-    );
+    final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
     algorithm.setCompartments(
       _calculateRecoveredCompartments(
         postDiveCompartments,
@@ -320,10 +302,7 @@ final siMinimumIntervalProvider = Provider<SiMinimumInterval>((ref) {
   // enough", and unlike a fixed horizon it does not depend on how far the slow
   // compartments still have to unload. calculateNdl signals a standing deco
   // obligation with -1, which is not a duration, so floor it at zero.
-  final cleanTissue = BuhlmannAlgorithm(
-    gfLow: settings.gfLowDecimal,
-    gfHigh: settings.gfHighDecimal,
-  );
+  final cleanTissue = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
   final cleanTissueNoStopSeconds = math.max(
     0,
     cleanTissue.calculateNdl(depthMeters: secondDiveDepth, fN2: fN2, fHe: fHe),

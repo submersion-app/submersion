@@ -6,13 +6,29 @@ import 'package:path/path.dart' as p;
 import 'settings_watch_scanner.dart';
 
 /// Pages that edit the settings show most of what they watch, so a `select`
-/// would list dozens of fields to skip almost no rebuilds. One entry per file.
-final _allowed = <String, String>{
-  _page('settings_page.dart'): 'the settings hub, with a row for each setting',
-  _page('decompression_settings_page.dart'): 'edits the deco settings',
-  _page('default_visible_metrics_page.dart'): 'a toggle for each metric',
-  _page('safety_hub_page.dart'): 'summarises each safety settings page',
-  _page('section_appearance_page.dart'): 'edits the profile display settings',
+/// would list dozens of fields to skip almost no rebuilds. Each file has the
+/// number of watches it needs, so a new one elsewhere in the file still fails.
+final _allowed = <String, ({int watches, String reason})>{
+  _page('settings_page.dart'): (
+    watches: 2,
+    reason: 'the settings hub, with a row for each setting',
+  ),
+  _page('decompression_settings_page.dart'): (
+    watches: 1,
+    reason: 'edits the deco settings',
+  ),
+  _page('default_visible_metrics_page.dart'): (
+    watches: 1,
+    reason: 'a toggle for each metric',
+  ),
+  _page('safety_hub_page.dart'): (
+    watches: 1,
+    reason: 'summarises each safety settings page',
+  ),
+  _page('section_appearance_page.dart'): (
+    watches: 1,
+    reason: 'edits the profile display settings',
+  ),
   p.join(
     'lib',
     'features',
@@ -20,7 +36,10 @@ final _allowed = <String, String>{
     'presentation',
     'widgets',
     'planner_gas_defaults_section.dart',
-  ): 'edits the planner gas defaults',
+  ): (
+    watches: 1,
+    reason: 'edits the planner gas defaults',
+  ),
 };
 
 String _page(String file) =>
@@ -71,8 +90,22 @@ void main() {
     );
   });
 
-  test('every allowed file still has a whole-object watch', () {
-    final watching = result.whole.map((watch) => watch.file).toSet();
-    expect(_allowed.keys.toSet().difference(watching), isEmpty);
+  test('each allowed file has exactly the watches it is allowed', () {
+    final counts = <String, int>{};
+    for (final watch in result.whole) {
+      counts.update(watch.file, (n) => n + 1, ifAbsent: () => 1);
+    }
+    final found = {for (final file in _allowed.keys) file: counts[file] ?? 0};
+    final allowed = {
+      for (final entry in _allowed.entries) entry.key: entry.value.watches,
+    };
+    expect(
+      found,
+      allowed,
+      reason:
+          'A new watch in one of these files rebuilds on every settings edit '
+          'like any other, so select the fields it reads. If a watch was '
+          'removed, lower the count.',
+    );
   });
 }

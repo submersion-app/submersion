@@ -35,7 +35,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/tissue_readout_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
-    show settingsProvider;
+    show settingsProvider, tissueColorSchemeProvider;
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Which scene the 3D page is showing.
