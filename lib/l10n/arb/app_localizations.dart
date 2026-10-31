@@ -13675,6 +13675,12 @@ abstract class AppLocalizations {
   /// **'No Water Type'**
   String get diveLog_filterChip_noWaterType;
 
+  /// No description provided for @diveLog_filterChip_namedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String diveLog_filterChip_namedDives(String label, int count);
+
   /// No description provided for @diveLog_filterChip_until.
   ///
   /// In en, this message translates to:
@@ -46610,6 +46616,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not recorded'**
   String get insights_chart_notRecorded;
+
+  /// No description provided for @insights_chart_linkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{chart}: {row}'**
+  String insights_chart_linkLabel(String chart, String row);
+
+  /// No description provided for @insights_chart_openDivesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open these dives'**
+  String get insights_chart_openDivesFailed;
+
+  /// No description provided for @insights_chart_viewDives.
+  ///
+  /// In en, this message translates to:
+  /// **'View dives'**
+  String get insights_chart_viewDives;
 
   /// No description provided for @insights_chart_trendSemanticLabel.
   ///

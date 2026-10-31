@@ -15,6 +15,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../recording_insights_repository.dart';
 
 /// Issue #3421: the Gas page's tank configuration card.
 void main() {
@@ -160,6 +161,10 @@ void main() {
   });
 
   group('tapping a bar (#3804)', () {
+    late RecordingInsightsRepository repository;
+
+    setUp(() => repository = RecordingInsightsRepository());
+
     Future<ProviderContainer> pumpRouted(
       WidgetTester tester,
       TankConfigurationStats stats, {
@@ -186,6 +191,7 @@ void main() {
           overrides: [
             ...await getBaseOverrides(),
             insightsFilterProvider.overrideWith((ref) => insightsFilter),
+            insightsRepositoryProvider.overrideWithValue(repository),
             tankConfigurationStatsProvider.overrideWith((ref) async => stats),
           ],
         ),
@@ -214,15 +220,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('dive list'), findsOneWidget);
-      final filter = container.read(diveFilterProvider);
-      expect(filter.minDepth, 18);
+      expect(repository.lastFilter?.minDepth, 18);
       expect(
-        filter.query,
+        repository.lastFilter?.query,
         AndNode([
           field('tankConfig', const EnumValue('singleBackmount')),
           field('planned', const BoolValue(false)),
           field('excludedFromStats', const BoolValue(false)),
         ]),
+      );
+      expect(
+        container.read(diveFilterProvider).diveIdsLabel,
+        'Tank configuration: Single backmount',
       );
     });
 
@@ -243,13 +252,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        container.read(diveFilterProvider).query,
+        repository.lastFilter?.query,
         AndNode([
           field('stages', const BoolValue(true)),
           field('planned', const BoolValue(false)),
           field('excludedFromStats', const BoolValue(false)),
         ]),
       );
+      expect(container.read(diveFilterProvider).diveIds, ['d1']);
     });
   });
 }

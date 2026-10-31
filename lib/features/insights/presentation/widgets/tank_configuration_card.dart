@@ -6,8 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
-import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
@@ -84,10 +84,12 @@ class TankConfigurationCard extends ConsumerWidget {
         formatCount: countAndShare,
         countWidth: _countWidth,
         scaleTo: stats.totalDives,
-        onRowTap: (index) => openInsightsDives(
+        onRowTap: (index) => openFilteredChartDives(
           context,
           ref,
-          filter(ref.read(insightsFilterProvider), entries[index].key),
+          chart: l10n.insights_gas_tankConfig_title,
+          row: label(entries[index].key),
+          narrow: (scope) => filter(scope, entries[index].key),
         ),
       );
     }

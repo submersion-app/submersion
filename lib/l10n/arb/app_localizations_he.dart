@@ -8502,6 +8502,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'ללא סוג מים';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'עד $date';
   }
@@ -28309,6 +28314,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'לא נרשם';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => 'לא ניתן לפתוח צלילות אלה';
+
+  @override
+  String get insights_chart_viewDives => 'הצגת צלילות';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {

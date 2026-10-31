@@ -8692,6 +8692,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Senza tipo di acqua';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Fino al $date';
   }
@@ -29059,6 +29064,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Non registrato';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Impossibile aprire queste immersioni';
+
+  @override
+  String get insights_chart_viewDives => 'Vedi immersioni';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
