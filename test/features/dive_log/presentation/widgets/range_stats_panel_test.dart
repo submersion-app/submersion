@@ -231,6 +231,8 @@ void main() {
       );
 
       expect(find.text('23.1m'), findsOneWidget);
+      expect(find.text('13.3m'), findsOneWidget);
+      expect(find.text('30.0m'), findsOneWidget);
     });
 
     testWidgets('follows a SAC-only display preference', (tester) async {

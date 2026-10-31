@@ -81,10 +81,11 @@ class GasAnalysisService {
       if (segmentProfile.isEmpty) continue;
 
       // Calculate depth statistics
-      final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = _segmentMeanDepth(profile, startTime, endTime);
-      final minDepth = depths.reduce(math.min);
-      final maxDepth = depths.reduce(math.max);
+      final (:avgDepth, :minDepth, :maxDepth) = _segmentDepths(
+        profile,
+        startTime,
+        endTime,
+      );
 
       // Calculate SAC for this segment
       // Window to prorate a pressure-series-less tank across: its own
@@ -214,10 +215,11 @@ class GasAnalysisService {
       if (tank == null) continue;
 
       // Calculate depth statistics
-      final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = _segmentMeanDepth(profile, seg.start, seg.end);
-      final minD = depths.reduce(math.min);
-      final maxD = depths.reduce(math.max);
+      final (:avgDepth, minDepth: minD, maxDepth: maxD) = _segmentDepths(
+        profile,
+        seg.start,
+        seg.end,
+      );
 
       // Calculate SAC
       // Same proration window as the gas-switch path: a tank that was only
@@ -327,18 +329,13 @@ class GasAnalysisService {
           : usageRange.end - usageRange.start;
 
       // Get profile points during tank usage
-      final usageProfile = profile
-          .where(
-            (p) =>
-                p.timestamp >= usageRange.start &&
-                p.timestamp <= usageRange.end,
-          )
-          .toList();
-
-      // Calculate average depth during usage
-      final avgDepthDuringUse = usageProfile.isEmpty
-          ? null
-          : _meanDepthOf(usageProfile);
+      final avgDepthDuringUse = timeWeightedMeanBetween(
+        profile,
+        start: usageRange.start,
+        end: usageRange.end,
+        time: (p) => p.timestamp,
+        value: (p) => p.depth,
+      );
 
       // Check if we have time-series pressure data for this tank (matched by
       // id, or adopted from a re-keyed/orphaned series).
@@ -425,28 +422,28 @@ class GasAnalysisService {
   // Private Helper Methods
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Time-weighted mean depth of a non-empty [profile].
-  static double _meanDepthOf(List<DiveProfilePoint> profile) =>
-      timeWeightedMean(
-        profile,
-        time: (p) => p.timestamp,
-        value: (p) => p.depth,
-      )!;
-
-  /// Time-weighted mean depth over the whole of a segment. A segment's own
-  /// slice of the profile stops short of [end] and may start after [start], so
-  /// it would leave out the time at either edge.
-  static double _segmentMeanDepth(
+  /// Depth over the whole of a segment that holds at least one sample. A
+  /// segment's own slice of the profile stops short of [end] and may start
+  /// after [start], so it would leave out the time at either edge.
+  static ({double avgDepth, double minDepth, double maxDepth}) _segmentDepths(
     List<DiveProfilePoint> profile,
     int start,
     int end,
-  ) => timeWeightedMeanBetween(
-    profile,
-    start: start,
-    end: end,
-    time: (p) => p.timestamp,
-    value: (p) => p.depth,
-  )!;
+  ) {
+    final window = samplesInWindow(
+      profile,
+      start: start,
+      end: end,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+    final depths = window.map((s) => s.value);
+    return (
+      avgDepth: timeWeightedMeanOfWindow(window)!,
+      minDepth: depths.reduce(math.min),
+      maxDepth: depths.reduce(math.max),
+    );
+  }
 
   /// Compute SAC rate under [model], using its gas volumes.
   ///

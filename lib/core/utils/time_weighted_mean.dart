@@ -57,20 +57,20 @@ double? timeWeightedMean<T>(
   return mean.value;
 }
 
-/// The mean of [value] over the window from [start] to [end], or null when
-/// [samples] do not reach it.
+/// [samples] over the window from [start] to [end], in time order.
 ///
 /// Reads the series at the window's edges by interpolating between the samples
-/// either side, so a window that starts or ends between samples still weighs
+/// either side, so a window that starts or ends between samples still covers
 /// the whole of its time. A window running past the samples stops at them.
-double? timeWeightedMeanBetween<T>(
+/// Empty when [samples] do not reach the window.
+List<({num time, double value})> samplesInWindow<T>(
   Iterable<T> samples, {
   required num start,
   required num end,
   required num Function(T sample) time,
   required double Function(T sample) value,
 }) {
-  final mean = TimeWeightedMean();
+  final window = <({num time, double value})>[];
   ({num time, double value})? previous;
   for (final sample in samples) {
     final current = (time: time(sample), value: value(sample));
@@ -85,16 +85,32 @@ double? timeWeightedMeanBetween<T>(
     }
 
     if (before != null && before.time < start && current.time > start) {
-      mean.add(start, interpolatedAt(start));
+      window.add((time: start, value: interpolatedAt(start)));
     }
     if (current.time > end) {
       if (before != null && before.time < end) {
-        mean.add(end, interpolatedAt(end));
+        window.add((time: end, value: interpolatedAt(end)));
       }
       break;
     }
-    mean.add(current.time, current.value);
+    window.add(current);
     previous = current;
   }
-  return mean.value;
+  return window;
 }
+
+/// The mean over [window], a result of [samplesInWindow], or null when empty.
+double? timeWeightedMeanOfWindow(List<({num time, double value})> window) =>
+    timeWeightedMean(window, time: (s) => s.time, value: (s) => s.value);
+
+/// The mean of [value] over the window from [start] to [end], or null when
+/// [samples] do not reach it. See [samplesInWindow].
+double? timeWeightedMeanBetween<T>(
+  Iterable<T> samples, {
+  required num start,
+  required num end,
+  required num Function(T sample) time,
+  required double Function(T sample) value,
+}) => timeWeightedMeanOfWindow(
+  samplesInWindow(samples, start: start, end: end, time: time, value: value),
+);

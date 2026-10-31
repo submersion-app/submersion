@@ -50,6 +50,22 @@ void main() {
       expect(_between(profile, 500, 900), closeTo(30, 1e-9));
     });
 
+    test('samplesInWindow gives the edges with the samples between', () {
+      final window = samplesInWindow(
+        profile,
+        start: 250,
+        end: 450,
+        time: (s) => s.t,
+        value: (s) => s.depth,
+      );
+
+      expect(window, hasLength(3));
+      expect(window.map((s) => s.time), [250, 400, 450]);
+      expect(window[0].value, closeTo(20, 1e-9));
+      expect(window[1].value, 30);
+      expect(window[2].value, closeTo(30, 1e-9));
+    });
+
     test('has no value without samples in or around the window', () {
       expect(_between(profile, 700, 900), isNull);
       expect(_between(const [], 0, 10), isNull);

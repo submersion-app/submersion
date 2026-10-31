@@ -121,6 +121,52 @@ void main() {
 
       // 20 m at 90 s: 30 s averaging 25 m, then 480 s at 30 m.
       expect(segment.avgDepth, closeTo((30 * 25 + 480 * 30) / 510, 1e-9));
+      // The average stays inside the band it is reported with.
+      expect(segment.minDepth, closeTo(20, 1e-9));
+      expect(segment.maxDepth, closeTo(30, 1e-9));
+    });
+
+    test('a usage range between samples still reads the depth there', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 10),
+        DiveProfilePoint(timestamp: 600, depth: 30),
+      ];
+      const backGas = DiveTank(
+        id: 't0',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: GasMix(o2: 21, he: 0),
+      );
+      GasSwitchWithTank switchTo(String tankId, int timestamp) =>
+          GasSwitchWithTank(
+            gasSwitch: GasSwitch(
+              id: 'gs-$tankId',
+              diveId: 'dive-1',
+              timestamp: timestamp,
+              tankId: tankId,
+              createdAt: DateTime(2026),
+            ),
+            tankName: tankId,
+            gasMix: 'air',
+            o2Fraction: 0.21,
+          );
+
+      final results = service.calculateCylinderSac(
+        dive: Dive(
+          id: 'dive-1',
+          dateTime: DateTime(2026),
+          profile: profile,
+          tanks: const [backGas, tank],
+        ),
+        profile: profile,
+        gasSwitches: [switchTo('t0', 0), switchTo('t1', 120)],
+        tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
+      );
+
+      // From 120 s, at 14 m, to the end at 30 m.
+      final used = results.singleWhere((c) => c.tankId == 't1');
+      expect(used.avgDepthDuringUse, closeTo(22, 1e-9));
     });
 
     test('a phase segment is unchanged by a sample on a flat stretch', () {

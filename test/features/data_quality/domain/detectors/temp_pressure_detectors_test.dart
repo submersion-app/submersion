@@ -780,6 +780,32 @@ void main() {
       );
     });
 
+    test('the mean depth reads a window that holds no samples (#3891)', () {
+      // 12 m to 22 m across the window, so 2.7 atm. The whole dive would say
+      // 20 m. 150 bar of 12 L over 5 minutes.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(end: 50)]),
+        samples: const [
+          QualitySample(t: 0, depth: 10),
+          QualitySample(t: 600, depth: 30),
+        ],
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 60, bar: 200),
+            QualityPressureSample(t: 360, bar: 50),
+          ],
+        },
+      );
+
+      final sac = det
+          .detect(ctx)
+          .singleWhere((f) => f.params.containsKey('surfaceLpm'));
+      expect(
+        sac.params['surfaceLpm'] as double,
+        closeTo(150 * 12 / 5 / 2.7, 1e-9),
+      );
+    });
+
     // Shared depth shape for the consumption tests below: 10 m (2 atm) until
     // the diver surfaces at t=420, then two more minutes of recording at the
     // surface.

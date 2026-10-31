@@ -423,16 +423,17 @@ class RangeStatsPanel extends ConsumerWidget {
         rangePoints.last.timestamp - rangePoints.first.timestamp;
 
     // Depth stats (needed even for zero-duration to populate min/max/avg)
-    final depths = rangePoints.map((p) => p.depth).toList();
-    final minDepth = depths.reduce(math.min);
-    final maxDepth = depths.reduce(math.max);
-    final avgDepth = timeWeightedMeanBetween(
+    final window = samplesInWindow(
       profile,
       start: rangeState.startTimestamp!,
       end: rangeState.endTimestamp!,
       time: (p) => p.timestamp,
       value: (p) => p.depth,
-    )!;
+    );
+    final depths = window.map((s) => s.value).toList();
+    final minDepth = depths.reduce(math.min);
+    final maxDepth = depths.reduce(math.max);
+    final avgDepth = timeWeightedMeanOfWindow(window)!;
 
     // Depth delta (signed: positive = deeper)
     final depthDelta = rangePoints.last.depth - rangePoints.first.depth;
