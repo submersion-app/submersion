@@ -3238,6 +3238,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_nameHint => 'Add meg a búvártárs nevét';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Kihagyás a merülőtárs-rangsorokból';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'A közös merülések továbbra is merülőtárssal végzett merülésnek számítanak.';
+
+  @override
   String get buddies_field_nameRequired => 'Név *';
 
   @override
@@ -3597,6 +3605,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Közös merülések';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Kihagyva a merülőtárs-rangsorokból';
 
   @override
   String get buddies_stat_favoriteSite => 'Kedvenc hely';
@@ -15144,6 +15156,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Részletek';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Merülésidő';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

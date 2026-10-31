@@ -3192,6 +3192,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_nameHint => 'הזן שם חבר צוללים';
 
   @override
+  String get buddies_field_excludedFromRankings => 'לא לכלול בדירוג השותפים';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'צלילות ביחד עדיין נספרות כצלילות עם שותף.';
+
+  @override
   String get buddies_field_nameRequired => 'שם *';
 
   @override
@@ -3545,6 +3552,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'צלילות ביחד';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'לא נכלל בדירוג השותפים';
 
   @override
   String get buddies_stat_favoriteSite => 'אתר מועדף';
@@ -14875,6 +14885,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'פרטים';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'זמן צלילה';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

@@ -212,6 +212,38 @@ void main() {
     expect(_targets(out, ImportEntityType.buddies, 'kim'), [_newBo]);
   });
 
+  test('a buddy follows the dives that name it by ref (#3871)', () {
+    final out = _expand(
+      const ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {
+              SourceDiver.mapKey: _ann,
+              'buddyRefs': ['Kim'],
+            },
+            {
+              SourceDiver.mapKey: _bo,
+              'buddyRefs': ['Kim', 'Lee'],
+            },
+          ],
+          ImportEntityType.buddies: [
+            {'name': 'Kim', 'uddfId': 'Kim'},
+            {'name': 'Lee', 'uddfId': 'Lee'},
+          ],
+        },
+        sourceDivers: [
+          SourceDiver(key: _ann, name: 'Ann Lee', diveCount: 1),
+          SourceDiver(key: _bo, name: 'Bo Ray', diveCount: 1),
+        ],
+      ),
+    );
+    expect(
+      _targets(out, ImportEntityType.buddies, 'Kim'),
+      unorderedEquals([_active, _newBo]),
+    );
+    expect(_targets(out, ImportEntityType.buddies, 'Lee'), [_newBo]);
+  });
+
   test("a site's own tags follow the site (#1765)", () {
     final out = _expand(
       const ImportPayload(

@@ -2,8 +2,23 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_source.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_hasher.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
+
+import '../../../../helpers/recording_base_part_hasher.dart';
+
+Future<String> _fileOf(int length) async {
+  final dir = await Directory.systemTemp.createTemp('src_hasher');
+  addTearDown(() => dir.delete(recursive: true));
+  final path = p.join(dir.path, 'base.json');
+  await File(
+    path,
+  ).writeAsBytes(List.generate(length, (i) => i % 256), flush: true);
+  return path;
+}
 
 void main() {
   test(
@@ -129,4 +144,153 @@ void main() {
       await dir.delete(recursive: true);
     },
   );
+
+  group('through a hasher', () {
+    test('a real worker gives the digests the manifest expects', () async {
+      const partSize = kOffIsolateMinBytes;
+      final path = await _fileOf(2 * partSize + 12345);
+      final data = await File(path).readAsBytes();
+
+      final res = await BasePartFileSource(
+        path,
+        partSize: partSize,
+      ).uploadAll((i, bytes) async {});
+
+      expect(res.partCount, 3);
+      expect(res.wholeChecksum, BaseChunker.checksum(data));
+      expect(
+        res.partChecksums,
+        BaseChunker.slice(data, partSize: partSize).map(BaseChunker.checksum),
+      );
+    });
+
+    test('a skipped part is still hashed', () async {
+      final path = await _fileOf(1000);
+      final hasher = RecordingBasePartHasher();
+
+      final res = await BasePartFileSource(
+        path,
+        partSize: 256,
+        openHasher: (_) async => hasher,
+      ).uploadAll((i, bytes) async {}, skipPart: (_) => true);
+
+      expect(hasher.added, 4);
+      expect(res.partChecksums, hasLength(4));
+    });
+
+    test('the digests it returns are the ones reported', () async {
+      final path = await _fileOf(300);
+      final data = await File(path).readAsBytes();
+
+      final res = await BasePartFileSource(
+        path,
+        partSize: 256,
+        openHasher: (_) async => RecordingBasePartHasher(),
+      ).uploadAll((i, bytes) async {});
+
+      expect(
+        res.partChecksums,
+        BaseChunker.slice(data, partSize: 256).map(BaseChunker.checksum),
+      );
+      expect(res.wholeChecksum, 'sha256:whole');
+    });
+
+    test('a hasher failure stops the transfer before its upload', () async {
+      final path = await _fileOf(1000);
+      final hasher = RecordingBasePartHasher(failOnPart: 1);
+      final uploaded = <int>[];
+
+      await expectLater(
+        BasePartFileSource(
+          path,
+          partSize: 256,
+          openHasher: (_) async => hasher,
+        ).uploadAll((i, bytes) async => uploaded.add(i)),
+        throwsA(isA<BasePartHasherException>()),
+      );
+
+      expect(uploaded, [0]);
+      expect(hasher.disposals, 1);
+    });
+
+    test('a failed upload still releases the hasher', () async {
+      final path = await _fileOf(1000);
+      final hasher = RecordingBasePartHasher();
+
+      await expectLater(
+        BasePartFileSource(
+          path,
+          partSize: 256,
+          openHasher: (_) async => hasher,
+        ).uploadAll((i, bytes) async {
+          if (i == 1) throw StateError('network');
+        }),
+        throwsStateError,
+      );
+
+      expect(hasher.disposals, 1);
+    });
+
+    test('a finished transfer releases the hasher', () async {
+      final path = await _fileOf(1000);
+      final hasher = RecordingBasePartHasher();
+
+      await BasePartFileSource(
+        path,
+        partSize: 256,
+        openHasher: (_) async => hasher,
+      ).uploadAll((i, bytes) async {});
+
+      expect(hasher.disposals, 1);
+    });
+
+    for (final (length, expected) in [(1000, 256), (256, 256), (100, 100)]) {
+      test('a $length byte file opens for a $expected byte part', () async {
+        final path = await _fileOf(length);
+        final opened = <int>[];
+
+        await BasePartFileSource(
+          path,
+          partSize: 256,
+          openHasher: (firstPartBytes) async {
+            opened.add(firstPartBytes);
+            return RecordingBasePartHasher();
+          },
+        ).uploadAll((i, bytes) async {});
+
+        expect(opened, [expected]);
+      });
+    }
+
+    test('an empty file opens for no bytes and yields one part', () async {
+      final path = await _fileOf(0);
+      final opened = <int>[];
+      final hasher = RecordingBasePartHasher();
+
+      final res = await BasePartFileSource(
+        path,
+        openHasher: (firstPartBytes) async {
+          opened.add(firstPartBytes);
+          return hasher;
+        },
+      ).uploadAll((i, bytes) async {});
+
+      expect(opened, [0]);
+      expect(hasher.added, 1);
+      expect(res.partCount, 1);
+    });
+
+    test('a whole multiple of the part size has no empty last part', () async {
+      final path = await _fileOf(512);
+      final data = await File(path).readAsBytes();
+
+      final res = await BasePartFileSource(
+        path,
+        partSize: 256,
+      ).uploadAll((i, bytes) async {});
+
+      expect(res.partCount, 2);
+      expect(res.wholeChecksum, BaseChunker.checksum(data));
+    });
+  });
 }

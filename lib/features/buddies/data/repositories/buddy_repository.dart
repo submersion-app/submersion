@@ -194,6 +194,7 @@ class BuddyRepository {
               photo: Value(buddy.photo),
               notes: Value(buddy.notes),
               isFavorite: Value(buddy.isFavorite),
+              excludedFromRankings: Value(buddy.excludedFromRankings),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -230,6 +231,16 @@ class BuddyRepository {
     String? notes,
     String? diverId,
   }) async {
+    return (await resolveByName(name, notes: notes, diverId: diverId)).buddy;
+  }
+
+  /// [findOrCreateByName], also saying whether the person is new, so an
+  /// import can report what it added rather than what it linked (#3871).
+  Future<({domain.Buddy buddy, bool created})> resolveByName(
+    String name, {
+    String? notes,
+    String? diverId,
+  }) async {
     try {
       final trimmedName = name.trim();
       if (trimmedName.isEmpty) {
@@ -258,7 +269,8 @@ class BuddyRepository {
         final row = results.first;
         _log.info('Found existing buddy: $trimmedName');
         final found = _mapRowToBuddy(_db.buddies.map(row.data));
-        return (await _withPrimaryCerts([found])).first;
+        final hydrated = (await _withPrimaryCerts([found])).first;
+        return (buddy: hydrated, created: false);
       }
 
       // Create new buddy
@@ -272,7 +284,7 @@ class BuddyRepository {
         updatedAt: DateTime.now(),
       );
 
-      return await createBuddy(newBuddy);
+      return (buddy: await createBuddy(newBuddy), created: true);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find or create buddy: $name',
@@ -302,6 +314,7 @@ class BuddyRepository {
           photo: Value(buddy.photo),
           notes: Value(buddy.notes),
           isFavorite: Value(buddy.isFavorite),
+          excludedFromRankings: Value(buddy.excludedFromRankings),
           updatedAt: Value(now),
         ),
       );
@@ -1212,6 +1225,7 @@ class BuddyRepository {
       photo: row.photo,
       notes: row.notes,
       isFavorite: row.isFavorite,
+      excludedFromRankings: row.excludedFromRankings,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       cardId: row.cardId,

@@ -40,6 +40,30 @@ import 'package:submersion/features/trips/data/repositories/trip_equipment_repos
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
+/// A dive `d`'s length in seconds, the first positive of its runtime and
+/// bottom time: a manual zero runtime beside a real bottom time is no figure,
+/// and must not count the dive as zero hours (or subtract any).
+const String _diveLengthSql = '''
+CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END''';
+
+/// The dives behind the item page's Dives and Dive Time rows: `d` carries the
+/// item `?1`, directly or through a tank, and belongs to the diver `?2` when
+/// one is given. Each row reads a dive once however many ways it is linked,
+/// which a join against `dive_tanks` would not.
+final String _diveOnItemSql =
+    '''
+(EXISTS (SELECT 1 FROM dive_equipment de
+                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
+            OR EXISTS (SELECT 1 FROM dive_tanks dt
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
+            -- A regulator on a tank, first or extra (#3375).
+            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
+          AND (?2 IS NULL OR d.diver_id = ?2)''';
+
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
 /// its parent, its parts still fitted, whether it breathes a loop, and the
 /// dives it was exposed on.
@@ -1242,13 +1266,7 @@ class EquipmentRepository {
             '''
         SELECT COUNT(*) AS count
         FROM dives d
-        WHERE (EXISTS (SELECT 1 FROM dive_equipment de
-                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
-            OR EXISTS (SELECT 1 FROM dive_tanks dt
-                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1)
-            -- A regulator on a tank, first or extra (#3375).
-            OR d.id IN (${tankRegulatorDiveIdsSql('?1')}))
-          AND (?2 IS NULL OR d.diver_id = ?2)
+        WHERE $_diveOnItemSql
       ''',
             variables: [
               Variable.withString(equipmentId),
@@ -1261,6 +1279,48 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive count for equipment: $equipmentId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Total seconds of the dives [getDiveCountForEquipment] counts, for the
+  /// item page's Dive Time row: the same dives, so the two rows describe one
+  /// set. A dive with no recorded length adds nothing.
+  ///
+  /// Not the Exposure card's hours, which answer how much wear the item has
+  /// had and so also take a part's parent dives, count every diver's dives,
+  /// and read only loop time on a rebreather.
+  ///
+  /// Deliberately does NOT apply DiveStatsScope, for the reason on
+  /// [getDiveCountForEquipment]. Do not "fix" this.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<int> getDiveTimeForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
+    try {
+      final result = await _db
+          .customSelect(
+            '''
+        SELECT COALESCE(SUM($_diveLengthSql), 0) AS seconds
+        FROM dives d
+        WHERE $_diveOnItemSql
+      ''',
+            variables: [
+              Variable.withString(equipmentId),
+              Variable<String>(diverId),
+            ],
+          )
+          .getSingle();
+
+      // A fractional stored length makes SUM a double.
+      return (result.data['seconds'] as num?)?.toInt() ?? 0;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get dive time for equipment: $equipmentId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -1302,14 +1362,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               -- The first positive length: a manual zero runtime beside
-               -- a real bottom time is no figure, and must not count the
-               -- dive as zero hours (or subtract any).
-               CASE
-                 WHEN d.runtime > 0 THEN d.runtime
-                 WHEN d.bottom_time > 0 THEN d.bottom_time
-                 ELSE 0
-               END AS duration_sec,
+               $_diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,
@@ -1679,11 +1732,7 @@ class EquipmentRepository {
                -- current summary was built from, and the fingerprint's.
                ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
-               CASE
-                 WHEN d.runtime > 0 THEN d.runtime
-                 WHEN d.bottom_time > 0 THEN d.bottom_time
-                 ELSE 0
-               END AS duration_sec,
+               $_diveLengthSql AS duration_sec,
                d.dive_mode AS dive_mode,
                d.water_type AS water_type,
                COALESCE(s.max_depth, d.max_depth) AS max_depth,

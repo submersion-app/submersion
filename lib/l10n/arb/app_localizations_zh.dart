@@ -3077,6 +3077,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
+  String get buddies_field_excludedFromRankings => '不计入潜伴排行';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint => '共同潜水仍计为有潜伴的潜水。';
+
+  @override
   String get buddies_field_nameRequired => '姓名 *';
 
   @override
@@ -3415,6 +3421,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => '共同潜水次数';
+
+  @override
+  String get buddies_stat_excludedFromRankings => '不计入潜伴排行';
 
   @override
   String get buddies_stat_favoriteSite => '最爱潜水点';
@@ -14489,6 +14498,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => '详情';
+
+  @override
+  String get equipment_detail_diveTimeLabel => '潜水时间';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

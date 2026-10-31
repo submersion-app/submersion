@@ -3253,6 +3253,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get buddies_field_nameHint => 'Ingresa el nombre del compañero';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Excluir de las clasificaciones de compañeros';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Las inmersiones juntos siguen contando como inmersiones con compañero.';
+
+  @override
   String get buddies_field_nameRequired => 'Nombre *';
 
   @override
@@ -3609,6 +3617,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Inmersiones Juntos';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Excluido de las clasificaciones de compañeros';
 
   @override
   String get buddies_stat_favoriteSite => 'Sitio Favorito';
@@ -15188,6 +15200,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Detalles';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Tiempo de inmersión';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

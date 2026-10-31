@@ -3209,6 +3209,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_field_nameHint => 'Enter buddy name';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Leave out of buddy rankings';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Dives together still count as buddy dives.';
+
+  @override
   String get buddies_field_nameRequired => 'Name *';
 
   @override
@@ -3562,6 +3570,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Dives Together';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'Left out of buddy rankings';
 
   @override
   String get buddies_stat_favoriteSite => 'Favorite Site';
@@ -14968,6 +14979,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'Details';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'Dive Time';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {

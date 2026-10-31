@@ -3317,6 +3317,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
+  String get buddies_field_excludedFromRankings => 'استبعاد من تصنيفات الرفاق';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'تظل الغطسات معاً محسوبة كغطسات مع رفيق.';
+
+  @override
   String get buddies_field_nameRequired => 'الاسم *';
 
   @override
@@ -3697,6 +3704,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'الغطسات معاً';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'مستبعد من تصنيفات الرفاق';
 
   @override
   String get buddies_stat_favoriteSite => 'الموقع المفضل';
@@ -15397,6 +15407,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_detail_detailsTitle => 'التفاصيل';
+
+  @override
+  String get equipment_detail_diveTimeLabel => 'وقت الغوص';
 
   @override
   String equipment_detail_divesCountPlural(Object count) {
