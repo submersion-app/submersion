@@ -50,25 +50,20 @@ abstract class LoopAscentGas extends AscentGasPlan {
 /// change and no reason to leave the loop for the richer gas that feeds it, so
 /// there is never a switch to split an ascent leg at.
 class SemiClosedLoopAscentGas extends LoopAscentGas {
-  SemiClosedLoopAscentGas({
-    required this.environment,
-    required this.breathing,
-    required this.supplyFO2,
-    this.supplyFHe = 0.0,
-  });
+  SemiClosedLoopAscentGas({required this.environment, required this.breathing});
 
   @override
   final DiveEnvironment environment;
 
   /// The loop the diver is on. Depth-independent as a value: it answers per
   /// ambient pressure.
-  final BreathingConfig breathing;
+  final SemiClosedBreathing breathing;
 
   @override
-  final double supplyFO2;
+  double get supplyFO2 => breathing.supplyFO2;
 
   @override
-  final double supplyFHe;
+  double get supplyFHe => breathing.supplyFHe;
 
   @override
   BreathingConfig breathingAt(double depthMeters) => breathing;

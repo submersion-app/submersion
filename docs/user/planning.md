@@ -134,7 +134,7 @@ The planner warns about:
 | CNS | At 80%, or critical at 100% |
 | OTU | Above 300 for the dive |
 | Gas supply | A tank running empty, a reserve broken, or a tank ending below its minimum gas |
-| Missing gas | An open-circuit deco dive with no deco gas, or a CCR deco dive with no bailout gas |
+| Missing gas | An open-circuit deco dive with no deco gas, or a rebreather deco dive with no bailout gas |
 | Diluent MOD | A diluent breathed deeper than its maximum operating depth |
 
 ### Saving, sharing and comparing plans

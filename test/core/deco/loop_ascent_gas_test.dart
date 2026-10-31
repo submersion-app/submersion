@@ -7,11 +7,10 @@ import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 
-SemiClosedLoopAscentGas _loop(BreathingConfig breathing) =>
+SemiClosedLoopAscentGas _loop(SemiClosedBreathing breathing) =>
     SemiClosedLoopAscentGas(
       environment: DiveEnvironment.standard,
       breathing: breathing,
-      supplyFO2: 0.32,
     );
 
 void main() {
@@ -65,15 +64,15 @@ void main() {
     });
 
     test('carries the supply gas as its identity', () {
-      final loop = SemiClosedLoopAscentGas(
-        environment: DiveEnvironment.standard,
-        breathing: Scr(supplyFO2: 0.21, supplyFHe: 0.35, injectionRateLpm: 12),
-        supplyFO2: 0.21,
-        supplyFHe: 0.35,
+      final constantMass = _loop(
+        Scr(supplyFO2: 0.21, supplyFHe: 0.35, injectionRateLpm: 12),
       );
+      final passive = _loop(PassiveScr(supplyFO2: 0.18, supplyFHe: 0.45));
 
-      expect(loop.supplyFO2, 0.21);
-      expect(loop.supplyFHe, 0.35);
+      expect(constantMass.supplyFO2, 0.21);
+      expect(constantMass.supplyFHe, 0.35);
+      expect(passive.supplyFO2, 0.18);
+      expect(passive.supplyFHe, 0.45);
     });
 
     test('never switches gas and offers no air break', () {

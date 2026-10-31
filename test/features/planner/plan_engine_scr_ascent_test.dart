@@ -422,6 +422,51 @@ void main() {
       expect(types, isNot(contains(PlanIssueType.noBailoutCarried)));
     });
 
+    test('an open-circuit plan ending on the loop can clear that alert', () {
+      const unmarked = DiveTank(
+        id: 'supply',
+        volume: 12,
+        startPressure: 230,
+        gasMix: _ean32,
+      );
+      const carried = DiveTank(
+        id: 'carried',
+        volume: 12,
+        startPressure: 230,
+        gasMix: _ean50,
+      );
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.oc,
+          tanks: const [unmarked, carried],
+          segments: [
+            PlanSegment.travel(
+              id: 'descent',
+              fromDepth: 0,
+              targetDepth: 40,
+              tankId: 'supply',
+              gasMix: _ean32,
+              order: 0,
+              ratePerMinute: 18,
+            ),
+            PlanSegment.hold(
+              id: 'bottom',
+              depth: 40,
+              durationMinutes: 35,
+              tankId: 'supply',
+              gasMix: _ean32,
+              diveModeOverride: domain.PlanMode.scr,
+              order: 1,
+            ),
+          ],
+        ),
+      );
+
+      expect([
+        for (final issue in outcome.issues) issue.type,
+      ], isNot(contains(PlanIssueType.noBailoutCarried)));
+    });
+
     test('a supply nobody marked as diluent is not its own bailout', () {
       const unmarked = DiveTank(
         id: 'supply',
@@ -435,6 +480,238 @@ void main() {
         for (final issue in outcome.issues) issue.type,
       ], contains(PlanIssueType.noBailoutCarried));
     });
+  });
+
+  group('hypoxia on a loop plan (#3896)', () {
+    const travelMix = GasMix(o2: 50);
+    const bottomMix = GasMix(o2: 18, he: 45);
+    const travelTank = DiveTank(
+      id: 'travel',
+      volume: 12,
+      startPressure: 230,
+      gasMix: travelMix,
+      role: TankRole.diluent,
+    );
+    const bottomTank = DiveTank(
+      id: 'bottom',
+      volume: 12,
+      startPressure: 230,
+      gasMix: bottomMix,
+      role: TankRole.diluent,
+    );
+
+    /// Down on a rich travel supply, whose descent is breathable at the
+    /// surface, then deep on a supply lean enough to be unbreathable shallow.
+    domain.DivePlan leanFinalSupply(domain.PlanMode mode) => _plan(
+      mode: mode,
+      tanks: const [travelTank, bottomTank],
+      segments: [
+        PlanSegment.travel(
+          id: 'to-switch',
+          fromDepth: 0,
+          targetDepth: 30,
+          tankId: 'travel',
+          gasMix: travelMix,
+          order: 0,
+          ratePerMinute: 18,
+        ),
+        PlanSegment.travel(
+          id: 'to-bottom',
+          fromDepth: 30,
+          targetDepth: 60,
+          tankId: 'bottom',
+          gasMix: bottomMix,
+          order: 1,
+          ratePerMinute: 18,
+        ),
+        PlanSegment.hold(
+          id: 'bottom',
+          depth: 60,
+          durationMinutes: 20,
+          tankId: 'bottom',
+          gasMix: bottomMix,
+          order: 2,
+        ),
+      ],
+    );
+
+    List<PlanIssue> hypoxia(PlanOutcome outcome) => [
+      for (final issue in outcome.issues)
+        if (issue.type == PlanIssueType.hypoxicGas) issue,
+    ];
+
+    for (final (mode, firstHypoxicStop) in const [
+      (domain.PlanMode.scr, 9.0),
+      (domain.PlanMode.pscr, 15.0),
+    ]) {
+      test('$mode flags the stop where the ascent stops being breathable', () {
+        final outcome = engine.compute(leanFinalSupply(mode));
+
+        expect(hypoxia(outcome), hasLength(1));
+        final issue = hypoxia(outcome).single;
+        expect(issue.severity, PlanIssueSeverity.critical);
+        expect(issue.atDepth, firstHypoxicStop);
+        expect(issue.value, lessThan(0.16));
+        expect(issue.atRuntime, isNotNull);
+      });
+
+      test('$mode ascends on the helium the supply holds', () {
+        final outcome = engine.compute(leanFinalSupply(mode));
+
+        final computed = _computedRows(outcome, 3);
+        expect(computed, isNotEmpty);
+        for (final row in computed) {
+          expect(row.gasFHe, closeTo(0.45, 1e-9));
+          expect(row.tankId, 'bottom');
+        }
+        for (final stop in outcome.stops) {
+          expect(stop.gasFHe, closeTo(0.45, 1e-9));
+        }
+      });
+    }
+
+    test('a surfacing leg no descent covered is flagged at the surface', () {
+      const air = GasMix(o2: 21);
+      const airTank = DiveTank(
+        id: 'air',
+        volume: 12,
+        startPressure: 230,
+        gasMix: air,
+        role: TankRole.diluent,
+      );
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.pscr,
+          tanks: const [travelTank, airTank],
+          segments: [
+            PlanSegment.travel(
+              id: 'to-depth',
+              fromDepth: 0,
+              targetDepth: 18,
+              tankId: 'travel',
+              gasMix: travelMix,
+              order: 0,
+              ratePerMinute: 18,
+            ),
+            PlanSegment.hold(
+              id: 'level',
+              depth: 18,
+              durationMinutes: 5,
+              tankId: 'air',
+              gasMix: air,
+              order: 1,
+            ),
+          ],
+        ),
+      );
+
+      expect(outcome.stops, isEmpty);
+      expect(hypoxia(outcome).single.atDepth, 0.0);
+    });
+
+    test('a loop the descent already flagged is reported once', () {
+      final outcome = engine.compute(_plan(mode: domain.PlanMode.pscr));
+
+      expect(hypoxia(outcome).single.atDepth, 0.0);
+    });
+
+    test('an open-circuit leg is judged on the gas in the cylinder', () {
+      const diluent = GasMix(o2: 10, he: 70);
+      const diluentTank = DiveTank(
+        id: 'diluent',
+        volume: 3,
+        startPressure: 200,
+        gasMix: diluent,
+        role: TankRole.diluent,
+      );
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.ccr,
+          tanks: const [diluentTank],
+          segments: [
+            PlanSegment.travel(
+              id: 'descent',
+              fromDepth: 0,
+              targetDepth: 30,
+              tankId: 'diluent',
+              gasMix: diluent,
+              order: 0,
+              ratePerMinute: 18,
+            ),
+            PlanSegment.travel(
+              id: 'off-loop',
+              fromDepth: 30,
+              targetDepth: 3,
+              tankId: 'diluent',
+              gasMix: diluent,
+              order: 1,
+              ratePerMinute: 9,
+              diveModeOverride: domain.PlanMode.oc,
+            ),
+          ],
+        ),
+      );
+
+      expect([
+        for (final issue in hypoxia(outcome)) issue.segmentId,
+      ], contains('off-loop'));
+    });
+
+    test('an open-circuit leg is not judged as the loop it left', () {
+      const rich = GasMix(o2: 60);
+      const air = GasMix(o2: 21);
+      const richTank = DiveTank(
+        id: 'rich',
+        volume: 12,
+        startPressure: 200,
+        gasMix: rich,
+        role: TankRole.diluent,
+      );
+      const airTank = DiveTank(
+        id: 'air',
+        volume: 12,
+        startPressure: 200,
+        gasMix: air,
+      );
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.pscr,
+          tanks: const [richTank, airTank],
+          segments: [
+            PlanSegment.travel(
+              id: 'descent',
+              fromDepth: 0,
+              targetDepth: 10,
+              tankId: 'rich',
+              gasMix: rich,
+              order: 0,
+              ratePerMinute: 18,
+            ),
+            PlanSegment.hold(
+              id: 'off-loop',
+              depth: 10,
+              durationMinutes: 2,
+              tankId: 'air',
+              gasMix: air,
+              diveModeOverride: domain.PlanMode.oc,
+              order: 1,
+            ),
+          ],
+        ),
+      );
+
+      expect(hypoxia(outcome), isEmpty);
+    });
+  });
+
+  test('a CCR stop carries the diluent, not its bookkeeping fraction', () {
+    final outcome = engine.compute(_plan(mode: domain.PlanMode.ccr));
+
+    expect(outcome.stops, isNotEmpty);
+    for (final stop in outcome.stops) {
+      expect(stop.gasFO2, closeTo(0.32, 1e-9), reason: '${stop.depthMeters} m');
+      expect(stop.tankId, 'supply', reason: '${stop.depthMeters} m');
+    }
   });
 
   group('pSCR computed ascent (#3896)', () {
