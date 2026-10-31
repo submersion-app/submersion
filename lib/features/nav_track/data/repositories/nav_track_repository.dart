@@ -750,10 +750,19 @@ class NavTrackRepository {
   /// since stands, and a route deleted since stays deleted. A dive left with
   /// no primary route gets one, for a route linked after the fold whose
   /// primary has gone back to its own dive.
+  ///
+  /// [link] only gives a dive's position to a route with none, so a route
+  /// that had a site or an anchor kept it through the fold and neither is
+  /// written here: whatever the diver changed since stands. A route that had
+  /// neither goes back to neither, since the row cannot tell a position the
+  /// fold gave it from one the diver set afterwards.
   Future<void> restoreLinks(List<NavTrackRow> rows) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       for (final row in rows) {
+        final hadPosition =
+            row.siteId != null ||
+            (row.anchorLatitude != null && row.anchorLongitude != null);
         final rowsAffected =
             await (_db.update(
               _db.navTracks,
@@ -763,9 +772,13 @@ class NavTrackRepository {
                 diverId: Value(row.diverId),
                 linkMode: Value(row.linkMode),
                 isPrimary: Value(row.isPrimary),
-                siteId: Value(row.siteId),
-                anchorLatitude: Value(row.anchorLatitude),
-                anchorLongitude: Value(row.anchorLongitude),
+                siteId: hadPosition ? const Value.absent() : const Value(null),
+                anchorLatitude: hadPosition
+                    ? const Value.absent()
+                    : const Value(null),
+                anchorLongitude: hadPosition
+                    ? const Value.absent()
+                    : const Value(null),
                 updatedAt: Value(now),
               ),
             );

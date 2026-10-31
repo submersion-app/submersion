@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    show GeoPoint;
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -182,6 +184,55 @@ void main() {
       expect(restored.anchor, isNull);
       expect(restored.name, 'Reef loop');
       expect((await repo.getById(id))!.points, hasLength(3));
+    });
+
+    test('a site and anchor changed since stand', () async {
+      await _insertSite(db, 'site-1');
+      await _insertSite(db, 'site-2');
+      await _insertDive(db, 'a');
+      await _insertDive(db, 'b');
+      final id = await route(startAt: 1700000000, diveId: 'b');
+      await repo.setSite(id, 'site-1', anchor: const GeoPoint(1, 2));
+      final captured = await repo.linkedRowsForDives(['b']);
+      await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
+      await repo.setSite(id, 'site-2', anchor: const GeoPoint(3, 4));
+
+      await repo.restoreLinks(captured);
+
+      final restored = (await repo.getForDive('b')).single;
+      expect(restored.siteId, 'site-2');
+      expect(restored.anchor, const GeoPoint(3, 4));
+    });
+
+    test('an anchor cleared since stays cleared', () async {
+      await _insertDive(db, 'a');
+      await _insertDive(db, 'b');
+      final id = await route(startAt: 1700000000, diveId: 'b');
+      await repo.setSite(id, null, anchor: const GeoPoint(1, 2));
+      final captured = await repo.linkedRowsForDives(['b']);
+      await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
+      await repo.setSite(id, null, clearAnchor: true);
+
+      await repo.restoreLinks(captured);
+
+      expect((await repo.getForDive('b')).single.anchor, isNull);
+    });
+
+    test('a site deleted since does not stop the restore', () async {
+      await _insertSite(db, 'site-1');
+      await _insertDive(db, 'a');
+      await _insertDive(db, 'b');
+      final id = await route(startAt: 1700000000, diveId: 'b');
+      await repo.setSite(id, 'site-1');
+      final captured = await repo.linkedRowsForDives(['b']);
+      await repo.moveLinks(fromDiveIds: ['b'], toDiveId: 'a');
+      await db.customStatement("DELETE FROM dive_sites WHERE id = 'site-1'");
+
+      await repo.restoreLinks(captured);
+
+      final restored = (await repo.getForDive('b')).single;
+      expect(restored.id, id);
+      expect(restored.siteId, isNull);
     });
 
     test('marks each restored route pending', () async {
