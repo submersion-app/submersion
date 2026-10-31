@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -18,11 +19,15 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -31,6 +36,7 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
@@ -60,6 +66,7 @@ void main() {
   // reads the current diver; the real provider needs SharedPreferences.
   Widget harness({String? diverId, List<dynamic> extra = const []}) => testApp(
     overrides: [
+      ...plannerResultsInline(),
       ...extra,
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       currentDiverIdProvider.overrideWith((ref) {
@@ -371,6 +378,53 @@ void main() {
     expect(listed.single.site?.id, siteId);
   });
 
+  testWidgets('convert logs the live plan when the chart shows bailout', (
+    tester,
+  ) async {
+    final diverId = await createDiver(tester, 'convert-diver');
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness(diverId: diverId));
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    container.read(divePlanNotifierProvider.notifier)
+      ..addSimplePlan(maxDepth: 30, bottomTimeMinutes: 25)
+      ..updateMode(domain.PlanMode.ccr)
+      ..addTank(
+        const DiveTank(
+          id: 'bo',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 50),
+          role: TankRole.bailout,
+        ),
+      );
+    await tester.pumpAndSettle();
+    expect(container.read(planIsValidProvider), isTrue);
+    final live = container.read(planCanvasSeriesProvider).profile;
+
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.bailout;
+    await tester.pumpAndSettle();
+    // The two pictures differ, so this can tell which one was logged.
+    expect(
+      container.read(planCanvasSeriesProvider).profile.length,
+      isNot(live.length),
+    );
+
+    await openMenu(tester, 'Convert to Dive');
+    expect(find.byType(SnackBar), findsOneWidget);
+
+    final logged = await tester.runAsync(() async {
+      final dives = await DiveRepository().getAllDives(diverId: diverId);
+      return DiveRepository().getDiveById(dives.single.id);
+    });
+    expect(
+      [for (final point in logged!.profile) point.timestamp],
+      [for (final point in live) point.timeSeconds.round()],
+    );
+  });
+
   testWidgets('convert leaves off a site private to another diver', (
     tester,
   ) async {
@@ -603,6 +657,7 @@ void main() {
       testAppRouter(
         router: router,
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         ],
         locale: const Locale('en'),

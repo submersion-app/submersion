@@ -167,6 +167,8 @@ abstract final class FocusFactorAnalyzer {
       id: id,
       groupCovered: gTotal,
       groupSize: group.length,
+      baselineCovered: bTotal,
+      baselineSize: baseline.length,
       top: List.unmodifiable(top),
     );
   }

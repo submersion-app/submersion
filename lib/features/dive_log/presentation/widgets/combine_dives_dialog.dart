@@ -228,8 +228,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   Widget _buildPreview(BuildContext context, MergeSequential seq) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final timePattern = ref.watch(timeFormatProvider).pattern;
 
     // Pure preview computation -- never persisted. Reusing build() here

@@ -64,6 +64,15 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When true, [downloadFile] throws, modelling a transient read failure.
   bool failDownloads = false;
 
+  /// When set, a download whose file id this matches throws: the same failure
+  /// as [failDownloads], for one kind of file. Throws [downloadFailure].
+  bool Function(String fileId)? failDownloadsWhere;
+
+  /// What [failDownloadsWhere] throws.
+  Object downloadFailure = const CloudStorageException(
+    'download failed (test)',
+  );
+
   /// Ordered log of cloud operations, for asserting protocol order (e.g.
   /// "marker written before wipe"). File ids equal filenames in this fake.
   /// Entries: `upload:<name>`, `delete:<name>`, `list`.
@@ -115,6 +124,11 @@ class FakeCloudStorageProvider extends CloudStorageProvider
   /// When set, every upload of a file with this name fails.
   String? failUploadsNamed;
 
+  /// When set, every upload of a file with this name lands and then fails the
+  /// way a real provider reports a lost response: [TimeoutException] wrapped
+  /// in a [CloudStorageException], never bare.
+  String? loseResponseForUploadsNamed;
+
   /// When set, the next upload of the named file is at once replaced by
   /// these bytes, as if another device wrote it just after.
   (String, Uint8List)? afterNextUpload;
@@ -142,6 +156,12 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     if (timeoutUploadsAfterWrite) {
       throw TimeoutException('upload timed out (test)');
     }
+    if (filename == loseResponseForUploadsNamed) {
+      throw CloudStorageException(
+        'Upload failed (test)',
+        TimeoutException('upload timed out (test)'),
+      );
+    }
     return UploadResult(
       fileId: filename,
       uploadTime: _files[filename]!.modified,
@@ -154,6 +174,7 @@ class FakeCloudStorageProvider extends CloudStorageProvider
     if (failDownloads) {
       throw const CloudStorageException('download failed (test)');
     }
+    if (failDownloadsWhere?.call(fileId) ?? false) throw downloadFailure;
     final f = _files[fileId];
     if (f == null) {
       throw CloudStorageException('File not found: $fileId');

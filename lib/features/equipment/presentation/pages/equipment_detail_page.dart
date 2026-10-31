@@ -58,6 +58,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
@@ -180,8 +181,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // The header's one clock: the most urgent of the item's own clocks and
     // its parts' through the rollup (issue #1487). Own clocks are read
     // separately so a retired item, absent from the active rollup, still
@@ -611,6 +611,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 ),
                 error: (e, s) => const SizedBox.shrink(),
               ),
+              EquipmentDiveTimeRow(equipmentId: equipmentId),
               tripCountAsync.when(
                 data: (count) => _buildCountLinkRow(
                   context,

@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -30,8 +29,7 @@ class SegmentList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // Resolved once per build, not once per row. The state's list order is
     // the authoring order (stateFromDivePlan sorts, and the notifier keeps
     // `order` in step with the list), which is what SegmentChain chains.
@@ -164,11 +162,18 @@ class SegmentList extends ConsumerWidget {
 
   /// The tanks a segment may breathe: on a CCR plan the diluents only --
   /// bailout is never planned on, and the oxygen slot is never breathed as
-  /// such -- every tank otherwise (#3220). Falls back to the whole list
-  /// should a CCR plan somehow hold no diluent, so the editor always has
-  /// something to open on.
-  static List<DiveTank> _breathableTanks(DivePlanState planState) {
-    if (planState.mode != PlanMode.ccr) return planState.tanks;
+  /// such -- every tank otherwise (#3220). A [segment] already overridden off
+  /// the loop is the exception: it breathes a cylinder directly, so the
+  /// editor offers them all rather than moving it onto a diluent on save
+  /// (#3898). Falls back to the whole list should a CCR plan somehow hold no
+  /// diluent, so the editor always has something to open on.
+  static List<DiveTank> _breathableTanks(
+    DivePlanState planState, {
+    PlanSegment? segment,
+  }) {
+    if (planState.mode != PlanMode.ccr || (segment?.leavesCcrLoop ?? false)) {
+      return planState.tanks;
+    }
     final diluents = planState.tanks
         .where((t) => t.role == TankRole.diluent)
         .toList();
@@ -192,7 +197,7 @@ class SegmentList extends ConsumerWidget {
         ? planState.segments[index - 1].targetDepth
         : 0.0;
 
-    final tanks = _breathableTanks(planState);
+    final tanks = _breathableTanks(planState, segment: segment);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(

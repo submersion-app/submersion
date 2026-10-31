@@ -805,9 +805,12 @@ class MacDiveDiveMapper {
 
   static List<Map<String, dynamic>> _buildBuddyMaps(MacDiveRawLogbook logbook) {
     final out = <Map<String, dynamic>>[];
+    // A dive references a buddy by name, so rows sharing a name are one
+    // person: a second entity could never be linked to a dive.
+    final seen = <String>{};
     for (final b in logbook.buddiesByPk.values) {
-      final name = b.name;
-      if (name == null || name.isEmpty) continue;
+      final name = _buddyName(b);
+      if (name == null || !seen.add(name)) continue;
       out.add({
         'name': name,
         'uddfId': name,
@@ -815,6 +818,12 @@ class MacDiveDiveMapper {
       });
     }
     return out;
+  }
+
+  /// The name [buddy] is imported and referenced under, or null for none.
+  static String? _buddyName(MacDiveRawBuddy? buddy) {
+    final name = buddy?.name?.trim() ?? '';
+    return name.isEmpty ? null : name;
   }
 
   static List<Map<String, dynamic>> _buildTagMaps(MacDiveRawLogbook logbook) {
@@ -1000,16 +1009,15 @@ class MacDiveDiveMapper {
       }
     }
 
-    // Buddies - emit names under `unmatchedBuddyNames` (M2 convention)
-    // so the importer can resolve them against the inline buddy entities
-    // or create on demand.
+    // Buddies - emit `buddyRefs` matching the `uddfId` values produced by
+    // `_buildBuddyMaps`, so the importer links only the buddies the user
+    // selected. `unmatchedBuddyNames` would create them regardless and
+    // count them a second time (issue #3871).
     final buddyPks = logbook.diveToBuddyPks[d.pk] ?? const <int>[];
-    final buddyNames = <String>[
-      for (final bpk in buddyPks)
-        if ((logbook.buddiesByPk[bpk]?.name ?? '').isNotEmpty)
-          logbook.buddiesByPk[bpk]!.name!,
-    ];
-    if (buddyNames.isNotEmpty) map['unmatchedBuddyNames'] = buddyNames;
+    final buddyRefs = <String>{
+      for (final bpk in buddyPks) ?_buddyName(logbook.buddiesByPk[bpk]),
+    };
+    if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs.toList();
 
     // Per-dive gear linkage via `equipmentRefs`. UddfEntityImporter
     // resolves each ref through `equipmentIdMapping[uddfId]` to find

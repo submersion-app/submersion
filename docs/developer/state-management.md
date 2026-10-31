@@ -267,6 +267,24 @@ final depthUnitProvider = Provider<DepthUnit>((ref) {
 ```text
 Avoids rebuilds when other settings change.
 
+Nothing outside the pages that edit the settings watches the whole of
+`AppSettings` (`test/architecture/settings_whole_watch_test.dart`). Watch
+`unitFormatterProvider` for a `UnitFormatter`, which keeps one instance until
+something it can read changes. For several other fields, select a record, which
+compares field by field:
+
+```dart
+final units = ref.watch(unitFormatterProvider);
+final settings = ref.watch(
+  settingsProvider.select(
+    (s) => (enabled: s.safetyReviewEnabled, rules: s.safetyReviewDisabledRules),
+  ),
+);
+```
+
+A field read through a formatter's `settings` has to be on
+`UnitFormatterSettings`, or the formatter would go stale for it.
+
 ## Async Operations
 
 ### In StateNotifier

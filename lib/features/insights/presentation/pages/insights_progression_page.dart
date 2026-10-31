@@ -29,8 +29,7 @@ class InsightsProgressionPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(16),

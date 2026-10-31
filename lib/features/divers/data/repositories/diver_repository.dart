@@ -39,6 +39,7 @@ import 'package:submersion/features/divers/data/repositories/profile_hides_repos
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_center_links.dart';
 import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
@@ -921,10 +922,14 @@ class DiverRepository {
         // Fills on other divers' trips made at this diver's centers: the
         // centers go with the library below, so clear and stage those links
         // now; the schema's SET NULL reaches no peer.
+        final centerIds = await _idsOf(
+          'SELECT id FROM dive_centers WHERE diver_id = ?',
+          [id],
+        );
         await clearTripCylinderEventCenterLinks(
           _db,
           _syncRepository,
-          await _idsOf('SELECT id FROM dive_centers WHERE diver_id = ?', [id]),
+          centerIds,
           now: DateTime.now().millisecondsSinceEpoch,
         );
         // After the gear, so only surviving gear's schedules keep a kind.
@@ -940,6 +945,13 @@ class DiverRepository {
           _db,
           _syncRepository,
           id,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        // After the retirement, so only places that survive are staged.
+        await clearEquipmentLocationCenterLinks(
+          _db,
+          _syncRepository,
+          centerIds,
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverLibrarySteps);

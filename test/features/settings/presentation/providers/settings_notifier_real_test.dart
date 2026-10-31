@@ -642,9 +642,9 @@ void main() {
       container.read(settingsProvider.notifier);
       await waitForInit();
 
-      expect(container.read(settingsProvider).showDiveFigure, isFalse);
-      await container.read(settingsProvider.notifier).setShowDiveFigure(true);
       expect(container.read(settingsProvider).showDiveFigure, isTrue);
+      await container.read(settingsProvider.notifier).setShowDiveFigure(false);
+      expect(container.read(settingsProvider).showDiveFigure, isFalse);
     });
 
     test('setAutoColorCorrection toggles value', () async {

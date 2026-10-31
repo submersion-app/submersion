@@ -7,10 +7,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import '../../../../helpers/test_database.dart';
 
 void main() {
-  test('the dive figure is off by default and copyWith carries it', () {
+  test('the dive figure is on by default and copyWith carries it', () {
     const settings = AppSettings();
-    expect(settings.showDiveFigure, isFalse);
-    expect(settings.copyWith(showDiveFigure: true).showDiveFigure, isTrue);
+    expect(settings.showDiveFigure, isTrue);
+    expect(settings.copyWith(showDiveFigure: false).showDiveFigure, isFalse);
   });
 
   group('DiverSettingsRepository dive figure persistence', () {
@@ -37,20 +37,20 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test('new settings start with the dive figure off', () async {
+    test('new settings start with the dive figure on', () async {
       await repository.createSettingsForDiver('d1');
       final loaded = await repository.getSettingsForDiver('d1');
-      expect(loaded!.showDiveFigure, isFalse);
+      expect(loaded!.showDiveFigure, isTrue);
     });
 
-    test('turning it on round-trips', () async {
+    test('turning it off round-trips', () async {
       await repository.createSettingsForDiver('d1');
       await repository.updateSettingsForDiver(
         'd1',
-        const AppSettings(showDiveFigure: true),
+        const AppSettings(showDiveFigure: false),
       );
       final loaded = await repository.getSettingsForDiver('d1');
-      expect(loaded!.showDiveFigure, isTrue);
+      expect(loaded!.showDiveFigure, isFalse);
     });
   });
 }

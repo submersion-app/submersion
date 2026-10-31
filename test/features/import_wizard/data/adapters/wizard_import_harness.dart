@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -50,8 +51,8 @@ Future<UnifiedImportResult> importThroughWizard(
         ),
         settingsProvider.overrideWith((ref) => _DefaultSettings()),
         currentDiverProvider.overrideWith((ref) async => diver),
-        // The review's duplicate check reads the diver's gear and tags
-        // through these; the other libraries stay empty.
+        // The review's duplicate check reads the diver's gear, tags and dive
+        // centers through these; the other libraries stay empty.
         allEquipmentProvider.overrideWith(
           (ref) => EquipmentRepository().getAllEquipment(diverId: diver.id),
         ),
@@ -61,7 +62,9 @@ Future<UnifiedImportResult> importThroughWizard(
         allTripsProvider.overrideWith((ref) async => []),
         sitesProvider.overrideWith((ref) async => []),
         allBuddiesProvider.overrideWith((ref) async => []),
-        allDiveCentersProvider.overrideWith((ref) async => []),
+        allDiveCentersProvider.overrideWith(
+          (ref) => DiveCenterRepository().getAllDiveCenters(diverId: diver.id),
+        ),
         allCertificationsProvider.overrideWith((ref) async => []),
         diveTypesProvider.overrideWith((ref) async => []),
       ],

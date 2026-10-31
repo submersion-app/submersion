@@ -14,7 +14,6 @@ import 'package:submersion/features/dive_computer/presentation/widgets/dive_comp
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/device_item_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -446,7 +445,7 @@ class _ComputerCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final computer = row.computers.firstOrNull;
     final isFavorite = computer?.isFavorite ?? false;
     // The newest connection's icon (issue #3106); the legacy type while the

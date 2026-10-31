@@ -12,7 +12,6 @@ import 'package:submersion/features/insights/presentation/insights_dive_filters.
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/widgets/depth_pie_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/distribution_bar_row.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
@@ -96,8 +95,7 @@ class _OverviewBody extends ConsumerWidget {
       return const _EmptyState();
     }
 
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
+    final fmt = ref.watch(unitFormatterProvider);
     final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return SingleChildScrollView(

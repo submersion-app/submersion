@@ -9,7 +9,6 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_watcher_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -175,7 +174,7 @@ class _WatchedRootTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stamp = ref.watch(watchedRootLastScanProvider(root)).value;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return ListTile(
       leading: const Icon(Icons.folder_outlined),
       title: Text(root, maxLines: 1, overflow: TextOverflow.ellipsis),

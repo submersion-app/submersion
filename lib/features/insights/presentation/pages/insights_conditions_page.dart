@@ -34,8 +34,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -100,7 +99,7 @@ class InsightsConditionsPage extends ConsumerWidget {
       child: visibilityAsync.when(
         data: (raw) {
           // The repository returns stable keys; localization happens here.
-          final units = UnitFormatter(ref.watch(settingsProvider));
+          final units = ref.watch(unitFormatterProvider);
           final data = raw
               .map(
                 (d) => DistributionSegment(

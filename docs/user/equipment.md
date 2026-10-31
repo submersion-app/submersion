@@ -195,12 +195,19 @@ retires an installed part and puts a new one in the same slot.
 
 ## Locations
 
-Record where your gear is: in storage, at a service shop, or with a person you
-lent it to. Add places in **Settings > Manage > Locations**, then tap **Move**
-on an item's **Location** card. A move can take the item's parts with it, and
-offers to update its status: **In Service** at a shop, **Loaned Out** with a
-person, and back to **Active** when it returns to storage. Every move is kept,
-so **Show all** lists where the item has been.
+Record where your gear is: in storage, left at a dive center, at a service
+shop, or with a person you lent it to. Add places in **Settings > Manage >
+Locations**, then tap **Move** on an item's **Location** card. A move can take
+the item's parts with it, and offers to update its status: **In Service** at a
+shop, **Loaned Out** with a person, and back to **Active** when it returns to
+storage or a dive center. Every move is kept, so **Show all** lists where the
+item has been.
+
+A dive center place can link to one of your saved dive centers. Choose it under
+**Saved dive center** when you add or edit the place, or leave it empty and just
+type a name. That center's page then lists your gear left there under **Your
+gear here**. Deleting a saved dive center keeps the place and its history; only
+the link goes.
 
 ## Equipment sets
 
@@ -224,7 +231,7 @@ Optional settings on a set:
   computer, the whole set is added to dives downloaded or imported from it.
 - **Geofences:** suggest the set for dives near chosen places. Center a
   geofence on a dive site or a dropped pin and set its radius.
-- **Show diver figure:** draw the set's gear on a diver.
+- **Show diver figure:** draw the set's gear on a diver. This is on by default.
 
 ### Using a set on a dive
 

@@ -14,7 +14,6 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -355,7 +354,7 @@ class _MediaLibraryFilterSheetState
     ]..sort((a, b) => a.$2.toLowerCase().compareTo(b.$2.toLowerCase()));
     final albums = ref.watch(mediaSmartAlbumsProvider).value ?? const [];
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final siteName = _siteId == null
         ? null

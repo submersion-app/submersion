@@ -368,8 +368,11 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
 
   // Topping up dilutes helium; it never removes it. Solving the O2 balance
   // alone would report the requested nitrox while leaving helium in the
-  // cylinder, and an O2 analyser would confirm the wrong label.
-  if (_isHeliumFree(gasF) && !_isHeliumFree(gasI)) {
+  // cylinder, and an O2 analyser would confirm the wrong label. An empty
+  // cylinder is exempt for the same reason as above: pressure and mix are
+  // edited separately, so draining a trimix cylinder leaves its old mix here
+  // describing gas that is no longer in it.
+  if (pi > 0 && _isHeliumFree(gasF) && !_isHeliumFree(gasI)) {
     throw const BlendException(BlendError.cannotRemoveHelium);
   }
 

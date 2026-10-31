@@ -8,6 +8,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 extension EquipmentLocationKindDisplay on EquipmentLocationKind {
   String localizedName(AppLocalizations l10n) => switch (this) {
     EquipmentLocationKind.storage => l10n.equipment_location_kind_storage,
+    EquipmentLocationKind.diveCenter => l10n.equipment_location_kind_diveCenter,
     EquipmentLocationKind.serviceShop =>
       l10n.equipment_location_kind_serviceShop,
     EquipmentLocationKind.person => l10n.equipment_location_kind_person,
@@ -16,6 +17,7 @@ extension EquipmentLocationKindDisplay on EquipmentLocationKind {
 
   IconData get icon => switch (this) {
     EquipmentLocationKind.storage => Icons.inventory_2_outlined,
+    EquipmentLocationKind.diveCenter => Icons.store_outlined,
     EquipmentLocationKind.serviceShop => Icons.build_outlined,
     EquipmentLocationKind.person => Icons.person_outline,
     EquipmentLocationKind.other => Icons.place_outlined,

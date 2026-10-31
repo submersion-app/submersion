@@ -14,7 +14,6 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/query/presentation/dive_query_chips.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -27,8 +26,7 @@ List<Widget> activeDiveFilterChips(
   StateProvider<DiveFilterState> filterProvider,
 ) {
   final filter = ref.watch(filterProvider);
-  final settings = ref.watch(settingsProvider);
-  final units = UnitFormatter(settings);
+  final units = ref.watch(unitFormatterProvider);
   final chips = <Widget>[];
 
   // "All dives" (#2773): the axes stay visible but dimmed and locked, so
@@ -172,7 +170,7 @@ List<Widget> activeDiveFilterChips(
   for (final extra in activeFilterChipLabels(
     filter,
     context.l10n,
-    settings,
+    units.settings,
     siteName: (id) => ref.watch(siteProvider(id)).value?.name,
     speciesName: (id) =>
         ref.watch(speciesProvider(id)).value?.localizedCommonName(context.l10n),
