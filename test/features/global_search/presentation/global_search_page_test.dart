@@ -356,6 +356,30 @@ void main() {
     });
   });
 
+  testWidgets('a kind with no list refuses to open one', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: Consumer(
+          builder: (context, ref, _) {
+            for (final kind in const [
+              GlobalSearchKind.equipmentSets,
+              GlobalSearchKind.documents,
+              GlobalSearchKind.divePlans,
+              GlobalSearchKind.gpsTracks,
+              GlobalSearchKind.underwaterRoutes,
+            ]) {
+              expect(
+                () => openGlobalSearchList(context, ref, kind, _query),
+                throwsStateError,
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+  });
+
   test('every kind has a location', () {
     final locations = {
       for (final kind in GlobalSearchKind.values)
