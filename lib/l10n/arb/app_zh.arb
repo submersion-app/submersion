@@ -3277,6 +3277,7 @@
   "diveLog_numbering_title": "潜水编号",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{次潜水} other{次潜水}}未编号",
   "diveLog_o2tox_cnsBadgeLabel": "中枢神经系统 {value}",
+  "diveLog_o2tox_cnsMinimumNote": "之前的一次潜水没有氧气数据，因此该数值可能更高。",
   "diveLog_o2tox_cnsOxygenClock": "中枢神经系统氧时钟",
   "diveLog_o2tox_deltaDive": "本次潜水 +{value}%",
   "diveLog_o2tox_details": "详情",

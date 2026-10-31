@@ -3061,6 +3061,7 @@
   "diveLog_numbering_title": "מספור צלילות",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{צלילה} other{צלילות}} ללא מספר",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "לצלילה קודמת אין נתוני חמצן, ולכן הערך עשוי להיות גבוה יותר.",
   "diveLog_o2tox_cnsOxygenClock": "שעון חמצן CNS",
   "diveLog_o2tox_deltaDive": "+{value}% בצלילה זו",
   "diveLog_o2tox_details": "פרטים",

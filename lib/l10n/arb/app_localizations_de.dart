@@ -10079,6 +10079,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Für einen früheren Tauchgang liegen keine Sauerstoffdaten vor, der Wert kann daher höher sein.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS-Sauerstoffuhr';
 
   @override

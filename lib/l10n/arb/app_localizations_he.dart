@@ -9859,6 +9859,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'לצלילה קודמת אין נתוני חמצן, ולכן הערך עשוי להיות גבוה יותר.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'שעון חמצן CNS';
 
   @override

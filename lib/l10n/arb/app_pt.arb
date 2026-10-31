@@ -3162,6 +3162,7 @@
   "diveLog_numbering_title": "Numeração de Mergulhos",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{mergulho} other{mergulhos}} sem número",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "Um mergulho anterior não tem dados de oxigénio, por isso este valor pode ser mais alto.",
   "diveLog_o2tox_cnsOxygenClock": "Relógio de Oxigenio CNS",
   "diveLog_o2tox_deltaDive": "+{value}% neste mergulho",
   "diveLog_o2tox_details": "Detalhes",

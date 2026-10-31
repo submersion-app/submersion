@@ -10019,6 +10019,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Een eerdere duik heeft geen zuurstofgegevens, dus deze waarde kan hoger zijn.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS-zuurstofklok';
 
   @override
