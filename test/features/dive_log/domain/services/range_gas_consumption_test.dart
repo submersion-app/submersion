@@ -340,6 +340,65 @@ void main() {
         expect(result.rmv, isNull);
       });
 
+      test('a profile stopping early ends the gas use with its depth', () {
+        // The line stops at 6:40, 10 bar into a 100 bar fall: 10 bar over
+        // 100 s at 2 bar ambient, not 100 bar over the 5 min it did not reach.
+        final result = over(
+          0,
+          600,
+          profile: const [
+            DiveProfilePoint(timestamp: 300, depth: 10),
+            DiveProfilePoint(timestamp: 340, depth: 10),
+            DiveProfilePoint(timestamp: 400, depth: 10),
+          ],
+          pressures: const {
+            'bg': [
+              TankPressurePoint(tankId: 'bg', timestamp: 300, pressure: 200),
+              TankPressurePoint(tankId: 'bg', timestamp: 400, pressure: 190),
+              TankPressurePoint(tankId: 'bg', timestamp: 600, pressure: 100),
+            ],
+          },
+        );
+
+        expect(result.sac, closeTo(3, 1e-9));
+        expect(result.rmv, closeTo(36, 1e-9));
+      });
+
+      test('a profile starting late starts the gas use with its depth', () {
+        // The line starts at 5:00, trimmed, so it has no lead-in: 50 bar
+        // over the 5 min at 2 bar ambient, not 60 bar over all 10.
+        final result = over(
+          0,
+          600,
+          profile: const [
+            DiveProfilePoint(timestamp: 300, depth: 10),
+            DiveProfilePoint(timestamp: 400, depth: 10),
+            DiveProfilePoint(timestamp: 600, depth: 10),
+          ],
+          pressures: const {
+            'bg': [
+              TankPressurePoint(tankId: 'bg', timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: 'bg', timestamp: 300, pressure: 190),
+              TankPressurePoint(tankId: 'bg', timestamp: 600, pressure: 140),
+            ],
+          },
+        );
+
+        expect(result.sac, closeTo(5, 1e-9));
+        expect(result.rmv, closeTo(60, 1e-9));
+      });
+
+      test('a profile of one sample has no time to measure over', () {
+        final result = over(
+          300,
+          600,
+          profile: const [DiveProfilePoint(timestamp: 400, depth: 10)],
+        );
+
+        expect(result.sac, isNull);
+        expect(result.rmv, isNull);
+      });
+
       test('nothing when the profile does not reach the readings', () {
         final result = over(
           0,

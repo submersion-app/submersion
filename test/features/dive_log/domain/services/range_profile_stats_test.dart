@@ -331,4 +331,23 @@ void main() {
       expect(average(const [], 0, 60), isNull);
     });
   });
+
+  group('plottedSpan (#3973)', () {
+    test('runs from the first sample to the last', () {
+      final profile = [_sample(300, 10), _sample(400, 10), _sample(600, 10)];
+
+      expect(plottedSpan(profile), (start: 300, end: 600));
+    });
+
+    test('starts at the surface lead-in', () {
+      expect(plottedSpan([_sample(10, 20), _sample(20, 20)]), (
+        start: 0,
+        end: 20,
+      ));
+    });
+
+    test('is null for an empty profile', () {
+      expect(plottedSpan(const []), isNull);
+    });
+  });
 }

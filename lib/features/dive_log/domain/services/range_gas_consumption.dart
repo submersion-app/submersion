@@ -24,7 +24,8 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// counts cover of the range, since nothing says what was breathed outside
 /// them. The depth is [profile]'s average over that same time (#3973), so
 /// reaching a selection into time without pressure readings leaves the rate
-/// alone; with no depth there, there is no figure. SAC follows
+/// alone. The range stops where [profile] does, which gas use with no depth
+/// to set it against would otherwise be measured past. SAC follows
 /// `referencePressureDrop`; RMV sums every cylinder with a volume under
 /// [model]. Neither exists on a rebreather ([isRebreather]), whose cylinders
 /// do not drain with the diver's breathing (issue #3673).
@@ -38,17 +39,20 @@ RangeGasConsumption rangeGasConsumption({
   bool isRebreather = false,
 }) {
   const none = (sac: null, rmv: null);
-  if (isRebreather || endTimestamp <= startTimestamp || tanks.isEmpty) {
-    return none;
-  }
+  final span = plottedSpan(profile);
+  if (isRebreather || span == null || tanks.isEmpty) return none;
+
+  final from = math.max(startTimestamp, span.start);
+  final to = math.min(endTimestamp, span.end);
+  if (to <= from) return none;
 
   final series = resolveTankPressureSeries(tanks, tankPressures);
   final pressures = <String, ({double start, double end})>{};
   for (final tank in tanks) {
     final points = series[tank.id];
     if (points == null || points.length < 2) continue;
-    final start = pressureAtTime(points, startTimestamp);
-    final end = pressureAtTime(points, endTimestamp);
+    final start = pressureAtTime(points, from);
+    final end = pressureAtTime(points, to);
     if (start == null || end == null || start - end <= 0) continue;
     pressures[tank.id] = (start: start, end: end);
   }
@@ -59,8 +63,8 @@ RangeGasConsumption rangeGasConsumption({
   double? surfaceRate(double amount, Iterable<DiveTank> counted) {
     final windows = _coverage(
       [for (final tank in counted) series[tank.id]!],
-      startTimestamp,
-      endTimestamp,
+      from,
+      to,
     );
     final seconds = windows.breathedSeconds;
     final avgDepth = rangeAverageDepth(profile: profile, windows: windows);

@@ -119,6 +119,14 @@ double? rangeAverageDepth({
   value: (p) => p.depth,
 );
 
+/// The time the depth line the chart draws for [profile] runs over, in seconds
+/// from the dive's start, or null for an empty profile.
+({int start, int end})? plottedSpan(List<DiveProfilePoint> profile) {
+  final samples = _plottedSamples(profile);
+  if (samples.isEmpty) return null;
+  return (start: samples.first.timestamp, end: samples.last.timestamp);
+}
+
 /// The samples of the depth line the chart draws for [profile].
 List<DiveProfilePoint> _plottedSamples(List<DiveProfilePoint> profile) =>
     shouldDrawSurfaceLeadIn(profile)
