@@ -2,6 +2,33 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+/// One stored depth series as a backup writes it: its identity columns and
+/// its `ProfileSeriesCodec` blob, as stored (issue #3965).
+///
+/// The blob rather than the samples, since nothing in an export reads them
+/// and a logbook of two-computer dives holds millions. It is never decoded on
+/// the way out.
+class SourceSeriesExport extends Equatable {
+  const SourceSeriesExport({
+    required this.blob,
+    required this.isPrimary,
+    this.sourceId,
+    this.computerId,
+  });
+
+  final Uint8List blob;
+  final bool isPrimary;
+
+  /// The row this series names, or null when it names none. A surface filler
+  /// a Combine synthesized owns no recording, and a restore must not give it
+  /// one, so this can differ from the row holding the series.
+  final String? sourceId;
+  final String? computerId;
+
+  @override
+  List<Object?> get props => [blob, isPrimary, sourceId, computerId];
+}
+
 /// One `dive_data_sources` row as the UDDF exporter needs to see it.
 ///
 /// This is the whole row rather than just the bytes. A UDDF `<dive>` carries
@@ -55,6 +82,7 @@ class DiveSourceExport extends Equatable {
     this.gradientFactorLow,
     this.gradientFactorHigh,
     this.lastParsedAt,
+    this.profileSeries = const [],
   });
 
   final String id;
@@ -103,6 +131,12 @@ class DiveSourceExport extends Equatable {
   final int? gradientFactorHigh;
   final DateTime? lastParsedAt;
 
+  /// The depth series the app shows under this row on a dive with two or more
+  /// rows (issue #3965). A backup needs them because `<samples>` holds every
+  /// source interleaved; nothing in a UDDF document could take that stream
+  /// apart again. Empty on a lone row, which owns every sample anyway.
+  final List<SourceSeriesExport> profileSeries;
+
   /// Whether this row contributes a `<dcdump>` to the export.
   bool get hasDump => rawData != null && rawData!.isNotEmpty;
 
@@ -148,5 +182,6 @@ class DiveSourceExport extends Equatable {
     gradientFactorLow,
     gradientFactorHigh,
     lastParsedAt,
+    profileSeries,
   ];
 }

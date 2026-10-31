@@ -805,10 +805,11 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
-    // The dives whose tank rows and tank pressure series the per-source
-    // blocks beside <datasources> attribute (issue #2492), and those series.
-    // A dive with fewer than two [dataSources] entries writes a series only
-    // when its waypoints cannot hold it (issue #3917).
+    // The dives whose tank rows, tank pressure series and depth series the
+    // per-source blocks beside <datasources> attribute (issues #2492, #3965),
+    // and the pressure series; the depth series ride on [dataSources].
+    // A dive with fewer than two [dataSources] entries writes no depth series,
+    // and a pressure series only when its waypoints cannot hold it (#3917).
     List<Dive> attributedDives = const [],
     Map<String, DiveTankPressureExport> diveTankPressures = const {},
     List<EquipmentComponent>? components,

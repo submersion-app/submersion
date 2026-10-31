@@ -1,5 +1,13 @@
+import 'dart:convert';
+
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+
+const _log = LoggerService('RestoredSourceAttribution');
 
 /// One series of a backup's per-source block, resolved to a restored tank:
 /// the `ordinal`s of the `<source>` that recorded it and of one its computer
@@ -10,6 +18,56 @@ typedef RestoredTankSeries = ({
   int? computerOrdinal,
   List<({int timestamp, double pressure})> samples,
 });
+
+/// One depth series of a backup's per-source block (issue #3965), with the
+/// `ordinal`s of the `<source>` that owns it and of one its computer recorded
+/// (either null when the file names none).
+typedef RestoredProfileSeries = ({
+  int? sourceOrdinal,
+  int? computerOrdinal,
+  bool isPrimary,
+  List<ProfileSample> samples,
+});
+
+/// [diveData]'s per-source depth series, decoded.
+///
+/// Empty when the dive carries no such block, which leaves the restore to the
+/// merged `<samples>`: every foreign file and every older backup.
+///
+/// Empty too when any series cannot be read, not just without that series.
+/// The merged samples hold every source's readings this build could read when
+/// it wrote them, so they only stand in for all of the series or none:
+/// alongside the readable ones they would store those recordings twice.
+List<RestoredProfileSeries> restoredProfileSeries(
+  Map<String, dynamic> diveData,
+) {
+  final entries = diveData[UddfSourceAttribution.profilesKey];
+  if (entries is! List || entries.isEmpty) return const [];
+  const codec = ProfileSeriesCodec();
+  try {
+    return [
+      for (final entry in entries.cast<Map<String, dynamic>>())
+        (
+          sourceOrdinal: entry['sourceOrdinal'] as int?,
+          computerOrdinal: entry['computerOrdinal'] as int?,
+          isPrimary: entry['isPrimary'] as bool,
+          samples: codec.decode(base64Decode(entry['blob'] as String)),
+        ),
+    ];
+  } on FormatException catch (e) {
+    _warnUnreadable(diveData, e);
+  } on ProfileSeriesCodecException catch (e) {
+    _warnUnreadable(diveData, e);
+  }
+  return const [];
+}
+
+void _warnUnreadable(Map<String, dynamic> diveData, Object error) {
+  _log.warning(
+    'Dive ${diveData['sourceUuid']} has an unreadable source profile, '
+    'so it keeps its merged samples: $error',
+  );
+}
 
 /// [diveData]'s per-source tank series (issue #2492), each still a series
 /// of its own: one source can record a tank in two stretches with another
