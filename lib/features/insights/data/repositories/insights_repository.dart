@@ -274,6 +274,10 @@ class InsightsRepository with InsightsChartDives {
           TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
+          // Which trips the top-trips ranking reads (#3933); a share or a
+          // hide writes only these.
+          TableUpdateQuery.onTable(_db.tripShares),
+          TableUpdateQuery.onTable(_db.tripHides),
           // As the query compiler reports them, so a new filter field is
           // followed without editing this list.
           if (filter != null)
@@ -2123,20 +2127,27 @@ class InsightsRepository with InsightsChartDives {
 
   /// Get dives per trip. A larger trip counts its side trips' dives, and
   /// the side trips are left out of the ranking so no dive counts twice
-  /// (issue #3658).
+  /// (issue #3658). With [diverId], only trips the profile can see rank, and
+  /// a side trip of a parent it cannot see ranks as itself (issue #3933).
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
     int limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
+      final topLevel = topLevelTripFilter(
+        diverId: diverId,
+        conjunction: 'WHERE',
+      );
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null
           ? [diverId, ...df.params, limit]
           : [...df.params, limit];
 
-      final results = await _db.customSelect('''
+      final results = await _db
+          .customSelect(
+            '''
         SELECT
           t.id,
           t.name,
@@ -2144,11 +2155,17 @@ class InsightsRepository with InsightsChartDives {
           COUNT(d.id) AS dive_count
         FROM trips t
         ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
-        WHERE $topLevelTripSql $diverFilter ${df.clause}
+        ${topLevel.whereClause} $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
         LIMIT ?
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
+        ''',
+            variables: [
+              ...topLevel.variables,
+              ...params.map((p) => Variable(p)),
+            ],
+          )
+          .get();
 
       return results.map((row) {
         return RankingItem(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_section.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -458,6 +459,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     required bool canTransfer,
   }) {
     return [
+      changeLogHistoryMenuItem(
+        context,
+        rootTable: 'equipment',
+        rootId: equipmentId,
+      ),
       openInConnectionsMenuItem(context),
       PopupMenuItem(
         value: 'clone',

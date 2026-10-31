@@ -60,20 +60,33 @@ double? referencePressureDrop({
   final referenceDrop = dropOf(reference);
   if (referenceDrop == null) return null;
 
-  final referenceVolume = consumptionVolume(reference, tanks);
   var total = referenceDrop;
   for (final tank in tanks) {
     if (identical(tank, reference)) continue;
     final drop = dropOf(tank);
     if (drop == null) continue;
-    final volume = consumptionVolume(tank, tanks);
-    if (volume != null && referenceVolume != null) {
-      total += drop * volume / referenceVolume;
-    } else if (isMatchedPair(tank, reference)) {
-      total += drop;
-    }
+    final ratio = referenceBarsPerBar(tank, reference, tanks);
+    if (ratio != null) total += drop * ratio;
   }
   return total;
+}
+
+/// What one bar of [tank] is worth in bar of [reference]: `V / Vref`, or one
+/// to one for a matched pair (see [isMatchedPair]) when either size is
+/// unknown. Null when the two cannot be related, so [tank] adds nothing to a
+/// [referencePressureDrop].
+double? referenceBarsPerBar(
+  DiveTank tank,
+  DiveTank reference,
+  List<DiveTank> tanks,
+) {
+  if (identical(tank, reference)) return 1;
+  final volume = consumptionVolume(tank, tanks);
+  final referenceVolume = consumptionVolume(reference, tanks);
+  if (volume != null && referenceVolume != null) {
+    return volume / referenceVolume;
+  }
+  return isMatchedPair(tank, reference) ? 1 : null;
 }
 
 /// Two logged mixes within this many percentage points of O2 and of He

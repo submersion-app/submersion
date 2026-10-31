@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -68,6 +69,11 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         padding: embedded ? EdgeInsets.zero : const EdgeInsets.all(8),
         onSelected: (value) => onSelected(value, linkedPreDive),
         itemBuilder: (context) => [
+          changeLogHistoryMenuItem(
+            context,
+            rootTable: 'dives',
+            rootId: dive.id,
+          ),
           if (embedded)
             PopupMenuItem(
               value: 'open',

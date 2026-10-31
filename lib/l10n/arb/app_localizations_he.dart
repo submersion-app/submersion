@@ -9864,6 +9864,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'לצלילה קודמת אין נתוני חמצן, ולכן הערך עשוי להיות גבוה יותר.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'שעון חמצן CNS';
 
   @override
@@ -56646,4 +56650,402 @@ class AppLocalizationsHe extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'יומן שינויים';
+
+  @override
+  String get changeLog_settings_subtitle => 'ראו מה השתנה והחזירו אותו';
+
+  @override
+  String get changeLog_empty_title => 'עדיין אין שינויים';
+
+  @override
+  String get changeLog_empty_body =>
+      'שינויים בצלילות, באתרים, בציוד ובהגדרות יופיעו כאן.';
+
+  @override
+  String get changeLog_empty_filtered => 'אין שינויים שתואמים למסנן הזה.';
+
+  @override
+  String get changeLog_filter_all => 'הכול';
+
+  @override
+  String get changeLog_filter_dives => 'צלילות';
+
+  @override
+  String get changeLog_filter_sites => 'אתרים';
+
+  @override
+  String get changeLog_filter_gear => 'ציוד';
+
+  @override
+  String get changeLog_filter_settings => 'הגדרות';
+
+  @override
+  String get changeLog_filter_source => 'מקור';
+
+  @override
+  String get changeLog_filter_anySource => 'כל מקור';
+
+  @override
+  String get changeLog_source_manual => 'עריכה ידנית';
+
+  @override
+  String get changeLog_source_import => 'ייבוא';
+
+  @override
+  String get changeLog_source_download => 'מחשב צלילה';
+
+  @override
+  String get changeLog_source_rule => 'כלל';
+
+  @override
+  String get changeLog_source_sync => 'סנכרון';
+
+  @override
+  String get changeLog_source_automatic => 'אוטומטי';
+
+  @override
+  String get changeLog_source_revert => 'החזרה';
+
+  @override
+  String get changeLog_source_system => 'מערכת';
+
+  @override
+  String get changeLog_thisDevice => 'המכשיר הזה';
+
+  @override
+  String get changeLog_anotherDevice => 'מכשיר אחר';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'סונכרן מ-$device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count נוספים';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצגת $count רשומות',
+      one: 'הצגת רשומה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'צלילה $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'צלילה $number';
+  }
+
+  @override
+  String get changeLog_dive => 'צלילה';
+
+  @override
+  String get changeLog_action_added => 'נוסף';
+
+  @override
+  String get changeLog_action_deleted => 'נמחק';
+
+  @override
+  String get changeLog_action_edited => 'נערך';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'יובא מ-$source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'הורד מ-$source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'שינויים מסונכרנים';
+
+  @override
+  String get changeLog_title_rule => 'הרצת כלל';
+
+  @override
+  String get changeLog_title_revert => 'שינוי הוחזר';
+
+  @override
+  String get changeLog_title_changes => 'שינויים';
+
+  @override
+  String get changeLog_label_bulkEdit => 'עריכה מרובה';
+
+  @override
+  String get changeLog_label_bulkDelete => 'מחיקה מרובה';
+
+  @override
+  String get changeLog_label_deletedRecord => 'רשומה נמחקה';
+
+  @override
+  String get changeLog_label_merge => 'רשומות מוזגו';
+
+  @override
+  String get changeLog_label_undoMerge => 'מיזוג בוטל';
+
+  @override
+  String get changeLog_label_undoRule => 'הרצת כלל בוטלה';
+
+  @override
+  String get changeLog_label_qualityRepair => 'תיקון איכות נתונים';
+
+  @override
+  String get changeLog_label_libraryAdopted => 'הספרייה נוספה למכשיר הזה';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'הספרייה הוחלפה';
+
+  @override
+  String get changeLog_label_libraryRestored => 'הספרייה שוחזרה מגיבוי';
+
+  @override
+  String get changeLog_label_reparse => 'צלילות נותחו מחדש';
+
+  @override
+  String get changeLog_label_splitDive => 'צלילה פוצלה';
+
+  @override
+  String get changeLog_label_gearTransfer => 'ציוד הועבר';
+
+  @override
+  String get changeLog_label_mediaRepair => 'קישורי מדיה תוקנו';
+
+  @override
+  String get changeLog_label_gearFileConversion => 'קובצי ציוד הועברו למסמכים';
+
+  @override
+  String get changeLog_label_galleryBackfill => 'תמונות קושרו לעותקים בענן';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'קבצים שלא בשימוש נוקו';
+
+  @override
+  String get changeLog_label_accountMigration => 'קישורי חשבונות עודכנו';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רשומות',
+      one: 'רשומה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size של נתונים';
+  }
+
+  @override
+  String get changeLog_table_settings => 'הגדרות היישום';
+
+  @override
+  String get changeLog_table_diverSettings => 'הגדרות צוללן';
+
+  @override
+  String get changeLog_history => 'היסטוריה';
+
+  @override
+  String get changeLog_detail_title => 'פרטי השינוי';
+
+  @override
+  String get changeLog_detail_open => 'פתיחת הרשומה';
+
+  @override
+  String get changeLog_detail_history => 'היסטוריית הרשומה';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ועוד $count רשומות',
+      one: 'ועוד רשומה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'החזרה';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'החזרת כל ה-$count';
+  }
+
+  @override
+  String get changeLog_restore => 'שחזור';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'להחזיר את $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => 'השדה הזה השתנה מאז הרשומה הזו.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'נקבע ברשומה הזו: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'כעת: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'לאחר ההחזרה: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'מכשירים אחרים יקבלו זאת כעריכה חדשה. היא תופיע ביומן וגם אותה אפשר להחזיר.';
+
+  @override
+  String get changeLog_revert_anyway => 'להחזיר בכל זאת';
+
+  @override
+  String get changeLog_undoImport => 'ביטול הייבוא הזה';
+
+  @override
+  String get changeLog_undoEntry => 'ביטול השינוי הזה';
+
+  @override
+  String get changeLog_undo_explain =>
+      'מסיר את מה שנוסף ומבטל את שאר השינויים. שואל קודם ומציג מה ערכתם מאז.';
+
+  @override
+  String get changeLog_bulk_title => 'לבטל את הרשומה הזו?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רשומות השתנו מאז.',
+      one: 'רשומה אחת השתנתה מאז.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'להחזיר את השאר';
+
+  @override
+  String get changeLog_bulk_revertAll => 'להחזיר הכול';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count שינויים הוחזרו',
+      one: 'שינוי אחד הוחזר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רשומות נשמרו',
+      one: 'רשומה אחת נשמרה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'הרשומה הזו כבר לא קיימת.';
+
+  @override
+  String get changeLog_block_columnGone => 'השדה הזה כבר לא קיים.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'עדכון של היישום שינה את אופן שמירת הערך, ולכן אי אפשר להחזיר אותו.';
+
+  @override
+  String get changeLog_block_parentGone => 'הרשומה שאליה זה שייך כבר לא קיימת.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'הרשומה הזו כבר חזרה.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'נתונים מאוחרים יותר עדיין משתמשים ברשומה הזו.';
+
+  @override
+  String get changeLog_reverted => 'הוחזר';
+
+  @override
+  String get changeLog_revert_failed =>
+      'לא ניתן להחזיר את השינוי. שום דבר לא השתנה.';
+
+  @override
+  String get changeLog_menu_settings => 'הגדרות היומן';
+
+  @override
+  String get changeLog_settings_title => 'הגדרות יומן השינויים';
+
+  @override
+  String get changeLog_retention_title => 'שמירת רשומות למשך';
+
+  @override
+  String get changeLog_retention_note =>
+      'כל מכשיר שומר יומן משלו. רשומות ישנות יותר מוסרות אוטומטית.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count חודשים';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'לתמיד';
+
+  @override
+  String get changeLog_clear => 'ניקוי היומן';
+
+  @override
+  String get changeLog_clear_title => 'לנקות את יומן השינויים?';
+
+  @override
+  String get changeLog_clear_body =>
+      'פעולה זו מסירה את הרשומות של הצוללן הפעיל מהמכשיר הזה. לא תוכלו להחזיר אותן לאחר מכן.';
+
+  @override
+  String get changeLog_clear_confirm => 'ניקוי';
+
+  @override
+  String get changeLog_clear_failed =>
+      'לא ניתן לנקות את יומן השינויים. שום דבר לא הוסר.';
+
+  @override
+  String get changeLog_day_today => 'היום';
+
+  @override
+  String get changeLog_day_yesterday => 'אתמול';
+
+  @override
+  String get changeLog_storage_label => 'יומן שינויים';
 }

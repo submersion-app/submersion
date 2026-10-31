@@ -1055,8 +1055,10 @@ final diveAnalysisSeriesProvider =
 ///
 /// Recursively computes residual CNS from previous dives: looks up the
 /// previous dive via [profileAnalysisProvider] (different dive ID), applies
-/// surface-interval decay, and uses the result as startCns. The chain
-/// terminates when there is no previous dive or the surface interval >= 24h.
+/// surface-interval decay, and uses the result as startCns. A previous dive
+/// with no known oxygen exposure does not end the chain: it reads through to
+/// the dive before (see [_lookBackPastUnknownDives]). The chain terminates
+/// when there is no earlier dive or the surface time reaches 24h.
 final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>((
   ref,
   diveId,
@@ -1174,8 +1176,12 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (dive.isGauge) {
       // Gauge dives log depth+time only: no gas or decompression. Use the
       // user-configured analysis service (so ascent-rate thresholds match other
-      // modes) but skip the gas/GF/residual work and the computer-deco overlay;
-      // return a profile-only analysis, still surfacing any dive-computer events.
+      // modes) but skip the gas/GF work and the computer-deco overlay; return a
+      // profile-only analysis, still surfacing any dive-computer events. With
+      // no gas logged its own oxygen dose is unknown, so it holds the CNS it
+      // started with as a minimum: a blank exposure would read as a full
+      // recovery to the next dive and to the live readout.
+      final residualCns = await _computeResidualCns(ref, diveId, inputs);
       final analysis = _analysisServiceFor(inputs)
           .analyze(
             diveId: diveId,
@@ -1183,7 +1189,14 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
             timestamps: profile.map((p) => p.timestamp).toList(),
             diveMode: DiveMode.gauge,
           )
-          .copyWith(inputsFingerprint: inputs.fingerprint);
+          .copyWith(
+            inputsFingerprint: inputs.fingerprint,
+            o2Exposure: O2Exposure(
+              cnsStart: residualCns.cns,
+              cnsEnd: residualCns.cns,
+              cnsUnknownDiveAge: Duration.zero,
+            ),
+          );
       final dbEvents = await ref.watch(
         diveComputerEventsProvider(diveId).future,
       );
@@ -1296,9 +1309,10 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     final computerCns = useComputerCns ? extractComputerCns(profile) : null;
 
     // Compute residual CNS (skip if this dive has computer CNS data)
-    final startCns = computerCns != null
-        ? computerCns.cnsStart
+    final residualCns = computerCns != null
+        ? (cns: computerCns.cnsStart, unknownDiveAge: null)
         : await _computeResidualCns(ref, diveId, inputs);
+    final startCns = residualCns.cns;
 
     // Compute residual tissue state from previous dives (48h cutoff)
     final startCompartments = await _computeResidualTissueState(
@@ -1481,14 +1495,13 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     }
 
     // Override o2Exposure with computer-reported CNS start/end
-    final withCns = computerCns != null
-        ? overlaid.copyWith(
-            o2Exposure: overlaid.o2Exposure.copyWith(
-              cnsStart: computerCns.cnsStart,
-              cnsEnd: computerCns.cnsEnd,
-            ),
-          )
-        : overlaid;
+    final withCns = overlaid.copyWith(
+      o2Exposure: overlaid.o2Exposure.copyWith(
+        cnsStart: computerCns?.cnsStart,
+        cnsEnd: computerCns?.cnsEnd,
+        cnsUnknownDiveAge: residualCns.unknownDiveAge,
+      ),
+    );
 
     // Merge DB events (dive computer events) with auto-detected events
     final dbEvents = await ref.watch(diveComputerEventsProvider(diveId).future);
@@ -1589,67 +1602,95 @@ final sourceProfileAnalysisProvider =
       }
     });
 
-/// Computes residual CNS% from the previous dive using recursive lookback.
+/// Walks back from [diveId] to the nearest earlier dive [readPrevious] knows
+/// something about, adding up the surface time on the way.
 ///
-/// Fetches the previous dive, gets its full profile analysis (which itself
-/// recursively accounts for even earlier dives), then applies exponential
-/// decay based on the surface interval.
-Future<double> _computeResidualCns(
+/// A dive it knows nothing about (null: no profile) says nothing about what
+/// the dives before it left behind, so the walk carries on past it rather than
+/// treat it as a full recovery. Only the time between dives counts: the
+/// unknown dive's own time is not surface time, and its dose is unknown, so
+/// the caller's result is a minimum whenever [unknownDiveAge] is set. That is
+/// the surface time since the nearest dive the walk passed.
+///
+/// [known] is null when nothing is known inside [window] of surface time.
+/// Every step moves to a dive that started earlier, and the window usually
+/// ends the walk within a few dives. Throws when a query fails, so a failure
+/// never reads as having no earlier dive.
+Future<({T? known, Duration surfaceTime, Duration? unknownDiveAge})>
+_lookBackPastUnknownDives<T extends Object>(
+  Ref ref,
+  String diveId, {
+  required Duration window,
+  required Future<T?> Function(String previousDiveId) readPrevious,
+}) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  var cursor = diveId;
+  var surfaceTime = Duration.zero;
+  Duration? unknownDiveAge;
+  T? known;
+  while (known == null) {
+    final previousDive = await repository.getPreviousDiveTimes(cursor);
+    if (previousDive == null) break;
+
+    // Null despite a previous dive means its query failed and was logged.
+    final interval = await repository.getSurfaceInterval(cursor);
+    if (interval == null) throw StateError('No surface interval: $cursor');
+    surfaceTime += interval;
+    if (surfaceTime >= window) break;
+
+    known = await readPrevious(previousDive.id);
+    if (known == null) {
+      unknownDiveAge ??= surfaceTime;
+      cursor = previousDive.id;
+    }
+  }
+  return (
+    known: known,
+    surfaceTime: surfaceTime,
+    unknownDiveAge: unknownDiveAge,
+  );
+}
+
+/// Computes residual CNS% from the previous dives using recursive lookback.
+///
+/// Fetches the nearest dive with a known CNS, gets its full profile analysis
+/// (which itself recursively accounts for even earlier dives), then applies
+/// exponential decay based on the surface time since.
+///
+/// [unknownDiveAge] is set when a dive inside the window has no known oxygen
+/// exposure, or the lookback failed: the real load may be higher than [cns].
+/// It carries down the chain with the load, so the mark expires with it: an
+/// unknown dive stops mattering once the recovery window has passed, however
+/// many dives have followed it.
+Future<({double cns, Duration? unknownDiveAge})> _computeResidualCns(
   Ref ref,
   String diveId,
   AnalysisSettings inputs,
 ) async {
   try {
-    final repository = ref.watch(diveRepositoryProvider);
-
-    final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 24) {
-      return 0.0;
-    }
-
-    final previousDive = await repository.getPreviousDiveTimes(diveId);
-    if (previousDive == null) return 0.0;
-
-    // Short-circuit: if the legend's CNS source is set to computer and the
-    // previous dive has computer CNS, use its last CNS reading directly
-    // instead of full analysis. The samples are fetched only when this
-    // branch is taken (times-only lookup otherwise), and they are the series
-    // the previous dive's own analysis replays: on a dive with several
-    // computers the merged samples interleave every computer's CNS, so their
-    // last reading may be another computer's (#2545).
-    final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
-    if (useComputerCns) {
-      final previousSeries = await ref.container.awaitFuture(
-        diveAnalysisSeriesProvider(previousDive.id).future,
-      );
-      // No series means overlapping computers with no one recording to
-      // analyse, and no analysis to fall back to below either, so the
-      // residual would drop to zero. Take the highest of the computers' own
-      // last readings instead: the conservative one, never a mix of two.
-      final prevCnsEnd = previousSeries == null
-          ? await _highestSourceCnsEnd(ref, previousDive.id)
-          : extractComputerCns(previousSeries.points)?.cnsEnd;
-      if (prevCnsEnd != null) {
-        return CnsTable.cnsAfterSurfaceInterval(
-          prevCnsEnd,
-          surfaceInterval.inMinutes,
-        );
-      }
-    }
-
-    // Await (not watch) the previous dive's full analysis to avoid cascading
-    // Riverpod invalidations. Each profileAnalysisProvider independently
-    // watches settings, so a one-shot lookback is sufficient. Not ref.read:
-    // nothing else may be listening to it, and an invalidation mid-load would
-    // then strand this dive and every dive after it (#3807).
-    final previousAnalysis = await ref.container.awaitFuture(
-      profileAnalysisProvider(previousDive.id).future,
+    final lookback = await _lookBackPastUnknownDives(
+      ref,
+      diveId,
+      window: CnsTable.cnsRecoveryWindow,
+      readPrevious: (previousDiveId) =>
+          _knownCnsEnd(ref, previousDiveId, inputs),
     );
-    if (previousAnalysis == null) return 0.0;
-
-    return CnsTable.cnsAfterSurfaceInterval(
-      previousAnalysis.o2Exposure.cnsEnd,
-      surfaceInterval.inMinutes,
+    final known = lookback.known;
+    final carriedAge = known?.unknownDiveAge;
+    final unknownDiveAge =
+        lookback.unknownDiveAge ??
+        (carriedAge == null ? null : carriedAge + lookback.surfaceTime);
+    return (
+      cns: known == null
+          ? 0.0
+          : CnsTable.cnsAfterSurfaceInterval(
+              known.cnsEnd,
+              lookback.surfaceTime.inMinutes,
+            ),
+      unknownDiveAge:
+          unknownDiveAge != null && unknownDiveAge < CnsTable.cnsRecoveryWindow
+          ? unknownDiveAge
+          : null,
     );
   } catch (e, stackTrace) {
     _log.error(
@@ -1657,8 +1698,51 @@ Future<double> _computeResidualCns(
       error: e,
       stackTrace: stackTrace,
     );
-    return 0.0;
+    return (cns: 0.0, unknownDiveAge: Duration.zero);
   }
+}
+
+/// The CNS% [diveId] ended on, or null when its oxygen exposure is unknown.
+Future<({double cnsEnd, Duration? unknownDiveAge})?> _knownCnsEnd(
+  Ref ref,
+  String diveId,
+  AnalysisSettings inputs,
+) async {
+  // Short-circuit: if the legend's CNS source is set to computer and the
+  // dive has computer CNS, use its last CNS reading directly instead of
+  // full analysis. The samples are fetched only when this branch is taken
+  // (times-only lookup otherwise), and they are the series the dive's own
+  // analysis replays: on a dive with several computers the merged samples
+  // interleave every computer's CNS, so their last reading may be another
+  // computer's (#2545).
+  if (inputs.cnsSource == MetricDataSource.computer) {
+    final series = await ref.container.awaitFuture(
+      diveAnalysisSeriesProvider(diveId).future,
+    );
+    // No series means overlapping computers with no one recording to
+    // analyse, and no analysis to fall back to below either, so the
+    // residual would drop to zero. Take the highest of the computers' own
+    // last readings instead: the conservative one, never a mix of two.
+    final computerCnsEnd = series == null
+        ? await _highestSourceCnsEnd(ref, diveId)
+        : extractComputerCns(series.points)?.cnsEnd;
+    if (computerCnsEnd != null) {
+      return (cnsEnd: computerCnsEnd, unknownDiveAge: null);
+    }
+  }
+
+  // Await (not watch) the dive's full analysis to avoid cascading Riverpod
+  // invalidations. Each profileAnalysisProvider independently watches
+  // settings, so a one-shot lookback is sufficient. Not ref.read: nothing
+  // else may be listening to it, and an invalidation mid-load would then
+  // strand this dive and every dive after it (#3807).
+  final analysis = await ref.container.awaitFuture(
+    profileAnalysisProvider(diveId).future,
+  );
+  if (analysis == null) return null;
+
+  final exposure = analysis.o2Exposure;
+  return (cnsEnd: exposure.cnsEnd, unknownDiveAge: exposure.cnsUnknownDiveAge);
 }
 
 /// The highest last computer CNS reading among [diveId]'s data sources, each
@@ -1679,44 +1763,36 @@ Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
 
 /// Computes residual tissue compartment state from previous dives.
 ///
-/// Mirrors the recursive CNS lookback pattern: fetches the previous dive's
-/// full analysis (which recursively accounts for even earlier dives), extracts
-/// end-of-dive compartments, then applies Schreiner off-gassing for the
-/// surface interval.
+/// Mirrors the recursive CNS lookback pattern: fetches the full analysis of
+/// the nearest dive with tissue data (which recursively accounts for even
+/// earlier dives), extracts end-of-dive compartments, then applies Schreiner
+/// off-gassing for the surface time since.
 ///
-/// Returns null if no previous dive exists or surface interval >= 48 hours
-/// (tissues are effectively surface-saturated).
+/// Returns null if no earlier dive has tissue data within 48 hours of surface
+/// time (tissues are effectively surface-saturated).
 Future<List<TissueCompartment>?> _computeResidualTissueState(
   Ref ref,
   String diveId,
   AnalysisSettings inputs,
 ) async {
   try {
-    final repository = ref.watch(diveRepositoryProvider);
-
-    final surfaceInterval = await repository.getSurfaceInterval(diveId);
-    if (surfaceInterval == null || surfaceInterval.inHours >= 48) {
-      return null;
-    }
-
-    final previousDive = await repository.getPreviousDiveTimes(diveId);
-    if (previousDive == null) {
-      return null;
-    }
-
-    // One-shot await (not watch), as in [_computeResidualCns].
-    final previousAnalysis = await ref.container.awaitFuture(
-      profileAnalysisProvider(previousDive.id).future,
+    final lookback = await _lookBackPastUnknownDives<List<TissueCompartment>>(
+      ref,
+      diveId,
+      window: const Duration(hours: 48),
+      readPrevious: (previousDiveId) async {
+        // One-shot await (not watch), as in [_knownCnsEnd].
+        final previousAnalysis = await ref.container.awaitFuture(
+          profileAnalysisProvider(previousDiveId).future,
+        );
+        // Extract end-of-dive compartment state
+        return previousAnalysis?.decoStatuses.lastOrNull?.compartments;
+      },
     );
-    if (previousAnalysis == null || previousAnalysis.decoStatuses.isEmpty) {
-      return null;
-    }
+    final endOfDiveCompartments = lookback.known;
+    if (endOfDiveCompartments == null) return null;
 
-    // Extract end-of-dive compartment state
-    final endOfDiveCompartments =
-        previousAnalysis.decoStatuses.last.compartments;
-
-    // Apply Schreiner off-gassing for the surface interval
+    // Apply Schreiner off-gassing for the surface time
     final algorithm = BuhlmannAlgorithm(
       gfLow: inputs.gfLowFraction,
       gfHigh: inputs.gfHighFraction,
@@ -1724,7 +1800,7 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
     algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
       depthMeters: 0,
-      durationSeconds: surfaceInterval.inSeconds,
+      durationSeconds: lookback.surfaceTime.inSeconds,
       fN2: airN2Fraction,
       fHe: 0.0,
     );
@@ -1779,7 +1855,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
       ),
       from: startOfDay,
       to: diveDate,
-      // One-shot await (not watch), as in [_computeResidualCns].
+      // One-shot await (not watch), as in [_knownCnsEnd].
       analysisOf: (id) =>
           ref.container.awaitFuture(profileAnalysisProvider(id).future),
     );
@@ -1891,7 +1967,7 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
       dives: counted,
       from: sevenDaysAgo,
       to: currentEnd.isAfter(endOfDay) ? currentEnd : endOfDay,
-      // One-shot await (not watch), as in [_computeResidualCns].
+      // One-shot await (not watch), as in [_knownCnsEnd].
       analysisOf: (id) =>
           ref.container.awaitFuture(profileAnalysisProvider(id).future),
     );

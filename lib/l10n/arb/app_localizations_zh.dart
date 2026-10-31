@@ -9573,6 +9573,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote => '之前的一次潜水没有氧气数据，因此该数值可能更高。';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => '中枢神经系统氧时钟';
 
   @override
@@ -54307,4 +54310,387 @@ class AppLocalizationsZh extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => '更改日志';
+
+  @override
+  String get changeLog_settings_subtitle => '查看更改内容并恢复';
+
+  @override
+  String get changeLog_empty_title => '暂无更改';
+
+  @override
+  String get changeLog_empty_body => '您对潜水、潜点、装备和设置所做的更改将显示在这里。';
+
+  @override
+  String get changeLog_empty_filtered => '没有符合此筛选条件的更改。';
+
+  @override
+  String get changeLog_filter_all => '全部';
+
+  @override
+  String get changeLog_filter_dives => '潜水';
+
+  @override
+  String get changeLog_filter_sites => '潜点';
+
+  @override
+  String get changeLog_filter_gear => '装备';
+
+  @override
+  String get changeLog_filter_settings => '设置';
+
+  @override
+  String get changeLog_filter_source => '来源';
+
+  @override
+  String get changeLog_filter_anySource => '任何来源';
+
+  @override
+  String get changeLog_source_manual => '手动编辑';
+
+  @override
+  String get changeLog_source_import => '导入';
+
+  @override
+  String get changeLog_source_download => '潜水电脑';
+
+  @override
+  String get changeLog_source_rule => '规则';
+
+  @override
+  String get changeLog_source_sync => '同步';
+
+  @override
+  String get changeLog_source_automatic => '自动';
+
+  @override
+  String get changeLog_source_revert => '还原';
+
+  @override
+  String get changeLog_source_system => '系统';
+
+  @override
+  String get changeLog_thisDevice => '此设备';
+
+  @override
+  String get changeLog_anotherDevice => '其他设备';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return '已从$device同步';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '还有 $count 项';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '查看 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return '潜水 $number，$site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return '潜水 $number';
+  }
+
+  @override
+  String get changeLog_dive => '潜水';
+
+  @override
+  String get changeLog_action_added => '已添加';
+
+  @override
+  String get changeLog_action_deleted => '已删除';
+
+  @override
+  String get changeLog_action_edited => '已编辑';
+
+  @override
+  String changeLog_title_import(String source) {
+    return '已从$source导入';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return '已从$source下载';
+  }
+
+  @override
+  String get changeLog_title_sync => '已同步的更改';
+
+  @override
+  String get changeLog_title_rule => '规则运行';
+
+  @override
+  String get changeLog_title_revert => '已还原更改';
+
+  @override
+  String get changeLog_title_changes => '更改';
+
+  @override
+  String get changeLog_label_bulkEdit => '批量编辑';
+
+  @override
+  String get changeLog_label_bulkDelete => '批量删除';
+
+  @override
+  String get changeLog_label_deletedRecord => '已删除记录';
+
+  @override
+  String get changeLog_label_merge => '已合并记录';
+
+  @override
+  String get changeLog_label_undoMerge => '已撤销合并';
+
+  @override
+  String get changeLog_label_undoRule => '已撤销规则运行';
+
+  @override
+  String get changeLog_label_qualityRepair => '数据质量修复';
+
+  @override
+  String get changeLog_label_libraryAdopted => '资料库已添加到此设备';
+
+  @override
+  String get changeLog_label_libraryReplaced => '资料库已替换';
+
+  @override
+  String get changeLog_label_libraryRestored => '资料库已从备份恢复';
+
+  @override
+  String get changeLog_label_reparse => '已重新解析潜水';
+
+  @override
+  String get changeLog_label_splitDive => '已拆分潜水';
+
+  @override
+  String get changeLog_label_gearTransfer => '已转移装备';
+
+  @override
+  String get changeLog_label_mediaRepair => '已修复媒体链接';
+
+  @override
+  String get changeLog_label_gearFileConversion => '已将装备文件移至文档';
+
+  @override
+  String get changeLog_label_galleryBackfill => '已将照片关联到云端副本';
+
+  @override
+  String get changeLog_label_mediaCleanup => '已清理未使用的文件';
+
+  @override
+  String get changeLog_label_accountMigration => '已更新账户链接';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size 数据';
+  }
+
+  @override
+  String get changeLog_table_settings => '应用设置';
+
+  @override
+  String get changeLog_table_diverSettings => '潜水员设置';
+
+  @override
+  String get changeLog_history => '历史记录';
+
+  @override
+  String get changeLog_detail_title => '更改详情';
+
+  @override
+  String get changeLog_detail_open => '打开记录';
+
+  @override
+  String get changeLog_detail_history => '此记录的历史';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => '还原';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return '全部还原（$count）';
+  }
+
+  @override
+  String get changeLog_restore => '恢复';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return '还原$field？';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => '此字段在此条目之后已更改。';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return '此条目设置的值：$value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return '当前：$value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return '还原后：$value';
+  }
+
+  @override
+  String get changeLog_revert_note => '其他设备会将此作为新的编辑接收。它会显示在日志中，也可以还原。';
+
+  @override
+  String get changeLog_revert_anyway => '仍然还原';
+
+  @override
+  String get changeLog_undoImport => '撤销此次导入';
+
+  @override
+  String get changeLog_undoEntry => '撤销此更改';
+
+  @override
+  String get changeLog_undo_explain => '移除此操作添加的内容并撤销其他更改。会先询问，并列出您之后编辑过的内容。';
+
+  @override
+  String get changeLog_bulk_title => '撤销此条目？';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此条目之后有 $count 条记录已更改。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => '还原其余内容';
+
+  @override
+  String get changeLog_bulk_revertAll => '全部还原';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已还原 $count 项更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '保留了 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => '此记录已不存在。';
+
+  @override
+  String get changeLog_block_columnGone => '此字段已不存在。';
+
+  @override
+  String get changeLog_block_rewritten => '应用更新更改了此值的存储方式，因此无法恢复。';
+
+  @override
+  String get changeLog_block_parentGone => '其所属的记录已不存在。';
+
+  @override
+  String get changeLog_block_alreadyRestored => '此记录已恢复。';
+
+  @override
+  String get changeLog_block_inUse => '之后的数据仍在使用此记录。';
+
+  @override
+  String get changeLog_reverted => '已还原';
+
+  @override
+  String get changeLog_revert_failed => '无法还原此更改。未做任何修改。';
+
+  @override
+  String get changeLog_menu_settings => '日志设置';
+
+  @override
+  String get changeLog_settings_title => '更改日志设置';
+
+  @override
+  String get changeLog_retention_title => '条目保留时长';
+
+  @override
+  String get changeLog_retention_note => '每台设备保留自己的日志。较旧的条目会自动移除。';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count 个月';
+  }
+
+  @override
+  String get changeLog_retention_forever => '永久';
+
+  @override
+  String get changeLog_clear => '清除日志';
+
+  @override
+  String get changeLog_clear_title => '清除更改日志？';
+
+  @override
+  String get changeLog_clear_body => '这会从此设备移除当前潜水员的条目。之后将无法还原它们。';
+
+  @override
+  String get changeLog_clear_confirm => '清除';
+
+  @override
+  String get changeLog_clear_failed => '无法清除更改日志。未删除任何内容。';
+
+  @override
+  String get changeLog_day_today => '今天';
+
+  @override
+  String get changeLog_day_yesterday => '昨天';
+
+  @override
+  String get changeLog_storage_label => '更改日志';
 }

@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -309,6 +310,11 @@ class NavTrackDetailPage extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (context) => [
+                  changeLogHistoryMenuItem(
+                    context,
+                    rootTable: 'nav_tracks',
+                    rootId: trackId,
+                  ),
                   PopupMenuItem(
                     value: 'rename',
                     child: Text(l10n.navTrack_detail_menuRename),

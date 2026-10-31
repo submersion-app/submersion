@@ -52,6 +52,7 @@
 - [Set Up This Device](set-up-this-device.md)
 - [Update Channels](update-channels.md)
 - [Backups](backup-and-restore.md)
+- [Change Log](change-log.md)
 - [Multi-Device Sync](multi-device-sync.md)
 - [Media Sync](media-sync.md)
 - [Encrypted Sync](encrypted-sync.md)

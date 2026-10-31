@@ -9929,6 +9929,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'An earlier dive has no oxygen data, so this may be higher.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS Oxygen Clock';
 
   @override
@@ -56954,4 +56958,405 @@ class AppLocalizationsEn extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Change log';
+
+  @override
+  String get changeLog_settings_subtitle => 'See what changed, and put it back';
+
+  @override
+  String get changeLog_empty_title => 'No changes yet';
+
+  @override
+  String get changeLog_empty_body =>
+      'Changes to your dives, sites, gear and settings appear here.';
+
+  @override
+  String get changeLog_empty_filtered => 'No changes match this filter.';
+
+  @override
+  String get changeLog_filter_all => 'All';
+
+  @override
+  String get changeLog_filter_dives => 'Dives';
+
+  @override
+  String get changeLog_filter_sites => 'Sites';
+
+  @override
+  String get changeLog_filter_gear => 'Gear';
+
+  @override
+  String get changeLog_filter_settings => 'Settings';
+
+  @override
+  String get changeLog_filter_source => 'Source';
+
+  @override
+  String get changeLog_filter_anySource => 'Any source';
+
+  @override
+  String get changeLog_source_manual => 'Manual edit';
+
+  @override
+  String get changeLog_source_import => 'Import';
+
+  @override
+  String get changeLog_source_download => 'Dive computer';
+
+  @override
+  String get changeLog_source_rule => 'Rule';
+
+  @override
+  String get changeLog_source_sync => 'Sync';
+
+  @override
+  String get changeLog_source_automatic => 'Automatic';
+
+  @override
+  String get changeLog_source_revert => 'Revert';
+
+  @override
+  String get changeLog_source_system => 'System';
+
+  @override
+  String get changeLog_thisDevice => 'This device';
+
+  @override
+  String get changeLog_anotherDevice => 'another device';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Synced from $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'View $count records',
+      one: 'View $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'Dive $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'Dive $number';
+  }
+
+  @override
+  String get changeLog_dive => 'Dive';
+
+  @override
+  String get changeLog_action_added => 'Added';
+
+  @override
+  String get changeLog_action_deleted => 'Deleted';
+
+  @override
+  String get changeLog_action_edited => 'Edited';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Imported from $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Downloaded from $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Synced changes';
+
+  @override
+  String get changeLog_title_rule => 'Rule run';
+
+  @override
+  String get changeLog_title_revert => 'Reverted a change';
+
+  @override
+  String get changeLog_title_changes => 'Changes';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Bulk edit';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Bulk delete';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Deleted a record';
+
+  @override
+  String get changeLog_label_merge => 'Merged records';
+
+  @override
+  String get changeLog_label_undoMerge => 'Undid a merge';
+
+  @override
+  String get changeLog_label_undoRule => 'Undid a rule run';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Data quality repair';
+
+  @override
+  String get changeLog_label_libraryAdopted => 'Library added to this device';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Library replaced';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Library restored from a backup';
+
+  @override
+  String get changeLog_label_reparse => 'Reparsed dives';
+
+  @override
+  String get changeLog_label_splitDive => 'Split a dive';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Transferred gear';
+
+  @override
+  String get changeLog_label_mediaRepair => 'Repaired media links';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'Moved gear files to Documents';
+
+  @override
+  String get changeLog_label_galleryBackfill => 'Linked photos to cloud copies';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'Cleaned up unused files';
+
+  @override
+  String get changeLog_label_accountMigration => 'Updated account links';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records',
+      one: '$count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size of data';
+  }
+
+  @override
+  String get changeLog_table_settings => 'App settings';
+
+  @override
+  String get changeLog_table_diverSettings => 'Diver settings';
+
+  @override
+  String get changeLog_history => 'History';
+
+  @override
+  String get changeLog_detail_title => 'Change details';
+
+  @override
+  String get changeLog_detail_open => 'Open record';
+
+  @override
+  String get changeLog_detail_history => 'History of this record';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'And $count more records',
+      one: 'And $count more record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Revert';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Revert all $count';
+  }
+
+  @override
+  String get changeLog_restore => 'Restore';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Revert $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince =>
+      'This field has changed since this entry.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Set in this entry: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Now: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'After revert: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'Other devices will receive this as a new edit. It appears in the log and can be reverted too.';
+
+  @override
+  String get changeLog_revert_anyway => 'Revert anyway';
+
+  @override
+  String get changeLog_undoImport => 'Undo this import';
+
+  @override
+  String get changeLog_undoEntry => 'Undo this change';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Removes what this added and reverses its other changes. Asks first, and lists anything you have edited since.';
+
+  @override
+  String get changeLog_bulk_title => 'Undo this entry?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records have changed since this entry.',
+      one: '$count record has changed since this entry.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'Revert the rest';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Revert all';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Reverted $count changes',
+      one: 'Reverted $count change',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records were kept',
+      one: '$count record was kept',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'This record no longer exists.';
+
+  @override
+  String get changeLog_block_columnGone => 'This field no longer exists.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'An app update changed how this value is stored, so it can\'t be put back.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'The record this belongs to no longer exists.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'This record is already back.';
+
+  @override
+  String get changeLog_block_inUse => 'Later data still uses this record.';
+
+  @override
+  String get changeLog_reverted => 'Reverted';
+
+  @override
+  String get changeLog_revert_failed =>
+      'Couldn\'t revert this change. Nothing was changed.';
+
+  @override
+  String get changeLog_menu_settings => 'Log settings';
+
+  @override
+  String get changeLog_settings_title => 'Change log settings';
+
+  @override
+  String get changeLog_retention_title => 'Keep entries for';
+
+  @override
+  String get changeLog_retention_note =>
+      'Each device keeps its own log. Older entries are removed automatically.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count months';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Forever';
+
+  @override
+  String get changeLog_clear => 'Clear log';
+
+  @override
+  String get changeLog_clear_title => 'Clear the change log?';
+
+  @override
+  String get changeLog_clear_body =>
+      'This removes the active diver\'s entries from this device. You won\'t be able to revert them afterwards.';
+
+  @override
+  String get changeLog_clear_confirm => 'Clear';
+
+  @override
+  String get changeLog_clear_failed =>
+      'Couldn\'t clear the change log. Nothing was removed.';
+
+  @override
+  String get changeLog_day_today => 'Today';
+
+  @override
+  String get changeLog_day_yesterday => 'Yesterday';
+
+  @override
+  String get changeLog_storage_label => 'Change log';
 }

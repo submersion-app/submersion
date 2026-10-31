@@ -10235,6 +10235,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'لا توجد بيانات أكسجين لغوصة سابقة، لذا قد تكون هذه القيمة أعلى.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'ساعة أكسجين CNS';
 
   @override
@@ -58613,4 +58617,432 @@ class AppLocalizationsAr extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'سجل التغييرات';
+
+  @override
+  String get changeLog_settings_subtitle => 'اعرف ما تغير وأعده كما كان';
+
+  @override
+  String get changeLog_empty_title => 'لا توجد تغييرات بعد';
+
+  @override
+  String get changeLog_empty_body =>
+      'تظهر هنا التغييرات على غطساتك ومواقعك ومعداتك وإعداداتك.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'لا توجد تغييرات تطابق عامل التصفية هذا.';
+
+  @override
+  String get changeLog_filter_all => 'الكل';
+
+  @override
+  String get changeLog_filter_dives => 'الغطسات';
+
+  @override
+  String get changeLog_filter_sites => 'المواقع';
+
+  @override
+  String get changeLog_filter_gear => 'المعدات';
+
+  @override
+  String get changeLog_filter_settings => 'الإعدادات';
+
+  @override
+  String get changeLog_filter_source => 'المصدر';
+
+  @override
+  String get changeLog_filter_anySource => 'أي مصدر';
+
+  @override
+  String get changeLog_source_manual => 'تعديل يدوي';
+
+  @override
+  String get changeLog_source_import => 'استيراد';
+
+  @override
+  String get changeLog_source_download => 'كمبيوتر الغوص';
+
+  @override
+  String get changeLog_source_rule => 'قاعدة';
+
+  @override
+  String get changeLog_source_sync => 'مزامنة';
+
+  @override
+  String get changeLog_source_automatic => 'تلقائي';
+
+  @override
+  String get changeLog_source_revert => 'إرجاع';
+
+  @override
+  String get changeLog_source_system => 'النظام';
+
+  @override
+  String get changeLog_thisDevice => 'هذا الجهاز';
+
+  @override
+  String get changeLog_anotherDevice => 'جهاز آخر';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'تمت المزامنة من $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count أخرى';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count سجل',
+      many: 'عرض $count سجلًا',
+      few: 'عرض $count سجلات',
+      two: 'عرض سجلين',
+      one: 'عرض سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'الغطسة $number، $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String get changeLog_dive => 'غطسة';
+
+  @override
+  String get changeLog_action_added => 'تمت الإضافة';
+
+  @override
+  String get changeLog_action_deleted => 'تم الحذف';
+
+  @override
+  String get changeLog_action_edited => 'تم التعديل';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'تم الاستيراد من $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'تم التنزيل من $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'تغييرات متزامنة';
+
+  @override
+  String get changeLog_title_rule => 'تشغيل قاعدة';
+
+  @override
+  String get changeLog_title_revert => 'تم إرجاع تغيير';
+
+  @override
+  String get changeLog_title_changes => 'تغييرات';
+
+  @override
+  String get changeLog_label_bulkEdit => 'تعديل جماعي';
+
+  @override
+  String get changeLog_label_bulkDelete => 'حذف جماعي';
+
+  @override
+  String get changeLog_label_deletedRecord => 'تم حذف سجل';
+
+  @override
+  String get changeLog_label_merge => 'تم دمج السجلات';
+
+  @override
+  String get changeLog_label_undoMerge => 'تم التراجع عن دمج';
+
+  @override
+  String get changeLog_label_undoRule => 'تم التراجع عن تشغيل قاعدة';
+
+  @override
+  String get changeLog_label_qualityRepair => 'إصلاح جودة البيانات';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'تمت إضافة المكتبة إلى هذا الجهاز';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'تم استبدال المكتبة';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'تمت استعادة المكتبة من نسخة احتياطية';
+
+  @override
+  String get changeLog_label_reparse => 'تمت إعادة تحليل الغطسات';
+
+  @override
+  String get changeLog_label_splitDive => 'تم تقسيم غطسة';
+
+  @override
+  String get changeLog_label_gearTransfer => 'تم نقل المعدات';
+
+  @override
+  String get changeLog_label_mediaRepair => 'تم إصلاح روابط الوسائط';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'تم نقل ملفات المعدات إلى المستندات';
+
+  @override
+  String get changeLog_label_galleryBackfill => 'تم ربط الصور بنسخ السحابة';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'تم تنظيف الملفات غير المستخدمة';
+
+  @override
+  String get changeLog_label_accountMigration => 'تم تحديث روابط الحسابات';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سجل',
+      many: '$count سجلًا',
+      few: '$count سجلات',
+      two: 'سجلان',
+      one: 'سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size من البيانات';
+  }
+
+  @override
+  String get changeLog_table_settings => 'إعدادات التطبيق';
+
+  @override
+  String get changeLog_table_diverSettings => 'إعدادات الغواص';
+
+  @override
+  String get changeLog_history => 'السجل';
+
+  @override
+  String get changeLog_detail_title => 'تفاصيل التغيير';
+
+  @override
+  String get changeLog_detail_open => 'فتح السجل';
+
+  @override
+  String get changeLog_detail_history => 'سجل هذا العنصر';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count سجل آخر',
+      many: 'و$count سجلًا آخر',
+      few: 'و$count سجلات أخرى',
+      two: 'وسجلان آخران',
+      one: 'وسجل واحد آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'إرجاع';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'إرجاع الكل ($count)';
+  }
+
+  @override
+  String get changeLog_restore => 'استعادة';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'إرجاع $field؟';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => 'تغير هذا الحقل منذ هذا الإدخال.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'المعيَّن في هذا الإدخال: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'الآن: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'بعد الإرجاع: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'ستتلقى الأجهزة الأخرى هذا كتعديل جديد. يظهر في السجل ويمكن إرجاعه أيضًا.';
+
+  @override
+  String get changeLog_revert_anyway => 'إرجاع على أي حال';
+
+  @override
+  String get changeLog_undoImport => 'التراجع عن هذا الاستيراد';
+
+  @override
+  String get changeLog_undoEntry => 'التراجع عن هذا التغيير';
+
+  @override
+  String get changeLog_undo_explain =>
+      'يزيل ما أضافه ويعكس تغييراته الأخرى. يسأل أولًا ويعرض ما عدّلته بعد ذلك.';
+
+  @override
+  String get changeLog_bulk_title => 'التراجع عن هذا الإدخال؟';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغير $count سجل منذ هذا الإدخال.',
+      many: 'تغير $count سجلًا منذ هذا الإدخال.',
+      few: 'تغيرت $count سجلات منذ هذا الإدخال.',
+      two: 'تغير سجلان منذ هذا الإدخال.',
+      one: 'تغير سجل واحد منذ هذا الإدخال.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'إرجاع الباقي';
+
+  @override
+  String get changeLog_bulk_revertAll => 'إرجاع الكل';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم إرجاع $count تغيير',
+      many: 'تم إرجاع $count تغييرًا',
+      few: 'تم إرجاع $count تغييرات',
+      two: 'تم إرجاع تغييرين',
+      one: 'تم إرجاع تغيير واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم الاحتفاظ بـ$count سجل',
+      many: 'تم الاحتفاظ بـ$count سجلًا',
+      few: 'تم الاحتفاظ بـ$count سجلات',
+      two: 'تم الاحتفاظ بسجلين',
+      one: 'تم الاحتفاظ بسجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'لم يعد هذا السجل موجودًا.';
+
+  @override
+  String get changeLog_block_columnGone => 'لم يعد هذا الحقل موجودًا.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'غيّر تحديث للتطبيق طريقة حفظ هذه القيمة، لذا لا يمكن إرجاعها.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'لم يعد السجل الذي ينتمي إليه موجودًا.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'هذا السجل عاد بالفعل.';
+
+  @override
+  String get changeLog_block_inUse => 'لا تزال بيانات لاحقة تستخدم هذا السجل.';
+
+  @override
+  String get changeLog_reverted => 'تم الإرجاع';
+
+  @override
+  String get changeLog_revert_failed => 'تعذر إرجاع هذا التغيير. لم يتغير شيء.';
+
+  @override
+  String get changeLog_menu_settings => 'إعدادات السجل';
+
+  @override
+  String get changeLog_settings_title => 'إعدادات سجل التغييرات';
+
+  @override
+  String get changeLog_retention_title => 'الاحتفاظ بالإدخالات لمدة';
+
+  @override
+  String get changeLog_retention_note =>
+      'يحتفظ كل جهاز بسجله الخاص. تتم إزالة الإدخالات الأقدم تلقائيًا.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهر',
+      many: '$count شهرًا',
+      few: '$count أشهر',
+      two: 'شهران',
+      one: 'شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'إلى الأبد';
+
+  @override
+  String get changeLog_clear => 'مسح السجل';
+
+  @override
+  String get changeLog_clear_title => 'مسح سجل التغييرات؟';
+
+  @override
+  String get changeLog_clear_body =>
+      'يؤدي هذا إلى إزالة إدخالات الغواص النشط من هذا الجهاز. لن تتمكن من إرجاعها بعد ذلك.';
+
+  @override
+  String get changeLog_clear_confirm => 'مسح';
+
+  @override
+  String get changeLog_clear_failed =>
+      'تعذر مسح سجل التغييرات. لم تتم إزالة أي شيء.';
+
+  @override
+  String get changeLog_day_today => 'اليوم';
+
+  @override
+  String get changeLog_day_yesterday => 'أمس';
+
+  @override
+  String get changeLog_storage_label => 'سجل التغييرات';
 }
