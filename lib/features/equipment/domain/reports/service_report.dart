@@ -89,8 +89,12 @@ class ServiceReport {
   final List<ServiceDueRow> due;
   final List<ServiceHistoryBlock> history;
 
+  /// What a legacy record with a blank currency prints in.
+  final String fallbackCurrency;
+
   const ServiceReport({
     this.scopeLabel,
+    required this.fallbackCurrency,
     required this.overdue,
     required this.dueSoon,
     required this.upToDate,
@@ -111,6 +115,7 @@ ServiceReport buildServiceReport({
   required Map<String, ServiceKind> kindsById,
   required Map<String, int> diveCounts,
   required ServiceReportOptions options,
+  required String fallbackCurrency,
   DateTime? tripEnd,
   String? scopeLabel,
 }) {
@@ -147,6 +152,7 @@ ServiceReport buildServiceReport({
 
   return ServiceReport(
     scopeLabel: scopeLabel,
+    fallbackCurrency: fallbackCurrency,
     overdue: count(ServiceClockSeverity.overdue),
     dueSoon: count(ServiceClockSeverity.dueSoon),
     upToDate: count(ServiceClockSeverity.ok),

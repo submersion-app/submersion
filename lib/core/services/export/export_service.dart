@@ -19,6 +19,7 @@ import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_s
 import 'package:submersion/core/services/export/pdf/equipment_inventory_pdf_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
+import 'package:submersion/core/services/export/pdf/service_report_pdf_export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart'
     as file_utils;
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
@@ -51,6 +52,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
+import 'package:submersion/features/equipment/domain/reports/service_report.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -83,6 +85,7 @@ class ExportService {
   final _excel = ExcelExportService();
   final _maintenance = MaintenanceExcelExportService();
   final _equipmentInventory = EquipmentInventoryPdfExportService();
+  final _serviceReport = ServiceReportPdfExportService();
   final _blenderInvoiceExcel = BlenderInvoiceExcelExportService();
   final _kml = KmlExportService();
   final _uddf = UddfExportService();
@@ -579,6 +582,40 @@ class ExportService {
     required DateTime printedAt,
     PdfLocalization? localization,
   }) => _equipmentInventory.saveToFile(
+    report,
+    options: options,
+    diverName: diverName,
+    units: units,
+    printedAt: printedAt,
+    localization: localization,
+  );
+
+  Future<String> exportServiceReport(
+    ServiceReport report, {
+    required ServiceReportOptions options,
+    required String? diverName,
+    required UnitFormatter units,
+    required DateTime printedAt,
+    PdfLocalization? localization,
+    Rect? sharePositionOrigin,
+  }) => _serviceReport.exportToPdf(
+    report,
+    options: options,
+    diverName: diverName,
+    units: units,
+    printedAt: printedAt,
+    localization: localization,
+    sharePositionOrigin: sharePositionOrigin,
+  );
+
+  Future<String?> saveServiceReportToFile(
+    ServiceReport report, {
+    required ServiceReportOptions options,
+    required String? diverName,
+    required UnitFormatter units,
+    required DateTime printedAt,
+    PdfLocalization? localization,
+  }) => _serviceReport.saveToFile(
     report,
     options: options,
     diverName: diverName,

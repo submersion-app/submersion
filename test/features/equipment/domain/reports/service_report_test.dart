@@ -65,6 +65,7 @@ ServiceReport _build(
   kindsById: kinds,
   diveCounts: diveCounts,
   options: options,
+  fallbackCurrency: 'USD',
   tripEnd: tripEnd,
   scopeLabel: scopeLabel,
 );
