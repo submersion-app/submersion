@@ -200,10 +200,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       color: colorScheme.primary,
       barWidth: 2.5,
       isStrokeCapRound: true,
-      // Stays on with nothing marked: fl_chart sizes the Draw mode touch
-      // indicator from this flag, and checkToShowDot already skips every dot.
+      // Off spares paint the walk over every sample when nothing is marked,
+      // except in Draw mode: fl_chart sizes its touch indicator from this flag.
       dotData: FlDotData(
-        show: true,
+        show: widget.mode == EditorMode.draw || markedTimes.isNotEmpty,
         checkToShowDot: (spot, _) => markedTimes.contains(spot.x.toInt()),
         getDotPainter: (_, _, _, _) => markerPainter,
       ),
@@ -236,7 +236,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
           strokeWidth: 2,
           strokeColor: backdropColorOf(context),
         ),
-        _ => FlDotCirclePainter(
+        EditorMode.outlier ||
+        EditorMode.select ||
+        EditorMode.smooth ||
+        EditorMode.trim => FlDotCirclePainter(
           radius: 5,
           color: colorScheme.error,
           strokeWidth: 1.5,
