@@ -80284,6 +80284,18 @@ abstract class AppLocalizations {
   /// **'No profile data available'**
   String get diveLog_profileEditor_noProfileData;
 
+  /// No description provided for @diveLog_profileEditor_timeShiftBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t shift: the selection would reach an adjacent sample'**
+  String get diveLog_profileEditor_timeShiftBlocked;
+
+  /// No description provided for @diveLog_profileEditor_deleteAllBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t delete the whole profile'**
+  String get diveLog_profileEditor_deleteAllBlocked;
+
   /// Tooltip for the profile editor's undo button.
   ///
   /// In en, this message translates to:

@@ -49594,6 +49594,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_noProfileData => 'אין נתוני פרופיל זמינים';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'לא ניתן להזיז: הבחירה תגיע לדגימה סמוכה';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'לא ניתן למחוק את הפרופיל כולו';
+
+  @override
   String get diveLog_profileEditor_undo => 'ביטול פעולה';
 
   @override

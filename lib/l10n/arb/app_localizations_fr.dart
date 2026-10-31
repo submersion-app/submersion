@@ -50779,6 +50779,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune donnée de profil disponible';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Décalage impossible : la sélection atteindrait un relevé voisin';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Impossible de supprimer tout le profil';
+
+  @override
   String get diveLog_profileEditor_undo => 'Annuler';
 
   @override

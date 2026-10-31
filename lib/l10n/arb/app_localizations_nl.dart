@@ -50341,6 +50341,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen profielgegevens beschikbaar';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Verschuiven niet mogelijk: de selectie zou een aangrenzende meting bereiken';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Het volledige profiel kan niet worden verwijderd';
+
+  @override
   String get diveLog_profileEditor_undo => 'Ongedaan maken';
 
   @override

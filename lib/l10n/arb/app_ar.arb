@@ -15142,6 +15142,8 @@
   "diveLog_profileEditor_saveFailed": "فشل حفظ ملف الغوصة: {error}",
   "diveLog_profileEditor_errorLoadingDive": "خطأ في تحميل الغوصة: {error}",
   "diveLog_profileEditor_noProfileData": "لا تتوفر بيانات ملف الغوصة",
+  "diveLog_profileEditor_timeShiftBlocked": "تعذّرت الإزاحة: سيصل التحديد إلى قراءة مجاورة",
+  "diveLog_profileEditor_deleteAllBlocked": "تعذّر حذف ملف الغوصة بالكامل",
   "diveLog_profileEditor_undo": "تراجع",
   "diveLog_profileEditor_mode_select": "تحديد",
   "diveLog_profileEditor_mode_outlier": "قيمة شاذة",

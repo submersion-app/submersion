@@ -50711,6 +50711,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay datos de perfil disponibles';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'No se puede desplazar: la selección alcanzaría una muestra contigua';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'No se puede eliminar todo el perfil';
+
+  @override
   String get diveLog_profileEditor_undo => 'Deshacer';
 
   @override

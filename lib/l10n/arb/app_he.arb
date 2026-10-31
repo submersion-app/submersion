@@ -15142,6 +15142,8 @@
   "diveLog_profileEditor_saveFailed": "שמירת הפרופיל נכשלה: {error}",
   "diveLog_profileEditor_errorLoadingDive": "שגיאה בטעינת הצלילה: {error}",
   "diveLog_profileEditor_noProfileData": "אין נתוני פרופיל זמינים",
+  "diveLog_profileEditor_timeShiftBlocked": "לא ניתן להזיז: הבחירה תגיע לדגימה סמוכה",
+  "diveLog_profileEditor_deleteAllBlocked": "לא ניתן למחוק את הפרופיל כולו",
   "diveLog_profileEditor_undo": "ביטול פעולה",
   "diveLog_profileEditor_mode_select": "בחירה",
   "diveLog_profileEditor_mode_outlier": "חריגה",

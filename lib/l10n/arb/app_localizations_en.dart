@@ -49878,6 +49878,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_noProfileData => 'No profile data available';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Can\'t shift: the selection would reach an adjacent sample';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Can\'t delete the whole profile';
+
+  @override
   String get diveLog_profileEditor_undo => 'Undo';
 
   @override

@@ -47527,6 +47527,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_noProfileData => '没有可用的轮廓数据';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked => '无法移动：所选范围会触及相邻的采样点';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked => '无法删除整个轮廓';
+
+  @override
   String get diveLog_profileEditor_undo => '撤消';
 
   @override

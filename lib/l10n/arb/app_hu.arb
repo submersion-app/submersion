@@ -15142,6 +15142,8 @@
   "diveLog_profileEditor_saveFailed": "A profil mentése sikertelen: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Hiba a merülés betöltésekor: {error}",
   "diveLog_profileEditor_noProfileData": "Nincs elérhető profiladat",
+  "diveLog_profileEditor_timeShiftBlocked": "Az eltolás nem lehetséges: a kijelölés elérne egy szomszédos mérést",
+  "diveLog_profileEditor_deleteAllBlocked": "A teljes profil nem törölhető",
   "diveLog_profileEditor_undo": "Visszavonás",
   "diveLog_profileEditor_mode_select": "Kijelölés",
   "diveLog_profileEditor_mode_outlier": "Kiugró érték",

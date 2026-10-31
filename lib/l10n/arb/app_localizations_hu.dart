@@ -50377,6 +50377,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_noProfileData => 'Nincs elérhető profiladat';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Az eltolás nem lehetséges: a kijelölés elérne egy szomszédos mérést';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'A teljes profil nem törölhető';
+
+  @override
   String get diveLog_profileEditor_undo => 'Visszavonás';
 
   @override

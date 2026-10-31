@@ -51303,6 +51303,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا تتوفر بيانات ملف الغوصة';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'تعذّرت الإزاحة: سيصل التحديد إلى قراءة مجاورة';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'تعذّر حذف ملف الغوصة بالكامل';
+
+  @override
   String get diveLog_profileEditor_undo => 'تراجع';
 
   @override

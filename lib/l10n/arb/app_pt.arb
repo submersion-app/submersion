@@ -15142,6 +15142,8 @@
   "diveLog_profileEditor_saveFailed": "Falha ao salvar o perfil: {error}",
   "diveLog_profileEditor_errorLoadingDive": "Erro ao carregar o mergulho: {error}",
   "diveLog_profileEditor_noProfileData": "Nenhum dado de perfil disponível",
+  "diveLog_profileEditor_timeShiftBlocked": "Não é possível deslocar: a seleção alcançaria uma amostra adjacente",
+  "diveLog_profileEditor_deleteAllBlocked": "Não é possível excluir o perfil inteiro",
   "diveLog_profileEditor_undo": "Desfazer",
   "diveLog_profileEditor_mode_select": "Selecionar",
   "diveLog_profileEditor_mode_outlier": "Anomalia",

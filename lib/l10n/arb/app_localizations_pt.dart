@@ -50662,6 +50662,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum dado de perfil disponível';
 
   @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Não é possível deslocar: a seleção alcançaria uma amostra adjacente';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Não é possível excluir o perfil inteiro';
+
+  @override
   String get diveLog_profileEditor_undo => 'Desfazer';
 
   @override
