@@ -77,22 +77,19 @@ List<int?> calculateGtrCurve({
   }
 
   final result = List<int?>.filled(n, null);
-  // Both window bounds only move forward, so one cursor and a cumulative depth
+  // Both window bounds only move forward, so one cursor and a running depth
   // integral keep the whole pass O(n). Re-summing the window per sample instead
   // costs O(n * samples-per-window), which on a densely sampled or merged
-  // profile is the entire profile at every sample. The cursor advances on
-  // every iteration, including ones the guards below skip, so that it stays in
-  // step with the window.
-  final depthIntegral = TimeWeightedMean();
-  final depthAreaTo = List<double>.filled(n, 0.0);
+  // profile is the entire profile at every sample.
+  final depthSeries = PiecewiseLinearSeries(times: timestamps, values: depths);
+  final pressureSeries = PiecewiseLinearSeries(
+    times: timestamps,
+    values: pressures,
+  );
   var anchor = 0;
   for (var i = 0; i < n; i++) {
-    depthIntegral.add(timestamps[i], depths[i]);
-    depthAreaTo[i] = depthIntegral.area;
     final windowStart = timestamps[i] - sacWindowSeconds;
-    while (anchor + 1 < i && timestamps[anchor + 1] <= windowStart) {
-      anchor++;
-    }
+    anchor = depthSeries.advanceTo(windowStart, anchor);
 
     final depth = depths[i];
     if (depth < _surfaceDepthMeters) continue;
@@ -100,17 +97,12 @@ List<int?> calculateGtrCurve({
     if (timestamps[0] > windowStart) continue;
 
     final pressureDrop =
-        _readAt(pressures, timestamps, anchor, windowStart) - pressures[i];
+        pressureSeries.valueAt(windowStart, anchor) - pressures[i];
     if (pressureDrop <= 0) continue;
 
-    // The anchor sample can sit before the window, so take off the area
-    // between it and where the window opens.
-    final depthAtStart = _readAt(depths, timestamps, anchor, windowStart);
-    final areaBeforeStart =
-        (windowStart - timestamps[anchor]) *
-        (depths[anchor] + depthAtStart) /
-        2;
-    final windowArea = depthAreaTo[i] - depthAreaTo[anchor] - areaBeforeStart;
+    final windowArea =
+        depthSeries.areaTo(timestamps[i], i) -
+        depthSeries.areaTo(windowStart, anchor);
     final meanDepth = windowArea / sacWindowSeconds;
     final consumptionAtDepth = pressureDrop / (sacWindowSeconds / 60.0);
     final sac = consumptionAtDepth / _ambientBar(meanDepth);
@@ -129,18 +121,6 @@ List<int?> calculateGtrCurve({
     result[i] = (minutesAtDepth * 60).floor();
   }
   return result;
-}
-
-/// [series] at [time], at or after sample [before] and before the next one.
-double _readAt(
-  List<double> series,
-  List<int> timestamps,
-  int before,
-  int time,
-) {
-  final beforeTime = timestamps[before];
-  final progress = (time - beforeTime) / (timestamps[before + 1] - beforeTime);
-  return series[before] + (series[before + 1] - series[before]) * progress;
 }
 
 double _ambientBar(double depthMeters) => 1.0 + depthMeters / 10.0;

@@ -215,4 +215,36 @@ void main() {
       expect(across(samples, [(start: 300, end: 360)]), isNull);
     });
   });
+
+  group('PiecewiseLinearSeries', () {
+    final series = PiecewiseLinearSeries(
+      times: const [0, 60, 60, 120],
+      values: const [10, 20, 40, 30],
+    );
+
+    test('advanceTo finds the last sample at or before a time', () {
+      expect(series.advanceTo(0, 0), 0);
+      expect(series.advanceTo(59, 0), 0);
+      // Past both samples at t = 60, so a step reads its later value.
+      expect(series.advanceTo(60, 0), 2);
+      expect(series.advanceTo(90, 2), 2);
+      expect(series.advanceTo(500, 2), 3);
+    });
+
+    test('valueAt reads between samples and at the last one', () {
+      expect(series.valueAt(30, 0), closeTo(15, 1e-9));
+      expect(series.valueAt(60, 2), 40);
+      expect(series.valueAt(90, 2), closeTo(35, 1e-9));
+      expect(series.valueAt(120, 3), 30);
+    });
+
+    test('areaTo integrates up to a time, and a step adds nothing', () {
+      expect(series.areaTo(0, 0), 0);
+      // 30 * (10 + 15) / 2
+      expect(series.areaTo(30, 0), closeTo(375, 1e-9));
+      expect(series.areaTo(60, 2), closeTo(900, 1e-9));
+      // 900 + 60 * (40 + 30) / 2
+      expect(series.areaTo(120, 3), closeTo(3000, 1e-9));
+    });
+  });
 }
