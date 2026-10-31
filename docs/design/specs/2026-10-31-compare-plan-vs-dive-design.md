@@ -90,9 +90,11 @@ call it what it does, and the planner stays the one place that builds plans.
   `domain.DivePlan`. The saved plans list's row menu (rename, duplicate,
   share) is `_PlanTile` in `saved_plans_sheet.dart`; `DivePlanSummary` does
   not yet carry `linkedDiveId`.
-- 197 l10n entries whose key begins `diveLab_` or names `whatIf`, in eleven
-  locales, plus the user guide pages on the Lab and the demo logbook's three
-  saved what-ifs (`tool/demo_data/src/seeders/lab_seeder.dart`).
+- 163 l10n entries whose key begins `diveLab_` or names `whatIf`, in eleven
+  locales, and the demo logbook's three saved what-ifs
+  (`tool/demo_data/src/seeders/lab_seeder.dart`). No user guide page
+  describes the Lab (`docs/user/` has no "Dive Lab"; its only "what if" is
+  the planner's), so the Compare guide is a new page, written in PR 2.
 - PR #3739 (phase 1 of #3565) and the draft #3759 (phase 4) touch
   `dive_detail_page.dart` next to the `whatIf` case and `what_if_sheet.dart`.
   Phase 4 moves "follow" out of `sourceDiveId` so that field belongs to
@@ -228,9 +230,12 @@ the reference.
 
 ### Menu order on dive detail
 
-Compare..., Replan this dive, then (when #3759 lands) Plan repetitive dive.
-The Compare entry keeps the Lab's routing: the page for an eligible dive or a
-dive with a linked plan, today's rebuild sheet otherwise.
+Compare..., then (when #3759 lands) Plan repetitive dive. There is no
+separate "Replan this dive" entry: that name is the rebuild sheet's title, and
+the sheet is reached from Compare's overflow ("Rebuild in planner...") or
+directly from the Compare... entry on a dive that is neither eligible nor
+linked. The entry keeps the Lab's routing otherwise: the page for an eligible
+dive or a dive with a linked plan.
 
 ## Storage and sync
 
@@ -245,8 +250,8 @@ sync record move as they do for any plan edit.
 - Every user-visible "Dive Lab" and "What if" string per the Names table, in
   all eleven ARB files, then `flutter gen-l10n`.
 - `DiveDetailSectionId.diveLab`'s label.
-- The user guide pages that describe the Lab, and the demo logbook's three
-  scenario notes if they say "Lab".
+- No user guide or demo note changes: no guide page describes the Lab, and the
+  demo's three scenario notes never said "Lab".
 - The PR title, body and screenshots re-taken for the renamed screens.
 - No schema change, no behaviour change. #2407 still `Closes #2405`.
 
