@@ -563,11 +563,18 @@ void main() {
       expect(e.drainToBar, lessThan(200));
     });
 
-    test('a warm cylinder already past the fill-to pressure is rejected', () {
-      expect(
-        exceptionFrom(topUpInputs(startBar: 220, targetBar: 200)).error,
-        BlendError.targetPressureNotHigher,
+    test('a warm cylinder past the fill-to pressure drains down to it', () {
+      final e = exceptionFrom(topUpInputs(startBar: 220, targetBar: 200));
+      expect(e.error, BlendError.negativeAmountRequired);
+      expect(e.drainToBar, closeTo(211.716, 0.02));
+    });
+
+    test('a warm cylinder already at the fill-to pressure needs no gas', () {
+      final result = computeBlend(
+        topUpInputs(startBar: 211.7163296, targetBar: 200),
       );
+      expect(result.steps, hasLength(1));
+      expect(result.settledPressureBar, 200);
     });
 
     test('equal temperatures compare the typed pressures unchanged', () {
@@ -579,13 +586,12 @@ void main() {
       );
     });
 
-    test('a cold cylinder at the target reading is still rejected', () {
-      expect(
-        exceptionFrom(
-          topUpInputs(startBar: 200, targetBar: 200, fillC: 10),
-        ).error,
-        BlendError.targetPressureNotHigher,
+    test('a cold cylinder at the target reading holds too much gas', () {
+      final e = exceptionFrom(
+        topUpInputs(startBar: 200, targetBar: 200, fillC: 10),
       );
+      expect(e.error, BlendError.negativeAmountRequired);
+      expect(e.drainToBar, lessThan(200));
     });
 
     test('a cold cylinder below the target reading keeps drain guidance', () {
