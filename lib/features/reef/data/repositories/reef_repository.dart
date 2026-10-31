@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/reef/data/repositories/reef_cache_dao.dart';
@@ -25,7 +26,8 @@ class ReefRepository {
   final ReefProtectionService _protection;
   final NearbySpeciesService _species;
 
-  final Map<String, Future<void>> _inFlight = {};
+  /// Each entry completes with the leader's answer, or null if it threw.
+  final Map<String, Future<ReefPart<Object?>?>> _inFlight = {};
 
   /// Cache generation for nearby species. Bump this whenever the taxon
   /// whitelist changes so previously cached results are refetched rather
@@ -138,12 +140,13 @@ class ReefRepository {
   }) {
     final lock = '${provider.name}|$coordKey|$variant';
 
-    // Someone else is already resolving this key. Wait for them, then read
-    // what they stored rather than issuing a second request.
+    // Someone else is already resolving this key. Share their answer rather
+    // than issuing a second request. It is taken from them, not the cache,
+    // because a partial species result is never stored.
     final pending = _inFlight[lock];
     if (pending != null) {
       return pending.then(
-        (_) => _readStored<T>(provider, coordKey, variant, decode),
+        (shared) => shared is ReefPart<T> ? shared : ReefPart<T>.unavailable(),
       );
     }
 
@@ -160,7 +163,10 @@ class ReefRepository {
     // Registered before any suspension point, so later callers in this same
     // microtask see it. Errors are swallowed on the tracking future only;
     // `work` still surfaces them to this caller.
-    _inFlight[lock] = work.then((_) {}, onError: (_) {});
+    _inFlight[lock] = work.then<ReefPart<Object?>?>(
+      (part) => part,
+      onError: (_) => null,
+    );
 
     return work.whenComplete(() => _inFlight.remove(lock));
   }
@@ -175,7 +181,15 @@ class ReefRepository {
     bool Function(T)? skipStore,
   }) async {
     final cached = await _cache.read(provider, coordKey, variant: variant);
-    if (cached != null) return _decodeEntry<T>(cached, decode);
+    if (cached != null) {
+      // A row this build cannot read counts as a miss: habitat never expires,
+      // so nothing else would ever replace it.
+      try {
+        return _decodeEntry<T>(cached, decode);
+      } catch (e) {
+        developer.log('Unreadable reef cache row: $e', name: 'ReefRepository');
+      }
+    }
 
     final part = await fetch();
     if (part.hasValue && (skipStore?.call(part.value as T) ?? false)) {
@@ -189,17 +203,6 @@ class ReefRepository {
       payloadJson: part.hasValue ? encode(part.value as T) : '{}',
     );
     return part;
-  }
-
-  Future<ReefPart<T>> _readStored<T>(
-    ReefProviderId provider,
-    String coordKey,
-    String variant,
-    T Function(Object?) decode,
-  ) async {
-    final entry = await _cache.read(provider, coordKey, variant: variant);
-    if (entry == null) return ReefPart<T>.unavailable();
-    return _decodeEntry<T>(entry, decode);
   }
 
   ReefPart<T> _decodeEntry<T>(

@@ -123,6 +123,21 @@ void main() {
     expect(part.value!.namesIncomplete, isTrue);
   });
 
+  test('a name lookup that will never succeed is a finished one', () async {
+    final client = _speciesClient([2384460, 111], (_) {
+      return Future.value(http.Response('no such taxon', 404));
+    });
+
+    final part = await NearbySpeciesService(
+      client: client,
+      matcher: _matcher(),
+      timeout: _limit,
+    ).fetch(_point);
+
+    expect(part.status, ReefDataStatus.ok);
+    expect(part.value!.namesIncomplete, isFalse);
+  });
+
   test('losing every name is unavailable, not "nothing nearby"', () async {
     final client = _speciesClient([
       111,

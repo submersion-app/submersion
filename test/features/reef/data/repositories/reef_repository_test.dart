@@ -15,6 +15,7 @@ import 'package:submersion/features/reef/data/services/reef_habitat_service.dart
 import 'package:submersion/features/reef/data/services/reef_health_service.dart';
 import 'package:submersion/features/reef/data/services/reef_protection_service.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
+import 'package:submersion/features/reef/domain/services/reef_coordinate_key.dart';
 import 'package:submersion/features/reef/domain/services/species_catalog_matcher.dart';
 
 SpeciesCatalogMatcher _matcher() => SpeciesCatalogMatcher.fromJsonString(
@@ -239,6 +240,60 @@ void main() {
     expect(first.value!.namesIncomplete, isTrue);
     expect(second.value!.namesIncomplete, isTrue);
     expect(searches, 2, reason: 'the 30-day cache must not keep the gap');
+  });
+
+  test('a concurrent caller shares a partial species result', () async {
+    var searches = 0;
+    final repo = buildRepository(
+      speciesClient: MockClient((request) async {
+        if (request.url.path.endsWith('/occurrence/search')) {
+          searches++;
+          return http.Response(_facetBody([2384460, 111]), 200);
+        }
+        return http.Response('down', 503);
+      }),
+    );
+    const point = GeoPoint(12.16, -68.28);
+
+    final parts = await Future.wait([
+      repo.speciesFor(point),
+      repo.speciesFor(point),
+    ]);
+
+    expect(searches, 1);
+    expect(parts[1].status, ReefDataStatus.ok);
+    expect(parts[1].value!.matched, hasLength(1));
+  });
+
+  test('a concurrent caller shares an empty answer as empty', () async {
+    final repo = buildRepository();
+    const point = GeoPoint(12.16, -68.28);
+
+    final parts = await Future.wait([
+      repo.habitatFor(point),
+      repo.habitatFor(point),
+    ]);
+
+    expect(parts[1].status, ReefDataStatus.empty);
+  });
+
+  test('a cached row that cannot be read is fetched again', () async {
+    await ReefCacheDao(db, now: () => clock).write(
+      provider: ReefProviderId.habitat,
+      coordKey: ReefCoordinateKey.format(const GeoPoint(12.16, -68.28)),
+      status: ReefDataStatus.ok,
+      payloadJson: 'not json',
+    );
+    final counting = MockClient((_) async {
+      habitatCalls++;
+      return http.Response(jsonEncode({'features': []}), 200);
+    });
+    final repo = buildRepository(habitatClient: counting);
+
+    final part = await repo.habitatFor(const GeoPoint(12.16, -68.28));
+
+    expect(habitatCalls, 1);
+    expect(part.status, ReefDataStatus.empty);
   });
 
   test('forgetFailure lets the next read reach the network', () async {
