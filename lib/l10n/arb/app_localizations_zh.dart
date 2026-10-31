@@ -8353,6 +8353,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => '气体混合 (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => '气瓶配置';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => '气瓶附加项';
+
+  @override
   String get diveLog_filter_sectionMinRating => '最低评分';
 
   @override
@@ -19550,7 +19556,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_issue_noBailout => 'CCR 减压计划未携带逃生气体';
+  String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -27365,6 +27371,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String insights_chart_barSemanticLabel(Object count) {
     return '包含 $count 个类别的柱状图';
+  }
+
+  @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label，$count';
   }
 
   @override
@@ -45501,6 +45512,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count 种气瓶配置';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count 种气瓶附加项';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => '海洋生物';
 
   @override
@@ -47594,7 +47615,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_rangeOperations => '范围操作';
 
   @override
-  String get diveLog_profileEditor_selectRangeHint => '在图表上选择一个范围以启用操作';
+  String get diveLog_profileEditor_selectRangeHint => '在图表上拖动以选择范围并启用操作';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => '深度 +1m';
@@ -47694,6 +47715,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => '没有可用的轮廓数据';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked => '无法移动：所选范围在该方向上没有空间';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked => '无法删除整个轮廓';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked => '无法平滑：请至少选择三个采样点';
 
   @override
   String get diveLog_profileEditor_undo => '撤消';
@@ -49047,6 +49077,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => '已排除';
+
+  @override
+  String get insights_empty_allExcluded_title => '您的所有潜水都已从统计中排除';
+
+  @override
+  String get insights_empty_allExcluded_subtitle => '它们仍保留在日志中。编辑潜水即可重新计入统计。';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -51059,6 +51095,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => '有剖面';
+
+  @override
+  String get query_dives_tankConfig => '气瓶配置';
+
+  @override
+  String get query_dives_stages => '阶段瓶';
+
+  @override
+  String get query_dives_decoGas => '减压气';
+
+  @override
+  String get query_dives_multiGas => '多种气体';
 
   @override
   String get query_dives_id => '潜水编号';

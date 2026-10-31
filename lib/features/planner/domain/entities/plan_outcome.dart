@@ -81,7 +81,13 @@ class PlanStop extends Equatable {
   final double depthMeters;
   final int durationSeconds;
   final int airBreakSeconds;
+
+  /// The stop's cylinder mix, O2 fraction. On a loop this is the diluent or
+  /// supply gas, not what the diver inspires.
   final double gasFO2;
+
+  /// The stop's cylinder mix, He fraction. On a loop this is the diluent or
+  /// supply gas, not what the diver inspires.
   final double gasFHe;
   final String? tankId;
   final int arrivalRuntimeSeconds;

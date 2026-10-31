@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -492,6 +493,9 @@ void main() {
           overrides: [
             diveStatisticsProvider.overrideWith((ref) async => stats),
             filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            logbookDiveCountsProvider.overrideWith(
+              (ref) async => const LogbookDiveCounts(logged: 0, counted: 0),
+            ),
             filteredDiveRecordsProvider.overrideWith(
               (ref) async => DiveRecords(),
             ),

@@ -203,6 +203,23 @@ extension DiveFilterQuery on DiveFilterState {
         waterChoices.length == 1 ? waterChoices.single : OrNode(waterChoices),
       );
     }
+    if (tankConfigurations.isNotEmpty) {
+      parts.add(
+        c(
+          'tankConfig',
+          QueryOp.inList,
+          ListValue([for (final t in tankConfigurations) EnumValue(t.name)]),
+        ),
+      );
+    }
+    // Each extra is its own yes or no field, since a dive can have several.
+    if (tankExtras.isNotEmpty) {
+      final extras = [
+        for (final e in tankExtras)
+          c(e.name, QueryOp.eq, const BoolValue(true)),
+      ];
+      parts.add(extras.length == 1 ? extras.single : OrNode(extras));
+    }
     // Any sighting of any listed species: one existential hop through the
     // sightings child to its species.
     if (speciesIds.isNotEmpty) {

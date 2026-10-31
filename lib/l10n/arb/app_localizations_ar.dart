@@ -8931,6 +8931,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'خليط الغاز (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'تكوين الأسطوانات';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'إضافات الأسطوانات';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'الحد الأدنى للتقييم';
 
   @override
@@ -20840,7 +20846,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
+      'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -29241,6 +29247,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String insights_chart_barSemanticLabel(Object count) {
     return 'مخطط أعمدة بـ $count فئات';
+  }
+
+  @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label، $count';
   }
 
   @override
@@ -48990,6 +49001,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count تكوينات أسطوانات';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count إضافات أسطوانات';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'الحياة البحرية';
 
   @override
@@ -51363,7 +51384,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'حدّد نطاقًا على الرسم البياني لتفعيل العمليات';
+      'اسحب على الرسم البياني لتحديد نطاق وتفعيل العمليات';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'العمق +1m';
@@ -51471,6 +51492,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'لا تتوفر بيانات ملف الغوصة';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'تعذّرت الإزاحة: لا توجد مساحة للتحديد في هذا الاتجاه';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'تعذّر حذف ملف الغوصة بالكامل';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'تعذّر التنعيم: حدّد ثلاث قراءات على الأقل';
 
   @override
   String get diveLog_profileEditor_undo => 'تراجع';
@@ -52934,6 +52967,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'مستبعدة';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'جميع غطساتك مستبعدة من الإحصائيات';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'لا تزال في سجلك. عدّل غطسة لاحتسابها مجددًا.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -55092,6 +55133,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'له ملف تعريف';
+
+  @override
+  String get query_dives_tankConfig => 'تكوين الأسطوانات';
+
+  @override
+  String get query_dives_stages => 'أسطوانات مرحلية';
+
+  @override
+  String get query_dives_decoGas => 'غاز تخفيف الضغط';
+
+  @override
+  String get query_dives_multiGas => 'غازات متعددة';
 
   @override
   String get query_dives_id => 'معرّف الغطسة';

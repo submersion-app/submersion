@@ -9,10 +9,10 @@ import 'dart:math' as math;
 ///
 /// A leg with nothing eligible strictly between its ends gets exactly its
 /// two endpoints back, unsplit: `[fromDepth, toDepth]`. A normal
-/// inter-stop leg is always this unsplit case -- [AscentGasPlan]'s own
-/// switches always land exactly at a stop by construction -- so this only
-/// ever does real work on a leg spanning more than the usual 3 m between
-/// two deco stops, chiefly the bottom-to-first-stop leg.
+/// inter-stop leg is this unsplit case, because a switch at a gas's MOD lands
+/// exactly at a stop. This does its real work on a leg spanning more than the
+/// usual 3 m between two deco stops, chiefly the bottom-to-first-stop leg, and
+/// on any leg holding a switch depth the diver set by hand.
 List<double> travelLegBoundaries(
   AscentGasPlan ascentPlan, {
   required double fromDepth,
@@ -28,6 +28,11 @@ class AscentGas {
   const AscentGas({required this.fN2, required this.fHe});
   final double fN2;
   final double fHe;
+
+  /// The oxygen left after the inert gases. On a rebreather loop the
+  /// fractions are normalized against alveolar pressure, so this is not an
+  /// inspired fraction: ask `LoopAscentGas.inspiredPpO2At` for the ppO2.
+  double get fO2 => 1.0 - fN2 - fHe;
 }
 
 /// Strategy answering "what do I breathe at this ascent depth?" so the
