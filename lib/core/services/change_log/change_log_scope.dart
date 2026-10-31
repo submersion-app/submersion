@@ -230,7 +230,7 @@ abstract final class ChangeLogScope {
   }
 
   /// A summary has no events of its own, so it takes the highest event id to
-  /// sort where it happened.
+  /// sort where it happened, and always has a count, which is what marks it.
   static Future<void> _writeSummary(
     AppDatabase db, {
     required String label,
@@ -252,7 +252,7 @@ abstract final class ChangeLogScope {
               startedAt: now,
               endedAt: now,
               lastEventId: Value(newest.data['id'] as int?),
-              summaryCount: Value(summaryCount),
+              summaryCount: Value(summaryCount ?? 0),
               closed: const Value(true),
             ),
           );

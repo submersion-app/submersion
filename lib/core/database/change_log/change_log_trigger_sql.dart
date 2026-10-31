@@ -57,6 +57,26 @@ List<ChangeLogTableSpec> changeLogSpecsFor(GeneratedDatabase db) => [
 String changeLogRecordIdSql(String prefix, List<String> keyColumns) =>
     keyColumns.map((column) => '$prefix."$column"').join(" || '|' || ");
 
+/// The WHERE clause that finds [recordId], the inverse of
+/// [changeLogRecordIdSql].
+({String where, List<Variable<Object>> variables}) changeLogKeyMatch(
+  ChangeLogTableSpec spec,
+  String recordId,
+) {
+  final keys = spec.keyColumns;
+  final parts = keys.length == 1 ? [recordId] : recordId.split('|');
+  if (parts.length != keys.length) {
+    return (
+      where: '${changeLogRecordIdSql('"${spec.table}"', keys)} = ?',
+      variables: [Variable<Object>(recordId)],
+    );
+  }
+  return (
+    where: keys.map((column) => '"$column" = ?').join(' AND '),
+    variables: [for (final part in parts) Variable<Object>(part)],
+  );
+}
+
 List<String> buildChangeLogTriggers(
   ChangeLogTableSpec spec,
   ChangeLogClass cls, {
