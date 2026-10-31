@@ -25,7 +25,8 @@ String _idOf(int index) => 'c$index';
 /// Runs [body] with a reader of how many dive count statements drift has sent
 /// so far. The whole test belongs in here: a provider refreshed by a change
 /// tick runs in the zone it subscribed from, so a zone opened only around the
-/// write would see none of the reads under test.
+/// write would see none of the reads under test. Seeding belongs in here too,
+/// or the logging database prints every statement to the test output.
 Future<void> _withCountReads(
   Future<void> Function(int Function() reads) body,
 ) async {
@@ -144,10 +145,10 @@ void main() {
 
   group('dive center counts', () {
     test('every center shares one query on a cold read', () async {
-      await seedCenters();
       final container = makeContainer();
 
       await _withCountReads((reads) async {
+        await seedCenters();
         await watchEveryCenter(container);
 
         expect(reads(), 1);
@@ -155,10 +156,10 @@ void main() {
     });
 
     test('one dive write refreshes the counts once', () async {
-      await seedCenters();
       final container = makeContainer();
 
       await _withCountReads((reads) async {
+        await seedCenters();
         await watchEveryCenter(container);
         final coldReads = reads();
 
@@ -174,10 +175,10 @@ void main() {
     });
 
     test('a center with no dives reads zero', () async {
-      await seedCenters();
       final container = makeContainer();
 
       await _withCountReads((_) async {
+        await seedCenters();
         expect(
           await container.read(diveCenterDiveCountProvider(_idOf(3)).future),
           0,
@@ -186,10 +187,10 @@ void main() {
     });
 
     test('a dive at one center leaves other centers untouched', () async {
-      await seedCenters();
       final container = makeContainer();
 
       await _withCountReads((_) async {
+        await seedCenters();
         await writeDiveAt(_idOf(2));
         final changedCenter = container.listen(
           diveCenterDiveCountProvider(_idOf(1)),
