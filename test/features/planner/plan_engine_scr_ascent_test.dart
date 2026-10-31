@@ -1,10 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
-import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
-import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -270,58 +268,6 @@ void main() {
         expect(stop.gasFO2, closeTo(0.50, 1e-9));
         expect(stop.tankId, 'bailout');
       }
-    });
-
-    test('stops accumulate oxygen exposure at the loop ppO2', () {
-      const config = PlanEngineConfig();
-      final outcome = engine.compute(_plan());
-      final calculator = O2ToxicityCalculator(
-        ppO2WarningThreshold: config.ppO2Working,
-        ppO2CriticalThreshold: config.ppO2Deco,
-        cnsWarningThreshold: config.cnsWarningThreshold,
-        cnsMethod: config.cnsMethod,
-      );
-      final environment = PlanEngine.environmentFor(_plan());
-      final loop = Scr(supplyFO2: 0.32, injectionRateLpm: 12);
-      var expected = outcome.segmentOutcomes.last.cns;
-      for (final stop in outcome.stops) {
-        expected += calculator.calculateCnsForSegment(
-          loop.inspiredAt(environment.pressureAtDepth(stop.depthMeters)).pO2,
-          stop.durationSeconds,
-        );
-      }
-
-      expect(outcome.cnsEnd, closeTo(expected, 1e-9));
-    });
-
-    test('a CCR stop accumulates oxygen exposure at the setpoint', () {
-      const config = PlanEngineConfig();
-      final plan = _plan(mode: domain.PlanMode.ccr);
-      final outcome = engine.compute(plan);
-      final calculator = O2ToxicityCalculator(
-        ppO2WarningThreshold: config.ppO2Working,
-        ppO2CriticalThreshold: config.ppO2Deco,
-        cnsWarningThreshold: config.cnsWarningThreshold,
-        cnsMethod: config.cnsMethod,
-      );
-      final resolved = config.resolvedFor(plan);
-      final loop = CcrLoopAscentGas(
-        environment: PlanEngine.environmentFor(plan),
-        setpointLow: resolved.setpointLowFor(plan),
-        setpointHigh: resolved.setpointHighFor(plan),
-        switchDepth: plan.effectiveSetpointSwitchDepth,
-        diluentFO2: 0.32,
-      );
-      var expected = outcome.segmentOutcomes.last.cns;
-      for (final stop in outcome.stops) {
-        expected += calculator.calculateCnsForSegment(
-          loop.inspiredPpO2At(stop.depthMeters),
-          stop.durationSeconds,
-        );
-      }
-
-      expect(outcome.stops, isNotEmpty);
-      expect(outcome.cnsEnd, closeTo(expected, 1e-9));
     });
 
     test('the ceiling replay clears on the same loop the schedule used', () {

@@ -28,7 +28,9 @@ abstract class LoopAscentGas extends AscentGasPlan {
   /// What the diver breathes on the loop at [depthMeters].
   BreathingConfig breathingAt(double depthMeters);
 
-  /// The loop's real inspired ppO2 at [depthMeters].
+  /// The loop's real inspired ppO2 at [depthMeters]. Never ambient x a
+  /// [gasForDepth] fraction, which is normalized against alveolar pressure
+  /// and overstates ppO2 as depth shrinks.
   double inspiredPpO2At(double depthMeters) => breathingAt(
     depthMeters,
   ).inspiredAt(environment.pressureAtDepth(depthMeters)).pO2;

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -8,10 +9,12 @@ DiveTank _tank({
   double? start,
   double? end,
   int order = 0,
+  TankRole role = TankRole.backGas,
 }) => DiveTank(
   id: id,
   gasMix: const GasMix(o2: 21),
   order: order,
+  role: role,
   startPressure: start,
   endPressure: end,
 );
@@ -44,6 +47,29 @@ void main() {
       expect(pts.map((p) => (p.timestamp, p.pressure)), [
         (0, 200.0),
         (2400, 65.0),
+      ]);
+    });
+
+    test('a deco bottle listed first holds until its switch', () {
+      final result = synthesizeEstimatedTankPressures(
+        existing: const {},
+        tanks: [
+          _tank(id: 'deco', start: 200, end: 150, role: TankRole.deco),
+          _tank(id: 'back', start: 200, end: 100, order: 1),
+        ],
+        gasSwitches: [_switch(tankId: 'deco', timestamp: 1800)],
+        diveDurationSeconds: 2400,
+      );
+
+      expect(result.pressures['deco']!.map((p) => (p.timestamp, p.pressure)), [
+        (0, 200.0),
+        (1800, 200.0),
+        (2400, 150.0),
+      ]);
+      expect(result.pressures['back']!.map((p) => (p.timestamp, p.pressure)), [
+        (0, 200.0),
+        (1800, 100.0),
+        (2400, 100.0),
       ]);
     });
 

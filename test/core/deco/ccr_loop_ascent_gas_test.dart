@@ -41,6 +41,22 @@ void main() {
     expect(loop.setpointAt(3.0), 0.7);
   });
 
+  test('inspiredPpO2At is the setpoint in force, at any depth', () {
+    final loop = _loop();
+    expect(loop.inspiredPpO2At(40.0), 1.3);
+    expect(loop.inspiredPpO2At(6.0), 0.7);
+    expect(loop.inspiredPpO2At(3.0), 0.7);
+  });
+
+  test('inspiredPpO2At clamps to alveolar pressure in the shallows', () {
+    // With the HIGH setpoint in force at 1 m the loop cannot reach 1.3 bar:
+    // 1.1 bar ambient less the 0.0627 bar water-vapour term.
+    expect(
+      _loop(switchDepth: 0.0).inspiredPpO2At(1.0),
+      closeTo(DiveEnvironment.standard.pressureAtDepth(1.0) - 0.0627, 1e-9),
+    );
+  });
+
   test('switchDepthsBetween reports the setpoint switch when crossed', () {
     final loop = _loop();
     expect(loop.switchDepthsBetween(21.0, 3.0), [10.0]);
