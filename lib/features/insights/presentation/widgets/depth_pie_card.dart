@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_selection_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -228,9 +229,6 @@ class _DepthPieCardState extends State<DepthPieCard> {
       ),
     );
     if (open == null) return row;
-    return Semantics(
-      button: true,
-      child: InkWell(onTap: () => open(index), child: row),
-    );
+    return ChartRowLink(onTap: () => open(index), child: row);
   }
 }

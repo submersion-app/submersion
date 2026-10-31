@@ -165,21 +165,26 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
       ),
     );
     final marked = _marked;
-    if (onOpenBar == null || marked == null) return chart;
-    final item = data[marked];
+    if (onOpenBar == null) return chart;
+    final item = marked == null ? null : data[marked];
     final xAxisLabel = widget.xAxisLabel;
+    // Always a Column: swapping the tree on a mark would rebuild the chart
+    // inside its own touch callback.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         chart,
-        ChartSelectionStrip(
-          label: xAxisLabel == null ? item.label : '${item.label} $xAxisLabel',
-          countText:
-              widget.valueFormatter?.call(item.count) ??
-              context.l10n.insights_filterBar_diveCount(item.count),
-          onOpen: item.count > 0 ? () => onOpenBar(marked) : null,
-        ),
+        if (item != null)
+          ChartSelectionStrip(
+            label: xAxisLabel == null
+                ? item.label
+                : '${item.label} $xAxisLabel',
+            countText:
+                widget.valueFormatter?.call(item.count) ??
+                context.l10n.insights_filterBar_diveCount(item.count),
+            onOpen: item.count > 0 ? () => onOpenBar(marked!) : null,
+          ),
       ],
     );
   }

@@ -92,15 +92,6 @@ void main() {
         ['deep'],
       );
     });
-
-    test('a gas count also leaves out gauge and gas-excluded dives', () async {
-      await insertDive('kept');
-      await insertDive('gauge', diveMode: 'gauge');
-      await insertDive('gas-excluded', gasExcluded: true);
-
-      expect(await repository.getCountedDiveIds(gas: true), ['kept']);
-      expect(await repository.getCountedDiveIds(), hasLength(3));
-    });
   });
 
   /// Every row of a chart opens exactly the dives it counted.

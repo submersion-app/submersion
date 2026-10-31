@@ -237,6 +237,16 @@ void main() {
       semantics.dispose();
     });
 
+    testWidgets('marking keeps the chart it marks', (tester) async {
+      await pump(tester, CategoryBarChart(data: week, onOpenBar: (_) async {}));
+      final before = tester.element(find.byType(BarChart));
+
+      await tester.tapAt(columnTop(tester, 1, 3));
+      await tester.pumpAndSettle();
+
+      expect(tester.element(find.byType(BarChart)), same(before));
+    });
+
     testWidgets('with no callback a tap shows no strip', (tester) async {
       await pump(tester, const CategoryBarChart(data: week));
 
@@ -345,6 +355,19 @@ void main() {
       final linked = await labelWidth((_) async {});
 
       expect(linked, greaterThanOrEqualTo(plain));
+    });
+
+    testWidgets('marking keeps the pie it marks', (tester) async {
+      await pump(
+        tester,
+        DistributionPieChart(data: segments, onOpenSegment: (_) async {}),
+      );
+      final before = tester.element(find.byType(PieChart));
+
+      await tester.tapAt(sliceAt(tester));
+      await tester.pumpAndSettle();
+
+      expect(tester.element(find.byType(PieChart)), same(before));
     });
 
     testWidgets('a legend row with no dives opens nothing', (tester) async {

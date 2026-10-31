@@ -83,12 +83,12 @@ class TankConfigurationCard extends ConsumerWidget {
     Future<void> open<T>(
       ({T key, String label, int count}) row,
       Map<T, List<String>> diveIds,
-    ) => openChartDives(
+    ) => openHeldChartDives(
       context,
       ref,
       chart: l10n.insights_gas_tankConfig_title,
       row: row.label,
-      load: (_, _, _) async => diveIds[row.key] ?? const [],
+      ids: diveIds[row.key] ?? const [],
     );
 
     final base = rows(

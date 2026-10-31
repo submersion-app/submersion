@@ -229,7 +229,7 @@ void main() {
       );
       expect(
         container.read(diveFilterProvider).diveIdsLabel,
-        'Regions Explored: Yucatan',
+        'Regions Explored: Yucatan, Mexico',
       );
     });
   });

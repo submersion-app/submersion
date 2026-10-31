@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_selection_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -198,12 +199,9 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
                     if (onOpenSegment == null || segment.count == 0) {
                       return row;
                     }
-                    return Semantics(
-                      button: true,
-                      child: InkWell(
-                        onTap: () => onOpenSegment(index),
-                        child: row,
-                      ),
+                    return ChartRowLink(
+                      onTap: () => onOpenSegment(index),
+                      child: row,
                     );
                   }),
                 ),
@@ -213,18 +211,21 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
         ),
       ),
     );
-    if (onOpenSegment == null || marked == null) return chart;
-    final segment = data[marked];
+    if (onOpenSegment == null) return chart;
+    final segment = marked == null ? null : data[marked];
+    // Always a Column: swapping the tree on a mark would rebuild the chart
+    // inside its own touch callback.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         chart,
-        ChartSelectionStrip(
-          label: segment.label,
-          countText: context.l10n.insights_filterBar_diveCount(segment.count),
-          onOpen: segment.count > 0 ? () => onOpenSegment(marked) : null,
-        ),
+        if (segment != null)
+          ChartSelectionStrip(
+            label: segment.label,
+            countText: context.l10n.insights_filterBar_diveCount(segment.count),
+            onOpen: segment.count > 0 ? () => onOpenSegment(marked!) : null,
+          ),
       ],
     );
   }

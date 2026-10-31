@@ -111,7 +111,11 @@ class InsightsGeographicPage extends ConsumerWidget {
                 context,
                 ref,
                 chart: context.l10n.insights_geographic_regions_title,
-                row: item.name,
+                // Regions are counted per country, so two rows can share a
+                // name.
+                row: item.subtitle == null
+                    ? item.name
+                    : '${item.name}, ${item.subtitle}',
                 narrow: (scope) => regionDivesFilter(
                   scope,
                   region: item.name,

@@ -146,13 +146,12 @@ class InsightsTimePatternsPage extends ConsumerWidget {
                 for (final segment in raw.segments)
                   timeOfDayColor(segment.label, brightness),
               ],
-              onOpenSegment: (index) => openChartDives(
+              onOpenSegment: (index) => openHeldChartDives(
                 context,
                 ref,
                 chart: context.l10n.insights_timePatterns_timeOfDay_title,
                 row: data[index].label,
-                load: (_, _, _) async =>
-                    raw.diveIdsByBucket[raw.segments[index].label] ?? const [],
+                ids: raw.diveIdsByBucket[raw.segments[index].label] ?? const [],
               ),
             ),
           );

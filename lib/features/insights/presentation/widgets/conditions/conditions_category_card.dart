@@ -45,13 +45,8 @@ class ConditionsCategoryCard<T extends Enum> extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (stat.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
-    Future<void> open(String row, List<String> ids) => openChartDives(
-      context,
-      ref,
-      chart: title,
-      row: row,
-      load: (_, _, _) async => ids,
-    );
+    Future<void> open(String row, List<String> ids) =>
+        openHeldChartDives(context, ref, chart: title, row: row, ids: ids);
     Future<void> openIndex(int index) {
       final value = stat.counts[index].value;
       return open(labelOf(value), stat.diveIdsByValue[value] ?? const []);

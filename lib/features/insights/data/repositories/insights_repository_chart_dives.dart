@@ -53,13 +53,12 @@ mixin InsightsChartDives {
 
   /// The ids of the dives a statistic counts under [filter]: for a chart
   /// whose category a filter can state, the Insights filter narrowed to that
-  /// category. [gas] is the narrower scope the gas charts count under.
+  /// category.
   Future<List<String>> getCountedDiveIds({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
-    bool gas = false,
   }) {
-    final df = _diveFilter(filter, alias: 'd', gas: gas);
+    final df = _diveFilter(filter, alias: 'd');
     return _diveIds(
       'SELECT d.id AS id FROM dives d '
       'WHERE 1=1 ${_diverClause(diverId)} ${df.clause}',

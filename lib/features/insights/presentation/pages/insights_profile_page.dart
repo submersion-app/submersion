@@ -5,6 +5,7 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -384,20 +385,15 @@ class InsightsProfilePage extends ConsumerWidget {
       style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
     );
     if (onOpen == null) return hint;
-    return Semantics(
-      button: true,
-      child: InkWell(
-        onTap: () => onOpen(
-          context.l10n.insights_chart_notRecorded,
-          (ids) => ids.unknown,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(child: hint),
-            Icon(Icons.chevron_right, size: 16, color: color),
-          ],
-        ),
+    return ChartRowLink(
+      onTap: () =>
+          onOpen(context.l10n.insights_chart_notRecorded, (ids) => ids.unknown),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Flexible(child: hint),
+          Icon(Icons.chevron_right, size: 16, color: color),
+        ],
       ),
     );
   }

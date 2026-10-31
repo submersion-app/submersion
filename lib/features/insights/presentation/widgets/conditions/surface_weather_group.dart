@@ -83,12 +83,12 @@ class SurfaceWeatherGroup extends ConsumerWidget {
               total: total,
               onOpenUnrecorded: stats.airTemp.unrecordedDiveIds.isEmpty
                   ? null
-                  : () => openChartDives(
+                  : () => openHeldChartDives(
                       context,
                       ref,
                       chart: l10n.insights_conditions_airTempTrend_title,
                       row: l10n.insights_chart_notRecorded,
-                      load: (_, _, _) async => stats.airTemp.unrecordedDiveIds,
+                      ids: stats.airTemp.unrecordedDiveIds,
                     ),
             ),
           ),

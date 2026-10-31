@@ -47,13 +47,8 @@ class ConditionsBandCard extends ConsumerWidget {
               '${d.label}$unitSymbol: ${l10n.insights_summary_tagUsage_diveCount(d.count)}',
         )
         .join(', ');
-    Future<void> open(String row, List<String> ids) => openChartDives(
-      context,
-      ref,
-      chart: title,
-      row: row,
-      load: (_, _, _) async => ids,
-    );
+    Future<void> open(String row, List<String> ids) =>
+        openHeldChartDives(context, ref, chart: title, row: row, ids: ids);
     final chart = CategoryBarChart(
       data: data,
       barColor: barColor,

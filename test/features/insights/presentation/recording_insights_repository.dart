@@ -10,16 +10,13 @@ class RecordingInsightsRepository extends InsightsRepository {
 
   final List<String> ids;
   DiveFilterState? lastFilter;
-  bool? lastGas;
 
   @override
   Future<List<String>> getCountedDiveIds({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
-    bool gas = false,
   }) async {
     lastFilter = filter;
-    lastGas = gas;
     return ids;
   }
 

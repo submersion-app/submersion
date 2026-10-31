@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,18 +64,15 @@ class ConditionsCoverageLine extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.only(top: 4),
-      child: Semantics(
-        button: true,
-        child: InkWell(
-          onTap: open,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                Expanded(child: text),
-                Icon(Icons.chevron_right, size: 16, color: color),
-              ],
-            ),
+      child: ChartRowLink(
+        onTap: open,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(child: text),
+              Icon(Icons.chevron_right, size: 16, color: color),
+            ],
           ),
         ),
       ),

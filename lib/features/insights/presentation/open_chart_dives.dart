@@ -10,7 +10,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_fil
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-final _log = LoggerService.forClass(ChartDiveIdsLoader);
+const _log = LoggerService('OpenChartDives');
 
 /// Resolves the dives one number on a chart counted, under the Insights
 /// filter [scope] and the current diver.
@@ -87,4 +87,19 @@ Future<void> openFilteredChartDives(
   row: row,
   load: (repository, diverId, scope) =>
       repository.getCountedDiveIds(diverId: diverId, filter: narrow(scope)),
+);
+
+/// [openChartDives] for a chart that kept the ids as it counted.
+Future<void> openHeldChartDives(
+  BuildContext context,
+  WidgetRef ref, {
+  required String chart,
+  required String row,
+  required List<String> ids,
+}) => openChartDives(
+  context,
+  ref,
+  chart: chart,
+  row: row,
+  load: (_, _, _) async => ids,
 );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Horizontal bars of counts, one row per category, in the order given
@@ -138,9 +139,6 @@ class HorizontalCategoryBarChart extends StatelessWidget {
   Widget _tappable(int index, int count, Widget row) {
     final open = onOpenRow;
     if (open == null || count == 0) return row;
-    return Semantics(
-      button: true,
-      child: InkWell(onTap: () => open(index), child: row),
-    );
+    return ChartRowLink(onTap: () => open(index), child: row);
   }
 }
