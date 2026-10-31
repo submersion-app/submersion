@@ -2,10 +2,9 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration_classifier.dart';
 
 /// How a dive's cylinders were carried (issue #3421). Every dive has exactly
-/// one; see [classifyTankConfiguration] for the order the rules are checked.
+/// one; `classifyTankConfiguration` sets the order the rules are checked.
 enum TankBaseConfiguration {
   rebreather,
   sidemount,

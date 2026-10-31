@@ -133,8 +133,11 @@ List<domain.DiveTank> _decodeTanks(String json) => [
       volume: _double(row[2]),
       startPressure: _double(row[3]),
       endPressure: _double(row[4]),
-      gasMix: domain.GasMix(o2: _double(row[5])!, he: _double(row[6])!),
-      order: row[7]! as int,
+      gasMix: domain.GasMix(
+        o2: _double(row[5]) ?? 21.0,
+        he: _double(row[6]) ?? 0,
+      ),
+      order: _int(row[7]),
       name: row[8] as String?,
       presetName: row[9] as String?,
       computerId: row[10] as String?,
@@ -145,11 +148,16 @@ List<domain.DiveTank> _decodeTanks(String json) => [
 
 List<({String tankId, int timestamp})> _decodeSwitches(String json) => [
   for (final row in (jsonDecode(json) as List).cast<List<Object?>>())
-    (tankId: row[0]! as String, timestamp: row[1]! as int),
+    (tankId: row[0]! as String, timestamp: _int(row[1])),
 ];
 
-/// JSON hands back a whole number in a REAL column as an int.
-double? _double(Object? value) => (value as num?)?.toDouble();
+/// A stored number, whichever way SQLite kept it: JSON hands back a whole
+/// number in a REAL column as an int, and column affinity lets a value that
+/// is not a number through. A throw here would fail the whole query, so what
+/// cannot be read counts as not recorded, and the columns' defaults stand in.
+double? _double(Object? value) => value is num ? value.toDouble() : null;
+
+int _int(Object? value) => value is num ? value.toInt() : 0;
 
 /// Whether [tank] belongs to the dive's primary recording, the rule
 /// `tripCylinderIdsTakenFor` uses to tell one recording's cylinders from

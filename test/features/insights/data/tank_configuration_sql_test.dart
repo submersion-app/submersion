@@ -395,6 +395,22 @@ void main() {
       ], base: TankBaseConfiguration.singleBackmount);
     });
 
+    test('a stored value of the wrong type does not fail the query', () async {
+      await insertDive('a');
+      await insertProfile('a');
+      await insertTank('a-0', 'a', 0, const _Tank('backGas'));
+      await insertTank('a-1', 'a', 1, const _Tank('backGas', o2: 32));
+      await insertSwitch('a', 'a-1', 600);
+      await db.customStatement(
+        "UPDATE dive_tanks SET volume = '12 L' WHERE id = 'a-0'",
+      );
+      await db.customStatement('UPDATE gas_switches SET timestamp = 600.5');
+
+      final result = await viaSql('a');
+      expect(result.base, TankBaseConfiguration.singleBackmount);
+      expect(result.extras, {TankConfigurationExtra.multiGas});
+    });
+
     test('tank names needing JSON escaping still classify', () async {
       await expectClassified('a', const [
         _Tank('backGas', name: 'Doppel "12"'),

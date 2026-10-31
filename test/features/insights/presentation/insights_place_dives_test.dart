@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -131,6 +132,15 @@ void main() {
           field('tankConfig', const EnumValue('sidemount')),
           ...counted,
         ]),
+      );
+    });
+
+    // The two conditions restate this predicate, so a new clause there has to
+    // be added to them too, or a bar and its list stop agreeing.
+    test('the conditions cover the whole statistics scope', () {
+      expect(
+        DiveStatsScope.predicate(alias: 'd'),
+        'd.excluded_from_stats = 0 AND d.is_planned = 0',
       );
     });
 
