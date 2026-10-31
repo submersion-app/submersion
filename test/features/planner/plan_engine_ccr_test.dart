@@ -28,7 +28,7 @@ const _bailoutTank = DiveTank(
   id: 'bo',
   volume: 11.1,
   startPressure: 207,
-  gasMix: GasMix(o2: 50),
+  gasMix: GasMix(o2: 18, he: 35),
   role: TankRole.bailout,
 );
 

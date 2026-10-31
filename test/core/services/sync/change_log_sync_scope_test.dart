@@ -76,7 +76,7 @@ void main() {
     final dir = await Directory.systemTemp.createTemp('change_log_sync');
     addTearDown(() => dir.delete(recursive: true));
     final file = File(p.join(dir.path, 'base.json'));
-    await file.writeAsBytes(utf8.encode(serializer.serializePayload(payload)));
+    await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
     return file.path;
   }
 

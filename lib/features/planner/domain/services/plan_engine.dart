@@ -482,6 +482,27 @@ class PlanEngineConfig extends Equatable {
     explicitO2DepthMeters: maxO2DepthMeters,
   );
 
+  /// The open-circuit ascent over [bailoutTanks], which must carry resolved
+  /// roles and be at least one: each gas joins at its cylinder's MOD (issue
+  /// #3567), the one the diver set or the default for a bailout of its mix.
+  /// Call on a [resolvedFor] config, as [decoLimits] says.
+  ///
+  /// The one definition of what a loop plan can bail out on, shared by the
+  /// bailout schedule and the plan's own issue about it (#3961), so the two
+  /// never disagree about which gases reach which depth.
+  OptimalOcAscentGas bailoutAscentGas(
+    List<DiveTank> bailoutTanks,
+    DiveEnvironment environment,
+  ) => OptimalOcAscentGas(
+    maxPpO2: ppO2Deco,
+    gases: ascentGasesFor(
+      bailoutTanks,
+      bottomPpO2: ppO2Working,
+      decoPpO2: decoLimits,
+      environment: environment,
+    ),
+  );
+
   /// [plan]'s low (shallow) setpoint: its own value when set, else the
   /// diver's [ccrSetpointLow] (issue #2801).
   double setpointLowFor(domain.DivePlan plan) =>
@@ -1987,13 +2008,8 @@ class PlanEngine {
           : ppO2OverLimit(outcome.maxPpO2, config.ppO2Working);
 
       // Where on this leg a depth limit is first passed (#3738).
-      int onset(bool Function(double depth) exceeds) => legOnsetRuntime(
-        startRuntime: outcome.startRuntime,
-        durationSeconds: outcome.endRuntime - outcome.startRuntime,
-        startDepth: leg.startDepth,
-        endDepth: leg.endDepth,
-        exceeds: exceeds,
-      );
+      int onset(bool Function(double depth) exceeds) =>
+          _legOnset(leg, outcome, exceeds);
       // The same ppO2 the leg's maxPpO2 was taken from, at any depth.
       double ppO2At(double depth) => segmentIsLoop
           ? _breathingFor(
@@ -2340,11 +2356,73 @@ class PlanEngine {
           message: 'Decompression plan carries no bailout gas',
         ),
       );
+    } else {
+      // One or the other: a plan told it carries no bailout gas has no use
+      // for the MOD of the loop's own supply, which still resolves to bailout.
+      final bailoutGasIssue = _bailoutGasIssue(
+        plan,
+        legs,
+        segmentOutcomes,
+        environment,
+      );
+      if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
     }
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
     return issues;
+  }
+
+  /// The runtime [leg], with its [outcome], first passes a depth limit.
+  int _legOnset(
+    ResolvedLeg leg,
+    SegmentOutcome outcome,
+    bool Function(double depth) exceeds,
+  ) => legOnsetRuntime(
+    startRuntime: outcome.startRuntime,
+    durationSeconds: outcome.endRuntime - outcome.startRuntime,
+    startDepth: leg.startDepth,
+    endDepth: leg.endDepth,
+    exceeds: exceeds,
+  );
+
+  /// The loop can die anywhere, and carrying a bailout gas does not help
+  /// where it may not be breathed (#3961), so this does not wait for deco as
+  /// [PlanIssueType.noBailoutCarried] does: a no-stop dive needs a gas to
+  /// leave on too. Eligibility runs from a gas's MOD to the surface, so
+  /// [legs]' deepest point answers for every other failure depth.
+  PlanIssue? _bailoutGasIssue(
+    domain.DivePlan plan,
+    List<ResolvedLeg> legs,
+    List<SegmentOutcome> segmentOutcomes,
+    DiveEnvironment environment,
+  ) {
+    if (plan.mode == domain.PlanMode.oc) return null;
+    final bailoutTanks = plan.tanks
+        .where((t) => t.role == TankRole.bailout)
+        .toList();
+    if (bailoutTanks.isEmpty) return null;
+    final gases = config.bailoutAscentGas(bailoutTanks, environment);
+    final deepest = legs.fold(0.0, (d, leg) => math.max(d, leg.deeperEnd));
+    if (gases.coversDepth(deepest)) return null;
+    final firstPast = legs.indexWhere(
+      (leg) => !gases.coversDepth(leg.deeperEnd),
+    );
+    return PlanIssue(
+      type: PlanIssueType.noEligibleBailoutGas,
+      severity: PlanIssueSeverity.alert,
+      message:
+          'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
+          'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
+      atRuntime: _legOnset(
+        legs[firstPast],
+        segmentOutcomes[firstPast],
+        (depth) => !gases.coversDepth(depth),
+      ),
+      atDepth: deepest,
+      value: deepest,
+      threshold: gases.deepestMod,
+    );
   }
 
   /// The runtime at which [usage]'s cylinder first drops to [pressureBar],

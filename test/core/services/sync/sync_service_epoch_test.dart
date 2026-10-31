@@ -592,6 +592,115 @@ void main() {
       },
     );
 
+    /// Publishes [dive] as 'replacer's changeset at seq 2, on top of a seeded
+    /// base, with a head that claims it. [checksum] replaces the real one, for
+    /// a test of a changeset that fails it.
+    Future<void> seedChangesetAfterBase(
+      Map<String, dynamic> dive, {
+      String? checksum,
+    }) async {
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      final folder = await cloud.getOrCreateSyncFolder();
+      final data = SyncData(dives: [dive]);
+      await cloud.uploadFile(
+        await const ChangesetCodec().encodeChangeset(
+          SyncPayload(
+            version: syncFormatVersion,
+            exportedAt: 1,
+            deviceId: 'replacer',
+            checksum: checksum ?? SyncDataSerializer.checksumOf(data),
+            data: data,
+            deletions: const {},
+            seq: 2,
+          ),
+        ),
+        ChangesetLogLayout.changesetName('replacer', 2),
+        folderId: folder,
+      );
+      final manifest = (await ownManifest(cloud, 'replacer'))!;
+      final manifestJson =
+          jsonDecode(utf8.decode(manifest.toBytes())) as Map<String, dynamic>;
+      await cloud.uploadFile(
+        Uint8List.fromList(
+          utf8.encode(jsonEncode({...manifestJson, 'headSeq': 2})),
+        ),
+        ChangesetLogLayout.manifestName('replacer'),
+        folderId: folder,
+      );
+    }
+
+    test('adoption applies a changeset published after the base', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'later'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 2);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'later'),
+        isNotNull,
+      );
+    });
+
+    test('adoption stops at a changeset that fails its checksum', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      // A whole row and a head that claims it, so only the checksum can
+      // refuse it.
+      await seedChangesetAfterBase({
+        ...row!,
+        'id': 'injected',
+      }, checksum: 'not the checksum');
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'injected'),
+        isNull,
+      );
+    });
+
+    test('adoption stops at a changeset whose envelope is corrupt', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'sealed'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final changeset = ChangesetLogLayout.changesetName('replacer', 2);
+      cloud
+        ..failDownloadsWhere = ((id) => id.endsWith(changeset))
+        ..downloadFailure = const EnvelopeCorruptException('bad tag');
+
+      final result = await service.adoptReplacedLibrary();
+
+      // Held in the cloud but unusable here, as a failed checksum is, so the
+      // library is adopted up to it and pull retries from there.
+      expect(result.isSuccess, isTrue);
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(await SyncDataSerializer().fetchRecord('dives', 'sealed'), isNull);
+    });
+
     test('a dropped connection reports failure and recovers nothing', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
@@ -892,9 +1001,9 @@ void main() {
       final csFile = files
           .where((f) => f.name == ChangesetLogLayout.changesetName(deviceId, 1))
           .single;
-      final payload = ChangesetCodec(
-        SyncDataSerializer(),
-      ).decodeChangeset(await cloud.downloadFile(csFile.id));
+      final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
+        await cloud.downloadFile(csFile.id),
+      )).payload;
       final diveIds = payload.data.dives.map((d) => d['id']).toSet();
       expect(diveIds.contains('my-dive'), isTrue);
       expect(
