@@ -73,19 +73,10 @@ class GasAnalysisService {
         orElse: () => tanks.first,
       );
 
-      // Skip a segment no sample falls in
-      final hasSamples = profile.any(
-        (p) => p.timestamp >= startTime && p.timestamp < endTime,
-      );
-
-      if (!hasSamples) continue;
-
       // Calculate depth statistics
-      final (:avgDepth, :minDepth, :maxDepth) = _segmentDepths(
-        profile,
-        startTime,
-        endTime,
-      );
+      final segmentDepths = _segmentDepths(profile, startTime, endTime);
+      if (segmentDepths == null) continue;
+      final (:avgDepth, :minDepth, :maxDepth) = segmentDepths;
 
       // Calculate SAC for this segment
       // Window to prorate a pressure-series-less tank across: its own
@@ -199,12 +190,6 @@ class GasAnalysisService {
     // Calculate SAC for each phase segment
     final segments = <SacSegment>[];
     for (final seg in mergedSegments) {
-      final hasSamples = profile.any(
-        (p) => p.timestamp >= seg.start && p.timestamp < seg.end,
-      );
-
-      if (!hasSamples) continue;
-
       // Find active tank for this segment
       final tank = activeTankAt(
         tanks: tanks,
@@ -215,11 +200,9 @@ class GasAnalysisService {
       if (tank == null) continue;
 
       // Calculate depth statistics
-      final (:avgDepth, minDepth: minD, maxDepth: maxD) = _segmentDepths(
-        profile,
-        seg.start,
-        seg.end,
-      );
+      final segmentDepths = _segmentDepths(profile, seg.start, seg.end);
+      if (segmentDepths == null) continue;
+      final (:avgDepth, minDepth: minD, maxDepth: maxD) = segmentDepths;
 
       // Calculate SAC
       // Same proration window as the gas-switch path: a tank that was only
@@ -422,10 +405,10 @@ class GasAnalysisService {
   // Private Helper Methods
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Depth over the whole of a segment that holds at least one sample. A
-  /// segment's own slice of the profile stops short of [end] and may start
-  /// after [start], so it would leave out the time at either edge.
-  static ({double avgDepth, double minDepth, double maxDepth}) _segmentDepths(
+  /// Depth over the whole of a segment, reading the profile at its edges so a
+  /// stint between two samples still has one. Null when the profile does not
+  /// reach the segment.
+  static ({double avgDepth, double minDepth, double maxDepth})? _segmentDepths(
     List<DiveProfilePoint> profile,
     int start,
     int end,
@@ -437,6 +420,7 @@ class GasAnalysisService {
       time: (p) => p.timestamp,
       value: (p) => p.depth,
     );
+    if (window.isEmpty) return null;
     final depths = window.map((s) => s.value);
     return (
       avgDepth: timeWeightedMeanOfWindow(window)!,

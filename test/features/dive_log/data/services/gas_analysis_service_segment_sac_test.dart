@@ -61,21 +61,29 @@ void main() {
       gasMix: GasMix(o2: 21, he: 0),
     );
 
-    test('a gas switch segment normalizes by its time-weighted depth', () {
-      final switches = [
+    const backGas = DiveTank(
+      id: 't0',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 150,
+      gasMix: GasMix(o2: 21, he: 0),
+    );
+    GasSwitchWithTank switchTo(String tankId, int timestamp) =>
         GasSwitchWithTank(
           gasSwitch: GasSwitch(
-            id: 'gs1',
+            id: 'gs-$tankId-$timestamp',
             diveId: 'dive-1',
-            timestamp: 0,
-            tankId: 't1',
+            timestamp: timestamp,
+            tankId: tankId,
             createdAt: DateTime(2026),
           ),
-          tankName: 't1',
+          tankName: tankId,
           gasMix: 'air',
           o2Fraction: 0.21,
-        ),
-      ];
+        );
+
+    test('a gas switch segment normalizes by its time-weighted depth', () {
+      final switches = [switchTo('t1', 0)];
 
       SacSegment segmentOf(List<DiveProfilePoint> profile) => service
           .calculateGasSwitchSegments(
@@ -97,24 +105,11 @@ void main() {
     });
 
     test('a gas switch between samples starts the mean on the ramp', () {
-      GasSwitchWithTank switchAt(String id, int timestamp) => GasSwitchWithTank(
-        gasSwitch: GasSwitch(
-          id: id,
-          diveId: 'dive-1',
-          timestamp: timestamp,
-          tankId: 't1',
-          createdAt: DateTime(2026),
-        ),
-        tankName: 't1',
-        gasMix: 'air',
-        o2Fraction: 0.21,
-      );
-
       final segment = service
           .calculateGasSwitchSegments(
             profile: uneven,
             tanks: const [tank],
-            gasSwitches: [switchAt('gs1', 90)],
+            gasSwitches: [switchTo('t1', 90)],
             tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
           )!
           .single;
@@ -126,32 +121,38 @@ void main() {
       expect(segment.maxDepth, closeTo(30, 1e-9));
     });
 
+    test('a stint between two samples is still a segment', () {
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 10),
+        DiveProfilePoint(timestamp: 600, depth: 30),
+      ];
+
+      final segments = service.calculateGasSwitchSegments(
+        profile: profile,
+        tanks: const [backGas, tank],
+        gasSwitches: [
+          switchTo('t0', 0),
+          switchTo('t1', 120),
+          switchTo('t0', 420),
+        ],
+        tankPressures: {
+          't0': linearPressure('t0', 200, 150, 600),
+          't1': linearPressure('t1', 200, 100, 600),
+        },
+      )!;
+
+      // 120 s to 420 s, from 14 m to 24 m.
+      final stint = segments.singleWhere((s) => s.tankId == 't1');
+      expect(stint.avgDepth, closeTo(19, 1e-9));
+      expect(stint.minDepth, closeTo(14, 1e-9));
+      expect(stint.maxDepth, closeTo(24, 1e-9));
+    });
+
     test('a usage range between samples still reads the depth there', () {
       const profile = [
         DiveProfilePoint(timestamp: 0, depth: 10),
         DiveProfilePoint(timestamp: 600, depth: 30),
       ];
-      const backGas = DiveTank(
-        id: 't0',
-        volume: 12,
-        startPressure: 200,
-        endPressure: 150,
-        gasMix: GasMix(o2: 21, he: 0),
-      );
-      GasSwitchWithTank switchTo(String tankId, int timestamp) =>
-          GasSwitchWithTank(
-            gasSwitch: GasSwitch(
-              id: 'gs-$tankId',
-              diveId: 'dive-1',
-              timestamp: timestamp,
-              tankId: tankId,
-              createdAt: DateTime(2026),
-            ),
-            tankName: tankId,
-            gasMix: 'air',
-            o2Fraction: 0.21,
-          );
-
       final results = service.calculateCylinderSac(
         dive: Dive(
           id: 'dive-1',

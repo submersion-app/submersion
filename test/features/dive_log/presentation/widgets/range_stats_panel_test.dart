@@ -235,6 +235,29 @@ void main() {
       expect(find.text('30.0m'), findsOneWidget);
     });
 
+    testWidgets('a range between two samples still has depth and SAC (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds no sample: 15 m to 25 m on the ramp.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('15.0m'), findsOneWidget);
+      expect(find.text('25.0m'), findsOneWidget);
+      expect(find.text('20.0m'), findsOneWidget);
+      // 50 bar over 5 min at 3 bar ambient: 3.3 bar/min, 40.0 L/min of 12 L.
+      expect(find.text('3.3 bar/min'), findsOneWidget);
+      expect(find.text('40.0 L/min'), findsOneWidget);
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 

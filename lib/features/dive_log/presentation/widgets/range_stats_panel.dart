@@ -151,8 +151,7 @@ class RangeStatsPanel extends ConsumerWidget {
   /// average depth) comes from.
   ///
   /// The duration is the selection's own span, so a range holding a single
-  /// sample of a sparse profile still has one; it needs only a sample for
-  /// the depth.
+  /// sample of a sparse profile still has one; it needs only a depth.
   RangeGasConsumption _gasConsumption(
     WidgetRef ref,
     RangeSelectionState rangeState,
@@ -161,7 +160,7 @@ class RangeStatsPanel extends ConsumerWidget {
     final pressures = ref
         .watch(activeSourceTankPressuresProvider(diveId))
         .value;
-    if (pressures == null || pressures.isEmpty || stats.sampleCount == 0) {
+    if (pressures == null || pressures.isEmpty || stats.depthPointCount == 0) {
       return (sac: null, rmv: null);
     }
     return rangeGasConsumption(
@@ -404,9 +403,18 @@ class RangeStatsPanel extends ConsumerWidget {
         )
         .toList();
 
-    if (rangePoints.isEmpty) {
+    // Depth over the whole selection, even one between two samples
+    final window = samplesInWindow(
+      profile,
+      start: rangeState.startTimestamp!,
+      end: rangeState.endTimestamp!,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+
+    if (window.isEmpty) {
       return const _RangeStats(
-        sampleCount: 0,
+        depthPointCount: 0,
         elapsedSeconds: 0,
         depthDelta: 0,
         minDepth: 0,
@@ -419,29 +427,25 @@ class RangeStatsPanel extends ConsumerWidget {
     }
 
     // Elapsed time
-    final elapsedSeconds =
-        rangePoints.last.timestamp - rangePoints.first.timestamp;
+    final elapsedSeconds = rangePoints.isEmpty
+        ? 0
+        : rangePoints.last.timestamp - rangePoints.first.timestamp;
 
     // Depth stats (needed even for zero-duration to populate min/max/avg)
-    final window = samplesInWindow(
-      profile,
-      start: rangeState.startTimestamp!,
-      end: rangeState.endTimestamp!,
-      time: (p) => p.timestamp,
-      value: (p) => p.depth,
-    );
     final depths = window.map((s) => s.value).toList();
     final minDepth = depths.reduce(math.min);
     final maxDepth = depths.reduce(math.max);
     final avgDepth = timeWeightedMeanOfWindow(window)!;
 
     // Depth delta (signed: positive = deeper)
-    final depthDelta = rangePoints.last.depth - rangePoints.first.depth;
+    final depthDelta = rangePoints.isEmpty
+        ? 0.0
+        : rangePoints.last.depth - rangePoints.first.depth;
 
     // Guard: zero-duration range has no meaningful rates
     if (elapsedSeconds <= 0) {
       return _RangeStats(
-        sampleCount: rangePoints.length,
+        depthPointCount: window.length,
         elapsedSeconds: 0,
         depthDelta: depthDelta,
         minDepth: minDepth,
@@ -496,7 +500,7 @@ class RangeStatsPanel extends ConsumerWidget {
     }
 
     return _RangeStats(
-      sampleCount: rangePoints.length,
+      depthPointCount: window.length,
       elapsedSeconds: elapsedSeconds,
       depthDelta: depthDelta,
       minDepth: minDepth,
@@ -516,7 +520,7 @@ class RangeStatsPanel extends ConsumerWidget {
 /// Internal class to hold range statistics
 class _RangeStats {
   /// Profile samples inside the range.
-  final int sampleCount;
+  final int depthPointCount;
   final int elapsedSeconds;
   final double depthDelta;
   final double minDepth;
@@ -531,7 +535,7 @@ class _RangeStats {
   final int? maxHR;
 
   const _RangeStats({
-    required this.sampleCount,
+    required this.depthPointCount,
     required this.elapsedSeconds,
     required this.depthDelta,
     required this.minDepth,
