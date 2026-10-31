@@ -41,7 +41,7 @@ void main() {
     final bytes = await codec.encodeChangeset(payload);
     final back = await codec.decodeChangeset(bytes);
     expect(back.seq, 3);
-    expect(serializer.validateChecksum(back), isTrue);
+    expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
 
   test('base encode (chunked) -> reassemble -> decode round-trips', () async {
@@ -53,7 +53,7 @@ void main() {
     final parts = await codec.encodeBaseParts(payload, partSize: 64);
     expect(parts.length, greaterThanOrEqualTo(1));
     final back = await codec.decodeBaseParts(parts);
-    expect(serializer.validateChecksum(back), isTrue);
+    expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
 
   group('on a worker', () {

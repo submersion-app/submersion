@@ -34,7 +34,7 @@ ApplyBaseFile spyApplyBaseFile(List<SyncPayload> applied) {
 /// - `cloud.seedFile('submersion_sync_<peer>.json', bytes)` -> [seedPeerLog]
 ///   (publish real data as a peer) or [seedPeerManifest] (just make a peer
 ///   discoverable).
-/// - `serializer.deserializePayload(cloud.syncFileBytes())` -> [cloudBasePayload]
+/// - `SyncPayload.fromJson(jsonDecode(cloud.syncFileBytes()) as Map<String, dynamic>)` -> [cloudBasePayload]
 ///   (read our own exported base back) / [hasPublishedLog] / [ownManifest].
 
 /// A writer with compaction disabled: a single changeset can exceed 30% of a

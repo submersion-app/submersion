@@ -57,7 +57,12 @@ class ChangesetCodec {
     OffIsolateRunner runner,
   ) => runOffIsolate(
     () => utf8.encode(jsonEncode(payload.toJson())),
-    bytes: syncJsonWeight(payload.toJson(), limit: minBytes),
+    bytes: syncJsonWeight([
+      payload.data.toJson(),
+      // Lazy, so a long tombstone list is not built just to be measured.
+      for (final list in payload.deletions.values)
+        list.map((deletion) => deletion.toJson()),
+    ], limit: minBytes),
     minBytes: minBytes,
     runner: runner,
   );

@@ -480,7 +480,7 @@ void main() {
           },
         ];
         final data = SyncData(dives: [diveRow], diveProfiles: profiles);
-        // SyncPayload.toJson (and so SyncDataSerializer.serializePayload,
+        // SyncPayload.toJson (and so ChangesetCodec.encodeChangeset,
         // which the other adopt tests use to write a base file) routes
         // through data.toJson, which drops diveProfiles (inbound only), so
         // the payload bytes are built by hand instead, exactly as the

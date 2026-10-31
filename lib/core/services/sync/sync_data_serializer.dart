@@ -2960,25 +2960,11 @@ class SyncDataSerializer {
   /// True when a previous apply left rows staged that it could not place.
   Future<bool> hasStagedLegacySamples() => hasStagedLegacyRows(_db);
 
-  /// Convert payload to JSON string
-  String serializePayload(SyncPayload payload) {
-    return jsonEncode(payload.toJson());
-  }
-
-  /// Parse JSON string to payload
-  SyncPayload deserializePayload(String json) {
-    final map = jsonDecode(json) as Map<String, dynamic>;
-    return SyncPayload.fromJson(map);
-  }
-
   /// Validate checksum of payload.
   ///
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
-
-  /// [validateChecksum] without an instance, for nearby sync's receiver.
   static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
     return _sha256Hex(dataJson) == payload.checksum;

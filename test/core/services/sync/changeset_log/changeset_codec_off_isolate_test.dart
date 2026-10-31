@@ -28,9 +28,6 @@ class _Hops {
   }
 }
 
-Future<R> _neverHops<R>(FutureOr<R> Function() work) =>
-    throw StateError('this payload should have stayed on this isolate');
-
 const _hlcA = '000000000000005:000000:aaa';
 const _hlcB = '000000000000009:000000:bbb';
 
@@ -104,9 +101,13 @@ void main() {
     });
 
     test('a small payload stays on this isolate', () async {
-      await const ChangesetCodec(
-        offIsolateRunner: _neverHops,
+      final hops = _Hops();
+
+      await ChangesetCodec(
+        offIsolateRunner: hops.run,
       ).encodeChangeset(_payload());
+
+      expect(hops.count, 0);
     });
 
     test('a payload past the threshold goes to a worker', () async {
@@ -309,10 +310,13 @@ void main() {
     test('small bytes stay on this isolate', () async {
       final bytes = await const ChangesetCodec().encodeChangeset(_payload());
 
-      final decoded = await const ChangesetCodec(
-        offIsolateRunner: _neverHops,
+      final hops = _Hops();
+
+      final decoded = await ChangesetCodec(
+        offIsolateRunner: hops.run,
       ).decodeVerifiedChangeset(bytes);
 
+      expect(hops.count, 0);
       expect(decoded.checksumValid, isTrue);
     });
 
@@ -368,12 +372,14 @@ void main() {
 
     test('small data stays on this isolate', () async {
       final data = _payload().data;
+      final hops = _Hops();
 
       final checksum = await SyncDataSerializer.checksumOfOffIsolate(
         data,
-        runner: _neverHops,
+        runner: hops.run,
       );
 
+      expect(hops.count, 0);
       expect(checksum, SyncDataSerializer.checksumOf(data));
     });
 
@@ -414,6 +420,42 @@ void main() {
 
       expect(weight, greaterThanOrEqualTo(1000));
       expect(visited, lessThan(1000));
+    });
+
+    test('empty containers still count, so the walk stays bounded', () {
+      var visited = 0;
+      final rows = Iterable<Object?>.generate(1000000, (i) {
+        visited++;
+        return const <String, dynamic>{};
+      });
+
+      final weight = syncJsonWeight(rows, limit: 1000);
+
+      expect(weight, greaterThanOrEqualTo(1000));
+      expect(visited, lessThan(1000));
+    });
+
+    test('a long list of deletions counts toward a hop', () async {
+      final hops = _Hops();
+      final payload = _payload();
+      final heavy = SyncPayload(
+        version: payload.version,
+        exportedAt: payload.exportedAt,
+        deviceId: payload.deviceId,
+        checksum: payload.checksum,
+        data: payload.data,
+        deletions: {
+          'dives': [
+            for (var i = 0; i < kOffIsolateMinBytes ~/ 20; i++)
+              SyncDeletion(id: 'gone-$i', deletedAt: i, hlc: _hlcA),
+          ],
+        },
+      );
+
+      await ChangesetCodec(offIsolateRunner: hops.run).encodeChangeset(heavy);
+
+      expect(hops.count, 1);
+      expect(hops.failures, isEmpty);
     });
   });
 }
