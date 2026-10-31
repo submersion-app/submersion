@@ -49686,7 +49686,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'בחרו טווח בגרף כדי לאפשר פעולות';
+      'גררו על הגרף כדי לבחור טווח ולאפשר פעולות';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'עומק +1m';
@@ -49791,6 +49791,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => 'אין נתוני פרופיל זמינים';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'לא ניתן להזיז: אין לבחירה מקום בכיוון זה';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'לא ניתן למחוק את הפרופיל כולו';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'לא ניתן להחליק: בחרו לפחות שלוש דגימות';
 
   @override
   String get diveLog_profileEditor_undo => 'ביטול פעולה';
@@ -51220,6 +51232,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'מוחרגת';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'כל הצלילות שלך מוחרגות מהסטטיסטיקות';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'הן עדיין ביומן שלך. ערוך צלילה כדי לכלול אותה שוב.';
 
   @override
   String insights_excludedDivesFootnote(int count) {

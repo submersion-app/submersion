@@ -50642,7 +50642,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Wählen Sie im Diagramm einen Bereich aus, um Aktionen zu aktivieren';
+      'Ziehen Sie über das Diagramm, um einen Bereich auszuwählen und Aktionen zu aktivieren';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Tiefe +1 m';
@@ -50746,6 +50746,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'Keine Profildaten verfügbar';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Verschieben nicht möglich: Die Auswahl hat in dieser Richtung keinen Platz';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Das gesamte Profil kann nicht gelöscht werden';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Glätten nicht möglich: Wählen Sie mindestens drei Messpunkte aus';
 
   @override
   String get diveLog_profileEditor_undo => 'Rückgängig';
@@ -52229,6 +52241,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Ausgeschlossen';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Alle deine Tauchgänge sind von Statistiken ausgeschlossen';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Sie bleiben in deinem Logbuch. Bearbeite einen Tauchgang, um ihn wieder mitzuzählen.';
 
   @override
   String insights_excludedDivesFootnote(int count) {

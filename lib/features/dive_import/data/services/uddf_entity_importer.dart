@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_import/data/services/import_service_clo
 import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/imported_gas_switches.dart';
 import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
@@ -57,7 +58,6 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
-import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
@@ -3252,79 +3252,6 @@ class UddfEntityImporter {
         );
       }
 
-      // Insert gas switches
-      final gasSwitchesData =
-          diveData['gasSwitches'] as List<Map<String, dynamic>>?;
-      if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
-        // Build lookups from both UDDF tank ID and UDDF gas mix UUID to the
-        // persisted tank row id. MacDive-style switches reference a gas mix
-        // UUID (via <switchmix ref>), while top-level <gasswitches>
-        // entries reference a tank UUID (via <tankref>); we accept either.
-        // FIT imports carry no refs at all and address tanks positionally
-        // via `tankIndex`.
-        final tankIdByRef = <String, String>{};
-        final tankIdByGasMixRef = <String, String>{};
-        final tanksData = diveData['tanks'] as List<Map<String, dynamic>>?;
-        if (tanksData != null) {
-          for (var i = 0; i < tanks.length && i < tanksData.length; i++) {
-            final tank = tanks[i];
-            final tankData = tanksData[i];
-            final ref = (tankData['uddfTankId'] as String?)?.trim();
-            if (ref != null && ref.isNotEmpty) {
-              tankIdByRef[ref] = tank.id;
-            }
-            final gasMixRef = (tankData['uddfGasMixRef'] as String?)?.trim();
-            // First tank linked to a given gas wins; later tanks sharing the
-            // same gas don't overwrite. This is a pragmatic resolution for
-            // dives where multiple tanks carry the same mix.
-            if (gasMixRef != null &&
-                gasMixRef.isNotEmpty &&
-                !tankIdByGasMixRef.containsKey(gasMixRef)) {
-              tankIdByGasMixRef[gasMixRef] = tank.id;
-            }
-          }
-        }
-
-        final switches = gasSwitchesData
-            .map((gs) {
-              final timestamp = gs['timestamp'] as int?;
-              if (timestamp == null) return null;
-              final tankRef = (gs['tankRef'] as String?)?.trim();
-              final gasMixRef = (gs['gasMixRef'] as String?)?.trim();
-              String? tankId;
-              if (tankRef != null && tankRef.isNotEmpty) {
-                tankId = tankIdByRef[tankRef];
-              }
-              if ((tankId == null || tankId.isEmpty) &&
-                  gasMixRef != null &&
-                  gasMixRef.isNotEmpty) {
-                tankId = tankIdByGasMixRef[gasMixRef];
-              }
-              if (tankId == null || tankId.isEmpty) {
-                final tankIndex = gs['tankIndex'] as int?;
-                if (tankIndex != null &&
-                    tankIndex >= 0 &&
-                    tankIndex < tanks.length) {
-                  tankId = tanks[tankIndex].id;
-                }
-              }
-              if (tankId == null || tankId.isEmpty) return null;
-              return GasSwitch(
-                id: _uuid.v4(),
-                diveId: diveId,
-                timestamp: timestamp,
-                tankId: tankId,
-                depth: gs['depth'] as double?,
-                createdAt: now,
-              );
-            })
-            .whereType<GasSwitch>()
-            .toList();
-        if (switches.isNotEmpty) {
-          await repos.diveRepository.insertGasSwitches(switches);
-        }
-      }
-
       // Persist profile events emitted by the parser. Currently supported (Slice C + C.2):
       // setpointChange, bookmark, safetyStopStart, decoStopStart, decoViolation,
       // ascentRateWarning, ppO2High, ppO2Low. Future slices may add more types as
@@ -3396,6 +3323,7 @@ class UddfEntityImporter {
           ? SourceDiver.unqualifyForFile(diverKey, sourceFileId)
           : diverKey;
 
+      var computerIdByOrdinal = const <int, String?>{};
       if (sourceEntries.isEmpty) {
         final dataSourceId = _uuid.v4();
 
@@ -3465,7 +3393,7 @@ class UddfEntityImporter {
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].id.value,
         };
-        final computerIdByOrdinal = <int, String?>{
+        computerIdByOrdinal = {
           for (var i = 0; i < sourceEntries.length; i++)
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].computerId.value,
@@ -3499,6 +3427,19 @@ class UddfEntityImporter {
             restored.single.id.value,
           );
         }
+      }
+
+      // After the source rows, never before: a switch names its computer by
+      // the ordinal of a <source>, which only they resolve (issue #3966).
+      final switches = importedGasSwitches(
+        diveData,
+        diveId: diveId,
+        tanks: tanks,
+        computerIdByOrdinal: computerIdByOrdinal,
+        now: now,
+      );
+      if (switches.isNotEmpty) {
+        await repos.diveRepository.insertGasSwitches(switches);
       }
 
       // Every further computer the dive was worn with (issue #2672). After

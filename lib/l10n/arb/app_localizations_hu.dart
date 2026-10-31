@@ -50473,7 +50473,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Jelöljön ki egy tartományt a grafikonon a műveletek engedélyezéséhez';
+      'Húzzon a grafikonon egy tartomány kijelöléséhez és a műveletek engedélyezéséhez';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Mélység +1m';
@@ -50579,6 +50579,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => 'Nincs elérhető profiladat';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Az eltolás nem lehetséges: a kijelölésnek nincs helye ebben az irányban';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'A teljes profil nem törölhető';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'A simítás nem lehetséges: jelöljön ki legalább három mérést';
 
   @override
   String get diveLog_profileEditor_undo => 'Visszavonás';
@@ -52054,6 +52066,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Kizárva';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Minden merülésed ki van zárva a statisztikákból';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'A naplódban továbbra is megvannak. Szerkessz egy merülést, hogy újra beleszámítson.';
 
   @override
   String insights_excludedDivesFootnote(int count) {

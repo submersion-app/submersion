@@ -51392,7 +51392,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'حدّد نطاقًا على الرسم البياني لتفعيل العمليات';
+      'اسحب على الرسم البياني لتحديد نطاق وتفعيل العمليات';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'العمق +1m';
@@ -51500,6 +51500,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'لا تتوفر بيانات ملف الغوصة';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'تعذّرت الإزاحة: لا توجد مساحة للتحديد في هذا الاتجاه';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'تعذّر حذف ملف الغوصة بالكامل';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'تعذّر التنعيم: حدّد ثلاث قراءات على الأقل';
 
   @override
   String get diveLog_profileEditor_undo => 'تراجع';
@@ -52963,6 +52975,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'مستبعدة';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'جميع غطساتك مستبعدة من الإحصائيات';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'لا تزال في سجلك. عدّل غطسة لاحتسابها مجددًا.';
 
   @override
   String insights_excludedDivesFootnote(int count) {

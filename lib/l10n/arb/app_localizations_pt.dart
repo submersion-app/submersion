@@ -50761,7 +50761,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Selecione um intervalo no gráfico para habilitar as operações';
+      'Arraste pelo gráfico para selecionar um intervalo e habilitar as operações';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Profundidade +1m';
@@ -50866,6 +50866,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'Nenhum dado de perfil disponível';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Não é possível deslocar: a seleção não tem espaço nessa direção';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Não é possível excluir o perfil inteiro';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Não é possível suavizar: selecione pelo menos três amostras';
 
   @override
   String get diveLog_profileEditor_undo => 'Desfazer';
@@ -52345,6 +52357,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Excluído';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Todos os seus mergulhos estão excluídos das estatísticas';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Continuam no seu registo. Edite um mergulho para voltar a contá-lo.';
 
   @override
   String insights_excludedDivesFootnote(int count) {

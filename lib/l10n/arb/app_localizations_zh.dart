@@ -47623,7 +47623,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_rangeOperations => '范围操作';
 
   @override
-  String get diveLog_profileEditor_selectRangeHint => '在图表上选择一个范围以启用操作';
+  String get diveLog_profileEditor_selectRangeHint => '在图表上拖动以选择范围并启用操作';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => '深度 +1m';
@@ -47723,6 +47723,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_noProfileData => '没有可用的轮廓数据';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked => '无法移动：所选范围在该方向上没有空间';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked => '无法删除整个轮廓';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked => '无法平滑：请至少选择三个采样点';
 
   @override
   String get diveLog_profileEditor_undo => '撤消';
@@ -49076,6 +49085,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => '已排除';
+
+  @override
+  String get insights_empty_allExcluded_title => '您的所有潜水都已从统计中排除';
+
+  @override
+  String get insights_empty_allExcluded_subtitle => '它们仍保留在日志中。编辑潜水即可重新计入统计。';
 
   @override
   String insights_excludedDivesFootnote(int count) {
