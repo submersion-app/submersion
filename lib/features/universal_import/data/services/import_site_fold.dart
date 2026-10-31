@@ -36,8 +36,9 @@ const double _unnamedFoldMeters = 100;
 /// carries nothing worth importing and is dropped.
 ///
 /// With [foldSameName], named entries also fold into an earlier entry of the
-/// same name nearby. Subsurface needs that: it starts a new site whenever a
-/// dive's GPS drifts. UDDF passes false, because Submersion's own export can
+/// same name nearby, or one with no position that states no different place.
+/// Subsurface needs that: it starts a new site whenever a dive's GPS drifts.
+/// UDDF passes false, because Submersion's own export can
 /// carry two distinct sites under one name and a round trip must keep both;
 /// its unnamed entries still fold, which is what collapses the one-site-per-
 /// dive placeholders Oceanic+ writes (#2938).
