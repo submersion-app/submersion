@@ -1657,8 +1657,6 @@ class ProfileAnalysisService {
 
     double totalCns = 0.0;
     double totalOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
 
@@ -1668,13 +1666,6 @@ class ProfileAnalysisService {
 
       // Use average ppO2 for segment
       final avgPpO2 = (ppO2Curve[i - 1] + ppO2Curve[i]) / 2.0;
-      final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
-
-      // Track max ppO2
-      if (avgPpO2 > maxPpO2) {
-        maxPpO2 = avgPpO2;
-        depthAtMaxPpO2 = avgDepth;
-      }
 
       // Calculate CNS for this segment
       totalCns += _o2ToxicityCalculator.calculateCnsForSegment(
@@ -1697,12 +1688,14 @@ class ProfileAnalysisService {
       }
     }
 
+    final peak = O2ToxicityCalculator.peakPpO2(ppO2Curve, depths);
+
     return O2Exposure(
       cnsStart: startCns,
       cnsEnd: startCns + totalCns,
       otu: totalOtu,
-      maxPpO2: maxPpO2,
-      maxPpO2Depth: depthAtMaxPpO2,
+      maxPpO2: peak.ppO2,
+      maxPpO2Depth: peak.depth,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
       warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
@@ -1742,10 +1735,13 @@ class ProfileAnalysisService {
     final otuCurve = <double>[0.0];
     double cumulativeCns = startCns;
     double cumulativeOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
+    // The curve holds one gas per sample. A switch also needs both gases at
+    // the switch itself, which may fall between samples or leave a sample's
+    // outgoing gas off the curve.
+    final peakPpO2s = [...ppO2Curve];
+    final peakDepths = [...depths];
 
     for (int i = 1; i < depths.length; i++) {
       final intervalStart = timestamps[i - 1];
@@ -1803,10 +1799,13 @@ class ProfileAnalysisService {
           o2Fraction,
         );
 
-        if (avgPpO2 > maxPpO2) {
-          maxPpO2 = avgPpO2;
-          depthAtMaxPpO2 = avgDepth;
-        }
+        // On one gas, ppO2 follows depth, so it peaks at an end of the stretch.
+        peakPpO2s
+          ..add(O2ToxicityCalculator.calculatePpO2(startDepth, o2Fraction))
+          ..add(O2ToxicityCalculator.calculatePpO2(endDepth, o2Fraction));
+        peakDepths
+          ..add(startDepth)
+          ..add(endDepth);
 
         cumulativeCns += _o2ToxicityCalculator.calculateCnsForSegment(
           avgPpO2,
@@ -1829,6 +1828,8 @@ class ProfileAnalysisService {
       otuCurve.add(cumulativeOtu);
     }
 
+    final peak = O2ToxicityCalculator.peakPpO2(peakPpO2s, peakDepths);
+
     return (
       o2Fractions: o2Fractions,
       n2Fractions: n2Fractions,
@@ -1838,8 +1839,8 @@ class ProfileAnalysisService {
         cnsStart: startCns,
         cnsEnd: cumulativeCns,
         otu: cumulativeOtu,
-        maxPpO2: maxPpO2,
-        maxPpO2Depth: depthAtMaxPpO2,
+        maxPpO2: peak.ppO2,
+        maxPpO2Depth: peak.depth,
         timeAboveWarning: timeAboveWarning,
         timeAboveCritical: timeAboveCritical,
         warningThreshold: _o2ToxicityCalculator.ppO2WarningThreshold,
