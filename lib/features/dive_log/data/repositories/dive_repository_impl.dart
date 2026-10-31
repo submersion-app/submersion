@@ -3550,11 +3550,11 @@ class DiveRepository {
 
   /// Search dives by name, notes, buddy, dive master, site name/country/
   /// region, dive center name, linked buddy names, tag names, custom fields,
-  /// or dive types, returning lightweight [DiveSummary] rows.
+  /// dive types, or dive number, returning lightweight [DiveSummary] rows.
   ///
   /// Matches through the Dives search row's own text search
-  /// (`diveQueryEntity.textSearchSql`), so the two can never disagree on what
-  /// a term finds (issue #2884).
+  /// (`textSearchSql` and `textSearchExpansions` on `diveQueryEntity`), so the
+  /// two can never disagree on what a term finds (issue #2884).
   ///
   /// Exactly four SQL statements regardless of match count (match ids,
   /// summary rows, batched tags, batched dive types), bounded to the [limit]

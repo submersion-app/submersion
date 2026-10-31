@@ -1725,11 +1725,7 @@ class UddfFullImportService {
       if (switchesElement != null) {
         final switchesList = <Map<String, dynamic>>[];
         for (final gsElement in switchesElement.findElements('gasswitch')) {
-          final gs = <String, dynamic>{
-            'computerOrdinal': int.tryParse(
-              gsElement.getAttribute('computer') ?? '',
-            ),
-          };
+          final gs = <String, dynamic>{};
           final time = UddfImportParsers.getElementText(gsElement, 'time');
           if (time != null) {
             gs['timestamp'] = UddfImportParsers.parseUddfInt(time);
@@ -1750,6 +1746,15 @@ class UddfFullImportService {
           final he = UddfImportParsers.getElementText(gsElement, 'hefraction');
           if (he != null) {
             gs['heFraction'] = double.tryParse(he);
+          }
+          // Which <source> of the dive recorded the computer that logged the
+          // switch (issue #3966), resolved once the source rows are restored.
+          final computer = UddfImportParsers.getElementText(
+            gsElement,
+            'computer',
+          );
+          if (computer != null) {
+            gs['computerOrdinal'] = int.tryParse(computer);
           }
           switchesList.add(gs);
         }

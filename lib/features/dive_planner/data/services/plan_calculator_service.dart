@@ -162,7 +162,7 @@ class PlanCalculatorService {
     }
 
     // O2 toxicity calculator for CNS%/OTU accumulation, which both depend
-    // only on the actual breathed ppO2 (depth x O2 fraction), never on any
+    // only on the actual breathed ppO2 (ambient x O2 fraction), never on any
     // limit - neither the flat ppO2Critical/ppO2Warning passed here nor the
     // per-band limit below affects those totals.
     final o2Calc = O2ToxicityCalculator(
@@ -235,11 +235,10 @@ class PlanCalculatorService {
       final heFrac = segment.gasMix.he / 100.0;
       final n2Frac = 1.0 - o2Frac - heFrac;
 
-      // Calculate ppO2 for this segment
-      final segmentMaxPpO2 = O2ToxicityCalculator.calculatePpO2(
-        leg.deeperEnd,
-        o2Frac,
-      );
+      // Calculate ppO2 for this segment, in the plan's water, as PlanEngine
+      // does (issue #3913)
+      final segmentMaxPpO2 =
+          environment.pressureAtDepth(leg.deeperEnd) * o2Frac;
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
       // Check ppO2 limits. The critical threshold is this segment's own
@@ -249,9 +248,7 @@ class PlanCalculatorService {
       // live preview agrees with the final, saved plan result. Only used
       // for display here - the breach check itself goes through
       // decoCeilingBreachedFor, which compares depth directly for an
-      // explicit-depth gas instead of this (environment-aware) ppO2 against
-      // segmentMaxPpO2 (the flat-model one), a mismatch a Copilot review
-      // caught disagreeing in salt water/at altitude.
+      // explicit-depth gas instead of this ppO2.
       final segmentDecoPpO2 = decoCeilingPpO2For(
         segment.gasMix,
         decoLimits,
@@ -277,7 +274,7 @@ class PlanCalculatorService {
             threshold: segmentDecoPpO2,
           ),
         );
-      } else if (segmentMaxPpO2 > ppO2Warning) {
+      } else if (ppO2OverLimit(segmentMaxPpO2, ppO2Warning)) {
         warnings.add(
           PlanWarning(
             type: PlanWarningType.ppO2High,
@@ -335,7 +332,7 @@ class PlanCalculatorService {
       }
 
       // Calculate CNS and OTU for segment
-      final avgPpO2 = O2ToxicityCalculator.calculatePpO2(avgDepth, o2Frac);
+      final avgPpO2 = environment.pressureAtDepth(avgDepth) * o2Frac;
       final segmentCns = o2Calc.calculateCnsForSegment(
         avgPpO2,
         segment.durationSeconds,

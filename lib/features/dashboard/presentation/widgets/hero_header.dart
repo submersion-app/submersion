@@ -7,6 +7,7 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -94,11 +95,13 @@ class HeroHeader extends ConsumerWidget {
                           final screenWidth = MediaQuery.sizeOf(context).width;
                           final isNarrow = screenWidth < 600;
                           return Text(
-                            _buildHeadlineStats(
-                              context,
-                              career,
-                              isNarrow: isNarrow,
-                            ),
+                            career.combinedDives == 0
+                                ? _noDivesHeadline(context, ref)
+                                : _buildHeadlineStats(
+                                    context,
+                                    career,
+                                    isNarrow: isNarrow,
+                                  ),
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: Colors.white.withValues(alpha: 0.9),
                             ),
@@ -147,13 +150,27 @@ class HeroHeader extends ConsumerWidget {
     return context.l10n.dashboard_greeting_evening;
   }
 
+  /// A career of zero is not an empty logbook when every dive is excluded, so
+  /// the first-dive prompt waits for the logbook counts.
+  String _noDivesHeadline(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return ref
+        .watch(logbookDiveCountsProvider)
+        .when(
+          loading: () => l10n.dashboard_hero_loading,
+          error: (_, _) => l10n.dashboard_hero_error,
+          data: (counts) => counts.allExcluded
+              ? l10n.insights_empty_allExcluded_title
+              : l10n.dashboard_hero_noDives,
+        );
+  }
+
   String _buildHeadlineStats(
     BuildContext context,
     CareerTotals career, {
     bool isNarrow = false,
   }) {
     final dives = career.combinedDives;
-    if (dives == 0) return context.l10n.dashboard_hero_noDives;
 
     final parts = <String>[];
 

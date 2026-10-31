@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
@@ -161,7 +162,6 @@ class UddfExportBuilders {
     List<Trip>? trips,
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
-    // This dive's <source> entries, which name the computer of a gas switch.
     List<DiveSourceExport> sources = const [],
   }) {
     // Find the trip this dive belongs to
@@ -711,44 +711,47 @@ class UddfExportBuilders {
                 },
               );
             }
-            // Export gas switches (source data from dive computers)
-            if (gasSwitches.isNotEmpty) {
-              builder.element(
-                'gasswitches',
-                nest: () {
-                  for (final gs in gasSwitches) {
-                    final computer = UddfSourceAttribution.computerOrdinalOf(
-                      sources,
-                      gs.gasSwitch.computerId,
-                    );
-                    builder.element(
-                      'gasswitch',
-                      attributes: {'computer': ?computer?.toString()},
-                      nest: () {
-                        builder.element('time', nest: gs.timestamp.toString());
-                        if (gs.depth != null) {
-                          builder.element('depth', nest: gs.depth.toString());
-                        }
-                        builder.element('tankref', nest: gs.tankId);
-                        builder.element('gasmix', nest: gs.gasMix);
-                        builder.element(
-                          'o2fraction',
-                          nest: gs.o2Fraction.toString(),
-                        );
-                        if (gs.heFraction > 0) {
-                          builder.element(
-                            'hefraction',
-                            nest: gs.heFraction.toString(),
-                          );
-                        }
-                      },
-                    );
-                  }
-                },
-              );
-            }
+            buildGasSwitches(builder, gasSwitches, sources);
           },
         );
+      },
+    );
+  }
+
+  /// Writes [gasSwitches], the source data from dive computers, for a dive
+  /// with [sources]. Shared by the full backup and the dives-only export;
+  /// writes nothing for a dive with none.
+  static void buildGasSwitches(
+    XmlBuilder builder,
+    List<GasSwitchWithTank> gasSwitches,
+    List<DiveSourceExport> sources,
+  ) {
+    if (gasSwitches.isEmpty) return;
+    builder.element(
+      'gasswitches',
+      nest: () {
+        for (final gs in gasSwitches) {
+          builder.element(
+            'gasswitch',
+            nest: () {
+              builder.element('time', nest: gs.timestamp.toString());
+              if (gs.depth != null) {
+                builder.element('depth', nest: gs.depth.toString());
+              }
+              builder.element('tankref', nest: gs.tankId);
+              builder.element('gasmix', nest: gs.gasMix);
+              builder.element('o2fraction', nest: gs.o2Fraction.toString());
+              if (gs.heFraction > 0) {
+                builder.element('hefraction', nest: gs.heFraction.toString());
+              }
+              UddfSourceAttribution.writeSwitchComputer(
+                builder,
+                gs.gasSwitch.computerId,
+                sources,
+              );
+            },
+          );
+        }
       },
     );
   }
@@ -2013,9 +2016,10 @@ class UddfExportBuilders {
         attributes: {'id': 'tank_${tank.id}'},
         nest: () {
           // Link to gas mix
-          final mixId =
-              'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-          builder.element('link', attributes: {'ref': mixId});
+          builder.element(
+            'link',
+            attributes: {'ref': UddfGasMixWriters.mixId(tank.gasMix)},
+          );
           // Tank name
           if (includeIdentity && tank.name != null && tank.name!.isNotEmpty) {
             builder.element('tankname', nest: tank.name);
@@ -2090,9 +2094,7 @@ class UddfExportBuilders {
   /// logged (issue #1878).
   static String? startMixId(Dive dive) {
     final tank = dive.tanks.firstOrNull;
-    return tank == null
-        ? null
-        : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
+    return tank == null ? null : UddfGasMixWriters.mixId(tank.gasMix);
   }
 
   /// Find pressure at a given timestamp using binary search.

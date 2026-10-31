@@ -3170,10 +3170,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         dive.exitMethod != null;
   }
 
-  bool _hasWeights(Dive dive) {
-    return dive.weights.isNotEmpty ||
-        (dive.weightAmount != null && dive.weightAmount! > 0);
-  }
+  bool _hasWeights(Dive dive) => dive.recordedWeightKg != null;
 
   bool _hasExposureSuit(Dive dive) => dive.equipment.any(
     (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,

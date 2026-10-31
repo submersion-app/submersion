@@ -14,7 +14,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
-import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -69,17 +68,13 @@ void main() {
     createdAt: Value(stamp.add(Duration(seconds: order))),
   );
 
-  Future<void> seedDive(
-    List<(int, double)> primarySamples, {
-    List<domain.DiveTank> tanks = const [],
-  }) async {
+  Future<void> seedDive(List<(int, double)> primarySamples) async {
     await repository.createDive(
       domain.Dive(
         id: 'dive-a',
         diveNumber: 1,
         diverId: diverId,
         dateTime: DateTime.utc(2026, 3, 1, 9),
-        tanks: tanks,
         profile: points(primarySamples),
       ),
     );
@@ -101,16 +96,13 @@ void main() {
   }
 
   /// A full backup of the logbook, read the way the app reads it.
-  Future<String> backup({
-    Map<String, List<GasSwitchWithTank>>? gasSwitches,
-  }) async {
+  Future<String> backup() async {
     final dives = await attachMergedProfiles(
       repository,
       await repository.getAllDives(diverId: diverId),
     );
     return UddfFullExportService().generateAllDataXmlForTest(
       dives: dives,
-      diveGasSwitches: gasSwitches,
       dataSources: await repository.getSourcesForExport([
         for (final dive in dives) dive.id,
       ]),
@@ -285,62 +277,6 @@ void main() {
       'src-a.uddf': '0:0.0 30:9.0 60:0.0',
       'src-b.uddf': '10:0.0 40:20.0 70:0.0',
     });
-  });
-
-  test('each gas switch keeps the computer that logged it', () async {
-    final first = await registerComputer('111');
-    final second = await registerComputer('222');
-    await seedDive(
-      [(0, 0), (30, 10), (60, 0)],
-      tanks: const [
-        domain.DiveTank(id: 'tank-1', gasMix: domain.GasMix(o2: 32)),
-      ],
-    );
-    await repository.saveComputerReading(
-      reading('src-a', primary: true, computerId: first, serial: '111'),
-    );
-    await repository.saveAdditionalComputerReading(
-      reading: reading(
-        'src-b',
-        primary: false,
-        computerId: second,
-        serial: '222',
-        order: 1,
-      ),
-      profile: points([(10, 0), (40, 20), (70, 0)]),
-    );
-    GasSwitch gasSwitch(String id, int timestamp, String? computerId) =>
-        GasSwitch(
-          id: id,
-          diveId: 'dive-a',
-          timestamp: timestamp,
-          tankId: 'tank-1',
-          createdAt: stamp,
-          computerId: computerId,
-        );
-    await repository.insertGasSwitches([
-      // The same second on both computers, and one on neither.
-      gasSwitch('gs-a', 20, first),
-      gasSwitch('gs-b', 20, second),
-      gasSwitch('gs-c', 25, null),
-    ]);
-
-    final xml = await backup(
-      gasSwitches: {'dive-a': await repository.getGasSwitchesForDive('dive-a')},
-    );
-    await restoreUddfDives(xml, diverId: diverId);
-
-    final restored = await repository.getGasSwitchesForDive(
-      await restoredDiveId(),
-    );
-    expect(
-      {
-        for (final s in restored)
-          (s.gasSwitch.timestamp, s.gasSwitch.computerId),
-      },
-      {(20, first), (20, second), (25, null)},
-    );
-    expect(restored, hasLength(3));
   });
 
   test('a series naming no source restores naming none', () async {

@@ -10,12 +10,17 @@ class ConnectionsEmptyState extends StatelessWidget {
     super.key,
     required this.view,
     required this.hasAnyDives,
+    this.allDivesExcluded = false,
     this.hasActiveFilter = false,
     this.buddiesWithoutSites = false,
   });
 
   final ConnectionsViewState view;
   final bool hasAnyDives;
+
+  /// True when dives exist but the diver excluded every one, so they are out
+  /// of the graph's scope; the message then says so rather than "no dives".
+  final bool allDivesExcluded;
 
   /// True when the diver's own filter is what emptied the graph; the message
   /// then blames the filter rather than missing data.
@@ -34,6 +39,8 @@ class ConnectionsEmptyState extends StatelessWidget {
     final involvesBuddies = kinds.contains(ConnectionKind.buddy);
     final text = view.isAroundWithoutFocus
         ? l10n.connections_around_prompt
+        : allDivesExcluded
+        ? l10n.insights_empty_allExcluded_title
         : !hasAnyDives
         ? l10n.connections_empty_noDives
         : hasActiveFilter

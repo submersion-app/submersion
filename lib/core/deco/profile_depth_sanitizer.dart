@@ -23,7 +23,7 @@ const double maxPlausibleRateMetersPerMin = 60.0;
 const int _repairPasses = 2;
 
 /// Returns [depths] with single-sample outliers replaced by the linear
-/// interpolation of their neighbours.
+/// interpolation over time of their neighbours.
 ///
 /// A sample is an outlier only when the profile jumps away from it and
 /// straight back: both the rate into it and the rate out of it exceed
@@ -64,7 +64,14 @@ List<double> repairDepthOutliers(
           outOf.abs() > maxRateMetersPerMin &&
           into.sign != outOf.sign;
       if (isSpike) {
-        repaired[i] = (repaired[i - 1] + repaired[i + 1]) / 2.0;
+        // Out-of-order timestamps can pass the spike test, so the span may be
+        // empty or the sample may lie outside it.
+        final span = timestamps[i + 1] - timestamps[i - 1];
+        final fraction = span > 0
+            ? ((timestamps[i] - timestamps[i - 1]) / span).clamp(0.0, 1.0)
+            : 0.5;
+        repaired[i] =
+            repaired[i - 1] + (repaired[i + 1] - repaired[i - 1]) * fraction;
         changed = true;
       }
     }

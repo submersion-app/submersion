@@ -36,6 +36,16 @@ class CcrLoopAscentGas extends AscentGasPlan {
   double setpointAt(double depthMeters) =>
       depthMeters > switchDepth ? setpointHigh : setpointLow;
 
+  /// The loop's real inspired ppO2 at [depthMeters]: the setpoint in force,
+  /// clamped to alveolar pressure where the diluent can no longer dilute
+  /// enough. Never ambient x a [gasForDepth] fraction, which is normalized
+  /// against alveolar pressure and overstates ppO2 as depth shrinks.
+  double inspiredPpO2At(double depthMeters) => ClosedCircuit(
+    setpoint: setpointAt(depthMeters),
+    diluentFO2: diluentFO2,
+    diluentFHe: diluentFHe,
+  ).inspiredAt(environment.pressureAtDepth(depthMeters)).pO2;
+
   @override
   AscentGas gasForDepth(double depthMeters) {
     final ambient = environment.pressureAtDepth(depthMeters);

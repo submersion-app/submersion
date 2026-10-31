@@ -8,7 +8,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 
 /// Submersion's extension blocks that say which `<source>` of a dive
 /// recorded what (issue #2492): each tank row, each tank pressure series,
-/// and each depth series (issue #3965).
+/// and each depth series (issue #3965). A gas switch names its computer the
+/// same way (#3966), in a `<computer>` of its own `<gasswitch>`.
 ///
 /// The standard `<tankpressure>` in a waypoint names a cylinder and nothing
 /// else, and holds one reading per cylinder per sample. So a backup of a
@@ -55,6 +56,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// `<dcdump>` is over a dump: every field of every sample, exactly, at a
 /// fraction of the size of writing them out, since each of these recordings
 /// is also in `<samples>`. `primary` is the series' own flag, not the source's.
+///
+/// A switch names its computer inside its `<gasswitch>`, because nothing in
+/// the file identifies a switch for a block to point at: two computers can
+/// log one second on one merged cylinder. It takes no `source`, as
+/// `gas_switches` stores none.
 class UddfSourceAttribution {
   const UddfSourceAttribution._();
 
@@ -63,6 +69,17 @@ class UddfSourceAttribution {
   static const String seriesKey = 'tankPressureSeries';
   static const String tanksKey = 'tankSources';
   static const String profilesKey = 'sourceProfiles';
+
+  /// [sources] by the dive each belongs to.
+  static Map<String, List<DiveSourceExport>> groupByDive(
+    List<DiveSourceExport> sources,
+  ) {
+    final byDive = <String, List<DiveSourceExport>>{};
+    for (final source in sources) {
+      (byDive[source.diveId] ??= []).add(source);
+    }
+    return byDive;
+  }
 
   /// Writes the blocks for every dive of [dives] that has two or more
   /// entries in [sources], with its pressure series from [pressures] and its
@@ -78,10 +95,7 @@ class UddfSourceAttribution {
     required Map<String, DiveTankPressureExport> pressures,
     required List<DiveSourceExport> sources,
   }) {
-    final sourcesByDive = <String, List<DiveSourceExport>>{};
-    for (final source in sources) {
-      (sourcesByDive[source.diveId] ??= []).add(source);
-    }
+    final sourcesByDive = groupByDive(sources);
     final attributed = [
       for (final dive in dives)
         if ((sourcesByDive[dive.id]?.length ?? 0) >= 2) dive,
@@ -182,6 +196,25 @@ class UddfSourceAttribution {
     );
   }
 
+  /// Writes the `<computer>` of a `<gasswitch>` that [computerId] logged, the
+  /// ordinal of one of its dive's [sources] that computer recorded. Writes
+  /// nothing for a switch with no computer, which stays the whole dive's, or
+  /// one no source recorded.
+  ///
+  /// A dive with one source needs this too, unlike the blocks: that source
+  /// adopts what a restore cannot place, but a switch left unattributed
+  /// applies to every computer rather than to it.
+  static void writeSwitchComputer(
+    XmlBuilder builder,
+    String? computerId,
+    List<DiveSourceExport> sources,
+  ) {
+    final ordinal = _computerOrdinal(sources, computerId, null);
+    if (ordinal != null) {
+      builder.element('computer', nest: ordinal.toString());
+    }
+  }
+
   /// The `<tank>` attributes for [tank], or null when neither its source
   /// nor its computer is one of [sources]: a hand-added tank, or one whose
   /// source was never recorded, restores as it is written today.
@@ -200,14 +233,6 @@ class UddfSourceAttribution {
       'computer': ?computer?.toString(),
     };
   }
-
-  /// The ordinal a row with no source of its own names [computerId] by: a
-  /// `<gasswitch>`'s `computer` attribute (issue #3965). Null for no computer,
-  /// or one none of [sources] recorded.
-  static int? computerOrdinalOf(
-    List<DiveSourceExport> sources,
-    String? computerId,
-  ) => _computerOrdinal(sources, computerId, null);
 
   /// The ordinal of a source in [sources] that [computerId] recorded: the
   /// row's own source ([sourceId]) when it did, else the first that did.

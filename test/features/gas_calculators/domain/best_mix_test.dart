@@ -431,6 +431,63 @@ void main() {
     });
   });
 
+  group('ppO2Environment (issue #3913)', () {
+    final seaWater = DiveEnvironment.forConditions(waterType: WaterType.salt);
+    BestMixInputs inputsAt(double depthMeters) => BestMixInputs(
+      depthMeters: depthMeters,
+      ppO2Limit: 1.4,
+      endLimitMeters: 30,
+      o2Narcotic: true,
+    );
+
+    test('sizes the O2 fraction in that water', () {
+      final flat = computeBestMix(inputsAt(30));
+      final inWater = computeBestMix(
+        inputsAt(30).copyWith(ppO2Environment: seaWater),
+      );
+
+      expect(flat.recommended.mix.o2, 35);
+      expect(inWater.recommended.mix.o2, 34);
+      expect(inWater.recommended.marginMeters, greaterThanOrEqualTo(0));
+      expect(
+        seaWater.pressureAtDepth(30) * inWater.recommended.mix.o2 / 100,
+        lessThanOrEqualTo(1.4),
+      );
+    });
+
+    test('leaves the END and the helium on the mode model', () {
+      final result = computeBestMix(
+        inputsAt(45).copyWith(ppO2Environment: seaWater),
+      );
+      final mix = result.recommended.mix;
+
+      expect(mix.he, greaterThan(0));
+      expect(
+        result.recommended.endMeters,
+        closeTo(mix.end(45, o2Narcotic: true), 1e-9),
+      );
+    });
+
+    test('a standard mix is judged by the same ceiling', () {
+      final inWater = inputsAt(33.6).copyWith(ppO2Environment: seaWater);
+      final ean32ModInSeaWater = maxOperatingDepthMeters(
+        0.32,
+        maxPpO2: 1.4,
+        environment: seaWater,
+      );
+
+      expect(ean32ModInSeaWater, lessThan(33.6));
+      expect(
+        coveringStandardMixes(inputsAt(33.6)).map((m) => m.o2Percent),
+        contains(32),
+      );
+      expect(
+        coveringStandardMixes(inWater).map((m) => m.o2Percent),
+        isNot(contains(32)),
+      );
+    });
+  });
+
   group('review fixes', () {
     BestMixInputs tec(double depth, {bool o2Narcotic = true}) => BestMixInputs(
       depthMeters: depth,

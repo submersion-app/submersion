@@ -62,8 +62,10 @@ class ProfileEditingService {
 
   /// Remove outlier points by replacing them with linearly interpolated values.
   ///
-  /// For each outlier, replaces its depth with a linear interpolation between
-  /// its nearest non-outlier neighbors. All other fields are preserved.
+  /// For each outlier, replaces its depth with a linear interpolation over
+  /// time between its nearest non-outlier neighbors, falling back to sample
+  /// position when those neighbors span no time. All other fields are
+  /// preserved.
   List<DiveProfilePoint> removeOutliers(
     List<DiveProfilePoint> profile,
     List<OutlierResult> outliers,
@@ -78,14 +80,11 @@ class ProfileEditingService {
       if (idx < 0 || idx >= profile.length) continue;
 
       // Find nearest non-outlier neighbors
-      double? leftDepth;
-      double? rightDepth;
       int? leftIdx;
       int? rightIdx;
 
       for (int j = idx - 1; j >= 0; j--) {
         if (!outlierIndices.contains(j)) {
-          leftDepth = profile[j].depth;
           leftIdx = j;
           break;
         }
@@ -93,7 +92,6 @@ class ProfileEditingService {
 
       for (int j = idx + 1; j < profile.length; j++) {
         if (!outlierIndices.contains(j)) {
-          rightDepth = profile[j].depth;
           rightIdx = j;
           break;
         }
@@ -101,14 +99,20 @@ class ProfileEditingService {
 
       // Interpolate
       double interpolatedDepth;
-      if (leftDepth != null && rightDepth != null) {
-        // Linear interpolation based on index position
-        final ratio = (idx - leftIdx!) / (rightIdx! - leftIdx);
-        interpolatedDepth = leftDepth + (rightDepth - leftDepth) * ratio;
-      } else if (leftDepth != null) {
-        interpolatedDepth = leftDepth;
-      } else if (rightDepth != null) {
-        interpolatedDepth = rightDepth;
+      if (leftIdx != null && rightIdx != null) {
+        // Linear interpolation based on timestamp; the clamp keeps an
+        // out-of-order sample between its neighbors
+        final left = profile[leftIdx];
+        final right = profile[rightIdx];
+        final span = right.timestamp - left.timestamp;
+        final ratio = span > 0
+            ? ((profile[idx].timestamp - left.timestamp) / span).clamp(0.0, 1.0)
+            : (idx - leftIdx) / (rightIdx - leftIdx);
+        interpolatedDepth = left.depth + (right.depth - left.depth) * ratio;
+      } else if (leftIdx != null) {
+        interpolatedDepth = profile[leftIdx].depth;
+      } else if (rightIdx != null) {
+        interpolatedDepth = profile[rightIdx].depth;
       } else {
         continue; // All points are outliers -- skip
       }
@@ -213,7 +217,7 @@ class ProfileEditingService {
   /// Shift timestamps of all points within a range.
   ///
   /// Returns null if the shift would cause timestamps to overlap with
-  /// points outside the range.
+  /// points outside the range, or move a point before the start of the dive.
   List<DiveProfilePoint>? shiftSegmentTime(
     List<DiveProfilePoint> profile, {
     required int startTimestamp,
@@ -240,6 +244,12 @@ class ProfileEditingService {
     final shiftedStart = start + timeDelta;
     final shiftedEnd = end + timeDelta;
 
+    // A secondary computer's samples can start before zero.
+    final earliest = profile.fold(
+      0,
+      (low, point) => math.min(low, point.timestamp),
+    );
+    if (shiftedStart < earliest) return null;
     if (lastBeforeRange != null && shiftedStart <= lastBeforeRange) {
       return null;
     }
