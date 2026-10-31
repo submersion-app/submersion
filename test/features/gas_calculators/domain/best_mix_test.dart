@@ -470,13 +470,13 @@ void main() {
 
     test('a standard mix is judged by the same ceiling', () {
       final inWater = inputsAt(33.6).copyWith(ppO2Environment: seaWater);
-      final flatModInSeaWater = maxOperatingDepthMeters(
+      final ean32ModInSeaWater = maxOperatingDepthMeters(
         0.32,
         maxPpO2: 1.4,
         environment: seaWater,
       );
 
-      expect(flatModInSeaWater, lessThan(33.6));
+      expect(ean32ModInSeaWater, lessThan(33.6));
       expect(
         coveringStandardMixes(inputsAt(33.6)).map((m) => m.o2Percent),
         contains(32),
