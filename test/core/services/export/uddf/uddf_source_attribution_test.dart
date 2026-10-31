@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -310,6 +311,13 @@ void main() {
           diveGasSwitches: switches,
         );
 
+    Future<String> divesOnly(List<DiveSourceExport> sources) =>
+        UddfExportService().generateDivesUddfContent(
+          [dive],
+          dataSources: sources,
+          extras: UddfDivesExtras(diveGasSwitches: switches),
+        );
+
     List<(String?, String?)> computersIn(String xml) => [
       for (final gs in XmlDocument.parse(xml).findAllElements('gasswitch'))
         (
@@ -318,25 +326,45 @@ void main() {
         ),
     ];
 
-    test('names the ordinal of a source that computer recorded', () async {
-      expect(computersIn(await backup(sources)), [
-        ('0', '0'),
-        ('30', '1'),
-        ('60', null),
-        ('90', null),
-      ]);
-    });
+    for (final (name, generate) in [
+      ('full backup', backup),
+      ('dives-only export', divesOnly),
+    ]) {
+      group(name, () {
+        test('names the ordinal of a source that computer recorded', () async {
+          expect(computersIn(await generate(sources)), [
+            ('0', '0'),
+            ('30', '1'),
+            ('60', null),
+            ('90', null),
+          ]);
+        });
 
-    test('names it on a dive with a single source too', () async {
-      // A lone source adopts the pressure series and tanks a restore cannot
-      // place, but a switch with no computer applies to every computer.
-      expect(computersIn(await backup([sources.first])), [
-        ('0', '0'),
-        ('30', null),
-        ('60', null),
-        ('90', null),
-      ]);
-    });
+        test('names it on a dive with a single source too', () async {
+          // A lone source adopts the pressure series and tanks a restore cannot
+          // place, but a switch with no computer applies to every computer.
+          expect(computersIn(await generate([sources.first])), [
+            ('0', '0'),
+            ('30', null),
+            ('60', null),
+            ('90', null),
+          ]);
+        });
+
+        test('parses each switch back with its ordinal', () async {
+          final parsed = await ExportService().importAllDataFromUddf(
+            await generate(sources),
+          );
+          final entries =
+              parsed.dives.single['gasSwitches'] as List<Map<String, dynamic>>;
+
+          expect(
+            [for (final e in entries) (e['timestamp'], e['computerOrdinal'])],
+            [(0, 0), (30, 1), (60, null), (90, null)],
+          );
+        });
+      });
+    }
 
     test('names none when the sources are left out', () async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
@@ -349,17 +377,16 @@ void main() {
       expect(xml, isNot(contains('<computer>')));
     });
 
-    test('parses each switch back with its ordinal', () async {
-      final parsed = await ExportService().importAllDataFromUddf(
-        await backup(sources),
+    test('the dives-only export names none without the sources', () async {
+      final xml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        dataSources: sources,
+        extras: UddfDivesExtras(diveGasSwitches: switches),
+        options: const UddfExportOptions(includeRawData: false),
       );
-      final entries =
-          parsed.dives.single['gasSwitches'] as List<Map<String, dynamic>>;
 
-      expect(
-        [for (final e in entries) (e['timestamp'], e['computerOrdinal'])],
-        [(0, 0), (30, 1), (60, null), (90, null)],
-      );
+      expect(xml, contains('<gasswitch>'));
+      expect(xml, isNot(contains('<computer>')));
     });
   });
 

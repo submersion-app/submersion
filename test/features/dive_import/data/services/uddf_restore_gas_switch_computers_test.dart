@@ -4,6 +4,8 @@
 // every switch behind on the original dive.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
@@ -185,6 +187,34 @@ void main() {
     expect(await switchesOf(newDiveId), [(30, 'SN-B')]);
     expect(await switchesOf(diveId), [(0, 'SN-A')]);
   });
+
+  test(
+    'a dives-only export carries the switches and their computers',
+    () async {
+      // The export used to write no switch at all, whoever logged it.
+      final xml = await UddfExportService().generateDivesUddfContent(
+        [dive],
+        dataSources: [sourceA, sourceB],
+        extras: UddfDivesExtras(
+          diveGasSwitches: {
+            'dive-a': [
+              gasSwitch(0, 'tank-a', 'comp-a'),
+              gasSwitch(30, 'tank-b', 'comp-b'),
+              gasSwitch(60, 'tank-a', null),
+            ],
+          },
+        ),
+      );
+
+      await restore(xml);
+
+      expect(await switchesOf(await restoredDiveId()), [
+        (0, 'SN-A'),
+        (30, 'SN-B'),
+        (60, null),
+      ]);
+    },
+  );
 
   test('keeps the two computers apart on one second and cylinder', () async {
     // A merged cylinder: nothing but the computer tells these two apart.

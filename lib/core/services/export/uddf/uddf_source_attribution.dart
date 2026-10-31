@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// Submersion's extension blocks that say which `<source>` of a dive
 /// recorded what (issue #2492): each tank row, and each tank pressure
 /// series. A gas switch names its computer the same way (#3966), in a
-/// `<computer>` of its own `<gasswitch>`; only the full backup writes those.
+/// `<computer>` of its own `<gasswitch>`.
 ///
 /// The standard `<tankpressure>` in a waypoint names a cylinder and nothing
 /// else, and holds one reading per cylinder per sample. So a backup of a

@@ -16,6 +16,7 @@ import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -48,6 +49,7 @@ class UddfExportService {
     final sources = options.includeRawData
         ? (dataSources ?? const <DiveSourceExport>[])
         : const <DiveSourceExport>[];
+    final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
     final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
     final encoded = await UddfDumpCodec.encodeAll(
       withBytes.map((s) => s.rawData!).toList(growable: false),
@@ -640,6 +642,11 @@ class UddfExportService {
                               );
                             }
                             UddfDiveCustomFields.write(builder, dive);
+                            UddfExportBuilders.buildGasSwitches(
+                              builder,
+                              extras.diveGasSwitches[dive.id] ?? const [],
+                              sourcesByDive[dive.id] ?? const [],
+                            );
                           },
                         );
                       },
