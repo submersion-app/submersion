@@ -42,6 +42,14 @@ abstract final class ChangeLogLabels {
   static const merge = 'merge';
   static const undoMerge = 'undo_merge';
   static const undoRule = 'undo_rule';
+  static const reparse = 'reparse';
+  static const splitDive = 'split_dive';
+  static const gearTransfer = 'gear_transfer';
+  static const mediaRepair = 'media_repair';
+  static const gearFileConversion = 'gear_file_conversion';
+  static const galleryBackfill = 'gallery_backfill';
+  static const mediaCleanup = 'media_cleanup';
+  static const accountMigration = 'account_migration';
   static const qualityRepair = 'quality_repair';
   static const libraryAdopted = 'library_adopted';
   static const libraryReplaced = 'library_replaced';
@@ -103,6 +111,19 @@ abstract final class ChangeLogScope {
   }) {
     if (Zone.current[_scopeKey] != null) return body();
     return run(db, source: ChangeLogSource.manual, label: label, body: body);
+  }
+
+  /// A background job: one [ChangeLogSource.automatic] operation, or part of
+  /// the scope already running. Without this a job's writes would look like
+  /// the diver's. Keep [body] to the writes: anything the diver saves while
+  /// it runs gets its label.
+  static Future<T> automatic<T>(
+    AppDatabase? db, {
+    required String label,
+    required Future<T> Function() body,
+  }) {
+    if (Zone.current[_scopeKey] != null) return body();
+    return run(db, source: ChangeLogSource.automatic, label: label, body: body);
   }
 
   /// Runs [body] with the triggers silenced, then records one summary

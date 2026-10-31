@@ -6540,7 +6540,18 @@ class DiveRepository {
   /// Dive numbers are a per-diver lifetime counter, so callers editing a
   /// single diver's numbering must pass their ID or the other diver's
   /// sequence will be overwritten.
-  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) async {
+  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () =>
+            _renumberAllDivesInner(startFrom: startFrom, diverId: diverId),
+      );
+
+  Future<void> _renumberAllDivesInner({
+    int startFrom = 1,
+    String? diverId,
+  }) async {
     try {
       _log.info(
         'Renumbering dives starting from $startFrom'

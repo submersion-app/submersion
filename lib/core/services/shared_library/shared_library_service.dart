@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -721,7 +722,12 @@ class SharedLibraryService {
     final bool changedLocal;
     if (merged.deleted) {
       if (hasRow) {
-        await _remover(siteId: siteId, ownerDiverId: diverId);
+        await ChangeLogScope.run(
+          DatabaseService.instance.databaseOrNull,
+          source: ChangeLogSource.sync,
+          label: library.name,
+          body: () => _remover(siteId: siteId, ownerDiverId: diverId),
+        );
       }
       changedLocal = hasRow;
     } else {
@@ -729,11 +735,16 @@ class SharedLibraryService {
           ? outcome.remoteWon
           : merged.fields.keys.toSet();
       if (fields.isNotEmpty) {
-        await _bridge.apply(
-          merged,
-          libraryId: library.id,
-          vocabularyDiverId: diverId,
-          fields: fields,
+        await ChangeLogScope.run(
+          DatabaseService.instance.databaseOrNull,
+          source: ChangeLogSource.sync,
+          label: library.name,
+          body: () => _bridge.apply(
+            merged,
+            libraryId: library.id,
+            vocabularyDiverId: diverId,
+            fields: fields,
+          ),
         );
       }
       changedLocal = fields.isNotEmpty;

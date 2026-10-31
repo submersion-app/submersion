@@ -132,7 +132,6 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'trip_checklist_sections': ChangeLogClass.tracked,
   'trip_cylinder_events': ChangeLogClass.tracked,
   'trip_cylinders': ChangeLogClass.tracked,
-  'trip_day_weather': ChangeLogClass.tracked,
   'trip_equipment': ChangeLogClass.tracked,
   'trip_hides': ChangeLogClass.tracked,
   'trip_itinerary_days': ChangeLogClass.tracked,
@@ -179,6 +178,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'sync_metadata': ChangeLogClass.excluded,
   'sync_peer_cursors': ChangeLogClass.excluded,
   'sync_records': ChangeLogClass.excluded,
+  'trip_day_weather': ChangeLogClass.excluded,
   'view_configs': ChangeLogClass.excluded,
 };
 
@@ -392,7 +392,6 @@ const Map<String, ChangeLogParent> changeLogParents = {
     column: 'trip_cylinder_id',
   ),
   'trip_cylinders': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),
-  'trip_day_weather': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),
   'trip_equipment': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),
   'trip_hides': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),
   'trip_itinerary_days': ChangeLogParent(rootTable: 'trips', column: 'trip_id'),

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -131,7 +132,14 @@ class DiveUncombineService {
   /// segments can no longer be told apart. Throws
   /// [UnreadableSeriesException] when any of the dive's series fails to
   /// decode. All-or-nothing: one transaction, full rollback on any failure.
-  Future<List<String>> separate({required String diveId}) async {
+  Future<List<String>> separate({required String diveId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.splitDive,
+        body: () => _separateInner(diveId: diveId),
+      );
+
+  Future<List<String>> _separateInner({required String diveId}) async {
     final newDiveIds = <String>[];
     final now = DateTime.now().millisecondsSinceEpoch;
     var segmentCount = 0;
