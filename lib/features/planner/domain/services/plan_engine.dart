@@ -2306,7 +2306,7 @@ class PlanEngine {
       final stop = stops[i];
       final travel = stop.arrivalRuntimeSeconds - end;
       // The first travel leg (bottom phase to the first stop) stays its own
-      // row -- an informative transition. From the second stop on, a gas
+      // row, an informative transition. From the second stop on, a gas
       // switch at its MOD lands exactly at the stop it leads into
       // (AscentGasPlan's design: a switch-at-MOD never falls strictly
       // between two 3 m-spaced stops), so a travel-between-stops row would

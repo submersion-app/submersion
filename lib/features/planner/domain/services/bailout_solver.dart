@@ -774,7 +774,7 @@ class BailoutSolver {
           depth,
           stop.depthMeters,
           travelSeconds,
-          end,
+          iterStartRuntime,
           printed: i == 0,
         );
       }
