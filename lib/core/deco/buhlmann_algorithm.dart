@@ -468,13 +468,13 @@ class BuhlmannAlgorithm {
 
     // A loop's own gas bookkeeping (LoopAscentGas.gasForDepth) is a
     // continuously pAlv-normalized fraction for the tissue simulation, not
-    // the gas the diver actually feeds the loop -- that fraction drifts with
+    // the gas the diver actually feeds the loop. That fraction drifts with
     // every depth change even on a single diluent or supply gas the whole
     // ascent, which made [switched] fire at nearly every stop and floor every
     // one of them to [SchedulePolicy.gasSwitchStopSeconds] as if the diver
-    // had genuinely switched cylinders there (#3225). Real gas switches -- an
-    // OC plan's ascent, and a bailout schedule's own OptimalOcAscentGas --
-    // are unaffected: only a loop's own drift is excluded.
+    // had genuinely switched cylinders there (#3225). Real gas switches (an
+    // OC plan's ascent, and a bailout schedule's own OptimalOcAscentGas) are
+    // unaffected: only a loop's own drift is excluded.
     final isLoop = plan is LoopAscentGas;
     AscentGas previousGas = plan.gasForDepth(currentDepth);
     while (currentStopDepth > 0) {
