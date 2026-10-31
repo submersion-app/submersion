@@ -246,6 +246,12 @@ void main() {
       ], base: TankBaseConfiguration.twinBackmount);
     });
 
+    test('twin by a preset name', () async {
+      await expectClassified('a', const [
+        _Tank('backGas', preset: 'twin_12'),
+      ], base: TankBaseConfiguration.twinBackmount);
+    });
+
     test('single backmount', () async {
       await expectClassified('a', const [
         _Tank('backGas', volume: 12),
@@ -324,6 +330,18 @@ void main() {
         const [
           _Tank('backGas', volume: 12),
           _Tank('backGas', volume: 12, o2: 32),
+        ],
+        base: TankBaseConfiguration.singleBackmount,
+        extras: const {TankConfigurationExtra.multiGas},
+      );
+    });
+
+    test('multi-gas by helium alone', () async {
+      await expectClassified(
+        'a',
+        const [
+          _Tank('backGas', volume: 12),
+          _Tank('backGas', volume: 12, he: 30),
         ],
         base: TankBaseConfiguration.singleBackmount,
         extras: const {TankConfigurationExtra.multiGas},
