@@ -27,6 +27,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
@@ -880,6 +881,84 @@ class SyncDataSerializer {
   /// Drops a track's cached geometry from the local cache database, which
   /// lives outside the library and so outside any delete cascade.
   final Future<void> Function(String trackId) _evictTrackGeometry;
+
+  /// Evicts the cached geometry of each track in [trackIds].
+  ///
+  /// The cache is derived data, so failing to evict must never fail the
+  /// merge. The local cache sweep catches a missed eviction for a deleted
+  /// track; for an edited one the stale LODs stay until the track is next
+  /// edited, which still beats aborting the merge over a cache.
+  Future<void> _evictGeometryOf(Iterable<String> trackIds) async {
+    for (final trackId in trackIds) {
+      try {
+        await _evictTrackGeometry(trackId);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not evict cached geometry for track $trackId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
+  /// Ids of the [incoming] tracks whose cached LODs may no longer match, read
+  /// BEFORE the upsert overwrites the stored rows.
+  ///
+  /// A trim or split made on this device evicts its own cached LODs
+  /// (trimTrackProvider, splitTrackProvider); one arriving from a peer only
+  /// overwrites the row, and the cache has no TTL, so without this the map
+  /// kept drawing the pre-trim polyline for good (issue #2447). Only a stored
+  /// row that draws exactly like the incoming one proves the cache still
+  /// valid, so a metadata-only edit (a rename) keeps it. A track with no
+  /// stored row is included: LODs can outlive their track (a delete that
+  /// predates eviction, or a failed eviction), and there is nothing to
+  /// compare them against.
+  Future<Set<String>> _gpsTracksWithNewGeometry(
+    List<GpsTrackRow> incoming,
+  ) async {
+    final byId = {for (final track in incoming) track.id: track};
+    final ids = byId.keys.toList();
+    final geometryChanged = ids.toSet();
+    // Chunked to stay under SQLite's bound-variable limit.
+    for (final chunk in seriesIdChunks(ids)) {
+      final stored = await (_db.select(
+        _db.gpsTracks,
+      )..where((t) => t.id.isIn(chunk))).get();
+      for (final row in stored) {
+        final next = byId[row.id]!;
+        if (row.trimStartTime == next.trimStartTime &&
+            row.trimEndTime == next.trimEndTime &&
+            row.pointCount == next.pointCount &&
+            _sameBytes(row.points, next.points)) {
+          geometryChanged.remove(row.id);
+        }
+      }
+    }
+    return geometryChanged;
+  }
+
+  /// The insert for a gps_tracks upsert.
+  ///
+  /// Null columns stay out of it, so a row arriving without its points blob
+  /// cannot wipe the recording, but the trim bounds always go in: a null there
+  /// is a peer's Reset trim, and leaving it out kept the old trim for good.
+  /// Do not switch this to `.toCompanion(false)`, which would clear the blob.
+  static GpsTracksCompanion _gpsTrackUpsert(GpsTrackRow track) => track
+      .toCompanion(true)
+      .copyWith(
+        trimStartTime: Value(track.trimStartTime),
+        trimEndTime: Value(track.trimEndTime),
+      );
+
+  static bool _sameBytes(Uint8List? a, Uint8List? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
@@ -5536,11 +5615,15 @@ class SyncDataSerializer {
             );
         return;
       case 'gpsTracks':
+        final track = GpsTrackRow.fromJson(
+          data,
+          serializer: _syncBlobSerializer,
+        );
+        final geometryChanged = await _gpsTracksWithNewGeometry([track]);
         await _db
             .into(_db.gpsTracks)
-            .insertOnConflictUpdate(
-              GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
-            );
+            .insertOnConflictUpdate(_gpsTrackUpsert(track));
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         // The data-class upsert leaves null columns out (nullToAbsent), so a
@@ -6781,17 +6864,18 @@ class SyncDataSerializer {
         );
         return;
       case 'gpsTracks':
+        final tracks = records
+            .map(
+              (r) => GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+            )
+            .toList();
+        final geometryChanged = await _gpsTracksWithNewGeometry(tracks);
         await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.gpsTracks,
-            records
-                .map(
-                  (r) =>
-                      GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
-                )
-                .toList(),
-          ),
+          (b) => b.insertAllOnConflictUpdate(_db.gpsTracks, [
+            for (final track in tracks) _gpsTrackUpsert(track),
+          ]),
         );
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         await _db.batch(
@@ -8990,17 +9074,8 @@ class SyncDataSerializer {
         // A delete made on this device evicts the cached LODs itself
         // (deleteTrackProvider); one arriving from a peer has to do it here,
         // or up to three blobs outlive the track until the next local cache
-        // sweep (issue #1929). The cache is derived data, so failing to evict
-        // must never fail the merge: the sweep catches what this misses.
-        try {
-          await _evictTrackGeometry(recordId);
-        } catch (e, stackTrace) {
-          _log.warning(
-            'Could not evict cached geometry for track $recordId',
-            error: e,
-            stackTrace: stackTrace,
-          );
-        }
+        // sweep (issue #1929).
+        await _evictGeometryOf([recordId]);
         return;
       case 'navTracks':
         await (_db.delete(

@@ -26,13 +26,28 @@ class _SimplifyRequest {
 List<GpsTrackPoint> _simplifyInIsolate(_SimplifyRequest request) =>
     simplifyTrack(request.points, request.toleranceMeters);
 
+/// Reduces a track's points to those worth drawing at a tolerance in metres.
+typedef TrackSimplifier =
+    Future<List<GpsTrackPoint>> Function(
+      List<GpsTrackPoint> points,
+      double toleranceMeters,
+    );
+
 final trackGeometryCacheRepositoryProvider =
     Provider<TrackGeometryCacheRepository>(
       (ref) => TrackGeometryCacheRepository(),
     );
 
-/// A single hydrated track, points blob decoded. This is the expensive step
-/// and it happens once per track.
+final trackSimplifierProvider = Provider<TrackSimplifier>(
+  (ref) =>
+      (points, toleranceMeters) => compute(
+        _simplifyInIsolate,
+        _SimplifyRequest(points, toleranceMeters),
+      ),
+);
+
+/// A single hydrated track, points blob decoded. This is the expensive step,
+/// so read it for the track's own page rather than for every preview.
 final gpsTrackDetailProvider = FutureProvider.family<GpsTrack?, String>((
   ref,
   trackId,
@@ -50,23 +65,30 @@ final gpsTrackGeometryProvider =
     ) async {
       final (trackId, lod) = key;
       final cache = ref.watch(trackGeometryCacheRepositoryProvider);
+      final tracks = ref.watch(gpsTrackRepositoryProvider);
+      final simplify = ref.watch(trackSimplifierProvider);
       // A trim or split calls cache.invalidate, dropping every LOD for the
       // track; without this the map kept drawing the pre-trim polyline.
-      ref.invalidateSelfWhen(cache.watchGeometryChanges());
+      ref.invalidateSelfWhen(cache.watchEvictions(trackId));
 
       final cached = await cache.read(trackId, lod);
       if (cached != null) return cached;
 
-      final track = await ref.watch(gpsTrackDetailProvider(trackId).future);
+      final generation = cache.generationOf(trackId);
+      // Straight from the repository, not gpsTrackDetailProvider. That one
+      // defers its refresh while paused, so a rebuild after an eviction got
+      // the pre-trim points and cached them; and every gps_tracks write
+      // reaches it, which restarted simplifications already running.
+      final track = await tracks.getTrack(trackId, includePoints: true);
       if (track == null) return const [];
 
       // Read through effectivePoints so trim bounds are honoured before
       // simplification rather than after.
-      final simplified = await compute(
-        _simplifyInIsolate,
-        _SimplifyRequest(track.effectivePoints, lod.toleranceMeters),
+      final simplified = await simplify(
+        track.effectivePoints,
+        lod.toleranceMeters,
       );
-      await cache.write(trackId, lod, simplified);
+      await cache.write(trackId, lod, simplified, generation: generation);
       return simplified;
     });
 
@@ -125,11 +147,11 @@ final trackDateFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
 
 /// Drops every cached and in-memory derivative of [id].
 ///
-/// gpsTrackGeometryProvider returns early on a persisted cache hit, BEFORE it
-/// watches gpsTrackDetailProvider, so on a warm cache there is no dependency
-/// edge for a detail invalidation to travel along. Each LOD therefore has to
-/// be invalidated by name, or the map keeps drawing the pre-trim polyline
-/// while the stats header updates - the trim looks like it silently failed.
+/// gpsTrackGeometryProvider does not watch gpsTrackDetailProvider, so there is
+/// no dependency edge for a detail invalidation to travel along. The cache's
+/// eviction tick reaches each LOD, but after this returns; invalidating them
+/// by name means a read straight after a trim is already fresh, rather than
+/// the map drawing the pre-trim polyline while the stats header updates.
 Future<void> _evictTrack(Ref ref, String id) async {
   await ref.read(trackGeometryCacheRepositoryProvider).invalidate(id);
   for (final lod in TrackLod.values) {
