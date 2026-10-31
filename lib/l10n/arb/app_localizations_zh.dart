@@ -50315,6 +50315,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_detail_menuRename => '重命名';
 
   @override
+  String get navTrack_detail_menuChangeDive => '更改潜水记录';
+
+  @override
   String get navTrack_detail_menuChangeSite => '更改潜点';
 
   @override

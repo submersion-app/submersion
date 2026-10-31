@@ -16036,6 +16036,7 @@
   "navTrack_detail_deleteMessage": "לא ניתן לבטל פעולה זו.",
   "navTrack_detail_defaultTrackTitle": "מסלול תת-ימי",
   "navTrack_detail_menuRename": "שינוי שם",
+  "navTrack_detail_menuChangeDive": "שינוי צלילה",
   "navTrack_detail_menuChangeSite": "שינוי אתר",
   "navTrack_detail_menuChangeDevice": "שינוי מכשיר",
   "navTrack_detail_noMapYet": "קבע את נקודת ההתחלה כדי לראות זאת על מפה.",

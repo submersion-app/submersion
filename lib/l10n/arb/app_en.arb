@@ -31828,6 +31828,7 @@
   "navTrack_detail_deleteMessage": "This cannot be undone.",
   "navTrack_detail_defaultTrackTitle": "Underwater track",
   "navTrack_detail_menuRename": "Rename",
+  "navTrack_detail_menuChangeDive": "Change dive",
   "navTrack_detail_menuChangeSite": "Change site",
   "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",

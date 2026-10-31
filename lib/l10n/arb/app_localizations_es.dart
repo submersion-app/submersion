@@ -53727,6 +53727,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Cambiar nombre';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Cambiar inmersión';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Cambiar punto de buceo';
 
   @override

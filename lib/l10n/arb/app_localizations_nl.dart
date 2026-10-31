@@ -53330,6 +53330,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Hernoemen';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Duik wijzigen';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Duikstek wijzigen';
 
   @override

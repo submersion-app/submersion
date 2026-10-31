@@ -54316,6 +54316,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_detail_menuRename => 'إعادة التسمية';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'تغيير الغطسة';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
 
   @override

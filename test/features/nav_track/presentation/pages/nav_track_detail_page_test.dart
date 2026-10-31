@@ -1300,11 +1300,21 @@ void main() {
           updatedAt: DateTime(2026, 8, 22),
         ),
       );
+      expect(find.text('Underwater track'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the title sits in its own card in the body, not in the AppBar (#4022)',
+    (tester) async {
+      await _pump(tester, route: _route());
+
       expect(
-        find.descendant(
-          of: find.byType(AppBar),
-          matching: find.text('Underwater track'),
-        ),
+        find.descendant(of: find.byType(AppBar), matching: find.text('r1.csv')),
+        findsNothing,
+      );
+      expect(
+        find.ancestor(of: find.text('r1.csv'), matching: find.byType(Card)),
         findsOneWidget,
       );
     },
@@ -1317,5 +1327,176 @@ void main() {
       route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
     );
     expectZoomsAndScrollsLikeOtherMaps(tester);
+  });
+
+  group('consistent open/change actions (#4023)', () {
+    GoRouter routerTo(NavTrack route, {required List<GoRoute> extra}) =>
+        GoRouter(
+          initialLocation: '/tracks/underwater/${route.id}',
+          routes: [
+            GoRoute(
+              path: '/tracks/underwater/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+            ...extra,
+          ],
+        );
+
+    testWidgets('tapping the site card opens the site', (tester) async {
+      const site = DiveSite(
+        id: 'site-1',
+        name: 'Test Site',
+        location: GeoPoint(47.1, 8.3),
+      );
+      final route = _route(siteId: 'site-1');
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/sites/:id',
+            builder: (context, state) =>
+                Scaffold(body: Text('SITE_PAGE_${state.pathParameters['id']}')),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, site: site, router: router);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-site-row')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITE_PAGE_site-1'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping the "no site" card does not navigate (nothing to open)',
+      (tester) async {
+        final route = _route();
+        final router = routerTo(
+          route,
+          extra: [
+            GoRoute(
+              path: '/sites/:id',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('SITE_PAGE')),
+            ),
+          ],
+        );
+        await _pump(tester, route: route, router: router);
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-site-row')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('SITE_PAGE'), findsNothing);
+      },
+    );
+
+    testWidgets('tapping the equipment card opens the equipment item', (
+      tester,
+    ) async {
+      const scooter = EquipmentItem(
+        id: 'eq1',
+        name: 'Test Scooter',
+        type: EquipmentType.dpv,
+      );
+      final route = _route(equipmentId: 'eq1');
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/equipment/:id',
+            builder: (context, state) => Scaffold(
+              body: Text('EQUIPMENT_PAGE_${state.pathParameters['id']}'),
+            ),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, equipment: scooter, router: router);
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-equipment-row')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EQUIPMENT_PAGE_eq1'), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping the "no device" card does not navigate (nothing to open)',
+      (tester) async {
+        final route = _route();
+        final router = routerTo(
+          route,
+          extra: [
+            GoRoute(
+              path: '/equipment/:id',
+              builder: (context, state) =>
+                  const Scaffold(body: Text('EQUIPMENT_PAGE')),
+            ),
+          ],
+        );
+        await _pump(tester, route: route, router: router);
+
+        await tester.tap(find.byKey(const ValueKey('nav-track-equipment-row')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('EQUIPMENT_PAGE'), findsNothing);
+      },
+    );
+
+    testWidgets('tapping the correction status card opens the alignment page', (
+      tester,
+    ) async {
+      final route = _route();
+      final router = routerTo(
+        route,
+        extra: [
+          GoRoute(
+            path: '/tracks/underwater/:id/align',
+            builder: (context, state) =>
+                const Scaffold(body: Text('ALIGN_PAGE')),
+          ),
+        ],
+      );
+      await _pump(tester, route: route, router: router);
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-correction-status')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('ALIGN_PAGE'), findsOneWidget);
+    });
+
+    testWidgets(
+      'the linked dive card offers a "Change dive" action that re-links to '
+      'a different dive',
+      (tester) async {
+        final linkedDive = Dive(
+          id: 'dive-1',
+          diveNumber: 1,
+          dateTime: DateTime(2026, 8, 22, 10, 8),
+        );
+        final candidate = Dive(
+          id: 'dive-9',
+          diveNumber: 9,
+          dateTime: DateTime(2026, 8, 22, 9),
+          entryTime: DateTime(2026, 8, 22, 9),
+        );
+        final repository = await _pump(
+          tester,
+          route: _route(diveId: 'dive-1'),
+          linkedDive: linkedDive,
+          allDives: [linkedDive, candidate],
+        );
+
+        expect(find.text('Change dive'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.textContaining('#9'));
+        await tester.pumpAndSettle();
+
+        expect(repository.linkedRouteId, 'r1');
+        expect(repository.linkedDiveId, 'dive-9');
+      },
+    );
   });
 }

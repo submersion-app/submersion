@@ -266,12 +266,11 @@ class NavTrackDetailPage extends ConsumerWidget {
         }
         final stats = NavTrackStats.of(route.points);
         return Scaffold(
+          // No title in the toolbar row (#4022): a long track name no
+          // longer competes with four icons/menu items for space on a
+          // narrow window. It instead opens the body as its own
+          // emphasized card, the same box _StatsCard uses right below it.
           appBar: AppBar(
-            title: Text(
-              route.name ??
-                  route.sourceRef ??
-                  l10n.navTrack_detail_defaultTrackTitle,
-            ),
             actions: [
               IconButton(
                 key: const ValueKey('nav-track-align'),
@@ -329,11 +328,19 @@ class NavTrackDetailPage extends ConsumerWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _TitleCard(
+                title:
+                    route.name ??
+                    route.sourceRef ??
+                    l10n.navTrack_detail_defaultTrackTitle,
+              ),
+              const SizedBox(height: 16),
               _StatsCard(route: route, stats: stats, units: units),
               const SizedBox(height: 16),
               _LinkCard(
                 route: route,
                 onChooseDive: () => _chooseDive(context, ref, route),
+                onChangeDive: () => _chooseDive(context, ref, route),
               ),
               const SizedBox(height: 16),
               _SiteCard(
@@ -347,14 +354,22 @@ class NavTrackDetailPage extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.tune, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_correctionStatus(l10n, route))),
-                    ],
+                key: const ValueKey('nav-track-correction-status'),
+                // Opens the same alignment page as the AppBar's tune icon
+                // (#4023): the status it summarizes is what that page sets.
+                child: InkWell(
+                  onTap: () =>
+                      context.push(underwaterTrackAlignLocation(route.id)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.tune, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(_correctionStatus(l10n, route))),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -485,6 +500,27 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   }
 }
 
+/// The track's name (or source file, or a default), as the first, most
+/// prominent card in the body (#4022) rather than the AppBar title: with
+/// the three action icons and the overflow menu, a long name had no room
+/// left in the toolbar row. Styled like [_StatsCard]'s box, just with
+/// emphasized text, mirroring the equipment set detail page's header card.
+class _TitleCard extends StatelessWidget {
+  const _TitleCard({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
+      ),
+    );
+  }
+}
+
 class _StatsCard extends ConsumerWidget {
   const _StatsCard({
     required this.route,
@@ -571,10 +607,19 @@ class _StatsCard extends ConsumerWidget {
 }
 
 class _LinkCard extends ConsumerWidget {
-  const _LinkCard({required this.route, required this.onChooseDive});
+  const _LinkCard({
+    required this.route,
+    required this.onChooseDive,
+    required this.onChangeDive,
+  });
 
   final NavTrack route;
   final VoidCallback onChooseDive;
+
+  /// Links a different dive, once one is already linked (#4023); the same
+  /// picker flow as [onChooseDive] -- [NavTrackDetailPage._chooseDive]
+  /// already re-links on top of an existing link.
+  final VoidCallback onChangeDive;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -595,6 +640,11 @@ class _LinkCard extends ConsumerWidget {
         key: const ValueKey('nav-track-linked-dive'),
         leading: const Icon(Icons.link),
         title: Text(navTrackDiveLabel(l10n, diveId, dive)),
+        subtitle: TileSubtitleAction(
+          actionKey: const ValueKey('nav-track-change-dive'),
+          onPressed: onChangeDive,
+          label: l10n.navTrack_detail_menuChangeDive,
+        ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/dives/$diveId'),
       ),
@@ -629,6 +679,7 @@ class _SiteCard extends ConsumerWidget {
           ? l10n.navTrack_detail_chooseSite
           : l10n.navTrack_detail_menuChangeSite,
       onAction: onChangeSite,
+      onTap: siteId == null ? null : () => context.push('/sites/$siteId'),
     );
   }
 }
@@ -669,6 +720,9 @@ class _EquipmentCard extends ConsumerWidget {
           ? l10n.navTrack_detail_menuChangeDevice
           : l10n.navTrack_detail_chooseDevice,
       onAction: onChangeDevice,
+      onTap: equipmentId == null
+          ? null
+          : () => context.push('/equipment/$equipmentId'),
     );
   }
 }
@@ -687,6 +741,7 @@ class _ActionCard extends StatelessWidget {
     required this.actionLabel,
     required this.onAction,
     this.actionKey,
+    this.onTap,
   });
 
   final IconData icon;
@@ -694,6 +749,11 @@ class _ActionCard extends StatelessWidget {
   final String actionLabel;
   final VoidCallback onAction;
   final Key? actionKey;
+
+  /// Opens whatever this card is about (the site, the equipment item);
+  /// null when there is nothing to open yet (#4023), matching the "no dive
+  /// linked" state of [_LinkCard], which has no `onTap` either.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -706,6 +766,8 @@ class _ActionCard extends StatelessWidget {
           onPressed: onAction,
           label: actionLabel,
         ),
+        trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }

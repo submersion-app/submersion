@@ -16036,6 +16036,7 @@
   "navTrack_detail_deleteMessage": "Esto no se puede deshacer.",
   "navTrack_detail_defaultTrackTitle": "Track submarino",
   "navTrack_detail_menuRename": "Cambiar nombre",
+  "navTrack_detail_menuChangeDive": "Cambiar inmersión",
   "navTrack_detail_menuChangeSite": "Cambiar punto de buceo",
   "navTrack_detail_menuChangeDevice": "Cambiar dispositivo",
   "navTrack_detail_noMapYet": "Coloca el punto de inicio para ver esto en un mapa.",

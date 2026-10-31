@@ -16190,6 +16190,7 @@
   "navTrack_detail_deleteMessage": "Dies kann nicht rückgängig gemacht werden.",
   "navTrack_detail_defaultTrackTitle": "Unterwasser-Track",
   "navTrack_detail_menuRename": "Umbenennen",
+  "navTrack_detail_menuChangeDive": "Tauchgang ändern",
   "navTrack_detail_menuChangeSite": "Tauchplatz ändern",
   "navTrack_detail_menuChangeDevice": "Gerät ändern",
   "navTrack_detail_noMapYet": "Startpunkt setzen, um dies auf einer Karte zu sehen.",

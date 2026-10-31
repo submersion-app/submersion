@@ -53680,6 +53680,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Rinomina';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Cambia immersione';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Cambia sito';
 
   @override
