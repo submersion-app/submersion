@@ -3488,7 +3488,7 @@ class DiveRepository {
 
   /// Search dives by name, notes, buddy, dive master, site name/country/
   /// region, dive center name, linked buddy names, tag names, custom fields,
-  /// or dive types, returning lightweight [DiveSummary] rows.
+  /// dive types, or dive number, returning lightweight [DiveSummary] rows.
   ///
   /// Matches through the Dives search row's own text search
   /// (`diveQueryEntity.textSearchSql`), so the two can never disagree on what

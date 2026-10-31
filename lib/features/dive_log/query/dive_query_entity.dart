@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
+import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
@@ -244,7 +245,10 @@ final QueryEntity diveQueryEntity = QueryEntity(
     'dive_dive_types',
     'dive_types',
   ],
-  textSearchExpansions: const [kDiveTypeTranslatedTextSearch],
+  textSearchExpansions: const [
+    kDiveTypeTranslatedTextSearch,
+    kDiveNumberTextSearch,
+  ],
   fields: [
     QueryField(
       key: 'id',
