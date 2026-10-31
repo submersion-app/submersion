@@ -122,10 +122,9 @@ class ProfileSeriesRepository {
   Future<void> shiftSamples(
     Iterable<ProfileSeries> series,
     int seconds, {
-    int? now,
+    required int now,
   }) async {
     if (seconds == 0) return;
-    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       for (final s in series) {
         final encoded = _codec.encode([
@@ -139,14 +138,14 @@ class ProfileSeriesRepository {
             endTimestamp: Value(encoded.summary.endTimestamp),
             codecVersion: Value(encoded.codecVersion),
             samples: Value(encoded.bytes),
-            updatedAt: Value(nowMs),
+            updatedAt: Value(now),
           ),
         );
         await _db.customStatement(
           'UPDATE $_historyTable SET content_hash = ? WHERE series_id = ?',
           [_seriesContentHash(encoded.bytes), s.id],
         );
-        await _markPending(s.id, nowMs);
+        await _markPending(s.id, now);
       }
     });
     SyncEventBus.notifyLocalChange();

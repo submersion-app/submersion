@@ -88,10 +88,9 @@ class TankPressureSeriesRepository {
   Future<void> shiftSamples(
     Iterable<domain.TankPressureSeries> series,
     int seconds, {
-    int? now,
+    required int now,
   }) async {
     if (seconds == 0) return;
-    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       for (final s in series) {
         final encoded = _codec.encode([
@@ -105,10 +104,10 @@ class TankPressureSeriesRepository {
             endTimestamp: Value(encoded.summary.endTimestamp),
             codecVersion: Value(encoded.codecVersion),
             samples: Value(encoded.bytes),
-            updatedAt: Value(nowMs),
+            updatedAt: Value(now),
           ),
         );
-        await _markPending(s.id, nowMs);
+        await _markPending(s.id, now);
       }
     });
     SyncEventBus.notifyLocalChange();
