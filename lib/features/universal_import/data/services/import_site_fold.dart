@@ -152,8 +152,13 @@ _Survivor? _findSameName(
     if (survivor.normalizedName != name) continue;
     final hostPoint = _pointOf(survivor.site);
     // A side without coordinates cannot contradict the other, so the shared
-    // name decides on its own.
-    if (point == null || hostPoint == null) return survivor;
+    // name decides, unless the two state different places (#4015). Positions
+    // that agree outrank that: a region looked up from a drifting fix can
+    // differ across one reef.
+    if (point == null || hostPoint == null) {
+      if (ImportSiteLocation.placesConflict(survivor.site, candidate)) continue;
+      return survivor;
+    }
     if (distanceMeters(hostPoint, point) <= _sameNameFoldMeters) {
       return survivor;
     }

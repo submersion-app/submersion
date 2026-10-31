@@ -314,7 +314,10 @@ void main() {
       // The DiverLog file's site survives merging with its per-file namespace.
       final mergedSites = merged.entitiesOf(ImportEntityType.sites);
       expect(mergedSites, hasLength(1));
-      expect(mergedSites.single['uddfId'], 'f0:dl7_site_molokini crater');
+      expect(
+        mergedSites.single['uddfId'],
+        'f0:dl7_site_molokini crater|united states|hawaii',
+      );
       expect(mergedSites.single['name'], 'Molokini Crater');
 
       // Against an empty library: no duplicates (the two dives are distinct).

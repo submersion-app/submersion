@@ -48,6 +48,51 @@ void main() {
       'CITY=[Kihei],STATE/PROVINCE=[Hawaii],COUNTRY=[United States]';
   const withoutName = 'GPS=[20.877432,-156.679867],CITY=[Kihei]';
 
+  group('same-name places (#4015)', () {
+    String twoBlocks(String first, String second) {
+      final zar = [first, second].map(
+        (location) =>
+            'ZAR{\n<AQUALUNG>\n<APP>DiverLog+</APP>\n'
+            '<LOCATION>$location</LOCATION>\n</AQUALUNG>\n}\n',
+      );
+      return document(dives: 2).replaceFirst('ZDH', '${zar.join()}ZDH');
+    }
+
+    test('two countries under one name stay two sites', () async {
+      final sites = await sitesOf(
+        twoBlocks(
+          'LOCNAME=[Blue Hole],COUNTRY=[Egypt]',
+          'LOCNAME=[Blue Hole],COUNTRY=[Belize]',
+        ),
+      );
+
+      expect(sites.map((s) => s['country']), ['Egypt', 'Belize']);
+      expect(sites.map((s) => s['uddfId']).toSet(), hasLength(2));
+    });
+
+    test('two regions under one name stay two sites', () async {
+      final sites = await sitesOf(
+        twoBlocks(
+          'LOCNAME=[Blue Hole],STATE/PROVINCE=[Andros],COUNTRY=[Bahamas]',
+          'LOCNAME=[Blue Hole],STATE/PROVINCE=[Long Island],COUNTRY=[Bahamas]',
+        ),
+      );
+
+      expect(sites.map((s) => s['region']), ['Andros', 'Long Island']);
+    });
+
+    test('one place written twice stays one site', () async {
+      final sites = await sitesOf(
+        twoBlocks(
+          'LOCNAME=[Blue Hole],COUNTRY=[Egypt]',
+          'LOCNAME=[blue hole],COUNTRY=[Egypt]',
+        ),
+      );
+
+      expect(sites, hasLength(1));
+    });
+  });
+
   group('a multi-dive file', () {
     test(
       'keeps the ZAR location as a site rather than discarding it',
