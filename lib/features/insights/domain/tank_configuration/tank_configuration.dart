@@ -25,6 +25,9 @@ typedef TankConfigurationResult = ({
   Set<TankConfigurationExtra> extras,
 });
 
+/// How many dives share one classification.
+typedef TankConfigurationGroup = ({TankConfigurationResult result, int dives});
+
 /// What the classifier reads from one dive: the cylinders that count (a
 /// consolidated dive's primary computer's plus any added by hand), its gas
 /// switches in seconds from the dive's start, and whether it has a recorded
@@ -52,18 +55,17 @@ class TankConfigurationStats extends Equatable {
     required this.extraCounts,
   });
 
-  factory TankConfigurationStats.fromDives(
-    Iterable<TankConfigurationDive> dives,
+  factory TankConfigurationStats.fromGroups(
+    Iterable<TankConfigurationGroup> groups,
   ) {
     var total = 0;
     final base = <TankBaseConfiguration, int>{};
     final extras = <TankConfigurationExtra, int>{};
-    for (final dive in dives) {
-      final result = classifyTankConfiguration(dive);
-      total++;
-      base.update(result.base, (n) => n + 1, ifAbsent: () => 1);
+    for (final (:result, :dives) in groups) {
+      total += dives;
+      base.update(result.base, (n) => n + dives, ifAbsent: () => dives);
       for (final extra in result.extras) {
-        extras.update(extra, (n) => n + 1, ifAbsent: () => 1);
+        extras.update(extra, (n) => n + dives, ifAbsent: () => dives);
       }
     }
     return TankConfigurationStats(

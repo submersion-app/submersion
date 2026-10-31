@@ -20,7 +20,6 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
-import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -31,6 +30,7 @@ import 'package:submersion/features/insights/data/repositories/site_entry_method
 import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/data/tank_configuration_sql.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
