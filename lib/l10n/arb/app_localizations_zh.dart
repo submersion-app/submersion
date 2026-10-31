@@ -8358,6 +8358,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => '气体混合 (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => '气瓶配置';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => '气瓶附加项';
+
+  @override
   String get diveLog_filter_sectionMinRating => '最低评分';
 
   @override
@@ -27365,6 +27371,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label，$count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return '包含 $count 个扇区的分布饼图';
   }
@@ -45509,6 +45520,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count 种气瓶配置';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count 种气瓶附加项';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => '海洋生物';
 
   @override
@@ -51067,6 +51088,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => '有剖面';
+
+  @override
+  String get query_dives_tankConfig => '气瓶配置';
+
+  @override
+  String get query_dives_stages => '阶段瓶';
+
+  @override
+  String get query_dives_decoGas => '减压气';
+
+  @override
+  String get query_dives_multiGas => '多种气体';
 
   @override
   String get query_dives_id => '潜水编号';

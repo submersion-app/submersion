@@ -152,21 +152,26 @@ double decoCeilingPpO2For(
       : gas.o2 / 100.0 * environment.pressureAtDepth(depth);
 }
 
+/// Whether a [ppO2] in the plan's water is over [limit] (issue #3913).
+///
+/// A ppO2 that still reads as its limit is not over it. A depth the flat
+/// 10 m per bar model puts exactly on the limit lands a hair past it in real
+/// water (oxygen at 6 m is 1.603 bar in seawater), so this allows the same
+/// slack as a default gas switch (issue #3566, see [gasSwitchDepthMeters]).
+bool ppO2OverLimit(double ppO2, double limit) =>
+    ppO2 > limit + gasSwitchPpO2Tolerance;
+
 /// Whether [gas] breaches its deco ceiling at [depthMeters], where
-/// [actualPpO2] is the ppO2 it is actually breathing there (issue #3580/
-/// #3743 follow-up, caught by a Copilot review).
+/// [actualPpO2] is the ppO2 it is actually breathing there in [environment]
+/// (issue #3580/#3743 follow-up, caught by a Copilot review).
 ///
 /// For a gas governed by the explicit MOD for 100% O2
 /// ([DecoPpO2Limits.usesExplicitO2Depth]), this compares [depthMeters]
 /// directly against [DecoPpO2Limits.explicitO2DepthMeters] instead of a
-/// ppO2: that threshold is deliberately computed without reference to
-/// [environment] in the first place (the whole point of "explicit",
-/// unaffected by water type or altitude), so comparing it against an
-/// [actualPpO2] that a caller derived from a *different*, environment-blind
-/// formula (e.g. the flat `1 + depth/10` model) would silently disagree in
-/// salt water or at altitude - exactly the case this setting exists to
-/// avoid. Every other gas keeps the plain ppO2 comparison against
-/// [decoCeilingPpO2For].
+/// ppO2: that threshold is a depth the diver chose (the whole point of
+/// "explicit", unaffected by water type or altitude), so it reads back
+/// exactly as set in any water. Every other gas compares against
+/// [decoCeilingPpO2For], see [ppO2OverLimit].
 bool decoCeilingBreachedFor(
   GasMix gas,
   DecoPpO2Limits decoPpO2, {
@@ -177,8 +182,10 @@ bool decoCeilingBreachedFor(
   if (decoPpO2.usesExplicitO2Depth(gas.o2)) {
     return depthMeters > decoPpO2.explicitO2DepthMeters;
   }
-  return actualPpO2 >
-      decoCeilingPpO2For(gas, decoPpO2, environment: environment);
+  return ppO2OverLimit(
+    actualPpO2,
+    decoCeilingPpO2For(gas, decoPpO2, environment: environment),
+  );
 }
 
 /// What a MOD set by hand means for [tank]: the ppO2 it reaches there and

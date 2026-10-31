@@ -2,6 +2,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart'
     show kNotRecordedDistributionKey;
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 /// The dives behind one row of the Insights country card (#2623): the
 /// Insights filter [scope] the row was counted under, narrowed to sites in
@@ -81,6 +82,32 @@ DiveFilterState waterTypeDivesFilter(DiveFilterState scope, String key) =>
 /// an entry method name or [kNotRecordedDistributionKey].
 DiveFilterState entryMethodDivesFilter(DiveFilterState scope, String key) =>
     _withConditions(scope, [_recordedOrEmpty('entryMethod', key)]);
+
+/// The dives behind one configuration bar of the tank configuration card
+/// (#3804): the Insights filter [scope], narrowed to [configuration].
+///
+/// A condition rather than the `tankConfigurations` axis, as for
+/// [tankExtraDivesFilter].
+DiveFilterState tankConfigDivesFilter(
+  DiveFilterState scope,
+  TankBaseConfiguration configuration,
+) => _withConditions(scope, [
+  ConditionNode(
+    FieldPath(const ['tankConfig']),
+    QueryOp.eq,
+    EnumValue(configuration.name),
+  ),
+]);
+
+/// The dives behind one extras bar of the tank configuration card. A
+/// condition, not the `tankExtras` axis: that axis is OR, so tapping Deco
+/// gas under a Stage(s) scope would list more dives than the bar counted.
+DiveFilterState tankExtraDivesFilter(
+  DiveFilterState scope,
+  TankConfigurationExtra extra,
+) => _withConditions(scope, [
+  ConditionNode(FieldPath([extra.name]), QueryOp.eq, const BoolValue(true)),
+]);
 
 /// In the order the charts number days, from 0 for Sunday.
 const _weekdayNames = [

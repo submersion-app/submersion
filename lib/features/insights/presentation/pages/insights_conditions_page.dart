@@ -248,7 +248,7 @@ class InsightsConditionsPage extends ConsumerWidget {
             child: HorizontalCategoryBarChart(
               data: data,
               barColor: Colors.teal.shade400,
-              onOpenRow: (index) => openChartDives(
+              onRowTap: (index) => openChartDives(
                 context,
                 ref,
                 chart: context.l10n.insights_conditions_siteType_title,

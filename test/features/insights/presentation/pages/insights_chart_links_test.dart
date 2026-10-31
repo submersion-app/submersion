@@ -400,7 +400,7 @@ void main() {
         ),
         sacTrendProvider.overrideWith((ref) async => const []),
         tankConfigurationStatsProvider.overrideWith(
-          (ref) async => TankConfigurationStats.fromDives(const []),
+          (ref) async => TankConfigurationStats.empty,
         ),
         sacByTankRoleProvider.overrideWith((ref) async => const {}),
       ]);

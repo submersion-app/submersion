@@ -13897,6 +13897,18 @@ abstract class AppLocalizations {
   /// **'Gas Mix (O₂%)'**
   String get diveLog_filter_sectionGasMix;
 
+  /// No description provided for @diveLog_filter_sectionTankConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get diveLog_filter_sectionTankConfiguration;
+
+  /// No description provided for @diveLog_filter_sectionTankExtras.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank extras'**
+  String get diveLog_filter_sectionTankExtras;
+
   /// No description provided for @diveLog_filter_sectionMinRating.
   ///
   /// In en, this message translates to:
@@ -46563,6 +46575,12 @@ abstract class AppLocalizations {
   /// **'Bar chart with {count} categories'**
   String insights_chart_barSemanticLabel(Object count);
 
+  /// Screen reader label of a tappable bar chart row
+  ///
+  /// In en, this message translates to:
+  /// **'{label}, {count}'**
+  String insights_chart_barRowSemanticLabel(String count, String label);
+
   /// No description provided for @insights_chart_distributionSemanticLabel.
   ///
   /// In en, this message translates to:
@@ -77121,6 +77139,18 @@ abstract class AppLocalizations {
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
 
+  /// No description provided for @diveLog_filterChip_tankConfigCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank configurations'**
+  String diveLog_filterChip_tankConfigCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_tankExtrasCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank extras'**
+  String diveLog_filterChip_tankExtrasCount(Object count);
+
   /// No description provided for @diveLog_filter_sectionSpecies.
   ///
   /// In en, this message translates to:
@@ -86176,6 +86206,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Has profile'**
   String get query_dives_hasProfile;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get query_dives_tankConfig;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Stage(s)'**
+  String get query_dives_stages;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas'**
+  String get query_dives_decoGas;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-gas'**
+  String get query_dives_multiGas;
 
   /// Field label in the query builder
   ///

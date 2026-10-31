@@ -144,7 +144,7 @@ class InsightsGasPage extends ConsumerWidget {
         data: (data) => HorizontalCategoryBarChart(
           data: [for (final s in data) (label: s.label, count: s.count)],
           barColor: Colors.blue.shade400,
-          onOpenRow: (index) => openChartDives(
+          onRowTap: (index) => openChartDives(
             context,
             ref,
             chart: context.l10n.insights_gas_gasMix_title,

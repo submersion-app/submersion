@@ -8840,6 +8840,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Mélange gazeux (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration =>
+      'Configuration des blocs';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Extras de blocs';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Évaluation minimum';
 
   @override
@@ -29107,6 +29114,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Diagramme circulaire de distribution avec $count segments';
   }
@@ -48549,6 +48561,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count configurations de blocs';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count extras de blocs';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Vie marine';
 
   @override
@@ -54575,6 +54597,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'A un profil';
+
+  @override
+  String get query_dives_tankConfig => 'Configuration des blocs';
+
+  @override
+  String get query_dives_stages => 'Stage(s)';
+
+  @override
+  String get query_dives_decoGas => 'Gaz de déco';
+
+  @override
+  String get query_dives_multiGas => 'Multigaz';
 
   @override
   String get query_dives_id => 'ID de plongée';

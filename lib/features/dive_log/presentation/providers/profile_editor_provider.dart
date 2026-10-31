@@ -150,6 +150,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editKinds: previousKinds,
       undoEditKindsStack: newKindsStack,
       hasChanges: newStack.isNotEmpty,
+      clearOutliers: true,
     );
   }
 
@@ -159,7 +160,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       state.editedProfile,
       windowSize: windowSize,
     );
-    state = state.copyWith(editedProfile: smoothed, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: smoothed,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.smoothAll);
   }
 
@@ -181,7 +186,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       return smoothedMap[p.timestamp] ?? p;
     }).toList();
 
-    state = state.copyWith(editedProfile: result, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: result,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.smoothSelection);
   }
 
@@ -229,7 +238,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       endTimestamp: range.end,
       depthDelta: depthDelta,
     );
-    state = state.copyWith(editedProfile: shifted, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: shifted,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.shiftDepth);
   }
 
@@ -246,7 +259,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     if (shifted == null) return; // Overlap detected
 
     _pushUndo();
-    state = state.copyWith(editedProfile: shifted, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: shifted,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.shiftTime);
   }
 
@@ -265,6 +282,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: result,
       hasChanges: true,
       clearRange: true,
+      clearOutliers: true,
     );
     _recordEditKind(
       interpolateGap
@@ -325,7 +343,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       waypoints,
       intervalSeconds: intervalSeconds,
     );
-    state = state.copyWith(editedProfile: generated, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: generated,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.generateFromWaypoints);
   }
 
@@ -338,7 +360,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     if (trimmed.length == profile.length) return;
 
     _pushUndo();
-    state = state.copyWith(editedProfile: trimmed, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: trimmed,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.trimEndZeros);
   }
 }

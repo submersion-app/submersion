@@ -8791,6 +8791,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gázkeverék (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Palackkonfiguráció';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Palack extrák';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Minimum értékelés';
 
   @override
@@ -28877,6 +28883,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Megoszlási kördiagram $count szegmenssel';
   }
@@ -48170,6 +48181,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count palackkonfiguráció';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count palack extra';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Tengeri élővilág';
 
   @override
@@ -54160,6 +54181,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Van profil';
+
+  @override
+  String get query_dives_tankConfig => 'Palackkonfiguráció';
+
+  @override
+  String get query_dives_stages => 'Stage palack(ok)';
+
+  @override
+  String get query_dives_decoGas => 'Dekó gáz';
+
+  @override
+  String get query_dives_multiGas => 'Több gáz';
 
   @override
   String get query_dives_id => 'Merülés azonosító';

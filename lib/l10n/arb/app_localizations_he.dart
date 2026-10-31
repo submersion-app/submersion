@@ -8617,6 +8617,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'תערובת גזים (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'תצורת בלונים';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'תוספות בלונים';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'דירוג מינימלי';
 
   @override
@@ -28283,6 +28289,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'תרשים עוגה עם $count מקטעים';
   }
@@ -47385,6 +47396,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count תצורות בלונים';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count תוספות בלונים';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'חיים ימיים';
 
   @override
@@ -53287,6 +53308,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'יש פרופיל';
+
+  @override
+  String get query_dives_tankConfig => 'תצורת בלונים';
+
+  @override
+  String get query_dives_stages => 'סטייג\'ים';
+
+  @override
+  String get query_dives_decoGas => 'גז דקו';
+
+  @override
+  String get query_dives_multiGas => 'ריבוי גזים';
 
   @override
   String get query_dives_id => 'מזהה צלילה';

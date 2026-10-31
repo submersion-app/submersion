@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
@@ -158,62 +160,98 @@ void main() {
     expect(find.byType(HorizontalCategoryBarChart), findsNothing);
   });
 
-  testWidgets('a row opens the dives behind it (#3805)', (tester) async {
-    final router = GoRouter(
-      initialLocation: '/insights',
-      routes: [
-        GoRoute(
-          path: '/insights',
-          builder: (_, _) => const Scaffold(
-            body: SingleChildScrollView(child: TankConfigurationCard()),
-          ),
-        ),
-        GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
-      ],
-    );
-    final base = await getBaseOverrides();
-    await tester.pumpWidget(
-      testAppRouter(
-        router: router,
-        locale: const Locale('en'),
-        overrides: [
-          ...base,
-          insightsRepositoryProvider.overrideWithValue(
-            RecordingInsightsRepository(),
-          ),
-          tankConfigurationStatsProvider.overrideWith(
-            (ref) async => const TankConfigurationStats(
-              totalDives: 3,
-              baseCounts: {
-                TankBaseConfiguration.singleBackmount: 2,
-                TankBaseConfiguration.sidemount: 1,
-              },
-              extraCounts: {TankConfigurationExtra.stages: 1},
-              baseDiveIds: {
-                TankBaseConfiguration.singleBackmount: ['a', 'b'],
-                TankBaseConfiguration.sidemount: ['c'],
-              },
-              extraDiveIds: {
-                TankConfigurationExtra.stages: ['c'],
-              },
+  group('tapping a bar (#3804)', () {
+    late RecordingInsightsRepository repository;
+
+    setUp(() => repository = RecordingInsightsRepository());
+
+    Future<ProviderContainer> pumpRouted(
+      WidgetTester tester,
+      TankConfigurationStats stats, {
+      DiveFilterState insightsFilter = const DiveFilterState(),
+    }) async {
+      tester.view.physicalSize = const Size(800, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        initialLocation: '/insights',
+        routes: [
+          GoRoute(
+            path: '/insights',
+            builder: (_, _) => const Scaffold(
+              body: SingleChildScrollView(child: TankConfigurationCard()),
             ),
           ),
+          GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
         ],
-      ),
-    );
-    await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(TankConfigurationCard)),
-    );
+      );
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          overrides: [
+            ...await getBaseOverrides(),
+            insightsFilterProvider.overrideWith((ref) => insightsFilter),
+            insightsRepositoryProvider.overrideWithValue(repository),
+            tankConfigurationStatsProvider.overrideWith((ref) async => stats),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(TankConfigurationCard)),
+      );
+    }
 
-    final rows = find.byType(HorizontalCategoryBarChart);
-    await tester.tap(
-      find.descendant(of: rows.first, matching: find.byType(InkWell)).at(1),
-    );
-    await tester.pumpAndSettle();
+    ConditionNode field(String key, QueryValue value) =>
+        ConditionNode(FieldPath([key]), QueryOp.eq, value);
 
-    final filter = container.read(diveFilterProvider);
-    expect(filter.diveIds, ['c']);
-    expect(filter.diveIdsLabel, 'Tank configuration: Sidemount');
+    // The count sort puts Sidemount above Single backmount, the reverse of
+    // the stats' own order, so the row index alone says nothing.
+    testWidgets('a bar opens the configuration it shows after the sort', (
+      tester,
+    ) async {
+      final container = await pumpRouted(
+        tester,
+        tenDives,
+        insightsFilter: const DiveFilterState(minDepth: 18),
+      );
+
+      await tester.tap(find.text('Single backmount'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('dive list'), findsOneWidget);
+      expect(repository.lastFilter?.minDepth, 18);
+      expect(
+        repository.lastFilter?.query,
+        field('tankConfig', const EnumValue('singleBackmount')),
+      );
+      expect(
+        container.read(diveFilterProvider).diveIdsLabel,
+        'Tank configuration: Single backmount',
+      );
+    });
+
+    testWidgets('an extra opens that extra', (tester) async {
+      final container = await pumpRouted(
+        tester,
+        const TankConfigurationStats(
+          totalDives: 10,
+          baseCounts: {TankBaseConfiguration.singleBackmount: 10},
+          extraCounts: {
+            TankConfigurationExtra.stages: 2,
+            TankConfigurationExtra.multiGas: 7,
+          },
+        ),
+      );
+
+      await tester.tap(find.text('Stage(s)'));
+      await tester.pumpAndSettle();
+
+      expect(
+        repository.lastFilter?.query,
+        field('stages', const BoolValue(true)),
+      );
+      expect(container.read(diveFilterProvider).diveIds, ['d1']);
+    });
   });
 }

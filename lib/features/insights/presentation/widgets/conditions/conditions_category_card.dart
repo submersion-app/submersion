@@ -80,7 +80,7 @@ class ConditionsCategoryCard<T extends Enum> extends ConsumerWidget {
             (label: labelOf(c.value), count: c.count),
         ],
         barColor: barColor,
-        onOpenRow: openIndex,
+        onRowTap: openIndex,
       ),
     };
     return ConditionsChartCard(

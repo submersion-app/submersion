@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 
 import '../../../helpers/test_database.dart';
@@ -105,6 +106,53 @@ void main() {
           ),
         ]),
       );
+    });
+  });
+
+  group('the tank configuration filters (#3804)', () {
+    ConditionNode field(String key, QueryValue value) =>
+        ConditionNode(FieldPath([key]), QueryOp.eq, value);
+
+    test('a configuration keeps the scope and matches what the bar counts', () {
+      final filter = tankConfigDivesFilter(
+        const DiveFilterState(minDepth: 20),
+        TankBaseConfiguration.sidemount,
+      );
+
+      expect(filter.minDepth, 20);
+      expect(filter.query, field('tankConfig', const EnumValue('sidemount')));
+    });
+
+    test('an extra is a yes on its own field', () {
+      final filter = tankExtraDivesFilter(
+        const DiveFilterState(),
+        TankConfigurationExtra.decoGas,
+      );
+
+      expect(filter.query, field('decoGas', const BoolValue(true)));
+    });
+
+    test('a query in the scope comes first and stays', () {
+      final scopeQuery = field('rating', const NumberValue(4, null));
+      final filter = tankConfigDivesFilter(
+        DiveFilterState(query: scopeQuery),
+        TankBaseConfiguration.other,
+      );
+
+      expect(
+        filter.query,
+        AndNode([scopeQuery, field('tankConfig', const EnumValue('other'))]),
+      );
+    });
+
+    test('an extras scope stays on its axis, so the tap ANDs with it', () {
+      final filter = tankExtraDivesFilter(
+        const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
+        TankConfigurationExtra.decoGas,
+      );
+
+      expect(filter.tankExtras, [TankConfigurationExtra.stages]);
+      expect(filter.query, field('decoGas', const BoolValue(true)));
     });
   });
 

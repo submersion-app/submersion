@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 void main() {
   group('DiveFilterState', () {
@@ -468,6 +469,48 @@ void main() {
         );
       });
 
+      test('tank configuration axes compare by value', () {
+        expect(
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ),
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ),
+        );
+        expect(
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ).hashCode,
+          const DiveFilterState(
+            tankConfigurations: [TankBaseConfiguration.sidemount],
+          ).hashCode,
+        );
+        expect(
+          const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
+          isNot(
+            const DiveFilterState(tankExtras: [TankConfigurationExtra.decoGas]),
+          ),
+        );
+      });
+
+      test('tank configuration axes set and clear through copyWith', () {
+        final set = const DiveFilterState().copyWith(
+          tankConfigurations: [TankBaseConfiguration.rebreather],
+          tankExtras: [TankConfigurationExtra.multiGas],
+        );
+        expect(set.tankConfigurations, [TankBaseConfiguration.rebreather]);
+        expect(set.tankExtras, [TankConfigurationExtra.multiGas]);
+        expect(set.activeAxisCount, 2);
+
+        final cleared = set.copyWith(
+          clearTankConfigurations: true,
+          clearTankExtras: true,
+        );
+        expect(cleared.hasActiveFilters, isFalse);
+        expect(cleared.toQuery(), isNull);
+      });
+
       test('the axes count as active and clear through copyWith', () {
         const f = DiveFilterState(
           minWaterTemp: 1,
@@ -583,6 +626,10 @@ void main() {
         const DiveFilterState(minVisibility: 10),
         const DiveFilterState(maxVisibility: 20),
         const DiveFilterState(waterTypes: [WaterType.salt]),
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+        ),
+        const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
         const DiveFilterState(speciesIds: ['sp']),
         const DiveFilterState(siteIds: ['s']),
       ];

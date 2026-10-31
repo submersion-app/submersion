@@ -8760,6 +8760,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gasmix (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Flesconfiguratie';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Flesextra\'s';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Minimale beoordeling';
 
   @override
@@ -28826,6 +28832,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Cirkeldiagram met $count segmenten';
   }
@@ -48129,6 +48140,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count flesconfiguraties';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count flesextra\'s';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Zeeleven';
 
   @override
@@ -54106,6 +54127,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Heeft profiel';
+
+  @override
+  String get query_dives_tankConfig => 'Flesconfiguratie';
+
+  @override
+  String get query_dives_stages => 'Stagefles(sen)';
+
+  @override
+  String get query_dives_decoGas => 'Decogas';
+
+  @override
+  String get query_dives_multiGas => 'Meerdere gassen';
 
   @override
   String get query_dives_id => 'Duik-ID';
