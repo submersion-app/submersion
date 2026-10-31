@@ -39368,6 +39368,53 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Flaschendruck während des Tauchgangs erfasst';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'Zeit';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Phase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gas';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Tiefe';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Abstieg';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Grund';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Aufstieg';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Sicherheitsstopp';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Deko';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end Min.';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes Min.';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Spitze $rate bei $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Durchschnitt $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }

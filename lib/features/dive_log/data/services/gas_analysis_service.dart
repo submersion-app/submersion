@@ -39,7 +39,8 @@ class GasAnalysisService {
 
   /// Calculate SAC segments using gas-switch segmentation.
   ///
-  /// Segments are divided at each gas/tank switch event.
+  /// Segments are divided at each gas/tank switch event, with the time before
+  /// the first switch on the cylinder the dive started on.
   /// Returns null if no gas switches recorded.
   List<SacSegment>? calculateGasSwitchSegments({
     required List<DiveProfilePoint> profile,
@@ -57,25 +58,20 @@ class GasAnalysisService {
     final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
       ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
 
-    // Create segments from gas switch boundaries
-    for (int i = 0; i < sortedSwitches.length; i++) {
-      final currentSwitch = sortedSwitches[i];
-      final startTime = currentSwitch.gasSwitch.timestamp;
-      final endTime = i + 1 < sortedSwitches.length
-          ? sortedSwitches[i + 1].gasSwitch.timestamp
-          : diveEndTimestamp;
-
-      if (endTime - startTime < minSegmentDuration) continue;
-
-      // Find the tank for this segment
-      final tank = tanks.firstWhere(
-        (t) => t.id == currentSwitch.gasSwitch.tankId,
-        orElse: () => tanks.first,
-      );
+    void addStretch({
+      required int startTime,
+      required int until,
+      required DiveTank tank,
+      required String? tankName,
+      required GasMix gasMix,
+    }) {
+      // A switch can be recorded after the last sample.
+      final endTime = math.min(until, diveEndTimestamp);
+      if (endTime - startTime < minSegmentDuration) return;
 
       // Calculate depth statistics
       final segmentDepths = _segmentDepths(profile, startTime, endTime);
-      if (segmentDepths == null) continue;
+      if (segmentDepths == null) return;
       final (:avgDepth, :minDepth, :maxDepth) = segmentDepths;
 
       // Calculate SAC for this segment
@@ -100,7 +96,7 @@ class GasAnalysisService {
         prorationEnd: usageRange?.end ?? profile.last.timestamp,
       );
 
-      if (sacRate == null) continue;
+      if (sacRate == null) return;
 
       // Calculate gas consumed
       final durationMin = (endTime - startTime) / 60.0;
@@ -117,12 +113,51 @@ class GasAnalysisService {
           sacRate: sacRate,
           gasConsumed: gasConsumed,
           tankId: tank.id,
-          tankName: currentSwitch.tankName,
-          gasMix: GasMix(
-            o2: currentSwitch.o2Fraction * 100,
-            he: currentSwitch.heFraction * 100,
-          ),
+          tankName: tankName,
+          gasMix: gasMix,
           segmentationType: SacSegmentationType.gasSwitch,
+        ),
+      );
+    }
+
+    // The dive starts on a cylinder too, though only some computers log a
+    // switch to it. Without this its time would be on no segment.
+    final startingTank = activeTankAt(
+      tanks: tanks,
+      gasSwitches: sortedSwitches,
+      timestamp: profile.first.timestamp,
+      diveStart: profile.first.timestamp,
+    );
+    if (startingTank != null) {
+      addStretch(
+        startTime: profile.first.timestamp,
+        until: sortedSwitches.first.gasSwitch.timestamp,
+        tank: startingTank,
+        tankName: startingTank.name,
+        gasMix: startingTank.gasMix,
+      );
+    }
+
+    // Create segments from gas switch boundaries
+    for (int i = 0; i < sortedSwitches.length; i++) {
+      final currentSwitch = sortedSwitches[i];
+
+      // Find the tank for this segment
+      final tank = tanks.firstWhere(
+        (t) => t.id == currentSwitch.gasSwitch.tankId,
+        orElse: () => tanks.first,
+      );
+
+      addStretch(
+        startTime: currentSwitch.gasSwitch.timestamp,
+        until: i + 1 < sortedSwitches.length
+            ? sortedSwitches[i + 1].gasSwitch.timestamp
+            : diveEndTimestamp,
+        tank: tank,
+        tankName: currentSwitch.tankName,
+        gasMix: GasMix(
+          o2: currentSwitch.o2Fraction * 100,
+          he: currentSwitch.heFraction * 100,
         ),
       );
     }

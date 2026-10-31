@@ -39561,6 +39561,53 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune pression du bloc enregistrée pendant la plongée';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'Temps';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Phase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gaz';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Profondeur';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Descente';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fond';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Remontée';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Palier de sécurité';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Déco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Pic de $rate à $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Moyenne $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Ajoutez le volume du bloc pour afficher le RMV en $unit';
   }

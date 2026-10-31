@@ -38469,6 +38469,53 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נרשם לחץ בלון במהלך הצלילה';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'זמן';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'שלב';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'גז';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'עומק';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'ירידה';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'קרקעית';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'עלייה';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'עצירת בטיחות';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'דקו';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end דק׳';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes דק׳';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'שיא $rate ב-$range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'ממוצע $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }

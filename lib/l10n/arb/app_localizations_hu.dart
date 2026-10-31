@@ -39220,6 +39220,53 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülés közben nem lett rögzítve palacknyomás';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'Idő';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fázis';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gáz';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Mélység';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Süllyedés';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fenék';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Emelkedés';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Biztonsági megálló';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Dekó';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end perc';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Csúcs $rate, $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Átlag $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
