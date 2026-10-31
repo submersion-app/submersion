@@ -333,5 +333,35 @@ void main() {
       expect(secondRow.linkMode, NavTrackLinkMode.auto.wireValue);
       expect(secondRow.isPrimary, isTrue);
     });
+
+    test('undo keeps a position changed since on a source route', () async {
+      await seedSequential('a', 'b');
+      final route = await seedRoute('b');
+      await routes.setSite(route, null, anchor: const GeoPoint(1, 2));
+
+      final outcome = await merge.apply(['a', 'b']);
+      await routes.setSite(route, null, anchor: const GeoPoint(3, 4));
+      await merge.undo(outcome.snapshot);
+
+      final row = await routeRow(route);
+      expect(row.diveId, 'b');
+      expect(row.anchorLatitude, 3);
+      expect(row.anchorLongitude, 4);
+    });
+
+    test('undo returns a source route with no position to none', () async {
+      await seedSequential('a', 'b');
+      final route = await seedRoute('b');
+
+      final outcome = await merge.apply(['a', 'b']);
+      // Whether the merged dive or the diver set this, the row looks the same.
+      await routes.setSite(route, null, anchor: const GeoPoint(5, 6));
+      await merge.undo(outcome.snapshot);
+
+      final row = await routeRow(route);
+      expect(row.diveId, 'b');
+      expect(row.anchorLatitude, isNull);
+      expect(row.anchorLongitude, isNull);
+    });
   });
 }
