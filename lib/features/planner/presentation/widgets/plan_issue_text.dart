@@ -4,7 +4,20 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The words for a plan deeper than every bailout gas it carries (#3961). The
+/// depth rounds up and the MOD down, so the two can never read as equal.
+String bailoutGasGapMessage(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required double depthMeters,
+  required double deepestModMeters,
+}) => l10n.plannerCanvas_issue_noEligibleBailoutGas(
+  units.formatDepthCeil(depthMeters, decimals: 0),
+  units.formatDepthFloor(deepestModMeters, decimals: 0),
+);
 
 /// Localized, unit-aware message for a plan issue. Reuses the existing
 /// `divePlanner_warning_*` strings where a type overlaps, so only genuinely
@@ -73,6 +86,13 @@ String planIssueMessage(
       return l10n.plannerCanvas_issue_noDecoGas;
     case PlanIssueType.noBailoutCarried:
       return l10n.plannerCanvas_issue_noBailout;
+    case PlanIssueType.noEligibleBailoutGas:
+      return bailoutGasGapMessage(
+        l10n,
+        units,
+        depthMeters: issue.value ?? 0,
+        deepestModMeters: issue.threshold ?? 0,
+      );
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(
         units.formatPressure(issue.threshold ?? 0),

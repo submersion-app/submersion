@@ -195,7 +195,7 @@ domain.DivePlan ccrWithBailoutPlan() => _plan(
       id: 'bo',
       volume: 11.1,
       startPressure: 207,
-      gasMix: _ean50,
+      gasMix: plannerTrimix,
       role: TankRole.bailout,
     ),
   ],

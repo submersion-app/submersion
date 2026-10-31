@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,14 +22,22 @@ import '../../../../helpers/mock_providers.dart';
 /// [DiveResyncOrchestrator] is faked rather than driven for real, so no
 /// database or filesystem access happens.
 class _FakeDiveResyncOrchestrator extends DiveResyncOrchestrator {
-  _FakeDiveResyncOrchestrator({required super.db, required this.outcome});
+  _FakeDiveResyncOrchestrator({
+    required super.db,
+    required this.outcome,
+    this.gate,
+  });
 
   final DiveResyncOutcome outcome;
+
+  /// Holds the resync open until completed.
+  final Completer<void>? gate;
   final resyncedDiveIds = <String>[];
 
   @override
   Future<DiveResyncOutcome> resync(String diveId) async {
     resyncedDiveIds.add(diveId);
+    await gate?.future;
     return outcome;
   }
 }
@@ -47,6 +57,8 @@ class _ThrowingDiveResyncOrchestrator extends DiveResyncOrchestrator {
 
 void main() {
   late AppDatabase db;
+  late GoRouter router;
+  late int diveReads;
 
   setUp(
     () =>
@@ -65,8 +77,9 @@ void main() {
   }) async {
     final dive = createTestDiveWithBottomTime();
     final overrides = await getBaseOverrides();
+    diveReads = 0;
 
-    final router = GoRouter(
+    router = GoRouter(
       initialLocation: '/detail',
       routes: [
         GoRoute(
@@ -77,6 +90,10 @@ void main() {
           builder: (context, state) => embedded
               ? Scaffold(body: DiveDetailPage(diveId: dive.id, embedded: true))
               : DiveDetailPage(diveId: dive.id),
+        ),
+        GoRoute(
+          path: '/elsewhere',
+          builder: (context, state) => const Scaffold(),
         ),
       ],
     );
@@ -94,7 +111,10 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
-          diveProvider(dive.id).overrideWith((ref) async => dive),
+          diveProvider(dive.id).overrideWith((ref) async {
+            diveReads++;
+            return dive;
+          }),
           diveDataSourcesProvider(
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
@@ -122,8 +142,13 @@ void main() {
     DiveResyncOutcome outcome = const DiveResyncOutcome.success(),
     bool embedded = false,
     Locale locale = const Locale('en'),
+    Completer<void>? gate,
   }) async {
-    final orchestrator = _FakeDiveResyncOrchestrator(db: db, outcome: outcome);
+    final orchestrator = _FakeDiveResyncOrchestrator(
+      db: db,
+      outcome: outcome,
+      gate: gate,
+    );
     await pumpWithOrchestrator(
       tester,
       orchestrator,
@@ -142,6 +167,35 @@ void main() {
     await tester.tap(find.byIcon(Icons.sync).last);
     await tester.pumpAndSettle();
   }
+
+  testWidgets('leaving while it runs still refreshes the dive', (tester) async {
+    // The list reads this dive too, so the refresh must not depend on the
+    // page that started it, and using a dead ref here would throw a
+    // StateError.
+    final gate = Completer<void>();
+    await pumpDetail(tester, gate: gate);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    final subscription = container.listen(
+      diveProvider('test-dive-1'),
+      (_, _) {},
+    );
+    addTearDown(subscription.close);
+
+    await tapResync(tester);
+    router.go('/elsewhere');
+    await tester.pumpAndSettle();
+    expect(find.byType(DiveDetailPage), findsNothing);
+    final readsBefore = diveReads;
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(diveReads, readsBefore + 1);
+    expect(find.text('Dive updated from the original file'), findsOneWidget);
+  });
 
   testWidgets('shows Resync from original file only when a file is stored', (
     tester,
