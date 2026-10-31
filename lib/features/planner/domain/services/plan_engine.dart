@@ -2361,9 +2361,17 @@ class PlanEngine {
           message: 'Decompression plan carries no bailout gas',
         ),
       );
+    } else {
+      // One or the other: a plan told it carries no bailout gas has no use
+      // for the MOD of the loop's own supply, which still resolves to bailout.
+      final bailoutGasIssue = _bailoutGasIssue(
+        plan,
+        legs,
+        segmentOutcomes,
+        environment,
+      );
+      if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
     }
-    final bailoutGasIssue = _bailoutGasIssue(plan, legs, environment);
-    if (bailoutGasIssue != null) issues.add(bailoutGasIssue);
 
     issues.addAll(_modOverrideIssues(plan.tanks, environment, onsets.schedule));
     issues.sort((a, b) => b.severity.index.compareTo(a.severity.index));
@@ -2378,6 +2386,7 @@ class PlanEngine {
   PlanIssue? _bailoutGasIssue(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
+    List<SegmentOutcome> segmentOutcomes,
     DiveEnvironment environment,
   ) {
     if (plan.mode == domain.PlanMode.oc) return null;
@@ -2388,12 +2397,23 @@ class PlanEngine {
     final gases = config.bailoutAscentGas(bailoutTanks, environment);
     final deepest = legs.fold(0.0, (d, leg) => math.max(d, leg.deeperEnd));
     if (gases.coversDepth(deepest)) return null;
+    final firstPast = legs.indexWhere(
+      (leg) => !gases.coversDepth(leg.deeperEnd),
+    );
+    final outcome = segmentOutcomes[firstPast];
     return PlanIssue(
       type: PlanIssueType.noEligibleBailoutGas,
       severity: PlanIssueSeverity.alert,
       message:
           'No bailout gas reaches ${deepest.toStringAsFixed(1)} m: the '
           'deepest MOD carried is ${gases.deepestMod.toStringAsFixed(1)} m',
+      atRuntime: legOnsetRuntime(
+        startRuntime: outcome.startRuntime,
+        durationSeconds: outcome.endRuntime - outcome.startRuntime,
+        startDepth: legs[firstPast].startDepth,
+        endDepth: legs[firstPast].endDepth,
+        exceeds: (depth) => !gases.coversDepth(depth),
+      ),
       atDepth: deepest,
       value: deepest,
       threshold: gases.deepestMod,

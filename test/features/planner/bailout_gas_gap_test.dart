@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_issue_markers.dart';
 
 const _air = GasMix(o2: 21);
 const _o2 = GasMix(o2: 100);
@@ -118,7 +119,7 @@ void main() {
       expect(outcome.sufficient, isTrue);
     });
 
-    test('a spike past every MOD is a gap even when the worst-case litres '
+    test('a spike past every MOD is a gap even when the worst-case liters '
         'come from a longer, shallower hold the gas does cover', () {
       final outcome = solver.solve(
         _plan(
@@ -199,7 +200,7 @@ void main() {
       expect(issue.atDepth, 20);
       expect(issue.value, 20);
       expect(issue.threshold, closeTo(6, 0.1));
-      expect(outcome.ttsAtBottom, lessThan(300));
+      expect(outcome.stops, isEmpty);
     });
 
     test('agrees with the solver on the MOD it reports', () {
@@ -209,6 +210,68 @@ void main() {
         gapIssues(engine.compute(plan)).single.threshold,
         solver.solve(plan)!.gasGap!.deepestModMeters,
       );
+    });
+
+    test('a MOD set by hand clears the alert, as it clears the solver gap', () {
+      final outcome = engine.compute(
+        _plan(bailouts: [_bailoutO2(modMeters: 20)]),
+      );
+
+      expect(gapIssues(outcome), isEmpty);
+    });
+
+    test('starts where the descent passes the deepest MOD, so the profile '
+        'can mark it', () {
+      final outcome = engine.compute(_plan());
+
+      // 18 m/min, so about 6 m takes about 20 seconds.
+      final start = gapIssues(outcome).single.atRuntime;
+      expect(start, closeTo(20, 2));
+      expect(
+        planIssueMarkers(outcome.issues).map((m) => m.runtimeSeconds),
+        contains(start),
+      );
+    });
+
+    test('a plan told it carries no bailout gas hears nothing about a MOD: '
+        'the loop\'s own supply is not a bailout gas', () {
+      const ean40 = GasMix(o2: 40);
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.scr,
+          bailouts: const [
+            DiveTank(
+              id: 'supply',
+              gasMix: ean40,
+              volume: 11,
+              startPressure: 200,
+            ),
+          ],
+          segments: [
+            PlanSegment.travel(
+              id: 'down',
+              fromDepth: 0,
+              targetDepth: 35,
+              ratePerMinute: 18,
+              tankId: 'supply',
+              gasMix: ean40,
+              order: 0,
+            ),
+            PlanSegment.hold(
+              id: 'bottom',
+              depth: 35,
+              durationMinutes: 60,
+              tankId: 'supply',
+              gasMix: ean40,
+              order: 1,
+            ),
+          ],
+        ),
+      );
+
+      final types = outcome.issues.map((issue) => issue.type);
+      expect(types, contains(PlanIssueType.noBailoutCarried));
+      expect(types, isNot(contains(PlanIssueType.noEligibleBailoutGas)));
     });
 
     test('an alert leaves the plan itself diveable', () {
