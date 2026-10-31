@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_loader.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -271,16 +272,24 @@ final customFieldKeySuggestionsProvider =
       return repository.getDistinctKeysForDiver(diverId);
     });
 
+/// Holds [divesProvider]'s list across its rebuilds.
+final _divesLoaderProvider = Provider<DiveListLoader>((ref) {
+  final loader = DiveListLoader(ref.watch(diveRepositoryProvider));
+  ref.onDispose(loader.cancel);
+  return loader;
+});
+
 /// All dives list provider (filtered by current diver).
 ///
 /// A [FutureProvider] that self-invalidates whenever the `dives` table is
 /// written (e.g. after a sync applies remote changes), so the list refreshes
-/// while imperative `ref.read(divesProvider.future)` reads still resolve.
+/// while imperative `ref.read(divesProvider.future)` reads still resolve. A
+/// rebuild costs what changed: see [DiveListLoader].
 final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
-  return repository.getAllDives(diverId: currentDiverId);
+  return ref.watch(_divesLoaderProvider).latest(diverId: currentDiverId);
 });
 
 /// Single dive provider.
@@ -521,9 +530,12 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   List<DocumentSnapshotEntry> _deletedDocuments = const [];
   final Ref _ref;
   String? _currentDiverId;
+  late final DiveListLoader _list;
 
   DiveListNotifier(this._repository, this._ref)
     : super(const AsyncValue.loading()) {
+    _list = DiveListLoader(_repository);
+    _ref.onDispose(_list.cancel);
     // Watch for changes to current diver
     _currentDiverId = _ref.read(currentDiverIdProvider);
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
@@ -562,23 +574,27 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   Future<void> _loadDives() async {
     state = const AsyncValue.loading();
     try {
-      final dives = await _repository.getAllDives(diverId: _currentDiverId);
-      state = AsyncValue.data(dives);
+      final dives = await _list.load(diverId: _currentDiverId);
+      if (!mounted) return;
+      if (dives != null) state = AsyncValue.data(dives);
       // Keep divesProvider in sync so downstream FutureProviders
       // (recentDivesProvider, dashboard stats, etc.) automatically refresh.
+      // A silent reload that overtook this load does not do this for it.
       _ref.invalidate(divesProvider);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
-  /// Reload the list without flashing a loading spinner. Mirrors [_loadDives]
+  /// Refresh the list without flashing a loading spinner. Mirrors [_loadDives]
   /// but never sets `state = AsyncValue.loading()`, so table-change ticks from
-  /// a sync update the data in place instead of flickering the UI.
+  /// a sync update the data in place instead of flickering the UI, and it
+  /// costs what the tick changed rather than the whole logbook (#3815). A tick
+  /// that changed nothing the list holds leaves the state alone.
   Future<void> _silentReload() async {
     try {
-      final dives = await _repository.getAllDives(diverId: _currentDiverId);
-      if (mounted) state = AsyncValue.data(dives);
+      final dives = await _list.refresh(diverId: _currentDiverId);
+      if (dives != null && mounted) state = AsyncValue.data(dives);
     } catch (e, st) {
       if (mounted) state = AsyncValue.error(e, st);
     }

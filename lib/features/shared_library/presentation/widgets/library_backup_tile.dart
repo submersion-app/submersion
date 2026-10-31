@@ -42,7 +42,7 @@ class LibraryBackupTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final kind = record.beforeRestore
         ? l10n.sharedLibrary_backups_beforeRestore
         : record.automatic

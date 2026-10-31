@@ -45,6 +45,9 @@ sealed class FocusFactor {
   final int groupCovered;
   final int groupSize;
 
+  /// Some of the dives behind this row have no value for the factor.
+  bool get hasCoverageGap => groupCovered < groupSize;
+
   bool get standsOut;
 
   /// How far the group sits from its baseline, on the scale the standout
@@ -95,7 +98,13 @@ class CategoryShare {
 
   /// Display text the key alone cannot give (a site's name).
   final String? label;
+
+  /// Of the group dives that recorded the factor.
   final double groupShare;
+
+  /// Of the baseline dives that recorded the factor, not of every baseline
+  /// dive: an unrecorded dive is unknown, which is not the same as a dive
+  /// with some other value.
   final double baselineShare;
   final int groupCount;
   final bool standsOut;
@@ -109,11 +118,24 @@ final class CategoricalFactor extends FocusFactor {
     required super.id,
     required super.groupCovered,
     required super.groupSize,
+    required this.baselineCovered,
+    required this.baselineSize,
     required this.top,
   });
 
+  /// Baseline dives that recorded this factor: the denominator of every
+  /// [CategoryShare.baselineShare].
+  final int baselineCovered;
+  final int baselineSize;
+
   /// The group's most common values, most common first.
   final List<CategoryShare> top;
+
+  /// The baseline shares cannot be called a share of all dives.
+  bool get baselineIsPartial => baselineCovered < baselineSize;
+
+  @override
+  bool get hasCoverageGap => super.hasCoverageGap || baselineIsPartial;
 
   @override
   bool get standsOut => top.any((s) => s.standsOut);

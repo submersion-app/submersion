@@ -208,9 +208,7 @@ class _MediaLibraryGridState extends State<MediaLibraryGrid> {
         physics: const MediaThumbnailWheelZoomPhysics(),
         // Two pane heights beyond the visible area, not the default 250px:
         // a fast scroll otherwise brings tiles on screen before their decode
-        // has finished (issue #3337). Only here. The grouped views build a
-        // whole group's thumbnails at once, so a wider margin there would
-        // start many decodes together.
+        // has finished (issue #3337).
         scrollCacheExtent: const ScrollCacheExtent.viewport(2),
         padding: const EdgeInsets.all(4),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

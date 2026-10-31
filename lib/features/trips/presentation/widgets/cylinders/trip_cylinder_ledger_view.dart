@@ -69,7 +69,7 @@ class TripCylinderLedgerView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final fallbackCurrency = ref.watch(defaultCurrencyProvider);
     final async = ref.watch(tripCylinderLedgerProvider(tripId));
     final events = async.value;

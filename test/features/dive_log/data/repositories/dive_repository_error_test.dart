@@ -25,6 +25,7 @@ void main() {
       DatabaseService.instance.resetForTesting();
 
       await expectLater(repository.getAllDives(), throwsA(anything));
+      await expectLater(repository.getDiveListSnapshot(), throwsA(anything));
       await expectLater(repository.getDiveById('test-id'), throwsA(anything));
       await expectLater(
         repository.saveEditedProfile('test-id', []),

@@ -35,6 +35,13 @@ Color tankFallbackColor(int index) {
   return _tankFallbackColors[index % _tankFallbackColors.length];
 }
 
+/// Display label for the ceiling line, marked as calculated when it is drawn
+/// against the computer's stops (issue #2552).
+String ceilingLegendLabel(BuildContext context, {required bool calculated}) =>
+    calculated
+    ? context.l10n.diveLog_legend_label_ceilingCalculated
+    : context.l10n.diveLog_legend_label_ceiling;
+
 /// Display label for a tank: its name (or "Tank N") plus the gas mix name.
 String tankLegendLabel(
   BuildContext context,

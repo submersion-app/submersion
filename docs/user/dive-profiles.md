@@ -118,7 +118,7 @@ defined in the [Glossary](glossary.md).
 ### Computer figures vs. calculated figures
 
 For the decompression figures, the toggle includes a small **DC** / **Calc**
-switch. Many dive computers record their own ceiling, NDL, TTS,
+switch. Many dive computers record their own stop depth, NDL, TTS,
 and CNS values sample by sample during the dive; Submersion stores those
 alongside the figures it calculates itself from the depth samples. The switch
 lets you compare the two:
@@ -132,6 +132,15 @@ setting, or gas assumption than Submersion does. Seeing them side by side is
 informative, not a sign that either is wrong. Which one each figure starts on
 is set under **Data Source Preferences** in [Settings](settings.md) (NDL, TTS,
 CNS, Deco Stop and GTR source).
+
+**Ceiling** has no switch: the line is always Submersion's calculation, because
+computers record the stop you were shown rather than a continuous ceiling. So
+when **Deco stops** comes from your computer, the chart shows two models on one
+axis, and the line is labelled **Ceiling (calc)** to say so. The computer's band
+can sit at 6 m while the line clears at 3 m, or the line can show no obligation
+under a band, if your computer uses a different algorithm or conservatism. To
+compare like with like, switch **Deco stops** to **Calc**, or turn **Ceiling**
+off to leave only your computer's stops.
 
 ## Event markers
 

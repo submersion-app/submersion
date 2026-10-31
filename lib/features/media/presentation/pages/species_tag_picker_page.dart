@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_candidate_group.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -50,8 +49,7 @@ class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
     final groupsAsync = ref.watch(
       speciesTagCandidatesProvider(widget.speciesId),
     );
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final allIds = [
       for (final group
           in groupsAsync.value ?? const <SpeciesTagCandidateGroup>[])
@@ -104,7 +102,7 @@ class _SpeciesTagPickerPageState extends ConsumerState<SpeciesTagPickerPage> {
                           onTap: () => _selection.toggle(item.id),
                           child: MediaThumbnailTile(
                             item: item,
-                            settings: settings,
+                            settings: units.settings,
                             isSelectionMode: true,
                             isSelected: checked.contains(item.id),
                             semanticsLabel:

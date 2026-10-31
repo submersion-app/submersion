@@ -87,6 +87,40 @@ void main() {
     expect(boat.standsOut, isTrue);
   });
 
+  test('a categorical baseline share names the dives it is a share of', () {
+    final boat = [
+      for (var i = 0; i < 3; i++) row('boat$i', maxDepth: 30, entry: 'boat'),
+    ];
+    final others = [
+      for (var i = 0; i < 2; i++) row('shore$i', maxDepth: 10, entry: 'shore'),
+      for (var i = 0; i < 5; i++) row('none$i', maxDepth: 10),
+    ];
+    final report = FocusFactorAnalyzer.analyze(
+      group: boat,
+      baseline: [...boat, ...others],
+      metric: FocusMetric.rmv,
+    );
+    final entry = factor<CategoricalFactor>(report, FocusFactorId.entryMethod);
+    expect(entry.top.first.baselineShare, 0.6);
+    expect(entry.baselineCovered, 5);
+    expect(entry.baselineSize, 10);
+    expect(entry.baselineIsPartial, isTrue);
+    expect(entry.hasCoverageGap, isTrue);
+  });
+
+  test('a fully recorded categorical factor has no coverage gap', () {
+    final report = FocusFactorAnalyzer.analyze(
+      group: baseline.take(3).toList(),
+      baseline: baseline,
+      metric: FocusMetric.rmv,
+    );
+    final entry = factor<CategoricalFactor>(report, FocusFactorId.entryMethod);
+    expect(entry.baselineCovered, 10);
+    expect(entry.baselineSize, 10);
+    expect(entry.baselineIsPartial, isFalse);
+    expect(entry.hasCoverageGap, isFalse);
+  });
+
   test('coverage counts only the group dives that recorded a factor', () {
     final group = [row('x', maxDepth: 10), row('y'), row('z', maxDepth: 12)];
     final report = FocusFactorAnalyzer.analyze(

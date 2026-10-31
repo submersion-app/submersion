@@ -49,9 +49,9 @@ class _GasBlenderBody extends ConsumerStatefulWidget {
 }
 
 class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
-  /// Rebuilt per use so a unit change mid-session is picked up; [build]
-  /// watches the settings so the widget actually rebuilds when it happens.
-  UnitFormatter get _units => UnitFormatter(ref.read(settingsProvider));
+  /// Read per use so a unit change mid-session is picked up; [build] watches
+  /// the formatter so the widget actually rebuilds when it happens.
+  UnitFormatter get _units => ref.read(unitFormatterProvider);
 
   late final TextEditingController _startP;
   late final TextEditingController _startO2;
@@ -108,7 +108,7 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
   @override
   Widget build(BuildContext context) {
     // Subscribes to unit changes; the value is read through [_units].
-    ref.watch(settingsProvider);
+    ref.watch(unitFormatterProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

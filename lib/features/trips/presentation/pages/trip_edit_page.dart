@@ -317,7 +317,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final body = _isLoading
         ? const Center(child: CircularProgressIndicator())

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -16,10 +18,11 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// start and end pressure read from its transmitter series at the range
 /// edges instead of the whole dive's. A cylinder without a series adds
 /// nothing: its logged start and end pressures say how much it dropped over
-/// the dive, not when. SAC follows `referencePressureDrop`; RMV sums every
-/// cylinder with a volume under [model]. Neither exists on a rebreather
-/// ([isRebreather]), whose cylinders do not drain with the diver's
-/// breathing (issue #3673).
+/// the dive, not when. The time is what those series cover of the range
+/// between them, since nothing says what was breathed outside it. SAC follows
+/// `referencePressureDrop`; RMV sums every cylinder with a volume under
+/// [model]. Neither exists on a rebreather ([isRebreather]), whose cylinders
+/// do not drain with the diver's breathing (issue #3673).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
@@ -30,8 +33,9 @@ RangeGasConsumption rangeGasConsumption({
   bool isRebreather = false,
 }) {
   const none = (sac: null, rmv: null);
-  final minutes = (endTimestamp - startTimestamp) / 60;
-  if (isRebreather || minutes <= 0 || tanks.isEmpty) return none;
+  if (isRebreather || endTimestamp <= startTimestamp || tanks.isEmpty) {
+    return none;
+  }
 
   final series = resolveTankPressureSeries(tanks, tankPressures);
   final pressures = <String, ({double start, double end})>{};
@@ -44,6 +48,16 @@ RangeGasConsumption rangeGasConsumption({
     pressures[tank.id] = (start: start, end: end);
   }
   if (pressures.isEmpty) return none;
+
+  // A pressure that fell has a series overlapping the range, so this is
+  // positive, even when the range sits between two of its readings.
+  final readings = [
+    for (final id in pressures.keys) ...series[id]!.map((p) => p.timestamp),
+  ];
+  final coveredSeconds =
+      math.min(endTimestamp, readings.reduce(math.max)) -
+      math.max(startTimestamp, readings.reduce(math.min));
+  final minutes = coveredSeconds / 60;
 
   // Ambient pressure in bar, the 1 bar reference gasVolume returns volumes
   // against.

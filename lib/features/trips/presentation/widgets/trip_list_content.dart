@@ -623,8 +623,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         }
         final config = ref.watch(tripTableConfigProvider);
         final notifier = ref.read(tripTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         return Column(
           children: [
@@ -1106,7 +1105,7 @@ class TripListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
     final subtitleStr = trip.subtitle != null ? ', ${trip.subtitle}' : '';
@@ -1343,7 +1342,7 @@ class TripSearchDelegate extends SearchDelegate<Trip?> {
               itemCount: trips.length,
               itemBuilder: (context, index) {
                 final trip = trips[index];
-                final units = UnitFormatter(ref.watch(settingsProvider));
+                final units = ref.watch(unitFormatterProvider);
                 return ListTile(
                   // Same text theme roles as TripListTile so search results do
                   // not fall back to ListTile's bodyLarge title default.

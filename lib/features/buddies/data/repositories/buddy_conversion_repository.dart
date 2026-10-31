@@ -36,8 +36,8 @@ class BuddyConversionRepository {
         .customSelect(
           '''
       SELECT b.id, b.name, b.diver_id, b.created_at,
-        (SELECT COUNT(*) FROM dive_buddies db WHERE db.buddy_id = b.id)
-          AS dive_count
+        (SELECT COUNT(DISTINCT db.dive_id) FROM dive_buddies db
+          WHERE db.buddy_id = b.id) AS dive_count
       FROM buddies b
       WHERE b.diver_id = ? OR b.diver_id IS NULL
     ''',

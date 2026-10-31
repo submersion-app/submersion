@@ -299,7 +299,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 329;
+  static const int currentSchemaVersion = 331;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1488,6 +1488,13 @@ class AppDatabase extends _$AppDatabase {
     // is on by default (issue #3889). A one-time UPDATE that stamps no row,
     // so nothing new crosses sync and the floor does not move.
     329,
+    // v330: buddies.excluded_from_rankings keeps a buddy out of the buddy
+    // rankings (issue #3624). A defaulted column an older peer omits, so the
+    // floor does not move.
+    330,
+    // v331: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623).
+    331,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
