@@ -4381,6 +4381,7 @@
   "diveComputer_title": "Dive Computer",
   "diveLog_bulkDelete_confirm": "Are you sure you want to delete {count} {count, plural, =1{dive} other{dives}}? This action cannot be undone.",
   "diveLog_bulkDelete_restored": "Dives restored",
+  "diveLog_bulkDelete_restoredIncomplete": "Dives restored, but some recorded data could not be recovered",
   "diveLog_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{dive} other{dives}}",
   "diveLog_bulkDelete_title": "Delete Dives",
   "diveLog_bulkDelete_undo": "Undo",
@@ -9933,6 +9934,79 @@
   "settings_export_progress_maintenance": "Exporting maintenance log...",
   "settings_export_success_maintenance": "Maintenance log exported",
   "settings_export_saved_maintenance": "Maintenance log saved",
+  "transfer_export_inventoryTitle": "Equipment Inventory",
+  "transfer_export_inventorySubtitle": "PDF with serial numbers and what you paid",
+  "transfer_export_serviceReportTitle": "Service Report",
+  "transfer_export_serviceReportSubtitle": "PDF of what is due, with service history",
+  "settings_export_progress_inventory": "Building inventory...",
+  "settings_export_success_inventory": "Inventory exported",
+  "settings_export_saved_inventory": "Inventory saved",
+  "settings_export_progress_serviceReport": "Building service report...",
+  "settings_export_success_serviceReport": "Service report exported",
+  "settings_export_saved_serviceReport": "Service report saved",
+  "equipmentReport_sheet_continue": "Continue",
+  "equipmentReport_sheet_groupBy": "Group by",
+  "equipmentReport_sheet_groupByType": "Gear type",
+  "equipmentReport_sheet_groupByLocation": "Location",
+  "equipmentReport_sheet_location": "Location",
+  "equipmentReport_sheet_allLocations": "All locations",
+  "equipmentReport_sheet_showPrices": "Show prices",
+  "equipmentReport_sheet_showPricesHelp": "Turn off for a customs list",
+  "equipmentReport_sheet_gear": "Gear",
+  "equipmentReport_sheet_gearAll": "All gear",
+  "equipmentReport_sheet_gearTrip": "Packed for a trip",
+  "equipmentReport_sheet_gearItem": "One item",
+  "equipmentReport_sheet_trip": "Trip",
+  "equipmentReport_sheet_item": "Item",
+  "equipmentReport_sheet_history": "Service history",
+  "equipmentReport_sheet_showCosts": "Show costs",
+  "equipmentReport_pdf_inventoryTitle": "Equipment inventory",
+  "equipmentReport_pdf_serviceTitle": "Service report",
+  "equipmentReport_pdf_printedOn": "Printed {date}",
+  "@equipmentReport_pdf_printedOn": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "equipmentReport_pdf_items": "{count, plural, one{{count} item} other{{count} items}}",
+  "@equipmentReport_pdf_items": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "equipmentReport_pdf_currencyTotal": "{currency} total",
+  "@equipmentReport_pdf_currencyTotal": {
+    "placeholders": {"currency": {"type": "String"}}
+  },
+  "equipmentReport_pdf_noLocation": "No location set",
+  "equipmentReport_pdf_colItem": "Item",
+  "equipmentReport_pdf_colSerial": "Serial",
+  "equipmentReport_pdf_colBought": "Bought",
+  "equipmentReport_pdf_colPaid": "Paid",
+  "equipmentReport_pdf_pricesNote": "Prices are what was paid, not current value.",
+  "equipmentReport_pdf_noPrice": "{count, plural, one{{count} item has no price.} other{{count} items have no price.}}",
+  "@equipmentReport_pdf_noPrice": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "equipmentReport_pdf_overdue": "overdue",
+  "equipmentReport_pdf_dueSoon": "due soon",
+  "equipmentReport_pdf_upToDate": "up to date",
+  "equipmentReport_pdf_colService": "Service",
+  "equipmentReport_pdf_colDue": "Due",
+  "equipmentReport_pdf_colStatus": "Status",
+  "equipmentReport_pdf_statusOverdue": "Overdue",
+  "equipmentReport_pdf_statusDueSoon": "Due soon",
+  "equipmentReport_pdf_statusUpToDate": "Up to date",
+  "equipmentReport_pdf_allUpToDate": "Everything is up to date.",
+  "equipmentReport_pdf_noSchedule": "{count, plural, one{{count} item has no service schedule.} other{{count} items have no service schedule.}}",
+  "@equipmentReport_pdf_noSchedule": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "equipmentReport_pdf_colDate": "Date",
+  "equipmentReport_pdf_colWork": "Work",
+  "equipmentReport_pdf_colShop": "Shop",
+  "equipmentReport_pdf_colCost": "Cost",
+  "equipmentReport_pdf_noHistory": "No service recorded",
+  "equipmentReport_pdf_dives": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "@equipmentReport_pdf_dives": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
@@ -16872,6 +16946,63 @@
   "insights_equipment_findings_title": "Condition findings",
   "insights_equipment_findings_subtitle": "Open findings by rule",
   "insights_equipment_findings_subtitleAllDives": "Open findings by rule, across all dives",
+  "insights_equipment_showAll": "Show all",
+  "insights_equipment_showLess": "Show less",
+  "insights_equipment_mostUsedGear_hours": "{count, plural, one{{count} hour} other{{count} hours}}",
+  "@insights_equipment_mostUsedGear_hours": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "insights_equipment_cost_title": "Cost of ownership",
+  "insights_equipment_cost_subtitle": "Purchase plus service, across all your dives",
+  "insights_equipment_cost_spentTotal": "Spent in total",
+  "insights_equipment_cost_perDive": "Per dive",
+  "insights_equipment_cost_byYear": "Spending by year",
+  "insights_equipment_cost_metricPerDive": "Per dive",
+  "insights_equipment_cost_metricPerHour": "Per hour",
+  "insights_equipment_cost_metricTotal": "Total",
+  "insights_equipment_cost_rowPerDive": "{amount} / dive",
+  "@insights_equipment_cost_rowPerDive": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "insights_equipment_cost_rowPerHour": "{amount} / hour",
+  "@insights_equipment_cost_rowPerHour": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "insights_equipment_cost_rowOverDives": "{count, plural, one{{amount} over {count} dive} other{{amount} over {count} dives}}",
+  "@insights_equipment_cost_rowOverDives": {
+    "placeholders": {"amount": {"type": "String"}, "count": {"type": "int"}}
+  },
+  "insights_equipment_cost_rowOverHours": "{count, plural, one{{amount} over {count} hour} other{{amount} over {count} hours}}",
+  "@insights_equipment_cost_rowOverHours": {
+    "placeholders": {"amount": {"type": "String"}, "count": {"type": "int"}}
+  },
+  "insights_equipment_cost_noDives": "no dives yet",
+  "insights_equipment_cost_undated": "{count, plural, one{{count} purchase has no date} other{{count} purchases have no date}}",
+  "@insights_equipment_cost_undated": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "insights_equipment_cost_leftOut": "{count, plural, one{{count} item has no cost recorded} other{{count} items have no cost recorded}}",
+  "@insights_equipment_cost_leftOut": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "insights_equipment_cost_empty": "No purchase prices or service costs recorded yet",
+  "insights_equipment_cost_error": "Could not load gear costs",
+  "insights_equipment_idle_title": "Idle gear",
+  "insights_equipment_idle_subtitle": "Gear you own and have not dived lately, across all your dives",
+  "insights_equipment_idle_over6Months": "Over 6 months",
+  "insights_equipment_idle_over1Year": "Over 1 year",
+  "insights_equipment_idle_over2Years": "Over 2 years",
+  "insights_equipment_idle_neverDived": "Never dived",
+  "insights_equipment_idle_years": "{count, plural, one{{count} yr} other{{count} yrs}}",
+  "@insights_equipment_idle_years": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "insights_equipment_idle_months": "{count, plural, one{{count} mo} other{{count} mo}}",
+  "@insights_equipment_idle_months": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "insights_equipment_idle_empty": "All your gear has been dived recently",
+  "insights_equipment_idle_error": "Could not load idle gear",
   "insights_equipment_findings_empty": "No open findings",
   "insights_equipment_issues_title": "Reported issues",
   "insights_equipment_issues_subtitle": "Most frequent check-in tags",

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -142,6 +143,82 @@ void main() {
     expect(state.surfaceInterval, isNotNull);
     // The sheet closed after following.
     expect(find.byType(FollowDiveSheet), findsNothing);
+  });
+
+  // Stored dive times are clock digits in a UTC DateTime, so reading one
+  // directly as an instant puts it a UTC offset away from the real moment:
+  // hours too long west of UTC, and negative east of it, where the sheet's
+  // too-short fallback then replaces the real interval.
+  Future<Duration?> followAt(
+    WidgetTester tester,
+    DateTime now,
+    Dive dive,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          divesProvider.overrideWith((ref) async => [dive]),
+          profileAnalysisProvider.overrideWith((ref, id) async => null),
+        ],
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showFollowDiveSheet(context),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open')),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await withClock(Clock.fixed(now), () async {
+      await tester.tap(find.text('Reef drift'));
+      await tester.pumpAndSettle();
+    });
+    return container.read(divePlanNotifierProvider).surfaceInterval;
+  }
+
+  testWidgets('FollowDiveSheet seeds the real time since the stored dive', (
+    tester,
+  ) async {
+    final interval = await followAt(
+      tester,
+      DateTime(2026, 7, 1, 12),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: DateTime.utc(2026, 7, 1, 9),
+        entryTime: DateTime.utc(2026, 7, 1, 9),
+        runtime: const Duration(minutes: 45),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 2, minutes: 15));
+  });
+
+  testWidgets('FollowDiveSheet measures from a stored exit time', (
+    tester,
+  ) async {
+    final interval = await followAt(
+      tester,
+      DateTime(2026, 7, 1, 12),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: DateTime.utc(2026, 7, 1, 9),
+        exitTime: DateTime.utc(2026, 7, 1, 10),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 2));
   });
 
   testWidgets('FollowDiveSheet shows an empty state with no logged dives', (

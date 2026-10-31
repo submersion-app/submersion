@@ -242,6 +242,25 @@ void main() {
     expect(timestamps.last, greaterThan(660));
   });
 
+  test('undo restores the sources\' profile revision lineage', () async {
+    await createDive('a', runtimeMin: 10, depth: 20);
+    await createDive('b', runtimeMin: 10, depth: 20);
+    await diveRepo.saveEditedProfile('a', const [
+      domain.DiveProfilePoint(timestamp: 0, depth: 0),
+      domain.DiveProfilePoint(timestamp: 300, depth: 15),
+      domain.DiveProfilePoint(timestamp: 600, depth: 0),
+    ]);
+    final before = await profileSeries.getRevisionsForDive('a');
+    expect(before.where((r) => r.parentSeriesId != null), isNotEmpty);
+
+    final outcome = await service.apply(['a', 'b']);
+    expect(await profileSeries.getRevisionsForDive('a'), isEmpty);
+
+    await service.undo(outcome.snapshot);
+
+    expect(await profileSeries.getRevisionsForDive('a'), before);
+  });
+
   test(
     'undo tombstones the merged series and restores the original rows',
     () async {

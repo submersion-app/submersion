@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 
@@ -569,6 +571,77 @@ void main() {
 
         expect(nitroxCurve[1], greaterThan(airCurve[1]));
         expect(nitroxCurve[1] / airCurve[1], closeTo(0.32 / 0.21, 0.01));
+      });
+    });
+
+    group('in a selected environment (issue #3958)', () {
+      final environment = DiveEnvironment.forConditions(
+        altitudeMeters: 3000,
+        waterType: WaterType.fresh,
+      );
+      final atSite = O2ToxicityCalculator(environment: environment);
+      final ambient = environment.pressureAtDepth(35);
+
+      test('the ppO2 curve reads the environment', () {
+        expect(
+          atSite.calculatePpO2Curve([35.0], 0.36).single,
+          closeTo(ambient * 0.36, 1e-9),
+        );
+      });
+
+      test('dive exposure reads the environment', () {
+        final exposure = atSite.calculateDiveExposure(
+          depths: [35.0, 35.0],
+          timestamps: [0, 600],
+          o2Fraction: 0.36,
+        );
+
+        expect(exposure.maxPpO2, closeTo(ambient * 0.36, 1e-9));
+        expect(
+          exposure.otu,
+          closeTo(atSite.calculateOtuForSegment(ambient * 0.36, 600), 1e-9),
+        );
+      });
+
+      test('multi-gas exposure reads the environment', () {
+        final exposure = atSite.calculateMultiGasExposure(
+          depths: [35.0, 35.0],
+          timestamps: [0, 600],
+          gasSwitches: const {},
+          initialO2Fraction: 0.36,
+        );
+
+        expect(exposure.maxPpO2, closeTo(ambient * 0.36, 1e-9));
+      });
+
+      test('the SCR curve reads the environment', () {
+        final flat = calculator.calculatePpO2CurveSCR(
+          [20.0],
+          injectionRateLpm: 10,
+          supplyO2Percent: 40,
+        );
+        final site = atSite.calculatePpO2CurveSCR(
+          [20.0],
+          injectionRateLpm: 10,
+          supplyO2Percent: 40,
+        );
+
+        expect(
+          site.single,
+          closeTo(environment.pressureAtDepth(20) * flat.single / 3.0, 1e-6),
+        );
+      });
+
+      test('the safety check reads the environment', () {
+        expect(calculator.isPpO2Safe(30, 0.36), isFalse);
+        expect(atSite.isPpO2Safe(30, 0.36), isTrue);
+      });
+
+      test('the static ppO2 stays on the flat model', () {
+        expect(
+          O2ToxicityCalculator.calculatePpO2(35, 0.36),
+          closeTo(1.62, 1e-9),
+        );
       });
     });
 

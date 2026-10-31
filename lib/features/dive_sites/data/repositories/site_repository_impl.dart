@@ -16,6 +16,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -343,6 +344,10 @@ class SiteRepository {
         }
         await _writeClassification(site.id, classification);
       });
+      // A dive with no water of its own reads this site's for its SAC metrics.
+      if (before?.waterType?.name != companion.waterType.value) {
+        DerivedMetricsScheduler.instance.scheduleStaleSweep();
+      }
       if (libraryEdit && before != null) {
         final changed = LibraryEditStamper.changedFields(before, site);
         if (classification != null) {

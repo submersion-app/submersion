@@ -102,6 +102,25 @@ void main() {
     );
   });
 
+  test('a renamed Compare scenario is logged', () async {
+    await db.customStatement(
+      'INSERT INTO dive_scenarios (id, dive_id, name, branch_seconds, '
+      'interventions_json, created_at, updated_at) '
+      "VALUES ('s1', 'dive', 'First', 600, '[]', 0, 0)",
+    );
+    await clearLog(db);
+
+    await db.customStatement(
+      "UPDATE dive_scenarios SET name = 'Second' WHERE id = 's1'",
+    );
+
+    final events = await logEvents(db);
+    expect(events.single['table_name'], 'dive_scenarios');
+    expect(await logFields(db, events.single['id']! as int), {
+      'name': ('First', 'Second'),
+    });
+  });
+
   test('INSERT OR REPLACE logs a delete and an insert', () async {
     await db.customStatement(
       'INSERT OR REPLACE INTO divers (id, name, created_at, updated_at) '

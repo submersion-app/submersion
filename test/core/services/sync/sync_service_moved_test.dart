@@ -109,7 +109,7 @@ void main() {
         uploadNonce: null,
       );
       await cloud.uploadFile(
-        Uint8List.fromList(utf8.encode(serializer.serializePayload(payload))),
+        Uint8List.fromList(utf8.encode(jsonEncode(payload.toJson()))),
         '${CloudStorageProviderMixin.syncFilePrefix}device-A'
         '${CloudStorageProviderMixin.syncFileExtension}',
       );

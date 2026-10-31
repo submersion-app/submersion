@@ -33,7 +33,10 @@ class SafetyReviewService {
   /// v7: a depth spike is repaired by time-weighted interpolation rather than
   /// the midpoint of its neighbours, which changes the rates and tissue
   /// loading graded on an unevenly sampled dive (#3910).
-  static const int engineVersion = 7;
+  /// v8: ppO2, CNS and OTU read the dive's own water and surface pressure,
+  /// which changes the oxygen findings of an altitude or fresh water dive
+  /// (#3958).
+  static const int engineVersion = 8;
 
   const SafetyReviewService();
 

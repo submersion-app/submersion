@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/changeset_log/publish_state_store.
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
+import '../../../../helpers/base_parts.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
@@ -47,7 +48,7 @@ void main() {
     // Tiny threshold: compact once 2 changesets sit past the base.
     writer = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 2,
@@ -174,7 +175,9 @@ void main() {
           '$folder/${ChangesetLogLayout.basePartName(deviceId, manifest.baseSeq!, i)}',
         ),
     ];
-    final base = ChangesetCodec(SyncDataSerializer()).decodeBaseParts(parts);
+    final base = (await const ChangesetCodec().decodeVerifiedChangeset(
+      joinBaseParts(parts),
+    )).payload;
     final deletedIds = base.deletions.values
         .expand((l) => l)
         .map((d) => d.id)
@@ -204,7 +207,7 @@ void main() {
     final serializer = SyncDataSerializer();
     final failWriter = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 2,
