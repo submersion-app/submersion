@@ -12,6 +12,8 @@
 /// gauge reading gets the same GTR.
 library;
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+
 /// Direct-ascent rate the GTR calculation assumes (Shearwater: 10 m/min).
 const double gtrAscentRateMetersPerMinute = 10.0;
 
@@ -49,6 +51,7 @@ List<int?> calculateGtrCurve({
   required double reserveBar,
   List<double>? ceilings,
   int sacWindowSeconds = defaultGtrSacWindowSeconds,
+  DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   final n = depths.length;
   if (timestamps.length != n || pressures.length != n) {
@@ -91,22 +94,22 @@ List<int?> calculateGtrCurve({
 
     final meanDepth = windowDepthSum / (i - anchor + 1);
     final consumptionAtDepth = pressureDrop / (durationSeconds / 60.0);
-    final sac = consumptionAtDepth / _ambientBar(meanDepth);
+    final sac = consumptionAtDepth / environment.pressureAtDepth(meanDepth);
     if (sac <= 0) continue;
 
     // Gas burned by a direct ascent: SAC times the ascent's duration times
     // the mean ambient pressure of a linear ascent from here to the surface.
     final ascentMinutes = depth / gtrAscentRateMetersPerMinute;
-    final ascentGasBar = sac * ascentMinutes * _ambientBar(depth / 2);
+    final ascentGasBar =
+        sac * ascentMinutes * environment.pressureAtDepth(depth / 2);
     final usableBar = pressures[i] - reserveBar - ascentGasBar;
     if (usableBar <= 0) {
       result[i] = 0;
       continue;
     }
-    final minutesAtDepth = usableBar / (sac * _ambientBar(depth));
+    final minutesAtDepth =
+        usableBar / (sac * environment.pressureAtDepth(depth));
     result[i] = (minutesAtDepth * 60).floor();
   }
   return result;
 }
-
-double _ambientBar(double depthMeters) => 1.0 + depthMeters / 10.0;
