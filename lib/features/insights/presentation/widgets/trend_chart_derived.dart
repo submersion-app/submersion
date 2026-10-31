@@ -142,7 +142,8 @@ class TrendChartDerived {
   final DateTime firstDate;
   final DateTime lastDate;
 
-  /// The linear fit; null when off or below the minimum for a fit.
+  /// The linear fit; null when off, below the minimum for a fit, or when
+  /// every point shares one date.
   final LinearFit? fit;
 
   final ChartAxis yAxis;

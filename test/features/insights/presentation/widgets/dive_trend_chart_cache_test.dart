@@ -191,6 +191,52 @@ void main() {
       expect(primary.reads, 0);
     });
 
+    testWidgets('a pan hands back the same spots and strip points', (
+      tester,
+    ) async {
+      // Spots and strip points are built from buckets, so a read count on the
+      // dives cannot see them: only their identity shows they were reused.
+      await tester.pumpWidget(
+        host(
+          DiveTrendChart(
+            chartId: 'c',
+            points: dives(),
+            secondarySeries: [
+              TrendSeries(
+                label: 'S',
+                points: dives(prefix: 's', base: 30),
+                color: Colors.red,
+              ),
+            ],
+            aggregation: TrendAggregation.weekly,
+            gapThreshold: TrendGapThreshold.year1,
+            showRollingMean: true,
+            showLinearFit: true,
+          ),
+        ),
+      );
+      await zoomIn(tester);
+      await zoomIn(tester);
+
+      List<Object> derivedLists() => [
+        for (final bar in readData(tester).lineBarsData) bar.spots,
+        tester
+            .widget<ChartOverviewStrip>(find.byType(ChartOverviewStrip))
+            .points,
+      ];
+      final before = derivedLists();
+      final start = readData(tester).minX;
+
+      await wheelPan(tester);
+
+      expect(readData(tester).minX, isNot(start));
+      final after = derivedLists();
+      expect(after, hasLength(before.length));
+      for (var i = 0; i < after.length; i++) {
+        expect(identical(after[i], before[i]), isTrue, reason: 'list $i');
+      }
+    });
+
     testWidgets('a pan leaves every tap on its own dive', (tester) async {
       // Newest first: the spot order is the sorted one, not the input's.
       final primary = dives().reversed.toList();
