@@ -24,7 +24,7 @@ pw.Widget reportHeader({
   children: [
     pw.Text(
       title,
-      style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+      style: const pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
     ),
     pw.SizedBox(height: 2),
     pw.Text(
@@ -62,7 +62,7 @@ pw.Widget summaryStrip(List<({String value, String? label})> items) =>
               children: [
                 pw.Text(
                   item.value,
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -91,13 +91,19 @@ pw.Widget groupHeading(String left, String? right) => pw.Container(
       pw.Expanded(
         child: pw.Text(
           left,
-          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 10,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ),
       if (right != null)
         pw.Text(
           right,
-          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          style: const pw.TextStyle(
+            fontSize: 10,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
     ],
   ),
