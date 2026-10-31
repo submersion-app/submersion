@@ -182,6 +182,41 @@ void main() {
     });
   });
 
+  testWidgets('selecting refused text keeps what it says about it', (
+    tester,
+  ) async {
+    Widget hostWith(QueryTextOverride? override) => MaterialApp(
+      home: Scaffold(
+        body: QueryTextField(
+          context: context,
+          value: null,
+          onChanged: (_) {},
+          fieldKey: fieldKey,
+          textOverride: override,
+          textReader: _FakeReader(
+            refuse: const QueryError(QueryErrorCode.emptyPath),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(hostWith(null));
+    await tester.enterText(find.byKey(fieldKey), 'foo');
+    await tester.pump();
+    await tester.pumpWidget(
+      hostWith(QueryTextOverride('foo', selectAll: true)),
+    );
+    await tester.pump();
+
+    expect(
+      find.text(const QueryError(QueryErrorCode.emptyPath).message),
+      findsOneWidget,
+    );
+    final controller = tester
+        .widget<TextField>(find.byKey(fieldKey))
+        .controller!;
+    expect(controller.selection.extentOffset, 3);
+  });
+
   testWidgets('an override can select the text it shows', (tester) async {
     Widget hostWith(QueryTextOverride? override) => MaterialApp(
       home: Scaffold(

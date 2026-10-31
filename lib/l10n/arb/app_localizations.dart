@@ -86423,7 +86423,7 @@ abstract class AppLocalizations {
   /// Name of a kind of record in the query builder
   ///
   /// In en, this message translates to:
-  /// **'Dive plans'**
+  /// **'Saved plans'**
   String get query_entity_divePlans;
 
   /// Field label in the query builder

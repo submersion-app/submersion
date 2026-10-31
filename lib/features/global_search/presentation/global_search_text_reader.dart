@@ -1,6 +1,7 @@
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/presentation/query_completions.dart'
-    as query;
+    as query
+    show completionsAt;
 import 'package:submersion/core/query/presentation/query_completions.dart'
     show Completion, kMaxQueryCompletions;
 import 'package:submersion/core/query/presentation/query_editor_context.dart';

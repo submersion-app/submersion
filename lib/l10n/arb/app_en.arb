@@ -32394,7 +32394,7 @@
   "@query_entity_courses": {"description": "Field label in the query builder"},
   "query_entity_customFields": "Custom fields",
   "@query_entity_customFields": {"description": "Field label in the query builder"},
-  "query_entity_divePlans": "Dive plans",
+  "query_entity_divePlans": "Saved plans",
   "@query_entity_divePlans": {"description": "Name of a kind of record in the query builder"},
   "query_entity_diveTypes": "Dive types",
   "@query_entity_diveTypes": {"description": "Field label in the query builder"},

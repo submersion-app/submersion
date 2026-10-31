@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show TableUpdate;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -81,6 +82,24 @@ void main() {
     );
 
     expect((await container.read(provider.future)).single.total, 1);
+  });
+
+  test('a dive row follows an edit to its site', () async {
+    await seedDive(db, 'd1', diver: 'me', siteId: 's1');
+    final provider = globalSearchDivesProvider(globalSearchDiveKey(['d1']));
+    final sub = container.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(provider.future);
+    expect(before.single.siteName, 'Salt Pier');
+
+    await db.customStatement(
+      "UPDATE dive_sites SET name = 'Salt Bay' WHERE id = 's1'",
+    );
+    db.notifyUpdates({TableUpdate.onTable(db.diveSites)});
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    final after = await container.read(provider.future);
+    expect(after.single.siteName, 'Salt Bay');
   });
 
   test('text no record type can read is a refusal', () async {

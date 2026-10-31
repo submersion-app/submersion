@@ -105,6 +105,7 @@ Widget _host(
   List<String> ids = const ['x'],
   ValueChanged<String>? onOpen,
   List<SeenSpecies> seen = const [],
+  List<DocumentListEntry>? documents,
   List<Diver> divers = const [],
   Set<String> sharedSites = const {},
   Future<List<BuddyWithDiveCount>> Function()? buddies,
@@ -196,7 +197,7 @@ Widget _host(
     seenSpeciesProvider.overrideWith((ref) async => seen),
     speciesCoverMediaProvider.overrideWith((ref) async => const {}),
     allDocumentsProvider.overrideWith(
-      (ref) async => [DocumentListEntry(_document, null, 0)],
+      (ref) async => documents ?? [DocumentListEntry(_document, null, 0)],
     ),
     tagsByItemProvider.overrideWith(
       (ref, scope) async => const <String, List<Tag>>{},
@@ -296,6 +297,28 @@ void main() {
 
     expect(find.byType(SeenSpeciesTile), findsOneWidget);
     expect(find.byType(SpeciesCatalogTile), findsNothing);
+  });
+
+  testWidgets('a document names the certification it is filed under', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        GlobalSearchKind.documents,
+        documents: [
+          DocumentListEntry(
+            _document,
+            '',
+            0,
+            certification: (name: 'Rescue Diver', agency: 'padi', level: null),
+          ),
+        ],
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.textContaining('Rescue Diver'), findsOneWidget);
   });
 
   testWidgets('keeps the order the search found them in', (tester) async {

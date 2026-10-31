@@ -81,18 +81,8 @@ class EntityQueryEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final prefs = ref.watch(queryUnitPrefsProvider);
-    final names = ref.watch(queryNameIndexProvider).value ?? NameIndex.empty;
-    final editorContext = QueryEditorContext(
-      registry: appQueryRegistry,
-      root: root,
-      prefs: prefs,
-      names: names,
-      labels: AppQueryLabels(context),
-      now: DateTime.now,
-    );
     return QueryEditor(
-      context: editorContext,
+      context: watchQueryEditorContext(context, ref, root),
       value: value,
       onChanged: onChanged,
       strings: queryEditorStringsOf(context.l10n),
@@ -104,6 +94,20 @@ class EntityQueryEditor extends ConsumerWidget {
     );
   }
 }
+
+/// The editor context for [root], kept current while the widget is up.
+QueryEditorContext watchQueryEditorContext(
+  BuildContext context,
+  WidgetRef ref,
+  QueryEntity root,
+) => QueryEditorContext(
+  registry: appQueryRegistry,
+  root: root,
+  prefs: ref.watch(queryUnitPrefsProvider),
+  names: ref.watch(queryNameIndexProvider).value ?? NameIndex.empty,
+  labels: AppQueryLabels(context),
+  now: DateTime.now,
+);
 
 /// The editor context for [root], read once (for an action) rather than
 /// watched (#2984: the dive table's Add filter builds a rule with it).

@@ -183,14 +183,17 @@ class _QueryTextFieldState extends State<QueryTextField> {
     if (override != null && !identical(override, old.textOverride)) {
       // After a new value in the same update, so the override wins. The
       // committed tree stays as it is: the text is shown, not applied.
-      _controller
-        ..text = override.text
-        ..selection = override.selectAll
-            ? TextSelection(baseOffset: 0, extentOffset: override.text.length)
-            : TextSelection.collapsed(offset: override.text.length)
-        ..setError();
-      _error = null;
-      _completions = const [];
+      // The same text keeps what it said: nothing about it has changed.
+      if (override.text != _controller.text) {
+        _controller
+          ..text = override.text
+          ..setError();
+        _error = null;
+        _completions = const [];
+      }
+      _controller.selection = override.selectAll
+          ? TextSelection(baseOffset: 0, extentOffset: override.text.length)
+          : TextSelection.collapsed(offset: override.text.length);
       if (override.commit) {
         // After the frame: committing calls the parent back, and this
         // runs inside its build.

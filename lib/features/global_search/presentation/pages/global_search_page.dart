@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/query/names/name_index.dart';
-import 'package:submersion/core/query/presentation/query_editor_context.dart';
 import 'package:submersion/core/query/presentation/query_text_field.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
@@ -11,10 +9,7 @@ import 'package:submersion/features/global_search/presentation/global_search_nav
 import 'package:submersion/features/global_search/presentation/global_search_text_reader.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
 import 'package:submersion/features/global_search/presentation/widgets/global_search_section_view.dart';
-import 'package:submersion/features/query/app_query_registry.dart';
-import 'package:submersion/features/query/presentation/app_query_labels.dart';
-import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
-import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
@@ -66,13 +61,11 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
   Widget build(BuildContext context) {
     ref.listen(globalSearchFocusTickProvider, (_, _) => _focusField());
     final l10n = context.l10n;
-    final editorContext = QueryEditorContext(
-      registry: appQueryRegistry,
-      root: diveQueryEntity,
-      prefs: ref.watch(queryUnitPrefsProvider),
-      names: ref.watch(queryNameIndexProvider).value ?? NameIndex.empty,
-      labels: AppQueryLabels(context),
-      now: DateTime.now,
+    // Dives stands in as the root: the reader answers for every type.
+    final editorContext = watchQueryEditorContext(
+      context,
+      ref,
+      diveQueryEntity,
     );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.nav_search)),

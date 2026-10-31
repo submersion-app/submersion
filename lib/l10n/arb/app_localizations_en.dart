@@ -53699,7 +53699,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_entity_customFields => 'Custom fields';
 
   @override
-  String get query_entity_divePlans => 'Dive plans';
+  String get query_entity_divePlans => 'Saved plans';
 
   @override
   String get query_entity_diveTypes => 'Dive types';

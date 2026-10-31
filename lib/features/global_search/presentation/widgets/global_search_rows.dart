@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_list_tile.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
@@ -232,7 +233,14 @@ class _DiveRows extends ConsumerWidget {
     );
     final values = dives
         .map((d) => getCardColorValue(d, attribute))
-        .whereType<double>();
+        .whereType<double>()
+        .toList();
+    final minValue = values.isEmpty
+        ? null
+        : values.reduce((a, b) => a < b ? a : b);
+    final maxValue = values.isEmpty
+        ? null
+        : values.reduce((a, b) => a > b ? a : b);
     final gradient = resolveGradientColors(
       presetName: preset,
       customStart: customStart,
@@ -255,12 +263,8 @@ class _DiveRows extends ConsumerWidget {
             diveTypeShortLabelResolver: shortLabel,
             diveTypeListVisibilityPredicate: listed,
             colorValue: getCardColorValue(dive, attribute),
-            minValueInList: values.isEmpty
-                ? null
-                : values.reduce((a, b) => a < b ? a : b),
-            maxValueInList: values.isEmpty
-                ? null
-                : values.reduce((a, b) => a > b ? a : b),
+            minValueInList: minValue,
+            maxValueInList: maxValue,
             gradientStartColor: gradient.start,
             gradientEndColor: gradient.end,
             onTap: () => onOpen(dive.id),
@@ -373,9 +377,14 @@ class _DocumentRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tags = ref.watch(tagsByItemProvider(TagScope.documents)).value;
+    final shown = withCertificationOwnerTitle(
+      entry,
+      context.l10n,
+      catalog: ref.watch(certificationCatalogSyncProvider),
+    );
     return DocumentTile(
       document: entry.document,
-      ownerLabel: entry.ownerText(ref.watch(unitFormatterProvider)),
+      ownerLabel: shown.ownerText(ref.watch(unitFormatterProvider)),
       tags: tags?[entry.document.id] ?? const [],
       onTap: onTap,
     );

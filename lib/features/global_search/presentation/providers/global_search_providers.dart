@@ -34,7 +34,7 @@ class GlobalSearchRefused implements Exception {
 final globalSearchDivesProvider = FutureProvider.autoDispose
     .family<List<DiveSummary>, String>((ref, key) async {
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchDivesChanges());
+      ref.invalidateSelfWhen(repository.watchDiveListChanges());
       return repository.getSummariesByIds(key.split(','));
     });
 
