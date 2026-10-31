@@ -122,6 +122,29 @@ void main() {
   group('tappable rows (#3804)', () {
     const rows = [(label: 'Sidemount', count: 6), (label: 'Other', count: 4)];
 
+    testWidgets('a row shows a chevron, and one with no dives opens nothing', (
+      tester,
+    ) async {
+      int? opened;
+      await tester.pumpWidget(
+        _wrap(
+          HorizontalCategoryBarChart(
+            data: const [
+              (label: 'Wreck', count: 10),
+              (label: 'Lake', count: 0),
+            ],
+            onRowTap: (i) => opened = i,
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      await tester.tap(find.text('Lake'));
+      await tester.pump();
+
+      expect(opened, isNull);
+    });
+
     testWidgets('a chart with no callback has no tap targets', (tester) async {
       await tester.pumpWidget(
         _wrap(const HorizontalCategoryBarChart(data: rows)),

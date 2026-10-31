@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -100,6 +102,22 @@ class SiteLocationBackfillService {
   /// confirm on their count, say) passes them here so the database is not
   /// scanned and mapped a second time.
   Future<BackfillSummary> run({
+    String? diverId,
+    List<DiveSite>? targets,
+    required void Function(int done, int total) onProgress,
+    required bool Function() isCancelled,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _runInner(
+      diverId: diverId,
+      targets: targets,
+      onProgress: onProgress,
+      isCancelled: isCancelled,
+    ),
+  );
+
+  Future<BackfillSummary> _runInner({
     String? diverId,
     List<DiveSite>? targets,
     required void Function(int done, int total) onProgress,

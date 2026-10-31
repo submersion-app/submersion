@@ -64,6 +64,10 @@ void main() {
     'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'Ana'),
     'buddyId': const DiveFilterState(buddyId: 'b1'),
     'diveIds': const DiveFilterState(diveIds: ['d1', 'd2']),
+    'diveIdsLabel': const DiveFilterState(
+      diveIds: ['d1'],
+      diveIdsLabel: 'Water type: Salt',
+    ),
     'minO2Percent': const DiveFilterState(minO2Percent: 28),
     'maxO2Percent': const DiveFilterState(maxO2Percent: 36),
     'minRating': const DiveFilterState(minRating: 4),

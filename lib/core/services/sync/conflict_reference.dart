@@ -245,6 +245,10 @@ class ConflictReferenceResolver {
     return List.unmodifiable(references);
   }
 
+  /// One record by id, for a caller with no foreign key to resolve.
+  Future<ConflictReference> describe(String targetType, String recordId) =>
+      _resolveOne('', targetType, recordId);
+
   Future<ConflictReference> _resolveOne(
     String field,
     String targetType,

@@ -160,6 +160,51 @@ void main() {
     });
   });
 
+  group('a list of dives (#3805)', () {
+    Future<ProviderContainer> pumpChips(
+      WidgetTester tester,
+      DiveFilterState filter,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final provider = StateProvider<DiveFilterState>((ref) => filter);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return ProviderScope.containerOf(tester.element(find.byType(Scaffold)));
+    }
+
+    testWidgets('a named list shows its label and count', (tester) async {
+      await pumpChips(
+        tester,
+        const DiveFilterState(
+          diveIds: ['a', 'b'],
+          diveIdsLabel: 'Cloud cover: Clear',
+        ),
+      );
+      expect(find.text('Cloud cover: Clear (2)'), findsOneWidget);
+    });
+
+    testWidgets('an unnamed list keeps its chip', (tester) async {
+      await pumpChips(tester, const DiveFilterState(diveIds: ['a', 'b']));
+      expect(find.text('2 dives'), findsOneWidget);
+    });
+  });
+
   testWidgets('a closed date range reads start first, with its years', (
     tester,
   ) async {

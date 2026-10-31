@@ -129,6 +129,7 @@ extension DiveFilterQuery on DiveFilterState {
     if (equipmentIds.isNotEmpty) {
       parts.add(c('gear', QueryOp.inList, refs(equipmentIds)));
     }
+    // diveIdsLabel only names this axis on its chip, so it lowers to nothing.
     if (diveIds.isNotEmpty) {
       parts.add(
         c(

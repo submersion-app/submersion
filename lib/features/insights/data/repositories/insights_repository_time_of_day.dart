@@ -5,6 +5,7 @@ class TimeOfDayDistribution {
   const TimeOfDayDistribution({
     required this.segments,
     required this.divesWithoutLocation,
+    this.diveIdsByBucket = const {},
   });
 
   static const TimeOfDayDistribution empty = TimeOfDayDistribution(
@@ -21,6 +22,9 @@ class TimeOfDayDistribution {
   /// site, or their site has no usable coordinates. A dive at a placed site
   /// where the sun did not rise or set is not counted here.
   final int divesWithoutLocation;
+
+  /// The dives behind each segment, by its label (issue #3805).
+  final Map<String, List<String>> diveIdsByBucket;
 }
 
 /// The Time patterns "Dives by Time of Day" distribution, kept beside the
@@ -44,6 +48,7 @@ extension InsightsRepositoryTimeOfDay on InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
+          d.id AS id,
           ${diveStartMillisSql('d')} AS start_ms,
           ${diveExitMillisSql('d')} AS exit_ms,
           s.latitude AS site_latitude,
@@ -55,7 +60,7 @@ extension InsightsRepositoryTimeOfDay on InsightsRepository {
       if (results.isEmpty) return TimeOfDayDistribution.empty;
 
       final classifier = TimeOfDayClassifier();
-      final counts = <TimeOfDayBucket, int>{};
+      final diveIds = <TimeOfDayBucket, List<String>>{};
       var divesWithoutLocation = 0;
       for (final row in results) {
         final exitMs = row.read<int?>('exit_ms');
@@ -70,21 +75,22 @@ extension InsightsRepositoryTimeOfDay on InsightsRepository {
           latitude: row.read<double?>('site_latitude'),
           longitude: row.read<double?>('site_longitude'),
         );
-        counts[result.bucket] = (counts[result.bucket] ?? 0) + 1;
+        (diveIds[result.bucket] ??= []).add(row.read<String>('id'));
         if (result.basis == SunTimesBasis.noLocation) divesWithoutLocation++;
       }
 
       return TimeOfDayDistribution(
         segments: [
           for (final bucket in TimeOfDayBucket.values)
-            if (counts[bucket] case final count?)
+            if (diveIds[bucket] case final ids?)
               DistributionSegment(
                 label: bucket.key,
-                count: count,
-                percentage: count / results.length * 100,
+                count: ids.length,
+                percentage: ids.length / results.length * 100,
               ),
         ],
         divesWithoutLocation: divesWithoutLocation,
+        diveIdsByBucket: {for (final e in diveIds.entries) e.key.key: e.value},
       );
     } catch (e, stackTrace) {
       _log.error(

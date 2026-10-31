@@ -8,9 +8,20 @@ import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 /// Dives per value of a categorical condition, in the enum's natural order
 /// (calm to severe, clockwise compass), categories with no dive left out.
 class CategoryStat<T extends Enum> {
-  const CategoryStat({required this.counts, required this.recorded});
+  const CategoryStat({
+    required this.counts,
+    required this.recorded,
+    this.diveIdsByValue = const {},
+    this.unrecordedDiveIds = const [],
+  });
 
   final List<({T value, int count})> counts;
+
+  /// The dives behind each entry of [counts] (issue #3805).
+  final Map<T, List<String>> diveIdsByValue;
+
+  /// The dives with no value for this field.
+  final List<String> unrecordedDiveIds;
 
   /// Dives with this field recorded: the first number of the coverage line.
   final int recorded;
@@ -20,9 +31,20 @@ class CategoryStat<T extends Enum> {
 
 /// Dives per band of a numeric condition, every band included.
 class BandStat {
-  const BandStat({required this.bands, required this.recorded});
+  const BandStat({
+    required this.bands,
+    required this.recorded,
+    this.diveIdsByBand = const [],
+    this.unrecordedDiveIds = const [],
+  });
 
   final List<BandCount> bands;
+
+  /// The dives behind each band, parallel to [bands] (issue #3805).
+  final List<List<String>> diveIdsByBand;
+
+  /// The dives with no value for this field.
+  final List<String> unrecordedDiveIds;
   final int recorded;
 
   bool get isEmpty => recorded == 0;
@@ -58,17 +80,25 @@ class ConditionsStats {
       List<T> order,
       T? Function(ConditionsRow) pick,
     ) {
-      final picked = [for (final r in rows) ?pick(r)];
-      final countOf = {
-        for (final value in order)
-          value: picked.where((p) => p == value).length,
-      };
+      final diveIds = <T, List<String>>{};
+      final unrecorded = <String>[];
+      for (final r in rows) {
+        final value = pick(r);
+        if (value == null) {
+          unrecorded.add(r.diveId);
+        } else {
+          (diveIds[value] ??= []).add(r.diveId);
+        }
+      }
       return CategoryStat<T>(
         counts: [
           for (final value in order)
-            if (countOf[value]! > 0) (value: value, count: countOf[value]!),
+            if (diveIds[value] case final ids?)
+              (value: value, count: ids.length),
         ],
-        recorded: picked.length,
+        recorded: rows.length - unrecorded.length,
+        diveIdsByValue: diveIds,
+        unrecordedDiveIds: unrecorded,
       );
     }
 
@@ -77,10 +107,23 @@ class ConditionsStats {
       List<double> edges,
       int decimals,
     ) {
-      final values = [for (final r in rows) ?pick(r)];
+      final values = <double>[];
+      final diveIds = [for (var i = 0; i <= edges.length; i++) <String>[]];
+      final unrecorded = <String>[];
+      for (final r in rows) {
+        final value = pick(r);
+        if (value == null) {
+          unrecorded.add(r.diveId);
+        } else {
+          values.add(value);
+          diveIds[bandIndexOf(value, edges, decimals: decimals)].add(r.diveId);
+        }
+      }
       return BandStat(
         bands: countIntoBands(values, edges, decimals: decimals),
         recorded: values.length,
+        diveIdsByBand: diveIds,
+        unrecordedDiveIds: unrecorded,
       );
     }
 

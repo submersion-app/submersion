@@ -3,9 +3,11 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -140,6 +142,43 @@ class DiverMergeRepository {
   /// duplicate diver. Returns a [DiverMergeSnapshot] that captures every row
   /// touched so the merge can be reversed via [undoMerge].
   Future<DiverMergeSnapshot> mergeDivers({
+    required String keeperId,
+    required String duplicateId,
+  }) async {
+    final snapshot = await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.merge,
+      body: () =>
+          _mergeDiversInner(keeperId: keeperId, duplicateId: duplicateId),
+    );
+    await _moveChangeLogToKeeper(keeperId, duplicateId);
+    return snapshot;
+  }
+
+  /// Hands the duplicate's entries to the keeper. Only once the merge has
+  /// settled, or the merge's own delete of the diver would file under the
+  /// diver it deleted, where no feed shows it. The merge is done by now, so a
+  /// failure here must not report it as failed.
+  Future<void> _moveChangeLogToKeeper(
+    String keeperId,
+    String duplicateId,
+  ) async {
+    try {
+      await ChangeLogRepository().settleAll();
+      await _db.customStatement(
+        'UPDATE change_log_operations SET diver_id = ? WHERE diver_id = ?',
+        [keeperId, duplicateId],
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not move the change log to diver $keeperId',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<DiverMergeSnapshot> _mergeDiversInner({
     required String keeperId,
     required String duplicateId,
   }) async {
@@ -480,7 +519,13 @@ class DiverMergeRepository {
   /// than the pre-merge ones, so restoring those older clocks (and dropping
   /// the merge's pending marks, as this once did) left the undo with nothing
   /// to publish and nothing that could win on that device.
-  Future<void> undoMerge(DiverMergeSnapshot snapshot) async {
+  Future<void> undoMerge(DiverMergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoMergeInner(snapshot),
+  );
+
+  Future<void> _undoMergeInner(DiverMergeSnapshot snapshot) async {
     _log.info(
       'Undoing merge: restoring diver ${snapshot.duplicateId} '
       '(was merged into ${snapshot.keeperId})',
@@ -586,14 +631,16 @@ class DiverMergeRepository {
     );
   }
 
-  /// All tables (except `divers`) that have a `diver_id` column.
+  /// All tables (except `divers`) that have a `diver_id` column. The change
+  /// log is not library data: its entries follow the keeper in one statement
+  /// once the merge has settled, unsynced, and an undo leaves them there.
   Future<List<String>> _tablesWithDiverId() async {
     final rows = await _db
         .customSelect(
           "SELECT m.name AS tbl FROM sqlite_master m "
           "JOIN pragma_table_info(m.name) p "
           "WHERE m.type = 'table' AND p.name = 'diver_id' "
-          "AND m.name != 'divers'",
+          "AND m.name != 'divers' AND m.name != 'change_log_operations'",
         )
         .get();
     return rows.map((r) => r.read<String>('tbl')).toList();

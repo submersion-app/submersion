@@ -8671,6 +8671,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Nincs víztípus';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Eddig: $date';
   }
@@ -10056,6 +10061,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_o2tox_cnsBadgeLabel(Object value) {
     return 'CNS $value';
   }
+
+  @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Egy korábbi merüléshez nincs oxigénadat, ezért ez az érték magasabb is lehet.';
 
   @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS oxigén óra';
@@ -20407,6 +20416,82 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return '$letter merülés';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Merülés hozzáadása';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return '$letter merülés eltávolítása';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'A(z) $letter merülés és a módosításai kikerülnek a sorozatból.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'A(z) $letter merülésnél figyelmeztetések vannak';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Merülés adatai';
+
+  @override
+  String get plannerSeries_diveName => 'Merülés neve';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return '$letter merülés: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Felszíni idő';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Felszíni idő: $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Adja meg az időt ó:pp formában';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 perccel kevesebb';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 perccel több';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '$tank töltése';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Minden palack töltése';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Merülések sorozata még nem menthető';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Merülések sorozata még nem alakítható naplózott merülésekké';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Merülések sorozata nem tervezhető DPV-küldetésként';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Csak a sorozat első merülése követhet egy naplózott merülést';
+
+  @override
   String get plannerCanvas_follow_title => 'Merülés követése';
 
   @override
@@ -20485,7 +20570,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'A CCR dekompressziós terv nem tartalmaz bailout gázt';
+      'A dekompressziós terv nem tartalmaz bailout gázt';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Egyetlen bailout gáz sem éri el a(z) $depth mélységet: a legmélyebb vitt MOD $deepestMod. Vigyél ezen a mélységen használható gázt; ugyanabból a gázból több nem segít.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -24765,6 +24858,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'Gázfogyasztási szorzó';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'Forgatókönyv módja';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'Gázfogyasztás stresszhelyzetben';
 
@@ -28903,6 +28999,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Nem sikerült megnyitni ezeket a merüléseket';
+
+  @override
+  String get insights_chart_viewDives => 'Merülések megtekintése';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -51707,6 +51815,521 @@ class AppLocalizationsHu extends AppLocalizations {
       'A HealthKit nem érhető el ezen az eszközön';
 
   @override
+  String get diveLab_title => 'Összehasonlítás';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'Ehhez a merüléshez nincs profil, amelyből el lehetne ágazni.';
+
+  @override
+  String get diveLab_loading => 'A merülés betöltése…';
+
+  @override
+  String get diveLab_branch_label => 'Elágazás';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 perc';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 mp';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 mp';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 perc';
+
+  @override
+  String get diveLab_mode_replay => 'Visszajátszás';
+
+  @override
+  String get diveLab_mode_replan => 'Újratervezés';
+
+  @override
+  String get diveLab_mode_replayHint => 'Azonos mélységprofil, más bemenetek';
+
+  @override
+  String get diveLab_mode_replanHint =>
+      'A motor az elágazástól tervezi a felemelkedést';
+
+  @override
+  String get diveLab_mode_forced => 'Egy beavatkozás újratervezést kíván';
+
+  @override
+  String get diveLab_interventions_label => 'Beavatkozások';
+
+  @override
+  String get diveLab_interventions_add => 'Hozzáadás';
+
+  @override
+  String get diveLab_interventions_none =>
+      'Még nincs beavatkozás: a forgatókönyv megegyezik a valós merüléssel.';
+
+  @override
+  String get diveLab_kind_switchGas => 'Gázváltás';
+
+  @override
+  String get diveLab_kind_loseTank => 'Palack elvesztése';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'Felemelkedés eltolása';
+
+  @override
+  String get diveLab_kind_ascendNow => 'Felemelkedés most';
+
+  @override
+  String get diveLab_kind_changeGf => 'Gradiensfaktorok';
+
+  @override
+  String get diveLab_kind_shareGas => 'Gázmegosztás a társsal';
+
+  @override
+  String get diveLab_kind_bailOut => 'Bailout nyílt rendszerre';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'Felemelkedési szabályok';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'Másik palackból lélegzés az elágazástól';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'Egy dekó- vagy stage-palack elvész az elágazástól';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'A végső felemelkedés korábbi vagy későbbi kezdése';
+
+  @override
+  String get diveLab_kindDesc_ascendNow =>
+      'A fenékfázis megszakítása az elágazásnál';
+
+  @override
+  String get diveLab_kindDesc_changeGf =>
+      'A forgatókönyv számítása más gradiensfaktorokkal';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'Egy gáz nélkül maradt társ az elágazástól a te gázodat lélegzi';
+
+  @override
+  String get diveLab_kindDesc_bailOut =>
+      'A kör elhagyása és felemelkedés bailout gázzal';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'Más felemelkedési sebesség, utolsó megálló vagy megállóhossz';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'Váltás erre: $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '$tank elveszett';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'Felemelkedés $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'Felemelkedés most';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'Gázmegosztás x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'Bailout';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'Felemelkedési szabályok';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return '$name eltávolítása';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'Beavatkozás hozzáadása';
+
+  @override
+  String get diveLab_sheet_add => 'Hozzáadás';
+
+  @override
+  String get diveLab_sheet_cylinder => 'Palack';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'Feltételezett palack';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'Térfogat ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'Kezdőnyomás ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'Perc';
+
+  @override
+  String get diveLab_sheet_earlier => 'korábban';
+
+  @override
+  String get diveLab_sheet_later => 'később';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'Társ-szorzó';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'Ennek a merülésnek egyik palackja sem használható itt.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'Minden beavatkozás szerepel már a forgatókönyvben.';
+
+  @override
+  String get diveLab_panel_verdict => 'Ítélet';
+
+  @override
+  String get diveLab_panel_actual => 'Valós';
+
+  @override
+  String get diveLab_panel_whatIf => 'Forgatókönyv';
+
+  @override
+  String get diveLab_panel_delta => 'Eltérés';
+
+  @override
+  String get diveLab_panel_tissues => 'Szövetek a felszínen';
+
+  @override
+  String get diveLab_panel_gas => 'Gáz';
+
+  @override
+  String get diveLab_panel_issues => 'Problémák';
+
+  @override
+  String get diveLab_panel_runtime => 'Runtime';
+
+  @override
+  String get diveLab_panel_noIssues => 'Nincs probléma';
+
+  @override
+  String get diveLab_panel_computing => 'Számítás…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'Nincs változás: a forgatókönyv megegyezik a valós merüléssel.';
+
+  @override
+  String get diveLab_panel_notes => 'Megjegyzések';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: $actual helyett $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC becsült';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'Becsült nyomás: $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'Ismeretlen nyomás: $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'Feltételezett térfogat: $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'Az elágazás már a felemelkedésben van';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'Így nem teljesíthető';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'A körgáz ismeretlen; nyílt rendszer feltételezve';
+
+  @override
+  String get diveLab_metric_runtime => 'Runtime';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS az elágazásnál';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'Dekóidő az elágazás után';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'Legmélyebb megálló';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'Felszíni GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch =>
+      'Csúcs GF99 az elágazás után';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS a felszínen';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU a felszínen';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'Max. ppO2 az elágazás után';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return '$tank végnyomás';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank kiürül ekkor:';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'Minimális gáztartalék az elágazásnál';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'Plafonsértések';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation =>
+      'Legnagyobb plafontúllépés';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'tartalék ekkor: $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'üres ekkor: $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'ismeretlen';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'Dekó';
+
+  @override
+  String get diveLab_tile_surfGf => 'Felsz. GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'Hátigáz';
+
+  @override
+  String get diveLab_value_none => 'n. a.';
+
+  @override
+  String get diveLab_action_save => 'Mentés';
+
+  @override
+  String get diveLab_action_saved => 'Mentett forgatókönyvek';
+
+  @override
+  String get diveLab_save_title => 'Forgatókönyv elnevezése';
+
+  @override
+  String get diveLab_saved_snackbar => 'Forgatókönyv mentve';
+
+  @override
+  String get diveLab_saved_title => 'Mentett forgatókönyvek';
+
+  @override
+  String get diveLab_saved_empty =>
+      'Ehhez a merüléshez még nincs mentett forgatókönyv.';
+
+  @override
+  String get diveLab_saved_open => 'Megnyitás';
+
+  @override
+  String get diveLab_saved_rename => 'Átnevezés';
+
+  @override
+  String get diveLab_saved_duplicate => 'Duplikálás';
+
+  @override
+  String get diveLab_saved_delete => 'Törlés';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'Törlöd: „$name”?';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'Visszajátszás ekkor: $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'Újratervezés ekkor: $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'Új forgatókönyv';
+
+  @override
+  String get diveLab_section_hint =>
+      'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'Összehasonlítás';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'Terv, merülés és mentett „mi lett volna, ha” forgatókönyvek egymás mellett';
+
+  @override
+  String get diveLab_panel_buoyancy => 'Felhajtóerő';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'Nettó felhajtóerő a megállónál';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'Csúcs emelőerő-igény';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => 'Min. ledobható ólom';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'A felhajtóerőhöz palack vagy ruha kell a merülésen.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'Felemelkedési sebesség ($unit/perc)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'Utolsó megálló mélysége';
+
+  @override
+  String get diveLab_sheet_extraLastStop =>
+      'Utolsó megálló meghosszabbítása (perc)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'Gázváltási megálló (mp)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'Bailout palack';
+
+  @override
+  String get diveLab_sheet_allBailout => 'Minden bailout palack';
+
+  @override
+  String get diveLab_share_pdf => 'PDF-lap megosztása';
+
+  @override
+  String get diveLab_share_file => 'Forgatókönyvfájl megosztása';
+
+  @override
+  String get diveLab_share_image => 'Diagramkép megosztása';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'A megosztás nem sikerült: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'Forgatókönyvfájl importálása';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '„$name” importálva';
+  }
+
+  @override
+  String get diveLab_import_diveCreated =>
+      'A merülés a forgatókönyvfájlból jött létre';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'Az importálás nem sikerült: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'Kijelölés';
+
+  @override
+  String get diveLab_saved_done => 'Kész';
+
+  @override
+  String get diveLab_saved_sharePdf => 'Kijelöltek megosztása PDF-ként';
+
+  @override
+  String get diveLab_pdf_title => 'Forgatókönyv-lap';
+
+  @override
+  String get diveLab_pdf_branch => 'Elágazás';
+
+  @override
+  String get diveLab_pdf_mode => 'Mód';
+
+  @override
+  String get diveLab_pdf_interventions => 'Beavatkozások';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'Beállítások: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, $gasModel gázmodell';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'Készítette: Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'Megosztva forgatókönyvfájlon keresztül';
+
+  @override
   String get insights_trend_aggregation_monthly => 'Havi átlag';
 
   @override
@@ -53744,7 +54367,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Merülés újratervezése';
+  String get diveLog_detail_menu_whatIf => 'Összehasonlítás…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';
@@ -54634,6 +55257,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Típus';
+
+  @override
+  String diveLab_handoff_failed(String error) {
+    return 'Nem sikerült megnyitni a tervezőben: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'Az elveszett palack listázva marad, mert az elágazás előtt lélegeztél belőle; szükség esetén távolítsd el a tervezőben.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'A tervező újratervezi a felmerülést; a visszajátszott útvonal nem került át.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'Mi lenne, ha: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'A tervezőben megnyitás csak nyitott rendszerű merülésekhez érhető el';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'Újraépítés a tervezőben...';
+
+  @override
+  String get diveLab_menu_title => 'Több';
 
   @override
   String get query_op_eq => 'egyenlő';
@@ -56902,4 +57556,402 @@ class AppLocalizationsHu extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Változásnapló';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Nézze meg, mi változott, és állítsa vissza';
+
+  @override
+  String get changeLog_empty_title => 'Még nincsenek változások';
+
+  @override
+  String get changeLog_empty_body =>
+      'A merülések, helyszínek, felszerelés és beállítások változásai itt jelennek meg.';
+
+  @override
+  String get changeLog_empty_filtered => 'Nincs a szűrőnek megfelelő változás.';
+
+  @override
+  String get changeLog_filter_all => 'Mind';
+
+  @override
+  String get changeLog_filter_dives => 'Merülések';
+
+  @override
+  String get changeLog_filter_sites => 'Helyszínek';
+
+  @override
+  String get changeLog_filter_gear => 'Felszerelés';
+
+  @override
+  String get changeLog_filter_settings => 'Beállítások';
+
+  @override
+  String get changeLog_filter_source => 'Forrás';
+
+  @override
+  String get changeLog_filter_anySource => 'Bármely forrás';
+
+  @override
+  String get changeLog_source_manual => 'Kézi szerkesztés';
+
+  @override
+  String get changeLog_source_import => 'Importálás';
+
+  @override
+  String get changeLog_source_download => 'Búvárkomputer';
+
+  @override
+  String get changeLog_source_rule => 'Szabály';
+
+  @override
+  String get changeLog_source_sync => 'Szinkronizálás';
+
+  @override
+  String get changeLog_source_automatic => 'Automatikus';
+
+  @override
+  String get changeLog_source_revert => 'Visszaállítás';
+
+  @override
+  String get changeLog_source_system => 'Rendszer';
+
+  @override
+  String get changeLog_thisDevice => 'Ez az eszköz';
+
+  @override
+  String get changeLog_anotherDevice => 'másik eszköz';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Szinkronizálva innen: $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count további';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megtekintése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return '$number. merülés, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get changeLog_dive => 'Merülés';
+
+  @override
+  String get changeLog_action_added => 'Hozzáadva';
+
+  @override
+  String get changeLog_action_deleted => 'Törölve';
+
+  @override
+  String get changeLog_action_edited => 'Szerkesztve';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Importálva innen: $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Letöltve innen: $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Szinkronizált változások';
+
+  @override
+  String get changeLog_title_rule => 'Szabály futtatása';
+
+  @override
+  String get changeLog_title_revert => 'Változás visszaállítva';
+
+  @override
+  String get changeLog_title_changes => 'Változások';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Tömeges szerkesztés';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Tömeges törlés';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Rekord törölve';
+
+  @override
+  String get changeLog_label_merge => 'Rekordok egyesítve';
+
+  @override
+  String get changeLog_label_undoMerge => 'Egyesítés visszavonva';
+
+  @override
+  String get changeLog_label_undoRule => 'Szabályfuttatás visszavonva';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Adatminőség-javítás';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Könyvtár hozzáadva ehhez az eszközhöz';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Könyvtár lecserélve';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Könyvtár visszaállítva biztonsági mentésből';
+
+  @override
+  String get changeLog_label_reparse => 'Merülések újraelemezve';
+
+  @override
+  String get changeLog_label_splitDive => 'Merülés szétválasztva';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Felszerelés átadva';
+
+  @override
+  String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'Felszerelésfájlok áthelyezve a Dokumentumokba';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Fotók összekapcsolva a felhőbeli másolatokkal';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'Nem használt fájlok törölve';
+
+  @override
+  String get changeLog_label_accountMigration => 'Fiókhivatkozások frissítve';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size adat';
+  }
+
+  @override
+  String get changeLog_table_settings => 'Alkalmazásbeállítások';
+
+  @override
+  String get changeLog_table_diverSettings => 'Búvárbeállítások';
+
+  @override
+  String get changeLog_history => 'Előzmények';
+
+  @override
+  String get changeLog_detail_title => 'Változás részletei';
+
+  @override
+  String get changeLog_detail_open => 'Rekord megnyitása';
+
+  @override
+  String get changeLog_detail_history => 'A rekord előzményei';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'És még $count rekord',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Visszaállítás';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Mind a(z) $count visszaállítása';
+  }
+
+  @override
+  String get changeLog_restore => 'Visszaállítás';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Visszaállítja: $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => 'Ez a mező azóta megváltozott.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Ebben a bejegyzésben: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Most: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Visszaállítás után: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'A többi eszköz ezt új szerkesztésként kapja meg. Megjelenik a naplóban, és ez is visszaállítható.';
+
+  @override
+  String get changeLog_revert_anyway => 'Visszaállítás mindenképp';
+
+  @override
+  String get changeLog_undoImport => 'Importálás visszavonása';
+
+  @override
+  String get changeLog_undoEntry => 'Változás visszavonása';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Eltávolítja a hozzáadott elemeket, és visszavonja a többi változást. Előbb rákérdez, és felsorolja, amit azóta szerkesztett.';
+
+  @override
+  String get changeLog_bulk_title => 'Visszavonja ezt a bejegyzést?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megváltozott azóta.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'A többi visszaállítása';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Összes visszaállítása';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count változás visszaállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megmaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Ez a rekord már nem létezik.';
+
+  @override
+  String get changeLog_block_columnGone => 'Ez a mező már nem létezik.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Egy frissítés megváltoztatta az érték tárolását, ezért nem állítható vissza.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'A rekord, amelyhez tartozik, már nem létezik.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'Ez a rekord már visszakerült.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Későbbi adatok még használják ezt a rekordot.';
+
+  @override
+  String get changeLog_reverted => 'Visszaállítva';
+
+  @override
+  String get changeLog_revert_failed =>
+      'A változás nem állítható vissza. Semmi sem módosult.';
+
+  @override
+  String get changeLog_menu_settings => 'Napló beállításai';
+
+  @override
+  String get changeLog_settings_title => 'Változásnapló beállításai';
+
+  @override
+  String get changeLog_retention_title => 'Bejegyzések megőrzése';
+
+  @override
+  String get changeLog_retention_note =>
+      'Minden eszköz saját naplót vezet. A régebbi bejegyzések automatikusan törlődnek.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count hónap';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Örökre';
+
+  @override
+  String get changeLog_clear => 'Napló törlése';
+
+  @override
+  String get changeLog_clear_title => 'Törli a változásnaplót?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Ez eltávolítja az aktív búvár bejegyzéseit erről az eszközről. Utána már nem állíthatók vissza.';
+
+  @override
+  String get changeLog_clear_confirm => 'Törlés';
+
+  @override
+  String get changeLog_clear_failed =>
+      'A változásnapló nem törölhető. Semmi sem lett eltávolítva.';
+
+  @override
+  String get changeLog_day_today => 'Ma';
+
+  @override
+  String get changeLog_day_yesterday => 'Tegnap';
+
+  @override
+  String get changeLog_storage_label => 'Változásnapló';
 }

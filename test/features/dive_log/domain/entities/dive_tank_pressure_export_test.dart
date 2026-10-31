@@ -5,6 +5,29 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 import '../../../../helpers/tank_pressure_export_fixtures.dart';
 
 void main() {
+  test('displayedSeries holds the series of displayedByTank', () {
+    final primary = testTankSeries(
+      's-b',
+      tankId: 'tank-1',
+      sourceId: 'src-b',
+      samples: [(1, 205), (11, 195)],
+    );
+    final export = DiveTankPressureExport(
+      primarySourceId: 'src-b',
+      series: [
+        testTankSeries(
+          's-a',
+          tankId: 'tank-1',
+          sourceId: 'src-a',
+          samples: [(0, 200), (10, 190)],
+        ),
+        primary,
+      ],
+    );
+
+    expect(export.displayedSeries, [primary]);
+  });
+
   group('DiveTankPressureExport.displayedByTank (issue #2492)', () {
     test('keeps only the primary source where two recorded one tank', () {
       // Two file imports of one dive, consolidated: each recorded the same

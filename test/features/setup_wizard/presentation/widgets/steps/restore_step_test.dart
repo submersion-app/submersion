@@ -196,29 +196,35 @@ void main() {
       ),
     );
 
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Choose backup file'));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    });
+    await tester.tap(find.text('Choose backup file'));
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(RestoreConfirmationDialog).evaluate().isNotEmpty,
+      reason: 'the pick reads the file before the dialog opens',
+    );
     await tester.pumpAndSettle();
     expect(find.byType(RestoreConfirmationDialog), findsOneWidget);
 
     // Confirm the restore (merge). The restore then throws
     // BackupEncryptedException, which must surface a passphrase prompt rather
     // than vanishing into an unhandled async error.
-    await tester.runAsync(() async {
-      await tester.tap(find.widgetWithText(FilledButton, 'Restore'));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    });
+    await tester.tap(find.widgetWithText(FilledButton, 'Restore'));
+    await pumpUntilRealAsync(
+      tester,
+      () => find.text('Unlock encrypted backup').evaluate().isNotEmpty,
+      reason: 'the refused restore prompts for the passphrase',
+    );
     await tester.pumpAndSettle();
     expect(find.text('Unlock encrypted backup'), findsOneWidget);
 
     // Entering the secret retries the restore with it.
     await tester.enterText(find.byType(TextField), 'correct horse');
-    await tester.runAsync(() async {
-      await tester.tap(find.widgetWithText(FilledButton, 'Unlock'));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    });
+    await tester.tap(find.widgetWithText(FilledButton, 'Unlock'));
+    await pumpUntilRealAsync(
+      tester,
+      () => fake.secretsSeen.length == 2,
+      reason: 'the secret retries the restore',
+    );
     await tester.pumpAndSettle();
     expect(fake.secretsSeen, [null, 'correct horse']);
   });

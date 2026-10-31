@@ -1,18 +1,11 @@
-import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
-import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/ascent/loop_ascent_gas.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 
-/// The closed-circuit loop expressed as a depth-dependent ascent gas.
-///
-/// At a constant depth the loop's inspired partial pressures (constant-ppO2
-/// via [ClosedCircuit]) divide by the alveolar pressure to give EXACT
-/// effective inert fractions — so the unchanged Bühlmann stop-search
-/// machinery (which multiplies fractions back by alveolar pressure)
-/// reproduces constant-ppO2 loading at every stop. Ascent legs use the
-/// fraction at the leg's deeper end, the same approximation open-circuit
-/// legs already make.
-class CcrLoopAscentGas extends AscentGasPlan {
+/// The closed-circuit loop expressed as a depth-dependent ascent gas: the
+/// constant-ppO2 inspired pressures of [ClosedCircuit], at the setpoint in
+/// force at each depth (see [LoopAscentGas]).
+class CcrLoopAscentGas extends LoopAscentGas {
   CcrLoopAscentGas({
     required this.environment,
     required this.setpointLow,
@@ -22,6 +15,7 @@ class CcrLoopAscentGas extends AscentGasPlan {
     this.diluentFHe = 0.0,
   });
 
+  @override
   final DiveEnvironment environment;
   final double setpointLow;
   final double setpointHigh;
@@ -36,28 +30,18 @@ class CcrLoopAscentGas extends AscentGasPlan {
   double setpointAt(double depthMeters) =>
       depthMeters > switchDepth ? setpointHigh : setpointLow;
 
-  /// The loop's real inspired ppO2 at [depthMeters]: the setpoint in force,
-  /// clamped to alveolar pressure where the diluent can no longer dilute
-  /// enough. Never ambient x a [gasForDepth] fraction, which is normalized
-  /// against alveolar pressure and overstates ppO2 as depth shrinks.
-  double inspiredPpO2At(double depthMeters) => ClosedCircuit(
+  @override
+  double get supplyFO2 => diluentFO2;
+
+  @override
+  double get supplyFHe => diluentFHe;
+
+  @override
+  BreathingConfig breathingAt(double depthMeters) => ClosedCircuit(
     setpoint: setpointAt(depthMeters),
     diluentFO2: diluentFO2,
     diluentFHe: diluentFHe,
-  ).inspiredAt(environment.pressureAtDepth(depthMeters)).pO2;
-
-  @override
-  AscentGas gasForDepth(double depthMeters) {
-    final ambient = environment.pressureAtDepth(depthMeters);
-    final pAlv = ambient - waterVaporPressure;
-    if (pAlv <= 0) return const AscentGas(fN2: 0, fHe: 0);
-    final inspired = ClosedCircuit(
-      setpoint: setpointAt(depthMeters),
-      diluentFO2: diluentFO2,
-      diluentFHe: diluentFHe,
-    ).inspiredAt(ambient);
-    return AscentGas(fN2: inspired.pN2 / pAlv, fHe: inspired.pHe / pAlv);
-  }
+  );
 
   @override
   List<double> switchDepthsBetween(double deeperDepth, double shallowerDepth) {

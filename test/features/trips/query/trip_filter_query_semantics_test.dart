@@ -98,10 +98,10 @@ void main() {
   });
 
   test('a transmitter-matched cylinder counts, as it does for dives', () async {
-    // Ruling: the dive gear union counts it; getTripIdsForEquipment, which
-    // reads only dive_equipment, missed this trip.
+    // Ruling: the dive gear union counts it, and getTripIdsForEquipment now
+    // reads the same tank links rather than dive_equipment alone.
     expect(await ids('tank'), {'b'});
-    expect(await EquipmentRepository().getTripIdsForEquipment('tank'), isEmpty);
+    expect(await EquipmentRepository().getTripIdsForEquipment('tank'), ['b']);
   });
 
   test('no filter selects every trip', () async {
