@@ -15,6 +15,10 @@ import '../../../tool/demo_data/src/seeders/seed_context.dart';
 import 'seed_harness.dart';
 import 'synthetic_shapes.dart';
 
+// One whole 700-dive build onto disk, which takes a quiet CI runner almost the
+// usual two minutes and a busy one well past them.
+const _oneBuild = Timeout(Duration(minutes: 4));
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -75,6 +79,7 @@ void main() {
         isTrue,
       );
     },
+    timeout: _oneBuild,
   );
 
   test('no value in the published database names a build folder', () async {
@@ -101,7 +106,7 @@ void main() {
       expect(row.read<String?>('file_path'), startsWith('photos/'));
       expect(row.read<String?>('local_path'), startsWith('photos/'));
     }
-  });
+  }, timeout: _oneBuild);
 
   test('each photo is taken during its dive, on the same clock', () async {
     final out = await build();
@@ -129,7 +134,7 @@ void main() {
         inInclusiveRange(0, const Duration(hours: 1).inMilliseconds),
       );
     }
-  });
+  }, timeout: _oneBuild);
 
   test('the build is refused when a value names a build folder', () async {
     await expectLater(
@@ -143,7 +148,7 @@ void main() {
       ),
     );
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
-  });
+  }, timeout: _oneBuild);
 
   test('the build is refused when a table is left empty', () async {
     final partial = demoSeeders()
@@ -155,7 +160,7 @@ void main() {
       throwsA(isA<DemoBuildRefused>()),
     );
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
-  });
+  }, timeout: _oneBuild);
 
   test('the builder refuses a plan the shapes cannot cover', () async {
     // Four rebreather shapes cover at most twelve rebreather dives; the story
