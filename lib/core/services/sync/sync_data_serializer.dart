@@ -20,11 +20,13 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
@@ -907,13 +909,13 @@ class SyncDataSerializer {
     try {
       _log.info('Exporting full data snapshot');
       final data = await _buildSyncData(null);
-      final dataJson = jsonEncode(data.toJson());
+      final checksum = await checksumOfOffIsolate(data);
       return SyncPayload(
         version: syncFormatVersion,
         exportedAt: DateTime.now().millisecondsSinceEpoch,
         deviceId: deviceId,
         lastSyncTimestamp: lastSyncTimestamp,
-        checksum: _computeChecksum(dataJson),
+        checksum: checksum,
         data: data,
         deletions: _groupDeletions(deletions),
         uploadNonce: uploadNonce,
@@ -961,12 +963,12 @@ class SyncDataSerializer {
         : deletions
               .where((d) => d.hlc == null || d.hlc!.compareTo(hlcWatermark) > 0)
               .toList();
-    final dataJson = jsonEncode(data.toJson());
+    final checksum = await checksumOfOffIsolate(data);
     return SyncPayload(
       version: syncFormatVersion,
       exportedAt: DateTime.now().millisecondsSinceEpoch,
       deviceId: deviceId,
-      checksum: _computeChecksum(dataJson),
+      checksum: checksum,
       data: data,
       deletions: _groupDeletions(includedDeletions),
       seq: seq,
@@ -1647,7 +1649,7 @@ class SyncDataSerializer {
     String? maxRowHlc;
     var rowCount = 0;
 
-    // Writes + hashes only the `data` object bytes (matches _computeChecksum,
+    // Writes + hashes only the `data` object bytes (matches checksumOf,
     // which hashes jsonEncode(data.toJson())).
     Future<void> writeData(String s) async {
       final bytes = utf8.encode(s);
@@ -2982,13 +2984,23 @@ class SyncDataSerializer {
     return _sha256Hex(dataJson) == payload.checksum;
   }
 
-  /// Compute SHA-256 checksum
-  String _computeChecksum(String data) => _sha256Hex(data);
-
-  /// The checksum a payload carrying [data] must have, for a caller that
-  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  /// The checksum a payload carrying [data] must have.
   static String checksumOf(SyncData data) =>
       _sha256Hex(jsonEncode(data.toJson()));
+
+  /// [checksumOf] on a worker once [data] is substantial: hashing costs more
+  /// than the JSON it covers, and a sync usually runs on the UI isolate. Static
+  /// so that the closure holds [data] alone, not this serializer's database.
+  static Future<String> checksumOfOffIsolate(
+    SyncData data, {
+    @visibleForTesting int minBytes = kOffIsolateMinBytes,
+    @visibleForTesting OffIsolateRunner runner = isolateRun,
+  }) => runOffIsolate(
+    () => checksumOf(data),
+    bytes: syncJsonWeight(data.toJson(), limit: minBytes),
+    minBytes: minBytes,
+    runner: runner,
+  );
 
   static String _sha256Hex(String data) =>
       sha256.convert(utf8.encode(data)).toString();

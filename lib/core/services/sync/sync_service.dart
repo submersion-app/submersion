@@ -295,7 +295,7 @@ class SyncService {
   static const _unreadableEpochGraceMs = 60 * 60 * 1000; // 1 hour
 
   // Changeset-log transport (Phases 1-6), lazily bound to the active database.
-  late final ChangesetCodec _changesetCodec = ChangesetCodec(_serializer);
+  static const ChangesetCodec _changesetCodec = ChangesetCodec();
 
   /// Assembles a peer's base parts into a temp file (per-part + whole-file
   /// checksum verified) for the bounded-memory replace-adopt (#358).
@@ -5804,7 +5804,9 @@ class SyncService {
           final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
           if (cf == null) break;
           changesets.add(
-            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
+            await _changesetCodec.decodeChangeset(
+              await provider.downloadFile(cf.id),
+            ),
           );
           appliedThrough = seq;
         }

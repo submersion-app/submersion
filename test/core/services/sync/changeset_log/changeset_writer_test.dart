@@ -33,7 +33,7 @@ void main() {
     final serializer = SyncDataSerializer();
     writer = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 1 << 30,
@@ -122,7 +122,7 @@ void main() {
       final serializer = SyncDataSerializer();
       final capped = ChangesetWriter(
         serializer,
-        ChangesetCodec(serializer),
+        const ChangesetCodec(),
         PublishStateStore(db),
         compactionByteRatio: 1000.0,
         compactionMaxChangesets: 1 << 30,
@@ -166,7 +166,7 @@ void main() {
     final serializer = SyncDataSerializer();
     final capped = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 1 << 30,
@@ -296,9 +296,9 @@ void main() {
         .toList();
     expect(csFiles, isNotEmpty);
 
-    final payload = ChangesetCodec(
-      SyncDataSerializer(),
-    ).decodeChangeset(await provider.downloadFile(csFiles.first.id));
+    final payload = await const ChangesetCodec().decodeChangeset(
+      await provider.downloadFile(csFiles.first.id),
+    );
     final diveIds = payload.data.dives.map((d) => d['id']).toSet();
     expect(diveIds.contains('d2'), isTrue);
     expect(diveIds.contains('d1'), isFalse);
@@ -516,7 +516,7 @@ void main() {
       expect(manifest.headSeq, 1);
 
       final deviceId = await SyncRepository().getDeviceId();
-      final payload = ChangesetCodec(SyncDataSerializer()).decodeChangeset(
+      final payload = await const ChangesetCodec().decodeChangeset(
         await provider.downloadFile(
           '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
         ),
@@ -573,7 +573,7 @@ void main() {
 
         expect(result.kind, ChangesetWriteKind.changeset);
         final deviceId = await SyncRepository().getDeviceId();
-        final payload = ChangesetCodec(SyncDataSerializer()).decodeChangeset(
+        final payload = await const ChangesetCodec().decodeChangeset(
           await provider.downloadFile(
             '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
           ),
@@ -614,7 +614,7 @@ void main() {
       () async {
         final compactingWriter = ChangesetWriter(
           SyncDataSerializer(),
-          ChangesetCodec(SyncDataSerializer()),
+          const ChangesetCodec(),
           PublishStateStore(DatabaseService.instance.database),
           compactionByteRatio: 1000.0,
           compactionMaxChangesets: 2,

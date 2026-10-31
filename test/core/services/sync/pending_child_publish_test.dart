@@ -96,9 +96,11 @@ void main() {
             a.name,
           )!.compareTo(ChangesetLogLayout.changesetSeqOf(b.name)!),
         );
-    final codec = ChangesetCodec(SyncDataSerializer());
+    const codec = ChangesetCodec();
     for (final f in changesets) {
-      overlay(codec.decodeChangeset(await cloud.downloadFile(f.id)).data);
+      overlay(
+        (await codec.decodeChangeset(await cloud.downloadFile(f.id))).data,
+      );
     }
     return view;
   }

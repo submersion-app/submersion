@@ -47,7 +47,7 @@ void main() {
     // Tiny threshold: compact once 2 changesets sit past the base.
     writer = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 2,
@@ -174,7 +174,7 @@ void main() {
           '$folder/${ChangesetLogLayout.basePartName(deviceId, manifest.baseSeq!, i)}',
         ),
     ];
-    final base = ChangesetCodec(SyncDataSerializer()).decodeBaseParts(parts);
+    final base = await const ChangesetCodec().decodeBaseParts(parts);
     final deletedIds = base.deletions.values
         .expand((l) => l)
         .map((d) => d.id)
@@ -204,7 +204,7 @@ void main() {
     final serializer = SyncDataSerializer();
     final failWriter = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 2,

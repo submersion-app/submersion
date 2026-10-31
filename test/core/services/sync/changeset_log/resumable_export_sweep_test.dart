@@ -28,7 +28,7 @@ void main() {
     final serializer = SyncDataSerializer();
     return ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(DatabaseService.instance.database),
       compactionByteRatio: 1000.0,
       compactionMaxChangesets: 1 << 30,
