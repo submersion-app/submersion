@@ -499,6 +499,43 @@ void main() {
         expect(auth.authFailures, 2);
       });
 
+      test('that survives re-auth counts as a refusal', () async {
+        drive_.failuresRemaining = 2;
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
+        );
+      });
+
+      test('with a refresh that throws is neither refused nor raw', () async {
+        // A dropped network fails the refresh too, so this says nothing about
+        // the account, and the header must stay off the screen on this path
+        // as well.
+        auth
+          ..silentAuthResult = false
+          ..lastSilentAuthThrew = true;
+        drive_.failuresRemaining = 1;
+
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>()
+                .having((e) => e.accessRefused, 'accessRefused', isFalse)
+                .having(
+                  (e) => e.displayMessage,
+                  'displayMessage',
+                  isNot(contains('www-authenticate')),
+                ),
+          ),
+        );
+      });
+
       test('during an upload lookup is not read as a missing file', () async {
         // Masked as "not found", the retry-free path went on to create a
         // second file of the same name beside the one it failed to see.
@@ -549,6 +586,22 @@ void main() {
         await expectLater(
           provider.getOrCreateSyncFolder(),
           throwsA(asksForTheDriveBox),
+        );
+      });
+
+      test('counts as a refusal, so the error offers Sign in again', () async {
+        // Read as anything else, sync files this as a network failure and the
+        // diver is told to check a connection that is fine (issue #3811).
+        drive_.failuresRemaining = 1;
+        await expectLater(
+          provider.getOrCreateSyncFolder(),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
         );
       });
 

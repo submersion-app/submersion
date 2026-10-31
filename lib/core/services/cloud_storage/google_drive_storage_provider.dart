@@ -243,7 +243,7 @@ class GoogleDriveStorageProvider
   ) async {
     _log.warning('Drive refused a sign-in without Drive access: $refusal');
     await _dropRejectedAuth(client);
-    return const CloudStorageException(googleDriveAccessNotAllowed);
+    return const CloudAccessRefusedException(googleDriveAccessNotAllowed);
   }
 
   /// Replaces [rejected] with a freshly authorized client, sharing one
