@@ -138,6 +138,26 @@ void main() {
       expect(after.tankConfigurations, isEmpty);
       expect(after.tankExtras, [TankConfigurationExtra.stages]);
     });
+
+    testWidgets('removing the extras chip leaves the configuration', (
+      tester,
+    ) async {
+      final provider = await pumpChips(
+        tester,
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+          tankExtras: [TankConfigurationExtra.stages],
+        ),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(Scaffold)),
+      );
+      await tester.tap(find.byIcon(Icons.close).last);
+      await tester.pump();
+      final after = container.read(provider);
+      expect(after.tankExtras, isEmpty);
+      expect(after.tankConfigurations, [TankBaseConfiguration.sidemount]);
+    });
   });
 
   testWidgets('a closed date range reads start first, with its years', (
