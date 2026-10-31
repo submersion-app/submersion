@@ -47523,6 +47523,18 @@ abstract class AppLocalizations {
     String coverage,
   );
 
+  /// No description provided for @insights_focus_standouts_categoryPartRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
   /// No description provided for @insights_focus_standouts_numeric.
   ///
   /// In en, this message translates to:

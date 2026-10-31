@@ -16960,6 +16960,16 @@
       "coverage": { "type": "String" }
     }
   },
+  "insights_focus_standouts_categoryPartRecorded": "{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded",
+  "@insights_focus_standouts_categoryPartRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "groupCoverage": { "type": "String" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} vs {baseline})",
   "@insights_focus_standouts_numeric": {
     "placeholders": {

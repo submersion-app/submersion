@@ -8427,6 +8427,7 @@
   "insights_focus_standouts_categorySome": "{total} merülésből {count} {value} volt, szemben az összes merülésed {baseline} arányával",
   "insights_focus_standouts_categoryAllRecorded": "Mind a(z) {count} {value} volt ({baseline} az ezt rögzítő {coverage} közül)",
   "insights_focus_standouts_categorySomeRecorded": "{total} merülésből {count} {value} volt, szemben az ezt rögzítő {coverage} {baseline} arányával",
+  "insights_focus_standouts_categoryPartRecorded": "Az ezt rögzítő {groupCoverage} közül {count} {value} volt, szemben az ezt rögzítő {coverage} {baseline} arányával",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} vs {baseline})",
   "insights_focus_direction_deeper": "mélyebb",
   "insights_focus_direction_shallower": "sekélyebb",

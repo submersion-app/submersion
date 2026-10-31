@@ -27937,6 +27937,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '在已记录此项的 $groupCoverage中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,

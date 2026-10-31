@@ -265,6 +265,27 @@ void main() {
     expect(find.text('5 of 10 dives'), findsOneWidget);
   });
 
+  testWidgets('a partly recorded number shows its coverage', (tester) async {
+    await pump(
+      tester,
+      const FocusFactorReport(
+        tooFewDives: false,
+        factors: [
+          NumericFactor(
+            id: FocusFactorId.maxDepth,
+            groupCovered: 9,
+            groupSize: 10,
+            groupMean: 24.2,
+            baselineMean: 21.6,
+            standsOut: false,
+            strength: 0,
+          ),
+        ],
+      ),
+    );
+    expect(find.text('9 of 10 dives'), findsOneWidget);
+  });
+
   testWidgets('a fully recorded category shows no coverage', (tester) async {
     await pump(tester, report);
     expect(find.textContaining(' of 10 dives'), findsNothing);

@@ -8423,6 +8423,7 @@
   "insights_focus_standouts_categorySome": "{count} su {total} erano {value}, contro {baseline} di tutte le tue immersioni",
   "insights_focus_standouts_categoryAllRecorded": "Tutte le {count} erano {value} ({baseline} delle {coverage} con questo dato registrato)",
   "insights_focus_standouts_categorySomeRecorded": "{count} su {total} erano {value}, contro {baseline} delle {coverage} con questo dato registrato",
+  "insights_focus_standouts_categoryPartRecorded": "{count} delle {groupCoverage} con questo dato registrato erano {value}, contro {baseline} delle {coverage} con questo dato registrato",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} contro {baseline})",
   "insights_focus_direction_deeper": "più profondo",
   "insights_focus_direction_shallower": "meno profondo",

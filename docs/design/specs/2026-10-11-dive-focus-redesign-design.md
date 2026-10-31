@@ -100,7 +100,10 @@ Directly under the summary line, titled "What stands out".
   - Categorical shares count only the dives that recorded the factor. When
     some baseline dives did not, the sentence names that denominator instead
     of "all your dives": "All 3 were boat entries (60% of the 5 of 10 dives
-    with this recorded)", and the same for part of the group (issue #3915).
+    with this recorded)", and the same for part of the group. When the group
+    has gaps too, its count names them: "2 of the 2 of 5 dives with this
+    recorded were boat entries, against 60% of the 5 of 10 dives with this
+    recorded" (issue #3915).
   - Numeric: "Average depth 2.1 m shallower (11.3 m vs 13.4 m)". Direction
     words per numeric factor: deeper / shallower (depths), longer / shorter
     (duration), warmer / colder (water temp), larger / smaller (tank size),

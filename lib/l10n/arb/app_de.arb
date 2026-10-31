@@ -8661,6 +8661,7 @@
   "insights_focus_standouts_categorySome": "{count} von {total} waren {value}, gegenüber {baseline} aller deiner Tauchgänge",
   "insights_focus_standouts_categoryAllRecorded": "Alle {count} waren {value} ({baseline} der {coverage}, bei denen dies erfasst ist)",
   "insights_focus_standouts_categorySomeRecorded": "{count} von {total} waren {value}, gegenüber {baseline} der {coverage}, bei denen dies erfasst ist",
+  "insights_focus_standouts_categoryPartRecorded": "{count} der {groupCoverage}, bei denen dies erfasst ist, waren {value}, gegenüber {baseline} der {coverage}, bei denen dies erfasst ist",
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} gegenüber {baseline})",
   "insights_focus_direction_deeper": "tiefer",
   "insights_focus_direction_shallower": "flacher",
