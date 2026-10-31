@@ -5850,6 +5850,10 @@ class DiveRepository {
   /// across them: a second computer's deco types must not cancel the
   /// obligation a ceiling-only source (a FIT file) recorded, since that
   /// would shorten the no-fly window.
+  ///
+  /// Planner rows (`isPlanned = true`) are left out: a plan whose time has
+  /// passed was not dived, so it restricts nothing until it is marked
+  /// executed (issue #3924).
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
@@ -5873,6 +5877,7 @@ class DiveRepository {
             'WHERE COALESCE(d.exit_time, '
             'COALESCE(d.entry_time, d.dive_date_time) '
             '+ COALESCE(d.runtime, 0) * 1000) >= ? '
+            'AND d.is_planned = 0 '
             '$diverClause',
             variables: [
               Variable(since.millisecondsSinceEpoch),
@@ -5907,6 +5912,9 @@ class DiveRepository {
 
   /// Get the previous dive (by entry time) for surface interval calculation
   /// Returns null if this is the first dive
+  ///
+  /// A plan that has not been dived is the previous dive of another plan only:
+  /// a logged dive looks past it (issue #3924).
   Future<domain.Dive?> getPreviousDive(String diveId) async {
     try {
       // First get the current dive's entry time
@@ -5931,6 +5939,9 @@ class DiveRepository {
           (t) => OrderingTerm.desc(t.diveDateTime),
         ])
         ..limit(1);
+      if (!currentDive.isPlanned) {
+        query.where((t) => t.isPlanned.equals(false));
+      }
 
       final rows = await query.get();
       if (rows.isEmpty) return null;
@@ -6025,7 +6036,7 @@ class DiveRepository {
   /// chain but short-circuits past the profile scan.
   static final _diveTimesSelect =
       'SELECT d.id, d.dive_date_time, d.entry_time, d.exit_time, '
-      'd.runtime, d.bottom_time, '
+      'd.runtime, d.bottom_time, d.is_planned, '
       "${profileSpanSecondsSql('d')} AS profile_span "
       'FROM dives d';
 
@@ -6051,6 +6062,7 @@ class DiveRepository {
       bottomTime: bottom != null ? Duration(seconds: bottom) : null,
       // Matches Dive.calculateRuntimeFromProfile: null unless positive.
       profileSpan: span != null && span > 0 ? Duration(seconds: span) : null,
+      isPlanned: row.read<int>('is_planned') == 1,
     );
   }
 
@@ -6128,6 +6140,7 @@ class DiveRepository {
           '$_diveTimesSelect '
           'WHERE d.id != ? AND (d.entry_time < ? OR '
           '(d.entry_time IS NULL AND d.dive_date_time < ?)) '
+          '${current.isPlanned ? '' : 'AND d.is_planned = 0 '}'
           'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
           variables: [
             Variable<String>(diveId),

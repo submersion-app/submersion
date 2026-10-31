@@ -27,6 +27,7 @@ void main() {
     DateTime? entryTime,
     int? runtimeSeconds,
     String? diverId,
+    bool isPlanned = false,
   }) async {
     final created = now.millisecondsSinceEpoch;
     await db
@@ -41,6 +42,7 @@ void main() {
             entryTime: Value(entryTime?.millisecondsSinceEpoch),
             exitTime: Value(exitTime?.millisecondsSinceEpoch),
             runtime: Value(runtimeSeconds),
+            isPlanned: Value(isPlanned),
             createdAt: Value(created),
             updatedAt: Value(created),
           ),
@@ -185,6 +187,46 @@ void main() {
       since: now.subtract(const Duration(hours: 48)),
     );
     expect(inputs.single.hadDecoObligation, isFalse);
+  });
+
+  group('a plan that was never dived (#3924)', () {
+    final since = now.subtract(const Duration(hours: 48));
+
+    Future<void> insertPastPlan(String id) => insertDive(
+      id,
+      entryTime: now.subtract(const Duration(hours: 3)),
+      exitTime: now.subtract(const Duration(hours: 2)),
+      runtimeSeconds: 3600,
+      isPlanned: true,
+    );
+
+    test('adds no dive once its planned time has passed', () async {
+      await insertPastPlan('plan');
+
+      expect(await repository.getNoFlyDiveInputs(since: since), isEmpty);
+    });
+
+    test('its planned deco does not escalate a real dive', () async {
+      await insertPastPlan('plan');
+      await insertProfilePoint('plan', decoType: 2);
+      await insertDive(
+        'real',
+        exitTime: now.subtract(const Duration(hours: 5)),
+      );
+
+      final inputs = await repository.getNoFlyDiveInputs(since: since);
+
+      expect(inputs.single.hadDecoObligation, isFalse);
+      expect(inputs.single.endTime, now.subtract(const Duration(hours: 5)));
+    });
+
+    test('counts from the moment it is marked executed', () async {
+      await insertPastPlan('plan');
+
+      await repository.convertPlanToActualDive('plan');
+
+      expect(await repository.getNoFlyDiveInputs(since: since), hasLength(1));
+    });
   });
 
   test('passing a diverId scopes the query to that diver', () async {

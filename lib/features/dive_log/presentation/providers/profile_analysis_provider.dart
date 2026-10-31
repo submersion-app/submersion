@@ -1856,6 +1856,7 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
       dives: nearbyDives.where(
         (dive) =>
             dive.id != diveId &&
+            dive.isHistoryOf(currentDive) &&
             (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
       ),
       from: startOfDay,
@@ -1962,7 +1963,8 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final counted = weekDives.where(
       (dive) =>
           dive.id == diveId ||
-          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+          (dive.isHistoryOf(currentDive) &&
+              !(dive.entryTime ?? dive.dateTime).isAfter(diveDate)),
     );
 
     // The window closes at the end of the dive's day, or at the dive's own

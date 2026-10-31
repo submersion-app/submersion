@@ -23,6 +23,7 @@ void main() {
     int? dateTime,
     int? runtimeSeconds,
     int? storedSi,
+    bool isPlanned = false,
   }) async {
     await db
         .into(db.dives)
@@ -34,6 +35,7 @@ void main() {
             exitTime: Value(exit),
             runtime: Value(runtimeSeconds),
             surfaceIntervalSeconds: Value(storedSi),
+            isPlanned: Value(isPlanned),
             createdAt: Value(base),
             updatedAt: Value(base),
           ),
@@ -53,6 +55,49 @@ void main() {
         r.read<String>('id'): (r.readNullable<int>('si'), r.read<String>('t')),
     };
   }
+
+  test(
+    'a logged dive measures its gap past a plan never dived (#3924)',
+    () async {
+      await insert('real', entry: base, exit: base + 40 * minute);
+      await insert(
+        'plan',
+        entry: base + 60 * minute,
+        exit: base + 100 * minute,
+        isPlanned: true,
+      );
+      await insert('next', entry: base + 120 * minute);
+
+      expect((await intervals())['next'], (80 * 60, 'integer'));
+    },
+  );
+
+  test(
+    'a plan never dived gives the first logged dive no gap (#3924)',
+    () async {
+      await insert(
+        'plan',
+        entry: base,
+        exit: base + 40 * minute,
+        isPlanned: true,
+      );
+      await insert('next', entry: base + 120 * minute);
+
+      expect((await intervals())['next'], (null, 'null'));
+    },
+  );
+
+  test('a plan measures its gap from the plan before it (#3924)', () async {
+    await insert(
+      'plan',
+      entry: base,
+      exit: base + 40 * minute,
+      isPlanned: true,
+    );
+    await insert('next-plan', entry: base + 120 * minute, isPlanned: true);
+
+    expect((await intervals())['next-plan'], (80 * 60, 'integer'));
+  });
 
   test('first dive has no interval', () async {
     await insert('a', entry: base, exit: base + 40 * minute);

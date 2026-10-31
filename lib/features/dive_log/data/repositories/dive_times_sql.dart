@@ -139,7 +139,9 @@ const kSurfaceIntervalPreviousAlias = 'si_prev';
 /// (ties by `dive_date_time`), and only when no such dive exists, the
 /// latest dive with no `entry_time` whose `dive_date_time` is before it.
 /// That ranking is spelled as two subqueries so each is an index range seek
-/// on `idx_dives_entry_date` rather than a scan of `dives` per row.
+/// on `idx_dives_entry_date` rather than a scan of `dives` per row. A plan
+/// that has not been dived is skipped unless this dive is a plan too
+/// (issue #3924).
 ///
 /// The previous dive's exit is its `exit_time`, else its start plus
 /// [effectiveRuntimeSecondsSql]. A negative gap (overlapping dives) is
@@ -162,7 +164,8 @@ String diveSurfaceIntervalSecondsSql(
   String gap(String where, String order) =>
       '(SELECT MAX(0, CAST(($start - $previousExit) '
       '/ $_millisecondsPerSecond AS INTEGER)) '
-      'FROM dives $p WHERE $p.id != $alias.id AND $where$previousScope '
+      'FROM dives $p WHERE $p.id != $alias.id AND $where '
+      'AND ($p.is_planned = 0 OR $alias.is_planned = 1)$previousScope '
       'ORDER BY $order LIMIT 1)';
   final withEntry = gap(
     '$p.entry_time < $start',

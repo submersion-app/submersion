@@ -17,6 +17,9 @@ class DiveTimes {
   final Duration? bottomTime;
   final Duration? profileSpan;
 
+  /// True for a plan that has not been dived (`dives.is_planned`).
+  final bool isPlanned;
+
   const DiveTimes({
     required this.id,
     required this.dateTime,
@@ -25,7 +28,14 @@ class DiveTimes {
     this.runtime,
     this.bottomTime,
     this.profileSpan,
+    this.isPlanned = false,
   });
+
+  /// Whether this dive's exposure is part of the history of [later]. A plan
+  /// that has not been dived left nothing behind, so it counts only toward
+  /// another plan, which models a day of diving that has not happened yet
+  /// (issue #3924).
+  bool isHistoryOf(DiveTimes later) => !isPlanned || later.isPlanned;
 
   /// Same resolution order as `Dive.effectiveRuntime`:
   /// runtime, then exit - entry, then profile span, then bottom time.

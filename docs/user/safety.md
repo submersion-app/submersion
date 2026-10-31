@@ -117,7 +117,9 @@ published DAN/UHMS guideline intervals.
 ### The intervals
 
 Your last 48 hours of dives are classified into one of three cases, and the
-matching interval is counted from the end of the most recent dive:
+matching interval is counted from the end of the most recent dive. A planned dive
+does not count, even once its planned time has passed, until it is logged as
+executed:
 
 | Your last dives | Standard | Strict |
 |-----------------|----------|--------|

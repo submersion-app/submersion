@@ -78,6 +78,80 @@ void main() {
     expect(await repository.getPreviousDiveTimes('p1'), isNull);
   });
 
+  group('a plan that was never dived (#3924)', () {
+    final real = domain.Dive(
+      id: 'real',
+      dateTime: DateTime.utc(2026, 5, 1, 8),
+      exitTime: DateTime.utc(2026, 5, 1, 9),
+    );
+    final plan = domain.Dive(
+      id: 'plan',
+      dateTime: DateTime.utc(2026, 5, 1, 11),
+      exitTime: DateTime.utc(2026, 5, 1, 12),
+      isPlanned: true,
+    );
+    final laterReal = domain.Dive(
+      id: 'later-real',
+      dateTime: DateTime.utc(2026, 5, 1, 14),
+    );
+    final laterPlan = domain.Dive(
+      id: 'later-plan',
+      dateTime: DateTime.utc(2026, 5, 1, 13),
+      isPlanned: true,
+    );
+
+    test('getDiveTimes says which dives are plans', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+
+      expect((await repository.getDiveTimes('real'))!.isPlanned, isFalse);
+      expect((await repository.getDiveTimes('plan'))!.isPlanned, isTrue);
+    });
+
+    test('is not the previous dive of a logged dive', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+      await repository.createDive(laterReal);
+
+      expect((await repository.getPreviousDive('later-real'))?.id, 'real');
+      expect((await repository.getPreviousDiveTimes('later-real'))?.id, 'real');
+    });
+
+    test('leaves the surface interval of a logged dive alone', () async {
+      await repository.createDive(real);
+      await repository.createDive(plan);
+      await repository.createDive(laterReal);
+
+      expect(
+        await repository.getSurfaceInterval('later-real'),
+        const Duration(hours: 5),
+      );
+    });
+
+    test(
+      'gives a logged dive no previous dive when it is all there is',
+      () async {
+        await repository.createDive(plan);
+        await repository.createDive(laterReal);
+
+        expect(await repository.getPreviousDiveTimes('later-real'), isNull);
+        expect(await repository.getSurfaceInterval('later-real'), isNull);
+      },
+    );
+
+    test('is still the previous dive of a later plan', () async {
+      await repository.createDive(plan);
+      await repository.createDive(laterPlan);
+
+      expect((await repository.getPreviousDive('later-plan'))?.id, 'plan');
+      expect((await repository.getPreviousDiveTimes('later-plan'))?.id, 'plan');
+      expect(
+        await repository.getSurfaceInterval('later-plan'),
+        const Duration(hours: 1),
+      );
+    });
+  });
+
   test('getDiveTimesInRange matches getDivesInRange ids and order', () async {
     await repository.createDive(
       domain.Dive(id: 'r1', dateTime: DateTime.utc(2026, 6, 1, 8)),
