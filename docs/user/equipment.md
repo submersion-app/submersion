@@ -98,6 +98,10 @@ other limit (dives, hours, or an exposure such as cold dives), and as overdue
 once a limit is passed. The item's icon in
 the list turns red when any clock is overdue.
 
+Only dives that happened count. Gear linked to a planned dive picks up no dives,
+hours or exposure until you log that dive, while a dive you excluded from
+statistics still counts, because it still wore the gear.
+
 A clock counts from the last service you logged for it. Until then it counts
 from its **Baseline date**, which you can set in **Edit intervals**. From a
 clock's menu you can **Log service**, **Edit intervals** for this item only,

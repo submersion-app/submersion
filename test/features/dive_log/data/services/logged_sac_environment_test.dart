@@ -102,7 +102,10 @@ void main() {
         tankPressures: series,
         startTimestamp: 0,
         endTimestamp: 600,
-        avgDepth: depth,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: depth),
+          DiveProfilePoint(timestamp: 600, depth: depth),
+        ],
         model: GasModel.ideal,
         environment: environment,
       );

@@ -2,6 +2,13 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
+import 'package:submersion/features/dive_lab/domain/services/scenario_engine.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../tool/demo_data/src/seeders/demo_seeding.dart';
@@ -332,5 +339,73 @@ void main() {
       'SELECT DISTINCT tz_offset_minutes AS z FROM gps_tracks',
     );
     expect(tracks.length, greaterThan(1));
+  });
+
+  group('saved what-ifs', () {
+    Future<List<DiveScenario>> saved() async {
+      final repository = DiveScenarioRepository();
+      final ids = await rows('SELECT id FROM dive_scenarios ORDER BY id');
+      return [
+        for (final row in ids)
+          (await repository.getScenario(row['id']! as String))!,
+      ];
+    }
+
+    test('each one replays or re-plans in the Dive Lab', () async {
+      final dives = DiveRepository();
+      final scenarios = await saved();
+      expect({
+        for (final s in scenarios) s.effectiveMode,
+      }, containsAll(ScenarioMode.values));
+
+      for (final scenario in scenarios) {
+        final dive = (await dives.getDiveById(scenario.diveId))!;
+        final profile = await dives.getDiveProfile(scenario.diveId);
+        final switches = await dives.getGasSwitchesForDive(scenario.diveId);
+        expect(validateInterventions(scenario.interventions), isEmpty);
+        expect(
+          scenario.branchSeconds,
+          inInclusiveRange(0, profile.last.timestamp),
+        );
+
+        final outcome = const ScenarioEngine().run(
+          ScenarioRequest(
+            diveId: scenario.diveId,
+            depths: [for (final p in profile) p.depth],
+            timestamps: [for (final p in profile) p.timestamp],
+            diveMode: dive.diveMode,
+            tanks: dive.tanks,
+            gasSwitches: [
+              for (final s in switches)
+                ScenarioGasSwitch(timestamp: s.timestamp, tankId: s.tankId),
+            ],
+            scenario: scenario,
+          ),
+        );
+
+        expect(
+          outcome.flags.map((f) => f.kind),
+          isNot(contains(ScenarioFlagKind.replanNotCompletable)),
+          reason: scenario.name,
+        );
+        expect(outcome.deltas, isNotEmpty, reason: scenario.name);
+      }
+    });
+
+    test('the nitrox question is asked of a dive breathed on air', () async {
+      final scenarios = await saved();
+      final nitrox = scenarios.singleWhere(
+        (s) => s.interventions.any((i) => i is SwitchGasIntervention),
+      );
+
+      final tanks = await rows(
+        'SELECT o2_percent AS o2, he_percent AS he FROM dive_tanks '
+        "WHERE dive_id = '${nitrox.diveId}'",
+      );
+
+      expect(tanks, [
+        {'o2': 21.0, 'he': 0.0},
+      ]);
+    });
   });
 }

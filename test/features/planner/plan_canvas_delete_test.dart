@@ -219,6 +219,18 @@ void main() {
     },
   );
 
+  testWidgets('delete is hidden while the plan is a series', (tester) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+
+    await tester.pumpWidget(harness('/planning/dive-planner/a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add a dive'));
+    await tester.pumpAndSettle();
+
+    await openMenu(tester);
+    expect(find.text('Delete plan'), findsNothing);
+  });
+
   testWidgets('delete is hidden for a brand-new unsaved plan', (tester) async {
     await tester.pumpWidget(harness('/planning/dive-planner'));
     await tester.pumpAndSettle();

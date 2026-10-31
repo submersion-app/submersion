@@ -115,6 +115,7 @@ PlanOutcome _withIssues(PlanOutcome outcome, List<PlanIssue> issues) {
     otuTotal: outcome.otuTotal,
     issues: issues,
     endTissue: outcome.endTissue,
+    surfacedTissue: outcome.surfacedTissue,
     tissueTimeline: outcome.tissueTimeline,
     ceilingTrace: outcome.ceilingTrace,
     authoredDecoSeconds: outcome.authoredDecoSeconds,

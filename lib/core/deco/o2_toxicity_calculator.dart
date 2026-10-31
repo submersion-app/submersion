@@ -140,8 +140,6 @@ class O2ToxicityCalculator {
 
     double totalCns = 0.0;
     double totalOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
 
@@ -151,12 +149,6 @@ class O2ToxicityCalculator {
       final duration = timestamps[i] - timestamps[i - 1];
 
       final ppO2 = _ppO2At(avgDepth, o2Fraction);
-
-      // Track max ppO2
-      if (ppO2 > maxPpO2) {
-        maxPpO2 = ppO2;
-        depthAtMaxPpO2 = avgDepth;
-      }
 
       // Calculate CNS and OTU for this segment
       totalCns += calculateCnsForSegment(ppO2, duration);
@@ -171,12 +163,14 @@ class O2ToxicityCalculator {
       }
     }
 
+    final peak = peakPpO2(calculatePpO2Curve(depths, o2Fraction), depths);
+
     return O2Exposure(
       cnsStart: startCns,
       cnsEnd: startCns + totalCns,
       otu: totalOtu,
-      maxPpO2: maxPpO2,
-      maxPpO2Depth: depthAtMaxPpO2,
+      maxPpO2: peak.ppO2,
+      maxPpO2Depth: peak.depth,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
       warningThreshold: ppO2WarningThreshold,
@@ -204,27 +198,27 @@ class O2ToxicityCalculator {
 
     double totalCns = 0.0;
     double totalOtu = 0.0;
-    double maxPpO2 = 0.0;
-    double depthAtMaxPpO2 = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
-    double currentO2Fraction = initialO2Fraction;
+    double currentO2Fraction =
+        gasSwitches[timestamps.first] ?? initialO2Fraction;
+    final sampledPpO2s = <double>[];
+    final sampledDepths = <double>[];
+
+    void sampleCurrentGas(double depth) {
+      sampledPpO2s.add(_ppO2At(depth, currentO2Fraction));
+      sampledDepths.add(depth);
+    }
+
+    sampleCurrentGas(depths.first);
 
     for (int i = 1; i < depths.length; i++) {
-      // Check for gas switch at this point
-      if (gasSwitches.containsKey(timestamps[i])) {
-        currentO2Fraction = gasSwitches[timestamps[i]]!;
-      }
+      sampleCurrentGas(depths[i]);
 
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
       final duration = timestamps[i] - timestamps[i - 1];
 
       final ppO2 = _ppO2At(avgDepth, currentO2Fraction);
-
-      if (ppO2 > maxPpO2) {
-        maxPpO2 = ppO2;
-        depthAtMaxPpO2 = avgDepth;
-      }
 
       totalCns += calculateCnsForSegment(ppO2, duration);
       totalOtu += _calculateOtu(ppO2, duration);
@@ -235,19 +229,52 @@ class O2ToxicityCalculator {
       } else if (ppO2 > ppO2WarningThreshold) {
         timeAboveWarning += duration;
       }
+
+      // A switch at this sample takes effect from here on
+      if (gasSwitches.containsKey(timestamps[i])) {
+        currentO2Fraction = gasSwitches[timestamps[i]]!;
+        sampleCurrentGas(depths[i]);
+      }
     }
+
+    final peak = peakPpO2(sampledPpO2s, sampledDepths);
 
     return O2Exposure(
       cnsStart: startCns,
       cnsEnd: startCns + totalCns,
       otu: totalOtu,
-      maxPpO2: maxPpO2,
-      maxPpO2Depth: depthAtMaxPpO2,
+      maxPpO2: peak.ppO2,
+      maxPpO2Depth: peak.depth,
       timeAboveWarning: timeAboveWarning,
       timeAboveCritical: timeAboveCritical,
       warningThreshold: ppO2WarningThreshold,
       criticalThreshold: ppO2CriticalThreshold,
     );
+  }
+
+  /// The highest of [ppO2s] and the depth in [depths] it was reached at.
+  ///
+  /// CNS and OTU integrate an interval's average ppO2, which flattens a peak,
+  /// so the peak is read from the readings themselves (issue #3959). A ppO2
+  /// held across depths, as on a constant setpoint, reports the deepest one.
+  /// With no reading above zero, the ppO2 is unknown and so is its depth.
+  static ({double ppO2, double depth}) peakPpO2(
+    List<double> ppO2s,
+    List<double> depths,
+  ) {
+    double peak = 0.0;
+    double depthAtPeak = 0.0;
+
+    for (int i = 0; i < ppO2s.length; i++) {
+      if (ppO2s[i] > peak) {
+        peak = ppO2s[i];
+        depthAtPeak = depths[i];
+      } else if (peak > 0.0 && ppO2s[i] == peak && depths[i] > depthAtPeak) {
+        depthAtPeak = depths[i];
+      }
+    }
+
+    return (ppO2: peak, depth: depthAtPeak);
   }
 
   /// Calculate ppO2 curve for a dive profile (Open Circuit).

@@ -8243,6 +8243,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => '无水体类型';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label（$count）';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return '至 $date';
   }
@@ -9566,6 +9571,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_o2tox_cnsBadgeLabel(Object value) {
     return '中枢神经系统 $value';
   }
+
+  @override
+  String get diveLog_o2tox_cnsMinimumNote => '之前的一次潜水没有氧气数据，因此该数值可能更高。';
 
   @override
   String get diveLog_o2tox_cnsOxygenClock => '中枢神经系统氧时钟';
@@ -19483,6 +19491,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_follow_noTissues => '该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return '潜水 $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => '添加潜水';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return '移除潜水 $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return '潜水 $letter 及其更改将从系列中移除。';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return '潜水 $letter 有警告';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => '潜水详情';
+
+  @override
+  String get plannerSeries_diveName => '潜水名称';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return '潜水 $letter：$name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => '水面间隔';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return '水面间隔 $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => '请按 h:mm 输入时长';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '减少 15 分钟';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '增加 15 分钟';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '加满 $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => '加满所有气瓶';
+
+  @override
+  String get plannerSeries_saveUnavailable => '暂时无法保存潜水系列';
+
+  @override
+  String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
+
+  @override
+  String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly => '只有系列中的第一次潜水可以跟随已记录的潜水';
+
+  @override
   String get plannerCanvas_follow_title => '跟随一次潜水';
 
   @override
@@ -23504,6 +23583,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sacFactor => '耗气系数';
 
   @override
+  String get settings_conflict_field_scenarioMode => '情形模式';
+
+  @override
   String get settings_conflict_field_sacStressed => '紧张时耗气量';
 
   @override
@@ -27391,6 +27473,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => '未记录';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart：$row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => '无法打开这些潜水记录';
+
+  @override
+  String get insights_chart_viewDives => '查看潜水记录';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -48759,6 +48852,496 @@ class AppLocalizationsZh extends AppLocalizations {
       '此设备不支持 HealthKit';
 
   @override
+  String get diveLab_title => '对比';
+
+  @override
+  String get diveLab_empty_ineligible => '此次潜水没有可供分支的剖面。';
+
+  @override
+  String get diveLab_loading => '正在加载潜水…';
+
+  @override
+  String get diveLab_branch_label => '分支点';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 分钟';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 秒';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 秒';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 分钟';
+
+  @override
+  String get diveLab_mode_replay => '重放';
+
+  @override
+  String get diveLab_mode_replan => '重新规划';
+
+  @override
+  String get diveLab_mode_replayHint => '相同的深度路径，不同的输入';
+
+  @override
+  String get diveLab_mode_replanHint => '引擎从分支点规划上升';
+
+  @override
+  String get diveLab_mode_forced => '某项干预要求重新规划';
+
+  @override
+  String get diveLab_interventions_label => '干预';
+
+  @override
+  String get diveLab_interventions_add => '添加';
+
+  @override
+  String get diveLab_interventions_none => '尚无干预：假设情形与实际潜水相同。';
+
+  @override
+  String get diveLab_kind_switchGas => '切换气体';
+
+  @override
+  String get diveLab_kind_loseTank => '丢失气瓶';
+
+  @override
+  String get diveLab_kind_shiftAscent => '提前或推迟上升';
+
+  @override
+  String get diveLab_kind_ascendNow => '立即上升';
+
+  @override
+  String get diveLab_kind_changeGf => '梯度因子';
+
+  @override
+  String get diveLab_kind_shareGas => '与潜伴共享气体';
+
+  @override
+  String get diveLab_kind_bailOut => '切换到开放式逼出';
+
+  @override
+  String get diveLab_kind_ascentPolicy => '上升策略';
+
+  @override
+  String get diveLab_kindDesc_switchGas => '从分支点起改用另一个气瓶呼吸';
+
+  @override
+  String get diveLab_kindDesc_loseTank => '从分支点起丢失一个减压或挂瓶';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent => '提前或推迟开始最终上升';
+
+  @override
+  String get diveLab_kindDesc_ascendNow => '在分支点终止底部阶段';
+
+  @override
+  String get diveLab_kindDesc_changeGf => '用其他梯度因子计算假设情形';
+
+  @override
+  String get diveLab_kindDesc_shareGas => '气体耗尽的潜伴从分支点起共用你的气体';
+
+  @override
+  String get diveLab_kindDesc_bailOut => '离开循环回路，使用开放式逼出气体上升';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy => '不同的上升速率、最后停留深度或停留时长';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return '切换到 $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return '丢失 $tank';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return '上升 $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => '立即上升';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return '共享气体 x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => '逼出';
+
+  @override
+  String get diveLab_chip_ascentPolicy => '上升策略';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return '移除 $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => '添加干预';
+
+  @override
+  String get diveLab_sheet_add => '添加';
+
+  @override
+  String get diveLab_sheet_cylinder => '气瓶';
+
+  @override
+  String get diveLab_sheet_hypothetical => '假设气瓶';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return '容积（$unit）';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return '起始压力（$unit）';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => '分钟';
+
+  @override
+  String get diveLab_sheet_earlier => '提前';
+
+  @override
+  String get diveLab_sheet_later => '推迟';
+
+  @override
+  String get diveLab_sheet_buddyFactor => '潜伴系数';
+
+  @override
+  String get diveLab_sheet_noCandidates => '此次潜水没有可在此使用的气瓶。';
+
+  @override
+  String get diveLab_sheet_allAdded => '所有干预都已在情形中。';
+
+  @override
+  String get diveLab_panel_verdict => '结论';
+
+  @override
+  String get diveLab_panel_actual => '实际';
+
+  @override
+  String get diveLab_panel_whatIf => '假设';
+
+  @override
+  String get diveLab_panel_delta => '差值';
+
+  @override
+  String get diveLab_panel_tissues => '出水时的组织';
+
+  @override
+  String get diveLab_panel_gas => '气体';
+
+  @override
+  String get diveLab_panel_issues => '问题';
+
+  @override
+  String get diveLab_panel_runtime => '运行时间表';
+
+  @override
+  String get diveLab_panel_noIssues => '无问题';
+
+  @override
+  String get diveLab_panel_computing => '计算中…';
+
+  @override
+  String get diveLab_panel_identity => '无变化：假设情形与实际潜水相同。';
+
+  @override
+  String get diveLab_panel_notes => '备注';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label：$actual → $whatIf（$delta）';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC 为估算值';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return '$tank 的压力为估算值';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return '$tank 的压力未知';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return '$tank 的容积为假定值';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining => '分支点已处于上升阶段';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => '按此分支无法完成';
+
+  @override
+  String get diveLab_flag_loopGasMissing => '循环气体未知；按开放式处理';
+
+  @override
+  String get diveLab_metric_runtime => '运行时间';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => '分支点的 TTS';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => '分支后的减压时间';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => '最深停留';
+
+  @override
+  String get diveLab_metric_surfaceGf => '水面 GF';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => '分支后的峰值 GF99';
+
+  @override
+  String get diveLab_metric_cnsEnd => '出水时的 CNS';
+
+  @override
+  String get diveLab_metric_otuEnd => '出水时的 OTU';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => '分支后的最大 ppO2';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return '$tank 结束压力';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return '$tank 耗尽于';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch => '分支点的最小气体余量';
+
+  @override
+  String get diveLab_metric_ceilingViolations => '天花板违规次数';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => '最大天花板超出';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return '在 $time 达到储备压';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return '在 $time 耗尽';
+  }
+
+  @override
+  String get diveLab_gas_unknown => '未知';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => '减压';
+
+  @override
+  String get diveLab_tile_surfGf => '水面 GF';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => '背气';
+
+  @override
+  String get diveLab_value_none => '无';
+
+  @override
+  String get diveLab_action_save => '保存';
+
+  @override
+  String get diveLab_action_saved => '已保存的情形';
+
+  @override
+  String get diveLab_save_title => '为此情形命名';
+
+  @override
+  String get diveLab_saved_snackbar => '情形已保存';
+
+  @override
+  String get diveLab_saved_title => '已保存的情形';
+
+  @override
+  String get diveLab_saved_empty => '此次潜水尚无已保存的情形。';
+
+  @override
+  String get diveLab_saved_open => '打开';
+
+  @override
+  String get diveLab_saved_rename => '重命名';
+
+  @override
+  String get diveLab_saved_duplicate => '复制';
+
+  @override
+  String get diveLab_saved_delete => '删除';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return '删除“$name”？';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return '在 $time 重放';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return '在 $time 重新规划';
+  }
+
+  @override
+  String get diveLab_section_new => '新建情形';
+
+  @override
+  String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
+
+  @override
+  String get diveDetailSection_diveLab_name => '对比';
+
+  @override
+  String get diveDetailSection_diveLab_description => '计划、潜水和已保存的假设情形并列对比';
+
+  @override
+  String get diveLab_panel_buoyancy => '浮力';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => '停留时的净浮力';
+
+  @override
+  String get diveLab_buoyancy_peakLift => '峰值升力需求';
+
+  @override
+  String get diveLab_buoyancy_minDitchable => '最少可抛配重';
+
+  @override
+  String get diveLab_buoyancy_unavailable => '计算浮力需要此次潜水有气瓶或防护服。';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return '上升速率（$unit/分钟）';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => '最后停留深度';
+
+  @override
+  String get diveLab_sheet_extraLastStop => '延长最后停留（分钟）';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => '换气停留（秒）';
+
+  @override
+  String get diveLab_sheet_bailoutTank => '逼出气瓶';
+
+  @override
+  String get diveLab_sheet_allBailout => '全部逼出气瓶';
+
+  @override
+  String get diveLab_share_pdf => '分享 PDF 卡片';
+
+  @override
+  String get diveLab_share_file => '分享情形文件';
+
+  @override
+  String get diveLab_share_image => '分享图表图片';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return '分享失败：$error';
+  }
+
+  @override
+  String get diveLab_import_file => '导入情形文件';
+
+  @override
+  String diveLab_import_done(String name) {
+    return '已导入“$name”';
+  }
+
+  @override
+  String get diveLab_import_diveCreated => '已根据情形文件创建潜水记录';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return '导入失败：$error';
+  }
+
+  @override
+  String get diveLab_saved_select => '选择';
+
+  @override
+  String get diveLab_saved_done => '完成';
+
+  @override
+  String get diveLab_saved_sharePdf => '将所选分享为 PDF';
+
+  @override
+  String get diveLab_pdf_title => '假设情形卡片';
+
+  @override
+  String get diveLab_pdf_branch => '分支点';
+
+  @override
+  String get diveLab_pdf_mode => '模式';
+
+  @override
+  String get diveLab_pdf_interventions => '干预';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return '设置：GF $gfLow/$gfHigh，Bühlmann ZH-L16C，$gasModel 气体模型';
+  }
+
+  @override
+  String get diveLab_pdf_generated => '由 Submersion 生成';
+
+  @override
+  String get diveLab_sublab_notes => '通过假设情形文件分享';
+
+  @override
   String get insights_trend_aggregation_monthly => '每月平均';
 
   @override
@@ -50655,7 +51238,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => '重新规划此次潜水';
+  String get diveLog_detail_menu_whatIf => '对比…';
 
   @override
   String get plannerCanvas_sourceCompare_title => '对比原始潜水';
@@ -51537,6 +52120,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_weights_type => '类型';
+
+  @override
+  String diveLab_handoff_failed(String error) {
+    return '无法在计划器中打开：$error';
+  }
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      '丢失的气瓶仍在列表中，因为在分支点之前曾使用过；如有需要请在计划器中移除。';
+
+  @override
+  String get diveLab_handoff_note_replay => '计划器会重新规划上升；回放路径未被带入。';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return '假如：$dive（$scenario）';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled => '仅开放式回路潜水可在计划器中打开';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => '在计划器中重建...';
+
+  @override
+  String get diveLab_menu_title => '更多';
 
   @override
   String get query_op_eq => '是';
@@ -53698,4 +54310,387 @@ class AppLocalizationsZh extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => '更改日志';
+
+  @override
+  String get changeLog_settings_subtitle => '查看更改内容并恢复';
+
+  @override
+  String get changeLog_empty_title => '暂无更改';
+
+  @override
+  String get changeLog_empty_body => '您对潜水、潜点、装备和设置所做的更改将显示在这里。';
+
+  @override
+  String get changeLog_empty_filtered => '没有符合此筛选条件的更改。';
+
+  @override
+  String get changeLog_filter_all => '全部';
+
+  @override
+  String get changeLog_filter_dives => '潜水';
+
+  @override
+  String get changeLog_filter_sites => '潜点';
+
+  @override
+  String get changeLog_filter_gear => '装备';
+
+  @override
+  String get changeLog_filter_settings => '设置';
+
+  @override
+  String get changeLog_filter_source => '来源';
+
+  @override
+  String get changeLog_filter_anySource => '任何来源';
+
+  @override
+  String get changeLog_source_manual => '手动编辑';
+
+  @override
+  String get changeLog_source_import => '导入';
+
+  @override
+  String get changeLog_source_download => '潜水电脑';
+
+  @override
+  String get changeLog_source_rule => '规则';
+
+  @override
+  String get changeLog_source_sync => '同步';
+
+  @override
+  String get changeLog_source_automatic => '自动';
+
+  @override
+  String get changeLog_source_revert => '还原';
+
+  @override
+  String get changeLog_source_system => '系统';
+
+  @override
+  String get changeLog_thisDevice => '此设备';
+
+  @override
+  String get changeLog_anotherDevice => '其他设备';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return '已从$device同步';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '还有 $count 项';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '查看 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return '潜水 $number，$site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return '潜水 $number';
+  }
+
+  @override
+  String get changeLog_dive => '潜水';
+
+  @override
+  String get changeLog_action_added => '已添加';
+
+  @override
+  String get changeLog_action_deleted => '已删除';
+
+  @override
+  String get changeLog_action_edited => '已编辑';
+
+  @override
+  String changeLog_title_import(String source) {
+    return '已从$source导入';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return '已从$source下载';
+  }
+
+  @override
+  String get changeLog_title_sync => '已同步的更改';
+
+  @override
+  String get changeLog_title_rule => '规则运行';
+
+  @override
+  String get changeLog_title_revert => '已还原更改';
+
+  @override
+  String get changeLog_title_changes => '更改';
+
+  @override
+  String get changeLog_label_bulkEdit => '批量编辑';
+
+  @override
+  String get changeLog_label_bulkDelete => '批量删除';
+
+  @override
+  String get changeLog_label_deletedRecord => '已删除记录';
+
+  @override
+  String get changeLog_label_merge => '已合并记录';
+
+  @override
+  String get changeLog_label_undoMerge => '已撤销合并';
+
+  @override
+  String get changeLog_label_undoRule => '已撤销规则运行';
+
+  @override
+  String get changeLog_label_qualityRepair => '数据质量修复';
+
+  @override
+  String get changeLog_label_libraryAdopted => '资料库已添加到此设备';
+
+  @override
+  String get changeLog_label_libraryReplaced => '资料库已替换';
+
+  @override
+  String get changeLog_label_libraryRestored => '资料库已从备份恢复';
+
+  @override
+  String get changeLog_label_reparse => '已重新解析潜水';
+
+  @override
+  String get changeLog_label_splitDive => '已拆分潜水';
+
+  @override
+  String get changeLog_label_gearTransfer => '已转移装备';
+
+  @override
+  String get changeLog_label_mediaRepair => '已修复媒体链接';
+
+  @override
+  String get changeLog_label_gearFileConversion => '已将装备文件移至文档';
+
+  @override
+  String get changeLog_label_galleryBackfill => '已将照片关联到云端副本';
+
+  @override
+  String get changeLog_label_mediaCleanup => '已清理未使用的文件';
+
+  @override
+  String get changeLog_label_accountMigration => '已更新账户链接';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size 数据';
+  }
+
+  @override
+  String get changeLog_table_settings => '应用设置';
+
+  @override
+  String get changeLog_table_diverSettings => '潜水员设置';
+
+  @override
+  String get changeLog_history => '历史记录';
+
+  @override
+  String get changeLog_detail_title => '更改详情';
+
+  @override
+  String get changeLog_detail_open => '打开记录';
+
+  @override
+  String get changeLog_detail_history => '此记录的历史';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => '还原';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return '全部还原（$count）';
+  }
+
+  @override
+  String get changeLog_restore => '恢复';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return '还原$field？';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => '此字段在此条目之后已更改。';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return '此条目设置的值：$value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return '当前：$value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return '还原后：$value';
+  }
+
+  @override
+  String get changeLog_revert_note => '其他设备会将此作为新的编辑接收。它会显示在日志中，也可以还原。';
+
+  @override
+  String get changeLog_revert_anyway => '仍然还原';
+
+  @override
+  String get changeLog_undoImport => '撤销此次导入';
+
+  @override
+  String get changeLog_undoEntry => '撤销此更改';
+
+  @override
+  String get changeLog_undo_explain => '移除此操作添加的内容并撤销其他更改。会先询问，并列出您之后编辑过的内容。';
+
+  @override
+  String get changeLog_bulk_title => '撤销此条目？';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此条目之后有 $count 条记录已更改。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => '还原其余内容';
+
+  @override
+  String get changeLog_bulk_revertAll => '全部还原';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已还原 $count 项更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '保留了 $count 条记录',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => '此记录已不存在。';
+
+  @override
+  String get changeLog_block_columnGone => '此字段已不存在。';
+
+  @override
+  String get changeLog_block_rewritten => '应用更新更改了此值的存储方式，因此无法恢复。';
+
+  @override
+  String get changeLog_block_parentGone => '其所属的记录已不存在。';
+
+  @override
+  String get changeLog_block_alreadyRestored => '此记录已恢复。';
+
+  @override
+  String get changeLog_block_inUse => '之后的数据仍在使用此记录。';
+
+  @override
+  String get changeLog_reverted => '已还原';
+
+  @override
+  String get changeLog_revert_failed => '无法还原此更改。未做任何修改。';
+
+  @override
+  String get changeLog_menu_settings => '日志设置';
+
+  @override
+  String get changeLog_settings_title => '更改日志设置';
+
+  @override
+  String get changeLog_retention_title => '条目保留时长';
+
+  @override
+  String get changeLog_retention_note => '每台设备保留自己的日志。较旧的条目会自动移除。';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count 个月';
+  }
+
+  @override
+  String get changeLog_retention_forever => '永久';
+
+  @override
+  String get changeLog_clear => '清除日志';
+
+  @override
+  String get changeLog_clear_title => '清除更改日志？';
+
+  @override
+  String get changeLog_clear_body => '这会从此设备移除当前潜水员的条目。之后将无法还原它们。';
+
+  @override
+  String get changeLog_clear_confirm => '清除';
+
+  @override
+  String get changeLog_clear_failed => '无法清除更改日志。未删除任何内容。';
+
+  @override
+  String get changeLog_day_today => '今天';
+
+  @override
+  String get changeLog_day_yesterday => '昨天';
+
+  @override
+  String get changeLog_storage_label => '更改日志';
 }

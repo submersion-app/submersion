@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
@@ -254,27 +259,173 @@ void main() {
     });
   }
 
-  test('writes no series for a dive with a single source', () async {
-    // A lone restored source owns every series unambiguously, so the
-    // samples already say everything a restore needs.
-    final xml = await UddfExportService().generateDivesUddfContent(
-      [dive],
-      diveTankPressures: pressures,
-      dataSources: [sources.first],
-    );
+  // Issue #3917: a dive with fewer than two sources has only one source to
+  // restore its series under, so nothing needs telling apart, but the
+  // samples are a projection onto the depth clock and cannot always hold
+  // what was recorded.
+  group('a dive with fewer than two sources', () {
+    final lone = [sources.first];
 
-    expect(seriesIn(xml), isEmpty);
-    expect(xml, isNot(contains('<tanksources>')));
-  });
+    Map<String, DiveTankPressureExport> recorded(List<(int, double)> samples) =>
+        {
+          'dive-a': DiveTankPressureExport(
+            primarySourceId: 'src-primary',
+            series: [
+              testTankSeries(
+                's-primary',
+                diveId: 'dive-a',
+                tankId: 'tank-1',
+                sourceId: 'src-primary',
+                computerId: 'comp-a',
+                samples: samples,
+              ),
+            ],
+          ),
+        };
 
-  test('writes no series when the sources are left out', () async {
-    // Without <source> entries a restore creates one source for the dive,
-    // so the series would collapse into one interleaved recording anyway.
-    final xml = await divesExport(
-      options: const UddfExportOptions(includeRawData: false),
-    );
+    String samplesOf(XmlElement series) => [
+      for (final sample in series.findElements('sample'))
+        '${sample.getAttribute('divetime')}:'
+            '${sample.getAttribute('pressure')}',
+    ].join(' ');
 
-    expect(seriesIn(xml), isEmpty);
+    for (final (name, generate)
+        in <
+          (
+            String,
+            Future<String> Function(
+              Dive,
+              Map<String, DiveTankPressureExport>,
+              List<DiveSourceExport>,
+            ),
+          )
+        >[
+          (
+            'dives-only export',
+            (d, p, s) => UddfExportService().generateDivesUddfContent(
+              [d],
+              diveTankPressures: p,
+              dataSources: s,
+            ),
+          ),
+          (
+            'full backup',
+            (d, p, s) => UddfFullExportService().generateAllDataXmlForTest(
+              dives: [d],
+              diveTankPressures: p,
+              dataSources: s,
+            ),
+          ),
+        ]) {
+      group(name, () {
+        test('writes a series no depth sample lines up with', () async {
+          // Five seconds from every depth sample: the samples hold nothing.
+          final xml = await generate(
+            dive,
+            recorded([(5, 199), (15, 191)]),
+            lone,
+          );
+
+          final written = seriesIn(xml).single;
+          expect(written.getAttribute('source'), '0');
+          expect(written.getAttribute('computer'), '0');
+          expect(samplesOf(written), '5:199.0 15:191.0');
+          expect(
+            XmlDocument.parse(xml).findAllElements('tankpressure'),
+            isEmpty,
+          );
+          // One source owns every tank, so the tank rows stay unwritten.
+          expect(xml, isNot(contains('<tanksources>')));
+        });
+
+        test('keeps the time of a reading the samples would move', () async {
+          final xml = await generate(dive, recorded([(9, 195)]), lone);
+
+          expect(samplesOf(seriesIn(xml).single), '9:195.0');
+        });
+
+        test('keeps a series the samples would repeat', () async {
+          // Depth every second: each reading is near several depth samples,
+          // so the samples alone come back as a staircase of copies.
+          final everySecond = dive.copyWith(
+            profile: [
+              for (var t = 0; t <= 20; t++)
+                DiveProfilePoint(timestamp: t, depth: 12),
+            ],
+          );
+
+          final xml = await generate(
+            everySecond,
+            recorded([(0, 200), (10, 190), (20, 180)]),
+            lone,
+          );
+
+          expect(samplesOf(seriesIn(xml).single), '0:200.0 10:190.0 20:180.0');
+        });
+
+        test('keeps a series of a dive with no depth samples', () async {
+          final xml = await generate(
+            dive.copyWith(profile: const []),
+            recorded([(5, 199)]),
+            lone,
+          );
+
+          expect(samplesOf(seriesIn(xml).single), '5:199.0');
+        });
+
+        test('writes no series the samples hold exactly', () async {
+          // Readings on depth samples, even only some of them, come back
+          // from the samples unchanged.
+          final xml = await generate(
+            dive,
+            recorded([(0, 200), (10, 190)]),
+            lone,
+          );
+
+          expect(seriesIn(xml), isEmpty);
+        });
+
+        test('writes the series with no source in the file', () async {
+          final xml = await generate(dive, recorded([(5, 199)]), const []);
+
+          final written = seriesIn(xml).single;
+          expect(written.getAttribute('source'), isNull);
+          expect(written.getAttribute('computer'), isNull);
+          expect(samplesOf(written), '5:199.0');
+        });
+
+        test('parses the series back into the dive', () async {
+          final parsed = await ExportService().importAllDataFromUddf(
+            await generate(dive, recorded([(5, 199), (15, 191)]), const []),
+          );
+          final entries =
+              parsed.dives.single['tankPressureSeries']
+                  as List<Map<String, dynamic>>;
+
+          expect(entries.single['samples'], const [
+            (timestamp: 5, pressure: 199.0),
+            (timestamp: 15, pressure: 191.0),
+          ]);
+        });
+      });
+    }
+
+    test('writes only the series the app draws of two recordings', () async {
+      // With the sources left out a restore has one source to give them
+      // all to, and two recordings of one stretch under one source would
+      // zigzag again (#2440). The legacy reading lies past the last depth
+      // sample, so what the app draws goes in the block and nothing else.
+      final xml = await divesExport(
+        options: const UddfExportOptions(includeRawData: false),
+      );
+
+      final written = seriesIn(xml);
+      expect(written.map(samplesOf), [
+        '0:200.0 10:190.0 20:180.0',
+        '30:170.25',
+      ]);
+      expect(written.map((s) => s.getAttribute('source')), [null, null]);
+    });
   });
 
   group('gas switch computers', () {
@@ -468,5 +619,197 @@ void main() {
     expect(series['dive_a']!.single['samples'], const [
       (timestamp: 0, pressure: 200.0),
     ]);
+  });
+
+  /// Issue #3965: `<samples>` holds every source's depth readings interleaved,
+  /// and a waypoint names no source, so a restore gave them all to the primary.
+  group('sourceprofiles', () {
+    const samples = [
+      ProfileSample(timestamp: 10, depth: 0, pressure: 199.5),
+      ProfileSample(
+        timestamp: 40,
+        depth: 20.25,
+        temperature: 14.7,
+        heartRateSource: 'watch',
+        gf99: 40,
+      ),
+    ];
+
+    final blob = const ProfileSeriesCodec().encode(samples).bytes;
+
+    SourceSeriesExport series({
+      String? sourceId,
+      String? computerId,
+      bool isPrimary = false,
+    }) => SourceSeriesExport(
+      blob: blob,
+      sourceId: sourceId,
+      computerId: computerId,
+      isPrimary: isPrimary,
+    );
+
+    DiveSourceExport withSeries(
+      String id,
+      int ordinal,
+      List<SourceSeriesExport> profileSeries, {
+      String? computerId,
+    }) => DiveSourceExport(
+      id: id,
+      diveId: 'dive-a',
+      ordinal: ordinal,
+      isPrimary: ordinal == 0,
+      importedAt: DateTime.utc(2026, 3, 1, 12),
+      createdAt: DateTime.utc(2026, 3, 1, 12),
+      computerId: computerId,
+      profileSeries: profileSeries,
+    );
+
+    final owned = [
+      withSeries('src-primary', 0, [
+        series(sourceId: 'src-primary', isPrimary: true, computerId: 'comp-a'),
+        // A Combine's surface filler, held here but owned by no source.
+        series(isPrimary: true),
+      ], computerId: 'comp-a'),
+      withSeries('src-other', 1, [
+        series(sourceId: 'src-other'),
+      ], computerId: 'comp-b'),
+    ];
+
+    Future<String> divesOnly(List<DiveSourceExport> sources) =>
+        UddfExportService().generateDivesUddfContent([
+          dive,
+        ], dataSources: sources);
+
+    Future<String> full(List<DiveSourceExport> sources) =>
+        UddfFullExportService().generateAllDataXmlForTest(
+          dives: [dive],
+          dataSources: sources,
+        );
+
+    for (final (name, generate) in [
+      ('dives-only export', divesOnly),
+      ('full backup', full),
+    ]) {
+      group(name, () {
+        test('names the source, computer and flag of each series', () async {
+          final xml = await generate(owned);
+          final written = XmlDocument.parse(xml)
+              .findAllElements('sourceprofiles')
+              .expand((block) => block.findElements('series'));
+
+          expect(
+            [
+              for (final s in written)
+                (
+                  s.getAttribute('diveref'),
+                  s.getAttribute('source'),
+                  s.getAttribute('computer'),
+                  s.getAttribute('primary'),
+                ),
+            ],
+            [
+              ('dive_dive-a', '0', '0', 'true'),
+              ('dive_dive-a', null, null, 'true'),
+              ('dive_dive-a', '1', null, 'false'),
+            ],
+          );
+        });
+
+        test('parses back every field of every sample', () async {
+          final uddf = XmlDocument.parse(await generate(owned)).rootElement;
+
+          final parsed = UddfSourceAttribution.parseProfiles(uddf);
+
+          expect(parsed.keys, ['dive_dive-a']);
+          final restored = restoredProfileSeries({
+            UddfSourceAttribution.profilesKey: parsed['dive_dive-a'],
+          });
+          expect(
+            [
+              for (final s in restored)
+                (s.sourceOrdinal, s.computerOrdinal, s.isPrimary),
+            ],
+            [(0, 0, true), (null, null, true), (1, null, false)],
+          );
+          for (final s in restored) {
+            expect(s.samples, samples);
+          }
+        });
+
+        test('writes no block when no source owns a series', () async {
+          final xml = await generate([
+            withSeries('src-primary', 0, const []),
+            withSeries('src-other', 1, const []),
+          ]);
+
+          expect(xml, isNot(contains('sourceprofiles')));
+        });
+
+        test('writes no block for a lone source', () async {
+          final xml = await generate([
+            withSeries('src-primary', 0, [series(isPrimary: true)]),
+          ]);
+
+          expect(xml, isNot(contains('sourceprofiles')));
+        });
+      });
+    }
+
+    test('is written with no tank series beside it', () async {
+      final xml = await divesOnly(owned);
+
+      expect(xml, isNot(contains('tankpressureseries')));
+      expect(xml, contains('<sourceprofiles>'));
+    });
+
+    XmlElement document(String body) => XmlDocument.parse('''<uddf>
+  <applicationdata>
+    <submersion>
+      <sourceprofiles>$body</sourceprofiles>
+    </submersion>
+  </applicationdata>
+</uddf>''').rootElement;
+
+    final encoded = base64Encode(blob);
+
+    test('reads an unreadable ordinal as no ordinal', () {
+      final parsed = UddfSourceAttribution.parseProfiles(
+        document('<series diveref="dive_a" source="one">$encoded</series>'),
+      );
+
+      expect(parsed['dive_a']!.single['sourceOrdinal'], isNull);
+      expect(parsed['dive_a']!.single['isPrimary'], isFalse);
+    });
+
+    test('skips a series naming no dive', () {
+      expect(
+        UddfSourceAttribution.parseProfiles(
+          document('<series source="0">$encoded</series>'),
+        ),
+        isEmpty,
+      );
+    });
+
+    for (final (name, body) in [
+      ('not base64', 'not-a-series!'),
+      ('not a series', base64Encode(utf8.encode('plain text'))),
+      ('empty', ''),
+    ]) {
+      test('restores no series of a dive with one that is $name', () {
+        final parsed = UddfSourceAttribution.parseProfiles(
+          document(
+            '<series diveref="dive_a" source="0">$encoded</series>'
+            '<series diveref="dive_a" source="1">$body</series>',
+          ),
+        );
+
+        expect(
+          restoredProfileSeries({
+            UddfSourceAttribution.profilesKey: parsed['dive_a'],
+          }),
+          isEmpty,
+        );
+      });
+    }
   });
 }

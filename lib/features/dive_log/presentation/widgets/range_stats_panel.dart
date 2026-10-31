@@ -79,7 +79,7 @@ class RangeStatsPanel extends ConsumerWidget {
       startTimestamp: rangeState.startTimestamp!,
       endTimestamp: rangeState.endTimestamp!,
     );
-    final gas = _gasConsumption(ref, rangeState, stats);
+    final gas = _gasConsumption(ref, rangeState);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -156,22 +156,20 @@ class RangeStatsPanel extends ConsumerWidget {
   }
 
   /// SAC and RMV over the selection, from the pressure series of the
-  /// source the chart draws, the same one [profile] (and so the range's
-  /// average depth) comes from.
+  /// source the chart draws, the same one [profile] comes from.
   ///
-  /// The average depth comes from the plotted line, so a range holding no
-  /// sample of a sparse profile still has one; there is none off the end of
-  /// that line. The duration is what the pressure series cover of the range.
+  /// The duration is what the pressure series cover of the range, and the
+  /// depth is [profile]'s plotted line over that time, not the selection's
+  /// Avg Depth (#3973). The line lets a range holding no sample of a sparse
+  /// profile still have a depth, and the range stops where the line does.
   RangeGasConsumption _gasConsumption(
     WidgetRef ref,
     RangeSelectionState rangeState,
-    RangeProfileStats stats,
   ) {
     final pressures = ref
         .watch(activeSourceTankPressuresProvider(diveId))
         .value;
-    final avgDepth = stats.avgDepth;
-    if (pressures == null || pressures.isEmpty || avgDepth == null) {
+    if (pressures == null || pressures.isEmpty) {
       return (sac: null, rmv: null);
     }
     return rangeGasConsumption(
@@ -179,7 +177,7 @@ class RangeStatsPanel extends ConsumerWidget {
       tankPressures: pressures,
       startTimestamp: rangeState.startTimestamp!,
       endTimestamp: rangeState.endTimestamp!,
-      avgDepth: avgDepth,
+      profile: profile,
       model: ref.watch(gasModelProvider),
       isRebreather: isRebreather,
       environment: environment,

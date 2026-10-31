@@ -8821,6 +8821,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'بدون نوع مياه';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'حتى $date';
   }
@@ -10228,6 +10233,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_o2tox_cnsBadgeLabel(Object value) {
     return 'CNS $value';
   }
+
+  @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'لا توجد بيانات أكسجين لغوصة سابقة، لذا قد تكون هذه القيمة أعلى.';
 
   @override
   String get diveLog_o2tox_cnsOxygenClock => 'ساعة أكسجين CNS';
@@ -20769,6 +20778,80 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'الغطسة $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'إضافة غطسة';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'إزالة الغطسة $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'ستُزال الغطسة $letter وتغييراتها من السلسلة.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'الغطسة $letter بها تحذيرات';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'تفاصيل الغطسة';
+
+  @override
+  String get plannerSeries_diveName => 'اسم الغطسة';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'الغطسة $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'الفاصل السطحي $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'أدخل المدة بصيغة س:دد';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => 'أقل بـ 15 دقيقة';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'ملء $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
+
+  @override
+  String get plannerSeries_saveUnavailable => 'لا يمكن حفظ سلسلة غطسات بعد';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'لا يمكن تخطيط سلسلة غطسات كمهمة DPV';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'يمكن للغطسة الأولى فقط في السلسلة اتباع غطسة مسجلة';
+
+  @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
 
   @override
@@ -25111,6 +25194,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sacFactor => 'معامل استهلاك الغاز';
 
   @override
+  String get settings_conflict_field_scenarioMode => 'وضع السيناريو';
+
+  @override
   String get settings_conflict_field_sacStressed =>
       'استهلاك الغاز تحت الضغط النفسي';
 
@@ -29267,6 +29353,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'غير مسجل';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => 'تعذر فتح هذه الغوصات';
+
+  @override
+  String get insights_chart_viewDives => 'عرض الغوصات';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {
@@ -52618,6 +52715,514 @@ class AppLocalizationsAr extends AppLocalizations {
       'HealthKit غير متوفر على هذا الجهاز';
 
   @override
+  String get diveLab_title => 'مقارنة';
+
+  @override
+  String get diveLab_empty_ineligible =>
+      'لا يوجد لهذه الغطسة ملف تعريف للتفرع منه.';
+
+  @override
+  String get diveLab_loading => 'جارٍ تحميل الغطسة…';
+
+  @override
+  String get diveLab_branch_label => 'نقطة التفرع';
+
+  @override
+  String diveLab_branch_readout(String time, String depth) {
+    return '$time عند $depth';
+  }
+
+  @override
+  String get diveLab_branch_minusMinute => '-1 د';
+
+  @override
+  String get diveLab_branch_minusTenSeconds => '-10 ث';
+
+  @override
+  String get diveLab_branch_plusTenSeconds => '+10 ث';
+
+  @override
+  String get diveLab_branch_plusMinute => '+1 د';
+
+  @override
+  String get diveLab_mode_replay => 'إعادة';
+
+  @override
+  String get diveLab_mode_replan => 'إعادة تخطيط';
+
+  @override
+  String get diveLab_mode_replayHint => 'نفس مسار العمق مع مدخلات مختلفة';
+
+  @override
+  String get diveLab_mode_replanHint => 'يخطط المحرك الصعود من نقطة التفرع';
+
+  @override
+  String get diveLab_mode_forced => 'يتطلب أحد التدخلات إعادة التخطيط';
+
+  @override
+  String get diveLab_interventions_label => 'التدخلات';
+
+  @override
+  String get diveLab_interventions_add => 'إضافة';
+
+  @override
+  String get diveLab_interventions_none =>
+      'لا تدخلات بعد: السيناريو مطابق للغطسة الفعلية.';
+
+  @override
+  String get diveLab_kind_switchGas => 'تبديل الغاز';
+
+  @override
+  String get diveLab_kind_loseTank => 'فقدان أسطوانة';
+
+  @override
+  String get diveLab_kind_shiftAscent => 'تأخير أو تقديم الصعود';
+
+  @override
+  String get diveLab_kind_ascendNow => 'الصعود الآن';
+
+  @override
+  String get diveLab_kind_changeGf => 'عوامل التدرج';
+
+  @override
+  String get diveLab_kind_shareGas => 'مشاركة الغاز مع الرفيق';
+
+  @override
+  String get diveLab_kind_bailOut => 'الخروج إلى الدائرة المفتوحة';
+
+  @override
+  String get diveLab_kind_ascentPolicy => 'سياسة الصعود';
+
+  @override
+  String get diveLab_kindDesc_switchGas =>
+      'التنفس من أسطوانة أخرى من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_loseTank =>
+      'فقدان أسطوانة إزالة ضغط أو مرحلية من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_shiftAscent =>
+      'بدء الصعود النهائي أبكر أو لاحقًا';
+
+  @override
+  String get diveLab_kindDesc_ascendNow => 'إنهاء مرحلة القاع عند نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_changeGf => 'حساب السيناريو بعوامل تدرج أخرى';
+
+  @override
+  String get diveLab_kindDesc_shareGas =>
+      'رفيق نفد غازه يتنفس من غازك من نقطة التفرع';
+
+  @override
+  String get diveLab_kindDesc_bailOut => 'مغادرة الحلقة والصعود بغاز الطوارئ';
+
+  @override
+  String get diveLab_kindDesc_ascentPolicy =>
+      'معدل صعود أو عمق آخر توقف أو مدد توقف مختلفة';
+
+  @override
+  String diveLab_chip_switchGas(String gas) {
+    return 'التبديل إلى $gas';
+  }
+
+  @override
+  String diveLab_chip_loseTank(String tank) {
+    return 'فُقدت $tank';
+  }
+
+  @override
+  String diveLab_chip_shiftAscent(String delta) {
+    return 'الصعود $delta';
+  }
+
+  @override
+  String get diveLab_chip_ascendNow => 'الصعود الآن';
+
+  @override
+  String diveLab_chip_changeGf(int low, int high) {
+    return 'GF $low/$high';
+  }
+
+  @override
+  String diveLab_chip_shareGas(String factor) {
+    return 'مشاركة الغاز x$factor';
+  }
+
+  @override
+  String get diveLab_chip_bailOut => 'خروج طوارئ';
+
+  @override
+  String get diveLab_chip_ascentPolicy => 'سياسة الصعود';
+
+  @override
+  String diveLab_chip_remove(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String get diveLab_sheet_title => 'إضافة تدخل';
+
+  @override
+  String get diveLab_sheet_add => 'إضافة';
+
+  @override
+  String get diveLab_sheet_cylinder => 'أسطوانة';
+
+  @override
+  String get diveLab_sheet_hypothetical => 'أسطوانة افتراضية';
+
+  @override
+  String get diveLab_sheet_o2 => 'O2 %';
+
+  @override
+  String get diveLab_sheet_he => 'He %';
+
+  @override
+  String diveLab_sheet_volume(String unit) {
+    return 'الحجم ($unit)';
+  }
+
+  @override
+  String diveLab_sheet_startPressure(String unit) {
+    return 'ضغط البداية ($unit)';
+  }
+
+  @override
+  String get diveLab_sheet_minutes => 'دقائق';
+
+  @override
+  String get diveLab_sheet_earlier => 'أبكر';
+
+  @override
+  String get diveLab_sheet_later => 'لاحقًا';
+
+  @override
+  String get diveLab_sheet_buddyFactor => 'عامل الرفيق';
+
+  @override
+  String get diveLab_sheet_noCandidates =>
+      'لا توجد أسطوانة في هذه الغطسة يمكن استخدامها هنا.';
+
+  @override
+  String get diveLab_sheet_allAdded =>
+      'كل التدخلات موجودة بالفعل في السيناريو.';
+
+  @override
+  String get diveLab_panel_verdict => 'الحكم';
+
+  @override
+  String get diveLab_panel_actual => 'الفعلي';
+
+  @override
+  String get diveLab_panel_whatIf => 'السيناريو';
+
+  @override
+  String get diveLab_panel_delta => 'الفرق';
+
+  @override
+  String get diveLab_panel_tissues => 'الأنسجة عند السطح';
+
+  @override
+  String get diveLab_panel_gas => 'الغاز';
+
+  @override
+  String get diveLab_panel_issues => 'المشكلات';
+
+  @override
+  String get diveLab_panel_runtime => 'الجدول الزمني';
+
+  @override
+  String get diveLab_panel_noIssues => 'لا مشكلات';
+
+  @override
+  String get diveLab_panel_computing => 'جارٍ الحساب…';
+
+  @override
+  String get diveLab_panel_identity =>
+      'لا تغيير: السيناريو مطابق للغطسة الفعلية.';
+
+  @override
+  String get diveLab_panel_notes => 'ملاحظات';
+
+  @override
+  String diveLab_verdict_item(
+    String label,
+    String actual,
+    String whatIf,
+    String delta,
+  ) {
+    return '$label: من $actual إلى $whatIf ($delta)';
+  }
+
+  @override
+  String get diveLab_flag_sacEstimated => 'SAC تقديري';
+
+  @override
+  String diveLab_flag_pressureEstimated(String tank) {
+    return 'الضغط تقديري لـ $tank';
+  }
+
+  @override
+  String diveLab_flag_pressureUnknown(String tank) {
+    return 'الضغط مجهول لـ $tank';
+  }
+
+  @override
+  String diveLab_flag_tankVolumeAssumed(String tank) {
+    return 'الحجم مفترض لـ $tank';
+  }
+
+  @override
+  String get diveLab_flag_noBottomRemaining =>
+      'نقطة التفرع في مرحلة الصعود بالفعل';
+
+  @override
+  String get diveLab_flag_replanNotCompletable => 'لا يمكن إتمامه بهذا التفرع';
+
+  @override
+  String get diveLab_flag_loopGasMissing =>
+      'غاز الحلقة مجهول؛ افتُرضت الدائرة المفتوحة';
+
+  @override
+  String get diveLab_metric_runtime => 'زمن الغطسة';
+
+  @override
+  String get diveLab_metric_ttsAtBranch => 'TTS عند التفرع';
+
+  @override
+  String get diveLab_metric_decoTimeAfterBranch => 'زمن إزالة الضغط بعد التفرع';
+
+  @override
+  String get diveLab_metric_deepestStopAfterBranch => 'أعمق توقف';
+
+  @override
+  String get diveLab_metric_surfaceGf => 'GF السطح';
+
+  @override
+  String get diveLab_metric_peakGf99AfterBranch => 'ذروة GF99 بعد التفرع';
+
+  @override
+  String get diveLab_metric_cnsEnd => 'CNS عند السطح';
+
+  @override
+  String get diveLab_metric_otuEnd => 'OTU عند السطح';
+
+  @override
+  String get diveLab_metric_maxPpO2AfterBranch => 'أقصى ppO2 بعد التفرع';
+
+  @override
+  String diveLab_metric_tankEndPressure(String tank) {
+    return 'ضغط $tank النهائي';
+  }
+
+  @override
+  String diveLab_metric_gasOutTime(String tank) {
+    return 'نفاد $tank عند';
+  }
+
+  @override
+  String get diveLab_metric_minGasMarginAtBranch =>
+      'هامش الحد الأدنى للغاز عند التفرع';
+
+  @override
+  String get diveLab_metric_ceilingViolations => 'انتهاكات السقف';
+
+  @override
+  String get diveLab_metric_worstCeilingViolation => 'أسوأ تجاوز للسقف';
+
+  @override
+  String diveLab_gas_reserve(String time) {
+    return 'الاحتياطي عند $time';
+  }
+
+  @override
+  String diveLab_gas_empty(String time) {
+    return 'فارغة عند $time';
+  }
+
+  @override
+  String get diveLab_gas_unknown => 'مجهول';
+
+  @override
+  String get diveLab_tile_tts => 'TTS';
+
+  @override
+  String get diveLab_tile_deco => 'إزالة الضغط';
+
+  @override
+  String get diveLab_tile_surfGf => 'GF السطح';
+
+  @override
+  String get diveLab_tile_cns => 'CNS';
+
+  @override
+  String get diveLab_tile_backGas => 'غاز الظهر';
+
+  @override
+  String get diveLab_value_none => 'غير متاح';
+
+  @override
+  String get diveLab_action_save => 'حفظ';
+
+  @override
+  String get diveLab_action_saved => 'السيناريوهات المحفوظة';
+
+  @override
+  String get diveLab_save_title => 'تسمية هذا السيناريو';
+
+  @override
+  String get diveLab_saved_snackbar => 'تم حفظ السيناريو';
+
+  @override
+  String get diveLab_saved_title => 'السيناريوهات المحفوظة';
+
+  @override
+  String get diveLab_saved_empty =>
+      'لا توجد سيناريوهات محفوظة لهذه الغطسة بعد.';
+
+  @override
+  String get diveLab_saved_open => 'فتح';
+
+  @override
+  String get diveLab_saved_rename => 'إعادة تسمية';
+
+  @override
+  String get diveLab_saved_duplicate => 'تكرار';
+
+  @override
+  String get diveLab_saved_delete => 'حذف';
+
+  @override
+  String diveLab_saved_deleteConfirm(String name) {
+    return 'هل تريد حذف \"$name\"؟';
+  }
+
+  @override
+  String diveLab_summary_replay(String time) {
+    return 'إعادة عند $time';
+  }
+
+  @override
+  String diveLab_summary_replan(String time) {
+    return 'إعادة تخطيط عند $time';
+  }
+
+  @override
+  String get diveLab_section_new => 'سيناريو جديد';
+
+  @override
+  String get diveLab_section_hint =>
+      'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
+
+  @override
+  String get diveDetailSection_diveLab_name => 'مقارنة';
+
+  @override
+  String get diveDetailSection_diveLab_description =>
+      'الخطة والغوصة وسيناريوهات «ماذا لو» المحفوظة جنبًا إلى جنب';
+
+  @override
+  String get diveLab_panel_buoyancy => 'الطفو';
+
+  @override
+  String get diveLab_buoyancy_netAtStop => 'الطفو الصافي عند التوقف';
+
+  @override
+  String get diveLab_buoyancy_peakLift => 'ذروة الرفع المطلوب';
+
+  @override
+  String get diveLab_buoyancy_minDitchable =>
+      'الحد الأدنى للثقل القابل للإلقاء';
+
+  @override
+  String get diveLab_buoyancy_unavailable =>
+      'يحتاج الطفو إلى أسطوانات أو بدلة في الغطسة.';
+
+  @override
+  String diveLab_sheet_ascentRate(String unit) {
+    return 'معدل الصعود ($unit/د)';
+  }
+
+  @override
+  String get diveLab_sheet_lastStop => 'عمق آخر توقف';
+
+  @override
+  String get diveLab_sheet_extraLastStop => 'تمديد آخر توقف (د)';
+
+  @override
+  String get diveLab_sheet_gasSwitchStop => 'توقف تبديل الغاز (ث)';
+
+  @override
+  String get diveLab_sheet_bailoutTank => 'أسطوانة الطوارئ';
+
+  @override
+  String get diveLab_sheet_allBailout => 'كل أسطوانات الطوارئ';
+
+  @override
+  String get diveLab_share_pdf => 'مشاركة بطاقة PDF';
+
+  @override
+  String get diveLab_share_file => 'مشاركة ملف السيناريو';
+
+  @override
+  String get diveLab_share_image => 'مشاركة صورة الرسم البياني';
+
+  @override
+  String diveLab_share_failed(String error) {
+    return 'فشلت المشاركة: $error';
+  }
+
+  @override
+  String get diveLab_import_file => 'استيراد ملف سيناريو';
+
+  @override
+  String diveLab_import_done(String name) {
+    return 'تم استيراد \"$name\"';
+  }
+
+  @override
+  String get diveLab_import_diveCreated => 'أُنشئت الغطسة من ملف السيناريو';
+
+  @override
+  String diveLab_import_failed(String error) {
+    return 'فشل الاستيراد: $error';
+  }
+
+  @override
+  String get diveLab_saved_select => 'تحديد';
+
+  @override
+  String get diveLab_saved_done => 'تم';
+
+  @override
+  String get diveLab_saved_sharePdf => 'مشاركة المحدد كملف PDF';
+
+  @override
+  String get diveLab_pdf_title => 'بطاقة السيناريو';
+
+  @override
+  String get diveLab_pdf_branch => 'نقطة التفرع';
+
+  @override
+  String get diveLab_pdf_mode => 'الوضع';
+
+  @override
+  String get diveLab_pdf_interventions => 'التدخلات';
+
+  @override
+  String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
+    return 'الإعدادات: GF $gfLow/$gfHigh، Bühlmann ZH-L16C، نموذج غاز $gasModel';
+  }
+
+  @override
+  String get diveLab_pdf_generated => 'أُنشئ بواسطة Submersion';
+
+  @override
+  String get diveLab_sublab_notes => 'تمت المشاركة عبر ملف سيناريو';
+
+  @override
   String get insights_trend_aggregation_monthly => 'المتوسط الشهري';
 
   @override
@@ -54689,7 +55294,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'إعادة تخطيط هذه الغطسة';
+  String get diveLog_detail_menu_whatIf => 'مقارنة…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';
@@ -55575,6 +56180,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_weights_type => 'النوع';
+
+  @override
+  String diveLab_handoff_failed(String error) {
+    return 'تعذر الفتح في المخطط: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'تبقى الأسطوانة المفقودة مدرجة لأنك تنفست منها قبل نقطة التفرع؛ أزلها في المخطط عند الحاجة.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'يعيد المخطط تخطيط الصعود؛ لم يُنقل مسار إعادة التشغيل.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'ماذا لو: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'فتح في المخطط متاح لغوصات الدائرة المفتوحة فقط';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'إعادة البناء في المخطط...';
+
+  @override
+  String get diveLab_menu_title => 'المزيد';
 
   @override
   String get query_op_eq => 'يساوي';
@@ -57981,4 +58617,432 @@ class AppLocalizationsAr extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'سجل التغييرات';
+
+  @override
+  String get changeLog_settings_subtitle => 'اعرف ما تغير وأعده كما كان';
+
+  @override
+  String get changeLog_empty_title => 'لا توجد تغييرات بعد';
+
+  @override
+  String get changeLog_empty_body =>
+      'تظهر هنا التغييرات على غطساتك ومواقعك ومعداتك وإعداداتك.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'لا توجد تغييرات تطابق عامل التصفية هذا.';
+
+  @override
+  String get changeLog_filter_all => 'الكل';
+
+  @override
+  String get changeLog_filter_dives => 'الغطسات';
+
+  @override
+  String get changeLog_filter_sites => 'المواقع';
+
+  @override
+  String get changeLog_filter_gear => 'المعدات';
+
+  @override
+  String get changeLog_filter_settings => 'الإعدادات';
+
+  @override
+  String get changeLog_filter_source => 'المصدر';
+
+  @override
+  String get changeLog_filter_anySource => 'أي مصدر';
+
+  @override
+  String get changeLog_source_manual => 'تعديل يدوي';
+
+  @override
+  String get changeLog_source_import => 'استيراد';
+
+  @override
+  String get changeLog_source_download => 'كمبيوتر الغوص';
+
+  @override
+  String get changeLog_source_rule => 'قاعدة';
+
+  @override
+  String get changeLog_source_sync => 'مزامنة';
+
+  @override
+  String get changeLog_source_automatic => 'تلقائي';
+
+  @override
+  String get changeLog_source_revert => 'إرجاع';
+
+  @override
+  String get changeLog_source_system => 'النظام';
+
+  @override
+  String get changeLog_thisDevice => 'هذا الجهاز';
+
+  @override
+  String get changeLog_anotherDevice => 'جهاز آخر';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'تمت المزامنة من $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count أخرى';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'عرض $count سجل',
+      many: 'عرض $count سجلًا',
+      few: 'عرض $count سجلات',
+      two: 'عرض سجلين',
+      one: 'عرض سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'الغطسة $number، $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String get changeLog_dive => 'غطسة';
+
+  @override
+  String get changeLog_action_added => 'تمت الإضافة';
+
+  @override
+  String get changeLog_action_deleted => 'تم الحذف';
+
+  @override
+  String get changeLog_action_edited => 'تم التعديل';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'تم الاستيراد من $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'تم التنزيل من $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'تغييرات متزامنة';
+
+  @override
+  String get changeLog_title_rule => 'تشغيل قاعدة';
+
+  @override
+  String get changeLog_title_revert => 'تم إرجاع تغيير';
+
+  @override
+  String get changeLog_title_changes => 'تغييرات';
+
+  @override
+  String get changeLog_label_bulkEdit => 'تعديل جماعي';
+
+  @override
+  String get changeLog_label_bulkDelete => 'حذف جماعي';
+
+  @override
+  String get changeLog_label_deletedRecord => 'تم حذف سجل';
+
+  @override
+  String get changeLog_label_merge => 'تم دمج السجلات';
+
+  @override
+  String get changeLog_label_undoMerge => 'تم التراجع عن دمج';
+
+  @override
+  String get changeLog_label_undoRule => 'تم التراجع عن تشغيل قاعدة';
+
+  @override
+  String get changeLog_label_qualityRepair => 'إصلاح جودة البيانات';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'تمت إضافة المكتبة إلى هذا الجهاز';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'تم استبدال المكتبة';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'تمت استعادة المكتبة من نسخة احتياطية';
+
+  @override
+  String get changeLog_label_reparse => 'تمت إعادة تحليل الغطسات';
+
+  @override
+  String get changeLog_label_splitDive => 'تم تقسيم غطسة';
+
+  @override
+  String get changeLog_label_gearTransfer => 'تم نقل المعدات';
+
+  @override
+  String get changeLog_label_mediaRepair => 'تم إصلاح روابط الوسائط';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'تم نقل ملفات المعدات إلى المستندات';
+
+  @override
+  String get changeLog_label_galleryBackfill => 'تم ربط الصور بنسخ السحابة';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'تم تنظيف الملفات غير المستخدمة';
+
+  @override
+  String get changeLog_label_accountMigration => 'تم تحديث روابط الحسابات';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count سجل',
+      many: '$count سجلًا',
+      few: '$count سجلات',
+      two: 'سجلان',
+      one: 'سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size من البيانات';
+  }
+
+  @override
+  String get changeLog_table_settings => 'إعدادات التطبيق';
+
+  @override
+  String get changeLog_table_diverSettings => 'إعدادات الغواص';
+
+  @override
+  String get changeLog_history => 'السجل';
+
+  @override
+  String get changeLog_detail_title => 'تفاصيل التغيير';
+
+  @override
+  String get changeLog_detail_open => 'فتح السجل';
+
+  @override
+  String get changeLog_detail_history => 'سجل هذا العنصر';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count سجل آخر',
+      many: 'و$count سجلًا آخر',
+      few: 'و$count سجلات أخرى',
+      two: 'وسجلان آخران',
+      one: 'وسجل واحد آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'إرجاع';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'إرجاع الكل ($count)';
+  }
+
+  @override
+  String get changeLog_restore => 'استعادة';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'إرجاع $field؟';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => 'تغير هذا الحقل منذ هذا الإدخال.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'المعيَّن في هذا الإدخال: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'الآن: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'بعد الإرجاع: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'ستتلقى الأجهزة الأخرى هذا كتعديل جديد. يظهر في السجل ويمكن إرجاعه أيضًا.';
+
+  @override
+  String get changeLog_revert_anyway => 'إرجاع على أي حال';
+
+  @override
+  String get changeLog_undoImport => 'التراجع عن هذا الاستيراد';
+
+  @override
+  String get changeLog_undoEntry => 'التراجع عن هذا التغيير';
+
+  @override
+  String get changeLog_undo_explain =>
+      'يزيل ما أضافه ويعكس تغييراته الأخرى. يسأل أولًا ويعرض ما عدّلته بعد ذلك.';
+
+  @override
+  String get changeLog_bulk_title => 'التراجع عن هذا الإدخال؟';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغير $count سجل منذ هذا الإدخال.',
+      many: 'تغير $count سجلًا منذ هذا الإدخال.',
+      few: 'تغيرت $count سجلات منذ هذا الإدخال.',
+      two: 'تغير سجلان منذ هذا الإدخال.',
+      one: 'تغير سجل واحد منذ هذا الإدخال.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'إرجاع الباقي';
+
+  @override
+  String get changeLog_bulk_revertAll => 'إرجاع الكل';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم إرجاع $count تغيير',
+      many: 'تم إرجاع $count تغييرًا',
+      few: 'تم إرجاع $count تغييرات',
+      two: 'تم إرجاع تغييرين',
+      one: 'تم إرجاع تغيير واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم الاحتفاظ بـ$count سجل',
+      many: 'تم الاحتفاظ بـ$count سجلًا',
+      few: 'تم الاحتفاظ بـ$count سجلات',
+      two: 'تم الاحتفاظ بسجلين',
+      one: 'تم الاحتفاظ بسجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'لم يعد هذا السجل موجودًا.';
+
+  @override
+  String get changeLog_block_columnGone => 'لم يعد هذا الحقل موجودًا.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'غيّر تحديث للتطبيق طريقة حفظ هذه القيمة، لذا لا يمكن إرجاعها.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'لم يعد السجل الذي ينتمي إليه موجودًا.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'هذا السجل عاد بالفعل.';
+
+  @override
+  String get changeLog_block_inUse => 'لا تزال بيانات لاحقة تستخدم هذا السجل.';
+
+  @override
+  String get changeLog_reverted => 'تم الإرجاع';
+
+  @override
+  String get changeLog_revert_failed => 'تعذر إرجاع هذا التغيير. لم يتغير شيء.';
+
+  @override
+  String get changeLog_menu_settings => 'إعدادات السجل';
+
+  @override
+  String get changeLog_settings_title => 'إعدادات سجل التغييرات';
+
+  @override
+  String get changeLog_retention_title => 'الاحتفاظ بالإدخالات لمدة';
+
+  @override
+  String get changeLog_retention_note =>
+      'يحتفظ كل جهاز بسجله الخاص. تتم إزالة الإدخالات الأقدم تلقائيًا.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شهر',
+      many: '$count شهرًا',
+      few: '$count أشهر',
+      two: 'شهران',
+      one: 'شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'إلى الأبد';
+
+  @override
+  String get changeLog_clear => 'مسح السجل';
+
+  @override
+  String get changeLog_clear_title => 'مسح سجل التغييرات؟';
+
+  @override
+  String get changeLog_clear_body =>
+      'يؤدي هذا إلى إزالة إدخالات الغواص النشط من هذا الجهاز. لن تتمكن من إرجاعها بعد ذلك.';
+
+  @override
+  String get changeLog_clear_confirm => 'مسح';
+
+  @override
+  String get changeLog_clear_failed =>
+      'تعذر مسح سجل التغييرات. لم تتم إزالة أي شيء.';
+
+  @override
+  String get changeLog_day_today => 'اليوم';
+
+  @override
+  String get changeLog_day_yesterday => 'أمس';
+
+  @override
+  String get changeLog_storage_label => 'سجل التغييرات';
 }

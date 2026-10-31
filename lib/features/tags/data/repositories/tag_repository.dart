@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -457,7 +458,13 @@ class TagRepository {
   }
 
   /// Delete a tag
-  Future<void> deleteTag(String id) async {
+  Future<void> deleteTag(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteTagInner(id),
+  );
+
+  Future<void> _deleteTagInner(String id) async {
     try {
       _log.info('Deleting tag: $id');
       await (_db.delete(_db.tags)..where((t) => t.id.equals(id))).go();
@@ -853,6 +860,22 @@ class TagRepository {
   /// moves to the surviving tag. A link whose item already has the surviving
   /// tag is removed.
   Future<void> mergeTags({
+    required List<String> sourceTagIds,
+    required String survivingTagId,
+    required String name,
+    required String? colorHex,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _mergeTagsInner(
+      sourceTagIds: sourceTagIds,
+      survivingTagId: survivingTagId,
+      name: name,
+      colorHex: colorHex,
+    ),
+  );
+
+  Future<void> _mergeTagsInner({
     required List<String> sourceTagIds,
     required String survivingTagId,
     required String name,

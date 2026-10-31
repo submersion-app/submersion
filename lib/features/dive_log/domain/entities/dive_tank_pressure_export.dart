@@ -24,8 +24,12 @@ class DiveTankPressureExport extends Equatable {
   /// The dive's primary data source, or null when it has none.
   final String? primarySourceId;
 
-  /// Per tank, the readings the app draws: one source for each stretch of
-  /// the tank, preferring the primary one (see [selectTankSeriesPerSource]).
+  /// The series the app draws: one source for each stretch of a tank,
+  /// preferring the primary one (see [selectTankSeriesPerSource]).
+  List<TankPressureSeries> get displayedSeries =>
+      selectTankSeriesPerSource(series, preferredSourceId: primarySourceId);
+
+  /// Per tank, the readings of [displayedSeries].
   ///
   /// This is what the standard `<tankpressure>` samples carry, so another
   /// application reading the file sees one curve per cylinder rather than
@@ -33,10 +37,7 @@ class DiveTankPressureExport extends Equatable {
   /// extension block.
   Map<String, List<TankPressurePoint>> get displayedByTank {
     final byTank = <String, List<TankPressureSeries>>{};
-    for (final s in selectTankSeriesPerSource(
-      series,
-      preferredSourceId: primarySourceId,
-    )) {
+    for (final s in displayedSeries) {
       byTank.putIfAbsent(s.tankId, () => []).add(s);
     }
     return {
