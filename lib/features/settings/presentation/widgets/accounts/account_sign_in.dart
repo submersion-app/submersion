@@ -135,7 +135,7 @@ Future<void> _clearBackupSignInNeed(
     if (!container.read(backupSettingsProvider).lastCloudCopyNeedsSignIn) {
       return;
     }
-    final target = await container.read(backupCopyTargetProvider.future);
+    final target = await readBackupCopyTarget(container);
     if (backupCopyGroupOf(target)?.key != group.key) return;
     await container
         .read(backupSettingsProvider.notifier)

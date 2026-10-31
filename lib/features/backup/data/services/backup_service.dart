@@ -1865,9 +1865,7 @@ class BackupService {
     try {
       return await _cloudProvider.createFolder(_cloudBackupFolder);
     } catch (e, stack) {
-      if (rethrowRefused && e is CloudStorageException && e.accessRefused) {
-        rethrow;
-      }
+      if (rethrowRefused && isAccessRefused(e)) rethrow;
       _log.error(
         'Failed to get/create cloud backup folder',
         error: e,

@@ -126,7 +126,7 @@ class BasePartFileSink {
     if (!ok) await deleteQuietly(path);
     if (interruption != null) {
       Error.throwWithStackTrace(
-        interruption is CloudStorageException && interruption.accessRefused
+        isAccessRefused(interruption)
             ? interruption
             : BaseFetchInterrupted(interruption),
         interruptionStack!,

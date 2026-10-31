@@ -95,6 +95,10 @@ class CloudAccountMismatchException extends CloudStorageException {
   final String signedInAs;
 }
 
+/// Whether [error] is the server refusing the account.
+bool isAccessRefused(Object? error) =>
+    error is CloudStorageException && error.accessRefused;
+
 /// Whether [actual] is the account [expected] names. With nothing to compare
 /// on either side, it is taken to be: a row from before identities were
 /// recorded, or a grant that names no account.

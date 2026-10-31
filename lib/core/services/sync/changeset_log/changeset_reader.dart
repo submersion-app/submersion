@@ -389,7 +389,7 @@ class ChangesetReader {
       } catch (e, stackTrace) {
         // Refused access is the account, not this peer: the next read would
         // be refused too, and a clean-looking finish hides that (issue #3811).
-        if (e is CloudStorageException && e.accessRefused) rethrow;
+        if (isAccessRefused(e)) rethrow;
         // One bad peer must not block the others; its cursor stays put so the
         // next sync retries it. Record the failure so the caller can surface
         // it instead of reporting a misleadingly clean sync.

@@ -37,7 +37,7 @@ extension _CloudCopy on BackupService {
       return (
         fileId: null,
         accountId: accountId,
-        needsSignIn: e is CloudStorageException && e.accessRefused,
+        needsSignIn: isAccessRefused(e),
       );
     }
   }

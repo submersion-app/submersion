@@ -220,6 +220,7 @@ void main() {
     WidgetTester tester, {
     AccountGroup? group,
     BackupCopyTarget copy = const NoCopy(),
+    bool copyReadOutlivesAFrame = false,
     DropboxStorageProvider? dropbox,
     ValueListenable<bool>? hostShown,
   }) async {
@@ -241,6 +242,12 @@ void main() {
           accountGroupsProvider.overrideWith((ref) async => [account]),
           backupCopyTargetProvider.overrideWith((ref) async {
             copyReads++;
+            if (copyReadOutlivesAFrame) {
+              // As the real target does while accounts are probed: it goes on
+              // using its ref, which throws if nothing held it meanwhile.
+              await Future<void>.delayed(const Duration(milliseconds: 100));
+              ref.read(localeProvider);
+            }
             return copy;
           }),
           syncStateProvider.overrideWith((ref) => sync),
@@ -639,6 +646,30 @@ void main() {
       await done;
 
       expect(copyReads, 0);
+    });
+
+    testWidgets('clears the flag though nothing else watches the copy', (
+      tester,
+    ) async {
+      await BackupPreferences(prefs).setLastCloudCopyNeedsSignIn(true);
+      final group = _group();
+      final host = await pumpHost(
+        tester,
+        group: group,
+        copy: CopyFollowsSync(group),
+        copyReadOutlivesAFrame: true,
+      );
+
+      final done = signInToGroup(host.$1, host.$2, group);
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      await done;
+
+      expect(
+        host.$2.read(backupSettingsProvider).lastCloudCopyNeedsSignIn,
+        isFalse,
+      );
     });
 
     testWidgets('leaves it when the copy goes to another account', (

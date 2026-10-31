@@ -1813,9 +1813,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         progress: null,
       );
       await _recordSyncFailure(
-        e is CloudStorageException && e.accessRefused
-            ? SyncFailureKind.auth
-            : SyncFailureKind.other,
+        isAccessRefused(e) ? SyncFailureKind.auth : SyncFailureKind.other,
         message,
       );
       if (!mounted) return false;

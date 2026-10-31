@@ -41,10 +41,9 @@ Future<void> signInAgain(
   });
   try {
     // Read before signing in: the sign-in refreshes both.
+    final container = ProviderScope.containerOf(context, listen: false);
     final syncGroup = (await ref.read(accountGroupsProvider.future)).syncing;
-    final copyGroup = backupCopyGroupOf(
-      await ref.read(backupCopyTargetProvider.future),
-    );
+    final copyGroup = backupCopyGroupOf(await readBackupCopyTarget(container));
     final copyMissing = ref.read(backupSettingsProvider).lastCloudCopyMissing;
     if (!context.mounted) return;
 
