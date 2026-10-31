@@ -289,6 +289,31 @@ void main() {
         expect(exposure.maxPpO2, closeTo(0.84, 0.05)); // 4 bar * 0.21
       });
 
+      test('keeps a peak that interval averaging would flatten', () {
+        // Issue #3959: both intervals average 35 m (1.53 bar), but the diver
+        // reached 40 m (1.70 bar), past the 1.6 bar limit.
+        final exposure = calculator.calculateDiveExposure(
+          depths: [30.0, 40.0, 30.0],
+          timestamps: [0, 120, 240],
+          o2Fraction: 0.34,
+        );
+
+        expect(exposure.maxPpO2, closeTo(1.70, 1e-9));
+        expect(exposure.maxPpO2Depth, 40.0);
+        expect(exposure.ppO2Critical, isTrue);
+      });
+
+      test('reads the peak of a single sample', () {
+        final exposure = calculator.calculateDiveExposure(
+          depths: [40.0],
+          timestamps: [0],
+          o2Fraction: 0.34,
+        );
+
+        expect(exposure.maxPpO2, closeTo(1.70, 1e-9));
+        expect(exposure.maxPpO2Depth, 40.0);
+      });
+
       test('should start from existing CNS', () {
         final depths = [0.0, 20.0, 20.0, 0.0];
         final timestamps = [0, 60, 1860, 1920];
@@ -356,6 +381,59 @@ void main() {
         expect(exposure.otu, closeTo(singleGasExposure.otu, 0.1));
       });
 
+      test('keeps a peak that interval averaging would flatten', () {
+        // Issue #3959: both intervals average 35 m (1.53 bar).
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [30.0, 40.0, 30.0],
+          timestamps: [0, 120, 240],
+          gasSwitches: {},
+          initialO2Fraction: 0.34,
+        );
+
+        expect(exposure.maxPpO2, closeTo(1.70, 1e-9));
+        expect(exposure.maxPpO2Depth, 40.0);
+        expect(exposure.ppO2Critical, isTrue);
+      });
+
+      test('does not put a gas on the sample before its switch', () {
+        // EAN50 from the 6 m sample: 30 m was breathed on air (0.84 bar), so
+        // the 2.0 bar of EAN50 at 30 m was never reached.
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [30.0, 6.0, 6.0],
+          timestamps: [0, 240, 540],
+          gasSwitches: {240: 0.50},
+          initialO2Fraction: 0.21,
+        );
+
+        expect(exposure.maxPpO2, closeTo(0.84, 1e-9));
+        expect(exposure.maxPpO2Depth, 30.0);
+      });
+
+      test('counts the outgoing gas at the sample of a switch', () {
+        // Arrives at 30 m on EAN50 (2.0 bar), then switches to a leaner mix.
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [20.0, 30.0, 30.0],
+          timestamps: [0, 60, 120],
+          gasSwitches: {60: 0.18},
+          initialO2Fraction: 0.50,
+        );
+
+        expect(exposure.maxPpO2, closeTo(2.0, 1e-9));
+        expect(exposure.maxPpO2Depth, 30.0);
+      });
+
+      test('reads the peak of a single sample', () {
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [40.0],
+          timestamps: [0],
+          gasSwitches: {},
+          initialO2Fraction: 0.34,
+        );
+
+        expect(exposure.maxPpO2, closeTo(1.70, 1e-9));
+        expect(exposure.maxPpO2Depth, 40.0);
+      });
+
       test('should apply gas switch at correct time', () {
         // Start on 21%, switch to 50% at ascent
         final depths = [0.0, 30.0, 30.0, 6.0, 6.0, 0.0];
@@ -378,6 +456,52 @@ void main() {
         // With EAN50 switch, should have higher CNS/OTU due to higher O2
         expect(exposureWithSwitch.cnsEnd, greaterThan(exposureNoSwitch.cnsEnd));
         expect(exposureWithSwitch.otu, greaterThan(exposureNoSwitch.otu));
+      });
+    });
+
+    group('peakPpO2', () {
+      test('returns the highest reading and the depth it was reached at', () {
+        final peak = O2ToxicityCalculator.peakPpO2(
+          [1.2, 1.8, 1.3],
+          [10.0, 25.0, 40.0],
+        );
+
+        expect(peak.ppO2, 1.8);
+        expect(peak.depth, 25.0);
+      });
+
+      test('reports the deepest depth of a repeated peak', () {
+        final peak = O2ToxicityCalculator.peakPpO2(
+          [1.3, 1.3, 1.3, 1.3],
+          [0.0, 30.0, 20.0, 0.0],
+        );
+
+        expect(peak.ppO2, 1.3);
+        expect(peak.depth, 30.0);
+      });
+
+      test('a higher reading replaces a deeper one', () {
+        final peak = O2ToxicityCalculator.peakPpO2(
+          [1.2, 1.2, 1.4],
+          [40.0, 30.0, 6.0],
+        );
+
+        expect(peak.ppO2, 1.4);
+        expect(peak.depth, 6.0);
+      });
+
+      test('reports no depth when no reading is above zero', () {
+        final peak = O2ToxicityCalculator.peakPpO2([0.0, 0.0], [10.0, 30.0]);
+
+        expect(peak.ppO2, 0.0);
+        expect(peak.depth, 0.0);
+      });
+
+      test('reports nothing for no readings', () {
+        final peak = O2ToxicityCalculator.peakPpO2([], []);
+
+        expect(peak.ppO2, 0.0);
+        expect(peak.depth, 0.0);
       });
     });
 
