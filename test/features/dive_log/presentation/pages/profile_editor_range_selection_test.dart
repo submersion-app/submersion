@@ -80,7 +80,9 @@ void main() {
   ) async {
     await pumpEditor(tester, EditorMode.select);
     expect(
-      find.text('Select a range on the chart to enable operations'),
+      find.text(
+        'Drag across the chart to select a range and enable operations',
+      ),
       findsOneWidget,
     );
     for (final label in ['Depth +1m', 'Time +5s', 'Delete', 'Smooth']) {
@@ -90,7 +92,9 @@ void main() {
     await dragAcrossChart(tester);
 
     expect(
-      find.text('Select a range on the chart to enable operations'),
+      find.text(
+        'Drag across the chart to select a range and enable operations',
+      ),
       findsNothing,
     );
     for (final label in ['Depth +1m', 'Time +5s', 'Delete', 'Smooth']) {

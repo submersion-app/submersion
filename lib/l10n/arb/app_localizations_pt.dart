@@ -50649,7 +50649,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Selecione um intervalo no gráfico para habilitar as operações';
+      'Arraste pelo gráfico para selecionar um intervalo e habilitar as operações';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Profundidade +1m';
@@ -50762,6 +50762,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>
       'Não é possível excluir o perfil inteiro';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Não é possível suavizar: selecione pelo menos três amostras';
 
   @override
   String get diveLog_profileEditor_undo => 'Desfazer';

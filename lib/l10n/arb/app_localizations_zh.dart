@@ -47515,7 +47515,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_rangeOperations => '范围操作';
 
   @override
-  String get diveLog_profileEditor_selectRangeHint => '在图表上选择一个范围以启用操作';
+  String get diveLog_profileEditor_selectRangeHint => '在图表上拖动以选择范围并启用操作';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => '深度 +1m';
@@ -47621,6 +47621,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_deleteAllBlocked => '无法删除整个轮廓';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked => '无法平滑：请至少选择三个采样点';
 
   @override
   String get diveLog_profileEditor_undo => '撤消';

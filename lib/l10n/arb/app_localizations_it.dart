@@ -50659,7 +50659,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Seleziona un intervallo sul grafico per abilitare le operazioni';
+      'Trascina sul grafico per selezionare un intervallo e abilitare le operazioni';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Prof. +1 m';
@@ -50773,6 +50773,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>
       'Impossibile eliminare l\'intero profilo';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Impossibile smussare: seleziona almeno tre campioni';
 
   @override
   String get diveLog_profileEditor_undo => 'Annulla';

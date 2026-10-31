@@ -129,5 +129,30 @@ void main() {
       expect(find.byType(SnackBar), findsNothing);
       expect(notifier.state.hasChanges, isTrue);
     });
+
+    testWidgets('smoothing too few samples says so', (tester) async {
+      notifier.setSelectedRange(start: 8, end: 12);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Smooth'));
+      await tester.pump();
+
+      expect(
+        find.text("Can't smooth: select at least three samples"),
+        findsOneWidget,
+      );
+      expect(notifier.state.hasChanges, isFalse);
+    });
+
+    testWidgets('smoothing enough samples says nothing', (tester) async {
+      notifier.setSelectedRange(start: 8, end: 16);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Smooth'));
+      await tester.pump();
+
+      expect(find.byType(SnackBar), findsNothing);
+      expect(notifier.state.hasChanges, isTrue);
+    });
   });
 }

@@ -50,6 +50,11 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
     _showRefusal(context.l10n.diveLog_profileEditor_deleteAllBlocked);
   }
 
+  void _smoothSelection({int windowSize = 5}) {
+    if (widget.notifier.applySmoothingToRange(windowSize: windowSize)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_smoothTooFewBlocked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -130,9 +135,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               label: Text(context.l10n.common_action_delete),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.applySmoothingToRange()
-                  : null,
+              onPressed: hasRange ? _smoothSelection : null,
               icon: const Icon(Icons.auto_fix_high, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_mode_smooth),
             ),
@@ -184,9 +187,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
             const SizedBox(width: 8),
             FilledButton.tonalIcon(
               onPressed: widget.selectedRange != null
-                  ? () => widget.notifier.applySmoothingToRange(
-                      windowSize: _smoothWindowSize,
-                    )
+                  ? () => _smoothSelection(windowSize: _smoothWindowSize)
                   : null,
               icon: const Icon(Icons.done, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_applyToSelection),

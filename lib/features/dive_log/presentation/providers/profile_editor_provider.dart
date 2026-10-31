@@ -178,15 +178,16 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     _recordEditKind(ProfileEditorEditKinds.smoothAll);
   }
 
-  void applySmoothingToRange({int windowSize = 5}) {
+  /// Smooths the selected samples. Returns false, changing nothing, when
+  /// there are fewer than three: smoothing keeps both end points.
+  bool applySmoothingToRange({int windowSize = 5}) {
     final range = state.selectedRange;
-    if (range == null) return;
+    if (range == null) return false;
 
     final rangePoints = state.editedProfile
         .where((p) => p.timestamp >= range.start && p.timestamp <= range.end)
         .toList();
-    // Smoothing keeps both end points, so two samples would be an empty edit.
-    if (rangePoints.length <= 2) return;
+    if (rangePoints.length <= 2) return false;
 
     _pushUndo();
     final smoothed = _service.smoothProfile(
@@ -201,6 +202,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
 
     state = state.copyWith(editedProfile: result, hasChanges: true);
     _recordEditKind(ProfileEditorEditKinds.smoothSelection);
+    return true;
   }
 
   void detectOutliers() {

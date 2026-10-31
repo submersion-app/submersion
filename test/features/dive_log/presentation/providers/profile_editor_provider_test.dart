@@ -273,7 +273,7 @@ void main() {
       );
       editing.setSelectedRange(start: 0, end: 60);
 
-      editing.applySmoothingToRange();
+      expect(editing.applySmoothingToRange(), isFalse);
 
       expect(editing.state.undoStack, isEmpty);
       expect(editing.state.hasChanges, isFalse);

@@ -50363,7 +50363,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Jelöljön ki egy tartományt a grafikonon a műveletek engedélyezéséhez';
+      'Húzzon a grafikonon egy tartomány kijelöléséhez és a műveletek engedélyezéséhez';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Mélység +1m';
@@ -50477,6 +50477,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>
       'A teljes profil nem törölhető';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'A simítás nem lehetséges: jelöljön ki legalább három mérést';
 
   @override
   String get diveLog_profileEditor_undo => 'Visszavonás';

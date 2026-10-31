@@ -49578,7 +49578,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'בחרו טווח בגרף כדי לאפשר פעולות';
+      'גררו על הגרף כדי לבחור טווח ולאפשר פעולות';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'עומק +1m';
@@ -49691,6 +49691,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_deleteAllBlocked =>
       'לא ניתן למחוק את הפרופיל כולו';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'לא ניתן להחליק: בחרו לפחות שלוש דגימות';
 
   @override
   String get diveLog_profileEditor_undo => 'ביטול פעולה';
