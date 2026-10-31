@@ -29,7 +29,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
-import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/domain/track_list_item.dart';
 import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -159,13 +159,14 @@ class NavTrackDetailPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await ref.read(navTrackRepositoryProvider).delete(route.id);
+    if (!context.mounted) return;
     // Matches tracks_page.dart's own delete path: a deleted track must not
     // stay highlighted as "last opened" on the Tracks list (#4024).
-    final selectionKey = '${TrackKind.underwater.name}:${route.id}';
+    final selectionKey = UnderwaterTrackItem(route).selectionKey;
     if (ref.read(highlightedTrackKeyProvider) == selectionKey) {
       ref.read(highlightedTrackKeyProvider.notifier).state = null;
     }
-    if (context.mounted) context.pop();
+    context.pop();
   }
 
   Future<void> _chooseDive(
