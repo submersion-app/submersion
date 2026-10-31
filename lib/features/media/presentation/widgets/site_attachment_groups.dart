@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
 import 'package:submersion/features/media/presentation/helpers/site_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_large_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
@@ -30,7 +30,7 @@ class SiteAttachmentGroups extends StatelessWidget {
   final SiteAttachmentLayout layout;
   final SelectionController selection;
   final bool isSelectionMode;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final void Function(MediaItem) onOpen;
   final void Function(MediaItem) onEditDetails;
 

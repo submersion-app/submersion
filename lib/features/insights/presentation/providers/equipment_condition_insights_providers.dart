@@ -29,14 +29,9 @@ final insightsFilteredDiveIdsProvider = FutureProvider<Set<String>?>((
   final statistics = ref.watch(insightsRepositoryProvider);
   // The filter reads far more than `dives`: the gear and tank links, tags,
   // dive types, buddies, sites and trips, and equipment attributes. Linking
-  // gear to an existing dive changes no dive row, yet changes the set.
-  ref.invalidateSelfWhen(statistics.watchInsightsChanges());
-  ref.invalidateSelfWhen(
-    ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
-  );
-  ref.invalidateSelfWhen(
-    ref.watch(equipmentRepositoryProvider).watchAttributeChanges(),
-  );
+  // gear to an existing dive changes no dive row, yet changes the set. The
+  // tick follows every table the filter reads, so it is the only one needed.
+  ref.invalidateSelfWhen(statistics.watchInsightsChanges(filter: filter));
   return statistics.filteredDiveIds(filter);
 });
 

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
 import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/add_requirement_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/courses/presentation/widgets/credit_dive_picker_sheet.dart';
 
 /// One requirement row: a checkbox for checklist items, a progress count
 /// plus expandable credited-dive list for dive requirements. Unsatisfied
-/// dive requirements offer suggestion chips (one tap credits the dive).
+/// dive requirements offer suggestion chips (one tap credits the dive) and
+/// a picker that reaches every other dive.
 class RequirementTile extends ConsumerWidget {
   const RequirementTile({
     super.key,
@@ -104,9 +106,21 @@ class _DiveRequirementTile extends ConsumerWidget {
 
   String _diveLabel(RequirementDiveSummary dive, UnitFormatter units) {
     final number = dive.diveNumber != null ? '#${dive.diveNumber}' : '';
-    final date = units.formatMonthDay(dive.dateTime);
+    // Year included: a course can credit dives from any year of the logbook.
+    final date = units.formatMonthDayWithYear(dive.dateTime);
     final site = dive.siteName;
     return [number, date, ?site].where((part) => part.isNotEmpty).join(' · ');
+  }
+
+  Future<void> _chooseDive(BuildContext context, WidgetRef ref) async {
+    final requirement = progress.requirement;
+    final repository = ref.read(courseRequirementRepositoryProvider);
+    final diveId = await showCreditDivePickerSheet(
+      context,
+      courseId: requirement.courseId,
+    );
+    if (diveId == null) return;
+    await repository.linkDive(requirementId: requirement.id, diveId: diveId);
   }
 
   @override
@@ -114,7 +128,7 @@ class _DiveRequirementTile extends ConsumerWidget {
     final requirement = progress.requirement;
     final theme = Theme.of(context);
     final satisfied = progress.isSatisfied;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return ExpansionTile(
       leading: satisfied
@@ -133,6 +147,7 @@ class _DiveRequirementTile extends ConsumerWidget {
       ),
       trailing: RequirementMenuButton(requirement: requirement),
       dense: true,
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final dive in progress.linkedDives)
           ListTile(
@@ -142,44 +157,59 @@ class _DiveRequirementTile extends ConsumerWidget {
             trailing: IconButton(
               tooltip: context.l10n.courses_action_unlinkDive,
               icon: const Icon(Icons.link_off, size: 18),
-              onPressed: () async {
-                await ref
+              onPressed: () => logFailure(
+                ref
                     .read(courseRequirementRepositoryProvider)
                     .unlinkDive(
                       requirementId: requirement.id,
                       diveId: dive.diveId,
-                    );
-              },
+                    ),
+                _DiveRequirementTile,
+                'unlink the dive',
+              ),
             ),
           ),
-        if (!satisfied && suggestions.isNotEmpty)
+        if (!satisfied)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.l10n.courses_requirement_suggestions,
-                  style: theme.textTheme.labelSmall,
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    for (final dive in suggestions)
-                      ActionChip(
-                        label: Text(_diveLabel(dive, units)),
-                        onPressed: () async {
-                          await ref
-                              .read(courseRequirementRepositoryProvider)
-                              .linkDive(
-                                requirementId: requirement.id,
-                                diveId: dive.diveId,
-                              );
-                        },
-                      ),
-                  ],
+                if (suggestions.isNotEmpty) ...[
+                  Text(
+                    context.l10n.courses_requirement_suggestions,
+                    style: theme.textTheme.labelSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      for (final dive in suggestions)
+                        ActionChip(
+                          label: Text(_diveLabel(dive, units)),
+                          onPressed: () => logFailure(
+                            ref
+                                .read(courseRequirementRepositoryProvider)
+                                .linkDive(
+                                  requirementId: requirement.id,
+                                  diveId: dive.diveId,
+                                ),
+                            _DiveRequirementTile,
+                            'credit the suggested dive',
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+                TextButton.icon(
+                  icon: const Icon(Icons.search, size: 18),
+                  label: Text(context.l10n.courses_action_chooseDive),
+                  onPressed: () => logFailure(
+                    _chooseDive(context, ref),
+                    _DiveRequirementTile,
+                    'credit the chosen dive',
+                  ),
                 ),
               ],
             ),

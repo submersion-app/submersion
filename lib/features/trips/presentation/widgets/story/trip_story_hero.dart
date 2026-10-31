@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -33,7 +32,7 @@ class TripStoryHero extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = story.trip;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +110,7 @@ class _ChecklistCard extends ConsumerWidget {
     final progress = checklist.total == 0
         ? 0.0
         : checklist.done / checklist.total;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Card(
       child: Padding(

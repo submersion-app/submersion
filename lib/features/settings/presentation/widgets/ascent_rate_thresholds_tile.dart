@@ -51,8 +51,15 @@ class AscentRateThresholdsTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          ascentRateCritical: s.ascentRateCritical,
+          ascentRateWarning: s.ascentRateWarning,
+        ),
+      ),
+    );
 
     return ListTile(
       leading: const Icon(Icons.trending_up),

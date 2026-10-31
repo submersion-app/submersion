@@ -8,7 +8,6 @@ import 'package:submersion/features/nav_track/domain/track_3d/nav_track_scene_ge
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Scene data for the track 3D preview. Null when the route is missing or
 /// has no usable profile (fewer than two active-range samples), which the
@@ -42,7 +41,7 @@ final navTrack3dZAxisProvider =
       return buildTrackZAxisInput(
         data,
         zMetric,
-        UnitFormatter(ref.watch(settingsProvider)),
+        ref.watch(unitFormatterProvider),
       );
     });
 

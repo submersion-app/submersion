@@ -5,7 +5,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/course_status_colors.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
@@ -34,7 +33,7 @@ class CourseCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
     final colorScheme = Theme.of(context).colorScheme;
-    final formatter = UnitFormatter(ref.watch(settingsProvider));
+    final formatter = ref.watch(unitFormatterProvider);
     final startDateStr = formatter.formatDate(course.startDate);
     final agencyName = context.certificationCatalog
         .agency(course.agency)

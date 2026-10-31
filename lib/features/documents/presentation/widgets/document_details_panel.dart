@@ -9,7 +9,6 @@ import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -38,9 +37,7 @@ class _DocumentDetailsPanelState extends ConsumerState<DocumentDetailsPanel> {
     final l10n = context.l10n;
     final doc = widget.entry.document;
     final status = documentExpiryStatus(doc, DateTime.now());
-    final owner = widget.entry.ownerText(
-      UnitFormatter(ref.watch(settingsProvider)),
-    );
+    final owner = widget.entry.ownerText(ref.watch(unitFormatterProvider));
     final summary = [
       documentTypeLabel(l10n, doc.type),
       owner ?? documentOwnerKindLabel(l10n, doc.owner.kind),
@@ -115,7 +112,7 @@ class DocumentDetailsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final doc = document;
     final insurance = doc.type == DocumentType.insurance;
     final ownerRoute = documentOwnerRoute(doc.owner);

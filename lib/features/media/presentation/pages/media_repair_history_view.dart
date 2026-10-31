@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The repair audit trail (Media section Phase 5).
@@ -47,7 +46,7 @@ class MediaRepairHistoryView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(repairHistoryProvider).value ?? const [];
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.media_repairHistory_title)),

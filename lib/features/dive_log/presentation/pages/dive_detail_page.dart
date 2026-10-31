@@ -433,7 +433,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required Dive dive,
     required UnitFormatter units,
     required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
-    required AppSettings settings,
+    required _DetailSettings settings,
   }) {
     return {
       DiveDetailSectionId.profile: (_) {
@@ -545,7 +545,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.tanks: (_) {
         if (dive.tanks.isEmpty) return [];
-        return [_cylindersCard(dive, units, settings)];
+        return [_cylindersCard(dive, units)];
       },
       DiveDetailSectionId.buddies: (_) {
         return [_buildBuddiesSection(context, ref, dive)];
@@ -664,7 +664,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   Widget _surfaceGpsCard(
     Dive dive,
     AsyncValue<List<DiveDataSource>> computerReadingsAsync,
-    AppSettings settings,
+    _DetailSettings settings,
   ) {
     return Consumer(
       builder: (context, ref, _) {
@@ -688,11 +688,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// The Cylinders card. Extracted so both the normal section flow and the
   /// side-by-side pairing (with Gas consumption by segment) render identical
   /// content.
-  Widget _cylindersCard(Dive dive, UnitFormatter units, AppSettings settings) {
+  Widget _cylindersCard(Dive dive, UnitFormatter units) {
     return CylindersCard(
       dive: dive,
       units: units,
-      settings: settings,
+      settings: units.settings,
       display: ref.watch(gasConsumptionDisplayProvider),
     );
   }
@@ -766,7 +766,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     Dive dive,
     UnitFormatter units,
     AsyncValue<List<DiveDataSource>> computerReadingsAsync,
-    AppSettings settings,
+    _DetailSettings settings,
   ) {
     return Consumer(
       builder: (context, ref, _) {
@@ -835,7 +835,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required Dive dive,
     required UnitFormatter units,
     required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
-    required AppSettings settings,
+    required _DetailSettings settings,
     required DiveDetailLayout layout,
     required Map<DiveDetailSectionId, List<Widget> Function(double topGap)>
     builders,
@@ -986,7 +986,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     required Dive dive,
     required UnitFormatter units,
     required AsyncValue<List<DiveDataSource>> computerReadingsAsync,
-    required AppSettings settings,
+    required _DetailSettings settings,
   }) {
     switch (pair.left) {
       case DiveDetailSectionId.decoStatus:
@@ -1041,10 +1041,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
       case DiveDetailSectionId.tanks:
         if (dive.tanks.isEmpty || !_hasSacSegments(ref, dive)) return null;
-        return _PairCards(
-          _cylindersCard(dive, units, settings),
-          _sacSegmentsCard(dive),
-        );
+        return _PairCards(_cylindersCard(dive, units), _sacSegmentsCard(dive));
 
       case DiveDetailSectionId.weights:
         if (!_hasWeights(dive) || !_hasBuoyancy(ref, dive)) return null;
@@ -1123,8 +1120,16 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, Dive dive) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          showDataSourceBadges: s.showDataSourceBadges,
+          diveDetailSections: s.diveDetailSections,
+          diveDetailLayout: s.diveDetailLayout,
+        ),
+      ),
+    );
     final computerReadingsAsync = ref.watch(diveDataSourcesProvider(dive.id));
     final hasRawData =
         ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
@@ -1921,8 +1926,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;
 
     // Get unit formatter
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return Card(
       child: Padding(
@@ -2326,8 +2330,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               ? _lastSacSegmentsAnalysis
               : null);
 
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final display = ref.watch(gasConsumptionDisplayProvider);
     final lane = ref.watch(sacSegmentsLaneProvider);
 
@@ -3322,7 +3325,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     meters: dive.visibilityMeters,
                     range: dive.visibilityRange,
                     legacy: dive.visibility,
-                    scale: ref.watch(settingsProvider).visibilityScale,
+                    scale: ref.watch(
+                      settingsProvider.select((s) => s.visibilityScale),
+                    ),
                     l10n: context.l10n,
                     units: units,
                   )
@@ -3713,8 +3718,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final altitudeGroup = AltitudeGroup.fromAltitude(dive.altitude);
     final pressure =
@@ -3983,7 +3987,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
 
     // Get collapsed state from provider
     final isExpanded = ref.watch(tideSectionExpandedProvider);
@@ -4012,7 +4016,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
     // Build collapsed subtitle with tide state and height
     final collapsedSubtitle =
-        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
+        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(1)}${units.settings.depthUnit.symbol}';
 
     // Compute cycle time range for the header
     final (cycleStart, cycleEnd) = _calculateCycleTimes(
@@ -4022,14 +4026,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
     final dateStr = dateRef != null
         ? DateFormat(
-            UnitFormatter.weekdayMonthDayPattern(settings.dateFormat),
+            UnitFormatter.weekdayMonthDayPattern(units.settings.dateFormat),
           ).format(dateRef)
         : '';
     // The record's times arrive already mapped to the dive site's wall
     // clock (wall-clock-as-UTC), so format them verbatim.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
-            final timeFmt = DateFormat(settings.timeFormat.pattern);
+            final timeFmt = DateFormat(units.settings.timeFormat.pattern);
             final startStr = timeFmt.format(cycleStart);
             final endStr = timeFmt.format(cycleEnd);
             final spansNewDay =
@@ -4038,7 +4042,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 cycleStart.day != cycleEnd.day;
             if (spansNewDay) {
               final endDateStr = DateFormat(
-                UnitFormatter.monthDayPattern(settings.dateFormat),
+                UnitFormatter.monthDayPattern(units.settings.dateFormat),
               ).format(cycleEnd);
               return '$startStr - $endStr ($endDateStr)';
             }
@@ -4094,8 +4098,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 child: TideCycleGraph(
                   record: record,
                   referenceTime: entryTime,
-                  timeFormat: settings.timeFormat,
-                  depthUnit: settings.depthUnit,
+                  timeFormat: units.settings.timeFormat,
+                  depthUnit: units.settings.depthUnit,
                   height: 80,
                 ),
               ),
@@ -4112,25 +4116,25 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_height,
-                '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
+                '${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol}',
               ),
               if (record.rateOfChange != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_rateOfChange,
-                  UnitFormatter(settings).formatTideRate(record.rateOfChange),
+                  units.formatTideRate(record.rateOfChange),
                 ),
               if (record.highTideTime != null && record.highTideHeight != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_highTide,
-                  '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
+                  '${DepthUnit.meters.convert(record.highTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, units.settings.timeFormat)}',
                 ),
               if (record.lowTideTime != null && record.lowTideHeight != null)
                 _buildDetailRow(
                   context,
                   context.l10n.diveLog_detail_label_lowTide,
-                  '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
+                  '${DepthUnit.meters.convert(record.lowTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, units.settings.timeFormat)}',
                 ),
             ],
           ),
@@ -5658,6 +5662,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
   }
 }
+
+/// The settings that decide which sections show and how they are laid out.
+typedef _DetailSettings = ({
+  bool showDataSourceBadges,
+  List<DiveDetailSectionConfig> diveDetailSections,
+  DiveDetailLayout diveDetailLayout,
+});
 
 /// Helper class for unified weight display
 class _WeightDisplay {

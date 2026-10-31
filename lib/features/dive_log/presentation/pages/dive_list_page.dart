@@ -660,8 +660,7 @@ class DiveListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // This dive's entry only: every page load writes the cache once, and
     // watching the whole map re-rendered every card on screen for it (#3506).
     // The merge keeps existing entries' lists, so an unchanged entry selects

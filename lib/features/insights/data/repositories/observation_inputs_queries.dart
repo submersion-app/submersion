@@ -72,7 +72,9 @@ class ObservationInputsQueries {
   }
 
   /// Each in-scope dive's linked buddies, once per buddy even when one
-  /// buddy is linked to a dive under two roles.
+  /// buddy is linked to a dive under two roles. A buddy excluded from the
+  /// rankings is left out (issue #3624): the rule that reads this names the
+  /// diver's regular buddy.
   Future<Map<String, List<ObservationBuddy>>> _buddiesByDive(
     String diverFilter,
     List<Variable<Object>> variables,
@@ -82,7 +84,8 @@ class ObservationInputsQueries {
           'SELECT DISTINCT db.dive_id AS dive_id, b.id AS id, b.name AS name '
           'FROM dive_buddies db JOIN buddies b ON b.id = db.buddy_id '
           'JOIN dives d ON d.id = db.dive_id '
-          'WHERE 1=1 $diverFilter ${DiveStatsScope.and(alias: 'd')} '
+          'WHERE b.excluded_from_rankings = 0 $diverFilter '
+          '${DiveStatsScope.and(alias: 'd')} '
           'ORDER BY b.name, b.id',
           variables: variables,
           readsFrom: {_db.diveBuddies, _db.buddies, _db.dives},

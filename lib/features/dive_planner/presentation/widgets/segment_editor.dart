@@ -32,7 +32,7 @@ class SegmentEditor extends ConsumerStatefulWidget {
   final double startDepth;
 
   /// Available tanks for gas selection. On a CCR plan the caller passes the
-  /// diluents only: a segment never breathes bailout (#3220).
+  /// diluents only: a loop segment never breathes bailout (#3220).
   final List<DiveTank> availableTanks;
 
   /// The segment can only breathe the one tank in [availableTanks] -- a CCR
@@ -136,8 +136,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   @override
   Widget build(BuildContext context) {
     final isNew = widget.segment == null;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Convert meter values to user's preferred units on first build
     if (!_unitsInitialized) {

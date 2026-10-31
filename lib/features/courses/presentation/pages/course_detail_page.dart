@@ -67,7 +67,7 @@ class CourseDetailPage extends ConsumerWidget {
     AsyncValue<List<Dive>> divesAsync,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final formatter = UnitFormatter(ref.watch(settingsProvider));
+    final formatter = ref.watch(unitFormatterProvider);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),

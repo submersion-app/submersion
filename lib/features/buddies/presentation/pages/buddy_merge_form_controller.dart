@@ -42,6 +42,11 @@ class BuddyMergeFormController {
   /// candidates (issue #2002). Not cycled, since a buddy is at most one
   /// profile; two different links make the repository refuse the merge.
   String? mergedLinkedDiverId;
+
+  /// Whether the survivor starts excluded from the rankings (issue #3624):
+  /// only when every candidate is. Merging a placeholder into a real person
+  /// should put that person in the rankings.
+  bool mergedExcludedFromRankings = false;
   bool isInitialized = false;
 
   /// Initialize merge candidate state from loaded buddies. Sets the text
@@ -63,6 +68,9 @@ class BuddyMergeFormController {
         .map((buddy) => buddy.linkedDiverId)
         .whereType<String>()
         .firstOrNull;
+    mergedExcludedFromRankings = buddies.every(
+      (buddy) => buddy.excludedFromRankings,
+    );
 
     _initializeTextField(
       key: 'name',

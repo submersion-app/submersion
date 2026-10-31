@@ -7,7 +7,6 @@ import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_stat_tile.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary figures for one recorded track.
@@ -33,7 +32,7 @@ class TrackStatsHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final distance = trackDistanceMeters(points);
     final elapsed = points.length >= 2

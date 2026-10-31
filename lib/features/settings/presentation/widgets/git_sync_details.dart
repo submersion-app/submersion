@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/git_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What sync on a Git repository adds under "Using": when the branch history
@@ -32,9 +31,7 @@ class GitSyncDetails extends ConsumerWidget {
           Text(
             l10n.settings_cloudSync_provider_git_lastReset(
               // The diver's date preference, not the ambient locale.
-              UnitFormatter(
-                ref.watch(settingsProvider),
-              ).formatDate(reset.toLocal()),
+              ref.watch(unitFormatterProvider).formatDate(reset.toLocal()),
             ),
           ),
         if (refused)

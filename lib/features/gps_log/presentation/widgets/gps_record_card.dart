@@ -8,7 +8,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Recording only makes sense on the device that goes on the boat.
@@ -64,7 +63,7 @@ class GpsRecordCard extends ConsumerWidget {
     final recorder = ref.watch(gpsTrackRecorderProvider);
     final state = ref.watch(gpsRecorderStateProvider).value ?? recorder.state;
     final recording = state.status == GpsRecorderStatus.recording;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Card(
       child: Padding(

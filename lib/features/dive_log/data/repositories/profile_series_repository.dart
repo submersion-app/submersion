@@ -973,8 +973,9 @@ class ProfileSeriesRepository {
   }
 
   /// Raw rows of every series of [diveIds], undecoded, for snapshots that
-  /// restore them verbatim through [restoreSeriesRow] and for summaries that
-  /// decode them on a background isolate.
+  /// restore them verbatim through [restoreSeriesRow] and for reads that
+  /// decode them on a background isolate. For one dive, the rows come back in
+  /// the order [getSeriesForDive] uses.
   Future<List<DiveProfileSeriesRow>> getRowsForDives(
     List<String> diveIds,
   ) async {

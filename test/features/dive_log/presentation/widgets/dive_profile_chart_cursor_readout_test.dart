@@ -57,6 +57,9 @@ Widget _chart({
   bool tooltipBelow = true,
   List<DiveProfilePoint>? profile,
   List<ProfileMarker>? markers,
+  List<double>? ceilingCurve,
+  List<double>? decoStopCurve,
+  bool labelCeilingAsCalculated = false,
 }) {
   final points = profile ?? _standardProfile;
   return ProviderScope(
@@ -81,6 +84,9 @@ Widget _chart({
             highlightedTimestamp: highlightedTimestamp,
             markers: markers,
             showMaxDepthMarker: markers != null,
+            ceilingCurve: ceilingCurve,
+            decoStopCurve: decoStopCurve,
+            labelCeilingAsCalculated: labelCeilingAsCalculated,
           ),
         ),
       ),
@@ -93,6 +99,45 @@ String? _rowValue(List<TooltipRow>? rows, String label) =>
     rows?.where((r) => r.label == label).map((r) => r.value).firstOrNull;
 
 void main() {
+  group('ceiling row label (#2552)', () {
+    final ceilingCurve = List<double>.filled(10, 4.2);
+    final decoStopCurve = List<double>.filled(10, 6.0);
+
+    Future<List<TooltipRow>?> rowsAtCursor(
+      WidgetTester tester, {
+      required bool labelCeilingAsCalculated,
+    }) async {
+      List<TooltipRow>? rows;
+      Widget chart(int? cursor) => _chart(
+        onTooltipData: (r) => rows = r,
+        highlightedTimestamp: cursor,
+        ceilingCurve: ceilingCurve,
+        decoStopCurve: decoStopCurve,
+        labelCeilingAsCalculated: labelCeilingAsCalculated,
+      );
+      await tester.pumpWidget(chart(null));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(chart(150));
+      await tester.pumpAndSettle();
+      return rows;
+    }
+
+    testWidgets('says calculated under the computer\'s stops', (tester) async {
+      final rows = await rowsAtCursor(tester, labelCeilingAsCalculated: true);
+
+      expect(_rowValue(rows, 'Ceiling (calc)'), isNotNull);
+      expect(_rowValue(rows, 'Ceiling'), isNull);
+      expect(_rowValue(rows, 'Deco stop'), isNotNull);
+    });
+
+    testWidgets('stays plain when both come from the app', (tester) async {
+      final rows = await rowsAtCursor(tester, labelCeilingAsCalculated: false);
+
+      expect(_rowValue(rows, 'Ceiling'), isNotNull);
+      expect(_rowValue(rows, 'Ceiling (calc)'), isNull);
+    });
+  });
+
   testWidgets('moving the external cursor emits rows for that sample', (
     tester,
   ) async {

@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -646,18 +647,15 @@ class Dive extends Equatable {
 
   /// Calculate average depth from dive profile data.
   ///
-  /// Uses a simple arithmetic mean of all profile depth points.
-  /// Returns null if profile data is insufficient.
+  /// Weights the profile by elapsed time, so uneven sample intervals do not
+  /// skew it. Returns null if profile data is insufficient.
   double? calculateAvgDepthFromProfile() {
-    if (profile.isEmpty) return null;
-
-    double depthSum = 0;
-    for (final point in profile) {
-      depthSum += point.depth;
-    }
-
-    final avg = depthSum / profile.length;
-    return avg > 0 ? avg : null;
+    final avg = timeWeightedMean(
+      profile,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+    return avg != null && avg > 0 ? avg : null;
   }
 
   /// Calculate runtime (total dive time) from dive profile data.

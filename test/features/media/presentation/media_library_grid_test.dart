@@ -569,10 +569,10 @@ void main() {
 
   // Issue #3337: a fast scroll used to bring tiles on screen before their
   // decode had finished, because only about 250px beyond the pane was
-  // prepared. The grouped views build each group's thumbnails all at once,
-  // so they keep the default.
-  testWidgets('the flat grid prepares two pane heights beyond the visible '
-      'area, and the grouped views do not', (tester) async {
+  // prepared. The grouped views took the same margin once they stopped
+  // building each group's thumbnails all at once (issue #3826).
+  testWidgets('every thumbnail view prepares two pane heights beyond the '
+      'visible area', (tester) async {
     final notifier = _SeededLibraryNotifier(
       MediaLibraryState(entries: [for (var i = 0; i < 12; i++) entry('m$i')]),
     );
@@ -589,15 +589,12 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.calendar_month));
     await tester.pumpAndSettle();
-    final grouped = tester.widgetList<ScrollView>(
+    final grouped = tester.widget<GridView>(
       find.descendant(
         of: find.byType(MediaLibraryGroupedList),
-        matching: find.byWidgetPredicate((w) => w is ScrollView),
+        matching: find.byType(GridView),
       ),
     );
-    expect(grouped, isNotEmpty);
-    for (final view in grouped) {
-      expect(view.scrollCacheExtent, isNull);
-    }
+    expect(grouped.scrollCacheExtent, const ScrollCacheExtent.viewport(2));
   });
 }

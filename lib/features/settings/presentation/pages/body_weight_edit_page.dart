@@ -192,7 +192,7 @@ class BodyWeightEditPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(diverWeightEntriesProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.diverProfile_bodyWeight_title)),

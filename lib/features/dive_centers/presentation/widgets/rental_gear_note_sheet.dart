@@ -220,7 +220,7 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(
