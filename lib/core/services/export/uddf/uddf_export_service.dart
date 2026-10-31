@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -422,8 +423,8 @@ class UddfExportService {
                                 dive,
                               );
                               // One curve per cylinder, the one the app
-                              // draws; every source's series rides in the
-                              // <tankpressureseries> block (issue #2492).
+                              // draws; the <tankpressureseries> block keeps
+                              // what this cannot (issues #2492, #3917).
                               final divePressures =
                                   pressuresByDive[dive.id]?.displayedByTank;
                               for (final (index, point)
@@ -460,7 +461,7 @@ class UddfExportService {
                                       for (final entry
                                           in divePressures.entries) {
                                         final pressure =
-                                            UddfExportBuilders.findPressureAtTimestamp(
+                                            UddfSourceAttribution.findPressureAtTimestamp(
                                               entry.value,
                                               point.timestamp,
                                             );

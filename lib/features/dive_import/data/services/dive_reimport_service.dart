@@ -594,20 +594,23 @@ class DiveReimportService {
     required String? sourceId,
   }) async {
     final series = restoredTankPressureSeries(diveData, tanks.idsByIndex);
-    final pressuresByTank = series.isEmpty
-        ? _waypointPressures(diveData, tanks)
-        : <String, List<({int timestamp, double pressure})>>{};
-    for (final s in series) {
-      pressuresByTank.putIfAbsent(s.tankId, () => []).addAll(s.samples);
-    }
-    if (pressuresByTank.isEmpty) return;
+    final fresh = series.isNotEmpty
+        ? [for (final s in series) (s.tankId, s.samples)]
+        : [
+            for (final entry in _waypointPressures(diveData, tanks).entries)
+              (entry.key, entry.value),
+          ];
+    if (fresh.isEmpty) return;
 
-    await _tankPressureRepository.replaceTankPressuresForTanks(
-      diveId,
-      pressuresByTank.keys,
-      pressuresByTank,
-      sourceId: sourceId,
-    );
+    await _tankPressureRepository.replaceTankSeriesForTanks(diveId, [
+      for (final (tankId, samples) in fresh)
+        (
+          tankId: tankId,
+          sourceId: sourceId,
+          computerId: null,
+          samples: samples,
+        ),
+    ]);
   }
 
   /// The per-tank readings in `diveData['profile']`'s `allTankPressures`

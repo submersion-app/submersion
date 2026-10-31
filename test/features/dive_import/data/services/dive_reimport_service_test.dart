@@ -1076,6 +1076,41 @@ void main() {
       },
     );
 
+    test(
+      'keeps each stretch of a backup\'s series a series of its own',
+      () async {
+        // Joined, the two would span the gap between them and hide a recording
+        // another source made there (issue #2492).
+        final diveId = await seedDive(notes: '', buddy: '');
+        await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+
+        await service.applyReimport(
+          diveId: diveId,
+          diveData: {
+            'tanks': [
+              {'order': 0, 'uddfTankId': 'tank_a'},
+            ],
+            UddfSourceAttribution.seriesKey: <Map<String, dynamic>>[
+              for (final start in const [0, 100])
+                {
+                  'tankRef': 'tank_a',
+                  'sourceOrdinal': null,
+                  'computerOrdinal': null,
+                  'samples': <({int timestamp, double pressure})>[
+                    (timestamp: start, pressure: 200.0),
+                    (timestamp: start + 10, pressure: 190.0),
+                  ],
+                },
+            ],
+          },
+          now: DateTime(2026, 9, 3),
+        );
+
+        final rows = await db.select(db.tankPressureSeries).get();
+        expect(rows.where((row) => row.diveId == diveId), hasLength(2));
+      },
+    );
+
     test('carries over one existing row per parsed tank when the parser '
         'omits order', () async {
       // ShearwaterDiveMapper.mapTanks emits no `order` key at all, so the

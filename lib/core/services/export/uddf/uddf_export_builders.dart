@@ -348,10 +348,11 @@ class UddfExportBuilders {
                     }
                     if (tankPressures != null) {
                       for (final entry in tankPressures.entries) {
-                        final pressure = findPressureAtTimestamp(
-                          entry.value,
-                          point.timestamp,
-                        );
+                        final pressure =
+                            UddfSourceAttribution.findPressureAtTimestamp(
+                              entry.value,
+                              point.timestamp,
+                            );
                         if (pressure != null) {
                           builder.element(
                             'tankpressure',
@@ -2091,13 +2092,6 @@ class UddfExportBuilders {
         ? null
         : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
   }
-
-  /// See [UddfSourceAttribution.findPressureAtTimestamp], which owns it so
-  /// the check for what the waypoints can hold reads what they write.
-  static double? findPressureAtTimestamp(
-    List<TankPressurePoint> points,
-    int timestamp,
-  ) => UddfSourceAttribution.findPressureAtTimestamp(points, timestamp);
 
   /// UDDF carries visibility as a distance in meters.
   ///
