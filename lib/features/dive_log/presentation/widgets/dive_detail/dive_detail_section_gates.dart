@@ -26,10 +26,7 @@ bool diveHasLocationMap(Dive dive) =>
     dive.exitLocation != null ||
     dive.site?.location != null;
 
-bool diveHasWeights(Dive dive) {
-  return dive.weights.isNotEmpty ||
-      (dive.weightAmount != null && dive.weightAmount! > 0);
-}
+bool diveHasWeights(Dive dive) => dive.recordedWeightKg != null;
 
 bool diveHasExposureSuit(Dive dive) => dive.equipment.any(
   (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,

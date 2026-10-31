@@ -170,4 +170,49 @@ void main() {
       );
     });
   });
+
+  group('timeWeightedMeanAcross', () {
+    double? across(
+      List<_Sample> samples,
+      List<({num start, num end})> windows,
+    ) => timeWeightedMeanAcross(
+      samples,
+      windows: windows,
+      time: (s) => s.t,
+      value: (s) => s.depth,
+    );
+
+    const List<_Sample> samples = [
+      (t: 0, depth: 10),
+      (t: 60, depth: 10),
+      (t: 120, depth: 50),
+      (t: 180, depth: 50),
+    ];
+
+    test('gives the time between windows no weight', () {
+      expect(
+        across(samples, [(start: 0, end: 60), (start: 120, end: 150)]),
+        closeTo((10 * 60 + 50 * 30) / 90, 1e-9),
+      );
+    });
+
+    test('reads one window as timeWeightedMeanBetween does', () {
+      expect(
+        across(samples, [(start: 30, end: 90)]),
+        closeTo(_between(samples, 30, 90)!, 1e-9),
+      );
+    });
+
+    test('averages windows that hold no time', () {
+      expect(
+        across(samples, [(start: 60, end: 60), (start: 120, end: 120)]),
+        closeTo(30, 1e-9),
+      );
+    });
+
+    test('is null when the samples reach no window', () {
+      expect(across(samples, const []), isNull);
+      expect(across(samples, [(start: 300, end: 360)]), isNull);
+    });
+  });
 }
