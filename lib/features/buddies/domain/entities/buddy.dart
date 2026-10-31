@@ -35,6 +35,10 @@ class Buddy extends Equatable {
   final Uint8List? photo;
   final String notes;
   final bool isFavorite;
+
+  /// Kept out of the buddy rankings (issue #3624). Dives with this buddy
+  /// still count as buddy dives.
+  final bool excludedFromRankings;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -64,6 +68,7 @@ class Buddy extends Equatable {
     this.photo,
     this.notes = '',
     this.isFavorite = false,
+    this.excludedFromRankings = false,
     required this.createdAt,
     required this.updatedAt,
     this.cardId,
@@ -164,6 +169,7 @@ class Buddy extends Equatable {
     Uint8List? photo,
     String? notes,
     bool? isFavorite,
+    bool? excludedFromRankings,
     DateTime? createdAt,
     DateTime? updatedAt,
     String? cardId,
@@ -187,6 +193,7 @@ class Buddy extends Equatable {
       photo: photo ?? this.photo,
       notes: notes ?? this.notes,
       isFavorite: isFavorite ?? this.isFavorite,
+      excludedFromRankings: excludedFromRankings ?? this.excludedFromRankings,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       cardId: cardId ?? this.cardId,
@@ -219,6 +226,7 @@ class Buddy extends Equatable {
       photo: null,
       notes: notes,
       isFavorite: isFavorite,
+      excludedFromRankings: excludedFromRankings,
       createdAt: createdAt,
       updatedAt: updatedAt,
       cardId: cardId,
@@ -248,6 +256,7 @@ class Buddy extends Equatable {
       photo: photo,
       notes: notes,
       isFavorite: isFavorite,
+      excludedFromRankings: excludedFromRankings,
       createdAt: createdAt,
       updatedAt: updatedAt,
       cardId: cardId,
@@ -274,6 +283,7 @@ class Buddy extends Equatable {
     photo,
     notes,
     isFavorite,
+    excludedFromRankings,
     createdAt,
     updatedAt,
     cardId,

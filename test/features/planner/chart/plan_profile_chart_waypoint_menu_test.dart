@@ -13,9 +13,10 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_c
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
 
 /// Issue #3564: on a phone there is no right mouse button and no Delete key,
@@ -41,6 +42,7 @@ void main() {
     // The tests assert the English menu label.
     locale: const Locale('en'),
     overrides: [
+      ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: const SizedBox(width: 500, height: 400, child: PlanProfileChart()),

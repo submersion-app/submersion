@@ -44,6 +44,7 @@ class EquipmentLocationRepository {
     required String? diverId,
     required String name,
     required EquipmentLocationKind kind,
+    String? diveCenterId,
     String notes = '',
   }) async {
     final trimmed = _requireName(name);
@@ -60,6 +61,7 @@ class EquipmentLocationRepository {
               diverId: Value(diverId),
               name: trimmed,
               kind: Value(kind.name),
+              diveCenterId: Value(diveCenterId),
               notes: Value(notes.trim()),
               createdAt: now,
               updatedAt: now,
@@ -71,7 +73,7 @@ class EquipmentLocationRepository {
     return (await getLocation(id))!;
   }
 
-  /// Saves [location]'s name, kind, notes and archived flag.
+  /// Saves [location]'s name, kind, saved center, notes and archived flag.
   Future<void> updateLocation(EquipmentLocation location) async {
     final trimmed = _requireName(location.name);
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -82,6 +84,7 @@ class EquipmentLocationRepository {
         EquipmentLocationsCompanion(
           name: Value(trimmed),
           kind: Value(location.kind.name),
+          diveCenterId: Value(location.diveCenterId),
           notes: Value(location.notes.trim()),
           isArchived: Value(location.isArchived),
           updatedAt: Value(now),
@@ -172,6 +175,7 @@ class EquipmentLocationRepository {
     diverId: r.diverId,
     name: r.name,
     kind: EquipmentLocationKind.fromName(r.kind),
+    diveCenterId: r.diveCenterId,
     notes: r.notes,
     isArchived: r.isArchived,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
