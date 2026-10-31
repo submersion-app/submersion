@@ -169,6 +169,14 @@ void main() {
       testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
       preview: PdfPagePreview(jpeg: solidJpeg(2000, 1000), pageCount: 1),
     );
+    // Image.memory's real decode (cacheWidth routes it through the engine's
+    // resize codec) never completes inside pumpAndSettle's fake-async zone;
+    // a real delay outside it lets the decode finish before the layout the
+    // assertions below depend on is measured.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
     // The surrounding box, not just the Image: the bug left the Image
     // correctly sized but centered in a container stretched to the 70%
     // height cap (630 px here), leaving empty space above and below.
@@ -194,6 +202,12 @@ void main() {
       // that narrows the page below the card's own width.
       preview: PdfPagePreview(jpeg: solidJpeg(600, 1800), pageCount: 1),
     );
+    // See the previous test: lets Image.memory's real decode finish before
+    // the layout below is measured.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
     final cardWidth = tester
         .getSize(find.byType(SiteAttachmentLargeCard))
         .width;
