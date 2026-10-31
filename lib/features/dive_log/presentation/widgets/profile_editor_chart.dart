@@ -297,7 +297,7 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
     final touchedSpot = spots.first;
     final timestamp = touchedSpot.x.toInt();
     // Chart Y is negated and in display units; convert back to stored meters
-    final units = UnitFormatter(ref.read(settingsProvider));
+    final units = ref.read(unitFormatterProvider);
     final depth = units.depthToMeters(-touchedSpot.y);
     widget.onTap?.call(timestamp, depth);
   }
