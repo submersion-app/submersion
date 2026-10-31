@@ -40,10 +40,11 @@ class CnsOtuSnapshot {
   /// The last dive's end-of-dive tissue compartments, for projecting live
   /// tissue loading the same way [exposure] projects live CNS%.
   ///
-  /// Independent of [exposure]: a gauge-mode dive has a (zero) [exposure] but
-  /// no compartments (gas is unknown, see `ProfileAnalysisService`'s gauge
-  /// branch), and a rebreather dive with no recorded gas segments has a real
-  /// [exposure] (from its loop ppO2 curve) but withheld tissue loading --
+  /// Independent of [exposure]: a gauge-mode dive has an [exposure] (the CNS it
+  /// carried in, as a minimum) but no compartments (gas is unknown, see
+  /// `ProfileAnalysisService`'s gauge branch), and a rebreather dive with no
+  /// recorded gas segments has a real [exposure] (from its loop ppO2 curve)
+  /// but withheld tissue loading --
   /// the same "withheld" case the dive detail screen shows elsewhere. Null
   /// whenever the last dive's analysis computed no deco statuses at all.
   final List<TissueCompartment>? endOfDiveCompartments;

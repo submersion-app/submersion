@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -87,3 +88,20 @@ final activeSourceProfileProvider = Provider.autoDispose
             points: const [],
           );
     });
+
+/// The dive's data sources, empty until they load.
+///
+/// Selects the list, so the loading flag of a refresh rebuilds nothing. This
+/// provider refreshes on every analysis-input tick, and the widgets reading it
+/// only want a new list when there is one.
+List<DiveDataSource> watchDiveDataSources(WidgetRef ref, String diveId) =>
+    ref.watch(diveDataSourcesProvider(diveId).select((a) => a.valueOrNull)) ??
+    const [];
+
+/// The series the chart draws for [dive], resolved by the same one rule the
+/// chart itself uses (#543): the active source's own points on a multi-source
+/// dive, dive.profile otherwise. Whatever indexes the chart (the point count,
+/// the range panel, the readouts that follow the cursor) must read this, so
+/// it reads the same series the curve was drawn from.
+List<DiveProfilePoint> watchChartProfile(WidgetRef ref, Dive dive) =>
+    ref.watch(activeSourceProfileProvider(dive.id))?.points ?? dive.profile;

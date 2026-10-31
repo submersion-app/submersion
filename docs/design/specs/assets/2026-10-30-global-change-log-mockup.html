@@ -1,0 +1,106 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Global change log mockup</title>
+<style>:root{--bg-primary:#fff;--bg-secondary:#f5f5f7;--bg-tertiary:#e5e5e7;--border:#d1d1d6;--accent:#0071e3}
+@media (prefers-color-scheme:dark){:root{--bg-primary:#1d1d1f;--bg-secondary:#2d2d2f;--bg-tertiary:#3d3d3f;--border:#424245;--accent:#0a84ff}body{color:#f5f5f7}}
+body{font-family:system-ui,sans-serif;background:var(--bg-secondary);margin:0;padding:16px 16px 48px;max-width:1000px;margin-inline:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.card{border:1px solid var(--border);border-radius:12px;overflow:hidden}.card-body{padding:0 12px 8px}.subtitle{opacity:.7}</style></head><body>
+<style>
+.ph{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-primary);font-size:13px;line-height:1.35}
+.bar{padding:10px 12px;font-weight:600;font-size:15px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.chips{display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);border-radius:999px;padding:2px 9px;font-size:11px}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.day{padding:8px 12px 3px;font-size:11px;font-weight:600;text-transform:uppercase;opacity:.65}
+.row{padding:7px 12px;display:flex;gap:9px;align-items:flex-start;border-top:1px solid var(--border)}
+.ic{width:22px;height:22px;border-radius:50%;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.t{font-weight:600}
+.s{font-size:11.5px;opacity:.7}
+.f{font-size:12px;margin-top:3px}
+.old{text-decoration:line-through;opacity:.6}
+.more{font-size:11.5px;color:var(--accent);margin-top:2px}
+.tag{font-size:10px;border-radius:5px;padding:0 5px;background:var(--bg-tertiary);margin-left:4px;font-weight:500}
+.cards .card-image{padding:12px;background:var(--bg-secondary)}
+</style>
+<h2>How should the change log read?</h2>
+<p class="subtitle">Same data in both: filters on top, newest first, grouped by day. The difference is how much you see before tapping an entry.</p>
+<div class="cards">
+  <div class="card" data-choice="a">
+    <div class="card-image"><div class="ph">
+      <div class="bar">Change log<span>&#8942;</span></div>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Dives</span><span class="chip">Sites</span><span class="chip">Gear</span><span class="chip">Settings</span><span class="chip">Source</span></div>
+      <div class="day">Today</div>
+      <div class="row"><div class="ic">E</div><div><div class="t">Dive 412, Blue Hole</div><div class="s">3 fields edited &middot; 14:03 &middot; This Mac</div></div></div>
+      <div class="row"><div class="ic">S</div><div><div class="t">Regulator, Apeks XTX50</div><div class="s">Service date changed &middot; 12:41 &middot; Synced from iPhone</div></div></div>
+      <div class="day">Yesterday</div>
+      <div class="row"><div class="ic">I</div><div><div class="t">Imported 14 dives</div><div class="s">Shearwater Perdix &middot; 18:20 &middot; This Mac</div></div></div>
+      <div class="row"><div class="ic">D</div><div><div class="t">Site deleted, Coral Gardens</div><div class="s">Moved 2 dives &middot; 09:12 &middot; This Mac</div></div></div>
+    </div></div>
+    <div class="card-body"><h3>A. Compact list</h3><p>One line per change. Tap to see old and new values and revert. Fits more history on a phone.</p></div>
+  </div>
+  <div class="card" data-choice="b">
+    <div class="card-image"><div class="ph">
+      <div class="bar">Change log<span>&#8942;</span></div>
+      <div class="chips"><span class="chip on">All</span><span class="chip">Dives</span><span class="chip">Sites</span><span class="chip">Gear</span><span class="chip">Settings</span><span class="chip">Source</span></div>
+      <div class="day">Today</div>
+      <div class="row"><div class="ic">E</div><div><div class="t">Dive 412, Blue Hole</div><div class="s">14:03 &middot; This Mac</div>
+        <div class="f">Max depth: <span class="old">28 m</span> 30 m</div>
+        <div class="f">Buddy: <span class="old">None</span> Sam Lee</div>
+        <div class="more">+1 more</div></div></div>
+      <div class="row"><div class="ic">S</div><div><div class="t">Regulator, Apeks XTX50</div><div class="s">12:41 &middot; Synced from iPhone</div>
+        <div class="f">Service date: <span class="old">2 Mar 2026</span> 11 Oct 2026</div></div></div>
+      <div class="day">Yesterday</div>
+      <div class="row"><div class="ic">I</div><div><div class="t">Imported 14 dives</div><div class="s">Shearwater Perdix &middot; 18:20 &middot; This Mac</div><div class="more">View 14 dives</div></div></div>
+    </div></div>
+    <div class="card-body"><h3>B. Values in the feed</h3><p>The first two changed fields show right in the list. Scan without tapping; each entry is taller.</p></div>
+  </div>
+</div>
+
+<p class="subtitle">Option B was chosen.</p>
+<style>
+.ph{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg-primary);font-size:13px;line-height:1.35}
+.bar{padding:10px 12px;font-weight:600;font-size:15px;border-bottom:1px solid var(--border)}
+.hd{padding:10px 12px;border-bottom:1px solid var(--border)}
+.t{font-weight:600}
+.s{font-size:11.5px;opacity:.7}
+.row{padding:8px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center;border-bottom:1px solid var(--border)}
+.lab{font-size:11px;opacity:.7}
+.old{text-decoration:line-through;opacity:.6}
+.b{font-size:11px;color:var(--accent);font-weight:600;white-space:nowrap}
+.btn{margin:10px 12px;padding:7px;text-align:center;border-radius:8px;background:var(--accent);color:#fff;font-weight:600}
+.warn{margin:10px 12px;padding:8px 10px;border-radius:8px;background:var(--bg-tertiary);font-size:12px}
+.lnk{padding:8px 12px;font-size:12px;color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.cap{font-size:12px;margin:0 0 6px;font-weight:600}
+</style>
+<h2>Entry detail and revert</h2>
+<p class="subtitle">Three states of the same page. Tell me what is wrong or missing.</p>
+<div class="grid">
+  <div><p class="cap">1. An edit</p><div class="ph">
+    <div class="bar">Change details</div>
+    <div class="hd"><div class="t">Dive 412, Blue Hole</div><div class="s">Today 14:03 &middot; This Mac &middot; Manual edit</div></div>
+    <div class="row"><div><div class="lab">Max depth</div><span class="old">28 m</span> 30 m</div><span class="b">Revert</span></div>
+    <div class="row"><div><div class="lab">Buddy</div><span class="old">None</span> Sam Lee</div><span class="b">Revert</span></div>
+    <div class="row"><div><div class="lab">Notes</div><span class="old">Calm</span> Calm, strong current at the end</div><span class="b">Revert</span></div>
+    <div class="btn">Revert all 3</div>
+    <div class="lnk">Open dive &middot; History of this dive</div>
+  </div></div>
+  <div><p class="cap">2. Changed again since</p><div class="ph">
+    <div class="bar">Revert max depth?</div>
+    <div class="warn">This field has changed since this entry.<br><br>Set to in this entry: 30 m<br>Now: 31 m<br>After revert: 28 m</div>
+    <div class="row"><div>Other devices will receive this as a new edit. It appears in the log and can be reverted too.</div></div>
+    <div class="btn">Revert anyway</div>
+    <div class="lnk" style="text-align:center">Cancel</div>
+  </div></div>
+  <div><p class="cap">3. A bulk action</p><div class="ph">
+    <div class="bar">Change details</div>
+    <div class="hd"><div class="t">Imported 14 dives</div><div class="s">Yesterday 18:20 &middot; This Mac &middot; Shearwater Perdix</div></div>
+    <div class="row"><div>Dive 413, Blue Hole<div class="s">Added</div></div><span class="b">&rsaquo;</span></div>
+    <div class="row"><div>Dive 414, Blue Hole<div class="s">Added</div></div><span class="b">&rsaquo;</span></div>
+    <div class="row"><div>Regulator, Apeks XTX50<div class="s">Dive count: 88 to 102</div></div><span class="b">&rsaquo;</span></div>
+    <div class="lnk">View all 31 changes</div>
+    <div class="btn">Undo this import</div>
+    <div class="s" style="padding:0 12px 10px">Removes the 14 dives and reverses the other changes. Asks first, and lists any you have edited since.</div>
+  </div></div>
+</div>
+
+</body></html>

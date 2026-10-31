@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -35,8 +37,16 @@ void main() {
     ),
   );
 
-  Future<void> pumpDetail(WidgetTester tester, Dive dive) async {
-    final base = await getBaseOverrides();
+  Future<void> pumpDetail(
+    WidgetTester tester,
+    Dive dive, {
+    AppSettings? settings,
+  }) async {
+    final base = await getBaseOverrides(
+      settingsNotifier: settings == null
+          ? null
+          : MockSettingsNotifier(settings),
+    );
 
     // A tall surface so neither the page nor the export sheet is clipped by
     // the default 800x600 test viewport.
@@ -151,6 +161,29 @@ void main() {
 
     expect(find.text('Export Profile Image'), findsOneWidget);
     expect(find.text('Save to Photos'), findsOneWidget);
+  });
+
+  testWidgets('a hidden profile section is not offered the profile image', (
+    tester,
+  ) async {
+    // Same promise as an empty profile: with the section off the page there
+    // is no RepaintBoundary to capture, however many samples the dive has.
+    await pumpDetail(
+      tester,
+      diveWithProfile(),
+      settings: AppSettings(
+        diveDetailSections: [
+          for (final section in DiveDetailSectionConfig.defaultSections)
+            section.id == DiveDetailSectionId.profile
+                ? section.copyWith(visible: false)
+                : section,
+        ],
+      ),
+    );
+    await openExportSheet(tester);
+
+    expect(find.text('Profile as Image'), findsNothing);
+    expect(find.text('Page as Image'), findsOneWidget);
   });
 
   testWidgets('a dive with no profile is not offered the profile image', (

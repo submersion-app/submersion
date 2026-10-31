@@ -85,6 +85,10 @@ extension AppDatabaseMigrationStrategy on AppDatabase {
       await Future<void>.delayed(Duration.zero);
     }
 
+    // A change log trigger names columns, so it would fail a rung that drops
+    // one. beforeOpen puts them back, generated for the new schema.
+    await dropChangeLogTriggers(this);
+
     await _rungsV2ToV29(m, from, reportProgress);
     await _rungsV30ToV54(m, from, reportProgress);
     await _rungsV55ToV71(m, from, reportProgress);

@@ -284,4 +284,22 @@ void main() {
     expect({for (final s in result.segments) s.label: s.count}, {'Dusk': 1});
     expect(result.divesWithoutLocation, 1);
   });
+
+  test('each time of day holds the dives it counted (#3805)', () async {
+    await bonaire();
+    await dive('morning', start: clock(9, 0), siteId: 'bonaire');
+    await dive('midday', start: clock(10, 0), siteId: 'bonaire');
+    await dive('night', start: clock(21, 0), siteId: 'bonaire');
+    await dive('skipped', start: clock(9, 0), excluded: true);
+
+    final result = await repository.getDivesByTimeOfDay();
+
+    expect(
+      result.diveIdsByBucket.values.expand((ids) => ids),
+      unorderedEquals(['morning', 'midday', 'night']),
+    );
+    for (final segment in result.segments) {
+      expect(result.diveIdsByBucket[segment.label], hasLength(segment.count));
+    }
+  });
 }

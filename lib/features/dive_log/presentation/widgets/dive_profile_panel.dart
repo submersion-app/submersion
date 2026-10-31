@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -406,6 +407,8 @@ class _DiveProfilePanelContentState
                   events: analysis?.events,
                   ndlCurve: analysis?.ndlCurve,
                   sacCurve: analysis?.smoothedSacCurve,
+                  environment:
+                      analysis?.environment ?? DiveEnvironment.standard,
                   ppO2Curve: analysis?.ppO2Curve,
                   o2SensorCurves: analysis?.o2SensorCurves,
                   o2CellMvCurves: analysis?.o2CellMvCurves,

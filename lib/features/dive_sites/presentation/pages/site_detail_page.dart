@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -282,6 +283,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dive_sites',
+                  rootId: site.id,
+                ),
                 openInConnectionsMenuItem(context),
                 duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
@@ -535,6 +541,11 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dive_sites',
+                  rootId: site.id,
+                ),
                 openInConnectionsMenuItem(context),
                 duplicateSiteMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),

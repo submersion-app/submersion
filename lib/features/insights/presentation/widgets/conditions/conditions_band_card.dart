@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
 import 'package:submersion/features/insights/presentation/formatters/condition_band_label.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dives per band of a numeric condition, with its coverage line (issue
 /// #3118). Renders nothing when no dive has the value.
-class ConditionsBandCard extends StatelessWidget {
+class ConditionsBandCard extends ConsumerWidget {
   const ConditionsBandCard({
     super.key,
     required this.title,
@@ -29,7 +31,7 @@ class ConditionsBandCard extends StatelessWidget {
   final Color barColor;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (stat.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final data = [
@@ -45,11 +47,15 @@ class ConditionsBandCard extends StatelessWidget {
               '${d.label}$unitSymbol: ${l10n.insights_summary_tagUsage_diveCount(d.count)}',
         )
         .join(', ');
+    Future<void> open(String row, List<String> ids) =>
+        openHeldChartDives(context, ref, chart: title, row: row, ids: ids);
     final chart = CategoryBarChart(
       data: data,
       barColor: barColor,
       valueFormatter: l10n.insights_summary_tagUsage_diveCount,
       xAxisLabel: unitSymbol,
+      onOpenBar: (index) =>
+          open('${data[index].label} $unitSymbol', stat.diveIdsByBand[index]),
     );
     return ConditionsChartCard(
       title: title,
@@ -58,6 +64,9 @@ class ConditionsBandCard extends StatelessWidget {
       chart: chart,
       recorded: stat.recorded,
       total: totalDives,
+      onOpenUnrecorded: stat.unrecordedDiveIds.isEmpty
+          ? null
+          : () => open(l10n.insights_chart_notRecorded, stat.unrecordedDiveIds),
     );
   }
 }

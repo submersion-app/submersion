@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
@@ -14,7 +16,7 @@ enum ConditionsChartKind { pie, bar }
 
 /// Dives per value of a categorical condition, with its coverage line (issue
 /// #3118). Renders nothing when no dive has the value.
-class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
+class ConditionsCategoryCard<T extends Enum> extends ConsumerWidget {
   const ConditionsCategoryCard({
     super.key,
     required this.title,
@@ -40,9 +42,16 @@ class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
   final Color? barColor;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (stat.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
+    Future<void> open(String row, List<String> ids) =>
+        openHeldChartDives(context, ref, chart: title, row: row, ids: ids);
+    Future<void> openIndex(int index) {
+      final value = stat.counts[index].value;
+      return open(labelOf(value), stat.diveIdsByValue[value] ?? const []);
+    }
+
     final description = stat.counts
         .map(
           (c) =>
@@ -63,6 +72,7 @@ class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
         colors: colorOf == null
             ? null
             : [for (final c in stat.counts) colorOf(c.value)],
+        onOpenSegment: openIndex,
       ),
       ConditionsChartKind.bar => HorizontalCategoryBarChart(
         data: [
@@ -70,6 +80,7 @@ class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
             (label: labelOf(c.value), count: c.count),
         ],
         barColor: barColor,
+        onRowTap: openIndex,
       ),
     };
     return ConditionsChartCard(
@@ -79,6 +90,9 @@ class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
       chart: chart,
       recorded: stat.recorded,
       total: totalDives,
+      onOpenUnrecorded: stat.unrecordedDiveIds.isEmpty
+          ? null
+          : () => open(l10n.insights_chart_notRecorded, stat.unrecordedDiveIds),
     );
   }
 }

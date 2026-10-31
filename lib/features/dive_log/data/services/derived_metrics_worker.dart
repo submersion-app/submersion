@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
@@ -34,6 +35,7 @@ class DerivedMetricsWorkInput {
   final DiveMode diveMode;
   final int sourceUpdatedAt;
   final int computedAtMs;
+  final DiveEnvironment environment;
 
   const DerivedMetricsWorkInput({
     required this.diveId,
@@ -42,6 +44,7 @@ class DerivedMetricsWorkInput {
     required this.diveMode,
     required this.sourceUpdatedAt,
     required this.computedAtMs,
+    this.environment = DiveEnvironment.standard,
   });
 }
 
@@ -99,6 +102,7 @@ DiveDerivedMetrics computeDerivedMetricsFromBlobs(
     diveMode: input.diveMode,
     sourceUpdatedAt: input.sourceUpdatedAt,
     computedAtMs: input.computedAtMs,
+    environment: input.environment,
   );
 }
 

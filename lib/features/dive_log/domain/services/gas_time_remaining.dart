@@ -12,6 +12,9 @@
 /// gauge reading gets the same GTR.
 library;
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
+
 /// Direct-ascent rate the GTR calculation assumes (Shearwater: 10 m/min).
 const double gtrAscentRateMetersPerMinute = 10.0;
 
@@ -35,9 +38,13 @@ const double _surfaceDepthMeters = 1.0;
 /// - [ceilings] reports a deco ceiling above 0 m at that sample.
 ///
 /// [pressures] is the tank pressure track in bar, aligned with [depths] and
-/// [timestamps] (seconds). [reserveBar] is the pressure the diver wants to
-/// surface with. Once the reserve plus the gas needed for the ascent exceeds
-/// the current pressure the value is 0, never negative.
+/// [timestamps] (seconds, in time order). [reserveBar] is the pressure the
+/// diver wants to surface with. Once the reserve plus the gas needed for the
+/// ascent exceeds the current pressure the value is 0, never negative.
+///
+/// Depth and pressure are read as piecewise linear series, so the window holds
+/// exactly [sacWindowSeconds] of history wherever it opens, and a sample added
+/// on an existing segment leaves the result unchanged.
 ///
 /// Seconds are truncated, not rounded: displays floor these to whole minutes,
 /// so rounding 2939.8 s up to 2940 would read 49 min for 48 min 59.8 s left,
@@ -49,6 +56,7 @@ List<int?> calculateGtrCurve({
   required double reserveBar,
   List<double>? ceilings,
   int sacWindowSeconds = defaultGtrSacWindowSeconds,
+  DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   final n = depths.length;
   if (timestamps.length != n || pressures.length != n) {
@@ -62,51 +70,61 @@ List<int?> calculateGtrCurve({
       'ceilings (${ceilings.length}) must match depths (${depths.length})',
     );
   }
+  if (sacWindowSeconds <= 0) {
+    throw ArgumentError.value(
+      sacWindowSeconds,
+      'sacWindowSeconds',
+      'must be positive',
+    );
+  }
 
   final result = List<int?>.filled(n, null);
   // Both window bounds only move forward, so one cursor and a running depth
-  // sum keep the whole pass O(n). Re-summing the window per sample instead
+  // integral keep the whole pass O(n). Re-summing the window per sample instead
   // costs O(n * samples-per-window), which on a densely sampled or merged
-  // profile is the entire profile at every sample. The cursor advances on
-  // every iteration, including ones the guards below skip, so that the sum
-  // stays in step with it.
+  // profile is the entire profile at every sample.
+  final depthSeries = PiecewiseLinearSeries(times: timestamps, values: depths);
+  final pressureSeries = PiecewiseLinearSeries(
+    times: timestamps,
+    values: pressures,
+  );
   var anchor = 0;
-  var windowDepthSum = 0.0;
   for (var i = 0; i < n; i++) {
-    windowDepthSum += depths[i];
     final windowStart = timestamps[i] - sacWindowSeconds;
-    while (anchor + 1 < i && timestamps[anchor + 1] <= windowStart) {
-      windowDepthSum -= depths[anchor];
-      anchor++;
-    }
+    anchor = depthSeries.advanceTo(windowStart, anchor);
 
     final depth = depths[i];
     if (depth < _surfaceDepthMeters) continue;
     if (ceilings != null && ceilings[i] > 0) continue;
     if (timestamps[0] > windowStart) continue;
 
-    final durationSeconds = timestamps[i] - timestamps[anchor];
-    final pressureDrop = pressures[anchor] - pressures[i];
-    if (durationSeconds <= 0 || pressureDrop <= 0) continue;
+    final pressureDrop =
+        pressureSeries.valueAt(windowStart, anchor) - pressures[i];
+    if (pressureDrop <= 0) continue;
 
-    final meanDepth = windowDepthSum / (i - anchor + 1);
-    final consumptionAtDepth = pressureDrop / (durationSeconds / 60.0);
-    final sac = consumptionAtDepth / _ambientBar(meanDepth);
+    final meanDepth = depthSeries.meanBetween(
+      windowStart,
+      anchor,
+      timestamps[i],
+      i,
+    );
+    final consumptionAtDepth = pressureDrop / (sacWindowSeconds / 60.0);
+    final sac = consumptionAtDepth / environment.pressureAtDepth(meanDepth);
     if (sac <= 0) continue;
 
     // Gas burned by a direct ascent: SAC times the ascent's duration times
     // the mean ambient pressure of a linear ascent from here to the surface.
     final ascentMinutes = depth / gtrAscentRateMetersPerMinute;
-    final ascentGasBar = sac * ascentMinutes * _ambientBar(depth / 2);
+    final ascentGasBar =
+        sac * ascentMinutes * environment.pressureAtDepth(depth / 2);
     final usableBar = pressures[i] - reserveBar - ascentGasBar;
     if (usableBar <= 0) {
       result[i] = 0;
       continue;
     }
-    final minutesAtDepth = usableBar / (sac * _ambientBar(depth));
+    final minutesAtDepth =
+        usableBar / (sac * environment.pressureAtDepth(depth));
     result[i] = (minutesAtDepth * 60).floor();
   }
   return result;
 }
-
-double _ambientBar(double depthMeters) => 1.0 + depthMeters / 10.0;

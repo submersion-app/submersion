@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
@@ -143,6 +144,17 @@ class InsightsGasPage extends ConsumerWidget {
         data: (data) => HorizontalCategoryBarChart(
           data: [for (final s in data) (label: s.label, count: s.count)],
           barColor: Colors.blue.shade400,
+          onRowTap: (index) => openChartDives(
+            context,
+            ref,
+            chart: context.l10n.insights_gas_gasMix_title,
+            row: data[index].label,
+            load: (repository, diverId, scope) => repository.getGasMixDiveIds(
+              gasType: data[index].label,
+              diverId: diverId,
+              filter: scope,
+            ),
+          ),
         ),
         loading: () => const SizedBox(
           height: 120,

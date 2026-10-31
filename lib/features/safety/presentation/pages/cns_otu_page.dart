@@ -175,6 +175,15 @@ class CnsOtuStatusCard extends StatelessWidget {
       now: now,
     );
 
+    // A CNS that is only a minimum stays on screen for as long as the unknown
+    // dive behind it can matter: a low figure then says nothing about the
+    // load, so reading it as "no active load" would claim a recovery nobody
+    // knows about.
+    final unknownDiveAge = exposure.cnsUnknownDiveAge;
+    final cnsMayBeHigher =
+        unknownDiveAge != null &&
+        unknownDiveAge + elapsed < CnsTable.cnsRecoveryWindow;
+
     // Independent of exposure: a gauge-mode or gas-segment-less rebreather
     // dive can have a known exposure but withheld tissue data (see
     // CnsOtuSnapshot.endOfDiveCompartments) -- hence the separate null check
@@ -220,6 +229,7 @@ class CnsOtuStatusCard extends StatelessWidget {
     // tissues themselves are still meaningfully loaded.
     final hasActiveLoad =
         liveCns >= _loadEpsilon ||
+        cnsMayBeHigher ||
         dailyOtu >= _loadEpsilon ||
         snap.weeklyOtu >= _loadEpsilon ||
         tissueStatus != null;
@@ -237,6 +247,7 @@ class CnsOtuStatusCard extends StatelessWidget {
         liveCns: liveCns,
         dailyOtu: dailyOtu,
         weeklyOtu: snap.weeklyOtu,
+        showCnsMinimumNote: cnsMayBeHigher,
       ),
       if (tissueStatus != null) ...[
         const SizedBox(height: 8),

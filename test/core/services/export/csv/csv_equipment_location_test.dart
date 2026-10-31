@@ -35,10 +35,12 @@ void main() {
         mask,
       ], locationNames: locationNames);
 
-  test('a Location column is appended last and holds the current place', () {
+  test('a Location column is appended after Notes and holds the current '
+      'place', () {
     final table = rows(csvOf(const {'reg': 'Garage bin 2'}));
     final at = table.first.indexOf('Location');
-    expect(at, table.first.length - 1);
+    // Only the later purchase columns follow it.
+    expect(at, table.first.length - 3);
     expect(table.first[at - 1], 'Notes');
     expect(table[1][at], 'Garage bin 2');
     expect(table[2][at], '', reason: 'no location gets an empty cell');

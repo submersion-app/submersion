@@ -234,6 +234,60 @@ void main() {
     expect(find.text('Last dive ended 3d 4h ago'), findsOneWidget);
   });
 
+  group('CNS that is only a minimum', () {
+    const note = 'An earlier dive has no oxygen data, so this may be higher.';
+
+    testWidgets('keeps the card on screen, however low the figure', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(hours: 1),
+          ),
+          exposure: const O2Exposure(cnsUnknownDiveAge: Duration.zero),
+        ),
+      );
+
+      expect(find.text('No active load'), findsNothing);
+      expect(find.text(note), findsOneWidget);
+    });
+
+    testWidgets('reads as clear once the unknown dive is outside the recovery '
+        'window', (tester) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(hours: 13),
+          ),
+          exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 12)),
+        ),
+      );
+
+      expect(find.text('No active load'), findsOneWidget);
+    });
+
+    testWidgets('drops the note when OTU alone keeps the card up', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(days: 2),
+          ),
+          exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 1)),
+          weeklyOtu: 120,
+        ),
+      );
+
+      expect(find.text('No active load'), findsNothing);
+      expect(find.text(note), findsNothing);
+    });
+  });
+
   group('last dive without a profile', () {
     testWidgets('warns and shows the known OTU totals', (tester) async {
       await pumpCard(

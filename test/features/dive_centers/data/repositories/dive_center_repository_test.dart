@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -322,16 +324,36 @@ void main() {
       });
     });
 
-    group('getDiveCountForCenter', () {
-      test('should return 0 when center has no dives', () async {
-        final center = await repository.createDiveCenter(
-          createTestCenter(name: 'New Center'),
-        );
+    group('getDiveCountsByCenter', () {
+      test('should be empty when no dive names a center', () async {
+        await repository.createDiveCenter(createTestCenter(name: 'New Center'));
 
-        final count = await repository.getDiveCountForCenter(center.id);
-
-        expect(count, equals(0));
+        expect(await repository.getDiveCountsByCenter(), isEmpty);
       });
+
+      test(
+        'should count each center and leave out one with no dives',
+        () async {
+          final busy = await repository.createDiveCenter(
+            createTestCenter(name: 'Busy'),
+          );
+          final other = await repository.createDiveCenter(
+            createTestCenter(name: 'Other'),
+          );
+          await repository.createDiveCenter(createTestCenter(name: 'Quiet'));
+          final dives = DiveRepository();
+          final at = DateTime(2024, 1, 1, 10);
+          await dives.createDive(Dive(id: '', dateTime: at, diveCenter: busy));
+          await dives.createDive(Dive(id: '', dateTime: at, diveCenter: busy));
+          await dives.createDive(Dive(id: '', dateTime: at, diveCenter: other));
+          await dives.createDive(Dive(id: '', dateTime: at));
+
+          expect(await repository.getDiveCountsByCenter(), {
+            busy.id: 2,
+            other.id: 1,
+          });
+        },
+      );
     });
 
     group('getCountries', () {

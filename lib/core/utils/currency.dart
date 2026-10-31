@@ -80,6 +80,13 @@ String formatAmountOnly(double amount, String currencyCode) {
   }
 }
 
+/// [code] trimmed and upper-cased, or [fallback] when blank: legacy rows can
+/// carry an empty or lowercase code, and each must land in one bucket.
+String normalizeCurrencyCode(String code, {required String fallback}) {
+  final trimmed = code.trim().toUpperCase();
+  return trimmed.isEmpty ? fallback : trimmed;
+}
+
 /// Sums the amounts in [items] grouped by their currency, so a collection
 /// priced in more than one currency is never added into a single misleading
 /// figure.
@@ -94,13 +101,12 @@ List<MapEntry<String, double>> sumByCurrency<T>(
   required String Function(T item) currencyOf,
   required String fallbackCode,
 }) {
-  final fallback = fallbackCode.trim().toUpperCase();
+  final fallback = normalizeCurrencyCode(fallbackCode, fallback: '');
   final totals = <String, double>{};
   for (final item in items) {
     final amount = amountOf(item);
     if (amount == null) continue;
-    final raw = currencyOf(item).trim().toUpperCase();
-    final code = raw.isEmpty ? fallback : raw;
+    final code = normalizeCurrencyCode(currencyOf(item), fallback: fallback);
     totals[code] = (totals[code] ?? 0) + amount;
   }
   final entries = totals.entries.toList()

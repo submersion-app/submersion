@@ -4,10 +4,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
-import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -236,19 +235,31 @@ void main() {
       }
     }
 
-    Future<int> divesOpenedBy(DiveFilterState filter) async {
-      final f = buildFilteredDiveIdSubquery(filter);
-      final rows = await db
-          .customSelect(
-            f.subquery,
-            variables: [for (final p in f.params) Variable(p)],
-          )
-          .get();
-      return rows.length;
+    Future<int> divesOpenedBy(DiveFilterState filter) async =>
+        (await repository.getCountedDiveIds(filter: filter)).length;
+
+    Future<void> addUncountedDives(String siteId) async {
+      for (final uncounted in [
+        const DivesCompanion(excludedFromStats: Value(true)),
+        const DivesCompanion(isPlanned: Value(true)),
+      ]) {
+        await db
+            .into(db.dives)
+            .insert(
+              uncounted.copyWith(
+                id: Value('dive-${diveSeq++}'),
+                siteId: Value(siteId),
+                diveDateTime: Value(now),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+      }
     }
 
     test('countries, including a spelling with stray whitespace', () async {
       await siteWithDives('a', country: 'Mexico', dives: 3);
+      await addUncountedDives('a');
       // Imported with a trailing no-break space: the same country to the
       // location chips and the dive query, so the same row here too.
       await siteWithDives('b', country: 'Mexico ', dives: 2);
@@ -278,6 +289,7 @@ void main() {
 
     test('regions, split by country and with no country', () async {
       await siteWithDives('a', region: 'North', country: 'Fiji', dives: 3);
+      await addUncountedDives('a');
       await siteWithDives('b', region: 'North ', country: 'Fiji', dives: 1);
       await siteWithDives('c', region: 'North', country: 'Palau', dives: 2);
       await siteWithDives('g', region: 'north', country: 'FIJI', dives: 2);

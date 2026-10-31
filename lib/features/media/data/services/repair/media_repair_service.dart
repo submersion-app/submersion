@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
@@ -145,6 +147,15 @@ class MediaRepairService {
   }
 
   Future<RepairApplyReport> apply(
+    List<RepairProposal> accepted, {
+    RepairLogSource source = RepairLogSource.manual,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.mediaRepair,
+    body: () => _applyInner(accepted, source: source),
+  );
+
+  Future<RepairApplyReport> _applyInner(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
   }) async {

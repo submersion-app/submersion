@@ -107,10 +107,20 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// this is an accurate "has been persisted" signal. The plan canvas uses it
   /// to prompt for a name on the first save only.
   ///
-  /// Note that [loadPlan] deliberately does not set [_loaded] and therefore
-  /// reports `false`. That method has no production call sites today; a future
-  /// production caller must set [_loaded] as [loadPlanById] does.
-  bool get isPersisted => _loaded != null;
+  /// Note that [loadPlan] deliberately does not set [_loaded]: a What if plan
+  /// has not been saved, and neither have the other dives of a repetitive
+  /// series, which it swaps in while [_loaded] stays on the saved one.
+  bool get isPersisted => _persisted != null;
+
+  /// [_loaded] while it is the plan being edited.
+  domain.DivePlan? get _persisted => _loaded?.id == state.id ? _loaded : null;
+
+  /// How many times a whole plan has replaced the one being edited: by
+  /// [newPlan], [loadPlan] or [loadPlanById]. It goes up before the new state
+  /// is assigned, so a listener can tell a load from an edit even when the
+  /// loaded plan has the same id (a saved plan opened again).
+  int get loadCount => _loadCount;
+  int _loadCount = 0;
 
   /// Resolves each defaulted source once, so the initial plan and every later
   /// [newPlan] are provably built from the same one. Dart forbids reading a
@@ -207,6 +217,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Reset to a new empty plan.
   void newPlan() {
     _loaded = null;
+    _loadCount++;
     state = _createInitialState(
       plannerWaterType: _getDefaultPlannerWaterType(),
     );
@@ -230,6 +241,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
 
   /// Load an existing plan for editing.
   void loadPlan(DivePlanState plan) {
+    _loadCount++;
     state = _withCcrSlots(plan);
   }
 
@@ -323,6 +335,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final plan = await repository.getPlan(planId);
     if (plan == null || !mounted) return false;
     _loaded = plan;
+    _loadCount++;
     state = _withCcrSlots(stateFromDivePlan(plan));
     final mission = plan.mission;
     if (mission != null) {
@@ -1099,7 +1112,9 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Follow a logged dive: seed tissues from its end-of-dive compartments
-  /// and set the surface interval separating it from this plan.
+  /// and set the surface interval separating it from this plan. Any CNS or
+  /// OTU carried in from an earlier planned dive goes: the plan now follows
+  /// the logged dive instead.
   void setFollowedDive({
     required String diveId,
     List<TissueCompartment>? compartments,
@@ -1109,18 +1124,21 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       sourceDiveId: diveId,
       initialTissueState: compartments,
       clearInitialTissueState: compartments == null,
+      clearInitialExposure: true,
       surfaceInterval: surfaceInterval,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
   }
 
-  /// Stop following a dive: drop the seed tissues and surface interval.
+  /// Stop following a dive: drop the seed tissues, the surface interval and
+  /// any carried CNS and OTU.
   void clearFollowedDive() {
     state = state.copyWith(
       clearSourceDiveId: true,
       clearSurfaceInterval: true,
       clearInitialTissueState: true,
+      clearInitialExposure: true,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -1141,6 +1159,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     state = state.copyWith(
       clearSurfaceInterval: true,
       clearInitialTissueState: true,
+      clearInitialExposure: true,
       isDirty: true,
       updatedAt: DateTime.now(),
     );
@@ -1158,7 +1177,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       return;
     }
     final submitted = state;
-    final plan = divePlanFromState(submitted, existing: _loaded);
+    final plan = divePlanFromState(submitted, existing: _persisted);
     final stored = await repository.savePlan(plan, summary: summary);
     _loaded = stored;
     if (!mounted) return;
@@ -1174,11 +1193,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final linkedDiveWentAway =
         stored.linkedDiveId == null && state.linkedDiveId == plan.linkedDiveId;
     // A dropped source dive takes the context it seeded, as clearFollowedDive
-    // does. The tissues are never stored, so leaving them would keep seeding
-    // deco for a plan that no longer follows a dive, and the schedule would
-    // change silently on the next reload. The repository drops the surface
-    // interval with the dive. Each keeps the same guard: tissues or an
-    // interval the diver set during the async gap are a newer choice.
+    // does, carried CNS and OTU included. The tissues are never stored, so
+    // leaving them would keep seeding deco for a plan that no longer follows a
+    // dive, and the schedule would change silently on the next reload. The
+    // repository drops the surface interval with the dive. Each keeps the same
+    // guard: tissues or an interval the diver set during the async gap are a
+    // newer choice.
     final tissuesWentAway =
         sourceDiveWentAway &&
         identical(state.initialTissueState, submitted.initialTissueState);
@@ -1197,6 +1217,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       clearSiteId: siteWentAway,
       clearSourceDiveId: sourceDiveWentAway,
       clearInitialTissueState: tissuesWentAway,
+      clearInitialExposure: tissuesWentAway,
       clearSurfaceInterval: surfaceIntervalWentAway,
       clearLinkedDiveId: linkedDiveWentAway,
     );

@@ -105,7 +105,7 @@ void main() {
       expect(bailout.remainingPressure, lessThan(0));
       expect(
         outcome.issues.where(
-          (i) => i.type == PlanIssueType.gasOut && i.segmentId == 'bo',
+          (i) => i.type == PlanIssueType.gasOut && i.tankId == 'bo',
         ),
         hasLength(1),
       );
@@ -125,8 +125,7 @@ void main() {
       expect(
         outcome.issues.where(
           (i) =>
-              i.type == PlanIssueType.gasReserveViolation &&
-              i.segmentId == 'bo',
+              i.type == PlanIssueType.gasReserveViolation && i.tankId == 'bo',
         ),
         hasLength(1),
       );
@@ -262,9 +261,10 @@ void main() {
       );
       final outcome = engine.compute(plan);
 
+      // Charged the way an SCR plan charges it: the loop's flow, not SAC.
       expect(
         _usage(outcome, 'bo').litersUsed,
-        closeTo(_sac * 20 * _pressureAt(plan, 30), 1e-6),
+        closeTo(engine.config.scrInjectionRateLpm * 20, 1e-6),
       );
       expect(
         _usage(outcome, 'o2').litersUsed,
@@ -365,7 +365,7 @@ void main() {
 
       expect(bailout.litersUsed, 0);
       expect(bailout.reserveViolation, isFalse);
-      expect(outcome.issues.where((i) => i.segmentId == 'bo'), isEmpty);
+      expect(outcome.issues.where((i) => i.tankId == 'bo'), isEmpty);
     });
 
     test('still charges oxygen for the whole runtime', () {
