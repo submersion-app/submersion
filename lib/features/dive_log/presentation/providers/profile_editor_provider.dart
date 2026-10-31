@@ -247,7 +247,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     if (shifted == null) return; // Overlap detected
 
     _pushUndo();
-    state = state.copyWith(editedProfile: shifted, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: shifted,
+      hasChanges: true,
+      clearOutliers: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.shiftTime);
   }
 

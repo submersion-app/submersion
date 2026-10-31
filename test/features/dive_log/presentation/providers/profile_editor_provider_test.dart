@@ -97,6 +97,12 @@ void main() {
       expect(outlierNotifier.state.detectedOutliers, isNull);
     });
 
+    test('shiftSegmentTime clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentTime(1);
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
     test('generateProfileFromWaypoints clears them', () {
       outlierNotifier.addWaypoint(
         const ProfileWaypoint(timestamp: 0, depth: 5),
