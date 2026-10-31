@@ -54,6 +54,67 @@ void main() {
       expect(result.sac, closeTo(5.0, 1e-9));
     });
 
+    test('counts only the time the pressure series covers (#3890)', () {
+      // Readings start at 5:00, falling 10 bar a minute. A 4:00 to 6:00
+      // selection sees the one minute's 10 bar, which is not 5 bar/min.
+      final result = rangeGasConsumption(
+        tanks: const [backGas],
+        tankPressures: {
+          'bg': [
+            for (var t = 300; t <= 600; t += 60)
+              TankPressurePoint(
+                tankId: 'bg',
+                timestamp: t,
+                pressure: 200 - (t - 300) / 6,
+              ),
+          ],
+        },
+        startTimestamp: 240,
+        endTimestamp: 360,
+        avgDepth: 10,
+        model: GasModel.ideal,
+      );
+
+      // 10 bar/min at 2 bar ambient.
+      expect(result.sac, closeTo(5, 1e-9));
+      expect(result.rmv, closeTo(60, 1e-9));
+    });
+
+    test('cylinders breathed in turn cover the selection between them', () {
+      // Each series reads for half of the range, and each falls 20 bar: 40
+      // bar over all four minutes, not over either cylinder's two.
+      final result = rangeGasConsumption(
+        tanks: const [
+          backGas,
+          DiveTank(id: 'stage', volume: 12, role: TankRole.stage, order: 1),
+        ],
+        tankPressures: {
+          'bg': [
+            for (var t = 0; t <= 120; t += 60)
+              TankPressurePoint(
+                tankId: 'bg',
+                timestamp: t,
+                pressure: 200 - t / 6,
+              ),
+          ],
+          'stage': [
+            for (var t = 120; t <= 240; t += 60)
+              TankPressurePoint(
+                tankId: 'stage',
+                timestamp: t,
+                pressure: 200 - (t - 120) / 6,
+              ),
+          ],
+        },
+        startTimestamp: 0,
+        endTimestamp: 240,
+        avgDepth: 10,
+        model: GasModel.ideal,
+      );
+
+      expect(result.rmv, closeTo(60, 1e-9));
+    });
+
     test('a tank without a pressure series yields nothing', () {
       // Start and end pressures describe the whole dive, not the range.
       final result = rangeGasConsumption(
