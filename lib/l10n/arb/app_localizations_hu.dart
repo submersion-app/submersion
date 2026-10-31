@@ -31641,20 +31641,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transfer_computers_autoConnect_downloadingSnackbar(String name) {
-    return 'Downloading from $name...';
+    return 'Letöltés innen: $name...';
   }
 
   @override
   String get transfer_computers_autoConnect_searching =>
-      'Searching for known computers...';
+      'Ismert számítógépek keresése...';
 
   @override
   String get transfer_computers_autoConnect_switchSubtitle =>
-      'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.';
+      'Amíg ez a képernyő nyitva van, a rendszer ismert számítógépeket keres, és automatikusan letölt egyről, amint hatótávolságba kerül.';
 
   @override
   String get transfer_computers_autoConnect_switchTitle =>
-      'Auto-connect known computers';
+      'Ismert számítógépek automatikus csatlakoztatása';
 
   @override
   String get transfer_computers_connectSubtitle =>
@@ -34455,11 +34455,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_autoDownload_disableSubtitle =>
-      'Keeps this computer out of the passive auto-connect scan, even while that switch is on.';
+      'Kizárja ezt a számítógépet a passzív automatikus csatlakozási keresésből, még akkor is, ha ez a kapcsoló be van kapcsolva.';
 
   @override
   String get diveComputer_autoDownload_disableTitle =>
-      'Skip auto-connect for this computer';
+      'Automatikus csatlakozás kihagyása ennél a számítógépnél';
 
   @override
   String get diveComputer_clockSync_appSettingOff => 'Alkalmazásbeállítás: ki';

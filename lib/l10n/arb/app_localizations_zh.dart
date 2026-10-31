@@ -29979,20 +29979,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transfer_computers_autoConnect_downloadingSnackbar(String name) {
-    return 'Downloading from $name...';
+    return '正在从 $name 下载...';
   }
 
   @override
-  String get transfer_computers_autoConnect_searching =>
-      'Searching for known computers...';
+  String get transfer_computers_autoConnect_searching => '正在搜索已知潜水电脑...';
 
   @override
   String get transfer_computers_autoConnect_switchSubtitle =>
-      'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.';
+      '此屏幕打开时，会搜索已知潜水电脑，并在其进入范围后自动从其下载。';
 
   @override
-  String get transfer_computers_autoConnect_switchTitle =>
-      'Auto-connect known computers';
+  String get transfer_computers_autoConnect_switchTitle => '自动连接已知潜水电脑';
 
   @override
   String get transfer_computers_connectSubtitle => '发现并配对潜水电脑';
@@ -32596,11 +32594,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_autoDownload_disableSubtitle =>
-      'Keeps this computer out of the passive auto-connect scan, even while that switch is on.';
+      '即使该开关已开启，也将此潜水电脑排除在被动自动连接扫描之外。';
 
   @override
-  String get diveComputer_autoDownload_disableTitle =>
-      'Skip auto-connect for this computer';
+  String get diveComputer_autoDownload_disableTitle => '跳过此潜水电脑的自动连接';
 
   @override
   String get diveComputer_clockSync_appSettingOff => '应用设置：关';

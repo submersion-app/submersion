@@ -651,7 +651,14 @@ class _ComputersSectionContentState
   @override
   void initState() {
     super.initState();
-    ref.read(autoConnectControllerProvider.notifier).activate();
+    // Deferred: Riverpod forbids modifying a provider's state while the
+    // widget tree is still building, which `activate()` does (it starts the
+    // scan and writes `isActive`).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(autoConnectControllerProvider.notifier).activate();
+      }
+    });
   }
 
   @override

@@ -31801,20 +31801,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transfer_computers_autoConnect_downloadingSnackbar(String name) {
-    return 'Downloading from $name...';
+    return 'Baixando de $name...';
   }
 
   @override
   String get transfer_computers_autoConnect_searching =>
-      'Searching for known computers...';
+      'Procurando computadores conhecidos...';
 
   @override
   String get transfer_computers_autoConnect_switchSubtitle =>
-      'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.';
+      'Enquanto esta tela estiver aberta, procura computadores conhecidos e baixa automaticamente de um deles quando estiver no alcance.';
 
   @override
   String get transfer_computers_autoConnect_switchTitle =>
-      'Auto-connect known computers';
+      'Conectar automaticamente computadores conhecidos';
 
   @override
   String get transfer_computers_connectSubtitle =>
@@ -34635,11 +34635,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveComputer_autoDownload_disableSubtitle =>
-      'Keeps this computer out of the passive auto-connect scan, even while that switch is on.';
+      'Exclui este computador da busca de conexão automática passiva, mesmo que essa opção esteja ativada.';
 
   @override
   String get diveComputer_autoDownload_disableTitle =>
-      'Skip auto-connect for this computer';
+      'Pular conexão automática para este computador';
 
   @override
   String get diveComputer_clockSync_appSettingOff =>

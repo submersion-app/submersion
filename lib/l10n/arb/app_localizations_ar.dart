@@ -32097,20 +32097,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transfer_computers_autoConnect_downloadingSnackbar(String name) {
-    return 'Downloading from $name...';
+    return 'جارٍ التنزيل من $name...';
   }
 
   @override
   String get transfer_computers_autoConnect_searching =>
-      'Searching for known computers...';
+      'جارٍ البحث عن أجهزة كمبيوتر معروفة...';
 
   @override
   String get transfer_computers_autoConnect_switchSubtitle =>
-      'While this screen is open, scans for known computers and downloads from one automatically when it\'s in range.';
+      'ما دامت هذه الشاشة مفتوحة، يبحث التطبيق عن أجهزة كمبيوتر معروفة ويقوم بالتنزيل تلقائيًا من أحدها عندما يكون ضمن النطاق.';
 
   @override
   String get transfer_computers_autoConnect_switchTitle =>
-      'Auto-connect known computers';
+      'الاتصال التلقائي بأجهزة الكمبيوتر المعروفة';
 
   @override
   String get transfer_computers_connectSubtitle => 'اكتشاف وإقران حاسوب غوص';
@@ -35071,11 +35071,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_autoDownload_disableSubtitle =>
-      'Keeps this computer out of the passive auto-connect scan, even while that switch is on.';
+      'يستبعد هذا الكمبيوتر من فحص الاتصال التلقائي السلبي، حتى إذا كان هذا المفتاح مفعّلاً.';
 
   @override
   String get diveComputer_autoDownload_disableTitle =>
-      'Skip auto-connect for this computer';
+      'تخطي الاتصال التلقائي لهذا الكمبيوتر';
 
   @override
   String get diveComputer_clockSync_appSettingOff => 'إعداد التطبيق: معطّل';

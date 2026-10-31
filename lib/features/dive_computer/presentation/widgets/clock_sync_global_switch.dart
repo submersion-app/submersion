@@ -35,11 +35,18 @@ class ClockSyncGlobalSwitch extends ConsumerWidget {
           Tooltip(
             message: l10n.diveComputer_clockSync_globalSubtitle,
             triggerMode: TooltipTriggerMode.tap,
-            child: IconButton(
-              icon: const Icon(Icons.info_outline),
-              // The Tooltip above handles the tap; this button has nothing
-              // of its own to do.
-              onPressed: () {},
+            // A plain Icon, not an IconButton: Tooltip's own tap recognizer
+            // and an IconButton's InkResponse both enter the same gesture
+            // arena for the same pointer, and the IconButton wins it - the
+            // tooltip never opens. Sized to roughly match an IconButton's
+            // tap target.
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Icon(
+                Icons.info_outline,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           Switch(
