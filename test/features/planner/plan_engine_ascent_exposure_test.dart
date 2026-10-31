@@ -100,6 +100,21 @@ List<(double, int)> _computedAscent(PlanOutcome outcome) {
   return legs;
 }
 
+/// [plan] with [outcome]'s two-gas ascent authored row by row: the first on
+/// the plan's last gas, the rest of the way on EAN50 from the `deco` cylinder.
+domain.DivePlan _authoredGasSwitch(domain.DivePlan plan, PlanOutcome outcome) {
+  final ascent = outcome.schedule
+      .where((row) => row.kind == PlanScheduleRowKind.ascent)
+      .toList();
+  expect(ascent, hasLength(2), reason: 'splits at the EAN50 switch depth');
+  return _authored(
+    _authored(plan, [(ascent.first.depthMeters, ascent.first.durationSeconds)]),
+    [(0, ascent.last.durationSeconds)],
+    gas: _ean50,
+    tankId: 'deco',
+  );
+}
+
 void main() {
   const engine = PlanEngine();
   const o2Calc = O2ToxicityCalculator();
@@ -173,21 +188,7 @@ void main() {
 
       final implicit = engine.compute(plan);
       expect(implicit.stops, isEmpty);
-      final ascent = implicit.schedule
-          .where((row) => row.kind == PlanScheduleRowKind.ascent)
-          .toList();
-      expect(ascent, hasLength(2), reason: 'splits at the EAN50 switch depth');
-
-      final explicit = engine.compute(
-        _authored(
-          _authored(plan, [
-            (ascent.first.depthMeters, ascent.first.durationSeconds),
-          ]),
-          [(0, ascent.last.durationSeconds)],
-          gas: _ean50,
-          tankId: 'deco',
-        ),
-      );
+      final explicit = engine.compute(_authoredGasSwitch(plan, implicit));
 
       expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
       expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
@@ -383,21 +384,7 @@ void main() {
 
       final implicit = engine.compute(plan);
       expect(implicit.stops, isEmpty);
-      final ascent = implicit.schedule
-          .where((row) => row.kind == PlanScheduleRowKind.ascent)
-          .toList();
-      expect(ascent, hasLength(2), reason: 'splits at the EAN50 switch depth');
-
-      final explicit = engine.compute(
-        _authored(
-          _authored(plan, [
-            (ascent.first.depthMeters, ascent.first.durationSeconds),
-          ]),
-          [(0, ascent.last.durationSeconds)],
-          gas: _ean50,
-          tankId: 'deco',
-        ),
-      );
+      final explicit = engine.compute(_authoredGasSwitch(plan, implicit));
 
       expect(implicit.cnsEnd, closeTo(explicit.cnsEnd, 1e-9));
       expect(implicit.otuTotal, closeTo(explicit.otuTotal, 1e-9));
