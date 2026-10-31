@@ -162,8 +162,8 @@ void main() {
 
     Future<void> addUncountedDives(String siteId) async {
       for (final uncounted in [
-        DivesCompanion(excludedFromStats: const Value(true)),
-        DivesCompanion(isPlanned: const Value(true)),
+        const DivesCompanion(excludedFromStats: Value(true)),
+        const DivesCompanion(isPlanned: Value(true)),
       ]) {
         await db
             .into(db.dives)

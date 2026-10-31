@@ -232,7 +232,7 @@ void main() {
 
       expect(
         tester.getSemantics(find.text('View dives')),
-        containsSemantics(isButton: true, hasTapAction: true),
+        isSemantics(isButton: true, hasTapAction: true),
       );
       semantics.dispose();
     });

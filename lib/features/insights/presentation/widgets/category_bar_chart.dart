@@ -233,10 +233,7 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
           show: true,
           bottomTitles: AxisTitles(
             axisNameWidget: xAxisLabel != null
-                ? Text(
-                    xAxisLabel!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  )
+                ? Text(xAxisLabel, style: Theme.of(context).textTheme.bodySmall)
                 : null,
             axisNameSize: xAxisLabel != null ? 18 : 0,
             sideTitles: SideTitles(
@@ -263,10 +260,7 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
           ),
           leftTitles: AxisTitles(
             axisNameWidget: yAxisLabel != null
-                ? Text(
-                    yAxisLabel!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  )
+                ? Text(yAxisLabel, style: Theme.of(context).textTheme.bodySmall)
                 : null,
             axisNameSize: yAxisLabel != null ? 18 : 0,
             sideTitles: SideTitles(

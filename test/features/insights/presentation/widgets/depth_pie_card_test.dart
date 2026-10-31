@@ -37,7 +37,7 @@ void main() {
         home: Scaffold(
           body: DepthPieCard(
             depthDistribution: ranges,
-            fmt: UnitFormatter(const AppSettings(depthUnit: DepthUnit.meters)),
+            fmt: const UnitFormatter(AppSettings(depthUnit: DepthUnit.meters)),
             onOpenBucket: onOpen,
           ),
         ),

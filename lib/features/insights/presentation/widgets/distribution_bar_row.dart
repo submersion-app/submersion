@@ -25,6 +25,7 @@ class DistributionBarRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const DistributionBarRow({
+    super.key,
     required this.label,
     required this.count,
     required this.totalDurationSeconds,
