@@ -118,10 +118,22 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 /// on the filter's value; a write to any table the query read refreshes it
 /// in place. A shared trip's dives are the active diver's alone, as its
 /// stats count them.
+///
+/// Only trips the diver can see, so the set is the filtered list's rows and
+/// the equipment Trips row can count it (issue #4016). Hiding or sharing a
+/// trip writes no table the query reads, hence the trips tick.
 final queryFilteredTripIdsProvider = FutureProvider.autoDispose
     .family<Set<String>, TripFilterState>((ref, filter) async {
+      ref.invalidateSelfWhen(
+        ref.read(tripRepositoryProvider).watchTripsChanges(),
+      );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      return watchQueryIds(ref, compileTripFilter(filter, diverId: diverId));
+      final compiled = compileTripFilter(filter, diverId: diverId);
+      return watchQueryIds(
+        ref,
+        compiled,
+        scope: visibleTripsScope(compiled.rootAlias, diverId),
+      );
     });
 
 /// Filtered trips provider - applies current filter to trip list.
