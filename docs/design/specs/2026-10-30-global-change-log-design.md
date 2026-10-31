@@ -88,8 +88,9 @@ Two behaviours found in that test shape the design:
 
 - `INSERT OR REPLACE` fires no delete trigger by default, so the old row would be
   lost. There are 44 such uses in `lib/`. Set `PRAGMA recursive_triggers = ON` in
-  `applyConnectionBasics`; the replace then arrives as a delete and an insert,
-  and settling folds that pair into one update.
+  `_beforeOpen`, which every connection runs, including test databases; the
+  replace then arrives as a delete and an insert, and settling folds that pair
+  into one update.
 - Foreign key cascades fire the child tables' delete triggers, so a deleted
   dive's children are captured with no extra work.
 
@@ -120,7 +121,7 @@ hand:
 - **Update:** fires only when a tracked column differs, so a clock stamp or a
   no-op save writes nothing. It inserts one event, then one `change_log_fields`
   row per differing column. Per-column rows avoid SQLite's function argument
-  limit, since `dives` has 141 columns.
+  limit, since `diver_settings` has 217 columns and `dives` has 99.
 - **Delete:** one event, and one field row per non-null column, so the row can be
   rebuilt.
 - **Insert:** one event with no fields. Undoing an insert removes the record.
