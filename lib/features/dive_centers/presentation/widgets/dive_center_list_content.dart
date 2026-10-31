@@ -235,9 +235,16 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     }
 
     final sort = ref.watch(diveCenterSortProvider);
+    // Only a count sort needs the counts to place a row, so only a count sort
+    // waits for them; otherwise each row fills its own number in.
+    final countsAsync = sort.field == DiveCenterSortField.diveCount
+        ? ref.watch(diveCenterDiveCountsProvider)
+        : null;
+    final diveCounts = countsAsync?.valueOrNull ?? const <String, int>{};
     final visibleCenters = applyDiveCenterSorting(
       centersAsync.value ?? const [],
       sort,
+      diveCounts,
     );
     final visibleIds = visibleCenters.map((c) => c.id).toList();
 
@@ -256,7 +263,10 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
       return _withQueryChips(
         centersAsync.when(
           data: (centers) {
-            final sorted = applyDiveCenterSorting(centers, sort);
+            if (countsAsync != null && _awaitingFirstCounts(countsAsync)) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final sorted = applyDiveCenterSorting(centers, sort, diveCounts);
             return sorted.isEmpty
                 ? _buildEmptyState(context)
                 : _buildCenterList(context, ref, sorted);
@@ -519,10 +529,17 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     );
   }
 
+  /// True only before the counts first resolve: a refresh keeps the previous
+  /// map, so an update never brings the spinner back.
+  bool _awaitingFirstCounts(AsyncValue<Map<String, int>> counts) =>
+      counts.isLoading && !counts.hasValue;
+
   /// Build the [EntityTableView] for dive center table mode.
   ///
-  /// Each center's dive count is looked up via [diveCenterDiveCountProvider]
-  /// so the table data matches what the list tiles show.
+  /// Every row's dive count comes from the one [diveCenterDiveCountsProvider]
+  /// read, the same source the list tiles use. The spinner stays until that
+  /// read first resolves, so a table sorted by count never paints zeros and
+  /// then reorders.
   Widget _buildTableView(
     BuildContext context,
     AsyncValue<List<DiveCenter>> centersAsync,
@@ -534,18 +551,19 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
         if (centers.isEmpty) {
           return _buildEmptyState(context);
         }
+        final countsAsync = ref.watch(diveCenterDiveCountsProvider);
+        if (_awaitingFirstCounts(countsAsync)) {
+          return const Center(child: CircularProgressIndicator());
+        }
         final config = ref.watch(diveCenterTableConfigProvider);
         final notifier = ref.read(diveCenterTableConfigProvider.notifier);
         final units = ref.watch(unitFormatterProvider);
 
-        // Build DiveCenterRow records, resolving dive counts from per-center
-        // providers (same source the list tiles use).
-        final rows = centers.map((center) {
-          final diveCount =
-              ref.watch(diveCenterDiveCountProvider(center.id)).valueOrNull ??
-              0;
-          return (center: center, diveCount: diveCount);
-        }).toList();
+        final diveCounts = countsAsync.valueOrNull ?? const <String, int>{};
+        final rows = [
+          for (final center in centers)
+            (center: center, diveCount: diveCounts[center.id] ?? 0),
+        ];
 
         return EntityTableView<DiveCenterRow, DiveCenterField>(
           entities: rows,

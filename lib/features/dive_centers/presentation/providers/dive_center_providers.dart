@@ -57,32 +57,34 @@ final diveCenterSortProvider = Provider<SortState<DiveCenterSortField>>(
 );
 
 /// Apply sorting to a list of dive centers
-/// Note: diveCount sorting defaults to name since it's not in the basic entity
+///
+/// [diveCounts] maps a center id to its dive count; a center missing from it
+/// has none.
 List<DiveCenter> applyDiveCenterSorting(
   List<DiveCenter> centers,
   SortState<DiveCenterSortField> sort,
+  Map<String, int> diveCounts,
 ) {
   final sorted = List<DiveCenter>.from(centers);
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText = sort.field == DiveCenterSortField.name;
+  int compareNames(DiveCenter a, DiveCenter b) =>
+      a.name.toLowerCase().compareTo(b.name.toLowerCase());
 
+  sorted.sort((a, b) {
+    final ascending = sort.direction == SortDirection.ascending;
     switch (sort.field) {
       case DiveCenterSortField.name:
-        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        // For text fields, invert direction (user expects descending = A→Z)
+        final comparison = compareNames(a, b);
+        return ascending ? -comparison : comparison;
       case DiveCenterSortField.diveCount:
-        // Dive count not available in basic entity, sort by name as fallback
-        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        final comparison = (diveCounts[a.id] ?? 0).compareTo(
+          diveCounts[b.id] ?? 0,
+        );
+        // Ties read A to Z whichever way the counts run.
+        if (comparison == 0) return compareNames(a, b);
+        return ascending ? comparison : -comparison;
     }
-
-    if (invertForText) {
-      return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
   });
 
   return sorted;
@@ -148,16 +150,28 @@ final diveCenterCountriesProvider = FutureProvider<List<String>>((ref) async {
   return repository.getCountries(diverId: validatedDiverId);
 });
 
-/// Dive count for a center
+/// Dive count per center id, shared by every list, table and detail view. A
+/// center with no counted dives is absent from the map.
+final diveCenterDiveCountsProvider = FutureProvider<Map<String, int>>((
+  ref,
+) async {
+  final repository = ref.watch(diveCenterRepositoryProvider);
+  // The counts read the `dives` table, so self-invalidate whenever dives
+  // change (e.g. after a sync) to keep them fresh.
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  return repository.getDiveCountsByCenter();
+});
+
+/// Dive count for a center, picked out of [diveCenterDiveCountsProvider]: it
+/// runs no query of its own, and a dive at another center rebuilds nothing
+/// here.
 final diveCenterDiveCountProvider = FutureProvider.family<int, String>((
   ref,
   centerId,
-) async {
-  final repository = ref.watch(diveCenterRepositoryProvider);
-  // The count reads the `dives` table, so self-invalidate whenever dives
-  // change (e.g. after a sync) to keep per-row counts fresh.
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
-  return repository.getDiveCountForCenter(centerId);
+) {
+  return ref.watch(
+    diveCenterDiveCountsProvider.selectAsync((counts) => counts[centerId] ?? 0),
+  );
 });
 
 /// Dive center list notifier for mutations
