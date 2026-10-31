@@ -79,7 +79,13 @@ RangeProfileStats rangeProfileStats({
   final temperatures = recorded.map((p) => p.temperature).nonNulls.toList();
   final heartRates = recorded.map((p) => p.heartRate).nonNulls.toList();
 
-  final line = _plottedLine(profile, startTimestamp, endTimestamp);
+  final line = samplesInWindow(
+    _plottedSamples(profile),
+    start: startTimestamp,
+    end: endTimestamp,
+    time: (p) => p.timestamp,
+    value: (p) => p.depth,
+  );
   final depths = line.map((s) => s.value).toList();
   final change = _depthChange(line);
 
@@ -99,31 +105,25 @@ RangeProfileStats rangeProfileStats({
   );
 }
 
-/// Time-weighted average depth in meters of [profile] between
-/// [startTimestamp] and [endTimestamp], over the same line as
-/// [rangeProfileStats]. Null when that line does not reach them.
+/// Time-weighted average depth in meters of [profile] across [windows]
+/// (seconds from the dive's start), over the same line as
+/// [rangeProfileStats]. The time between them counts for nothing. Null when
+/// that line reaches none of them.
 double? rangeAverageDepth({
   required List<DiveProfilePoint> profile,
-  required int startTimestamp,
-  required int endTimestamp,
-}) => timeWeightedMeanOfWindow(
-  _plottedLine(profile, startTimestamp, endTimestamp),
-);
-
-/// The depth line the chart draws for [profile], between [start] and [end].
-List<({num time, double value})> _plottedLine(
-  List<DiveProfilePoint> profile,
-  int start,
-  int end,
-) => samplesInWindow(
-  shouldDrawSurfaceLeadIn(profile)
-      ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
-      : profile,
-  start: start,
-  end: end,
+  required Iterable<({num start, num end})> windows,
+}) => timeWeightedMeanAcross(
+  _plottedSamples(profile),
+  windows: windows,
   time: (p) => p.timestamp,
   value: (p) => p.depth,
 );
+
+/// The samples of the depth line the chart draws for [profile].
+List<DiveProfilePoint> _plottedSamples(List<DiveProfilePoint> profile) =>
+    shouldDrawSurfaceLeadIn(profile)
+    ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
+    : profile;
 
 /// How depth changes along [line], in meters and m/min, or null when the
 /// selection reaches at most one point of it: that has a depth, but no time

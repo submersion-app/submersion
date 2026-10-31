@@ -251,6 +251,79 @@ void main() {
         expect(result.rmv, closeTo(98 * 12 / 8 / 2.625, 1e-9));
       });
 
+      test('time between two series that do not touch counts for nothing', () {
+        // Each series falls 20 bar in 2 min, 3 min apart. The gap is 30 m to
+        // 10 m, the first series at 30 m and the second at 10 m: 40 bar over
+        // 4 min, (120 * 30 + 120 * 10) / 240 is 20 m, so 3 bar ambient.
+        final result = over(
+          0,
+          420,
+          tanks: const [
+            backGas,
+            DiveTank(id: 'stage', volume: 12, role: TankRole.stage, order: 1),
+          ],
+          pressures: const {
+            'bg': [
+              TankPressurePoint(tankId: 'bg', timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: 'bg', timestamp: 120, pressure: 180),
+            ],
+            'stage': [
+              TankPressurePoint(tankId: 'stage', timestamp: 300, pressure: 200),
+              TankPressurePoint(tankId: 'stage', timestamp: 420, pressure: 180),
+            ],
+          },
+        );
+
+        expect(result.sac, closeTo(40 / 4 / 3, 1e-9));
+        expect(result.rmv, closeTo(40 * 12 / 4 / 3, 1e-9));
+      });
+
+      test('a cylinder a lane does not count adds nothing to its time', () {
+        // Neither cylinder has a size, so SAC reads the back gas alone: 50
+        // bar over the 5 min at 10 m, not 9 min reaching back over the stage.
+        final result = over(
+          0,
+          600,
+          tanks: const [
+            DiveTank(id: 'bg', role: TankRole.backGas),
+            DiveTank(id: 'stage', role: TankRole.stage, order: 1),
+          ],
+          pressures: const {
+            'bg': lateStart,
+            'stage': [
+              TankPressurePoint(tankId: 'stage', timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: 'stage', timestamp: 240, pressure: 160),
+            ],
+          },
+        );
+
+        expect(result.sac, closeTo(5, 1e-9));
+        expect(result.rmv, isNull);
+      });
+
+      test('RMV keeps to the cylinders with a volume', () {
+        // The sized back gas gives RMV over its own 5 min at 10 m; SAC also
+        // counts only it, the unsized stage being unrelated to it.
+        final result = over(
+          0,
+          600,
+          tanks: const [
+            backGas,
+            DiveTank(id: 'stage', role: TankRole.stage, order: 1),
+          ],
+          pressures: const {
+            'bg': lateStart,
+            'stage': [
+              TankPressurePoint(tankId: 'stage', timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: 'stage', timestamp: 240, pressure: 160),
+            ],
+          },
+        );
+
+        expect(result.sac, closeTo(5, 1e-9));
+        expect(result.rmv, closeTo(60, 1e-9));
+      });
+
       test('nothing when the profile does not reach the readings', () {
         final result = over(
           0,

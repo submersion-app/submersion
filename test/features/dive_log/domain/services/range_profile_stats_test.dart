@@ -275,8 +275,7 @@ void main() {
     double? average(List<DiveProfilePoint> profile, int start, int end) =>
         rangeAverageDepth(
           profile: profile,
-          startTimestamp: start,
-          endTimestamp: end,
+          windows: [(start: start, end: end)],
         );
 
     test('agrees with the average rangeProfileStats reports', () {
@@ -307,6 +306,18 @@ void main() {
       final profile = [_sample(10, 20), _sample(20, 20)];
 
       expect(average(profile, 0, 10), closeTo(10, 1e-9));
+    });
+
+    test('gives the time between two windows no weight', () {
+      final profile = [_sample(0, 30), _sample(300, 30), _sample(310, 10)];
+
+      expect(
+        rangeAverageDepth(
+          profile: [...profile, _sample(600, 10)],
+          windows: const [(start: 0, end: 100), (start: 400, end: 500)],
+        ),
+        closeTo(20, 1e-9),
+      );
     });
 
     test('is null off the line', () {
