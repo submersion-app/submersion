@@ -30,6 +30,7 @@ ScenarioRequest _loopRequest(
   List<ScenarioIntervention> interventions = const [],
   double? scrInjectionRate,
   double? scrSupplyO2Percent,
+  ScenarioSettings settings = const ScenarioSettings(),
 }) => ScenarioRequest(
   diveId: 'd',
   depths: d.depths,
@@ -53,7 +54,7 @@ ScenarioRequest _loopRequest(
   scrSupplyO2Percent: scrSupplyO2Percent,
   startCns: 0,
   startOtu: 0,
-  settings: const ScenarioSettings(),
+  settings: settings,
   scenario: DiveScenario(
     id: 's',
     diveId: 'd',
@@ -136,6 +137,33 @@ void main() {
     expect(
       (outcome.counterfactual.ppO2Curve[after] - 1.3).abs(),
       greaterThan(0.1),
+    );
+  });
+
+  test('an SCR re-plan stays in the dive\'s own pressure (#3958)', () {
+    final outcome = const ScenarioEngine().run(
+      _loopRequest(
+        d,
+        mode: DiveMode.scr,
+        branchSeconds: 900,
+        scenarioMode: ScenarioMode.replan,
+        scrInjectionRate: 10,
+        scrSupplyO2Percent: 50,
+        settings: const ScenarioSettings(
+          altitudeMeters: 3000,
+          waterType: WaterType.fresh,
+        ),
+      ),
+    );
+    final after = outcome.counterfactualTimestamps.indexWhere(
+      (t) => t >= outcome.branch.runtimeSeconds + 60,
+    );
+
+    // The same depth on the same loop, so the tail must not step up to the
+    // flat model at the branch.
+    expect(
+      outcome.counterfactual.ppO2Curve[after],
+      closeTo(outcome.actual.ppO2Curve[outcome.branch.index], 0.05),
     );
   });
 }

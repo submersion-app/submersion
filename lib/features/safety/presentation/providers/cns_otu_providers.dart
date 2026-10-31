@@ -69,13 +69,7 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
     // The same site conditions profileAnalysisProvider computed those
     // compartments in, so the live projection off-gasses toward the dive's
     // own surface rather than a 1.0 bar sea-level one.
-    surfaceEnvironment: dive == null
-        ? DiveEnvironment.standard
-        : DiveEnvironment.forConditions(
-            altitudeMeters: dive.altitude,
-            waterType: dive.effectiveWaterType,
-            surfacePressureBar: dive.surfacePressure,
-          ),
+    surfaceEnvironment: dive?.environment ?? DiveEnvironment.standard,
   );
 });
 

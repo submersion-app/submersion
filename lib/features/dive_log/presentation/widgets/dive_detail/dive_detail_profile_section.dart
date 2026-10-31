@@ -41,6 +41,7 @@ class DiveChartInputs extends Equatable {
     dive.sac,
     dive.sacReferenceVolume,
     dive.isRebreather,
+    dive.environment,
     dive.tanks,
     dive.profile,
   ];
@@ -348,6 +349,7 @@ class _ProfileRangeStats extends ConsumerWidget {
           units: ref.watch(unitFormatterProvider),
           tanks: dive.tanks,
           isRebreather: dive.isRebreather,
+          environment: dive.environment,
         ),
       ],
     );
