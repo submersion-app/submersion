@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 
 import 'group_test_host.dart';
 
@@ -184,6 +185,8 @@ void main() {
       'diveTypeId',
       'minO2Percent',
       'maxO2Percent',
+      'tankConfigurations',
+      'tankExtras',
       'equipmentIds',
       'equipmentAttrConditions',
       'computerId',
@@ -278,6 +281,72 @@ void main() {
     final h = await pump(tester);
     await pick(tester, 'All computers', 'Perdix');
     expect(h.draft.computerId, 'c1');
+  });
+
+  group('tank configuration (#3804)', () {
+    const configurations = [
+      'Single backmount',
+      'Twin backmount',
+      'Sidemount',
+      'Rebreather',
+      'Other',
+      'No tanks logged',
+    ];
+    const extras = ['Stage(s)', 'Deco gas', 'Multi-gas'];
+
+    testWidgets('every option is offered with nothing selected', (
+      tester,
+    ) async {
+      await pump(tester);
+      expect(find.text('Tank configuration'), findsOneWidget);
+      expect(find.text('Tank extras'), findsOneWidget);
+      for (final label in [...configurations, ...extras]) {
+        final chip = tester.widget<FilterChip>(
+          find.widgetWithText(FilterChip, label),
+        );
+        expect(chip.selected, isFalse, reason: label);
+      }
+    });
+
+    testWidgets('chips add and remove on one axis', (tester) async {
+      final h = await pump(tester);
+      await tester.tap(find.widgetWithText(FilterChip, 'Sidemount'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilterChip, 'Rebreather'));
+      await tester.pump();
+      expect(h.draft.tankConfigurations, [
+        TankBaseConfiguration.sidemount,
+        TankBaseConfiguration.rebreather,
+      ]);
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Sidemount'));
+      await tester.pump();
+      expect(h.draft.tankConfigurations, [TankBaseConfiguration.rebreather]);
+    });
+
+    testWidgets('an extra writes its own axis', (tester) async {
+      final h = await pump(tester);
+      await tester.ensureVisible(find.widgetWithText(FilterChip, 'Deco gas'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Deco gas'));
+      await tester.pump();
+      expect(h.draft.tankExtras, [TankConfigurationExtra.decoGas]);
+      expect(h.draft.tankConfigurations, isEmpty);
+    });
+
+    test('each axis counts once toward the group', () {
+      expect(
+        RefineGasEquipmentGroup.activeCount(
+          const DiveFilterState(
+            tankConfigurations: [
+              TankBaseConfiguration.sidemount,
+              TankBaseConfiguration.other,
+            ],
+            tankExtras: [TankConfigurationExtra.stages],
+          ),
+        ),
+        2,
+      );
+    });
   });
 
   testWidgets('a dive type pick writes its id', (tester) async {

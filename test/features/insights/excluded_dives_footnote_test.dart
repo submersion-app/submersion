@@ -64,4 +64,10 @@ void main() {
           'it here would confuse rather than clarify',
     );
   });
+
+  test('does not count a planned dive carrying the exclusion flag', () async {
+    await insert('kept', excluded: true);
+    await insert('planned', planned: true, excluded: true);
+    expect(await repo.countExcludedDives(), 1);
+  });
 }

@@ -1742,6 +1742,15 @@ class UddfFullImportService {
           if (he != null) {
             gs['heFraction'] = double.tryParse(he);
           }
+          // Which <source> of the dive recorded the computer that logged the
+          // switch (issue #3966), resolved once the source rows are restored.
+          final computer = UddfImportParsers.getElementText(
+            gsElement,
+            'computer',
+          );
+          if (computer != null) {
+            gs['computerOrdinal'] = int.tryParse(computer);
+          }
           switchesList.add(gs);
         }
         if (switchesList.isNotEmpty) {
