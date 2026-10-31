@@ -333,7 +333,7 @@ void main() {
       },
     );
 
-    group('with a filter (#3894)', () {
+    group('tables beyond the dive row (#3894)', () {
       final textSearch = DiveFilterState(query: TextNode(const ['reef']));
 
       Future<void> insertDive() => db
