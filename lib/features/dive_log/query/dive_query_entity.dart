@@ -58,10 +58,7 @@ final kDiveGearJoinSql =
 /// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
 /// type chart, so a dive at a salt-water site is found by `waterType:salt`
 /// whether or not the value was ever copied onto the dive.
-const _effectiveWaterType =
-    "COALESCE(NULLIF({r}.water_type, ''), "
-    "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
-    'WHERE s.id = {r}.site_id))';
+final String _effectiveWaterType = diveEffectiveWaterTypeSql('{r}');
 
 /// A dive's effective entry method: its own, else its site's when the site
 /// lists exactly one (issue #3806). The SQL twin of
@@ -211,8 +208,8 @@ String _derived(String column) =>
 /// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
 /// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
 /// normalised by the average depth, so a search and the chart agree. Empty
-/// with no back-gas drop, no runtime or no average depth, and on a CCR or
-/// SCR dive (issue #3673).
+/// with no back-gas pressures, no drop to count (#3974), no runtime or no
+/// average depth, and on a CCR or SCR dive (issue #3673).
 final String kDiveSacSql =
     '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
     'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
@@ -456,7 +453,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      tables: ['dive_tanks'],
+      // dive_sites: a dive with no water of its own reads its site's.
+      tables: ['dive_tanks', 'dive_sites'],
     ),
     QueryField(
       key: 'sacTrend',

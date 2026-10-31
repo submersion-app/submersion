@@ -5,7 +5,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
-import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
@@ -367,9 +367,10 @@ List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
 /// Maps the dive's recorded cylinders to the gas set the ideal ascent may use.
 ///
 /// [maxPpO2] is the diver's ppO2MaxDeco ceiling; each gas's MOD is derived from
-/// it via [O2ToxicityCalculator.calculateMod]. No gases are invented -- only
-/// cylinders recorded on the dive. [gasSet] filters per the diver setting; the
-/// back gas is always retained as the ascent floor.
+/// it via [gasSwitchDepthMeters], in the dive's [environment] (issue #3958) and
+/// with the tolerance that keeps oxygen on a 6 m stop in seawater. No gases are
+/// invented -- only cylinders recorded on the dive. [gasSet] filters per the
+/// diver setting; the back gas is always retained as the ascent floor.
 ///
 /// [forCcrBailout] is the gas set a CCR dive ascends on after a bailout: the
 /// diluent is left out (it is the loop's gas), and the O2 supply is kept under
@@ -382,6 +383,7 @@ List<AvailableGas> buildAvailableGases(
   required AscentGasSet gasSet,
   bool forCcrBailout = false,
   List<DiveTank>? tanks,
+  DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   bool keep(DiveTank t) {
     // A CCR bailout reads cylinder roles the way its switches are read, so
@@ -411,7 +413,11 @@ List<AvailableGas> buildAvailableGases(
       AvailableGas(
         fN2: fN2,
         fHe: fHe,
-        maxPpO2Mod: O2ToxicityCalculator.calculateMod(fO2, maxPpO2: maxPpO2),
+        maxPpO2Mod: gasSwitchDepthMeters(
+          fO2,
+          maxPpO2: maxPpO2,
+          environment: environment,
+        ),
       ),
     );
   }
@@ -1377,6 +1383,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       ),
     };
     final ascentMaxPpO2 = inputs.ppO2MaxDeco;
+    final environment = dive.environment;
     // OC ascends on its carried gases; a CCR dive that bailed out ascends
     // from its bailout samples on what it carried, the O2 supply included
     // and the diluent left out.
@@ -1385,6 +1392,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         dive,
         maxPpO2: ascentMaxPpO2,
         gasSet: inputs.ascentGasSet,
+        environment: environment,
       ),
       DiveMode.ccr when hasOpenCircuitBailout(gasSegments) =>
         buildAvailableGases(
@@ -1393,6 +1401,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
           gasSet: inputs.ascentGasSet,
           forCcrBailout: true,
           tanks: tanks,
+          environment: environment,
         ),
       _ => null,
     };
@@ -1432,11 +1441,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         gasSegments: gasSegments,
         ascentGases: ascentGases,
         cnsCalculationMethod: inputs.cnsCalculationMethod,
-        environment: DiveEnvironment.forConditions(
-          altitudeMeters: dive.altitude,
-          waterType: dive.effectiveWaterType,
-          surfacePressureBar: dive.surfacePressure,
-        ),
+        environment: environment,
         ascentMaxPpO2: ascentMaxPpO2,
         rebreatherPpO2Curve: rebreatherPpO2?.curve,
         gtrReserveBar: gtrReserveBar,
@@ -2017,15 +2022,12 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
         '${dive.gradientFactorHigh} for dive ${dive.id}',
       );
     }
+    final environment = dive.environment;
     final service = _resolveAnalysisService(
       ref,
       dive.gradientFactorLow,
       dive.gradientFactorHigh,
-      environment: DiveEnvironment.forConditions(
-        altitudeMeters: dive.altitude,
-        waterType: dive.effectiveWaterType,
-        surfacePressureBar: dive.surfacePressure,
-      ),
+      environment: environment,
       recordedAlgorithm: dive.decoAlgorithm,
     );
 
@@ -2072,6 +2074,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
             dive,
             maxPpO2: ref.watch(ppO2MaxDecoProvider),
             gasSet: ref.watch(ascentGasSetProvider),
+            environment: environment,
           )
         : null;
     final ascentGasPlan = ascentGases != null && ascentGases.isNotEmpty

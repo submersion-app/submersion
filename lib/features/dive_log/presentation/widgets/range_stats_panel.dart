@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -34,6 +35,9 @@ class RangeStatsPanel extends ConsumerWidget {
   /// cylinder alone (see `referencePressureDrop`).
   final bool isRebreather;
 
+  /// The water and surface pressure of the dive, for its SAC and RMV.
+  final DiveEnvironment environment;
+
   /// Callback when range is cleared/closed
   final VoidCallback? onClose;
 
@@ -56,6 +60,7 @@ class RangeStatsPanel extends ConsumerWidget {
     required this.units,
     required this.tanks,
     this.isRebreather = false,
+    this.environment = DiveEnvironment.standard,
     this.onClose,
     this.maxColumns = _minColumns,
   });
@@ -175,6 +180,7 @@ class RangeStatsPanel extends ConsumerWidget {
       profile: profile,
       model: ref.watch(gasModelProvider),
       isRebreather: isRebreather,
+      environment: environment,
     );
   }
 

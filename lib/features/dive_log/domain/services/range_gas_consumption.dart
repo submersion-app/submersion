@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -26,9 +27,10 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// reaching a selection into time without pressure readings leaves the rate
 /// alone. The range stops where [profile] does, which gas use with no depth
 /// to set it against would otherwise be measured past. SAC follows
-/// `referencePressureDrop`; RMV sums every cylinder with a volume under
-/// [model]. Neither exists on a rebreather ([isRebreather]), whose cylinders
-/// do not drain with the diver's breathing (issue #3673).
+/// `referencePressureDrop`, with a cylinder whose readings reach the range and
+/// did not fall measured at zero (#3974); RMV sums every cylinder with a
+/// volume under [model]. Neither exists on a rebreather ([isRebreather]), whose
+/// cylinders do not drain with the diver's breathing (issue #3673).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
@@ -37,6 +39,7 @@ RangeGasConsumption rangeGasConsumption({
   required List<DiveProfilePoint> profile,
   required GasModel model,
   bool isRebreather = false,
+  DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   const none = (sac: null, rmv: null);
   final span = plottedSpan(profile);
@@ -48,13 +51,18 @@ RangeGasConsumption rangeGasConsumption({
 
   final series = resolveTankPressureSeries(tanks, tankPressures);
   final pressures = <String, ({double start, double end})>{};
+  final idle = <String>{};
   for (final tank in tanks) {
     final points = series[tank.id];
     if (points == null || points.length < 2) continue;
     final start = pressureAtTime(points, from);
     final end = pressureAtTime(points, to);
-    if (start == null || end == null || start - end <= 0) continue;
-    pressures[tank.id] = (start: start, end: end);
+    if (start == null || end == null) continue;
+    if (start - end > 0) {
+      pressures[tank.id] = (start: start, end: end);
+    } else if (_readsWithin(points, from, to)) {
+      idle.add(tank.id);
+    }
   }
   if (pressures.isEmpty) return none;
 
@@ -71,7 +79,7 @@ RangeGasConsumption rangeGasConsumption({
     if (seconds <= 0 || avgDepth == null) return null;
     // Ambient pressure in bar, the 1 bar reference gasVolume returns volumes
     // against.
-    final ambientBar = avgDepth / 10 + 1;
+    final ambientBar = environment.pressureAtDepth(avgDepth);
     return amount / (seconds / 60) / ambientBar;
   }
 
@@ -81,7 +89,8 @@ RangeGasConsumption rangeGasConsumption({
     tanks: tanks,
     dropOf: (tank) {
       final p = pressures[tank.id];
-      return p == null ? null : p.start - p.end;
+      if (p != null) return p.start - p.end;
+      return idle.contains(tank.id) ? 0 : null;
     },
   );
   final sac = drop == null
@@ -115,6 +124,13 @@ RangeGasConsumption rangeGasConsumption({
   final rmv = gasLiters > 0 ? surfaceRate(gasLiters, measured) : null;
 
   return (sac: sac, rmv: rmv);
+}
+
+/// Whether [points] overlap the range. `pressureAtTime` holds the nearest
+/// reading outside a series, which reads as flat without measuring anything.
+bool _readsWithin(List<TankPressurePoint> points, int start, int end) {
+  final times = points.map((p) => p.timestamp);
+  return times.reduce(math.max) > start && times.reduce(math.min) < end;
 }
 
 /// The stretches of [start] to [end] that [series] read between them, in time
