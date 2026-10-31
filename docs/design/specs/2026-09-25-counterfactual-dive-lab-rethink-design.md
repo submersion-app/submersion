@@ -8,6 +8,8 @@ Amends: `docs/superpowers/specs/2026-08-21-counterfactual-dive-lab-design.md`
 (the original spec; it arrives on this branch with the merge described
 below and stays the reference for the engine, the scenario model, the page,
 persistence and outputs)
+Amended by: `2026-10-31-compare-plan-vs-dive-design.md` (the Lab becomes
+Compare; the plan line and the by-hand link)
 
 ## Why a rethink
 
