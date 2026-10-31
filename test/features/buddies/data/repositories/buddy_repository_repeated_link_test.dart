@@ -28,12 +28,12 @@ void main() {
         ),
       );
 
-  Future<void> insertDive(String id, {String? siteId}) => database
+  Future<void> insertDive(String id, {String? siteId, int at = 1}) => database
       .into(database.dives)
       .insert(
         db.DivesCompanion(
           id: Value(id),
-          diveDateTime: const Value(1),
+          diveDateTime: Value(at),
           siteId: Value(siteId),
           createdAt: const Value(1),
           updatedAt: const Value(1),
@@ -106,11 +106,15 @@ void main() {
     expect((await repository.getBuddyStats('sam')).favoriteSite, 'Wreck');
   });
 
-  test('getDiveIdsForBuddy lists each dive once', () async {
-    await insertDive('d1');
+  test('getDiveIdsForBuddy lists each dive once, newest first', () async {
+    await insertDive('d1', at: 1);
+    await insertDive('d2', at: 3);
+    await insertDive('d3', at: 2);
     await link('d1');
+    await link('d2');
+    await link('d3');
 
-    expect(await repository.getDiveIdsForBuddy('sam'), ['d1']);
+    expect(await repository.getDiveIdsForBuddy('sam'), ['d2', 'd3', 'd1']);
   });
 
   group('a dive lists the buddy once', () {
@@ -129,6 +133,16 @@ void main() {
       final byDive = await repository.getBuddiesForDives(['d1']);
 
       expect(byDive['d1']!.map((b) => b.buddy.id), ['sam']);
+    });
+
+    test('getBuddiesForDives keeps the buddy on each of their dives', () async {
+      await insertDive('d2');
+      await link('d2');
+
+      final byDive = await repository.getBuddiesForDives(['d1', 'd2']);
+
+      expect(byDive['d1']!.map((b) => b.buddy.id), ['sam']);
+      expect(byDive['d2']!.map((b) => b.buddy.id), ['sam']);
     });
   });
 

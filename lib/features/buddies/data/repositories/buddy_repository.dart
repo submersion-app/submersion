@@ -662,7 +662,7 @@ class BuddyRepository {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // Not getSingleOrNull: a buddy can hold several links to a dive (#3895).
+    // A list, because a buddy can hold several links to a dive (#3895).
     final existing = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).get();
