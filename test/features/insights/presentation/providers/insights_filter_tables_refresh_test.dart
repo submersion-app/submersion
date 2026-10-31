@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiveProfileEventsCompanion;
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -78,6 +80,7 @@ class _CountingInsightsRepository extends InsightsRepository {
 /// a fixed list and kept showing the old result until their cache expired.
 void main() {
   late SharedPreferences prefs;
+  late AppDatabase db;
   late TagRepository tags;
   late Tag reef;
 
@@ -115,7 +118,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     final diver = await DiverRepository().createDiver(
       Diver(
         id: '',
@@ -225,6 +228,32 @@ void main() {
     await tags.updateTag(reef.copyWith(name: 'wreck'));
 
     expect(await chart.settle(container, 0), 0);
+  });
+
+  test('a deco stop event alone reaches the deco statistic', () async {
+    final _FilteredRead<Object?> deco = _FilteredRead(
+      decoObligationStatsProvider,
+      (stats) => (stats as ({int decoCount, int noDecoCount, int unknownCount}))
+          .decoCount,
+    );
+    final container = makeContainer(const DiveFilterState());
+    final onScreen = deco.listen(container);
+    addTearDown(onScreen.close);
+    expect(await deco.settle(container, 0), 0);
+
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          DiveProfileEventsCompanion.insert(
+            id: 'stop',
+            diveId: 'tagged',
+            timestamp: 60,
+            eventType: 'decoStopStart',
+            createdAt: DateTime(2026).millisecondsSinceEpoch,
+          ),
+        );
+
+    expect(await deco.settle(container, 1), 1);
   });
 
   test('the unfiltered species page ignores the Insights filter', () async {

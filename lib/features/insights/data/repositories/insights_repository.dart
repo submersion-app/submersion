@@ -231,6 +231,9 @@ class InsightsRepository {
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // The deco card classifies a dive from its stop events, which a
+          // sync pull can write without touching the dive.
+          TableUpdateQuery.onTable(_db.diveProfileEvents),
           TableUpdateQuery.onTable(_db.diveTanks),
           // The tank configuration card reads which cylinders were switched
           // to and which recording is primary (#3421); a sync pull or a

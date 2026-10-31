@@ -407,13 +407,13 @@ void main() {
         );
       });
 
-      test('fires on a dive_profile_events write the filter reads', () async {
+      test('fires on a dive_profile_events write with no filter', () async {
+        // The deco card classifies a dive from its stop events whatever the
+        // filter, and a sync pull can write only those.
         await insertDive();
         expect(
           await fires(
-            InsightsRepository().watchInsightsChanges(
-              filter: const DiveFilterState(decoOnly: true),
-            ),
+            InsightsRepository().watchInsightsChanges(),
             () => db
                 .into(db.diveProfileEvents)
                 .insert(
@@ -421,7 +421,7 @@ void main() {
                     id: 'event1',
                     diveId: 'd1',
                     timestamp: 60,
-                    eventType: 'decoStop',
+                    eventType: 'decoStopStart',
                     createdAt: now,
                   ),
                 ),
