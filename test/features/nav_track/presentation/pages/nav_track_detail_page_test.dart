@@ -1143,6 +1143,31 @@ void main() {
         final overrides = await getBaseOverrides();
         final repository = _RecordingNavTrackRepository();
         final route = _route();
+        // _delete calls context.pop() (go_router), which needs a GoRouter
+        // ancestor -- a plain MaterialApp throws "No GoRouter found in
+        // context" once the delete reaches that line. Two routes, as the
+        // delete-and-pop test above uses, so pop() has somewhere to go.
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  onPressed: () =>
+                      context.push('/tracks/underwater/${route.id}'),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: '/tracks/underwater/:id',
+              builder: (context, state) =>
+                  NavTrackDetailPage(trackId: state.pathParameters['id']!),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
@@ -1150,13 +1175,15 @@ void main() {
               navTrackByIdProvider(route.id).overrideWith((ref) async => route),
               navTrackRepositoryProvider.overrideWithValue(repository),
             ],
-            child: MaterialApp(
+            child: MaterialApp.router(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
-              home: NavTrackDetailPage(trackId: route.id),
+              routerConfig: router,
             ),
           ),
         );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('open'));
         await tester.pumpAndSettle();
         final container = ProviderScope.containerOf(
           tester.element(find.byType(NavTrackDetailPage)),
@@ -1172,6 +1199,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(container.read(highlightedTrackKeyProvider), isNull);
+        expect(find.text('open'), findsOneWidget);
       },
     );
   });

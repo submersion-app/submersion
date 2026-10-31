@@ -1638,26 +1638,40 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('a short panel is not stretched to the cap on a wide screen', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(1200, 900);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      // Today's narrowest Start row: no linked dive, no site, no
-      // pre-dive fix, so only the "Place on map" button renders.
-      await _pump(tester, route: _route());
+    testWidgets(
+      'the panel is not capped at desktop width, even with a tall panel',
+      (tester) async {
+        tester.view.physicalSize = const Size(1200, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        // The widest Start row (dive + site + pre-dive fix, see the wide
+        // row fixture above): tall enough to need the cap on a phone, but
+        // a desktop window docks nothing and must show it uncapped.
+        final repository = await _pump(
+          tester,
+          route: wideRowRoute,
+          linkedDive: wideRowDive,
+          site: site,
+        );
 
-      final height = bodyHeight(tester);
-      expect(
-        tester
-            .getSize(
-              find.byKey(const ValueKey('nav-track-align-controls-panel')),
-            )
-            .height,
-        lessThan(height * 0.3),
-      );
-    });
+        expect(
+          tester
+              .getSize(
+                find.byKey(const ValueKey('nav-track-align-controls-panel')),
+              )
+              .height,
+          greaterThan(bodyHeight(tester) * 0.45),
+          reason:
+              'the panel should render at its full natural height on a '
+              'desktop-width window, not the phone cap',
+        );
+        // Not merely tall: Save must be directly tappable with no
+        // scrolling, proving the cap truly does not apply here.
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastRouteId, 'r1');
+      },
+    );
 
     testWidgets('Save is reachable by scrolling when the panel is capped', (
       tester,
