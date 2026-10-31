@@ -24,11 +24,14 @@ class BulkEditSnapshot {
 
   /// Each dive's resolved diver role set before a `DiverRolesOp` (#1221).
   final Map<String, List<String>>? priorDiverRoleIds;
-  final Map<String, List<DiveTank>>? priorTanks; // Drift DiveTanks rows
 
-  /// Prior tank rows captured for a `TankSpecsOp`. Restored in place by row id
-  /// rather than through [priorTanks]' delete-and-reinsert path, so undoing a
-  /// spec update cannot destroy the pressure profiles the update preserved.
+  /// What undoing a `TanksOp` removes and puts back. Null when no `TanksOp`
+  /// ran.
+  final BulkTankUndo? tankUndo;
+
+  /// Prior tank rows captured for a `TankSpecsOp`. Restored in place by row id,
+  /// so undoing a spec update cannot touch the pressure profiles the update
+  /// preserved.
   final List<DiveTank>? priorTankSpecRows;
 
   final Map<String, List<DiveWeight>>? priorWeights; // Drift DiveWeights rows
@@ -42,9 +45,42 @@ class BulkEditSnapshot {
     this.priorGear,
     this.priorBuddies,
     this.priorDiverRoleIds,
-    this.priorTanks,
+    this.tankUndo,
     this.priorTankSpecRows,
     this.priorWeights,
     this.priorSightings,
   });
+}
+
+/// How to reverse a `TanksOp`, tank by tank rather than by rebuilding each
+/// dive's list: rebuilding deletes the dive's tanks, and the foreign keys take
+/// their recorded pressure series and gas switches with them (#3929).
+class BulkTankUndo {
+  /// The tanks the edit created, in any mode. Undo removes exactly these, so
+  /// a tank that was already there or arrived later is left alone.
+  final List<String> createdTankIds;
+
+  /// The tanks a replace deleted. An add deletes nothing, so this and the two
+  /// lists below stay empty for one.
+  final List<DiveTank> replacedTanks;
+
+  /// The series [replacedTanks]' delete cascaded away.
+  final List<TankPressureSeriesRow> replacedPressureSeries;
+
+  /// The gas switches [replacedTanks]' delete cascaded away.
+  final List<GasSwitche> replacedGasSwitches;
+
+  const BulkTankUndo({
+    this.createdTankIds = const [],
+    this.replacedTanks = const [],
+    this.replacedPressureSeries = const [],
+    this.replacedGasSwitches = const [],
+  });
+
+  BulkTankUndo copyWith({List<String>? createdTankIds}) => BulkTankUndo(
+    createdTankIds: createdTankIds ?? this.createdTankIds,
+    replacedTanks: replacedTanks,
+    replacedPressureSeries: replacedPressureSeries,
+    replacedGasSwitches: replacedGasSwitches,
+  );
 }

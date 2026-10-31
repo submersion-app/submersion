@@ -7727,17 +7727,17 @@ class DiveRepository {
     return {for (final r in rows) r.read(j.diveTypeId)!: r.read(countExpr)!};
   }
 
-  /// A whole new tank row. [withLink] writes [t]'s registry cylinder link;
-  /// only an undo restoring the rows it captured passes it.
+  /// A whole new tank row from a template, applied to many dives, so it never
+  /// writes what is true of one dive or one physical cylinder: the role source,
+  /// registry link, trip slot, passport id, shared computers, data source and
+  /// recorded usage. An undo puts captured rows back whole instead, through
+  /// BulkTankUndoWriter.
   DiveTanksCompanion _tankCompanion(
     String id,
     String diveId,
     domain.DiveTank t,
-    int order, {
-    bool withLink = false,
-    Set<String> validSlots = const {},
-    Set<String> validSources = const {},
-  }) {
+    int order,
+  ) {
     final regs = _regulatorValues(t);
     return DiveTanksCompanion(
       id: Value(id),
@@ -7750,9 +7750,6 @@ class DiveRepository {
       hePercent: Value(t.gasMix.he),
       tankOrder: Value(order),
       tankRole: Value(t.role.name),
-      // Where the role came from, like the registry link below: a template
-      // copied from a tank is the diver's choice, so only a restore writes it.
-      roleSource: withLink ? Value(t.roleSource?.name) : const Value.absent(),
       tankMaterial: Value(t.material?.name),
       tankName: Value(t.name),
       presetName: Value(t.presetName),
@@ -7761,34 +7758,6 @@ class DiveRepository {
       regulatorEquipmentId: regs.first,
       extraRegulatorIds: regs.extras,
       sourceTankIndex: Value(t.sourceTankIndex),
-      // The trip cylinder slot, kept out of templates for the same reason as
-      // the registry link: only a restore writes it.
-      tripCylinderId: withLink
-          ? Value(validTripCylinderLink(t.tripCylinderId, validSlots))
-          : const Value.absent(),
-      // The tagged cylinder (issue #2650): one physical tank, so a template
-      // applied to many dives never carries it; only a restore writes it.
-      passportId: withLink ? Value(t.passportId) : const Value.absent(),
-      // The registry's cylinder link, owned by the transmitter registry. A
-      // template copied from a linked tank must not stamp that cylinder onto
-      // every dive it lands on, so only a restore writes it.
-      equipmentId: withLink ? Value(t.equipmentId) : const Value.absent(),
-      // Names the computers of the dive the tank came from, so a template
-      // must not carry it either.
-      sharedComputerIds: withLink
-          ? Value(encodeSharedComputerIds(t.sharedComputerIds))
-          : const Value.absent(),
-      // The data source the row came from (v251, issue #2716): written by the
-      // import and download paths, so a template never carries one, and a
-      // restore puts back only a source the dive still has.
-      sourceId: withLink
-          ? Value(validSources.contains(t.sourceId) ? t.sourceId : null)
-          : const Value.absent(),
-      // How long the source log says this cylinder was breathed (#1496):
-      // true of one dive only, so a template never carries it.
-      usageDuration: withLink
-          ? Value(t.usageDuration?.inSeconds)
-          : const Value.absent(),
     );
   }
 
@@ -7984,33 +7953,13 @@ class DiveRepository {
 
   /// Replace each dive's tank list with [tanks] (fresh ids, sequential order).
   /// No notify/txn. Cascades to delete tank_pressure_series/gas_switches.
-  ///
-  /// [restoreLinks] keeps each tank's registry cylinder link: set by undo,
-  /// which puts back the rows it captured. A bulk edit's template tanks
-  /// never write one.
   Future<void> bulkReplaceTanks(
     List<String> diveIds,
-    List<domain.DiveTank> tanks, {
-    bool restoreLinks = false,
-  }) async {
+    List<domain.DiveTank> tanks,
+  ) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
-      // A restored slot link may name a slot deleted since the capture;
-      // written unchecked it would fail the undo on the foreign key.
-      final validSlots = restoreLinks
-          ? await _tripCylinderIdsForDive(diveId)
-          : const <String>{};
-      // Likewise a restored source link (v251), whose source may have been
-      // deleted since.
-      final validSources = restoreLinks
-          ? {
-              for (final s in await (_db.select(
-                _db.diveDataSources,
-              )..where((s) => s.diveId.equals(diveId))).get())
-                s.id,
-            }
-          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -8027,17 +7976,7 @@ class DiveRepository {
         final tankId = _uuid.v4();
         await _db
             .into(_db.diveTanks)
-            .insert(
-              _tankCompanion(
-                tankId,
-                diveId,
-                tanks[i],
-                i,
-                withLink: restoreLinks,
-                validSlots: validSlots,
-                validSources: validSources,
-              ),
-            );
+            .insert(_tankCompanion(tankId, diveId, tanks[i], i));
         await _syncRepository.markRecordPending(
           entityType: 'diveTanks',
           recordId: tankId,
