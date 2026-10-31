@@ -623,7 +623,7 @@ class BailoutSolver {
     // Same per-leg liters formula as _ascentLiters (a travel leg's linear
     // depth range, the stop's own depth across a stop, split at the
     // hypercapnia-phase boundary, issue #3743), just split by which tank
-    // supplied it instead of summed into one total -- so this adds up to the
+    // supplied it instead of summed into one total, so this adds up to the
     // worst-case total shown next to it, to within the whole-second rounding
     // of a leg split at a gas switch.
     void charge(
@@ -707,7 +707,19 @@ class BailoutSolver {
     // legs (#3225): a carried gas whose MOD falls strictly between a leg's
     // ends would otherwise never appear, its whole usable window sitting
     // inside a leg charged entirely to the gas valid at the deepest point.
-    void addTravelLeg(double from, double to, int seconds, int startRuntime) {
+    // Each stretch is charged at its own average depth, same as _ascentLiters:
+    // charging it at a stop's shallower depth alone undercounted every
+    // between-stops leg, so the per-tank total fell short of the worst case's
+    // own litersRequired on every plan with more than one stop. A leg into a
+    // later stop prints no rows of its own: its time folds into the stop's
+    // line (#3138), though it is still breathed on the gas it left.
+    void addTravelLeg(
+      double from,
+      double to,
+      int seconds,
+      int startRuntime, {
+      required bool printed,
+    }) {
       var legStartRuntime = startRuntime;
       for (final span in splitAscentLeg(
         bailoutPlan,
@@ -716,16 +728,18 @@ class BailoutSolver {
         seconds: seconds,
       )) {
         final gas = bailoutPlan.gasForDepth(span.fromDepth);
-        add(
-          kind: PlanScheduleRowKind.ascent,
-          depth: span.toDepth,
-          duration: span.seconds,
-          runtime: legStartRuntime + span.seconds,
-          fO2: gas.fO2,
-          fHe: gas.fHe,
-          physicsDepth: span.fromDepth,
-          endPhysicsDepth: span.toDepth == 0 ? 0 : null,
-        );
+        if (printed) {
+          add(
+            kind: PlanScheduleRowKind.ascent,
+            depth: span.toDepth,
+            duration: span.seconds,
+            runtime: legStartRuntime + span.seconds,
+            fO2: gas.fO2,
+            fHe: gas.fHe,
+            physicsDepth: span.fromDepth,
+            endPhysicsDepth: span.toDepth == 0 ? 0 : null,
+          );
+        }
         charge(
           tankForGas(gas.fO2, gas.fHe),
           (legStartRuntime - point.runtimeSeconds).toDouble(),
@@ -755,12 +769,17 @@ class BailoutSolver {
       // past it below -- the base every charge() call in this iteration
       // measures its own secondsSinceBailoutStart from (issue #3743).
       final iterStartRuntime = end;
-      if (i == 0 && travelSeconds > 0) {
-        addTravelLeg(depth, stop.depthMeters, travelSeconds, end);
+      if (travelSeconds > 0) {
+        addTravelLeg(
+          depth,
+          stop.depthMeters,
+          travelSeconds,
+          end,
+          printed: i == 0,
+        );
       }
       end += travelSeconds + stop.durationSeconds;
       final stopGas = bailoutPlan.gasForDepth(stop.depthMeters);
-      final stopFO2 = 1.0 - stopGas.fN2 - stopGas.fHe;
       add(
         kind: PlanScheduleRowKind.stop,
         depth: stop.depthMeters,
@@ -768,27 +787,10 @@ class BailoutSolver {
             ? stop.durationSeconds
             : stop.durationSeconds + travelSeconds,
         runtime: end,
-        fO2: stopFO2,
+        fO2: stopGas.fO2,
         fHe: stopGas.fHe,
       );
-      final stopTankId = tankForGas(stopFO2, stopGas.fHe);
-      if (i > 0) {
-        // The merged-in travel time (#3138) breathes whatever gas carried
-        // the diver INTO this stop -- the same gas the stop itself is on,
-        // per AscentGasPlan's "switch lands at the stop" design. Charged at
-        // the leg's own average depth, same as _ascentLiters: charging it
-        // at the stop's (shallower) depth alone undercounted every
-        // between-stops travel leg, so the per-tank total fell short of
-        // the worst case's own litersRequired by the same margin on every
-        // plan with more than one stop.
-        charge(
-          stopTankId,
-          (iterStartRuntime - point.runtimeSeconds).toDouble(),
-          travelSeconds.toDouble(),
-          depth,
-          stop.depthMeters,
-        );
-      }
+      final stopTankId = tankForGas(stopGas.fO2, stopGas.fHe);
       charge(
         stopTankId,
         (iterStartRuntime + travelSeconds - point.runtimeSeconds).toDouble(),
@@ -805,7 +807,7 @@ class BailoutSolver {
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      addTravelLeg(depth, 0, travelSeconds, end);
+      addTravelLeg(depth, 0, travelSeconds, end, printed: true);
     }
     return (rows: rows, litersByTank: litersByTank);
   }

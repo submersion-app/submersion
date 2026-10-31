@@ -89,6 +89,44 @@ void main() {
       expect(spans, [(fromDepth: 6.0, toDepth: 0.0, seconds: 40)]);
     });
 
+    test('a switch set between two stops divides the leg between them', () {
+      final spans = ascentTravelSpans(
+        const SchedulePolicy(),
+        OptimalOcAscentGas(
+          maxPpO2: 1.6,
+          gases: const [
+            AvailableGas(fN2: 0.79, fHe: 0, maxPpO2Mod: 66),
+            AvailableGas(fN2: 0.50, fHe: 0, maxPpO2Mod: 16),
+          ],
+        ),
+        fromDepth: 18,
+        stopDepths: const [18, 15],
+      );
+
+      expect(spans.map((span) => span.toDepth), [16.0, 15.0, 0.0]);
+    });
+
+    test('no span runs backwards when a leg holds several switches', () {
+      // Rounding each share alone gives 3, 3 and 2 of the leg's 7 seconds.
+      final spans = splitAscentLeg(
+        OptimalOcAscentGas(
+          maxPpO2: 1.6,
+          gases: const [
+            AvailableGas(fN2: 0.79, fHe: 0, maxPpO2Mod: 66),
+            AvailableGas(fN2: 0.68, fHe: 0, maxPpO2Mod: 18),
+            AvailableGas(fN2: 0.50, fHe: 0, maxPpO2Mod: 8),
+            AvailableGas(fN2: 0.00, fHe: 0, maxPpO2Mod: 0.4),
+          ],
+        ),
+        fromDepth: 28,
+        toDepth: 0,
+        seconds: 7,
+      );
+
+      expect(spans.map((span) => span.toDepth), [18.0, 8.0, 0.4, 0.0]);
+      expect(spans.map((span) => span.seconds), [3, 2, 2, 0]);
+    });
+
     test('a split leg always adds back up to its whole duration', () {
       final spans = splitAscentLeg(
         airAndEan50,

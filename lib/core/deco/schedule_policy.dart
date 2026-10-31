@@ -38,6 +38,9 @@ enum AscentPhase {
       : AscentPhase.fromLastStop;
 }
 
+/// One stretch of ascent travel.
+typedef AscentLeg = ({double fromDepth, double toDepth, int seconds});
+
 /// How a decompression schedule is generated, independent of the tissue
 /// model. Defaults reproduce the engine's legacy behavior.
 class SchedulePolicy {
@@ -164,35 +167,52 @@ class SchedulePolicy {
     return ((fromDepth - toDepth) / rate * 60).round();
   }
 
-  /// Total seconds spent *travelling* on an ascent from [fromDepth] that
-  /// pauses at each of [stopDepths] (deepest first) and finishes at the
-  /// surface. Excludes the time held at the stops themselves.
+  /// The travel legs of an ascent from [fromDepth] that pauses at each of
+  /// [stopDepths] (deepest first) and finishes at the surface. Excludes the
+  /// time held at the stops themselves.
   ///
   /// Assigns the phases the way a schedule runs: down to the first stop, then
   /// between stops, then off the last stop. With no stops at all the whole
-  /// ascent is one [AscentPhase.toFirstStop] leg. Callers that need the legs
-  /// individually - to sample the profile, or to charge gas against the right
-  /// cylinder - walk the same sequence, which this mirrors so a total can
-  /// never disagree with the legs it is made of.
-  int ascentTravelSeconds({
+  /// ascent is one [AscentPhase.toFirstStop] leg.
+  List<AscentLeg> ascentLegs({
     required double fromDepth,
     required Iterable<double> stopDepths,
   }) {
-    var seconds = 0;
+    final legs = <AscentLeg>[];
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stopDepths) {
-      seconds += ascentSeconds(fromDepth: depth, toDepth: stop, phase: phase);
+      legs.add((
+        fromDepth: depth,
+        toDepth: stop,
+        seconds: ascentSeconds(fromDepth: depth, toDepth: stop, phase: phase),
+      ));
       depth = stop;
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      seconds += ascentSeconds(
+      legs.add((
         fromDepth: depth,
-        toDepth: 0,
-        phase: AscentPhase.surfacingAfter(phase),
-      );
+        toDepth: 0.0,
+        seconds: ascentSeconds(
+          fromDepth: depth,
+          toDepth: 0,
+          phase: AscentPhase.surfacingAfter(phase),
+        ),
+      ));
     }
-    return seconds;
+    return legs;
   }
+
+  /// Total seconds spent *travelling* on the ascent [ascentLegs] describes.
+  /// Callers that need the legs individually - to sample the profile, or to
+  /// charge gas against the right cylinder - walk the same sequence, so a
+  /// total can never disagree with the legs it is made of.
+  int ascentTravelSeconds({
+    required double fromDepth,
+    required Iterable<double> stopDepths,
+  }) => ascentLegs(
+    fromDepth: fromDepth,
+    stopDepths: stopDepths,
+  ).fold(0, (seconds, leg) => seconds + leg.seconds);
 }

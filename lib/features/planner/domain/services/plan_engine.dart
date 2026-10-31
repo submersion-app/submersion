@@ -1395,8 +1395,9 @@ class PlanEngine {
 
     // Computed ascent: travel legs and stops on the deco SAC.
     final policy = _policyFor(plan);
-    // Charges each sub-leg to the gas actually eligible across it, the same
-    // gases that leg's table rows show.
+    // Charges each sub-leg to the gas actually eligible across it, the one
+    // the deco model and the exposure breathe there: the diver switches at
+    // the stop, so a leg into a switch stop is still on the gas it left.
     void chargeSplitLeg(double from, double to, int seconds) {
       for (final span in splitAscentLeg(
         ascentPlan,
@@ -1418,28 +1419,16 @@ class PlanEngine {
 
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
-    for (var i = 0; i < stops.length; i++) {
-      final stop = stops[i];
+    for (final stop in stops) {
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: stop.depthMeters,
         phase: phase,
       );
-      if (i == 0) {
-        // Mirrors _buildSchedule's own split (#3225), rather than lumping
-        // the whole leg onto the first stop's shallow gas the way every
-        // later inter-stop leg safely can (a real switch there always lands
-        // exactly at the stop it leads into).
-        chargeSplitLeg(depth, stop.depthMeters, legSeconds);
-      } else {
-        final legAvg = (depth + stop.depthMeters) / 2.0;
-        charge(
-          stop.tankId,
-          config.sacDeco *
-              (legSeconds / 60.0) *
-              environment.pressureAtDepth(legAvg),
-        );
-      }
+      // Mirrors _buildSchedule's own split (#3225), rather than lumping a
+      // leg onto its stop's shallow gas. A switch at a gas's MOD lands at a
+      // stop, but a depth the diver set can fall between two of them.
+      chargeSplitLeg(depth, stop.depthMeters, legSeconds);
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
@@ -1449,11 +1438,7 @@ class PlanEngine {
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
         final breakTankId = breakGas != null
-            ? _tankForGas(
-                plan.tanks,
-                1.0 - breakGas.fN2 - breakGas.fHe,
-                breakGas.fHe,
-              )
+            ? _tankForGas(plan.tanks, breakGas.fO2, breakGas.fHe)
             : stop.tankId;
         charge(
           breakTankId,
@@ -2289,9 +2274,9 @@ class PlanEngine {
       // OC: split at every gas-switch depth crossed, so each sub-leg prints
       // -- and is later charged in _computeTankUsages' matching split --
       // the gas actually eligible there, not only the one valid at the
-      // deepest point (#3225). A regular inter-stop leg crosses no switch, so
-      // this only divides the long leg to the first stop, or to the surface
-      // on an ascent with no stops.
+      // deepest point (#3225). Between stops the table folds its travel into
+      // the stop instead, so this only divides the long leg to the first
+      // stop, or to the surface on an ascent with no stops.
       var legArrival = arrival - duration;
       for (final span in splitAscentLeg(
         ascentPlan,
@@ -2321,13 +2306,15 @@ class PlanEngine {
       final stop = stops[i];
       final travel = stop.arrivalRuntimeSeconds - end;
       // The first travel leg (bottom phase to the first stop) stays its own
-      // row -- an informative transition. From the second stop on, a real
-      // gas switch always lands exactly at the stop it leads into
+      // row -- an informative transition. From the second stop on, a gas
+      // switch at its MOD lands exactly at the stop it leads into
       // (AscentGasPlan's design: a switch-at-MOD never falls strictly
       // between two 3 m-spaced stops), so a travel-between-stops row would
-      // only ever repeat the previous line's gas -- clutter, not
-      // information. Dropping it loses nothing: scheduleLines() already
-      // derives each printed duration from consecutive runtimeSeconds, so
+      // nearly always repeat the previous line's gas, which is clutter, not
+      // information. A switch depth the diver set can fall inside the leg:
+      // the line stays folded, and _computeTankUsages and the exposure
+      // spans still split it. Dropping it loses nothing: scheduleLines()
+      // already derives each printed duration from consecutive runtimeSeconds, so
       // the travel time folds straight into the stop it leads to (#3138).
       if (i == 0 && travel > 0) {
         addTravel(depth, stop.depthMeters, travel, stop.arrivalRuntimeSeconds);

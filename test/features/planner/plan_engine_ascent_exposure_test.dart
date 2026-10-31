@@ -238,6 +238,69 @@ void main() {
       expect(outcome.otuTotal, closeTo(expectedOtu, 1e-9));
     });
 
+    test('a switch set between two stops divides the leg between them', () {
+      const switchDepth = 10.0;
+      final plan = _plan(
+        depth: 45,
+        minutes: 25,
+        gas: _air,
+        tanks: [
+          _tank('back', _air),
+          const DiveTank(
+            id: 'deco',
+            volume: 12,
+            startPressure: 200,
+            gasMix: _ean50,
+            role: TankRole.deco,
+            decoSwitchDepth: switchDepth,
+          ),
+        ],
+      );
+      final outcome = engine.compute(plan);
+      expect(outcome.stops.first.depthMeters, greaterThan(switchDepth));
+
+      var expectedCns = outcome.segmentOutcomes.last.cns;
+      var expectedOtu = outcome.segmentOutcomes.last.otu;
+      void breathe(double ppO2, int seconds) {
+        expectedCns += o2Calc.calculateCnsForSegment(ppO2, seconds);
+        expectedOtu += o2Calc.calculateOtuForSegment(ppO2, seconds);
+      }
+
+      double fO2At(double depth) => depth <= switchDepth ? 0.5 : 0.21;
+      void travel(double from, double to, int seconds) => breathe(
+        O2ToxicityCalculator.calculatePpO2((from + to) / 2, fO2At(from)),
+        seconds,
+      );
+
+      final environment = PlanEngine.environmentFor(plan);
+      var crossings = 0;
+      var depth = 45.0;
+      var end = outcome.segmentOutcomes.last.endRuntime;
+      for (final stop in outcome.stops) {
+        final to = stop.depthMeters;
+        final seconds = stop.arrivalRuntimeSeconds - end;
+        if (depth > switchDepth && to < switchDepth) {
+          crossings++;
+          final deep = (seconds * (depth - switchDepth) / (depth - to)).round();
+          travel(depth, switchDepth, deep);
+          travel(switchDepth, to, seconds - deep);
+        } else {
+          travel(depth, to, seconds);
+        }
+        breathe(
+          environment.pressureAtDepth(to) * fO2At(to),
+          stop.durationSeconds,
+        );
+        depth = to;
+        end = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+      }
+      travel(depth, 0, outcome.runtimeSeconds - end);
+
+      expect(crossings, 1);
+      expect(outcome.cnsEnd, closeTo(expectedCns, 1e-9));
+      expect(outcome.otuTotal, closeTo(expectedOtu, 1e-9));
+    });
+
     test('a semi-closed plan surfaces on the open-circuit ascent gas', () {
       final plan = _plan(
         depth: 20,
