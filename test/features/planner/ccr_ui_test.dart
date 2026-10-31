@@ -175,7 +175,7 @@ void main() {
     expect(find.text('Onboard O2'), findsOneWidget);
     final gasList = find.ancestor(
       of: find.text('Onboard O2'),
-      matching: find.byType(ListView),
+      matching: find.byType(SingleChildScrollView),
     );
     expect(gasList, findsOneWidget);
     // Diluent + oxygen supply in the main list, plus the single bailout

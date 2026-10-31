@@ -804,8 +804,9 @@ class UddfExportBuilders {
     List<Course>? courses,
     List<DiveSourceExport>? dataSources,
     Map<String, String?> dataSourceDumps = const {},
-    // The dives whose tank rows and tank pressure series the per-source
-    // blocks beside <datasources> attribute (issue #2492), and those series.
+    // The dives whose tank rows, tank pressure series and depth series the
+    // per-source blocks beside <datasources> attribute (issues #2492, #3965),
+    // and the pressure series; the depth series ride on [dataSources].
     // Only a dive with two or more [dataSources] entries writes any, so
     // neither needs its own check in hasData below.
     List<Dive> attributedDives = const [],

@@ -46,9 +46,21 @@ class PlanIssue extends Equatable {
   final PlanIssueType type;
   final PlanIssueSeverity severity;
   final String message;
+
+  /// Elapsed dive time, in seconds, at which the issue first starts: where
+  /// a limit is first passed, a running total first reaches its threshold or
+  /// a cylinder first drops below its limit. The chart marks the issue here
+  /// (#3738). 0 when the dive starts with it, as a repetitive dive can; null
+  /// for an issue with no single moment, such as a missing deco gas.
   final int? atRuntime;
+
+  /// The depth the issue's message names, such as the deepest point of the
+  /// leg a limit is passed on. Not necessarily the depth at [atRuntime].
   final double? atDepth;
   final String? segmentId;
+
+  /// The cylinder a gas issue is about.
+  final String? tankId;
   final double? value;
   final double? threshold;
 
@@ -59,6 +71,7 @@ class PlanIssue extends Equatable {
     this.atRuntime,
     this.atDepth,
     this.segmentId,
+    this.tankId,
     this.value,
     this.threshold,
   });
@@ -71,6 +84,7 @@ class PlanIssue extends Equatable {
     atRuntime,
     atDepth,
     segmentId,
+    tankId,
     value,
     threshold,
   ];

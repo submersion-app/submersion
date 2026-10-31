@@ -5000,6 +5000,17 @@
   "diveLog_filterChip_noEntryMethod": "No Entry Method",
   "diveLog_filterChip_noRole": "No Role",
   "diveLog_filterChip_noWaterType": "No Water Type",
+  "diveLog_filterChip_namedDives": "{label} ({count})",
+  "@diveLog_filterChip_namedDives": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_filterChip_until": "Until {date}",
   "diveLog_filter_allSites": "All sites",
   "diveLog_filter_allTypes": "All types",
@@ -16723,6 +16734,19 @@
   "insights_chart_noDistributionData": "No distribution data available",
   "insights_chart_noTrendData": "No trend data available",
   "insights_chart_notRecorded": "Not recorded",
+  "insights_chart_linkLabel": "{chart}: {row}",
+  "insights_chart_openDivesFailed": "Could not open these dives",
+  "insights_chart_viewDives": "View dives",
+  "@insights_chart_linkLabel": {
+    "placeholders": {
+      "chart": {
+        "type": "String"
+      },
+      "row": {
+        "type": "String"
+      }
+    }
+  },
   "insights_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
   "insights_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
   "insights_conditions_appBar_title": "Conditions",

@@ -37,7 +37,8 @@ class HorizontalCategoryBarChart extends StatelessWidget {
   final int? scaleTo;
 
   /// Called with the index in [data] of a tapped row. Null leaves the chart
-  /// read-only; when set, every row is a button at the minimum touch target.
+  /// read-only; when set, every row with dives is a button at the minimum
+  /// touch target, with a chevron.
   final void Function(int index)? onRowTap;
 
   @override
@@ -114,6 +115,8 @@ class HorizontalCategoryBarChart extends StatelessWidget {
             ),
           ),
         ),
+        if (onRowTap != null && item.count > 0)
+          const Icon(Icons.chevron_right, size: 16),
       ],
     );
 
@@ -122,7 +125,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
       child: Column(
         children: [
           for (final (index, item) in data.indexed)
-            if (onRowTap case final onTap?)
+            if (onRowTap case final onTap? when item.count > 0)
               Semantics(
                 container: true,
                 button: true,

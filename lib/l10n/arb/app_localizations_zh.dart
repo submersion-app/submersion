@@ -8243,6 +8243,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => '无水体类型';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label（$count）';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return '至 $date';
   }
@@ -27399,6 +27404,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => '未记录';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart：$row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed => '无法打开这些潜水记录';
+
+  @override
+  String get insights_chart_viewDives => '查看潜水记录';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {

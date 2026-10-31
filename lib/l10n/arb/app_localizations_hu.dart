@@ -8671,6 +8671,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filterChip_noWaterType => 'Nincs víztípus';
 
   @override
+  String diveLog_filterChip_namedDives(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
   String diveLog_filterChip_until(Object date) {
     return 'Eddig: $date';
   }
@@ -28911,6 +28916,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_chart_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String insights_chart_linkLabel(String chart, String row) {
+    return '$chart: $row';
+  }
+
+  @override
+  String get insights_chart_openDivesFailed =>
+      'Nem sikerült megnyitni ezeket a merüléseket';
+
+  @override
+  String get insights_chart_viewDives => 'Merülések megtekintése';
 
   @override
   String insights_chart_trendSemanticLabel(Object count) {

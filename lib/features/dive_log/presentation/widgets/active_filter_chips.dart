@@ -209,7 +209,12 @@ List<Widget> activeDiveFilterChips(
   if (filter.diveIds.isNotEmpty) {
     chips.add(
       axisChip(
-        context.l10n.connections_selection_dives(filter.diveIds.length),
+        filter.diveIdsLabel == null
+            ? context.l10n.connections_selection_dives(filter.diveIds.length)
+            : context.l10n.diveLog_filterChip_namedDives(
+                filter.diveIdsLabel!,
+                filter.diveIds.length,
+              ),
         () {
           ref.read(filterProvider.notifier).state = filter.copyWith(
             clearDiveIds: true,
