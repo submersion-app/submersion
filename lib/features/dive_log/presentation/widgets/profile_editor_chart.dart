@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Simplified dive profile chart for the editor page.
 ///
