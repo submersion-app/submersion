@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
 import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/deco_ppo2_limits.dart';
@@ -883,25 +884,48 @@ class PlanEngine {
       startState ?? model.initial(),
     );
 
+    // The computed ascent's travel counts as well, the same as an authored
+    // ascent over the same depths: each span at its mean depth, on the gas in
+    // force at its deeper end, which is the gas the deco model loaded it on.
+    // A leg splits at a gas switch, so no span charges one gas for another's
+    // stretch.
+    for (final span in ascentTravelSpans(
+      policy,
+      ascentPlan,
+      fromDepth: lastDepth,
+      stopDepths: [for (final stop in stops) stop.depthMeters],
+    )) {
+      final avgDepth = (span.fromDepth + span.toDepth) / 2.0;
+      final gas = ascentPlan.gasForDepth(span.fromDepth);
+      final ppO2 = ascentPlan is CcrLoopAscentGas
+          ? ascentPlan.inspiredPpO2At(avgDepth)
+          : O2ToxicityCalculator.calculatePpO2(
+              avgDepth,
+              1.0 - gas.fN2 - gas.fHe,
+            );
+      cns += o2Calc.calculateCnsForSegment(ppO2, span.seconds);
+      otu += o2Calc.calculateOtuForSegment(ppO2, span.seconds);
+    }
+
     // Decompression stops carry O2 exposure too — a long stop on a rich deco
     // gas is where CNS/OTU pile up — so accumulate them before issues and the
     // outcome are built. Each stop splits into its primary gas and, when air
     // breaks apply, the break gas for that portion. On CCR the loop holds a
-    // constant ppO2; CcrLoopAscentGas expresses that as effective fractions
-    // where ambient x gasFO2 reproduces the setpoint, so the same formula is
-    // correct in both modes.
+    // constant ppO2, which it reports itself: gasFO2 is normalized against
+    // alveolar pressure, so ambient x gasFO2 would overstate it.
     for (final stop in stops) {
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
-      final primaryPpO2 = stopPressure * stop.gasFO2;
+      final primaryPpO2 = ascentPlan is CcrLoopAscentGas
+          ? ascentPlan.inspiredPpO2At(stop.depthMeters)
+          : stopPressure * stop.gasFO2;
       cns += o2Calc.calculateCnsForSegment(primaryPpO2, primarySeconds);
       otu += o2Calc.calculateOtuForSegment(primaryPpO2, primarySeconds);
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
-        final breakFO2 = breakGas != null
-            ? 1.0 - breakGas.fN2 - breakGas.fHe
-            : stop.gasFO2;
-        final breakPpO2 = stopPressure * breakFO2;
+        final breakPpO2 = breakGas != null
+            ? stopPressure * (1.0 - breakGas.fN2 - breakGas.fHe)
+            : primaryPpO2;
         cns += o2Calc.calculateCnsForSegment(breakPpO2, stop.airBreakSeconds);
         otu += o2Calc.calculateOtuForSegment(breakPpO2, stop.airBreakSeconds);
       }
@@ -2082,12 +2106,7 @@ class PlanEngine {
     // loop model directly for the inspired pO2 is exact at every depth.
     double? ccrPpO2At(double atDepth) {
       if (!isCcr || ascentPlan is! CcrLoopAscentGas) return null;
-      final loop = ascentPlan;
-      return ClosedCircuit(
-        setpoint: loop.setpointAt(atDepth),
-        diluentFO2: loop.diluentFO2,
-        diluentFHe: loop.diluentFHe,
-      ).inspiredAt(environment.pressureAtDepth(atDepth)).pO2;
+      return ascentPlan.inspiredPpO2At(atDepth);
     }
 
     // The loop's TRUE gas identity, for display: always the diluent.
