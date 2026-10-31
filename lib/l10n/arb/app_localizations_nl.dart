@@ -16892,8 +16892,8 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '$count item',
+      other: '$count stuks',
+      one: '$count stuk',
     );
     return '$_temp0';
   }

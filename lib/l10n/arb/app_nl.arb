@@ -4960,7 +4960,7 @@
   "equipmentReport_pdf_inventoryTitle": "Uitrustingsinventaris",
   "equipmentReport_pdf_serviceTitle": "Servicerapport",
   "equipmentReport_pdf_printedOn": "Afgedrukt op {date}",
-  "equipmentReport_pdf_items": "{count, plural, one{{count} item} other{{count} items}}",
+  "equipmentReport_pdf_items": "{count, plural, one{{count} stuk} other{{count} stuks}}",
   "equipmentReport_pdf_currencyTotal": "Totaal {currency}",
   "equipmentReport_pdf_noLocation": "Geen locatie ingesteld",
   "equipmentReport_pdf_colItem": "Item",
