@@ -1,15 +1,21 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_operation.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 const int kChangeLogPageSize = 50;
 
 final changeLogRepositoryProvider = Provider<ChangeLogRepository>(
   (ref) => ChangeLogRepository(),
+);
+
+final changeLogRevertServiceProvider = Provider<ChangeLogRevertService>(
+  (ref) => ChangeLogRevertService(),
 );
 
 /// The pages of the feed loaded so far.
@@ -126,6 +132,7 @@ class ChangeLogEntryDetail {
     required this.references,
     required this.rootNames,
     required this.rootExists,
+    this.plan,
   });
 
   final ChangeLogOperation operation;
@@ -137,6 +144,11 @@ class ChangeLogEntryDetail {
 
   /// Whether the entry's one record still exists. False for a bulk entry.
   final bool rootExists;
+
+  /// What a revert would do. Worked out for one record's entry, where each
+  /// field shows its own state, and left for a bulk action until it is asked
+  /// for, since it can touch thousands of records.
+  final ChangeLogRevertPlan? plan;
 }
 
 final changeLogEntryDetailProvider = FutureProvider.autoDispose
@@ -151,6 +163,9 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
       );
       final rootTable = operation.rootTable;
       final rootId = operation.rootId;
+      final plan = operation.isBulk || operation.isSummary
+          ? null
+          : await ref.watch(changeLogRevertServiceProvider).planOperation(id);
       return ChangeLogEntryDetail(
         operation: operation,
         events: events,
@@ -167,6 +182,7 @@ final changeLogEntryDetailProvider = FutureProvider.autoDispose
             rootTable != null &&
             rootId != null &&
             await repository.recordExists(rootTable, rootId),
+        plan: plan,
       );
     });
 

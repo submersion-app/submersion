@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/change_log/presentation/change_log_labels.dart';
 import 'package:submersion/features/change_log/presentation/change_log_value_format.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_revert_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
@@ -112,7 +115,7 @@ class _EntryBody extends ConsumerWidget {
         if (operation.isBulk)
           ..._bulkRows(context, l, units, formatter)
         else
-          ..._recordRows(l, formatter),
+          ..._recordRows(context, ref, l, formatter),
         if (operation.eventCount > detail.events.length)
           Padding(
             padding: const EdgeInsets.all(16),
@@ -123,12 +126,15 @@ class _EntryBody extends ConsumerWidget {
               style: theme.textTheme.bodySmall,
             ),
           ),
+        _RevertAction(detail: detail),
         if (!operation.isBulk) _links(context, l),
       ],
     );
   }
 
   List<Widget> _recordRows(
+    BuildContext context,
+    WidgetRef ref,
     AppLocalizations l,
     ChangeLogValueFormatter formatter,
   ) {
@@ -138,12 +144,60 @@ class _EntryBody extends ConsumerWidget {
         if (event.table != rootTable)
           _ChildHeader(event: event)
         else if (event.action != ChangeLogAction.update)
-          _ActionRow(text: _actionLabel(l, event.action)),
+          _ActionRow(
+            text: _actionLabel(l, event.action),
+            block: _recordBlock(event),
+          ),
         if (event.action == ChangeLogAction.update)
           for (final field in event.fields)
-            _FieldRow(field: field, formatter: formatter),
+            _FieldRow(
+              field: field,
+              formatter: formatter,
+              trailing: _fieldRevert(context, ref, l, event, field),
+            ),
       ],
     ];
+  }
+
+  ChangeLogBlock? _recordBlock(ChangeLogEvent event) => detail.plan?.items
+      .where((item) => item.column == null && item.event.id == event.id)
+      .firstOrNull
+      ?.block;
+
+  /// A field's Revert button, or why it has none. A field already back at
+  /// its old value has neither.
+  Widget? _fieldRevert(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l,
+    ChangeLogEvent event,
+    ChangeLogFieldChange field,
+  ) {
+    final item = detail.plan?.items
+        .where(
+          (item) =>
+              item.column == field.column &&
+              item.event.table == event.table &&
+              item.event.recordId == event.recordId,
+        )
+        .firstOrNull;
+    if (item == null) return null;
+    final block = item.block;
+    if (block != null) {
+      return Text(
+        changeLogBlockText(l, block),
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+    return TextButton(
+      key: ValueKey('change_log_revert_${field.column}'),
+      onPressed: () => runChangeLogRevert(
+        context,
+        ref,
+        plan: (service) => service.planField(event.id, field.column),
+      ),
+      child: Text(l.changeLog_revert),
+    );
   }
 
   List<Widget> _bulkRows(
@@ -241,6 +295,65 @@ String _actionLabel(AppLocalizations l, ChangeLogAction action) =>
       ChangeLogAction.delete => l.changeLog_action_deleted,
     };
 
+/// The entry-wide action: Revert all for an edit, Restore for a deleted
+/// record, and Undo for a bulk action or a created record.
+class _RevertAction extends ConsumerWidget {
+  const _RevertAction({required this.detail});
+
+  final ChangeLogEntryDetail detail;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final operation = detail.operation;
+    if (operation.isSummary || operation.isReverted) {
+      return const SizedBox.shrink();
+    }
+
+    final open = detail.plan?.items.where((i) => !i.isBlocked).toList();
+    if (open != null && open.isEmpty) return const SizedBox.shrink();
+    final String label;
+    final isImport = operation.source == ChangeLogSource.import;
+    final bulk = operation.isBulk || isImport;
+    if (isImport) {
+      label = l.changeLog_undoImport;
+    } else if (operation.isBulk) {
+      label = l.changeLog_undoEntry;
+    } else if (open!.any((i) => i.restoresRecord)) {
+      label = l.changeLog_restore;
+    } else if (open.any((i) => i.removesRecord)) {
+      label = l.changeLog_undoEntry;
+    } else {
+      label = l.changeLog_revertAll(open.length);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FilledButton(
+            onPressed: () => runChangeLogRevert(
+              context,
+              ref,
+              plan: (service) => service.planOperation(operation.id),
+              bulk: bulk,
+            ),
+            child: Text(label),
+          ),
+          if (bulk) ...[
+            const SizedBox(height: 8),
+            Text(
+              l.changeLog_undo_explain,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _ChildHeader extends StatelessWidget {
   const _ChildHeader({required this.event});
 
@@ -264,23 +377,45 @@ class _ChildHeader extends StatelessWidget {
 }
 
 class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.text});
+  const _ActionRow({required this.text, this.block});
 
   final String text;
 
+  /// Why this cannot be undone.
+  final ChangeLogBlock? block;
+
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final block = this.block;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(text, style: theme.textTheme.bodyMedium),
+          if (block != null)
+            Text(
+              changeLogBlockText(context.l10n, block),
+              style: theme.textTheme.bodySmall,
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 /// A field's label, its old value struck through, and its new value.
 class _FieldRow extends StatelessWidget {
-  const _FieldRow({required this.field, required this.formatter});
+  const _FieldRow({
+    required this.field,
+    required this.formatter,
+    this.trailing,
+  });
 
   final ChangeLogFieldChange field;
   final ChangeLogValueFormatter formatter;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -288,35 +423,46 @@ class _FieldRow extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            formatter.label(field.table, field.column),
-            style: theme.textTheme.labelMedium?.copyWith(color: muted),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            formatter.value(
-              field.table,
-              field.column,
-              field.oldValue,
-              clip: _detailClip,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  formatter.label(field.table, field.column),
+                  style: theme.textTheme.labelMedium?.copyWith(color: muted),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  formatter.value(
+                    field.table,
+                    field.column,
+                    field.oldValue,
+                    clip: _detailClip,
+                  ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    decoration: TextDecoration.lineThrough,
+                    color: muted,
+                  ),
+                ),
+                Text(
+                  formatter.value(
+                    field.table,
+                    field.column,
+                    field.newValue,
+                    clip: _detailClip,
+                  ),
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
             ),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              decoration: TextDecoration.lineThrough,
-              color: muted,
-            ),
           ),
-          Text(
-            formatter.value(
-              field.table,
-              field.column,
-              field.newValue,
-              clip: _detailClip,
-            ),
-            style: theme.textTheme.bodyMedium,
-          ),
+          if (trailing case final action?) ...[
+            const SizedBox(width: 12),
+            Flexible(child: action),
+          ],
         ],
       ),
     );
