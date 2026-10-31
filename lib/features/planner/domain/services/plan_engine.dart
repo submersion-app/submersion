@@ -25,6 +25,7 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/issue_onset.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
@@ -852,33 +853,65 @@ class PlanEngine {
     final segmentOutcomes = <SegmentOutcome>[];
     final timeline = <(int, BuhlmannState)>[];
 
+    void addExposure(int startRuntime, int seconds, double ppO2) {
+      final stepCns = o2Calc.calculateCnsForSegment(ppO2, seconds);
+      final stepOtu = o2Calc.calculateOtuForSegment(ppO2, seconds);
+      cns += stepCns;
+      otu += stepOtu;
+      cnsSteps.add(
+        RuntimeIncrement(
+          startRuntime: startRuntime,
+          durationSeconds: seconds,
+          amount: stepCns,
+        ),
+      );
+      otuSteps.add(
+        RuntimeIncrement(
+          startRuntime: startRuntime,
+          durationSeconds: seconds,
+          amount: stepOtu,
+        ),
+      );
+    }
+
     for (final leg in legs) {
       final segment = leg.segment;
       final startRuntime = runtime;
-      final breathing = _breathingFor(
-        plan,
-        segment.gasMix,
-        leg.avgDepth,
-        segment: segment,
-      );
       // The segment's effective breathing mode is loop-based (CCR/SCR) unless
       // OC - drives the ppO2 convention below.
       final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
+      final fO2 = segment.gasMix.o2 / 100.0;
 
-      state = model.applySegment(
-        state,
+      // A ramp over the setpoint switch changes setpoint at the switch, not
+      // at its mean depth, so each side is loaded and charged on its own.
+      for (final piece in splitAtSetpointSwitch(
+        plan,
+        segment,
         DecoSegment(
           startDepth: leg.startDepth,
           endDepth: leg.endDepth,
           durationSeconds: segment.durationSeconds,
         ),
-        breathing,
-      );
-      runtime += segment.durationSeconds;
+      )) {
+        final pieceDepth = (piece.startDepth + piece.endDepth) / 2.0;
+        final breathing = _breathingFor(
+          plan,
+          segment.gasMix,
+          pieceDepth,
+          segment: segment,
+        );
+        state = model.applySegment(state, piece, breathing);
+        final ambient = environment.pressureAtDepth(pieceDepth);
+        addExposure(
+          runtime,
+          piece.durationSeconds,
+          segmentIsLoop ? breathing.inspiredAt(ambient).pO2 : ambient * fO2,
+        );
+        runtime += piece.durationSeconds;
+      }
       timeline.add((runtime, state as BuhlmannState));
 
       final deeperEnd = leg.deeperEnd;
-      final fO2 = segment.gasMix.o2 / 100.0;
       // OC ppO2 is ambient x fraction in the plan's water, as the schedule
       // shows it (issue #3913); loop ppO2 is the inspired (setpoint/CMF)
       // value.
@@ -891,34 +924,6 @@ class PlanEngine {
             ).inspiredAt(environment.pressureAtDepth(deeperEnd)).pO2
           : environment.pressureAtDepth(deeperEnd) * fO2;
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
-
-      final avgPpO2 = segmentIsLoop
-          ? breathing.inspiredAt(environment.pressureAtDepth(leg.avgDepth)).pO2
-          : environment.pressureAtDepth(leg.avgDepth) * fO2;
-      final legCns = o2Calc.calculateCnsForSegment(
-        avgPpO2,
-        segment.durationSeconds,
-      );
-      final legOtu = o2Calc.calculateOtuForSegment(
-        avgPpO2,
-        segment.durationSeconds,
-      );
-      cns += legCns;
-      otu += legOtu;
-      cnsSteps.add(
-        RuntimeIncrement(
-          startRuntime: startRuntime,
-          durationSeconds: segment.durationSeconds,
-          amount: legCns,
-        ),
-      );
-      otuSteps.add(
-        RuntimeIncrement(
-          startRuntime: startRuntime,
-          durationSeconds: segment.durationSeconds,
-          amount: legOtu,
-        ),
-      );
 
       final ndl = model.ndlSeconds(
         state,
@@ -1004,27 +1009,6 @@ class PlanEngine {
       ascentPlan,
       startState ?? model.initial(),
     );
-
-    void addExposure(int startRuntime, int seconds, double ppO2) {
-      final stepCns = o2Calc.calculateCnsForSegment(ppO2, seconds);
-      final stepOtu = o2Calc.calculateOtuForSegment(ppO2, seconds);
-      cns += stepCns;
-      otu += stepOtu;
-      cnsSteps.add(
-        RuntimeIncrement(
-          startRuntime: startRuntime,
-          durationSeconds: seconds,
-          amount: stepCns,
-        ),
-      );
-      otuSteps.add(
-        RuntimeIncrement(
-          startRuntime: startRuntime,
-          durationSeconds: seconds,
-          amount: stepOtu,
-        ),
-      );
-    }
 
     // The computed ascent's travel counts as well, the same as an authored
     // ascent over the same depths: each span at its mean depth, on the gas in
@@ -1277,15 +1261,26 @@ class PlanEngine {
 
     for (final leg in legs) {
       final segment = leg.segment;
-      sampleLeg(
-        leg.startDepth,
-        leg.endDepth,
-        leg.durationSeconds,
-        (depth) => _breathingFor(plan, segment.gasMix, depth, segment: segment),
-        authoredSegmentId: leg.endDepth > leg.startDepth
-            ? null
-            : _authoredSegmentId(segment.id),
-      );
+      for (final piece in splitAtSetpointSwitch(
+        plan,
+        segment,
+        DecoSegment(
+          startDepth: leg.startDepth,
+          endDepth: leg.endDepth,
+          durationSeconds: leg.durationSeconds,
+        ),
+      )) {
+        sampleLeg(
+          piece.startDepth,
+          piece.endDepth,
+          piece.durationSeconds,
+          (depth) =>
+              _breathingFor(plan, segment.gasMix, depth, segment: segment),
+          authoredSegmentId: leg.endDepth > leg.startDepth
+              ? null
+              : _authoredSegmentId(segment.id),
+        );
+      }
     }
 
     final policy = _policyFor(plan);

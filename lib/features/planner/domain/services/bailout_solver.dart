@@ -18,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 
@@ -355,26 +356,32 @@ class BailoutSolver {
         final chunkEndDepth = depthAt(covered + chunk);
         final chunkAvg = (chunkStartDepth + chunkEndDepth) / 2.0;
 
-        state = model.applySegment(
-          state,
+        for (final piece in splitAtSetpointSwitch(
+          plan,
+          segment,
           DecoSegment(
             startDepth: chunkStartDepth,
             endDepth: chunkEndDepth,
             durationSeconds: chunk,
           ),
-          // Same mode-aware breathing PlanEngine.compute replays authored
-          // legs with: a segment can override to PlanMode.oc for a
-          // mid-plan bailout leg, which must load open-circuit tissues
-          // here too, not the loop's constant-ppO2 setpoint regardless of
-          // the segment's own mode (caught by a Copilot review).
-          breathingFor(
-            plan,
-            segment.gasMix,
-            chunkAvg,
-            config: config,
-            segment: segment,
-          ),
-        );
+        )) {
+          state = model.applySegment(
+            state,
+            piece,
+            // Same mode-aware breathing PlanEngine.compute replays authored
+            // legs with: a segment can override to PlanMode.oc for a
+            // mid-plan bailout leg, which must load open-circuit tissues
+            // here too, not the loop's constant-ppO2 setpoint regardless of
+            // the segment's own mode (caught by a Copilot review).
+            breathingFor(
+              plan,
+              segment.gasMix,
+              (piece.startDepth + piece.endDepth) / 2.0,
+              config: config,
+              segment: segment,
+            ),
+          );
+        }
         covered += chunk;
         elapsed += chunk;
         if (offLoop) {
