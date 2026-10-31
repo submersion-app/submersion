@@ -425,120 +425,137 @@ class _AlignPageBody extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                TrackpadZoomMap(
-                  controller: state._mapController,
-                  child: FlutterMap(
-                    mapController: state._mapController,
-                    options: MapOptions(
-                      initialCenter: initialCenter,
-                      initialZoom: anchor != null ? 15 : 3,
-                      // The zoom range, pole stop and pinch handling every
-                      // other map has (#3664).
-                      minZoom: 2.0,
-                      maxZoom: 18.0,
-                      interactionOptions: rotatableMapInteraction,
-                      cameraConstraint: worldMapCameraConstraint,
-                    ),
-                    children: [
-                      submersionTileLayer(ref),
-                      if (anchor != null)
-                        BathymetryDepthOverlayLayer(location: anchor),
-                      NavTrackPolylineLayer(route: transientRoute),
-                      if (anchor != null && hasFix)
-                        NavTrackGpsFixDotsLayer(route: route, anchor: anchor),
-                      if (anchor != null && state._terrainResult != null)
-                        NavTrackConflictDotsLayer(
-                          corrected: activeCorrected,
-                          anchor: anchor,
-                          result: state._terrainResult!,
-                        ),
-                      if (anchor != null && route.points.length >= 2)
-                        NavTrackTrustMarkerLayer(
-                          route: route,
-                          corrected: corrected,
-                          anchor: anchor,
-                          activeStart: activeStart,
-                          cumulative: cumulative,
-                          trustedDistance: trustedDistance,
-                          trustedDistanceLabel: units.formatDistance(
-                            trustedDistance,
+      // Capped at a fraction of the body height so a tall controls panel
+      // can never squeeze the map below a usable size (issue #3994),
+      // mirroring color_adjust_layout.dart's viewer-above/panel-below
+      // phone layout. The panel's SingleChildScrollView already shrinks
+      // to its content up to this cap (it only fills the cap and scrolls
+      // once the content actually exceeds it), so a tablet or a
+      // chip-light route whose panel fits in a fraction of this today
+      // keeps that same smaller size.
+      body: LayoutBuilder(
+        builder: (context, constraints) => Column(
+          key: const ValueKey('nav-track-align-body'),
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  TrackpadZoomMap(
+                    controller: state._mapController,
+                    child: FlutterMap(
+                      mapController: state._mapController,
+                      options: MapOptions(
+                        initialCenter: initialCenter,
+                        initialZoom: anchor != null ? 15 : 3,
+                        // The zoom range, pole stop and pinch handling every
+                        // other map has (#3664).
+                        minZoom: 2.0,
+                        maxZoom: 18.0,
+                        interactionOptions: rotatableMapInteraction,
+                        cameraConstraint: worldMapCameraConstraint,
+                      ),
+                      children: [
+                        submersionTileLayer(ref),
+                        if (anchor != null)
+                          BathymetryDepthOverlayLayer(location: anchor),
+                        NavTrackPolylineLayer(route: transientRoute),
+                        if (anchor != null && hasFix)
+                          NavTrackGpsFixDotsLayer(route: route, anchor: anchor),
+                        if (anchor != null && state._terrainResult != null)
+                          NavTrackConflictDotsLayer(
+                            corrected: activeCorrected,
+                            anchor: anchor,
+                            result: state._terrainResult!,
                           ),
-                        ),
-                      if (anchor != null)
-                        NavTrackDraggableMarker(
-                          point: anchor,
-                          color: Colors.green,
-                          keyValue: 'nav-track-align-start-marker',
-                          onDrag: (d) => state._dragPoint(route, true, d),
-                        ),
-                      if (correction.endMode == NavTrackEndMode.point &&
-                          correction.endPoint != null)
-                        NavTrackDraggableMarker(
-                          point: correction.endPoint!,
-                          color: Colors.red,
-                          keyValue: 'nav-track-align-end-marker',
-                          onDrag: (d) => state._dragPoint(route, false, d),
-                        ),
-                      const MapAttribution(),
-                    ],
-                  ),
-                ),
-                if (state._placing != _Placing.none)
-                  const IgnorePointer(
-                    child: Center(
-                      child: Icon(Icons.add, size: 32, color: Colors.black87),
+                        if (anchor != null && route.points.length >= 2)
+                          NavTrackTrustMarkerLayer(
+                            route: route,
+                            corrected: corrected,
+                            anchor: anchor,
+                            activeStart: activeStart,
+                            cumulative: cumulative,
+                            trustedDistance: trustedDistance,
+                            trustedDistanceLabel: units.formatDistance(
+                              trustedDistance,
+                            ),
+                          ),
+                        if (anchor != null)
+                          NavTrackDraggableMarker(
+                            point: anchor,
+                            color: Colors.green,
+                            keyValue: 'nav-track-align-start-marker',
+                            onDrag: (d) => state._dragPoint(route, true, d),
+                          ),
+                        if (correction.endMode == NavTrackEndMode.point &&
+                            correction.endPoint != null)
+                          NavTrackDraggableMarker(
+                            point: correction.endPoint!,
+                            color: Colors.red,
+                            keyValue: 'nav-track-align-end-marker',
+                            onDrag: (d) => state._dragPoint(route, false, d),
+                          ),
+                        const MapAttribution(),
+                      ],
                     ),
                   ),
-                // Map style switcher and reset-to-north compass, with the
-                // depth overlay toggle below them once the track is anchored.
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      MapCornerControls(controller: state._mapController),
-                      if (anchor != null) ...[
-                        const SizedBox(height: 8),
-                        DepthOverlayToggleButton(siteLocation: anchor),
-                      ],
-                    ],
-                  ),
-                ),
-                if (state._placing != _Placing.none)
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: FilledButton(
-                      key: const ValueKey('nav-track-align-set-here'),
-                      onPressed: () => state._setPointHere(route),
-                      child: Text(
-                        state._placing == _Placing.start
-                            ? l10n.navTrack_align_setStartHere
-                            : l10n.navTrack_align_setEndHere,
+                  if (state._placing != _Placing.none)
+                    const IgnorePointer(
+                      child: Center(
+                        child: Icon(Icons.add, size: 32, color: Colors.black87),
                       ),
                     ),
+                  // Map style switcher and reset-to-north compass, with the
+                  // depth overlay toggle below them once the track is anchored.
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        MapCornerControls(controller: state._mapController),
+                        if (anchor != null) ...[
+                          const SizedBox(height: 8),
+                          DepthOverlayToggleButton(siteLocation: anchor),
+                        ],
+                      ],
+                    ),
                   ),
-              ],
+                  if (state._placing != _Placing.none)
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: FilledButton(
+                        key: const ValueKey('nav-track-align-set-here'),
+                        onPressed: () => state._setPointHere(route),
+                        child: Text(
+                          state._placing == _Placing.start
+                              ? l10n.navTrack_align_setStartHere
+                              : l10n.navTrack_align_setEndHere,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          _ControlsPanel(
-            state: state,
-            route: route,
-            correction: correction,
-            hasPostDiveFix: hasPostDiveFix,
-            activeStart: activeStart,
-            cumulative: cumulative,
-            totalDistance: totalDistance,
-            trustedDistance: trustedDistance,
-          ),
-        ],
+            ConstrainedBox(
+              key: const ValueKey('nav-track-align-controls-panel'),
+              constraints: BoxConstraints(
+                maxHeight: constraints.maxHeight * 0.45,
+              ),
+              child: _ControlsPanel(
+                state: state,
+                route: route,
+                correction: correction,
+                hasPostDiveFix: hasPostDiveFix,
+                activeStart: activeStart,
+                cumulative: cumulative,
+                totalDistance: totalDistance,
+                trustedDistance: trustedDistance,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -731,84 +748,86 @@ class _ControlsPanel extends ConsumerWidget {
     final startRow = _startRow(ref, l10n);
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            NavTrackPositionRowControls(
-              label: l10n.navTrack_align_startLabel,
-              placeKey: 'nav-track-align-place-start',
-              placeLabel: l10n.navTrack_align_setStartOnMap,
-              placeSelected: startRow.isManual,
-              onPlace: () => state._startPlacing(_Placing.start),
-              options: startRow.options,
-            ),
-            const SizedBox(height: 8),
-            NavTrackPositionRowControls(
-              label: l10n.navTrack_align_endLabel,
-              placeKey: 'nav-track-align-place-end',
-              placeLabel: l10n.navTrack_align_endMode_point,
-              placeSelected: correction.endMode == NavTrackEndMode.point,
-              onPlace: () => state._startPlacingEndPoint(route),
-              options: _endOptions(l10n),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.navTrack_align_trustSummary(
-                ref
-                    .watch(unitFormatterProvider)
-                    .formatDistance(trustedDistance),
-                trustedMinutes,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NavTrackPositionRowControls(
+                label: l10n.navTrack_align_startLabel,
+                placeKey: 'nav-track-align-place-start',
+                placeLabel: l10n.navTrack_align_setStartOnMap,
+                placeSelected: startRow.isManual,
+                onPlace: () => state._startPlacing(_Placing.start),
+                options: startRow.options,
               ),
-            ),
-            Slider(
-              key: const ValueKey('nav-track-align-trust-slider'),
-              value: correction.trustFraction.clamp(0.0, 1.0),
-              onChanged: totalDistance <= 0
-                  ? null
-                  : (value) => state._updateCorrection(
-                      (c) => c.copyWith(trustFraction: value),
-                      route,
+              const SizedBox(height: 8),
+              NavTrackPositionRowControls(
+                label: l10n.navTrack_align_endLabel,
+                placeKey: 'nav-track-align-place-end',
+                placeLabel: l10n.navTrack_align_endMode_point,
+                placeSelected: correction.endMode == NavTrackEndMode.point,
+                onPlace: () => state._startPlacingEndPoint(route),
+                options: _endOptions(l10n),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.navTrack_align_trustSummary(
+                  ref
+                      .watch(unitFormatterProvider)
+                      .formatDistance(trustedDistance),
+                  trustedMinutes,
+                ),
+              ),
+              Slider(
+                key: const ValueKey('nav-track-align-trust-slider'),
+                value: correction.trustFraction.clamp(0.0, 1.0),
+                onChanged: totalDistance <= 0
+                    ? null
+                    : (value) => state._updateCorrection(
+                        (c) => c.copyWith(trustFraction: value),
+                        route,
+                      ),
+              ),
+              NavTrackRotationControl(
+                headingOffsetDeg: correction.headingOffsetDeg,
+                onChanged: (value) => state._updateCorrection(
+                  (c) => c.copyWith(headingOffsetDeg: value),
+                  route,
+                ),
+              ),
+              if (state._terrainResult != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    key: const ValueKey('nav-track-align-terrain-summary'),
+                    state._terrainResult!.summaryLine(
+                      l10n,
+                      formatDepth: ref.watch(unitFormatterProvider).formatDepth,
                     ),
-            ),
-            NavTrackRotationControl(
-              headingOffsetDeg: correction.headingOffsetDeg,
-              onChanged: (value) => state._updateCorrection(
-                (c) => c.copyWith(headingOffsetDeg: value),
-                route,
-              ),
-            ),
-            if (state._terrainResult != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  key: const ValueKey('nav-track-align-terrain-summary'),
-                  state._terrainResult!.summaryLine(
-                    l10n,
-                    formatDepth: ref.watch(unitFormatterProvider).formatDepth,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  style: Theme.of(context).textTheme.bodySmall,
                 ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  TextButton(
+                    key: const ValueKey('nav-track-align-cancel'),
+                    onPressed: () => context.pop(),
+                    child: Text(l10n.navTrack_common_cancel),
+                  ),
+                  const Spacer(),
+                  FilledButton(
+                    key: const ValueKey('nav-track-align-save'),
+                    onPressed: () => state._save(route),
+                    child: Text(l10n.navTrack_common_save),
+                  ),
+                ],
               ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                TextButton(
-                  key: const ValueKey('nav-track-align-cancel'),
-                  onPressed: () => context.pop(),
-                  child: Text(l10n.navTrack_common_cancel),
-                ),
-                const Spacer(),
-                FilledButton(
-                  key: const ValueKey('nav-track-align-save'),
-                  onPressed: () => state._save(route),
-                  child: Text(l10n.navTrack_common_save),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

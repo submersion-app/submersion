@@ -1533,4 +1533,152 @@ void main() {
     await _pump(tester, route: _route());
     expectZoomsAndScrollsLikeOtherMaps(tester);
   });
+
+  group('controls panel height cap (#3994)', () {
+    // The widest the Start row gets: a linked dive (From dive entry), a
+    // site (From site) and a pre-dive GPS fix (From GPS), all at once --
+    // the shape from the "From GPS" chip test above, with a dive added.
+    const site = DiveSite(
+      id: 'site-1',
+      name: 'Test Site',
+      location: GeoPoint(47.1, 8.3),
+    );
+    final wideRowPoints = [
+      const NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856802, north: 100, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856804, north: 100, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856806, north: 100, east: 0, depth: 5),
+      const NavTrackPoint(timestamp: 1755856808, north: 105, east: 2, depth: 8),
+    ];
+    final wideRowRoute = NavTrack(
+      id: 'r1',
+      diveId: 'dive-1',
+      siteId: 'site-1',
+      linkMode: NavTrackLinkMode.auto,
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'r1.csv',
+      startTime: 1755856800000,
+      endTime: 1755856808000,
+      pointCount: wideRowPoints.length,
+      points: wideRowPoints,
+      createdAt: DateTime(2026, 8, 22),
+      updatedAt: DateTime(2026, 8, 22),
+    );
+    final wideRowDive = Dive(
+      id: 'dive-1',
+      diveNumber: 1,
+      dateTime: DateTime(2026, 8, 22, 10, 8),
+      entryLocation: const GeoPoint(46.9, 7.2),
+    );
+
+    Future<void> pumpWideRowOnPhone(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pump(
+        tester,
+        route: wideRowRoute,
+        linkedDive: wideRowDive,
+        site: site,
+      );
+      // The widest Start row, confirmed present before measuring layout.
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-dive-entry')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-site')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('nav-track-align-from-gps')),
+        findsOneWidget,
+      );
+    }
+
+    double bodyHeight(WidgetTester tester) => tester
+        .getSize(find.byKey(const ValueKey('nav-track-align-body')))
+        .height;
+
+    testWidgets(
+      'the map keeps at least 55% of the body height on a phone-sized '
+      'screen',
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        final height = bodyHeight(tester);
+        expect(
+          tester.getSize(find.byType(FlutterMap)).height,
+          greaterThanOrEqualTo(height * 0.55 - 1),
+        );
+      },
+    );
+
+    testWidgets(
+      'the controls panel does not exceed 45% of the body height on a '
+      'phone-sized screen',
+      (tester) async {
+        await pumpWideRowOnPhone(tester);
+
+        final height = bodyHeight(tester);
+        expect(
+          tester
+              .getSize(
+                find.byKey(const ValueKey('nav-track-align-controls-panel')),
+              )
+              .height,
+          lessThanOrEqualTo(height * 0.45 + 1),
+        );
+      },
+    );
+
+    testWidgets('no RenderFlex overflow is reported on the phone-sized '
+        'screen', (tester) async {
+      await pumpWideRowOnPhone(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a short panel is not stretched to the cap on a wide screen', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      // Today's narrowest Start row: no linked dive, no site, no
+      // pre-dive fix, so only the "Place on map" button renders.
+      await _pump(tester, route: _route());
+
+      final height = bodyHeight(tester);
+      expect(
+        tester
+            .getSize(
+              find.byKey(const ValueKey('nav-track-align-controls-panel')),
+            )
+            .height,
+        lessThan(height * 0.3),
+      );
+    });
+
+    testWidgets('Save is reachable by scrolling when the panel is capped', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final repository = await _pump(
+        tester,
+        route: wideRowRoute,
+        linkedDive: wideRowDive,
+        site: site,
+      );
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('nav-track-align-save')),
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastRouteId, 'r1');
+    });
+  });
 }
