@@ -226,6 +226,11 @@ void main() {
     expect(report.leftOutCount, 1);
   });
 
+  test('a parent loop with no cost still counts as left out', () {
+    final report = _build([_item('a', parent: 'b'), _item('b', parent: 'a')]);
+    expect(report.leftOutCount, 2);
+  });
+
   test('parent loop finishes and counts each cost once', () {
     final report = _build([
       _item('a', price: 1, parent: 'b'),

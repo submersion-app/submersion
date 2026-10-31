@@ -241,6 +241,18 @@ void main() {
     expect(report.noScheduleCount, 1);
   });
 
+  test('one item leaves a wishlist part out', () async {
+    await item('set');
+    await item('wish', status: 'wanted', isActive: false, parent: 'set');
+    await record('wish', cost: 10);
+
+    final report = await service(
+      const ServiceReportOptions(scope: ServiceReportScope.item, itemId: 'set'),
+    );
+
+    expect(report.history, isEmpty);
+  });
+
   test('one item offers a retired item', () async {
     await item('old', status: 'retired', isActive: false);
     await record('old', cost: 10);

@@ -77,6 +77,19 @@ void main() {
     expect(rows.last.since, isNull);
   });
 
+  test('a dive on the cutoff day is judged by its wall clock', () {
+    // Flagged UTC, as stored: the cutoff is the calendar day, whatever the
+    // device's offset.
+    expect(
+      _build([_item('a')], lastDives: {'a': DateTime.utc(2025, 10, 31, 12)}),
+      isEmpty,
+    );
+    expect(
+      _build([_item('a')], lastDives: {'a': DateTime.utc(2025, 10, 30, 23)}),
+      hasLength(1),
+    );
+  });
+
   test('never-dived gear bought last week is not idle', () {
     expect(_build([_item('new', bought: DateTime(2026, 10, 24))]), isEmpty);
   });

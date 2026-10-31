@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/reports/service_report.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -78,7 +79,7 @@ class _ServiceReportSheetState extends ConsumerState<ServiceReportSheet> {
   List<EquipmentItem> _items() => [
     for (final item in ref.watch(allEquipmentProvider).value ?? const [])
       if (!item.isWanted) item,
-  ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  ]..sort((a, b) => compareTextForSort(a.name, b.name));
 
   void _finish() => Navigator.of(context).pop(
     ServiceReportOptions(

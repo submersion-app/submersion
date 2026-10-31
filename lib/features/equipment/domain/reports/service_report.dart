@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -178,7 +179,7 @@ int _byUrgency(ServiceDueRow a, ServiceDueRow b) {
   if (ad != null && bd == null) return -1;
   final byDate = ad == null ? 0 : ad.compareTo(bd!);
   if (byDate != 0) return byDate;
-  return a.item.name.toLowerCase().compareTo(b.item.name.toLowerCase());
+  return compareTextForSort(a.item.name, b.item.name);
 }
 
 List<ServiceHistoryBlock> _history(
@@ -187,8 +188,7 @@ List<ServiceHistoryBlock> _history(
   Map<String, ServiceKind> kindsById,
   Map<String, int> diveCounts,
 ) {
-  final named = [...gear]
-    ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  final named = [...gear]..sort((a, b) => compareTextForSort(a.name, b.name));
   return [
     for (final row in arrangeAsTree(named))
       if (records[row.item.id] case final own? when own.isNotEmpty)

@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -66,15 +65,12 @@ class _FakeExport implements ExportService {
   Future<String> exportEquipmentInventory(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
     Rect? sharePositionOrigin,
   }) async {
     if (fail) throw StateError('disk full');
     calls.add('share-inventory');
-    this.diverName = diverName;
+    diverName = print.diverName;
     return '/shared.pdf';
   }
 
@@ -82,10 +78,7 @@ class _FakeExport implements ExportService {
   Future<String?> saveEquipmentInventoryToFile(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
   }) async {
     if (fail) throw StateError('disk full');
     calls.add('save-inventory');
@@ -96,10 +89,7 @@ class _FakeExport implements ExportService {
   Future<String> exportServiceReport(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('share-service');
@@ -110,10 +100,7 @@ class _FakeExport implements ExportService {
   Future<String?> saveServiceReportToFile(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
   }) async {
     calls.add('save-service');
     return cancel ? null : '/saved.pdf';

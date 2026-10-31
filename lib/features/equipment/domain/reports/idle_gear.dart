@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
 
@@ -34,7 +35,9 @@ List<IdleRow> buildIdleGear({
     if (!isIdleCandidate(item, diverId)) continue;
     final last = lastDives[item.id];
     if (last != null) {
-      if (last.isBefore(cutoff)) {
+      // A stored dive time is a wall clock flagged UTC, so it is compared by
+      // its calendar day, not as an instant against the local cutoff.
+      if (DateTime(last.year, last.month, last.day).isBefore(cutoff)) {
         dived.add(
           IdleRow(item: item, lastDive: last, since: _since(last, now)),
         );
@@ -45,9 +48,7 @@ List<IdleRow> buildIdleGear({
     }
   }
   dived.sort((a, b) => a.lastDive!.compareTo(b.lastDive!));
-  never.sort(
-    (a, b) => a.item.name.toLowerCase().compareTo(b.item.name.toLowerCase()),
-  );
+  never.sort((a, b) => compareTextForSort(a.item.name, b.item.name));
   return [...dived, ...never];
 }
 

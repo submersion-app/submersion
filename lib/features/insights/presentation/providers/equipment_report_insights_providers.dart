@@ -1,15 +1,11 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_usage_repository.dart';
 import 'package:submersion/features/equipment/domain/reports/cost_of_ownership.dart';
 import 'package:submersion/features/equipment/domain/reports/idle_gear.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_report_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-
-final equipmentUsageRepositoryProvider = Provider<EquipmentUsageRepository>(
-  (ref) => EquipmentUsageRepository(),
-);
 
 /// What the cost list ranks by.
 final costMetricProvider = StateProvider<CostMetric>(

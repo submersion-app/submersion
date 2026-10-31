@@ -152,8 +152,8 @@ it reads the same as the item page, for example "12 dives left".
 
 - One block per item: name and serial on the heading, dive count on the right.
 - Table: Date, Work, Shop, Cost, newest first.
-- The dive count is the item page's count, from `getDiveCountForEquipment`, so
-  the two read the same.
+- The dive count counts every recorded dive, as the item page does, from one
+  grouped query (`getRecordedDiveCounts`).
 - Items with no service records are left out of this part. If nothing chosen
   has any records, it prints a single "No service recorded" line, so the page is
   never empty.

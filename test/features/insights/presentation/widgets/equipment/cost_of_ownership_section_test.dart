@@ -139,6 +139,25 @@ void main() {
     );
   });
 
+  testWidgets('a short usage never reads over 0 hours', (tester) async {
+    await _pump(
+      tester,
+      () async => CostOfOwnership(
+        byCurrency: [
+          _usd(rows: [_row('Mask', 100, dives: 1, hours: 0.3)]),
+        ],
+        leftOutCount: 0,
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('cost-metric')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Per hour').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('${formatMoney(100, 'USD')} over 1 hour'), findsOneWidget);
+  });
+
   testWidgets('a row with no dives reads no dives yet, with its cost', (
     tester,
   ) async {

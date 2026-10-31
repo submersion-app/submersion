@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
@@ -111,10 +113,12 @@ CostOfOwnership buildCostOfOwnership({
     }
   }
 
-  final fallback = _normalize(fallbackCurrency, '');
+  final fallback = normalizeCurrencyCode(fallbackCurrency, fallback: '');
   final buckets = <String, _Bucket>{};
   void add(String rootId, String currency, double amount, DateTime? date) {
-    final bucket = buckets[_normalize(currency, fallback)] ??= _Bucket();
+    final bucket =
+        buckets[normalizeCurrencyCode(currency, fallback: fallback)] ??=
+            _Bucket();
     bucket.total += amount;
     bucket.costs[rootId] = (bucket.costs[rootId] ?? 0) + amount;
     if (date != null) {
@@ -128,7 +132,11 @@ CostOfOwnership buildCostOfOwnership({
     if (price != null && price > 0) {
       add(rootId, item.purchaseCurrency, price, item.purchaseDate);
       if (item.purchaseDate == null) {
-        buckets[_normalize(item.purchaseCurrency, fallback)]!.undated++;
+        buckets[normalizeCurrencyCode(
+              item.purchaseCurrency,
+              fallback: fallback,
+            )]!
+            .undated++;
       }
     }
     for (final record in recordsByItem[item.id] ?? const <ServiceRecord>[]) {
@@ -140,9 +148,9 @@ CostOfOwnership buildCostOfOwnership({
   }
 
   final costed = {for (final b in buckets.values) ...b.costs.keys};
-  final leftOut = owned.values.where(
-    (item) => rootOf(item) == item.id && !costed.contains(item.id),
-  );
+  final leftOut = {
+    for (final item in owned.values) rootOf(item),
+  }.difference(costed);
 
   final byCurrency = [
     for (final entry in buckets.entries)
@@ -182,14 +190,8 @@ List<CostRow> sortCostRows(List<CostRow> rows, CostMetric metric) {
     if (ra != null && rb == null) return -1;
     final byRate = (rb ?? b.cost).compareTo(ra ?? a.cost);
     if (byRate != 0) return byRate;
-    return a.item.name.toLowerCase().compareTo(b.item.name.toLowerCase());
+    return compareTextForSort(a.item.name, b.item.name);
   });
-}
-
-/// The rule `sumByCurrency` applies, so legacy rows land in one bucket.
-String _normalize(String code, String fallback) {
-  final trimmed = code.trim().toUpperCase();
-  return trimmed.isEmpty ? fallback : trimmed;
 }
 
 List<({int year, double amount})> _yearRun(Map<int, double> years) {

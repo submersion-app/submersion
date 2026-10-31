@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -226,7 +228,11 @@ class _CostOfOwnershipSectionState
     final cost = formatMoney(row.cost, currency);
     return switch (metric) {
       CostMetric.perHour when row.perHour != null =>
-        l10n.insights_equipment_cost_rowOverHours(cost, row.hours.round()),
+        l10n.insights_equipment_cost_rowOverHours(
+          cost,
+          // A real rate never reads "over 0 hours".
+          math.max(1, row.hours.round()),
+        ),
       CostMetric.perHour => cost,
       _ when row.diveCount > 0 => l10n.insights_equipment_cost_rowOverDives(
         cost,

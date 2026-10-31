@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_usage_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
@@ -11,6 +12,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+
+final equipmentUsageRepositoryProvider = Provider<EquipmentUsageRepository>(
+  (ref) => EquipmentUsageRepository(),
+);
 
 /// The inventory for [options]. Read once per export and released.
 final inventoryReportProvider = FutureProvider.autoDispose
@@ -77,7 +82,7 @@ Future<_ServiceScope> _scopeOf(
       return (
         gear: [
           for (final item in all)
-            if (ids.contains(item.id)) item,
+            if (ids.contains(item.id) && !item.isWanted) item,
         ],
         tripEnd: null,
         label: all.where((item) => item.id == itemId).firstOrNull?.name,
@@ -106,19 +111,17 @@ final serviceReportProvider = FutureProvider.autoDispose
       final records = options.includeHistory
           ? await recordRepository.getRecordsForEquipmentIds(ids)
           : const <String, Never>{};
-      final counted = records.keys.toList();
-      final counts = await Future.wait([
-        for (final id in counted)
-          repository.getDiveCountForEquipment(id, diverId: diverId),
-      ]);
+      final usage = ref.watch(equipmentUsageRepositoryProvider);
+      ref.invalidateSelfWhen(usage.watchChanges());
+      final diveCounts = options.includeHistory
+          ? await usage.getRecordedDiveCounts(diverId: diverId)
+          : const <String, int>{};
       return buildServiceReport(
         gear: scope.gear,
         clocks: clocks,
         records: records,
         kindsById: kinds,
-        diveCounts: {
-          for (final (index, id) in counted.indexed) id: counts[index],
-        },
+        diveCounts: diveCounts,
         options: options,
         fallbackCurrency: fallback,
         tripEnd: scope.tripEnd,

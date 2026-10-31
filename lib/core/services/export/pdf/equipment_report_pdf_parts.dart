@@ -1,8 +1,47 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+
 /// The layout the equipment reports share, so the inventory and the service
 /// report read as one family.
+
+/// What every report prints with, besides its own content.
+class ReportPrintSettings {
+  const ReportPrintSettings({
+    required this.diverName,
+    required this.units,
+    required this.printedAt,
+    this.localization,
+  });
+
+  final String? diverName;
+  final UnitFormatter units;
+  final DateTime printedAt;
+
+  /// Null prints English.
+  final PdfLocalization? localization;
+}
+
+/// Roboto plus the script font the language needs, which the reports load
+/// unless a test passes a Helvetica theme to read the text back.
+Future<pw.ThemeData> reportSharedTheme(PdfLocalization localization) async {
+  await PdfFonts.instance.initialize();
+  return PdfFonts.instance.themeFor(localization);
+}
+
+/// An amount in its own currency, empty with none. A legacy blank code prints
+/// in [fallbackCurrency].
+String reportMoney(double? amount, String code, String fallbackCurrency) =>
+    amount == null
+    ? ''
+    : formatMoney(
+        amount,
+        normalizeCurrencyCode(code, fallback: fallbackCurrency),
+      );
 
 const reportMutedColor = PdfColors.grey700;
 const _groupFill = PdfColor.fromInt(0xFFEEF4F6);

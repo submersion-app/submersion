@@ -4,8 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/services/export/export_service.dart'
     hide ServiceRecord;
-import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/equipment/domain/reports/service_report.dart';
@@ -46,10 +45,7 @@ class _FakeExport implements ExportService {
   Future<String> exportEquipmentInventory(
     InventoryReport report, {
     required InventoryReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('inventory');
@@ -61,10 +57,7 @@ class _FakeExport implements ExportService {
   Future<String> exportServiceReport(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
     Rect? sharePositionOrigin,
   }) async {
     calls.add('service');

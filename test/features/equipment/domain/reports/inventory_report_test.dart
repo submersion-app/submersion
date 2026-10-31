@@ -70,6 +70,15 @@ void main() {
     expect(report.groups.single.rows.map((r) => r.item.id), ['abe', 'zed']);
   });
 
+  test('accented names sort with their letter', () {
+    final report = _build([_item('Zed'), _item('Écran'), _item('Abe')]);
+    expect(report.groups.single.rows.map((r) => r.item.id), [
+      'Abe',
+      'Écran',
+      'Zed',
+    ]);
+  });
+
   test('leaves out gear not owned now', () {
     final report = _build([
       _item('keep'),

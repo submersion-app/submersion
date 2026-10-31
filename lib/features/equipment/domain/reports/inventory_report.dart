@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -85,7 +86,7 @@ InventoryReport buildInventoryReport({
   final owned = [
     for (final item in items)
       if (isOwnedNow(item, diverId)) item,
-  ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  ]..sort((a, b) => compareTextForSort(a.name, b.name));
 
   // Each family is a top-level row and the parts printed under it.
   final families = <List<ReportRow>>[];
@@ -163,7 +164,7 @@ List<InventoryGroup> _byLocation(
     ..sort((a, b) {
       final byKind = a.kind.index.compareTo(b.kind.index);
       if (byKind != 0) return byKind;
-      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      return compareTextForSort(a.name, b.name);
     });
   return [
     for (final place in ordered)

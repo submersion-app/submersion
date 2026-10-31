@@ -6,12 +6,9 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
-import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
-import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
-import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/service_report.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
@@ -25,28 +22,21 @@ class ServiceReportPdfExportService {
   /// in an embedded TrueType font cannot be read back out of the PDF.
   ServiceReportPdfExportService({
     Future<pw.ThemeData> Function(PdfLocalization localization)? loadTheme,
-  }) : _loadTheme = loadTheme ?? _sharedTheme;
+  }) : _loadTheme = loadTheme ?? reportSharedTheme;
 
   final Future<pw.ThemeData> Function(PdfLocalization localization) _loadTheme;
 
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
-
-  static Future<pw.ThemeData> _sharedTheme(PdfLocalization localization) async {
-    await PdfFonts.instance.initialize();
-    return PdfFonts.instance.themeFor(localization);
-  }
 
   /// Builds the PDF bytes without touching the filesystem. Null [localization]
   /// prints English.
   Future<List<int>> generateBytes(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
   }) async {
-    final loc = localization ?? PdfLocalization.english();
+    final loc = print.localization ?? PdfLocalization.english();
+    final units = print.units;
     final l10n = loc.l10n;
     final pdf = pw.Document(theme: await _loadTheme(loc));
     pdf.addPage(
@@ -58,9 +48,9 @@ class ServiceReportPdfExportService {
         build: (context) => [
           reportHeader(
             title: l10n.equipmentReport_pdf_serviceTitle,
-            diverName: diverName,
+            diverName: print.diverName,
             printedLine: l10n.equipmentReport_pdf_printedOn(
-              units.formatDate(printedAt),
+              units.formatDate(print.printedAt),
             ),
             detail: report.scopeLabel,
           ),
@@ -84,7 +74,7 @@ class ServiceReportPdfExportService {
               style: const pw.TextStyle(fontSize: 10),
             )
           else
-            _dueTable(l10n, report, units, printedAt),
+            _dueTable(l10n, report, units, print.printedAt),
           if (report.noScheduleCount > 0)
             reportFootnote(
               l10n.equipmentReport_pdf_noSchedule(report.noScheduleCount),
@@ -184,17 +174,17 @@ class ServiceReportPdfExportService {
           reportCell(row.kindName ?? row.record.serviceCategory.label(l10n)),
           reportCell(row.record.provider ?? ''),
           if (options.showCosts)
-            reportCell(_cost(row.record, report.fallbackCurrency), end: true),
+            reportCell(
+              reportMoney(
+                row.record.cost,
+                row.record.currency,
+                report.fallbackCurrency,
+              ),
+              end: true,
+            ),
         ],
     ],
   );
-
-  String _cost(ServiceRecord record, String fallbackCurrency) {
-    final cost = record.cost;
-    if (cost == null) return '';
-    final code = record.currency.trim();
-    return formatMoney(cost, code.isEmpty ? fallbackCurrency : code);
-  }
 
   String _statusLabel(AppLocalizations l10n, ServiceClockSeverity severity) =>
       switch (severity) {
@@ -219,21 +209,11 @@ class ServiceReportPdfExportService {
   Future<String> exportToPdf(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
     Rect? sharePositionOrigin,
   }) async => sharePdfBytes(
-    await generateBytes(
-      report,
-      options: options,
-      diverName: diverName,
-      units: units,
-      printedAt: printedAt,
-      localization: localization,
-    ),
-    _fileName(printedAt),
+    await generateBytes(report, options: options, print: print),
+    _fileName(print.printedAt),
     sharePositionOrigin: sharePositionOrigin,
   );
 
@@ -241,19 +221,9 @@ class ServiceReportPdfExportService {
   Future<String?> saveToFile(
     ServiceReport report, {
     required ServiceReportOptions options,
-    required String? diverName,
-    required UnitFormatter units,
-    required DateTime printedAt,
-    PdfLocalization? localization,
+    required ReportPrintSettings print,
   }) async => savePdfToFile(
-    await generateBytes(
-      report,
-      options: options,
-      diverName: diverName,
-      units: units,
-      printedAt: printedAt,
-      localization: localization,
-    ),
-    _fileName(printedAt),
+    await generateBytes(report, options: options, print: print),
+    _fileName(print.printedAt),
   );
 }

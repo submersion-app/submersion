@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/pdf/equipment_inventory_pdf_export_service.dart';
+import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -69,9 +70,11 @@ void main() {
     await service.generateBytes(
       report,
       options: options,
-      diverName: diverName,
-      units: units,
-      printedAt: DateTime(2026, 10, 30),
+      print: ReportPrintSettings(
+        diverName: diverName,
+        units: units,
+        printedAt: DateTime(2026, 10, 30),
+      ),
     ),
   );
 
@@ -161,10 +164,12 @@ void main() {
     final bytes = await service.generateBytes(
       _report([_item('Apex')]),
       options: const InventoryReportOptions(),
-      diverName: null,
-      units: units,
-      printedAt: DateTime(2026, 10, 30),
-      localization: PdfLocalization.forLanguageCode('ar'),
+      print: ReportPrintSettings(
+        diverName: null,
+        units: units,
+        printedAt: DateTime(2026, 10, 30),
+        localization: PdfLocalization.forLanguageCode('ar'),
+      ),
     );
     expect(bytes, isNotEmpty);
   });
