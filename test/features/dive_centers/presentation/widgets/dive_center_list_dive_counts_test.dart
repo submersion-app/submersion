@@ -62,6 +62,8 @@ Future<void> _pump(
   required ListViewMode viewMode,
   required FutureOr<Map<String, int>> Function() counts,
   EntityTableViewConfig<DiveCenterField>? tableConfig,
+  List<DiveCenter>? centers,
+  String? highlightedId,
   SortState<DiveCenterSortField> sort = const SortState(
     field: DiveCenterSortField.name,
     direction: SortDirection.descending,
@@ -79,11 +81,9 @@ Future<void> _pump(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
         diveCenterListNotifierProvider.overrideWith(
-          (ref) => _ListNotifier([
-            _center(_alpha),
-            _center(_bravo),
-            _center(_charlie),
-          ]),
+          (ref) => _ListNotifier(
+            centers ?? [_center(_alpha), _center(_bravo), _center(_charlie)],
+          ),
         ),
         diveCenterListViewModeProvider.overrideWith((ref) => viewMode),
         diveCenterTableConfigProvider.overrideWith(
@@ -92,6 +92,7 @@ Future<void> _pump(
         diveCenterSortProvider.overrideWithValue(sort),
         diveCenterDiveCountsProvider.overrideWith((ref) => counts()),
         diveCenterDiveCountProvider.overrideWith((ref, id) => _counts[id] ?? 0),
+        highlightedDiveCenterIdProvider.overrideWith((ref) => highlightedId),
       ],
       child: const DiveCenterListContent(showAppBar: true),
     ),
@@ -180,6 +181,48 @@ void main() {
       expect(find.text('42'), findsOneWidget);
     });
 
+    testWidgets('keeps the last counts when a refresh fails', (tester) async {
+      var reads = 0;
+      await _pump(
+        tester,
+        viewMode: ListViewMode.table,
+        counts: () =>
+            reads++ == 0 ? _counts : throw StateError('count read failed'),
+      );
+      await tester.pumpAndSettle();
+
+      _containerOf(tester).invalidate(diveCenterDiveCountsProvider);
+      await tester.pumpAndSettle();
+
+      expect(find.text('41'), findsOneWidget);
+    });
+
+    testWidgets('a refresh after a failed read shows no spinner', (
+      tester,
+    ) async {
+      final refreshed = Completer<Map<String, int>>();
+      var reads = 0;
+      await _pump(
+        tester,
+        viewMode: ListViewMode.table,
+        counts: () => reads++ == 0
+            ? throw StateError('count read failed')
+            : refreshed.future,
+      );
+      await tester.pumpAndSettle();
+
+      _containerOf(tester).invalidate(diveCenterDiveCountsProvider);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text(_alpha), findsOneWidget);
+
+      refreshed.complete(_counts);
+      await tester.pumpAndSettle();
+
+      expect(find.text('41'), findsOneWidget);
+    });
+
     testWidgets('shows zero counts when the count read fails', (tester) async {
       await _pump(
         tester,
@@ -230,6 +273,51 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_namesTopToBottom(tester), [_bravo, _charlie, _alpha]);
+    });
+
+    // In count order Center 00 is last, 59 rows from where name order has it.
+    final manyCenters = [
+      for (var i = 0; i < 60; i++)
+        _center('Center ${i.toString().padLeft(2, '0')}'),
+    ];
+    final manyCounts = {for (var i = 0; i < 60; i++) manyCenters[i].id: i + 1};
+
+    testWidgets('returns to the remembered center in count order', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        viewMode: ListViewMode.compact,
+        counts: () => manyCounts,
+        centers: manyCenters,
+        highlightedId: 'Center 00',
+        sort: byCount,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Center 00'), findsOneWidget);
+    });
+
+    testWidgets('returns to the remembered center once the counts arrive', (
+      tester,
+    ) async {
+      final counts = Completer<Map<String, int>>();
+      await _pump(
+        tester,
+        viewMode: ListViewMode.compact,
+        counts: () => counts.future,
+        centers: manyCenters,
+        highlightedId: 'Center 00',
+        sort: byCount,
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      counts.complete(manyCounts);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Center 00'), findsOneWidget);
     });
 
     testWidgets('a name sort does not wait for the counts', (tester) async {

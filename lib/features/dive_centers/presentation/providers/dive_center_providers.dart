@@ -70,8 +70,9 @@ List<DiveCenter> applyDiveCenterSorting(
   int compareNames(DiveCenter a, DiveCenter b) =>
       a.name.toLowerCase().compareTo(b.name.toLowerCase());
 
+  final ascending = sort.direction == SortDirection.ascending;
+
   sorted.sort((a, b) {
-    final ascending = sort.direction == SortDirection.ascending;
     switch (sort.field) {
       case DiveCenterSortField.name:
         // For text fields, invert direction (user expects descending = A→Z)
