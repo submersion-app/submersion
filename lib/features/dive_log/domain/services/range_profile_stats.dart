@@ -12,7 +12,8 @@ class RangeProfileStats {
   /// The selection's own duration, however much of it the profile reaches.
   final int elapsedSeconds;
 
-  /// Signed change in meters across the selection, positive going deeper.
+  /// Signed change in meters across the plotted part of the selection,
+  /// positive going deeper.
   final double? depthDelta;
   final double? minDepth;
   final double? maxDepth;
