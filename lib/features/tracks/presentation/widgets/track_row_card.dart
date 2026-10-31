@@ -40,7 +40,10 @@ class TrackRowCard extends StatelessWidget {
           customBorder:
               theme.cardTheme.shape ??
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: child,
+          // The inner ListTile carries no onTap of its own (see above), so
+          // without this the row's tap target would announce none of its
+          // text as actionable.
+          child: Semantics(button: true, child: child),
         ),
       ),
     );

@@ -748,85 +748,93 @@ class _ControlsPanel extends ConsumerWidget {
     final startRow = _startRow(ref, l10n);
     return SafeArea(
       top: false,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              NavTrackPositionRowControls(
-                label: l10n.navTrack_align_startLabel,
-                placeKey: 'nav-track-align-place-start',
-                placeLabel: l10n.navTrack_align_setStartOnMap,
-                placeSelected: startRow.isManual,
-                onPlace: () => state._startPlacing(_Placing.start),
-                options: startRow.options,
-              ),
-              const SizedBox(height: 8),
-              NavTrackPositionRowControls(
-                label: l10n.navTrack_align_endLabel,
-                placeKey: 'nav-track-align-place-end',
-                placeLabel: l10n.navTrack_align_endMode_point,
-                placeSelected: correction.endMode == NavTrackEndMode.point,
-                onPlace: () => state._startPlacingEndPoint(route),
-                options: _endOptions(l10n),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.navTrack_align_trustSummary(
-                  ref
-                      .watch(unitFormatterProvider)
-                      .formatDistance(trustedDistance),
-                  trustedMinutes,
+      // A visible thumb whenever the cap makes this panel scroll (#3994
+      // review): the capped height alone gives no hint that Save/Cancel,
+      // below the fold on a short screen, are still reachable by scrolling.
+      child: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                NavTrackPositionRowControls(
+                  label: l10n.navTrack_align_startLabel,
+                  placeKey: 'nav-track-align-place-start',
+                  placeLabel: l10n.navTrack_align_setStartOnMap,
+                  placeSelected: startRow.isManual,
+                  onPlace: () => state._startPlacing(_Placing.start),
+                  options: startRow.options,
                 ),
-              ),
-              Slider(
-                key: const ValueKey('nav-track-align-trust-slider'),
-                value: correction.trustFraction.clamp(0.0, 1.0),
-                onChanged: totalDistance <= 0
-                    ? null
-                    : (value) => state._updateCorrection(
-                        (c) => c.copyWith(trustFraction: value),
-                        route,
+                const SizedBox(height: 8),
+                NavTrackPositionRowControls(
+                  label: l10n.navTrack_align_endLabel,
+                  placeKey: 'nav-track-align-place-end',
+                  placeLabel: l10n.navTrack_align_endMode_point,
+                  placeSelected: correction.endMode == NavTrackEndMode.point,
+                  onPlace: () => state._startPlacingEndPoint(route),
+                  options: _endOptions(l10n),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.navTrack_align_trustSummary(
+                    ref
+                        .watch(unitFormatterProvider)
+                        .formatDistance(trustedDistance),
+                    trustedMinutes,
+                  ),
+                ),
+                Slider(
+                  key: const ValueKey('nav-track-align-trust-slider'),
+                  value: correction.trustFraction.clamp(0.0, 1.0),
+                  onChanged: totalDistance <= 0
+                      ? null
+                      : (value) => state._updateCorrection(
+                          (c) => c.copyWith(trustFraction: value),
+                          route,
+                        ),
+                ),
+                NavTrackRotationControl(
+                  headingOffsetDeg: correction.headingOffsetDeg,
+                  onChanged: (value) => state._updateCorrection(
+                    (c) => c.copyWith(headingOffsetDeg: value),
+                    route,
+                  ),
+                ),
+                if (state._terrainResult != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      key: const ValueKey('nav-track-align-terrain-summary'),
+                      state._terrainResult!.summaryLine(
+                        l10n,
+                        formatDepth: ref
+                            .watch(unitFormatterProvider)
+                            .formatDepth,
                       ),
-              ),
-              NavTrackRotationControl(
-                headingOffsetDeg: correction.headingOffsetDeg,
-                onChanged: (value) => state._updateCorrection(
-                  (c) => c.copyWith(headingOffsetDeg: value),
-                  route,
-                ),
-              ),
-              if (state._terrainResult != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    key: const ValueKey('nav-track-align-terrain-summary'),
-                    state._terrainResult!.summaryLine(
-                      l10n,
-                      formatDepth: ref.watch(unitFormatterProvider).formatDepth,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    TextButton(
+                      key: const ValueKey('nav-track-align-cancel'),
+                      onPressed: () => context.pop(),
+                      child: Text(l10n.navTrack_common_cancel),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      key: const ValueKey('nav-track-align-save'),
+                      onPressed: () => state._save(route),
+                      child: Text(l10n.navTrack_common_save),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  TextButton(
-                    key: const ValueKey('nav-track-align-cancel'),
-                    onPressed: () => context.pop(),
-                    child: Text(l10n.navTrack_common_cancel),
-                  ),
-                  const Spacer(),
-                  FilledButton(
-                    key: const ValueKey('nav-track-align-save'),
-                    onPressed: () => state._save(route),
-                    child: Text(l10n.navTrack_common_save),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

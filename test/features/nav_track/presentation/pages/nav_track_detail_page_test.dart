@@ -26,6 +26,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -1134,6 +1135,45 @@ void main() {
       expect(repository.deletedId, 'r1');
       expect(find.text('open'), findsOneWidget);
     });
+
+    testWidgets(
+      'deleting from the detail page clears the track\'s "last opened" '
+      'highlight (#4024 review)',
+      (tester) async {
+        final overrides = await getBaseOverrides();
+        final repository = _RecordingNavTrackRepository();
+        final route = _route();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              navTrackByIdProvider(route.id).overrideWith((ref) async => route),
+              navTrackRepositoryProvider.overrideWithValue(repository),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: NavTrackDetailPage(trackId: route.id),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(NavTrackDetailPage)),
+        );
+        container.read(highlightedTrackKeyProvider.notifier).state =
+            'underwater:r1';
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+        await tester.pumpAndSettle();
+
+        expect(container.read(highlightedTrackKeyProvider), isNull);
+      },
+    );
   });
 
   group('toolbar navigation', () {
@@ -1491,6 +1531,17 @@ void main() {
         expect(find.text('Change dive'), findsOneWidget);
         await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
         await tester.pumpAndSettle();
+        // Preselects the dive it is already linked to, not a time-proximity
+        // guess (dive-9 does not overlap the route's time window, so would
+        // otherwise come up with no preselection at all).
+        expect(
+          tester
+              .widget<ListTile>(
+                find.byKey(const ValueKey('nav-track-dive-choice-dive-1')),
+              )
+              .selected,
+          isTrue,
+        );
         await tester.tap(find.textContaining('#9'));
         await tester.pumpAndSettle();
 

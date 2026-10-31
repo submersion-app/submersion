@@ -29,6 +29,8 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/tracks/domain/track_kind.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -157,6 +159,12 @@ class NavTrackDetailPage extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await ref.read(navTrackRepositoryProvider).delete(route.id);
+    // Matches tracks_page.dart's own delete path: a deleted track must not
+    // stay highlighted as "last opened" on the Tracks list (#4024).
+    final selectionKey = '${TrackKind.underwater.name}:${route.id}';
+    if (ref.read(highlightedTrackKeyProvider) == selectionKey) {
+      ref.read(highlightedTrackKeyProvider.notifier).state = null;
+    }
     if (context.mounted) context.pop();
   }
 
@@ -183,7 +191,10 @@ class NavTrackDetailPage extends ConsumerWidget {
     final chosen = await showNavTrackDiveChoiceSheet(
       context,
       dives: nearest,
-      selectedDiveId: suggestedDiveId,
+      // "Change dive" (#4023) reopens on the dive it is already linked to,
+      // not the time-proximity guess -- that guess is only useful while
+      // there is no real answer yet.
+      selectedDiveId: route.diveId ?? suggestedDiveId,
     );
     if (chosen == null) return;
     await ref
@@ -515,7 +526,12 @@ class _TitleCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        // Restores the heading landmark AppBar.title gives its text, lost
+        // by moving the title out of the AppBar (#4022).
+        child: Semantics(
+          header: true,
+          child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        ),
       ),
     );
   }
