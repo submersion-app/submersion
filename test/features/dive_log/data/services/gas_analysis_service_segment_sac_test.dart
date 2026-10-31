@@ -89,6 +89,18 @@ void main() {
         expect(segments.first.tankName, 'Back gas');
       });
 
+      test('prorates over the starting cylinder\'s own stint', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        // 100 bar over its 50 minutes at 3 ata, not over the 60 minute dive.
+        expect(segments.first.sacRate, closeTo(100 / 50 / 3.0, 0.02));
+      });
+
       test('adds nothing when a switch opens the dive', () {
         final segments = service.calculateGasSwitchSegments(
           profile: flatProfile(3600, 20),
