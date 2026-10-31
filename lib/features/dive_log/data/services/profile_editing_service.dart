@@ -240,7 +240,12 @@ class ProfileEditingService {
     final shiftedStart = start + timeDelta;
     final shiftedEnd = end + timeDelta;
 
-    if (shiftedStart < 0) return null;
+    // A secondary computer's samples can start before zero.
+    final earliest = profile.fold(
+      0,
+      (low, point) => math.min(low, point.timestamp),
+    );
+    if (shiftedStart < earliest) return null;
     if (lastBeforeRange != null && shiftedStart <= lastBeforeRange) {
       return null;
     }

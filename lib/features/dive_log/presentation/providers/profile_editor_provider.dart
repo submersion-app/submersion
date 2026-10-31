@@ -126,11 +126,14 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     state = state.copyWith(mode: mode);
   }
 
+  /// Every edit starts here. Detected outliers describe the profile as it
+  /// stands and point at its samples by index, so they do not outlive it.
   void _pushUndo() {
     state = state.copyWith(
       undoStack: [...state.undoStack, state.editedProfile],
       undoEditKindsStack: [...state.undoEditKindsStack, state.editKinds],
       undoRangeStack: [...state.undoRangeStack, state.selectedRange],
+      clearOutliers: true,
     );
   }
 
@@ -216,11 +219,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
 
     _pushUndo();
     final cleaned = _service.removeOutliers(state.editedProfile, outliers);
-    state = state.copyWith(
-      editedProfile: cleaned,
-      hasChanges: true,
-      clearOutliers: true,
-    );
+    state = state.copyWith(editedProfile: cleaned, hasChanges: true);
     _recordEditKind(ProfileEditorEditKinds.removeAllOutliers);
   }
 
@@ -276,7 +275,6 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
         end: range.end + timeDelta,
       ),
       hasChanges: true,
-      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.shiftTime);
     return true;
@@ -301,7 +299,6 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: result,
       hasChanges: true,
       clearRange: true,
-      clearOutliers: true,
     );
     _recordEditKind(
       interpolateGap
@@ -367,7 +364,6 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: generated,
       hasChanges: true,
       clearRange: true,
-      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.generateFromWaypoints);
   }
@@ -385,7 +381,6 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       editedProfile: trimmed,
       hasChanges: true,
       clearRange: true,
-      clearOutliers: true,
     );
     _recordEditKind(ProfileEditorEditKinds.trimEndZeros);
   }

@@ -235,6 +235,21 @@ void main() {
         expect(editing.state.detectedOutliers, isNull);
       });
 
+      test('a depth shift changes what they measured', () {
+        final editing = detected()..shiftSegmentDepth(1);
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('smoothing changes what they measured', () {
+        final editing = detected()..applySmoothing();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
+      test('smoothing the selection changes what they measured', () {
+        final editing = detected()..applySmoothingToRange();
+        expect(editing.state.detectedOutliers, isNull);
+      });
+
       test('a time shift moves them', () {
         final editing = detected();
         expect(editing.shiftSegmentTime(5), isTrue);
