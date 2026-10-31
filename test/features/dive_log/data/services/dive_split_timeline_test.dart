@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
@@ -301,6 +302,24 @@ void main() {
       await expectOnOwnClock(newDive, 'dc-b');
     });
 
+    test('goes by the recorded offset when its clock was realigned', () async {
+      await seedRecording('a', startMinutes: 0);
+      await seedRecording('b', startMinutes: 2);
+      await consolidation.apply(targetDiveId: 'a', secondaryDiveIds: ['b']);
+      final source = await sourceOf('a', 'dc-b');
+      final clocks = SourceClockRepository(database: db);
+      await clocks.shift(
+        await clocks.snapshot([source.id]),
+        const Duration(minutes: 5),
+      );
+
+      final newDive = await splitter.split(diveId: 'a', sourceId: source.id);
+
+      // The window moved to 7 minutes in; the samples only ever moved 120s.
+      expect((await diveRow(newDive)).entryTime, minutesIn(7));
+      await expectOnOwnClock(newDive, 'dc-b');
+    });
+
     test('consolidating it again lands where it did the first time', () async {
       await seedRecording('a', startMinutes: 0);
       await seedRecording('b', startMinutes: 2);
@@ -360,6 +379,63 @@ void main() {
       )..where((t) => t.id.equals('ev-diver'))).getSingle();
       expect(diverEvent.timestamp, 80);
     });
+
+    test('takes the moment a photo is pinned to along', () async {
+      await seedRecording('a', startMinutes: 0);
+      await seedRecording('b', startMinutes: 2);
+      await consolidation.apply(targetDiveId: 'a', secondaryDiveIds: ['b']);
+      await db
+          .into(db.media)
+          .insert(
+            const MediaCompanion(
+              id: Value('pinned'),
+              diveId: Value('a'),
+              filePath: Value('pinned.jpg'),
+              manualElapsedSeconds: Value(300),
+              createdAt: Value(1),
+              updatedAt: Value(1),
+            ),
+          );
+      await db
+          .into(db.media)
+          .insert(
+            const MediaCompanion(
+              id: Value('unpinned'),
+              diveId: Value('a'),
+              filePath: Value('unpinned.jpg'),
+              createdAt: Value(1),
+              updatedAt: Value(1),
+            ),
+          );
+
+      await splitter.split(diveId: 'a', sourceId: 'src-a');
+
+      final media = await db.select(db.media).get();
+      final pin = {for (final m in media) m.id: m.manualElapsedSeconds};
+      expect(pin, {'pinned': 180, 'unpinned': null});
+    });
+
+    test(
+      'drops the safety review, which graded the computer that left',
+      () async {
+        await seedRecording('a', startMinutes: 0);
+        await seedRecording('b', startMinutes: 0);
+        await consolidation.apply(targetDiveId: 'a', secondaryDiveIds: ['b']);
+        await db
+            .into(db.diveSafetyReviews)
+            .insert(
+              DiveSafetyReviewsCompanion.insert(
+                diveId: 'a',
+                engineVersion: 1,
+                reviewedAt: 1,
+              ),
+            );
+
+        await splitter.split(diveId: 'a', sourceId: 'src-a');
+
+        expect(await db.select(db.diveSafetyReviews).get(), isEmpty);
+      },
+    );
 
     test('keeps each remaining series and its identity', () async {
       await seedRecording('a', startMinutes: 0);
