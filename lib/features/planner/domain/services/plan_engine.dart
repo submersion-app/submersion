@@ -973,6 +973,7 @@ class PlanEngine {
       otu,
       environment,
       breaches,
+      ascentPlan,
     );
 
     // The last table line's end, so the headline runtime can never
@@ -1640,6 +1641,7 @@ class PlanEngine {
     double otu,
     DiveEnvironment environment,
     Iterable<_CeilingBreach> ceilingBreaches,
+    AscentGasPlan ascentPlan,
   ) {
     final issues = <PlanIssue>[];
 
@@ -1930,8 +1932,11 @@ class PlanEngine {
 
     final inDeco = segmentOutcomes.any((s) => s.inDeco);
     // A loop deco dive stays on the loop, so what it must carry is a way off
-    // it, not a richer gas to switch to.
-    final isLoop = plan.mode != domain.PlanMode.oc;
+    // it, not a richer gas to switch to. That holds for a loop plan whose
+    // final leg is open circuit too: its tanks only ever resolve to bailout,
+    // so a deco gas is an alert it could never clear.
+    final isLoop =
+        plan.mode != domain.PlanMode.oc || ascentPlan is LoopAscentGas;
     if (inDeco && !isLoop && !_hasDecoGas(plan)) {
       issues.add(
         const PlanIssue(

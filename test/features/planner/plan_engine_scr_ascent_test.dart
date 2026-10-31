@@ -352,6 +352,76 @@ void main() {
       expect(carried, isNot(contains(PlanIssueType.ndlExceededNoDecoGas)));
     });
 
+    test('an open-circuit plan ending on the loop asks for bailout gas', () {
+      const unmarked = DiveTank(
+        id: 'supply',
+        volume: 12,
+        startPressure: 230,
+        gasMix: _ean32,
+      );
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.oc,
+          tanks: const [unmarked],
+          segments: [
+            PlanSegment.travel(
+              id: 'descent',
+              fromDepth: 0,
+              targetDepth: 40,
+              tankId: 'supply',
+              gasMix: _ean32,
+              order: 0,
+              ratePerMinute: 18,
+            ),
+            PlanSegment.hold(
+              id: 'bottom',
+              depth: 40,
+              durationMinutes: 35,
+              tankId: 'supply',
+              gasMix: _ean32,
+              diveModeOverride: domain.PlanMode.scr,
+              order: 1,
+            ),
+          ],
+        ),
+      );
+      final types = [for (final issue in outcome.issues) issue.type];
+
+      expect(types, contains(PlanIssueType.noBailoutCarried));
+      expect(types, isNot(contains(PlanIssueType.ndlExceededNoDecoGas)));
+    });
+
+    test('a semi-closed plan ending open circuit is not told to carry a deco '
+        'gas its tanks can never resolve to', () {
+      const bailout = DiveTank(
+        id: 'bailout',
+        volume: 12,
+        startPressure: 230,
+        gasMix: _ean50,
+      );
+      final outcome = engine.compute(
+        _plan(
+          tanks: const [_supply, bailout],
+          segments: [
+            ..._segments(),
+            PlanSegment.hold(
+              id: 'off-loop',
+              depth: 40,
+              durationMinutes: 2,
+              tankId: 'bailout',
+              gasMix: _ean50,
+              diveModeOverride: domain.PlanMode.oc,
+              order: 2,
+            ),
+          ],
+        ),
+      );
+      final types = [for (final issue in outcome.issues) issue.type];
+
+      expect(types, isNot(contains(PlanIssueType.ndlExceededNoDecoGas)));
+      expect(types, isNot(contains(PlanIssueType.noBailoutCarried)));
+    });
+
     test('a supply nobody marked as diluent is not its own bailout', () {
       const unmarked = DiveTank(
         id: 'supply',
