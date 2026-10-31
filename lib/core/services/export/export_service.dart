@@ -561,12 +561,10 @@ class ExportService {
     InventoryReport report, {
     required InventoryReportOptions options,
     required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
   }) => _equipmentInventory.exportToPdf(
     report,
     options: options,
     settings: settings,
-    sharePositionOrigin: sharePositionOrigin,
   );
 
   Future<String?> saveEquipmentInventoryToFile(
@@ -583,13 +581,8 @@ class ExportService {
     ServiceReport report, {
     required ServiceReportOptions options,
     required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
-  }) => _serviceReport.exportToPdf(
-    report,
-    options: options,
-    settings: settings,
-    sharePositionOrigin: sharePositionOrigin,
-  );
+  }) =>
+      _serviceReport.exportToPdf(report, options: options, settings: settings);
 
   Future<String?> saveServiceReportToFile(
     ServiceReport report, {

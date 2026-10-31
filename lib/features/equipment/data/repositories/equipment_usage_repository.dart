@@ -17,11 +17,6 @@ class EquipmentUsageRepository {
 
   static const _tickDebounce = Duration(milliseconds: 300);
 
-  /// `diveGearUsageSql` lists a pair once per link, so a dive on a tank and
-  /// the gear list reads twice there; here it reads once.
-  static final _distinctPairsSql =
-      '(SELECT DISTINCT dive_id, equipment_id FROM (${diveGearUsageSql()}))';
-
   /// Fires when a dive, or any link between a dive and gear, changes.
   Stream<void> watchChanges() => _db
       .tableUpdates(
@@ -49,7 +44,7 @@ class EquipmentUsageRepository {
         SELECT u.equipment_id AS equipment_id,
                COUNT(*) AS dive_count,
                SUM($diveLengthSql) AS seconds
-        FROM $_distinctPairsSql u
+        FROM ($distinctDiveGearPairsSql) u
         JOIN dives d ON d.id = u.dive_id
         WHERE 1 = 1 ${diver.clause} ${DiveStatsScope.and(alias: 'd')}
         GROUP BY u.equipment_id
@@ -81,7 +76,7 @@ class EquipmentUsageRepository {
       final rows = await _db.customSelect('''
         SELECT u.equipment_id AS equipment_id,
                MAX(d.dive_date_time) AS last_ms
-        FROM $_distinctPairsSql u
+        FROM ($distinctDiveGearPairsSql) u
         JOIN dives d ON d.id = u.dive_id
         WHERE d.is_planned = 0 ${diver.clause}
         GROUP BY u.equipment_id

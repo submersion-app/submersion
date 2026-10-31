@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/cost_of_ownership.dart';
+import 'package:submersion/features/equipment/domain/services/components_index.dart';
 
 EquipmentItem _item(
   String id, {
@@ -47,6 +49,7 @@ CostOfOwnership _build(
   int totalDives = 100,
   String? diverId = 'me',
   String fallback = 'USD',
+  ComponentsIndex index = ComponentsIndex.empty,
 }) => buildCostOfOwnership(
   items: items,
   recordsByItem: records,
@@ -54,9 +57,33 @@ CostOfOwnership _build(
   totalDives: totalDives,
   diverId: diverId,
   fallbackCurrency: fallback,
+  index: index,
 );
 
 void main() {
+  test('a shared part puts both of its assemblies on dives', () {
+    final report = _build(
+      [_item('a', price: 100), _item('b', price: 200), _item('p', parent: 'a')],
+      usage: {'p': const GearUsageTotals(diveCount: 30, hours: 25)},
+      index: ComponentsIndex.fromRows([
+        for (final parent in ['a', 'b'])
+          EquipmentComponent(
+            id: parent,
+            parentEquipmentId: parent,
+            componentEquipmentId: 'p',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+      ]),
+    );
+
+    final rows = report.byCurrency.single.rows;
+    expect(rows.map((r) => (r.item.id, r.diveCount)).toSet(), {
+      ('a', 30),
+      ('b', 30),
+    });
+  });
+
   test('item cost is price plus service costs, in each currency', () {
     final report = _build(
       [_item('reg', price: 1000)],

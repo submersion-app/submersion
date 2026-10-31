@@ -1,11 +1,8 @@
-import 'dart:ui' show Rect;
-
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
-import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/pdf/equipment_report_pdf_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -16,20 +13,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Renders the equipment inventory: what the diver owns, with serial numbers
 /// and what they paid, for an insurer or a customs officer.
-class EquipmentInventoryPdfExportService {
-  /// [loadTheme] picks the fonts. The default loads Roboto plus the script
-  /// font the language needs; tests pass a Helvetica theme because text drawn
-  /// in an embedded TrueType font cannot be read back out of the PDF.
-  EquipmentInventoryPdfExportService({
-    Future<pw.ThemeData> Function(PdfLocalization localization)? loadTheme,
-  }) : _loadTheme = loadTheme ?? reportSharedTheme;
+class EquipmentInventoryPdfExportService
+    extends EquipmentReportPdfService<InventoryReport, InventoryReportOptions> {
+  EquipmentInventoryPdfExportService({super.loadTheme})
+    : super(fileStem: 'submersion_equipment_inventory');
 
-  final Future<pw.ThemeData> Function(PdfLocalization localization) _loadTheme;
-
-  static final _fileNameDate = DateFormat('yyyy-MM-dd');
-
-  /// Builds the PDF bytes without touching the filesystem. Null [localization]
-  /// prints English.
+  @override
   Future<List<int>> generateBytes(
     InventoryReport report, {
     required InventoryReportOptions options,
@@ -38,7 +27,7 @@ class EquipmentInventoryPdfExportService {
     final loc = settings.localization ?? PdfLocalization.english();
     final units = settings.units;
     final l10n = loc.l10n;
-    final pdf = pw.Document(theme: await _loadTheme(loc));
+    final pdf = pw.Document(theme: await loadTheme(loc));
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -52,6 +41,7 @@ class EquipmentInventoryPdfExportService {
             printedLine: l10n.equipmentReport_pdf_printedOn(
               units.formatDate(settings.printedAt),
             ),
+            detail: report.scopeLabel,
           ),
           summaryStrip([
             (
@@ -160,30 +150,4 @@ class EquipmentInventoryPdfExportService {
       ),
     );
   }
-
-  String _fileName(DateTime printedAt) =>
-      'submersion_equipment_inventory_${_fileNameDate.format(printedAt)}.pdf';
-
-  /// Writes the PDF to the documents directory and opens the system share
-  /// sheet. Returns the saved path.
-  Future<String> exportToPdf(
-    InventoryReport report, {
-    required InventoryReportOptions options,
-    required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
-  }) async => sharePdfBytes(
-    await generateBytes(report, options: options, settings: settings),
-    _fileName(settings.printedAt),
-    sharePositionOrigin: sharePositionOrigin,
-  );
-
-  /// Saves the PDF where the diver chooses. Null when they cancel.
-  Future<String?> saveToFile(
-    InventoryReport report, {
-    required InventoryReportOptions options,
-    required ReportPrintSettings settings,
-  }) async => savePdfToFile(
-    await generateBytes(report, options: options, settings: settings),
-    _fileName(settings.printedAt),
-  );
 }

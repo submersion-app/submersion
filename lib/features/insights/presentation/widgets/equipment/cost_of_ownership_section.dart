@@ -213,6 +213,8 @@ class _CostOfOwnershipSectionState
       final rate? => l10n.insights_equipment_cost_rowPerHour(
         formatMoney(rate, currency),
       ),
+      // Dives logged with no time have no hourly rate, but they are dives.
+      null when row.diveCount > 0 => '--',
       null => l10n.insights_equipment_cost_noDives,
     },
     CostMetric.total => formatMoney(row.cost, currency),
@@ -232,13 +234,12 @@ class _CostOfOwnershipSectionState
           // A real rate never reads "over 0 hours".
           math.max(1, row.hours.round()),
         ),
-      CostMetric.perHour => cost,
       _ when row.diveCount > 0 => l10n.insights_equipment_cost_rowOverDives(
         cost,
         row.diveCount,
       ),
       CostMetric.total => null,
-      CostMetric.perDive => cost,
+      CostMetric.perDive || CostMetric.perHour => cost,
     };
   }
 }

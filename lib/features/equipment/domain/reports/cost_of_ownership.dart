@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/reports/report_gear_sets.dart';
+import 'package:submersion/features/equipment/domain/services/components_index.dart';
 
 /// How much an item has been dived, from every link it has to a dive.
 class GearUsageTotals extends Equatable {
@@ -90,6 +91,7 @@ class _Bucket {
 /// than the diver's own gear: only [isEverOwned] items count. A part's cost
 /// rolls into the highest ancestor that also counts, because dives link to
 /// the assembly and a first stage on its own would read as never dived.
+/// [index] reaches a part shared between assemblies from each of them.
 CostOfOwnership buildCostOfOwnership({
   required List<EquipmentItem> items,
   required Map<String, List<ServiceRecord>> recordsByItem,
@@ -97,6 +99,7 @@ CostOfOwnership buildCostOfOwnership({
   required int totalDives,
   required String? diverId,
   required String fallbackCurrency,
+  ComponentsIndex index = ComponentsIndex.empty,
 }) {
   final owned = {
     for (final item in items)
@@ -115,7 +118,7 @@ CostOfOwnership buildCostOfOwnership({
 
   final fallback = normalizeCurrencyCode(fallbackCurrency, fallback: '');
   final buckets = <String, _Bucket>{};
-  void add(String rootId, String currency, double amount, DateTime? date) {
+  _Bucket add(String rootId, String currency, double amount, DateTime? date) {
     final bucket =
         buckets[normalizeCurrencyCode(currency, fallback: fallback)] ??=
             _Bucket();
@@ -124,20 +127,21 @@ CostOfOwnership buildCostOfOwnership({
     if (date != null) {
       bucket.years[date.year] = (bucket.years[date.year] ?? 0) + amount;
     }
+    return bucket;
   }
 
+  final roots = {for (final item in owned.values) item.id: rootOf(item)};
   for (final item in owned.values) {
-    final rootId = rootOf(item);
+    final rootId = roots[item.id]!;
     final price = item.purchasePrice;
     if (price != null && price > 0) {
-      add(rootId, item.purchaseCurrency, price, item.purchaseDate);
-      if (item.purchaseDate == null) {
-        buckets[normalizeCurrencyCode(
-              item.purchaseCurrency,
-              fallback: fallback,
-            )]!
-            .undated++;
-      }
+      final bucket = add(
+        rootId,
+        item.purchaseCurrency,
+        price,
+        item.purchaseDate,
+      );
+      if (item.purchaseDate == null) bucket.undated++;
     }
     for (final record in recordsByItem[item.id] ?? const <ServiceRecord>[]) {
       final cost = record.cost;
@@ -147,26 +151,23 @@ CostOfOwnership buildCostOfOwnership({
     }
   }
 
-  final treeOf = <String, List<String>>{};
-  for (final item in owned.values) {
-    (treeOf[rootOf(item)] ??= []).add(item.id);
-  }
   final costed = {for (final b in buckets.values) ...b.costs.keys};
-  final leftOut = treeOf.keys.toSet().difference(costed);
+  final leftOut = roots.values.toSet().difference(costed);
 
-  /// The root's own usage, or its busiest part's when only the parts were put
-  /// on dives, so an assembly in regular use never reads as undived.
-  GearUsageTotals? usageOf(String rootId) {
-    final own = usage[rootId];
-    if (own != null) return own;
-    GearUsageTotals? busiest;
-    for (final id in treeOf[rootId] ?? const <String>[]) {
-      final part = usage[id];
-      if (part != null && part.diveCount > (busiest?.diveCount ?? 0)) {
-        busiest = part;
-      }
-    }
-    return busiest;
+  CostRow rowFor(String rootId, double cost) {
+    final used =
+        usage[usageSourceOf(
+          rootId,
+          items,
+          index,
+          (id) => usage[id]?.diveCount ?? 0,
+        )];
+    return CostRow(
+      item: owned[rootId]!,
+      cost: cost,
+      diveCount: used?.diveCount ?? 0,
+      hours: used?.hours ?? 0,
+    );
   }
 
   final byCurrency = [
@@ -179,12 +180,7 @@ CostOfOwnership buildCostOfOwnership({
         undatedPurchases: entry.value.undated,
         rows: sortCostRows([
           for (final cost in entry.value.costs.entries)
-            CostRow(
-              item: owned[cost.key]!,
-              cost: cost.value,
-              diveCount: usageOf(cost.key)?.diveCount ?? 0,
-              hours: usageOf(cost.key)?.hours ?? 0,
-            ),
+            rowFor(cost.key, cost.value),
         ], CostMetric.perDive),
       ),
   ]..sort(_byTotalThenCode);

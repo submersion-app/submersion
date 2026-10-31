@@ -2,13 +2,14 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 
 /// Which gear each equipment report covers. One place, so the reports and
-/// their tests cannot drift apart. A null [diverId] is a library with no
-/// active diver, where everything counts, and an ownerless item belongs to
-/// whoever is looking at it, the rule `canDeleteEquipment` follows.
+/// their tests cannot drift apart. Ownership is the rule that decides who may
+/// delete an item: a library with no active diver counts everything, and an
+/// ownerless item belongs to whoever is looking at it.
 bool isOwnedByDiver(EquipmentItem item, String? diverId) =>
-    diverId == null || item.diverId == null || item.diverId == diverId;
+    canDeleteEquipment(item, diverId);
 
 /// The inventory: gear the diver holds today. Shared gear belongs on its
 /// owner's inventory.
@@ -25,12 +26,9 @@ bool isServiceable(EquipmentItem item) =>
 bool isEverOwned(EquipmentItem item, String? diverId) =>
     isOwnedByDiver(item, diverId) && !item.isWanted;
 
-/// Idle gear: a spare is meant to sit on the shelf, and a part follows its
-/// parent.
+/// Idle gear: a spare is meant to sit on the shelf.
 bool isIdleCandidate(EquipmentItem item, String? diverId) =>
-    isOwnedNow(item, diverId) &&
-    item.status != EquipmentStatus.spare &&
-    item.parentEquipmentId == null;
+    isOwnedNow(item, diverId) && item.status != EquipmentStatus.spare;
 
 /// [items] as the reports nest them. Gear hangs together two ways: an item can
 /// be installed in another (`parentEquipmentId`), or be a part in an assembly's
@@ -105,6 +103,28 @@ List<ReportRow> arrangeAsTree(List<EquipmentItem> items) {
     visit(item, 0);
   }
   return rows;
+}
+
+/// The item whose usage stands for [rootId]: itself when it has dives, or its
+/// busiest part when only the parts went on them, so an assembly in regular
+/// use never reads as undived.
+String usageSourceOf(
+  String rootId,
+  List<EquipmentItem> all,
+  ComponentsIndex index,
+  int Function(String id) divesOf,
+) {
+  if (divesOf(rootId) > 0) return rootId;
+  var busiest = rootId;
+  var most = 0;
+  for (final id in withInstalledParts(rootId, all, index: index)) {
+    final dives = divesOf(id);
+    if (dives > most) {
+      most = dives;
+      busiest = id;
+    }
+  }
+  return busiest;
 }
 
 /// [rootId] and everything fitted to it at any depth, installed or as a part

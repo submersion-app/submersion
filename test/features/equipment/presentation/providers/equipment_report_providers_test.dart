@@ -356,6 +356,19 @@ void main() {
     expect(report.history.single.diveCount, 1);
   });
 
+  test('history counts the dives of an assembly\'s parts', () async {
+    await item('set');
+    await item('first');
+    await component('set', 'first');
+    await record('set', cost: 10);
+    await diveOn('d1', 'first');
+
+    final report = await service(const ServiceReportOptions());
+
+    expect(report.history.single.item.id, 'set');
+    expect(report.history.single.diveCount, 1);
+  });
+
   test('one item leaves a wishlist part out', () async {
     await item('set');
     await item('wish', status: 'wanted', isActive: false, parent: 'set');

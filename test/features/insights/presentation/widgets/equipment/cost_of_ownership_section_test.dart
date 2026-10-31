@@ -116,6 +116,32 @@ void main() {
     expect(find.text('Apex Reg Set'), findsNothing);
   });
 
+  testWidgets('per hour keeps a row with dives but no recorded time', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      () async => CostOfOwnership(
+        byCurrency: [
+          _usd(rows: [_row('Wetsuit', 300, dives: 12)]),
+        ],
+        leftOutCount: 0,
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('cost-metric')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Per hour').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('--'), findsOneWidget);
+    expect(find.text('no dives yet'), findsNothing);
+    expect(
+      find.text('${formatMoney(300, 'USD')} over 12 dives'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('per hour row reads the hourly value and hours subtitle', (
     tester,
   ) async {

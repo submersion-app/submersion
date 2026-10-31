@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.d
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/reports/inventory_report.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -38,9 +39,10 @@ EquipmentItem _item(
 InventoryReport _report(
   List<EquipmentItem> items, {
   InventoryReportOptions options = const InventoryReportOptions(),
+  Map<String, EquipmentLocation> locations = const {},
 }) => buildInventoryReport(
   items: items,
-  locations: const {},
+  locations: locations,
   options: options,
   diverId: 'me',
   fallbackCurrency: 'USD',
@@ -97,6 +99,24 @@ void main() {
     expect(out, contains('1,290'));
     expect(out, contains('Regulator'));
     expect(out, contains('Prices are what was paid, not current value.'));
+  });
+
+  test('names the one location it covers', () async {
+    final bag = EquipmentLocation(
+      id: 'bag',
+      name: 'Travel bag',
+      kind: EquipmentLocationKind.storage,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    const options = InventoryReportOptions(locationId: 'bag');
+
+    final out = await text(
+      _report([_item('Apex')], options: options, locations: {'Apex': bag}),
+      options: options,
+    );
+
+    expect(out, contains('Travel bag'));
   });
 
   test('prints brand and model under the item name', () async {

@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/reports/idle_gear.dart';
+import 'package:submersion/features/equipment/domain/services/components_index.dart';
 
 final _now = DateTime(2026, 10, 31);
 
@@ -10,6 +12,7 @@ EquipmentItem _item(
   DateTime? bought,
   DateTime? created,
   String? parent,
+  EquipmentStatus status = EquipmentStatus.active,
 }) => EquipmentItem(
   id: id,
   diverId: 'me',
@@ -18,18 +21,22 @@ EquipmentItem _item(
   purchaseDate: bought,
   createdAt: created,
   parentEquipmentId: parent,
+  status: status,
 );
 
 List<IdleRow> _build(
   List<EquipmentItem> items, {
   Map<String, DateTime> lastDives = const {},
   IdlePeriod period = IdlePeriod.oneYear,
+  ComponentsIndex index = ComponentsIndex.empty,
+  DateTime? now,
 }) => buildIdleGear(
   items: items,
   lastDives: lastDives,
   diverId: 'me',
   period: period,
-  now: _now,
+  now: now ?? _now,
+  index: index,
 );
 
 void main() {
@@ -126,6 +133,109 @@ void main() {
 
     final idle = _build(items, lastDives: {'first': DateTime(2023, 1, 1)});
     expect(idle.single.lastDive, DateTime(2023, 1, 1));
+  });
+
+  test('a part dived after the root has the root in the water', () {
+    final items = [
+      _item('set', bought: DateTime(2020)),
+      _item('first', parent: 'set'),
+    ];
+    expect(
+      _build(
+        items,
+        lastDives: {'set': DateTime(2023, 1, 1), 'first': DateTime(2026, 9, 1)},
+      ),
+      isEmpty,
+    );
+  });
+
+  test('a part of gear the diver has let go stands on its own', () {
+    final rows = _build(
+      [
+        _item('sold', status: EquipmentStatus.sold, bought: DateTime(2020)),
+        _item('second', parent: 'sold', bought: DateTime(2020)),
+      ],
+      lastDives: {'second': DateTime(2023, 1, 1)},
+    );
+    expect(rows.map((r) => r.item.id), ['second']);
+  });
+
+  test('a part stays under a parent the diver still holds', () {
+    final rows = _build(
+      [
+        _item('spare', status: EquipmentStatus.spare),
+        _item('second', parent: 'spare', bought: DateTime(2020)),
+      ],
+      lastDives: {'second': DateTime(2023, 1, 1)},
+    );
+    expect(rows, isEmpty);
+  });
+
+  test('a shared part keeps both of its assemblies in use', () {
+    final items = [
+      _item('a', bought: DateTime(2020)),
+      _item('b', bought: DateTime(2020)),
+      _item('part', parent: 'a'),
+    ];
+    final index = ComponentsIndex.fromRows([
+      for (final parent in ['a', 'b'])
+        EquipmentComponent(
+          id: parent,
+          parentEquipmentId: parent,
+          componentEquipmentId: 'part',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+    ]);
+    expect(
+      _build(items, lastDives: {'part': DateTime(2026, 9, 1)}, index: index),
+      isEmpty,
+    );
+  });
+
+  test('gear last dived together falls to the name', () {
+    final rows = _build(
+      [_item('c'), _item('a'), _item('b')],
+      lastDives: {
+        'c': DateTime(2024, 1, 1),
+        'a': DateTime(2024, 1, 1),
+        'b': DateTime(2024, 1, 1),
+      },
+    );
+    expect(rows.map((r) => r.item.id), ['a', 'b', 'c']);
+  });
+
+  test('the cutoff stops at the end of a shorter month', () {
+    final aug31 = DateTime(2026, 8, 31);
+    expect(
+      _build(
+        [_item('a')],
+        lastDives: {'a': DateTime(2026, 3, 1)},
+        period: IdlePeriod.sixMonths,
+        now: aug31,
+      ),
+      isEmpty,
+    );
+    expect(
+      _build(
+        [_item('a')],
+        lastDives: {'a': DateTime(2026, 2, 27)},
+        period: IdlePeriod.sixMonths,
+        now: aug31,
+      ),
+      hasLength(1),
+    );
+  });
+
+  test('a leap day cutoff lands on the last day of February', () {
+    expect(
+      _build(
+        [_item('a')],
+        lastDives: {'a': DateTime(2027, 3, 1)},
+        now: DateTime(2028, 2, 29),
+      ),
+      isEmpty,
+    );
   });
 
   test('never-dived gear of unknown age is not called idle', () {

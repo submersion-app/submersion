@@ -1,11 +1,8 @@
-import 'dart:ui' show Rect;
-
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/pdf/equipment_report_pdf_parts.dart';
-import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/export/pdf/equipment_report_pdf_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -16,20 +13,12 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Renders the service report: what needs doing on page one, then each item's
 /// service history, for a dive shop, a trip check or a sale.
-class ServiceReportPdfExportService {
-  /// [loadTheme] picks the fonts. The default loads Roboto plus the script
-  /// font the language needs; tests pass a Helvetica theme because text drawn
-  /// in an embedded TrueType font cannot be read back out of the PDF.
-  ServiceReportPdfExportService({
-    Future<pw.ThemeData> Function(PdfLocalization localization)? loadTheme,
-  }) : _loadTheme = loadTheme ?? reportSharedTheme;
+class ServiceReportPdfExportService
+    extends EquipmentReportPdfService<ServiceReport, ServiceReportOptions> {
+  ServiceReportPdfExportService({super.loadTheme})
+    : super(fileStem: 'submersion_service_report');
 
-  final Future<pw.ThemeData> Function(PdfLocalization localization) _loadTheme;
-
-  static final _fileNameDate = DateFormat('yyyy-MM-dd');
-
-  /// Builds the PDF bytes without touching the filesystem. Null [localization]
-  /// prints English.
+  @override
   Future<List<int>> generateBytes(
     ServiceReport report, {
     required ServiceReportOptions options,
@@ -38,7 +27,7 @@ class ServiceReportPdfExportService {
     final loc = settings.localization ?? PdfLocalization.english();
     final units = settings.units;
     final l10n = loc.l10n;
-    final pdf = pw.Document(theme: await _loadTheme(loc));
+    final pdf = pw.Document(theme: await loadTheme(loc));
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -68,13 +57,14 @@ class ServiceReportPdfExportService {
               label: l10n.equipmentReport_pdf_upToDate,
             ),
           ]),
-          if (report.due.isEmpty)
+          if (report.due.isNotEmpty)
+            _dueTable(l10n, report, units, settings.printedAt)
+          // With no clocks at all, nothing has been checked.
+          else if (report.upToDate > 0)
             pw.Text(
               l10n.equipmentReport_pdf_allUpToDate,
               style: const pw.TextStyle(fontSize: 10),
-            )
-          else
-            _dueTable(l10n, report, units, settings.printedAt),
+            ),
           if (report.noScheduleCount > 0)
             reportFootnote(
               l10n.equipmentReport_pdf_noSchedule(report.noScheduleCount),
@@ -200,30 +190,4 @@ class ServiceReportPdfExportService {
     ServiceClockSeverity.dueSoon => PdfColors.orange800,
     ServiceClockSeverity.ok => null,
   };
-
-  String _fileName(DateTime printedAt) =>
-      'submersion_service_report_${_fileNameDate.format(printedAt)}.pdf';
-
-  /// Writes the PDF to the documents directory and opens the system share
-  /// sheet. Returns the saved path.
-  Future<String> exportToPdf(
-    ServiceReport report, {
-    required ServiceReportOptions options,
-    required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
-  }) async => sharePdfBytes(
-    await generateBytes(report, options: options, settings: settings),
-    _fileName(settings.printedAt),
-    sharePositionOrigin: sharePositionOrigin,
-  );
-
-  /// Saves the PDF where the diver chooses. Null when they cancel.
-  Future<String?> saveToFile(
-    ServiceReport report, {
-    required ServiceReportOptions options,
-    required ReportPrintSettings settings,
-  }) async => savePdfToFile(
-    await generateBytes(report, options: options, settings: settings),
-    _fileName(settings.printedAt),
-  );
 }

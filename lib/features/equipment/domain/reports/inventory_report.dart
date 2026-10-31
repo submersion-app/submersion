@@ -48,6 +48,9 @@ class InventoryGroup {
 }
 
 class InventoryReport {
+  /// The one place this inventory covers, null for every location.
+  final String? scopeLabel;
+
   /// Every printed row, parts included.
   final int itemCount;
 
@@ -62,6 +65,7 @@ class InventoryReport {
   final String fallbackCurrency;
 
   const InventoryReport({
+    this.scopeLabel,
     required this.itemCount,
     required this.unpricedCount,
     required this.totals,
@@ -114,6 +118,10 @@ InventoryReport buildInventoryReport({
   };
   final rows = [for (final family in kept) ...family];
   return InventoryReport(
+    scopeLabel: locations.values
+        .where((place) => place.id == options.locationId)
+        .firstOrNull
+        ?.name,
     itemCount: rows.length,
     unpricedCount: kept
         .where((family) => family.first.item.purchasePrice == null)

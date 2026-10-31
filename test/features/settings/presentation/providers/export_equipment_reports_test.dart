@@ -1,5 +1,3 @@
-import 'dart:ui' show Rect;
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -66,7 +64,6 @@ class _FakeExport implements ExportService {
     InventoryReport report, {
     required InventoryReportOptions options,
     required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
   }) async {
     if (fail) throw StateError('disk full');
     calls.add('share-inventory');
@@ -90,7 +87,6 @@ class _FakeExport implements ExportService {
     ServiceReport report, {
     required ServiceReportOptions options,
     required ReportPrintSettings settings,
-    Rect? sharePositionOrigin,
   }) async {
     calls.add('share-service');
     return '/shared.pdf';

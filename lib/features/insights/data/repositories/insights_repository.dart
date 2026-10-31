@@ -2547,12 +2547,7 @@ class InsightsRepository with InsightsChartDives {
           COUNT(*) AS use_count,
           SUM($diveLengthSql) AS use_seconds
         FROM equipment e
-        JOIN (
-          -- Every link to a dive, each pair once: a dive carrying an item
-          -- two ways is still one dive.
-          SELECT DISTINCT dive_id, equipment_id
-          FROM (${diveGearUsageSql()})
-        ) u ON u.equipment_id = e.id
+        JOIN ($distinctDiveGearPairsSql) u ON u.equipment_id = e.id
         JOIN dives d ON d.id = u.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY e.id

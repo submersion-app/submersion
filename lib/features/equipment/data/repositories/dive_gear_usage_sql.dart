@@ -44,6 +44,11 @@ SELECT t.dive_id, r.transmitter_equipment_id, 'transmitter'
 ''';
 }
 
+/// [diveGearUsageSql] with each dive and item pair once: a dive carrying an
+/// item two ways is still one dive.
+final String distinctDiveGearPairsSql =
+    'SELECT DISTINCT dive_id, equipment_id FROM (${diveGearUsageSql()})';
+
 /// A dive `d`'s length in seconds, the first positive of its runtime and
 /// bottom time: a manual zero runtime beside a real bottom time is no figure,
 /// and must not count the dive as zero hours (or subtract any).

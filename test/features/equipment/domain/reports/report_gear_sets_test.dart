@@ -169,13 +169,12 @@ void main() {
       expect(isEverOwned(_item('a', diverId: 'them'), 'me'), isFalse);
     });
 
-    test('idle candidates drop spares and parts', () {
+    test('idle candidates drop spares', () {
       expect(isIdleCandidate(_item('a'), 'me'), isTrue);
       expect(
         isIdleCandidate(_item('a', status: EquipmentStatus.spare), 'me'),
         isFalse,
       );
-      expect(isIdleCandidate(_item('a', parent: 'p'), 'me'), isFalse);
     });
 
     test('a null diver owns everything', () {
@@ -217,6 +216,28 @@ void main() {
         _item('c'),
       ]);
       expect(rows.map((r) => r.item.id).toList()..sort(), ['a', 'b', 'c']);
+    });
+  });
+
+  group('usageSourceOf', () {
+    final items = [_item('set'), _item('first'), _item('second')];
+    final index = _index([('set', 'first'), ('set', 'second')]);
+
+    test('reads the item itself when it has dives', () {
+      final dives = {'set': 1, 'first': 40};
+      expect(usageSourceOf('set', items, index, (id) => dives[id] ?? 0), 'set');
+    });
+
+    test('reads the busiest part when only the parts have dives', () {
+      final dives = {'first': 12, 'second': 40};
+      expect(
+        usageSourceOf('set', items, index, (id) => dives[id] ?? 0),
+        'second',
+      );
+    });
+
+    test('stays on the item with no dives anywhere', () {
+      expect(usageSourceOf('set', items, index, (_) => 0), 'set');
     });
   });
 

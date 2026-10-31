@@ -53,6 +53,7 @@ final costOfOwnershipProvider = FutureProvider<CostOfOwnership>((ref) async {
     totalDives: loaded.$3,
     diverId: diverId,
     fallbackCurrency: fallback,
+    index: gear.$2,
   );
 });
 
@@ -74,5 +75,6 @@ final idleGearProvider = FutureProvider<List<IdleRow>>((ref) async {
     diverId: diverId,
     period: period,
     now: DateTime.now(),
+    index: loaded.$2,
   );
 });

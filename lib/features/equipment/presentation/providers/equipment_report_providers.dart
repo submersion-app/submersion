@@ -82,32 +82,43 @@ final serviceReportProvider = FutureProvider.autoDispose
 
       final stored = await ref.watch(allEquipmentProvider.future);
       final index = await ref.watch(equipmentComponentsIndexProvider.future);
-      final scope = await _scopeOf(
-        ref,
-        options,
-        withAssemblyParents(stored, index),
-        index,
-      );
+      final arranged = withAssemblyParents(stored, index);
+      final scope = await _scopeOf(ref, options, arranged, index);
       final ids = [for (final item in scope.gear) item.id];
       final clocks = await evaluateServiceClocksForIds(ref, ids);
       final kinds = await ref.watch(allServiceKindsByIdProvider.future);
       final records = options.includeHistory
           ? await recordRepository.getRecordsForEquipmentIds(ids)
           : const <String, List<ServiceRecord>>{};
+      final exposed = {
+        for (final id in records.keys)
+          ...withInstalledParts(id, arranged, index: index),
+      };
       // The stored rows: exposure reads the parent as install history, which
       // is how a cell inherits the dives of the rebreather it sits in.
       final exposures = await repository.getItemExposures([
         for (final item in stored)
-          if (records.containsKey(item.id)) item,
+          if (exposed.contains(item.id)) item,
       ]);
+      final dives = {
+        for (final entry in exposures.entries)
+          entry.key: entry.value.samples.length,
+      };
       return buildServiceReport(
         gear: scope.gear,
         clocks: clocks,
         records: records,
         kindsById: kinds,
         diveCounts: {
-          for (final entry in exposures.entries)
-            entry.key: entry.value.samples.length,
+          for (final id in records.keys)
+            id:
+                dives[usageSourceOf(
+                  id,
+                  arranged,
+                  index,
+                  (part) => dives[part] ?? 0,
+                )] ??
+                0,
         },
         options: options,
         fallbackCurrency: fallback,

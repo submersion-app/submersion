@@ -160,6 +160,11 @@ void main() {
     expect(out, contains('Everything is up to date.'));
   });
 
+  test('no clocks at all never claims everything is up to date', () async {
+    final out = await text(_report([_item('Apex')]));
+    expect(out, isNot(contains('Everything is up to date.')));
+  });
+
   test('Due uses the shared trigger text', () async {
     final out = await text(
       _report(
