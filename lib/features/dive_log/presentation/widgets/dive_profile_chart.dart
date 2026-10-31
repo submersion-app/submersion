@@ -2829,10 +2829,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final units = UnitFormatter(settings);
     // Temperature data from the active source or any overlaid source should
     // surface the temperature toggle.
-    final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];
-    final hasTemperatureData =
-        widget.profile.any((p) => p.temperature != null) ||
-        overlaySources.any((o) => o.points.any((p) => p.temperature != null));
+    final hasTemperatureData = _hasDataForMetric(
+      ProfileRightAxisMetric.temperature,
+    );
     final hasPressureData = _hasMultiTankPressure;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
 
@@ -2891,11 +2890,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ..clear()
       ..addAll(legendState.showTankPressure);
 
-    final bounds = _chartDataBounds(
-      units,
-      hasTemperatureData: hasTemperatureData,
-      hasHeartRateData: hasHeartRateData,
-    );
+    final bounds = _chartDataBounds(units, hasHeartRateData: hasHeartRateData);
 
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
@@ -3524,7 +3519,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// [build] has synced them.
   _ChartDataBounds _chartDataBounds(
     UnitFormatter units, {
-    required bool hasTemperatureData,
     required bool hasHeartRateData,
   }) {
     // Calculate full data bounds (all values stored in meters, convert for
@@ -3541,15 +3535,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // right axis's own range, so the active source's and every overlaid
     // source's curves read true against its labels. Overlays pool into it, so
     // it moves as they are toggled (see _syncBarSignatures).
-    final tempRange = _showTemperature && hasTemperatureData
+    final tempRange = _showTemperature
         ? _getMetricRange(ProfileRightAxisMetric.temperature, units)
         : null;
 
     // Pressure bounds from multi-tank pressure data, the same scale the tank
     // lines are drawn on so a threshold marker sits on its own line.
-    final pressureScale = _hasMultiTankPressure
-        ? tankPressureScale(widget.tankPressures!)
-        : null;
+    final pressureScale = _getMetricRange(
+      ProfileRightAxisMetric.pressure,
+      units,
+    );
 
     // Heart rate bounds (if showing)
     double? minHR, maxHR;

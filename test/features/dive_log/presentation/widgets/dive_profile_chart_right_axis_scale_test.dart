@@ -241,6 +241,19 @@ void main() {
       expect(_axisReadingAt(tester, ys.first), closeTo(180, 0.5));
     });
 
+    testWidgets('a channel with no pressure change falls back to another '
+        'metric', (tester) async {
+      await _pumpChart(
+        tester,
+        profile: _profile(20),
+        overlays: overlays,
+        settings: settings,
+        tankPressures: {'a': _tank('a', 0)},
+      );
+
+      expect(find.text('Temp (°C)'), findsOneWidget);
+    });
+
     testWidgets('a threshold marker sits on the line at its own pressure', (
       tester,
     ) async {

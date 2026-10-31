@@ -32,7 +32,8 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.temperature:
       return _temperatureSamples(config).isNotEmpty;
     case ProfileRightAxisMetric.pressure:
-      return hasMultiTankPressure;
+      return hasMultiTankPressure &&
+          tankPressureScale(config.tankPressures!) != null;
     case ProfileRightAxisMetric.heartRate:
       return config.profile.any((p) => p.heartRate != null);
     case ProfileRightAxisMetric.sac:

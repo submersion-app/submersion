@@ -42,7 +42,7 @@ int? indexForTimestamp(List<DiveProfilePoint> profile, int timestamp) {
 /// the right axis all read it, so they cannot disagree.
 ///
 /// Null when there is nothing to plot. A zero span means every sample across
-/// every tank is identical -- in practice a computer that logged a pressure
+/// every tank is identical, in practice a computer that logged a pressure
 /// channel with no transmitter paired (all zeros). Mapping a constant value
 /// through a zero-width range yields NaN spot coordinates that crash
 /// fl_chart's touch/tooltip painter (Offset NaN).
