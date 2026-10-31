@@ -73,7 +73,7 @@ class GlobalSearchRows extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return switch (kind) {
       GlobalSearchKind.dives => _rows(
         ref.watch(globalSearchDivesProvider(globalSearchDiveKey(ids))),
@@ -220,15 +220,23 @@ class _DiveRows extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final attribute = settings.cardColorAttribute;
+    final (attribute, preset, customStart, customEnd) = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          s.cardColorAttribute,
+          s.cardColorGradientPreset,
+          s.cardColorGradientStart,
+          s.cardColorGradientEnd,
+        ),
+      ),
+    );
     final values = dives
         .map((d) => getCardColorValue(d, attribute))
         .whereType<double>();
     final gradient = resolveGradientColors(
-      presetName: settings.cardColorGradientPreset,
-      customStart: settings.cardColorGradientStart,
-      customEnd: settings.cardColorGradientEnd,
+      presetName: preset,
+      customStart: customStart,
+      customEnd: customEnd,
     );
     final label = watchDiveTypeLabelResolver(ref, context.l10n);
     final shortLabel = watchDiveTypeShortLabelResolver(ref, context.l10n);
@@ -367,7 +375,7 @@ class _DocumentRow extends ConsumerWidget {
     final tags = ref.watch(tagsByItemProvider(TagScope.documents)).value;
     return DocumentTile(
       document: entry.document,
-      ownerLabel: entry.ownerText(UnitFormatter(ref.watch(settingsProvider))),
+      ownerLabel: entry.ownerText(ref.watch(unitFormatterProvider)),
       tags: tags?[entry.document.id] ?? const [],
       onTap: onTap,
     );
