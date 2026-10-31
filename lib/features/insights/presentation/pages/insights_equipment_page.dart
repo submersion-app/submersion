@@ -11,6 +11,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
+import 'package:submersion/features/insights/presentation/widgets/equipment/cost_of_ownership_section.dart';
+import 'package:submersion/features/insights/presentation/widgets/equipment/idle_gear_section.dart';
+import 'package:submersion/features/insights/presentation/widgets/equipment/most_used_gear_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
@@ -33,7 +36,11 @@ class InsightsEquipmentPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMostUsedGearSection(context, ref),
+          const MostUsedGearSection(),
+          const SizedBox(height: 16),
+          const CostOfOwnershipSection(),
+          const SizedBox(height: 16),
+          const IdleGearSection(),
           const SizedBox(height: 16),
           _buildExposureSection(context, ref),
           const SizedBox(height: 16),
@@ -62,31 +69,6 @@ class InsightsEquipmentPage extends ConsumerWidget {
           const InsightsFilterBar(),
           Expanded(child: content),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMostUsedGearSection(BuildContext context, WidgetRef ref) {
-    final gearAsync = ref.watch(mostUsedGearProvider);
-
-    return StatSectionCard(
-      title: context.l10n.insights_equipment_mostUsedGear_title,
-      subtitle: context.l10n.insights_equipment_mostUsedGear_subtitle,
-      child: gearAsync.when(
-        data: (data) => RankingList(
-          items: data,
-          countLabel: context.l10n.insights_ranking_countLabel_dives,
-          maxItems: 10,
-          onItemTap: (item) => context.push('/equipment/${item.id}'),
-        ),
-        loading: () => const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.insights_equipment_mostUsedGear_error,
-        ),
       ),
     );
   }

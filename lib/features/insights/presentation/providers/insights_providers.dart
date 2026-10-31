@@ -659,7 +659,12 @@ final mostUsedGearProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getMostUsedGear(diverId: currentDiverId, filter: filter);
+  // Every item: the section shows ten until the diver asks for the rest.
+  return repository.getMostUsedGear(
+    diverId: currentDiverId,
+    limit: null,
+    filter: filter,
+  );
 });
 
 final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
