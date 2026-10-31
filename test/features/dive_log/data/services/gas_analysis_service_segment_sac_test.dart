@@ -112,7 +112,7 @@ void main() {
             gasSwitches: [switchTo('t1', 90)],
             tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
           )!
-          .single;
+          .last;
 
       // 20 m at 90 s: 30 s averaging 25 m, then 480 s at 30 m.
       expect(segment.avgDepth, closeTo((30 * 25 + 480 * 30) / 510, 1e-9));
