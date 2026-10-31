@@ -24,7 +24,7 @@ void main() {
     final serializer = SyncDataSerializer();
     writer = ChangesetWriter(
       serializer,
-      ChangesetCodec(serializer),
+      const ChangesetCodec(),
       PublishStateStore(db),
     );
     detector = StaleRestoreDetector(SyncRepository());
