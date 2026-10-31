@@ -344,7 +344,7 @@ class SiteRepository {
         await _writeClassification(site.id, classification);
       });
       // A dive with no water of its own reads this site's for its SAC metrics.
-      if (before?.waterType != site.waterType) {
+      if (before?.waterType?.name != companion.waterType.value) {
         DerivedMetricsScheduler.instance.scheduleStaleSweep();
       }
       if (libraryEdit && before != null) {

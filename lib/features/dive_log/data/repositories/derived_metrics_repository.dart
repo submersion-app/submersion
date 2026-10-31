@@ -139,14 +139,14 @@ class DerivedMetricsRepository {
   /// metrics read (issue #3958). A site's water never re-stamps the dives that
   /// take it. A term of this cache alone, because no other cache built on the
   /// source stamp reads water.
-  static String _stampSql() {
+  static final String _stampSql = () {
     final whens = [
       for (final type in WaterType.values)
         "WHEN '${type.name}' THEN ${type.index + 1}",
     ].join(' ');
     return '(${diveSourceStampSql()} + '
         '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END))';
-  }
+  }();
 
   Set<ResultSetImplementation<dynamic, dynamic>> get _stampTables => {
     ...diveSourceStampTables(_db),
@@ -157,7 +157,7 @@ class DerivedMetricsRepository {
   Future<int?> _readStamp(String diveId) async {
     final row = await _db
         .customSelect(
-          'SELECT ${_stampSql()} AS stamp FROM dives d WHERE d.id = ?',
+          'SELECT $_stampSql AS stamp FROM dives d WHERE d.id = ?',
           variables: [Variable.withString(diveId)],
           readsFrom: _stampTables,
         )
@@ -235,7 +235,7 @@ class DerivedMetricsRepository {
           'SELECT d.id AS id FROM dives d '
           'LEFT JOIN dive_derived_metrics m ON m.dive_id = d.id '
           'WHERE (m.dive_id IS NULL OR m.engine_version < ? '
-          'OR m.source_updated_at != ${_stampSql()}) $diverFilter '
+          'OR m.source_updated_at != $_stampSql) $diverFilter '
           'ORDER BY d.dive_date_time DESC, d.id ASC',
           variables: [
             const Variable(DerivedMetricsService.version),

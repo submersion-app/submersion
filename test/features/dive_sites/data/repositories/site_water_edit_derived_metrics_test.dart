@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -30,6 +32,15 @@ void main() {
 
   test('editing the water type sweeps for stale metrics', () async {
     await sites.updateSite(site.copyWith(waterType: WaterType.salt));
+
+    expect(sweeps, 1);
+  });
+
+  test('a water type from imported metadata sweeps too', () async {
+    await sites.updateSiteWithImportedMetadata(
+      site,
+      const DiveSitesCompanion(waterType: Value('salt')),
+    );
 
     expect(sweeps, 1);
   });
