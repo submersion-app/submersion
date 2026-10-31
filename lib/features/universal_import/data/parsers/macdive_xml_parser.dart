@@ -115,7 +115,7 @@ class MacDiveXmlParser implements ImportParser {
 
     // Dedup containers. MacDive emits site / gear / buddies / tags inline per
     // dive, so we fold them into shared maps keyed by identity.
-    final sitesByName = <String, Map<String, dynamic>>{};
+    final sitesByPlace = <(String, String?, String?), Map<String, dynamic>>{};
     final buddiesByName = <String, Map<String, dynamic>>{};
     final gearByKey = <String, Map<String, dynamic>>{};
     final tagsByName = <String, Map<String, dynamic>>{};
@@ -145,12 +145,24 @@ class MacDiveXmlParser implements ImportParser {
         // and `<lon>` with it (#2213).
         final name = _siteKeyFor(site);
         if (name != null) {
-          sitesByName.putIfAbsent(name, () => _mapSite(site, name));
+          // Every dive repeats its `<site>`, which carries no id, and a name
+          // is not one: two places can share it (#4015).
+          final mapped = sitesByPlace.putIfAbsent(
+            (name, site.country, site.location),
+            () => _mapSite(
+              site,
+              name,
+              uddfId: sitesByPlace.keys.any((key) => key.$1 == name)
+                  ? '$name|${site.country ?? ''}|${site.location ?? ''}'
+                  : name,
+            ),
+          );
           diveMap['siteName'] = name;
           // UddfEntityImporter links sites via `dive['site']['uddfId']`.
           // Use the site name as the uddf-style id since MacDive doesn't
-          // carry a separate identifier.
-          diveMap['site'] = <String, dynamic>{'uddfId': name};
+          // carry a separate identifier; only a second place of that name
+          // needs more.
+          diveMap['site'] = <String, dynamic>{'uddfId': mapped['uddfId']};
         }
       }
 
@@ -265,8 +277,8 @@ class MacDiveXmlParser implements ImportParser {
     // Photo references become media entries for the wizard's Photos step.
     final mediaMaps = macDiveMediaEntriesFromXmlDives(logbook.dives);
     if (mediaMaps.isNotEmpty) entities[ImportEntityType.media] = mediaMaps;
-    if (sitesByName.isNotEmpty) {
-      entities[ImportEntityType.sites] = sitesByName.values.toList();
+    if (sitesByPlace.isNotEmpty) {
+      entities[ImportEntityType.sites] = sitesByPlace.values.toList();
     }
     if (buddiesByName.isNotEmpty) {
       entities[ImportEntityType.buddies] = buddiesByName.values.toList();
@@ -420,10 +432,14 @@ class MacDiveXmlParser implements ImportParser {
           })?['name']
           as String?;
 
-  Map<String, dynamic> _mapSite(MacDiveXmlSite s, String name) {
-    // `uddfId` matches the site name so UddfEntityImporter can resolve
-    // `dive['site']['uddfId']` against this site during import linking.
-    final map = <String, dynamic>{'name': name, 'uddfId': name};
+  Map<String, dynamic> _mapSite(
+    MacDiveXmlSite s,
+    String name, {
+    required String uddfId,
+  }) {
+    // UddfEntityImporter resolves `dive['site']['uddfId']` against this site
+    // during import linking.
+    final map = <String, dynamic>{'name': name, 'uddfId': uddfId};
     if (s.country != null) map['country'] = s.country;
     if (s.location != null) map['region'] = s.location;
     if (s.bodyOfWater != null) map['bodyOfWater'] = s.bodyOfWater;

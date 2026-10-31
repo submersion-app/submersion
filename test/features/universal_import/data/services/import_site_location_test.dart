@@ -33,6 +33,123 @@ void main() {
     });
   });
 
+  group('placesConflict', () {
+    test('needs both sides to state a field and to differ on it', () {
+      expect(
+        ImportSiteLocation.placesConflict(
+          {'country': 'Egypt'},
+          {'country': 'Belize'},
+        ),
+        isTrue,
+      );
+      expect(
+        ImportSiteLocation.placesConflict(
+          {'country': 'Egypt'},
+          {'region': 'Belize District'},
+        ),
+        isFalse,
+      );
+      expect(
+        ImportSiteLocation.placesConflict({'country': 'Egypt'}, {}),
+        isFalse,
+      );
+    });
+
+    test('reads every place field', () {
+      for (final key in ['city', 'island', 'region', 'country']) {
+        expect(
+          ImportSiteLocation.placesConflict({key: 'One'}, {key: 'Other'}),
+          isTrue,
+          reason: key,
+        );
+      }
+    });
+
+    test('ignores case, surrounding space and a blank', () {
+      expect(
+        ImportSiteLocation.placesConflict(
+          {'country': ' EGYPT '},
+          {'country': 'egypt'},
+        ),
+        isFalse,
+      );
+      expect(
+        ImportSiteLocation.placesConflict(
+          {'country': '  '},
+          {'country': 'Belize'},
+        ),
+        isFalse,
+      );
+    });
+
+    test('ignores a field that is not a place', () {
+      expect(
+        ImportSiteLocation.placesConflict(
+          {'name': 'One', 'country': 'Egypt', 'latitude': 1.0},
+          {'name': 'Other', 'country': 'Egypt', 'latitude': 2.0},
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('namesakeOf', () {
+    const egypt = DiveSite(id: 'e', name: 'Blue Hole', country: 'Egypt');
+    const belize = DiveSite(id: 'b', name: 'Blue Hole', country: 'Belize');
+
+    test('takes the namesake the file does not contradict', () {
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'country': 'Egypt'},
+          const [egypt, belize],
+        ),
+        egypt,
+      );
+    });
+
+    test('falls back on the last when nothing tells them apart', () {
+      expect(
+        ImportSiteLocation.namesakeOf(const {}, const [egypt, belize]),
+        belize,
+      );
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'country': 'Malta'},
+          const [egypt, belize],
+        ),
+        belize,
+      );
+    });
+
+    test('reads the city, island and region of a namesake', () {
+      const city = DiveSite(id: 'c', name: 'Reef', city: 'One');
+      const island = DiveSite(id: 'i', name: 'Reef', island: 'One');
+      const region = DiveSite(id: 'r', name: 'Reef', region: 'One');
+
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'city': 'One'},
+          const [city, DiveSite(id: 'x', name: 'Reef', city: 'Two')],
+        ),
+        city,
+      );
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'island': 'One'},
+          const [island, DiveSite(id: 'x', name: 'Reef', island: 'Two')],
+        ),
+        island,
+      );
+      expect(
+        ImportSiteLocation.namesakeOf(
+          {'region': 'One'},
+          const [region, DiveSite(id: 'x', name: 'Reef', region: 'Two')],
+        ),
+        region,
+      );
+    });
+  });
+
   group('named', () {
     test('leaves a named site untouched', () {
       final site = <String, dynamic>{

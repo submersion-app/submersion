@@ -226,7 +226,7 @@ void main() {
           'siteRegion': 'Gozo',
           'siteCountry': 'Malta',
         },
-        {'siteName': 'Blue Hole', 'siteCountry': 'Elsewhere'},
+        {'siteName': 'Blue Hole', 'siteCountry': 'MALTA'},
       ];
 
       final site = extractor.extractFromRows(rows).single;
@@ -235,6 +235,56 @@ void main() {
       expect(site['island'], 'Comino');
       expect(site['region'], 'Gozo');
       expect(site['country'], 'Malta');
+    });
+
+    group('same-name sites (#4015)', () {
+      final dahab = <String, dynamic>{
+        'siteName': 'Blue Hole',
+        'siteCity': 'Dahab',
+        'siteCountry': 'Egypt',
+      };
+      final belize = <String, dynamic>{
+        'siteName': 'Blue Hole',
+        'siteCity': 'Lighthouse Reef',
+        'siteCountry': 'Belize',
+      };
+
+      test('rows that place a name differently are two sites', () {
+        final sites = extractor.extractFromRows([dahab, belize]);
+
+        expect(sites.map((s) => s['country']), ['Egypt', 'Belize']);
+        expect(extractor.siteIdForRow(dahab), sites.first['id']);
+        expect(extractor.siteIdForRow(belize), sites.last['id']);
+        expect(sites.first['id'], isNot(sites.last['id']));
+      });
+
+      test('a row that leaves the place blank cannot tell them apart', () {
+        final blank = <String, dynamic>{'siteName': 'Blue Hole'};
+
+        final sites = extractor.extractFromRows([dahab, blank, belize]);
+
+        expect(sites, hasLength(2));
+        expect(extractor.siteIdForRow(blank), sites.first['id']);
+      });
+
+      test('a later row fills what the first left blank, and then decides '
+          'the next one', () {
+        final blank = <String, dynamic>{'siteName': 'Blue Hole'};
+
+        final sites = extractor.extractFromRows([blank, dahab, belize]);
+
+        expect(sites.map((s) => s['country']), ['Egypt', 'Belize']);
+        expect(sites.first['city'], 'Dahab');
+        expect(extractor.siteIdForRow(blank), sites.first['id']);
+        expect(extractor.siteIdForRow(dahab), sites.first['id']);
+        expect(extractor.siteIdForRow(belize), sites.last['id']);
+      });
+
+      test('siteIdForName gives the first site of the name', () {
+        final sites = extractor.extractFromRows([dahab, belize]);
+
+        expect(extractor.siteIdForName('Blue Hole'), sites.first['id']);
+      });
     });
 
     test('leaves out blank place fields', () {
