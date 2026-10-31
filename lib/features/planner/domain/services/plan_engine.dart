@@ -502,7 +502,8 @@ class PlanEngineConfig extends Equatable {
   };
 
   /// Surface liters of [plan]'s problem-solving time at max depth, breathed in
-  /// [mode] and shared with a buddy; nothing when the plan sets none or never
+  /// [mode] and shared with a buddy, except on a constant-mass-flow loop, whose
+  /// draw no breathing rate changes; nothing when the plan sets none or never
   /// leaves the surface.
   double problemSolvingLiters(
     domain.DivePlan plan,
@@ -2535,9 +2536,8 @@ class PlanEngine {
   /// On a loop plan the diver is never actually breathing a bailout tank
   /// unless they have bailed out, which this schedule does not model -- so a
   /// bailout mix must never be offered as a match. Without this filter, a
-  /// dense OC bailout staging can coincidentally fall within tolerance of
-  /// the loop's continuously-shifting inert fraction at almost any stop,
-  /// making the gas column claim a switch that never happened (#3131).
+  /// bailout cylinder holding the diluent's mix could take the loop's stops,
+  /// making the table name a cylinder the diver never breathed (#3131).
   String? _tankForGas(
     List<DiveTank> tanks,
     double fO2,
