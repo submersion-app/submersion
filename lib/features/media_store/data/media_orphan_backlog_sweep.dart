@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -35,7 +37,11 @@ class MediaOrphanBacklogSweep {
     final ids = await _mediaRepository.getSweepableOrphanIds(olderThan: cutoff);
     if (ids.isNotEmpty) {
       _log.info('Sweeping ${ids.length} unlinked media rows');
-      await _coordinator.deleteMultipleMedia(ids);
+      await ChangeLogScope.automatic(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.mediaCleanup,
+        body: () => _coordinator.deleteMultipleMedia(ids),
+      );
     }
     return ids.length;
   }

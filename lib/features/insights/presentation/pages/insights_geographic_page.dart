@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
@@ -63,10 +63,12 @@ class InsightsGeographicPage extends ConsumerWidget {
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
-              onItemTap: (item) => openInsightsDives(
+              onItemTap: (item) => openFilteredChartDives(
                 context,
                 ref,
-                countryDivesFilter(ref.read(insightsFilterProvider), item.name),
+                chart: context.l10n.insights_geographic_countries_title,
+                row: item.name,
+                narrow: (scope) => countryDivesFilter(scope, item.name),
               ),
             ),
           );
@@ -105,11 +107,17 @@ class InsightsGeographicPage extends ConsumerWidget {
               countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
               // A region row carries its country as the subtitle.
-              onItemTap: (item) => openInsightsDives(
+              onItemTap: (item) => openFilteredChartDives(
                 context,
                 ref,
-                regionDivesFilter(
-                  ref.read(insightsFilterProvider),
+                chart: context.l10n.insights_geographic_regions_title,
+                // Regions are counted per country, so two rows can share a
+                // name.
+                row: item.subtitle == null
+                    ? item.name
+                    : '${item.name}, ${item.subtitle}',
+                narrow: (scope) => regionDivesFilter(
+                  scope,
                   region: item.name,
                   country: item.subtitle,
                 ),

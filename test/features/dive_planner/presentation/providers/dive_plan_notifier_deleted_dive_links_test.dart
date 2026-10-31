@@ -94,14 +94,18 @@ void main() {
       compartments: tissues,
       surfaceInterval: const Duration(hours: 2),
     );
+    planner.loadPlan(planner.state.copyWith(initialCns: 30, initialOtu: 120));
     await deleteDive('dive-1');
 
     await planner.save();
 
     // Left in place, the tissues would keep seeding deco for a plan that no
     // longer follows a dive, and vanish on reload since they are not stored.
+    // The exposure carried with them goes too.
     expect(planner.state.initialTissueState, isNull);
     expect(planner.state.surfaceInterval, isNull);
+    expect(planner.state.initialCns, isNull);
+    expect(planner.state.initialOtu, isNull);
     expect(planner.state.isDirty, isFalse);
     expect(
       (await repository.getPlan(planner.state.id))!.surfaceInterval,

@@ -309,7 +309,7 @@ Object? _queriedValue(
   DiveField.waterTemp => dive.waterTemp,
   DiveField.airTemp => dive.airTemp,
   DiveField.visibility => dive.visibilityMeters,
-  DiveField.totalWeight => dive.totalWeight > 0 ? dive.totalWeight : null,
+  DiveField.totalWeight => dive.recordedWeightKg,
   DiveField.bottomTime => dive.bottomTime,
   DiveField.runtime => dive.runtime,
   DiveField.surfaceInterval => _surfaceInterval(dive, surfaceIntervals),

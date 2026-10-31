@@ -170,4 +170,90 @@ void main() {
       );
     });
   });
+
+  group('timeWeightedMeanAcross', () {
+    double? across(
+      List<_Sample> samples,
+      List<({num start, num end})> windows,
+    ) => timeWeightedMeanAcross(
+      samples,
+      windows: windows,
+      time: (s) => s.t,
+      value: (s) => s.depth,
+    );
+
+    const List<_Sample> samples = [
+      (t: 0, depth: 10),
+      (t: 60, depth: 10),
+      (t: 120, depth: 50),
+      (t: 180, depth: 50),
+    ];
+
+    test('gives the time between windows no weight', () {
+      expect(
+        across(samples, [(start: 0, end: 60), (start: 120, end: 150)]),
+        closeTo((10 * 60 + 50 * 30) / 90, 1e-9),
+      );
+    });
+
+    test('reads one window as timeWeightedMeanBetween does', () {
+      expect(
+        across(samples, [(start: 30, end: 90)]),
+        closeTo(_between(samples, 30, 90)!, 1e-9),
+      );
+    });
+
+    test('averages windows that hold no time', () {
+      expect(
+        across(samples, [(start: 60, end: 60), (start: 120, end: 120)]),
+        closeTo(30, 1e-9),
+      );
+    });
+
+    test('is null when the samples reach no window', () {
+      expect(across(samples, const []), isNull);
+      expect(across(samples, [(start: 300, end: 360)]), isNull);
+    });
+  });
+
+  group('PiecewiseLinearSeries', () {
+    final series = PiecewiseLinearSeries(
+      times: const [0, 60, 60, 120],
+      values: const [10, 20, 40, 30],
+    );
+
+    test('advanceTo finds the last sample at or before a time', () {
+      expect(series.advanceTo(0, 0), 0);
+      expect(series.advanceTo(59, 0), 0);
+      // Past both samples at t = 60, so a step reads its later value.
+      expect(series.advanceTo(60, 0), 2);
+      expect(series.advanceTo(90, 2), 2);
+      expect(series.advanceTo(500, 2), 3);
+    });
+
+    test('valueAt reads between samples and at the last one', () {
+      expect(series.valueAt(30, 0), closeTo(15, 1e-9));
+      expect(series.valueAt(60, 2), 40);
+      expect(series.valueAt(90, 2), closeTo(35, 1e-9));
+      expect(series.valueAt(120, 3), 30);
+    });
+
+    test('valueAt holds the last sample past the end', () {
+      expect(series.valueAt(500, 3), 30);
+    });
+
+    test('meanBetween averages over elapsed time between samples', () {
+      // 30 * (15 + 20) / 2 up to the step, 30 * (40 + 35) / 2 after it.
+      expect(series.meanBetween(30, 0, 90, 2), closeTo(1650 / 60, 1e-9));
+    });
+
+    test('areaTo integrates up to a time, and a step adds nothing', () {
+      expect(series.areaTo(0, 0), 0);
+      // 30 * (10 + 15) / 2
+      expect(series.areaTo(30, 0), closeTo(375, 1e-9));
+      expect(series.areaTo(60, 2), closeTo(900, 1e-9));
+      // 900 + 60 * (40 + 30) / 2
+      expect(series.areaTo(120, 3), closeTo(3000, 1e-9));
+    });
+  });
 }

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' as db;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -154,6 +155,18 @@ class DiveComputerMergeRepository {
   /// Throws [ArgumentError] when there is nothing to merge and [StateError]
   /// when any record is missing; nothing is written in either case.
   Future<DiveComputerMergeResult> mergeComputers({
+    required String survivorId,
+    required List<String> duplicateIds,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _mergeComputersInner(
+      survivorId: survivorId,
+      duplicateIds: duplicateIds,
+    ),
+  );
+
+  Future<DiveComputerMergeResult> _mergeComputersInner({
     required String survivorId,
     required List<String> duplicateIds,
   }) async {

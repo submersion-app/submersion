@@ -10,6 +10,9 @@
 /// column such as `t.id` for a correlated use.
 library;
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
+
 /// The ids of [tripRef]'s valid side trips.
 String sideTripIdsSql(String tripRef) =>
     'SELECT c.id FROM trips c JOIN trips p ON p.id = c.parent_trip_id '
@@ -56,11 +59,33 @@ String tripDivesJoinSql({
       'ON $diveAlias.trip_id = $homes.home_id$extraOn';
 }
 
-/// True for a trip (alias `t`) that is not a valid side trip: the trips a
-/// comparison across trips samples, so no dive counts twice.
-const String topLevelTripSql =
-    'NOT EXISTS (SELECT 1 FROM trips p WHERE p.id = t.parent_trip_id '
-    'AND p.parent_trip_id IS NULL AND p.id <> t.id)';
+/// The trips (alias `t`) a comparison across trips samples for [diverId]:
+/// those the profile can see that are not valid side trips of a trip it can
+/// also see, so no dive counts twice and the sample matches the Trips list.
+/// A parent the profile cannot see is no parent for it (issue #3933): its
+/// side trips stand alone, and the parent is not sampled. A null [diverId]
+/// sees every trip. [conjunction] is `WHERE` or `AND`, as for
+/// [VisibilityFilter.sqlFragment].
+SqlFragment topLevelTripFilter({
+  required String? diverId,
+  required String conjunction,
+}) {
+  SqlFragment visible(String alias) => VisibilityFilter.sqlFragment(
+    tableAlias: alias,
+    diverId: diverId,
+    conjunction: 'AND',
+    kind: SharedItemKind.trip,
+  );
+  final trip = visible('t');
+  final parent = visible('p');
+  return SqlFragment(
+    whereClause:
+        ' $conjunction NOT EXISTS (SELECT 1 FROM trips p '
+        'WHERE p.id = t.parent_trip_id AND p.parent_trip_id IS NULL '
+        'AND p.id <> t.id${parent.whereClause})${trip.whereClause}',
+    variables: [...parent.variables, ...trip.variables],
+  );
+}
 
 /// The ids of the cylinder slots a dive on [tripRef] may breathe from: the
 /// trip's own and, for a side trip, its larger trip's.

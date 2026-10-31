@@ -67,6 +67,22 @@ const _guardedHandlers = <(String, String)>[
     'Future<void> _resyncDive(',
   ),
   (
+    'lib/features/dive_lab/presentation/pages/dive_lab_page.dart',
+    'Future<void> _share(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _import(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _shareSelectedPdf(',
+  ),
+  (
+    'lib/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart',
+    'Future<void> _shareFile(',
+  ),
+  (
     'lib/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart',
     'Future<void> _openExportSheet(',
   ),

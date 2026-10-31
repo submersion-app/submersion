@@ -52,6 +52,27 @@ void main() {
       expect(bigger.gtrCurve![60], closeTo(2920 - 600, 1));
     });
 
+    test('reads the same when the same dive is sampled more densely', () {
+      // 15 m time-weighted mean over the window: see gas_time_remaining_test.
+      final sparse = service.analyze(
+        diveId: 'gtr-sparse',
+        depths: const [10.0, 10.0, 30.0],
+        timestamps: const [0, 60, 120],
+        pressures: const [200.0, 190.0, 180.0],
+        gtrReserveBar: 50.0,
+      );
+      final dense = service.analyze(
+        diveId: 'gtr-dense',
+        depths: const [10.0, 10.0, 10.0, 30.0],
+        timestamps: const [0, 10, 60, 120],
+        pressures: const [200.0, 198.33333333333334, 190.0, 180.0],
+        gtrReserveBar: 50.0,
+      );
+
+      expect(sparse.gtrCurve!.last, 375);
+      expect(dense.gtrCurve!.last, 375);
+    });
+
     test('reports no GTR data when every sample is blank', () {
       // A curve of nothing but blanks is not GTR data, and the chart's own
       // availability check agrees; the two must not disagree.

@@ -43,6 +43,54 @@ class TimeWeightedMean {
   }
 }
 
+/// A sampled series read as piecewise linear, so it has a value and a running
+/// integral at any time between samples.
+///
+/// Reads take `index`, the last sample at or before the time they read. A
+/// caller walking forward keeps that as a cursor with [advanceTo], so each read
+/// costs O(1) however densely the series was sampled. [times] are in order.
+class PiecewiseLinearSeries {
+  final List<int> times;
+  final List<double> values;
+
+  PiecewiseLinearSeries({required this.times, required this.values});
+
+  late final List<double> _areaTo = () {
+    final integral = TimeWeightedMean();
+    return [
+      for (var i = 0; i < times.length; i++)
+        (integral..add(times[i], values[i])).area,
+    ];
+  }();
+
+  /// The last sample at or before [time], searching forward from [index].
+  int advanceTo(int time, int index) {
+    var last = index;
+    while (last + 1 < times.length && times[last + 1] <= time) {
+      last++;
+    }
+    return last;
+  }
+
+  /// The series at [time]. Past the last sample it holds that sample's value.
+  double valueAt(int time, int index) {
+    final before = times[index];
+    if (time <= before || index + 1 == times.length) return values[index];
+    final progress = (time - before) / (times[index + 1] - before);
+    return values[index] + (values[index + 1] - values[index]) * progress;
+  }
+
+  /// The integral of the series from its first sample to [time].
+  double areaTo(int time, int index) {
+    final tail = (values[index] + valueAt(time, index)) / 2;
+    return _areaTo[index] + (time - times[index]) * tail;
+  }
+
+  /// The mean of the series from [start] to [end], a later time.
+  double meanBetween(int start, int startIndex, int end, int endIndex) =>
+      (areaTo(end, endIndex) - areaTo(start, startIndex)) / (end - start);
+}
+
 /// The mean of [value] over [samples] by elapsed [time], or null without any
 /// samples. See [TimeWeightedMean].
 double? timeWeightedMean<T>(
@@ -114,3 +162,37 @@ double? timeWeightedMeanBetween<T>(
 }) => timeWeightedMeanOfWindow(
   samplesInWindow(samples, start: start, end: end, time: time, value: value),
 );
+
+/// The mean of [value] over several [windows], each read as
+/// [timeWeightedMeanBetween] reads one. The time between them counts for
+/// nothing, so a series left and rejoined has no weight in the gap. Null when
+/// [samples] reach none of them.
+double? timeWeightedMeanAcross<T>(
+  Iterable<T> samples, {
+  required Iterable<({num start, num end})> windows,
+  required num Function(T sample) time,
+  required double Function(T sample) value,
+}) {
+  double area = 0;
+  num span = 0;
+  final means = <double>[];
+  for (final window in windows) {
+    final mean = TimeWeightedMean();
+    final points = samplesInWindow(
+      samples,
+      start: window.start,
+      end: window.end,
+      time: time,
+      value: value,
+    );
+    for (final point in points) {
+      mean.add(point.time, point.value);
+    }
+    area += mean.area;
+    span += mean.span;
+    final windowMean = mean.value;
+    if (windowMean != null) means.add(windowMean);
+  }
+  if (span > 0) return area / span;
+  return means.isEmpty ? null : means.reduce((a, b) => a + b) / means.length;
+}

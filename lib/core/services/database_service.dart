@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
@@ -1248,6 +1249,17 @@ class DatabaseService {
     await _bestEffortDelete(asidePath);
     await _bestEffortDelete('$asidePath-wal');
     await _bestEffortDelete('$asidePath-shm');
+
+    // The swapped-in file carries the log of the device that made the backup,
+    // so the one thing it lacks is that this happened.
+    final restored = databaseOrNull;
+    if (restored != null) {
+      await ChangeLogScope.summary(
+        restored,
+        label: ChangeLogLabels.libraryRestored,
+        source: ChangeLogSource.system,
+      );
+    }
   }
 
   /// Renames [from] onto [to] when [from] exists, replacing [to].

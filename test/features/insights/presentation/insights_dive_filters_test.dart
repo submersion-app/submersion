@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
-import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -109,6 +110,82 @@ void main() {
     });
   });
 
+  group('the tank configuration filters (#3804)', () {
+    ConditionNode field(String key, QueryValue value) =>
+        ConditionNode(FieldPath([key]), QueryOp.eq, value);
+    final counted = [
+      field('planned', const BoolValue(false)),
+      field('excludedFromStats', const BoolValue(false)),
+    ];
+
+    test('a configuration keeps the scope and matches what the bar counts', () {
+      final filter = tankConfigDivesFilter(
+        const DiveFilterState(minDepth: 20),
+        TankBaseConfiguration.sidemount,
+      );
+
+      expect(filter.minDepth, 20);
+      expect(
+        filter.query,
+        AndNode([
+          field('tankConfig', const EnumValue('sidemount')),
+          ...counted,
+        ]),
+      );
+    });
+
+    // The two conditions restate this predicate, so a new clause there has to
+    // be added to them too, or a bar and its list stop agreeing.
+    test('the conditions cover the whole statistics scope', () {
+      expect(
+        DiveStatsScope.predicate(alias: 'd'),
+        'd.excluded_from_stats = 0 AND d.is_planned = 0',
+      );
+    });
+
+    test('an extra is a yes on its own field', () {
+      final filter = tankExtraDivesFilter(
+        const DiveFilterState(),
+        TankConfigurationExtra.decoGas,
+      );
+
+      expect(
+        filter.query,
+        AndNode([field('decoGas', const BoolValue(true)), ...counted]),
+      );
+    });
+
+    test('a query in the scope comes first and stays', () {
+      final scopeQuery = field('rating', const NumberValue(4, null));
+      final filter = tankConfigDivesFilter(
+        DiveFilterState(query: scopeQuery),
+        TankBaseConfiguration.other,
+      );
+
+      expect(
+        filter.query,
+        AndNode([
+          scopeQuery,
+          field('tankConfig', const EnumValue('other')),
+          ...counted,
+        ]),
+      );
+    });
+
+    test('an extras scope stays on its axis, so the tap ANDs with it', () {
+      final filter = tankExtraDivesFilter(
+        const DiveFilterState(tankExtras: [TankConfigurationExtra.stages]),
+        TankConfigurationExtra.decoGas,
+      );
+
+      expect(filter.tankExtras, [TankConfigurationExtra.stages]);
+      expect(
+        filter.query,
+        AndNode([field('decoGas', const BoolValue(true)), ...counted]),
+      );
+    });
+  });
+
   group('each row opens exactly the dives it counted', () {
     late AppDatabase db;
     late InsightsRepository repository;
@@ -158,19 +235,31 @@ void main() {
       }
     }
 
-    Future<int> divesOpenedBy(DiveFilterState filter) async {
-      final f = buildFilteredDiveIdSubquery(filter);
-      final rows = await db
-          .customSelect(
-            f.subquery,
-            variables: [for (final p in f.params) Variable(p)],
-          )
-          .get();
-      return rows.length;
+    Future<int> divesOpenedBy(DiveFilterState filter) async =>
+        (await repository.getCountedDiveIds(filter: filter)).length;
+
+    Future<void> addUncountedDives(String siteId) async {
+      for (final uncounted in [
+        const DivesCompanion(excludedFromStats: Value(true)),
+        const DivesCompanion(isPlanned: Value(true)),
+      ]) {
+        await db
+            .into(db.dives)
+            .insert(
+              uncounted.copyWith(
+                id: Value('dive-${diveSeq++}'),
+                siteId: Value(siteId),
+                diveDateTime: Value(now),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+      }
     }
 
     test('countries, including a spelling with stray whitespace', () async {
       await siteWithDives('a', country: 'Mexico', dives: 3);
+      await addUncountedDives('a');
       // Imported with a trailing no-break space: the same country to the
       // location chips and the dive query, so the same row here too.
       await siteWithDives('b', country: 'Mexico ', dives: 2);
@@ -200,6 +289,7 @@ void main() {
 
     test('regions, split by country and with no country', () async {
       await siteWithDives('a', region: 'North', country: 'Fiji', dives: 3);
+      await addUncountedDives('a');
       await siteWithDives('b', region: 'North ', country: 'Fiji', dives: 1);
       await siteWithDives('c', region: 'North', country: 'Palau', dives: 2);
       await siteWithDives('g', region: 'north', country: 'FIJI', dives: 2);

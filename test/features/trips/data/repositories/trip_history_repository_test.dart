@@ -327,7 +327,7 @@ void main() {
               endDate: DateTime(2025, 1, 3).millisecondsSinceEpoch,
               createdAt: 1,
               updatedAt: 1,
-            ).copyWith(diverId: const Value('me')),
+            ).copyWith(diverId: const Value('me'), isShared: const Value(true)),
           );
       // Two of mine on one day, four of my buddy's across two.
       await dive(

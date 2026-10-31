@@ -544,6 +544,14 @@ class DivePlanState extends Equatable {
   /// Initial tissue state from previous dive.
   final List<TissueCompartment>? initialTissueState;
 
+  /// CNS% at the end of the previous dive in a repetitive series, before
+  /// the [surfaceInterval] decays it (issue #3565). Null = none carried.
+  final double? initialCns;
+
+  /// OTU carried in from earlier dives in a repetitive series (issue
+  /// #3565). Null = none carried.
+  final double? initialOtu;
+
   /// Logged dive this plan follows (tissue seeding source).
   final String? sourceDiveId;
 
@@ -717,6 +725,8 @@ class DivePlanState extends Equatable {
     this.airBreaksExplicitlyOff = false,
     this.surfaceInterval,
     this.initialTissueState,
+    this.initialCns,
+    this.initialOtu,
     this.sourceDiveId,
     this.linkedDiveId,
     this.siteId,
@@ -822,6 +832,8 @@ class DivePlanState extends Equatable {
     bool? airBreaksExplicitlyOff,
     Duration? surfaceInterval,
     List<TissueCompartment>? initialTissueState,
+    double? initialCns,
+    double? initialOtu,
     String? sourceDiveId,
     String? linkedDiveId,
     String? siteId,
@@ -889,6 +901,7 @@ class DivePlanState extends Equatable {
     DateTime? updatedAt,
     bool clearSurfaceInterval = false,
     bool clearInitialTissueState = false,
+    bool clearInitialExposure = false,
     bool clearSourceDiveId = false,
     bool clearLinkedDiveId = false,
     bool clearSiteId = false,
@@ -930,6 +943,8 @@ class DivePlanState extends Equatable {
       initialTissueState: clearInitialTissueState
           ? null
           : (initialTissueState ?? this.initialTissueState),
+      initialCns: clearInitialExposure ? null : (initialCns ?? this.initialCns),
+      initialOtu: clearInitialExposure ? null : (initialOtu ?? this.initialOtu),
       sourceDiveId: clearSourceDiveId
           ? null
           : (sourceDiveId ?? this.sourceDiveId),
@@ -1042,6 +1057,8 @@ class DivePlanState extends Equatable {
     airBreaksExplicitlyOff,
     surfaceInterval,
     initialTissueState,
+    initialCns,
+    initialOtu,
     sourceDiveId,
     linkedDiveId,
     siteId,

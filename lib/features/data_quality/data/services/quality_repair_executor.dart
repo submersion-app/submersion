@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value, Variable;
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
@@ -123,6 +124,20 @@ class QualityRepairExecutor {
     required List<String> diveIds,
     required Duration offset,
     required String findingId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.qualityRepair,
+    body: () => _shiftTimesInner(
+      diveIds: diveIds,
+      offset: offset,
+      findingId: findingId,
+    ),
+  );
+
+  Future<RepairResult> _shiftTimesInner({
+    required List<String> diveIds,
+    required Duration offset,
+    required String findingId,
   }) async {
     final snapshot = await _diveRepo.getDiveTimesSnapshot(diveIds);
     final primaries = await _sourceClocks.snapshot(
@@ -164,6 +179,20 @@ class QualityRepairExecutor {
   /// times as they are: the repair for a secondary computer whose clock was
   /// wrong while the primary was right (#3655).
   Future<RepairResult> shiftSourceTimes({
+    required List<String> sourceIds,
+    required Duration offset,
+    required String findingId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.qualityRepair,
+    body: () => _shiftSourceTimesInner(
+      sourceIds: sourceIds,
+      offset: offset,
+      findingId: findingId,
+    ),
+  );
+
+  Future<RepairResult> _shiftSourceTimesInner({
     required List<String> sourceIds,
     required Duration offset,
     required String findingId,

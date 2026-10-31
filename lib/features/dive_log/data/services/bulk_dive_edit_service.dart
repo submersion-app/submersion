@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/enums.dart' as en;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -37,7 +38,13 @@ class BulkDiveEditService {
 
   /// Apply [req] to every dive in [req.diveIds] inside one transaction,
   /// capturing the prior state first. Fires a single local-change notification.
-  Future<BulkEditSnapshot> apply(BulkEditRequest req) async {
+  Future<BulkEditSnapshot> apply(BulkEditRequest req) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _applyInner(req),
+  );
+
+  Future<BulkEditSnapshot> _applyInner(BulkEditRequest req) async {
     final ids = req.diveIds;
     if (ids.isEmpty) {
       return const BulkEditSnapshot(priorDiveRows: []);
@@ -171,7 +178,13 @@ class BulkDiveEditService {
 
   /// Reverse a prior [apply]: restore each dive's prior scalar columns and the
   /// prior membership of every touched collection. One transaction, one notify.
-  Future<void> undo(BulkEditSnapshot snapshot) async {
+  Future<void> undo(BulkEditSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _undoInner(snapshot),
+  );
+
+  Future<void> _undoInner(BulkEditSnapshot snapshot) async {
     if (snapshot.priorDiveRows.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final ids = snapshot.priorDiveRows.map((r) => r.id).toList();
