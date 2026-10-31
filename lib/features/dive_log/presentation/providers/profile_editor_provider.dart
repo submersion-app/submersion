@@ -35,6 +35,7 @@ class ProfileEditorState extends Equatable {
   final bool hasChanges;
   final List<String> editKinds;
   final List<List<String>> undoEditKindsStack;
+  final List<({int start, int end})?> undoRangeStack;
 
   const ProfileEditorState({
     required this.originalProfile,
@@ -47,6 +48,7 @@ class ProfileEditorState extends Equatable {
     this.hasChanges = false,
     this.editKinds = const [],
     this.undoEditKindsStack = const [],
+    this.undoRangeStack = const [],
   });
 
   ProfileEditorState copyWith({
@@ -60,6 +62,7 @@ class ProfileEditorState extends Equatable {
     bool? hasChanges,
     List<String>? editKinds,
     List<List<String>>? undoEditKindsStack,
+    List<({int start, int end})?>? undoRangeStack,
     bool clearOutliers = false,
     bool clearWaypoints = false,
     bool clearRange = false,
@@ -77,6 +80,7 @@ class ProfileEditorState extends Equatable {
       hasChanges: hasChanges ?? this.hasChanges,
       editKinds: editKinds ?? this.editKinds,
       undoEditKindsStack: undoEditKindsStack ?? this.undoEditKindsStack,
+      undoRangeStack: undoRangeStack ?? this.undoRangeStack,
     );
   }
 
@@ -99,6 +103,7 @@ class ProfileEditorState extends Equatable {
     hasChanges,
     editKinds,
     undoEditKindsStack,
+    undoRangeStack,
   ];
 }
 
@@ -125,6 +130,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     state = state.copyWith(
       undoStack: [...state.undoStack, state.editedProfile],
       undoEditKindsStack: [...state.undoEditKindsStack, state.editKinds],
+      undoRangeStack: [...state.undoRangeStack, state.selectedRange],
     );
   }
 
@@ -143,12 +149,20 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       0,
       state.undoEditKindsStack.length - 1,
     );
+    final previousRange = state.undoRangeStack.last;
+    final newRangeStack = state.undoRangeStack.sublist(
+      0,
+      state.undoRangeStack.length - 1,
+    );
 
     state = state.copyWith(
       editedProfile: previous,
       undoStack: newStack,
       editKinds: previousKinds,
       undoEditKindsStack: newKindsStack,
+      undoRangeStack: newRangeStack,
+      selectedRange: previousRange,
+      clearRange: previousRange == null,
       hasChanges: newStack.isNotEmpty,
     );
   }
@@ -233,9 +247,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     _recordEditKind(ProfileEditorEditKinds.shiftDepth);
   }
 
-  void shiftSegmentTime(int timeDelta) {
+  /// Moves the selected samples, and the selection with them. Returns false,
+  /// changing nothing, when they would reach a sample outside the selection.
+  bool shiftSegmentTime(int timeDelta) {
     final range = state.selectedRange;
-    if (range == null) return;
+    if (range == null) return false;
 
     final shifted = _service.shiftSegmentTime(
       state.editedProfile,
@@ -243,24 +259,36 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       endTimestamp: range.end,
       timeDelta: timeDelta,
     );
-    if (shifted == null) return; // Overlap detected
+    if (shifted == null) return false; // Overlap detected
 
     _pushUndo();
-    state = state.copyWith(editedProfile: shifted, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: shifted,
+      selectedRange: (
+        start: range.start + timeDelta,
+        end: range.end + timeDelta,
+      ),
+      hasChanges: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.shiftTime);
+    return true;
   }
 
-  void deleteSegment({bool interpolateGap = false}) {
+  /// Deletes the selected samples. Returns false, changing nothing, when they
+  /// are the whole profile: a dive cannot be saved with no samples.
+  bool deleteSegment({bool interpolateGap = false}) {
     final range = state.selectedRange;
-    if (range == null) return;
+    if (range == null) return false;
 
-    _pushUndo();
     final result = _service.deleteSegment(
       state.editedProfile,
       startTimestamp: range.start,
       endTimestamp: range.end,
       interpolateGap: interpolateGap,
     );
+    if (result.isEmpty) return false;
+
+    _pushUndo();
     state = state.copyWith(
       editedProfile: result,
       hasChanges: true,
@@ -271,6 +299,7 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
           ? ProfileEditorEditKinds.deleteSegmentInterpolated
           : ProfileEditorEditKinds.deleteSegment,
     );
+    return true;
   }
 
   void setSelectedRange({required int start, required int end}) {
@@ -325,7 +354,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
       waypoints,
       intervalSeconds: intervalSeconds,
     );
-    state = state.copyWith(editedProfile: generated, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: generated,
+      hasChanges: true,
+      clearRange: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.generateFromWaypoints);
   }
 
@@ -338,7 +371,11 @@ class ProfileEditorNotifier extends StateNotifier<ProfileEditorState> {
     if (trimmed.length == profile.length) return;
 
     _pushUndo();
-    state = state.copyWith(editedProfile: trimmed, hasChanges: true);
+    state = state.copyWith(
+      editedProfile: trimmed,
+      hasChanges: true,
+      clearRange: true,
+    );
     _recordEditKind(ProfileEditorEditKinds.trimEndZeros);
   }
 }

@@ -50,4 +50,84 @@ void main() {
 
     expect(notifier.trimEndZerosCallCount, 1);
   });
+
+  group('range operations the profile cannot take (issue #3909)', () {
+    late ProfileEditorNotifier notifier;
+
+    Future<void> pumpPanel(WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: EditorContextPanel(
+              mode: EditorMode.select,
+              notifier: notifier,
+              selectedRange: notifier.state.selectedRange,
+            ),
+          ),
+        ),
+      );
+    }
+
+    setUp(() {
+      notifier = ProfileEditorNotifier(
+        originalProfile: List.generate(
+          8,
+          (i) => DiveProfilePoint(timestamp: i * 4, depth: 10),
+        ),
+        editingService: ProfileEditingService(),
+      );
+    });
+
+    testWidgets('a time shift blocked by the next sample says so', (
+      tester,
+    ) async {
+      notifier.setSelectedRange(start: 8, end: 16);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Time +5s'));
+      await tester.pump();
+
+      expect(
+        find.text("Can't shift: the selection would reach an adjacent sample"),
+        findsOneWidget,
+      );
+      expect(notifier.state.hasChanges, isFalse);
+    });
+
+    testWidgets('a time shift with room says nothing', (tester) async {
+      notifier.setSelectedRange(start: 8, end: 28);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Time +5s'));
+      await tester.pump();
+
+      expect(find.byType(SnackBar), findsNothing);
+      expect(notifier.state.hasChanges, isTrue);
+    });
+
+    testWidgets('deleting every sample says so', (tester) async {
+      notifier.setSelectedRange(start: 0, end: 28);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pump();
+
+      expect(find.text("Can't delete the whole profile"), findsOneWidget);
+      expect(notifier.state.hasChanges, isFalse);
+    });
+
+    testWidgets('a delete that leaves samples says nothing', (tester) async {
+      notifier.setSelectedRange(start: 8, end: 16);
+      await pumpPanel(tester);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pump();
+
+      expect(find.byType(SnackBar), findsNothing);
+      expect(notifier.state.hasChanges, isTrue);
+    });
+  });
 }

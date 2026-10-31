@@ -34,6 +34,22 @@ class EditorContextPanel extends StatefulWidget {
 class _EditorContextPanelState extends State<EditorContextPanel> {
   int _smoothWindowSize = 5;
 
+  void _showRefusal(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _shiftTime(int timeDelta) {
+    if (widget.notifier.shiftSegmentTime(timeDelta)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_timeShiftBlocked);
+  }
+
+  void _deleteSelection() {
+    if (widget.notifier.deleteSegment(interpolateGap: true)) return;
+    _showRefusal(context.l10n.diveLog_profileEditor_deleteAllBlocked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -95,27 +111,21 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.shiftSegmentTime(5)
-                  : null,
+              onPressed: hasRange ? () => _shiftTime(5) : null,
               icon: const Icon(Icons.arrow_forward, size: 18),
               label: Text(
                 context.l10n.diveLog_profileEditor_timePlusFiveSeconds,
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.shiftSegmentTime(-5)
-                  : null,
+              onPressed: hasRange ? () => _shiftTime(-5) : null,
               icon: const Icon(Icons.arrow_back, size: 18),
               label: Text(
                 context.l10n.diveLog_profileEditor_timeMinusFiveSeconds,
               ),
             ),
             FilledButton.tonalIcon(
-              onPressed: hasRange
-                  ? () => widget.notifier.deleteSegment(interpolateGap: true)
-                  : null,
+              onPressed: hasRange ? _deleteSelection : null,
               icon: const Icon(Icons.delete_outline, size: 18),
               label: Text(context.l10n.common_action_delete),
             ),

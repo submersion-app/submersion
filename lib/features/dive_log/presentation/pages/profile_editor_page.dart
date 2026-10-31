@@ -308,6 +308,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                 },
                 onRangeChanged: (start, end) =>
                     notifier.setSelectedRange(start: start, end: end),
+                onRangeCleared: notifier.clearSelectedRange,
               ),
             ),
             EditorToolbar(
