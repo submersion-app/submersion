@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -251,6 +252,33 @@ void main() {
         expect(consumed, closeTo(100, 1e-9), reason: 'charged exactly once');
       }
     });
+
+    test('picks each period up at the pressure the last one left', () {
+      // Only the real gas model's rate depends on the absolute pressures.
+      final dive = makeDive(const [left, right]);
+      double volumeAt(double bar) => gasVolume(
+        tankSizeLiters: 12,
+        pressureBar: bar,
+        o2Percent: left.gasMix.o2,
+        model: GasModel.real,
+      );
+
+      final segments = const GasAnalysisService().calculateGasSwitchSegments(
+        profile: dive.profile,
+        tanks: dive.tanks,
+        gasSwitches: alternating,
+      );
+
+      final leftSegments = segments!.where((s) => s.tankId == 'left');
+      expect(
+        leftSegments.first.sacRate,
+        closeTo((volumeAt(200) - volumeAt(150)) / 12 / 10 / 3, 1e-9),
+      );
+      expect(
+        leftSegments.last.sacRate,
+        closeTo((volumeAt(150) - volumeAt(100)) / 12 / 10 / 3, 1e-9),
+      );
+    });
   });
 
   group('calculatePhaseSegments', () {
@@ -306,6 +334,49 @@ void main() {
       expect(segments.single.gasConsumed, closeTo(100, 1e-9));
     });
 
+    test('takes the depth of a phase from the time it was breathed', () {
+      // One ascent phase: five minutes at 30 m on back gas, then deco gas at
+      // 9 m. Back gas is breathed for fifteen minutes in all, so the phase
+      // has a third of its drop, at 4 bar ambient.
+      const backGas = DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 100,
+        role: TankRole.backGas,
+      );
+      const decoGas = DiveTank(
+        id: 'deco',
+        volume: 7,
+        startPressure: 200,
+        endPressure: 150,
+        role: TankRole.deco,
+        gasMix: GasMix(o2: 50, he: 0),
+        order: 1,
+      );
+      double depthAt(int t) {
+        if (t < 600) return 40;
+        return t <= 900 ? 30 : 9;
+      }
+
+      final profile = [
+        for (var t = 0; t <= 1800; t += 60)
+          DiveProfilePoint(timestamp: t, depth: depthAt(t)),
+      ];
+
+      final segments = service.calculatePhaseSegments(
+        profile: profile,
+        tanks: const [backGas, decoGas],
+        gasSwitches: [switchTo('deco', 900)],
+      );
+
+      final ascent = segments!.last;
+      expect(ascent.tankId, 'back');
+      expect(ascent.startTimestamp, 600);
+      expect(ascent.sacRate, closeTo(100 / 15 / 4, 1e-9));
+      expect(ascent.gasConsumed, closeTo(100 / 3, 1e-9));
+    });
+
     test('keeps a phase in a later period on its share of the drop', () {
       // A bottom phase across left's two periods, then an ascent inside the
       // second: thirty minutes breathed in all, so every rate is the same
@@ -332,10 +403,16 @@ void main() {
       expect(segments, hasLength(2));
       for (final segment in segments!) {
         expect(segment.tankId, 'left');
-        expect(
-          segment.sacRate,
-          closeTo(100 / 30 / (segment.avgDepth / 10 + 1), 1e-9),
-        );
+        final breathedDepths = [
+          for (final p in profile)
+            if (p.timestamp >= segment.startTimestamp &&
+                p.timestamp < segment.endTimestamp &&
+                (p.timestamp <= 600 || p.timestamp >= 1200))
+              p.depth,
+        ];
+        final depth =
+            breathedDepths.reduce((a, b) => a + b) / breathedDepths.length;
+        expect(segment.sacRate, closeTo(100 / 30 / (depth / 10 + 1), 1e-9));
       }
     });
   });

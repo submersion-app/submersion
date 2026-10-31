@@ -219,9 +219,17 @@ class GasAnalysisService {
         profile: profile,
         gasSwitches: gasSwitches,
       );
+      // A phase can outlast its cylinder's breathing time; only what was
+      // breathed of it drew on this tank, at the depths it was breathed.
+      final breathedProfile = segmentProfile
+          .where((p) => usageWindows.covers(p.timestamp))
+          .toList();
+      final sacProfile = breathedProfile.isEmpty
+          ? segmentProfile
+          : breathedProfile;
 
       final sacRate = _calculateSegmentSac(
-        profile: segmentProfile,
+        profile: sacProfile,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
@@ -232,11 +240,12 @@ class GasAnalysisService {
 
       if (sacRate == null) continue;
 
-      // A phase can outlast its cylinder's breathing time; only what was
-      // breathed of it drew on this tank.
       final durationMin =
           usageWindows.breathedBetween(seg.start, seg.end) / 60.0;
-      final ambientPressureBar = (avgDepth / 10.0) + 1.0;
+      final breathedDepth =
+          sacProfile.map((p) => p.depth).reduce((a, b) => a + b) /
+          sacProfile.length;
+      final ambientPressureBar = (breathedDepth / 10.0) + 1.0;
       final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
       segments.add(
