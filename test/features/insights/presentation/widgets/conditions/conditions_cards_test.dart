@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_band_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_app.dart';
+import '../../recording_insights_repository.dart';
 
 /// Issue #3118: the reusable condition cards hide when nothing is recorded
 /// and say how many dives each chart is based on.
@@ -192,7 +194,12 @@ void main() {
         testAppRouter(
           router: router,
           locale: const Locale('en'),
-          overrides: base,
+          overrides: [
+            ...base,
+            insightsRepositoryProvider.overrideWithValue(
+              RecordingInsightsRepository(),
+            ),
+          ],
         ),
       );
       await tester.pumpAndSettle();

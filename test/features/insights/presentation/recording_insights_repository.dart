@@ -6,9 +6,12 @@ import 'package:submersion/features/insights/data/repositories/insights_reposito
 /// Stands in for the database behind a chart's link (#3805): answers with
 /// [ids] and keeps what it was asked for.
 class RecordingInsightsRepository extends InsightsRepository {
-  RecordingInsightsRepository({this.ids = const ['d1']});
+  RecordingInsightsRepository({this.ids = const ['d1'], this.gone = const {}});
 
   final List<String> ids;
+
+  /// Dives [getExistingDiveIds] reports as deleted.
+  final Set<String> gone;
   DiveFilterState? lastFilter;
 
   @override
@@ -85,4 +88,10 @@ class RecordingInsightsRepository extends InsightsRepository {
     buddy: const ['buddy-dive'],
     notRecorded: const ['unrecorded-dive'],
   );
+
+  @override
+  Future<List<String>> getExistingDiveIds(List<String> ids) async => [
+    for (final id in ids)
+      if (!gone.contains(id)) id,
+  ];
 }

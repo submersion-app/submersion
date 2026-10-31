@@ -94,6 +94,22 @@ void main() {
     });
   });
 
+  group('getExistingDiveIds', () {
+    test('keeps the dives still in the logbook', () async {
+      await insertDive('kept');
+      await insertDive('excluded', excluded: true);
+
+      expect(
+        await repository.getExistingDiveIds(['kept', 'deleted', 'excluded']),
+        unorderedEquals(['kept', 'excluded']),
+      );
+    });
+
+    test('asks nothing of the database for no ids', () async {
+      expect(await repository.getExistingDiveIds(const []), isEmpty);
+    });
+  });
+
   /// Every row of a chart opens exactly the dives it counted.
   Future<void> expectEveryRowOpensItsDives<K>(
     List<({K key, int count})> rows,

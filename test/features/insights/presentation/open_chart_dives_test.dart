@@ -7,9 +7,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
+import 'recording_insights_repository.dart';
 
 /// Issue #3805: every chart link opens the dive list through this one path.
 void main() {
@@ -123,5 +125,75 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('other page'), findsOneWidget);
     expect(container.read(diveFilterProvider).diveIds, isEmpty);
+  });
+
+  group('openHeldChartDives', () {
+    late RecordingInsightsRepository repository;
+
+    Future<void> pumpHeld(WidgetTester tester, List<String> ids) async {
+      repository = RecordingInsightsRepository(gone: const {'gone'});
+      final router = GoRouter(
+        initialLocation: '/insights',
+        routes: [
+          GoRoute(
+            path: '/insights',
+            builder: (_, _) => Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => TextButton(
+                  onPressed: () => openHeldChartDives(
+                    context,
+                    ref,
+                    chart: 'Cloud cover',
+                    row: 'Clear',
+                    ids: ids,
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(path: '/dives', builder: (_, _) => const Text('dive list')),
+        ],
+      );
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          locale: const Locale('en'),
+          overrides: [
+            ...base,
+            insightsRepositoryProvider.overrideWithValue(repository),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      container = ProviderScope.containerOf(
+        tester.element(find.byType(TextButton)),
+      );
+    }
+
+    testWidgets('a dive deleted since the chart loaded is left out', (
+      tester,
+    ) async {
+      await pumpHeld(tester, const ['a', 'gone']);
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('dive list'), findsOneWidget);
+      expect(container.read(diveFilterProvider).diveIds, ['a']);
+    });
+
+    testWidgets('all of them deleted shows the message and opens nothing', (
+      tester,
+    ) async {
+      await pumpHeld(tester, const ['gone']);
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Could not open these dives'), findsOneWidget);
+      expect(find.text('dive list'), findsNothing);
+    });
   });
 }

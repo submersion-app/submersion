@@ -13,6 +13,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../recording_insights_repository.dart';
 
 /// Issue #3421: the Gas page's tank configuration card.
 void main() {
@@ -177,6 +178,9 @@ void main() {
         locale: const Locale('en'),
         overrides: [
           ...base,
+          insightsRepositoryProvider.overrideWithValue(
+            RecordingInsightsRepository(),
+          ),
           tankConfigurationStatsProvider.overrideWith(
             (ref) async => const TankConfigurationStats(
               totalDives: 3,

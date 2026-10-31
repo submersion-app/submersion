@@ -66,6 +66,16 @@ mixin InsightsChartDives {
     );
   }
 
+  /// Those of [ids] still in the logbook. For ids a chart kept when it last
+  /// loaded: a dive deleted since then must not reach the list, while one
+  /// merely edited stays, since the list is a snapshot of what was counted.
+  // stats-scope-exempt: asks only whether a counted dive still exists
+  Future<List<String>> getExistingDiveIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final marks = List.filled(ids.length, '?').join(', ');
+    return _diveIds('SELECT id FROM dives WHERE id IN ($marks)', ids);
+  }
+
   /// One `(id, bucket)` row per dive in scope with a visibility recorded, and
   /// the variables it binds, in order.
   ({String sql, List<Object?> params}) _visibilityBucketQuery({

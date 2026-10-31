@@ -89,7 +89,8 @@ Future<void> openFilteredChartDives(
       repository.getCountedDiveIds(diverId: diverId, filter: narrow(scope)),
 );
 
-/// [openChartDives] for a chart that kept the ids as it counted.
+/// [openChartDives] for a chart that kept the ids as it counted. Those ids
+/// date from the chart's last load, so they are checked against the logbook.
 Future<void> openHeldChartDives(
   BuildContext context,
   WidgetRef ref, {
@@ -101,5 +102,5 @@ Future<void> openHeldChartDives(
   ref,
   chart: chart,
   row: row,
-  load: (_, _, _) async => ids,
+  load: (repository, _, _) => repository.getExistingDiveIds(ids),
 );
