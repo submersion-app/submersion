@@ -17,9 +17,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// to (no bailout-role tank carried), from [planMayHaveBailoutProvider], which
 /// holds the chips in place while [planBailoutProvider] computes. Also hidden
 /// when no carried bailout gas reaches the plan, which leaves no valid ascent
-/// to show (#3961), unless the chart is already on it. Every loop mode (CCR, SCR, pSCR) shares this toggle
-/// (issue #3743): the bailout picture is computed for any of them, not
-/// CCR alone.
+/// to show (#3961), unless the chart is already on it. Every loop mode (CCR,
+/// SCR, pSCR) shares this toggle (issue #3743): the bailout picture is
+/// computed for any of them, not CCR alone.
 class ChartModeToggle extends ConsumerWidget {
   const ChartModeToggle({super.key});
 
