@@ -475,8 +475,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               ],
                             ),
                           ),
-                          // Analysis curves: identical wiring to the old
-                          // fullscreen call site (dive_detail_page.dart:4946-4990)
+                          // Analysis curves: identical wiring to the chart on
+                          // the dive detail page (DiveProfileChartHost)
                           ceilingCurve: analysis?.ceilingCurve,
                           decoStopCurve: analysis?.decoStopCurve,
                           labelCeilingAsCalculated:

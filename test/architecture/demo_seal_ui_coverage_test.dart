@@ -51,19 +51,19 @@ const _exemptions = <String, String>{
 /// refusal surfaces as a raw exception in an error snackbar.
 const _guardedHandlers = <(String, String)>[
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportProfileChart(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportDiveDetailsPage(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_exports.dart',
     'Future<void> _exportDivePdf(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
     'Future<void> _resyncDive(',
   ),
   (
@@ -97,7 +97,7 @@ const _guardedHandlers = <(String, String)>[
     'Future<List<AssetInfo>?> showPhotoPicker(',
   ),
   (
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart',
     'Future<void> _scanGalleryForDive(',
   ),
   (
