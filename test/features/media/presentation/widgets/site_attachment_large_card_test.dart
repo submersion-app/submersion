@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 import 'package:submersion/features/media/data/services/pdf_page_renderer.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -9,6 +12,15 @@ import 'package:submersion/features/media/presentation/widgets/site_attachment_l
 
 import '../../../../helpers/contrast_ratio.dart';
 import '../support/media_widget_harness.dart';
+
+/// A solid-colour JPEG at [width]x[height], so a widget test can pump a
+/// real decodable page render with a known aspect ratio instead of the
+/// degenerate 1x1 fixture.
+Uint8List solidJpeg(int width, int height) {
+  final image = img.Image(width: width, height: height);
+  img.fill(image, color: img.ColorRgb8(200, 200, 200));
+  return img.encodeJpg(image);
+}
 
 /// Issue #1039: a site attachment shown at full card width.
 void main() {
@@ -145,6 +157,52 @@ void main() {
     );
     expect(find.text('4 pages'), findsOneWidget);
     expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('issue #3996: a landscape PDF preview keeps its own aspect '
+      'ratio, not the portrait 70% height cap', (tester) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
+      preview: PdfPagePreview(jpeg: solidJpeg(2000, 1000), pageCount: 1),
+    );
+    // The surrounding box, not just the Image: the bug left the Image
+    // correctly sized but centered in a container stretched to the 70%
+    // height cap (630 px here), leaving empty space above and below.
+    final box = tester.getSize(
+      find.ancestor(of: find.byType(Image), matching: find.byType(Stack)).first,
+    );
+    expect(box.width / box.height, closeTo(2, 0.05));
+    expect(box.height, lessThan(300));
+  });
+
+  testWidgets('issue #3996: an extreme portrait PDF that hits the height '
+      'cap narrows instead of leaving empty space on the sides', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
+      // 1:3, tall enough that the width-first clamp alone would still
+      // exceed the 630 px height cap (70% of 900), forcing a second clamp
+      // that narrows the page below the card's own width.
+      preview: PdfPagePreview(jpeg: solidJpeg(600, 1800), pageCount: 1),
+    );
+    final cardWidth = tester
+        .getSize(find.byType(SiteAttachmentLargeCard))
+        .width;
+    final box = tester.getSize(
+      find.ancestor(of: find.byType(Image), matching: find.byType(Stack)).first,
+    );
+    expect(box.height, closeTo(630, 1));
+    expect(box.width, lessThan(cardWidth - 50));
+    expect(box.width / box.height, closeTo(1 / 3, 0.05));
   });
 
   testWidgets('the PDF page decodes at the card width, not the bucket', (

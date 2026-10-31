@@ -124,9 +124,15 @@ class PdfPageRenderer {
       final page = document.pages[0];
       final longest = page.width > page.height ? page.width : page.height;
       final scale = maxDimension / longest;
+      // fullWidth/fullHeight is the page rendered at that resolution; the
+      // render()-only width/height pdfrx otherwise defaults to is a pixel
+      // sub-area cropped from a page rendered at its native 72dpi size, so
+      // passing the scaled-up target there left a page shorter than the
+      // crop window (issue #3996 -- the real cause: the page rendered
+      // correctly but small, in the corner of an oversized blank canvas).
       final pageImage = await page.render(
-        width: (page.width * scale).round(),
-        height: (page.height * scale).round(),
+        fullWidth: page.width * scale,
+        fullHeight: page.height * scale,
       );
       if (pageImage == null) return null;
       // Own copy of the pixels, so they outlive the native buffer that

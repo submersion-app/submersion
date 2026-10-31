@@ -88,12 +88,21 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
             .when(
               data: (preview) => preview == null
                   ? const SizedBox.shrink()
-                  : _PdfPage(
-                      preview: preview,
-                      maxHeight: maxHeight,
-                      cacheWidth:
-                          (width * MediaQuery.devicePixelRatioOf(context))
-                              .round(),
+                  // Center loosens the width the stretched Column otherwise
+                  // forces on every child: once maxHeight binds, the page's
+                  // width is clamped a second time to stay in ratio and
+                  // comes out narrower than the card (issue #3996 follow-up
+                  // -- the first fix only stopped the height from being
+                  // forced). Without Center that narrower page would sit in
+                  // a card-width Stack, leaving empty space on the sides.
+                  : Center(
+                      child: _PdfPage(
+                        preview: preview,
+                        maxHeight: maxHeight,
+                        cacheWidth:
+                            (width * MediaQuery.devicePixelRatioOf(context))
+                                .round(),
+                      ),
                     ),
               loading: () => SizedBox(
                 height: width * 0.6,
@@ -164,14 +173,18 @@ class _PdfPage extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
       child: Stack(
+        // Stack sizes itself to its one non-positioned child (the image,
+        // already laid out at its own aspect ratio); Center would instead
+        // fill the whole maxHeight regardless of that aspect ratio, which is
+        // what stretched a landscape page's container tall and left it
+        // floating in empty space (issue #3996). The outer Center in _body
+        // handles centering a page narrower than the card.
         children: [
-          Center(
-            child: Image.memory(
-              preview.jpeg,
-              fit: BoxFit.contain,
-              cacheWidth: cacheWidth,
-              gaplessPlayback: true,
-            ),
+          Image.memory(
+            preview.jpeg,
+            fit: BoxFit.contain,
+            cacheWidth: cacheWidth,
+            gaplessPlayback: true,
           ),
           if (pages != null)
             Positioned(

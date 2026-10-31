@@ -103,4 +103,35 @@ void main() {
     );
     expect(bytes, isNull);
   }, skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)');
+
+  // Issue #3996: page.render()'s width/height args are a pixel sub-area
+  // cropped out of the page rendered at its default 72dpi size, not the
+  // output resolution -- passing the scaled-up target there rendered the
+  // page correctly but small, in the corner of an oversized blank canvas.
+  // A landscape fixture with content to every edge catches that: the old
+  // code left the far corner (and the overall aspect ratio) wrong.
+  test(
+    'fills the rendered bitmap to every edge, not just its own corner',
+    () async {
+      final bytes = await PdfPageRenderer.renderFirstPageJpeg(
+        file: File('test/fixtures/landscape_fullbleed.pdf'),
+        maxDimension: 256,
+      );
+      expect(bytes, isNotNull);
+      final decoded = img.decodeJpg(bytes!);
+      expect(decoded, isNotNull);
+      // A4 landscape is 297:210mm, 1.414:1 -- the crop bug kept the request's
+      // own (correct) aspect ratio for the bitmap's bounds while leaving the
+      // actual page content, and the colour it is tested with below, confined
+      // to a smaller box inside it.
+      expect(decoded!.width / decoded.height, closeTo(1.414, 0.05));
+      // A couple of pixels in, so JPEG compression at the exact edge cannot
+      // produce a false negative.
+      final corner = decoded.getPixel(decoded.width - 2, decoded.height - 2);
+      expect(corner.r, greaterThan(200));
+      expect(corner.g, lessThan(30));
+      expect(corner.b, lessThan(30));
+    },
+    skip: _pdfiumAvailable ? false : 'needs PDFIUM_PATH (see header note)',
+  );
 }
