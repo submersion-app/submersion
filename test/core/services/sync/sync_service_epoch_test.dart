@@ -947,9 +947,9 @@ void main() {
       final csFile = files
           .where((f) => f.name == ChangesetLogLayout.changesetName(deviceId, 1))
           .single;
-      final payload = await const ChangesetCodec().decodeChangeset(
+      final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
         await cloud.downloadFile(csFile.id),
-      );
+      )).payload;
       final diveIds = payload.data.dives.map((d) => d['id']).toSet();
       expect(diveIds.contains('my-dive'), isTrue);
       expect(

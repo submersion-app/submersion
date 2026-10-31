@@ -202,7 +202,7 @@ void main() {
       );
 
       // A broken peer: a valid manifest, but its changeset bytes are not
-      // JSON, so decodeChangeset throws out of the per-peer read.
+      // JSON, so decodeVerifiedChangeset throws out of the per-peer read.
       const badPeerId = 'peer-broken';
       final manifest = SyncManifest(
         deviceId: badPeerId,

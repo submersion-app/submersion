@@ -33,11 +33,6 @@ class ChangesetCodec {
   Future<Uint8List> encodeChangeset(SyncPayload payload) =>
       _encodeOffIsolate(payload, offIsolateMinBytes, offIsolateRunner);
 
-  /// [bytes] parsed but not judged. A caller that applies the payload wants
-  /// [decodeVerifiedChangeset].
-  Future<SyncPayload> decodeChangeset(Uint8List bytes) =>
-      _decodeOffIsolate(bytes, offIsolateMinBytes, offIsolateRunner);
-
   /// [bytes] parsed, with the checksum checked on the same worker.
   Future<VerifiedChangeset> decodeVerifiedChangeset(Uint8List bytes) =>
       _decodeVerifiedOffIsolate(bytes, offIsolateMinBytes, offIsolateRunner);
@@ -55,18 +50,6 @@ class ChangesetCodec {
         list.map((deletion) => deletion.toJson()),
     ], limit: minBytes),
     minBytes: minBytes,
-    runner: runner,
-  );
-
-  static Future<SyncPayload> _decodeOffIsolate(
-    Uint8List bytes,
-    int minBytes,
-    OffIsolateRunner runner,
-  ) => runOffIsolate(
-    () => _parse(bytes),
-    bytes: bytes.length,
-    minBytes: minBytes,
-    isExpected: _isMalformed,
     runner: runner,
   );
 

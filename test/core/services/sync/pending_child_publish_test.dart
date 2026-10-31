@@ -99,7 +99,9 @@ void main() {
     const codec = ChangesetCodec();
     for (final f in changesets) {
       overlay(
-        (await codec.decodeChangeset(await cloud.downloadFile(f.id))).data,
+        ((await codec.decodeVerifiedChangeset(
+          await cloud.downloadFile(f.id),
+        )).payload).data,
       );
     }
     return view;

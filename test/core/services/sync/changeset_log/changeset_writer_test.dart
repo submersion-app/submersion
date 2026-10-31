@@ -296,9 +296,9 @@ void main() {
         .toList();
     expect(csFiles, isNotEmpty);
 
-    final payload = await const ChangesetCodec().decodeChangeset(
+    final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
       await provider.downloadFile(csFiles.first.id),
-    );
+    )).payload;
     final diveIds = payload.data.dives.map((d) => d['id']).toSet();
     expect(diveIds.contains('d2'), isTrue);
     expect(diveIds.contains('d1'), isFalse);
@@ -516,11 +516,11 @@ void main() {
       expect(manifest.headSeq, 1);
 
       final deviceId = await SyncRepository().getDeviceId();
-      final payload = await const ChangesetCodec().decodeChangeset(
+      final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
         await provider.downloadFile(
           '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
         ),
-      );
+      )).payload;
       final diveIds = payload.data.dives.map((d) => d['id']).toSet();
       expect(diveIds.contains('my-edit'), isTrue);
       expect(
@@ -573,11 +573,11 @@ void main() {
 
         expect(result.kind, ChangesetWriteKind.changeset);
         final deviceId = await SyncRepository().getDeviceId();
-        final payload = await const ChangesetCodec().decodeChangeset(
+        final payload = (await const ChangesetCodec().decodeVerifiedChangeset(
           await provider.downloadFile(
             '$folder/${ChangesetLogLayout.changesetName(deviceId, 1)}',
           ),
-        );
+        )).payload;
         expect(payload.deletions['dives'], isNotEmpty);
       },
     );

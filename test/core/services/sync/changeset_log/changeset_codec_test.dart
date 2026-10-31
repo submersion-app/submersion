@@ -40,7 +40,7 @@ void main() {
       seq: 3,
     );
     final bytes = await codec.encodeChangeset(payload);
-    final back = await codec.decodeChangeset(bytes);
+    final back = (await codec.decodeVerifiedChangeset(bytes)).payload;
     expect(back.seq, 3);
     expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
@@ -56,7 +56,9 @@ void main() {
       partSize: 64,
     );
     expect(parts.length, greaterThanOrEqualTo(1));
-    final back = await codec.decodeChangeset(BaseChunker.reassemble(parts));
+    final back = (await codec.decodeVerifiedChangeset(
+      BaseChunker.reassemble(parts),
+    )).payload;
     expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
 

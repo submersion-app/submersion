@@ -77,9 +77,9 @@ void main() {
               a.name,
             )!.compareTo(ChangesetLogLayout.changesetSeqOf(b.name)!),
           );
-    return const ChangesetCodec().decodeChangeset(
+    return (await const ChangesetCodec().decodeVerifiedChangeset(
       await provider.downloadFile(cs.last.id),
-    );
+    )).payload;
   }
 
   Future<List<String>> latestChangesetDiveIds() async => [

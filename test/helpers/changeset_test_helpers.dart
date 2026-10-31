@@ -24,7 +24,9 @@ import 'test_database.dart';
 ApplyBaseFile spyApplyBaseFile(List<SyncPayload> applied) {
   return (path, manifest) async {
     final bytes = await File(path).readAsBytes();
-    applied.add(await const ChangesetCodec().decodeChangeset(bytes));
+    applied.add(
+      (await const ChangesetCodec().decodeVerifiedChangeset(bytes)).payload,
+    );
   };
 }
 
@@ -199,7 +201,9 @@ Future<SyncPayload?> cloudBasePayload(
     parts.add(await cloud.downloadFile(pf.id));
   }
   if (parts.isEmpty) return null;
-  return const ChangesetCodec().decodeChangeset(BaseChunker.reassemble(parts));
+  return (await const ChangesetCodec().decodeVerifiedChangeset(
+    BaseChunker.reassemble(parts),
+  )).payload;
 }
 
 /// True if [deviceId] has published a manifest (its log exists in [cloud]).

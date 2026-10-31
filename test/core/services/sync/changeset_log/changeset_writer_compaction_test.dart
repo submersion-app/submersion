@@ -175,9 +175,9 @@ void main() {
           '$folder/${ChangesetLogLayout.basePartName(deviceId, manifest.baseSeq!, i)}',
         ),
     ];
-    final base = await const ChangesetCodec().decodeChangeset(
+    final base = (await const ChangesetCodec().decodeVerifiedChangeset(
       BaseChunker.reassemble(parts),
-    );
+    )).payload;
     final deletedIds = base.deletions.values
         .expand((l) => l)
         .map((d) => d.id)

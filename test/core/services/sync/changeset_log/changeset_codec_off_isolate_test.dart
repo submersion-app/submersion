@@ -336,24 +336,6 @@ void main() {
     });
   });
 
-  group('decodeChangeset', () {
-    test('a worker hands back the payload without judging it', () async {
-      final document = _payload().toJson();
-      document['checksum'] = 'not the checksum';
-      final hops = _Hops();
-
-      final payload = await ChangesetCodec(
-        offIsolateMinBytes: 0,
-        offIsolateRunner: hops.run,
-      ).decodeChangeset(_documentBytes(document));
-
-      expect(hops.count, 1);
-      expect(hops.failures, isEmpty);
-      expect(payload.seq, 7);
-      expect(SyncDataSerializer.checksumIsValid(payload), isFalse);
-    });
-  });
-
   group('checksumOfOffIsolate', () {
     test('a worker computes the same checksum as this isolate', () async {
       final data = _payload().data;
