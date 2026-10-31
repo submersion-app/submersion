@@ -87,7 +87,9 @@ DiveFilterState entryMethodDivesFilter(DiveFilterState scope, String key) =>
 /// (#3804): the Insights filter [scope], narrowed to [configuration].
 ///
 /// A condition rather than the `tankConfigurations` axis, as for
-/// [tankExtraDivesFilter].
+/// [tankExtraDivesFilter]. Carries the statistics scope itself, so this filter
+/// equals the bar's count on every path that lowers it, not only through
+/// `getCountedDiveIds`.
 DiveFilterState tankConfigDivesFilter(
   DiveFilterState scope,
   TankBaseConfiguration configuration,
@@ -97,6 +99,7 @@ DiveFilterState tankConfigDivesFilter(
     QueryOp.eq,
     EnumValue(configuration.name),
   ),
+  ..._countedByStats,
 ]);
 
 /// The dives behind one extras bar of the tank configuration card. A
@@ -107,7 +110,15 @@ DiveFilterState tankExtraDivesFilter(
   TankConfigurationExtra extra,
 ) => _withConditions(scope, [
   ConditionNode(FieldPath([extra.name]), QueryOp.eq, const BoolValue(true)),
+  ..._countedByStats,
 ]);
+
+/// The two parts of `DiveStatsScope.predicate` the tank configuration card
+/// applies, which a dive filter does not.
+final List<QueryNode> _countedByStats = [
+  for (final key in const ['planned', 'excludedFromStats'])
+    ConditionNode(FieldPath([key]), QueryOp.eq, const BoolValue(false)),
+];
 
 /// In the order the charts number days, from 0 for Sunday.
 const _weekdayNames = [

@@ -223,7 +223,11 @@ void main() {
       expect(repository.lastFilter?.minDepth, 18);
       expect(
         repository.lastFilter?.query,
-        field('tankConfig', const EnumValue('singleBackmount')),
+        AndNode([
+          field('tankConfig', const EnumValue('singleBackmount')),
+          field('planned', const BoolValue(false)),
+          field('excludedFromStats', const BoolValue(false)),
+        ]),
       );
       expect(
         container.read(diveFilterProvider).diveIdsLabel,
@@ -249,7 +253,11 @@ void main() {
 
       expect(
         repository.lastFilter?.query,
-        field('stages', const BoolValue(true)),
+        AndNode([
+          field('stages', const BoolValue(true)),
+          field('planned', const BoolValue(false)),
+          field('excludedFromStats', const BoolValue(false)),
+        ]),
       );
       expect(container.read(diveFilterProvider).diveIds, ['d1']);
     });

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -112,6 +113,10 @@ void main() {
   group('the tank configuration filters (#3804)', () {
     ConditionNode field(String key, QueryValue value) =>
         ConditionNode(FieldPath([key]), QueryOp.eq, value);
+    final counted = [
+      field('planned', const BoolValue(false)),
+      field('excludedFromStats', const BoolValue(false)),
+    ];
 
     test('a configuration keeps the scope and matches what the bar counts', () {
       final filter = tankConfigDivesFilter(
@@ -120,7 +125,22 @@ void main() {
       );
 
       expect(filter.minDepth, 20);
-      expect(filter.query, field('tankConfig', const EnumValue('sidemount')));
+      expect(
+        filter.query,
+        AndNode([
+          field('tankConfig', const EnumValue('sidemount')),
+          ...counted,
+        ]),
+      );
+    });
+
+    // The two conditions restate this predicate, so a new clause there has to
+    // be added to them too, or a bar and its list stop agreeing.
+    test('the conditions cover the whole statistics scope', () {
+      expect(
+        DiveStatsScope.predicate(alias: 'd'),
+        'd.excluded_from_stats = 0 AND d.is_planned = 0',
+      );
     });
 
     test('an extra is a yes on its own field', () {
@@ -129,7 +149,10 @@ void main() {
         TankConfigurationExtra.decoGas,
       );
 
-      expect(filter.query, field('decoGas', const BoolValue(true)));
+      expect(
+        filter.query,
+        AndNode([field('decoGas', const BoolValue(true)), ...counted]),
+      );
     });
 
     test('a query in the scope comes first and stays', () {
@@ -141,7 +164,11 @@ void main() {
 
       expect(
         filter.query,
-        AndNode([scopeQuery, field('tankConfig', const EnumValue('other'))]),
+        AndNode([
+          scopeQuery,
+          field('tankConfig', const EnumValue('other')),
+          ...counted,
+        ]),
       );
     });
 
@@ -152,7 +179,10 @@ void main() {
       );
 
       expect(filter.tankExtras, [TankConfigurationExtra.stages]);
-      expect(filter.query, field('decoGas', const BoolValue(true)));
+      expect(
+        filter.query,
+        AndNode([field('decoGas', const BoolValue(true)), ...counted]),
+      );
     });
   });
 
