@@ -35,9 +35,9 @@ typedef RestoredProfileSeries = ({
 /// merged `<samples>`: every foreign file and every older backup.
 ///
 /// Empty too when any series cannot be read, not just without that series.
-/// The merged samples hold every source's readings, so they only stand in for
-/// all of the series or none: alongside the readable ones they would store
-/// those recordings twice.
+/// The merged samples hold every source's readings this build could read when
+/// it wrote them, so they only stand in for all of the series or none:
+/// alongside the readable ones they would store those recordings twice.
 List<RestoredProfileSeries> restoredProfileSeries(
   Map<String, dynamic> diveData,
 ) {
@@ -55,11 +55,18 @@ List<RestoredProfileSeries> restoredProfileSeries(
         ),
     ];
   } on FormatException catch (e) {
-    _log.warning('Unreadable source profile, using merged samples: $e');
+    _warnUnreadable(diveData, e);
   } on ProfileSeriesCodecException catch (e) {
-    _log.warning('Unreadable source profile, using merged samples: $e');
+    _warnUnreadable(diveData, e);
   }
   return const [];
+}
+
+void _warnUnreadable(Map<String, dynamic> diveData, Object error) {
+  _log.warning(
+    'Dive ${diveData['sourceUuid']} has an unreadable source profile, '
+    'so it keeps its merged samples: $error',
+  );
 }
 
 /// [diveData]'s per-source tank series (issue #2492), each still a series

@@ -1,5 +1,7 @@
 // Restoring each depth profile under the source that recorded it (issue
 // #3965), through the real export reads and the parse the import wizard runs.
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -334,6 +336,103 @@ void main() {
     final merged = await repository.getMergedProfile(await restoredDiveId());
     expect(merged.map((p) => p.timestamp), [0, 10, 30, 40, 60, 70]);
   });
+
+  Future<void> seedTwoComputers() async {
+    final first = await registerComputer('111');
+    final second = await registerComputer('222');
+    await seedDive([(0, 0), (30, 10), (60, 0)]);
+    await repository.saveComputerReading(
+      reading('src-a', primary: true, computerId: first, serial: '111'),
+    );
+    await repository.saveAdditionalComputerReading(
+      reading: reading(
+        'src-b',
+        primary: false,
+        computerId: second,
+        serial: '222',
+        order: 1,
+      ),
+      profile: points([(10, 0), (40, 20), (70, 0)]),
+    );
+  }
+
+  test('a failed source row write keeps the merged samples', () async {
+    await seedTwoComputers();
+    final xml = await backup();
+    await db.customStatement('''
+      CREATE TRIGGER refuse_second_source
+      BEFORE INSERT ON dive_data_sources
+      WHEN NEW.computer_serial = '222'
+      BEGIN SELECT RAISE(ABORT, 'source write failed'); END
+    ''');
+
+    await expectLater(
+      restoreUddfDives(xml, diverId: diverId),
+      throwsA(anything),
+    );
+
+    final merged = await repository.getMergedProfile(await restoredDiveId());
+    expect(merged.map((p) => p.timestamp), [0, 10, 30, 40, 60, 70]);
+  });
+
+  test(
+    'a dive whose samples cannot be stored does not stop the import',
+    () async {
+      await seedTwoComputers();
+      await repository.createDive(
+        domain.Dive(
+          id: 'dive-b',
+          diveNumber: 2,
+          diverId: diverId,
+          dateTime: DateTime.utc(2026, 3, 2, 9),
+          profile: points([(0, 0), (20, 5)]),
+        ),
+      );
+      final xml = await backup();
+      // Refuses every series of the restored two-computer dive, the merged
+      // fallback included. The later dive restores as usual.
+      await db.customStatement('''
+      CREATE TRIGGER refuse_primary_restore
+      BEFORE INSERT ON dive_profile_series
+      WHEN NEW.dive_id NOT IN ('dive-a', 'dive-b')
+        AND EXISTS (
+          SELECT 1 FROM dive_data_sources s
+          WHERE s.dive_id = NEW.dive_id AND s.computer_serial = '222'
+        )
+      BEGIN SELECT RAISE(ABORT, 'series write failed'); END
+    ''');
+
+      await restoreUddfDives(xml, diverId: diverId);
+
+      expect(await db.select(db.dives).get(), hasLength(4));
+    },
+  );
+
+  test(
+    'a stored series this build cannot read falls back on restore',
+    () async {
+      await seedTwoComputers();
+      await (db.update(
+        db.diveProfileSeries,
+      )..where((t) => t.isPrimary.equals(false))).write(
+        DiveProfileSeriesCompanion(
+          samples: Value(Uint8List.fromList([1, 2, 3])),
+        ),
+      );
+
+      final xml = await backup();
+      expect(xml, contains('<sourceprofiles>'));
+      await restoreUddfDives(xml, diverId: diverId);
+
+      // The merged read could not see that series either, so the dive keeps
+      // what it showed, under its primary source.
+      final diveId = await restoredDiveId();
+      final merged = await repository.getMergedProfile(diveId);
+      expect(merged.map((p) => p.timestamp), [0, 30, 60]);
+      final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
+      expect(series.single.sourceId, isNull);
+    },
+  );
 
   test('a single source restores as it always has', () async {
     await seedDive([(0, 0), (30, 10), (60, 0)]);

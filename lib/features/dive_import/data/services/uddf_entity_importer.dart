@@ -3392,7 +3392,14 @@ class UddfEntityImporter {
           sourceFileName: diveSourceFileName,
           now: now,
         );
-        await repos.diveRepository.saveComputerReadings(restored);
+        try {
+          await repos.diveRepository.saveComputerReadings(restored);
+        } catch (_) {
+          if (perSourceProfiles.isNotEmpty) {
+            await _keepMergedSamples(repos.diveRepository, diveId, profile);
+          }
+          rethrow;
+        }
         restoredDataSources += sourceEntries.length;
         // Each series under the restored row of the <source> that recorded
         // it, and the computer of the one its computer recorded; a series
@@ -3432,26 +3439,13 @@ class UddfEntityImporter {
                 ),
             ]);
           } catch (e, stackTrace) {
-            // One transaction, so nothing was written, and createDive left
-            // the merged samples out. Without them the dive has no profile.
             _log.error(
               'Failed to restore the source profiles of dive $diveId; '
               'it keeps its merged samples',
               error: e,
               stackTrace: stackTrace,
             );
-            if (profile.isNotEmpty) {
-              await repos.diveRepository.restoreSourceProfiles(diveId, [
-                (
-                  sourceId: null,
-                  computerId: null,
-                  isPrimary: true,
-                  samples: [
-                    for (final point in profile) profileSampleFromPoint(point),
-                  ],
-                ),
-              ]);
-            }
+            await _keepMergedSamples(repos.diveRepository, diveId, profile);
           }
         }
         // Each tank row under its own source and computer (#2716).
@@ -3538,6 +3532,36 @@ class UddfEntityImporter {
   }
 
   // -- Dive helper methods --
+
+  /// Stores a dive's merged samples after its per-source series could not be
+  /// (issue #3965). createDive left them out for those series, so without
+  /// this the dive has no profile at all.
+  ///
+  /// Best-effort: a throw here would abort the rest of the import over a dive
+  /// that is already stored, so a failure is logged and the import carries on.
+  Future<void> _keepMergedSamples(
+    DiveRepository dives,
+    String diveId,
+    List<DiveProfilePoint> profile,
+  ) async {
+    if (profile.isEmpty) return;
+    try {
+      await dives.restoreSourceProfiles(diveId, [
+        (
+          sourceId: null,
+          computerId: null,
+          isPrimary: true,
+          samples: [for (final point in profile) profileSampleFromPoint(point)],
+        ),
+      ]);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to store the merged samples of dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 
   GeoPoint? _geoPoint(dynamic lat, dynamic lng) {
     final latVal = asDoubleOrNull(lat);
