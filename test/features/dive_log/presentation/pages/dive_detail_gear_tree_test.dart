@@ -149,6 +149,19 @@ void main() {
     expect(find.byType(DiverFigure), findsOneWidget);
   });
 
+  testWidgets('the default settings put the figure in the card', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      await buildDetail(showDiveFigure: const AppSettings().showDiveFigure),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(DiverFigure), findsOneWidget);
+  });
+
   testWidgets('with the switch off the card has no figure', (tester) async {
     await open(tester);
     expect(find.byType(DiverFigure), findsNothing);

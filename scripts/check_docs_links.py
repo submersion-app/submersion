@@ -198,6 +198,9 @@ USER_DOCS = os.path.join("docs", "user")
 USER_IMAGES = "images"
 USER_HOME = "README.md"
 USER_SIDEBAR = "_sidebar.md"
+USER_HOW_TO_INDEX = "how-to-guides.md"
+USER_HOW_TO_PREFIX = "how-to-"
+SCREENSHOT_MARKER = "<!-- screenshot:"
 HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$")
 # docsify rebases Markdown links and images onto its base path, but not raw
 # HTML, so a relative <a href> or <img src> works on GitHub and breaks on the
@@ -260,6 +263,16 @@ def _heading_slugs(text):
     )
 
 
+def _linked_pages(text):
+    """Basenames of the local pages a Markdown page links to."""
+    return {
+        os.path.basename(unquote(url.split("#", 1)[0]))
+        for _number, line in _unfenced_lines(text)
+        for url in _link_targets(line)
+        if not SCHEME_RE.match(url)
+    }
+
+
 def check_user_docs(root):
     base = os.path.join(root, USER_DOCS)
     if not os.path.isdir(base):
@@ -283,19 +296,29 @@ def check_user_docs(root):
         elif entry.endswith(".md"):
             pages[entry] = _read_text(full) or ""
 
-    sidebar = pages.get(USER_SIDEBAR, "")
-    linked = {
-        os.path.basename(unquote(url.split("#", 1)[0]))
-        for _number, line in _unfenced_lines(sidebar)
-        for url in _link_targets(line)
-        if not SCHEME_RE.match(url)
-    }
+    linked = _linked_pages(pages.get(USER_SIDEBAR, ""))
     for name in sorted(pages):
         if name not in (USER_HOME, USER_SIDEBAR) and name not in linked:
             failures.append(
                 f"{os.path.join(USER_DOCS, name)}: not linked from {USER_SIDEBAR}, "
                 "so the published guide cannot reach it"
             )
+
+    indexed = _linked_pages(pages.get(USER_HOW_TO_INDEX, ""))
+    for name in sorted(pages):
+        if not name.startswith(USER_HOW_TO_PREFIX) or name == USER_HOW_TO_INDEX:
+            continue
+        if name not in indexed:
+            failures.append(
+                f"{os.path.join(USER_DOCS, name)}: not linked from {USER_HOW_TO_INDEX}, "
+                "so the How-To Guides index misses it"
+            )
+        for number, line in _unfenced_lines(pages[name]):
+            if SCREENSHOT_MARKER in line:
+                failures.append(
+                    f"{os.path.join(USER_DOCS, name)}:{number}: screenshot marker "
+                    "left in; replace it with the captured image"
+                )
 
     slugs = {name: _heading_slugs(text) for name, text in pages.items()}
     for name, text in sorted(pages.items()):

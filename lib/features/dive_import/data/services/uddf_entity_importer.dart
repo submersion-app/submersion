@@ -3825,7 +3825,7 @@ class UddfEntityImporter {
         ? unmatchedNamesValue.whereType<String>().toList()
         : <String>[];
     for (final buddyName in unmatchedNames) {
-      final buddy = await repository.findOrCreateByName(
+      final (:buddy, :created) = await repository.resolveByName(
         buddyName,
         diverId: diverId,
       );
@@ -3833,7 +3833,7 @@ class UddfEntityImporter {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
       infer(buddy.id, DiveRole.buddyId);
-      inlineIds.add(buddy.id);
+      if (created) inlineIds.add(buddy.id);
     }
 
     // Handle inline dive guide / divemaster names
@@ -3842,7 +3842,7 @@ class UddfEntityImporter {
         ? unmatchedGuideValue.whereType<String>().toList()
         : <String>[];
     for (final guideName in unmatchedGuides) {
-      final guide = await repository.findOrCreateByName(
+      final (buddy: guide, :created) = await repository.resolveByName(
         guideName,
         diverId: diverId,
       );
@@ -3850,7 +3850,7 @@ class UddfEntityImporter {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
       infer(guide.id, DiveRole.diveGuideId);
-      inlineIds.add(guide.id);
+      if (created) inlineIds.add(guide.id);
     }
 
     // Exact roles from Submersion's private <buddyroles> block (issue

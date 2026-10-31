@@ -1,13 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 
 import '../../../../support/compression_bombs.dart';
 
@@ -305,6 +310,203 @@ void main() {
       );
       expect(envelope[20] & 0x01, 0x01, reason: 'gzip flag must be set');
       expect(envelope.length, lessThan(plain.length));
+    });
+  });
+
+  group('a large payload', () {
+    final key = SecretKeyData(List.generate(32, (i) => i));
+    const keyId = '12345678-1234-4567-8234-567812345678';
+    const name = 'ssv1.devA.base.000000000001.p00000';
+    const inline = 1 << 40;
+    final nonce = List.filled(12, 7);
+    final random = Random(1);
+    // JSON-like, so gzip helps and still leaves a good deal to encrypt.
+    final compressible = Uint8List.fromList(
+      utf8.encode(
+        List.generate(
+          60000,
+          (_) => '{"depth":${random.nextInt(1 << 30)}}',
+        ).join(','),
+      ),
+    );
+    final incompressible = Uint8List.fromList(
+      List.generate(kOffIsolateMinBytes + 1024, (_) => random.nextInt(256)),
+    );
+
+    Future<Uint8List> seal(
+      Uint8List plaintext, {
+      bool compress = true,
+      int? offIsolateMinBytes,
+      OffIsolateRunner offIsolateRunner = isolateRun,
+    }) => SyncEnvelope.seal(
+      plaintext: plaintext,
+      dataKey: key,
+      libraryKeyId: keyId,
+      filename: name,
+      compress: compress,
+      nonceForTest: nonce,
+      offIsolateMinBytes: offIsolateMinBytes ?? kOffIsolateMinBytes,
+      offIsolateRunner: offIsolateRunner,
+    );
+
+    Future<Uint8List> open(
+      Uint8List envelope, {
+      String filename = name,
+      int? offIsolateMinBytes,
+      OffIsolateRunner offIsolateRunner = isolateRun,
+      int maxPlaintextBytes = SyncEnvelope.defaultMaxPlaintextBytes,
+    }) => SyncEnvelope.open(
+      envelope: envelope,
+      dataKey: key,
+      expectedLibraryKeyId: keyId,
+      filename: filename,
+      offIsolateMinBytes: offIsolateMinBytes ?? kOffIsolateMinBytes,
+      offIsolateRunner: offIsolateRunner,
+      maxPlaintextBytes: maxPlaintextBytes,
+    );
+
+    test('runs on the cipher the worker path is written for', () {
+      expect(AesGcm.with256bits(), isA<DartAesGcm>());
+    });
+
+    test('seals through two isolates and opens through two', () async {
+      var hops = 0;
+      Future<R> counting<R>(FutureOr<R> Function() work) {
+        hops++;
+        return Isolate.run(work);
+      }
+
+      final sealed = await seal(compressible, offIsolateRunner: counting);
+      expect(hops, 2, reason: 'gzip and AES-GCM');
+
+      hops = 0;
+      await open(sealed, offIsolateRunner: counting);
+      expect(hops, 2, reason: 'AES-GCM and inflate');
+    });
+
+    test('inflates off-isolate once the blob could unpack large', () async {
+      // Between the thresholds: small enough that gzip stays here, and a blob
+      // the 256 KiB bar alone would have inflated on this isolate.
+      final plain = Uint8List.sublistView(compressible, 0, 200 * 1024);
+      final sealed = await seal(plain);
+      final blob = sealed.length - 49;
+      expect(blob, greaterThan(kOffIsolateMinBytes ~/ kCompressedCostFactor));
+      expect(blob, lessThan(kOffIsolateMinBytes));
+
+      var hops = 0;
+      await open(
+        sealed,
+        offIsolateRunner: <R>(work) async {
+          hops++;
+          return Isolate.run(work);
+        },
+      );
+      expect(hops, 2, reason: 'AES-GCM and inflate');
+    });
+
+    test('stays on this isolate below the threshold', () async {
+      var hops = 0;
+      Future<R> counting<R>(FutureOr<R> Function() work) {
+        hops++;
+        return Isolate.run(work);
+      }
+
+      final small = Uint8List.fromList(utf8.encode('{"dive":1}' * 100));
+      final sealed = await seal(small, offIsolateRunner: counting);
+      await open(sealed, offIsolateRunner: counting);
+      expect(hops, 0);
+    });
+
+    for (final (bytes, hopsExpected) in [(40 * 1024, 1), (20 * 1024, 0)]) {
+      test(
+        'pure Dart AES-GCM on $bytes bytes takes $hopsExpected hops',
+        () async {
+          var hops = 0;
+          final sealed = await seal(
+            Uint8List.sublistView(incompressible, 0, bytes),
+            compress: false,
+            offIsolateRunner: <R>(work) async {
+              hops++;
+              return Isolate.run(work);
+            },
+          );
+          expect(hops, hopsExpected);
+          expect(sealed, isNotEmpty);
+        },
+      );
+    }
+
+    test('seals to the same bytes off-isolate as inline', () async {
+      expect(
+        await seal(compressible),
+        await seal(compressible, offIsolateMinBytes: inline),
+      );
+    });
+
+    test('opens what the inline path sealed', () async {
+      final sealed = await seal(compressible, offIsolateMinBytes: inline);
+      expect(await open(sealed), compressible);
+    });
+
+    test('an off-isolate seal opens inline', () async {
+      final sealed = await seal(compressible);
+      expect(await open(sealed, offIsolateMinBytes: inline), compressible);
+    });
+
+    test('an incompressible payload goes in raw, unflagged', () async {
+      final sealed = await seal(incompressible);
+      expect(sealed[20] & 0x01, 0);
+      expect(await open(sealed), incompressible);
+    });
+
+    test('a wrong name still fails authentication', () async {
+      final sealed = await seal(compressible);
+      await expectLater(
+        open(sealed, filename: 'ssv1.devB.base.000000000001.p00000'),
+        throwsA(isA<EnvelopeCorruptException>()),
+      );
+    });
+
+    test('a failed authentication stops before any inflate', () async {
+      final sealed = await seal(compressible);
+      sealed[sealed.length ~/ 2] ^= 0xff;
+      var hops = 0;
+      await expectLater(
+        open(
+          sealed,
+          offIsolateRunner: <R>(work) async {
+            hops++;
+            return Isolate.run(work);
+          },
+        ),
+        throwsA(isA<EnvelopeCorruptException>()),
+      );
+      expect(hops, 1, reason: 'it stops at AES-GCM, before any inflate');
+    });
+
+    test('the inflate cap still rejects a bomb off-isolate', () async {
+      final bomb = compressZeros(gzip.encoder, mebibytes: 64);
+      final sealed = await SyncEnvelope.seal(
+        plaintext: bomb,
+        dataKey: key,
+        libraryKeyId: keyId,
+        filename: name,
+        compress: false,
+      );
+      sealed[20] |= 0x01;
+      await expectLater(
+        open(sealed, offIsolateMinBytes: 0, maxPlaintextBytes: 1 << 20),
+        throwsA(isA<EnvelopeCorruptException>()),
+      );
+    });
+
+    test('isolates that fail give the same bytes inline', () async {
+      Future<R> broken<R>(FutureOr<R> Function() work) async =>
+          throw IsolateSpawnException('no isolate');
+
+      final sealed = await seal(compressible, offIsolateRunner: broken);
+      expect(sealed, await seal(compressible, offIsolateMinBytes: inline));
+      expect(await open(sealed, offIsolateRunner: broken), compressible);
     });
   });
 }

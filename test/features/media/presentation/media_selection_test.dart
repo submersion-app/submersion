@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
+import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -15,7 +16,8 @@ import 'package:submersion/features/media/domain/services/media_source_resolver.
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -149,8 +151,18 @@ class _RecordingMediaRepo implements MediaRepository {
 
 class _FakeDiveRepo implements DiveRepository {
   @override
-  Future<List<Dive>> getAllDives({String? diverId}) async => [
-    Dive(id: 'dive-2', diveNumber: 2, dateTime: DateTime(2026, 6, 12)),
+  Future<List<DivePickerRow>> getDivePickerRows({
+    String? diverId,
+    String query = '',
+    DiveSummaryCursor? cursor,
+    int limit = kDivePickerPageSize,
+  }) async => [
+    DivePickerRow(
+      id: 'dive-2',
+      diveNumber: 2,
+      dateTime: DateTime.utc(2026, 6, 12),
+      sortTimestamp: DateTime.utc(2026, 6, 12).millisecondsSinceEpoch,
+    ),
   ];
 
   @override

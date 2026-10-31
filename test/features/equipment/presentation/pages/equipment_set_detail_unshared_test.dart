@@ -55,6 +55,8 @@ void main() {
         diverId: 'd1',
         name: 'Cold Water',
         equipmentIds: const ['mine', 'gone'],
+        // The list row is under test; the figure would name the gear again.
+        showFigure: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),

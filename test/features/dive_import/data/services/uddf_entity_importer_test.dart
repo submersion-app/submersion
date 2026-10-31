@@ -2576,11 +2576,8 @@ void main() {
         updatedAt: now,
       );
       when(
-        mockBuddyRepo.findOrCreateByName(
-          'Charlie',
-          diverId: anyNamed('diverId'),
-        ),
-      ).thenAnswer((_) async => inlineBuddy);
+        mockBuddyRepo.resolveByName('Charlie', diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => (buddy: inlineBuddy, created: true));
       when(
         mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
       ).thenAnswer((_) async {});
@@ -2608,7 +2605,7 @@ void main() {
       // Inline buddy counted in buddies total
       expect(result.buddies, 1);
       verify(
-        mockBuddyRepo.findOrCreateByName('Charlie', diverId: diverId),
+        mockBuddyRepo.resolveByName('Charlie', diverId: diverId),
       ).called(1);
     });
 
