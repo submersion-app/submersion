@@ -170,5 +170,16 @@ void main() {
 
       expect(_ofType(outcome, PlanIssueType.ppO2High), isNotEmpty);
     });
+
+    test('a loop setpoint gets no such tolerance', () {
+      final outcome = engine.compute(
+        _plan(
+          gas: const GasMix(o2: 21),
+        ).copyWith(mode: domain.PlanMode.ccr, setpointHigh: 1.403),
+      );
+
+      expect(outcome.segmentOutcomes.last.maxPpO2, closeTo(1.403, 1e-9));
+      expect(_ofType(outcome, PlanIssueType.ppO2High), isNotEmpty);
+    });
   });
 }

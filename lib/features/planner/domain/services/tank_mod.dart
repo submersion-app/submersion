@@ -154,10 +154,10 @@ double decoCeilingPpO2For(
 
 /// Whether a [ppO2] in the plan's water is over [limit] (issue #3913).
 ///
-/// A ppO2 that still reads as its limit is not: a depth the flat 10 m per bar
-/// model puts exactly on the limit (oxygen at 6 m, 1.603 bar in seawater)
-/// lands a hair past it in real water, the slack a default gas switch gets
-/// (issue #3566, see [gasSwitchDepthMeters]).
+/// A ppO2 that still reads as its limit is not over it. A depth the flat
+/// 10 m per bar model puts exactly on the limit lands a hair past it in real
+/// water (oxygen at 6 m is 1.603 bar in seawater), so this allows the same
+/// slack as a default gas switch (issue #3566, see [gasSwitchDepthMeters]).
 bool ppO2OverLimit(double ppO2, double limit) =>
     ppO2 > limit + gasSwitchPpO2Tolerance;
 

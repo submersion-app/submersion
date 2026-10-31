@@ -221,6 +221,32 @@ void main() {
 
       expect(ofType(result, PlanWarningType.ppO2High), isEmpty);
     });
+
+    test('a gas reading 1.41 raises the working-limit warning', () {
+      final salt = DiveEnvironment.forConditions(waterType: WaterType.salt);
+      final depth = salt.depthAtPressure(1.406 / 0.32);
+
+      final result = resultFor(
+        const GasMix(o2: 32),
+        depth: depth,
+        environment: salt,
+      );
+
+      expect(ofType(result, PlanWarningType.ppO2High), isNotEmpty);
+    });
+
+    test('EAN40 at 30 m in salt water reads 1.61 and stays critical', () {
+      final salt = DiveEnvironment.forConditions(waterType: WaterType.salt);
+
+      final result = resultFor(
+        const GasMix(o2: 40),
+        depth: 30,
+        environment: salt,
+      );
+
+      expect(result.maxPpO2.toStringAsFixed(2), '1.61');
+      expect(ofType(result, PlanWarningType.ppO2Critical), isNotEmpty);
+    });
   });
 
   group('PlanCalculatorService ideal ascent gas', () {
