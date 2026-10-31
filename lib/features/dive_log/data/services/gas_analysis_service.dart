@@ -433,16 +433,20 @@ class GasAnalysisService {
         value: (p) => p.depth,
       )!;
 
-  /// Time-weighted mean depth from [start] through the sample at [end]. A
-  /// segment's slice stops short of that sample, which would leave out the
-  /// interval leading up to it.
+  /// Time-weighted mean depth over the whole of a segment. A segment's own
+  /// slice of the profile stops short of [end] and may start after [start], so
+  /// it would leave out the time at either edge.
   static double _segmentMeanDepth(
     List<DiveProfilePoint> profile,
     int start,
     int end,
-  ) => _meanDepthOf(
-    profile.where((p) => p.timestamp >= start && p.timestamp <= end).toList(),
-  );
+  ) => timeWeightedMeanBetween(
+    profile,
+    start: start,
+    end: end,
+    time: (p) => p.timestamp,
+    value: (p) => p.depth,
+  )!;
 
   /// Compute SAC rate under [model], using its gas volumes.
   ///

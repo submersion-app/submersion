@@ -17,6 +17,7 @@ import 'package:submersion/features/planner/data/repositories/dive_plan_reposito
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
@@ -771,7 +772,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       ],
       runtime: Duration(seconds: outcome.runtimeSeconds),
       maxDepth: outcome.maxDepth,
-      avgDepth: _timeWeightedAverageDepth(series),
+      avgDepth: PlanChartGeometry.meanDepthMeters(series.profile),
     );
 
     // The logged dive is a planned, unnumbered entry until the diver's
@@ -805,18 +806,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ),
     );
-  }
-
-  static double _timeWeightedAverageDepth(PlanCanvasSeries series) {
-    final profile = series.profile;
-    if (profile.length < 2) return 0;
-    double weighted = 0;
-    for (var i = 1; i < profile.length; i++) {
-      final dt = profile[i].timeSeconds - profile[i - 1].timeSeconds;
-      weighted += dt * (profile[i].depth + profile[i - 1].depth) / 2;
-    }
-    final total = profile.last.timeSeconds - profile.first.timeSeconds;
-    return total > 0 ? weighted / total : 0;
   }
 
   Future<void> _deletePlan() async {

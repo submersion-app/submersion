@@ -96,6 +96,33 @@ void main() {
       expect(segment.sacRate, closeTo(flat.sacRate, 1e-9));
     });
 
+    test('a gas switch between samples starts the mean on the ramp', () {
+      GasSwitchWithTank switchAt(String id, int timestamp) => GasSwitchWithTank(
+        gasSwitch: GasSwitch(
+          id: id,
+          diveId: 'dive-1',
+          timestamp: timestamp,
+          tankId: 't1',
+          createdAt: DateTime(2026),
+        ),
+        tankName: 't1',
+        gasMix: 'air',
+        o2Fraction: 0.21,
+      );
+
+      final segment = service
+          .calculateGasSwitchSegments(
+            profile: uneven,
+            tanks: const [tank],
+            gasSwitches: [switchAt('gs1', 90)],
+            tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
+          )!
+          .single;
+
+      // 20 m at 90 s: 30 s averaging 25 m, then 480 s at 30 m.
+      expect(segment.avgDepth, closeTo((30 * 25 + 480 * 30) / 510, 1e-9));
+    });
+
     test('a phase segment is unchanged by a sample on a flat stretch', () {
       // A bottom phase on two levels, both within 15% of the maximum: a sample
       // average moves with each sample added at 30 m, the mean over time does

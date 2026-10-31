@@ -426,8 +426,10 @@ class RangeStatsPanel extends ConsumerWidget {
     final depths = rangePoints.map((p) => p.depth).toList();
     final minDepth = depths.reduce(math.min);
     final maxDepth = depths.reduce(math.max);
-    final avgDepth = timeWeightedMean(
-      rangePoints,
+    final avgDepth = timeWeightedMeanBetween(
+      profile,
+      start: rangeState.startTimestamp!,
+      end: rangeState.endTimestamp!,
       time: (p) => p.timestamp,
       value: (p) => p.depth,
     )!;

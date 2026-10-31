@@ -15,6 +15,12 @@ class TimeWeightedMean {
   num? _lastTime;
   double? _lastValue;
 
+  /// The integral of the series so far, in value-seconds for times in seconds.
+  double get area => _area;
+
+  /// The time the mean spans so far.
+  num get span => _span;
+
   /// Adds a sample of [value] at [time].
   void add(num time, double value) {
     final lastTime = _lastTime;
@@ -47,6 +53,48 @@ double? timeWeightedMean<T>(
   final mean = TimeWeightedMean();
   for (final sample in samples) {
     mean.add(time(sample), value(sample));
+  }
+  return mean.value;
+}
+
+/// The mean of [value] over the window from [start] to [end], or null when
+/// [samples] do not reach it.
+///
+/// Reads the series at the window's edges by interpolating between the samples
+/// either side, so a window that starts or ends between samples still weighs
+/// the whole of its time. A window running past the samples stops at them.
+double? timeWeightedMeanBetween<T>(
+  Iterable<T> samples, {
+  required num start,
+  required num end,
+  required num Function(T sample) time,
+  required double Function(T sample) value,
+}) {
+  final mean = TimeWeightedMean();
+  ({num time, double value})? previous;
+  for (final sample in samples) {
+    final current = (time: time(sample), value: value(sample));
+    final before = previous;
+    if (current.time < start) {
+      previous = current;
+      continue;
+    }
+    double interpolatedAt(num edge) {
+      final progress = (edge - before!.time) / (current.time - before.time);
+      return before.value + (current.value - before.value) * progress;
+    }
+
+    if (before != null && before.time < start && current.time > start) {
+      mean.add(start, interpolatedAt(start));
+    }
+    if (current.time > end) {
+      if (before != null && before.time < end) {
+        mean.add(end, interpolatedAt(end));
+      }
+      break;
+    }
+    mean.add(current.time, current.value);
+    previous = current;
   }
   return mean.value;
 }

@@ -214,6 +214,25 @@ void main() {
       expect(find.text('35.3 L/min'), findsOneWidget);
     });
 
+    testWidgets('interpolates depth at the range edges (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds only t=400, at 30 m, but starts on the
+      // ramp at 13.3 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 100, depth: 10),
+          DiveProfilePoint(timestamp: 400, depth: 30),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+      );
+
+      expect(find.text('23.1m'), findsOneWidget);
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 
