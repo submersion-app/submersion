@@ -220,13 +220,17 @@ void main() {
         [gasSwitch(0, 'tank-a', null), gasSwitch(30, 'tank-b', null)],
         sources: [sourceA, sourceB],
       );
-      var replacements = ['<computer>7</computer>', '<computer>x</computer>'];
-      final tampered = xml.replaceAllMapped('</gasswitch>', (match) {
-        final extra = replacements.first;
-        replacements = replacements.sublist(1);
-        return '$extra</gasswitch>';
-      });
+      final tampered = xml
+          .replaceFirst(
+            '<time>0</time>',
+            '<time>0</time><computer>7</computer>',
+          )
+          .replaceFirst(
+            '<time>30</time>',
+            '<time>30</time><computer>x</computer>',
+          );
       expect(tampered, contains('<computer>7</computer>'));
+      expect(tampered, contains('<computer>x</computer>'));
 
       await restore(tampered);
 

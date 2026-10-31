@@ -341,7 +341,9 @@ void main() {
     test('names none when the sources are left out', () async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
         dives: [dive],
+        dataSources: sources,
         diveGasSwitches: switches,
+        options: const UddfExportOptions(includeRawData: false),
       );
 
       expect(xml, isNot(contains('<computer>')));
