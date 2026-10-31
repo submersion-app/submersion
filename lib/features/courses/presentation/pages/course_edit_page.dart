@@ -10,7 +10,6 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/instructor_picker_field.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_multi_select_field.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -121,7 +120,7 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
 
   Widget _buildForm(BuildContext context, Course? existingCourse) {
     final colorScheme = Theme.of(context).colorScheme;
-    final formatter = UnitFormatter(ref.watch(settingsProvider));
+    final formatter = ref.watch(unitFormatterProvider);
 
     final form = Form(
       key: _formKey,

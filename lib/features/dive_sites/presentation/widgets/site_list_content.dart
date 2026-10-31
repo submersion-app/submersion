@@ -1125,8 +1125,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         }
         final config = ref.watch(siteTableConfigProvider);
         final notifier = ref.read(siteTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         return Column(
           children: [

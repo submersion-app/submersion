@@ -7,7 +7,6 @@ import 'package:submersion/features/rules/presentation/pages/rule_history_page.d
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_change_list.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(RuleRunPage);
@@ -31,7 +30,7 @@ class _RuleRunPageState extends ConsumerState<RuleRunPage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final detail = ref.watch(ruleRunDetailProvider(widget.runId));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l.rules_run_title)),
       body: switch (detail) {

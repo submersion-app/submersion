@@ -456,8 +456,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final presets = ref.watch(tankPresetsProvider);
     final computers = ref.watch(allDiveComputersProvider);
 
@@ -646,7 +645,8 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                           decoration: InputDecoration(
                             labelText: l10n.diveLog_tank_label_volume,
                             suffixText:
-                                settings.volumeUnit == VolumeUnit.cubicFeet
+                                units.settings.volumeUnit ==
+                                    VolumeUnit.cubicFeet
                                 ? units.volumeSymbol
                                 : 'L',
                           ),

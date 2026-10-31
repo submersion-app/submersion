@@ -1833,6 +1833,8 @@
   "buddies_field_linkedProfile": "Linked profile",
   "buddies_field_linkedProfileNone": "Not linked",
   "buddies_field_nameHint": "Enter buddy name",
+  "buddies_field_excludedFromRankings": "Leave out of buddy rankings",
+  "buddies_field_excludedFromRankingsHint": "Dives together still count as buddy dives.",
   "buddies_field_nameRequired": "Name *",
   "buddies_field_notes": "Notes",
   "buddies_field_notesHint": "Add notes about this buddy...",
@@ -2043,6 +2045,7 @@
   "buddies_section_notes": "Notes",
   "buddies_section_sharedDives": "Shared Dives",
   "buddies_stat_divesTogether": "Dives Together",
+  "buddies_stat_excludedFromRankings": "Left out of buddy rankings",
   "buddies_stat_favoriteSite": "Favorite Site",
   "buddies_stat_firstDive": "First Dive",
   "buddies_stat_lastDive": "Last Dive",
@@ -3467,6 +3470,7 @@
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
   "courses_action_markCompleted": "Mark as Completed",
+  "courses_action_chooseDive": "Choose dive",
   "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
@@ -3538,6 +3542,17 @@
   "courses_requirement_kind_checklist": "Check-off item",
   "courses_requirement_kind_dive": "Dive requirement",
   "courses_requirement_suggestions": "Suggested dives",
+  "courses_requirement_allDives": "All dives",
+  "courses_requirement_noDives": "No dives to link",
+  "courses_requirement_noDivesMatch": "No dives match \"{query}\"",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Search dives",
   "courses_requirements_empty": "Track adventure dives, prerequisites, and check-offs for this course.",
   "courses_requirements_progress": "{satisfied} of {total} complete",
   "courses_section_details": "Course Details",
@@ -5034,6 +5049,7 @@
   "diveLog_legend_label_ascentRate": "Ascent Rate",
   "diveLog_legend_label_ascentRateLine": "Ascent Rate Line",
   "diveLog_legend_label_ceiling": "Ceiling",
+  "diveLog_legend_label_ceilingCalculated": "Ceiling (calc)",
   "diveLog_legend_label_decoStops": "Deco stops",
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",
@@ -9578,6 +9594,8 @@
   "equipment_filter_section_category": "Category",
   "equipment_location_kind_storage": "Storage",
   "@equipment_location_kind_storage": {"description": "Kind of place where gear is kept: a shelf, bin, locker or room"},
+  "equipment_location_kind_diveCenter": "Dive center",
+  "@equipment_location_kind_diveCenter": {"description": "Kind of place: a dive center or shop where the diver leaves gear between dives"},
   "equipment_location_kind_serviceShop": "Service shop",
   "@equipment_location_kind_serviceShop": {"description": "Kind of place: a shop or technician servicing gear"},
   "equipment_location_kind_person": "Person",
@@ -9696,6 +9714,12 @@
   "@equipment_locations_duplicateWarning": {"description": "Warning under a place name that matches another of the diver's places; saving is still allowed"},
   "equipment_locations_kindLabel": "Kind",
   "@equipment_locations_kindLabel": {"description": "Label of a place's kind selector"},
+  "equipment_locations_savedCenterLabel": "Saved dive center",
+  "@equipment_locations_savedCenterLabel": {"description": "Label of the field linking a place to one of the diver's saved dive centers"},
+  "equipment_locations_savedCenterNone": "None",
+  "@equipment_locations_savedCenterNone": {"description": "Value of the saved dive center field when no center is linked"},
+  "equipment_locations_savedCenterClear": "Remove saved dive center",
+  "@equipment_locations_savedCenterClear": {"description": "Tooltip of the button that removes the link to a saved dive center"},
   "equipment_locations_notesLabel": "Notes",
   "@equipment_locations_notesLabel": {"description": "Label of a place's notes field"},
   "equipment_locations_notesHint": "Address, phone, locker number",
@@ -10655,6 +10679,7 @@
   "gasCalculators_blender_stepStartLabel": "Start",
   "gasCalculators_blender_stepColumnAction": "Action",
   "gasCalculators_blender_stepColumnAdded": "Added",
+  "gasCalculators_blender_stepColumnTopUp": "Top up",
   "gasCalculators_blender_stepColumnPressure": "Pressure",
   "gasCalculators_blender_stepColumnMix": "Mix",
   "gasCalculators_blender_settlesTo": "Settles to {pressure} at {temperature}",
@@ -12860,7 +12885,10 @@
   "plannerCanvas_rates_descent": "Descent rate",
   "plannerCanvas_rates_title": "Rates",
   "plannerCanvas_range_title": "Range table",
+  "plannerCanvas_results_calculating": "Calculating",
+  "plannerCanvas_results_failed": "Could not be calculated",
   "plannerCanvas_results_noDeco": "No decompression required",
+  "plannerCanvas_results_updating": "Updating",
   "plannerCanvas_sac_useLogged": "Use logged average ({sac})",
   "@plannerCanvas_sac_useLogged": {
     "placeholders": {
@@ -16941,6 +16969,35 @@
       "baseline": { "type": "String" }
     }
   },
+  "insights_focus_standouts_categoryAllRecorded": "All {count} were {value} ({baseline} of the {coverage} with this recorded)",
+  "@insights_focus_standouts_categoryAllRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
+  "insights_focus_standouts_categorySomeRecorded": "{count} of {total} were {value}, against {baseline} of the {coverage} with this recorded",
+  "@insights_focus_standouts_categorySomeRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
+  "insights_focus_standouts_categoryPartRecorded": "{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded",
+  "@insights_focus_standouts_categoryPartRecorded": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "groupCoverage": { "type": "String" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" },
+      "coverage": { "type": "String" }
+    }
+  },
   "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} vs {baseline})",
   "@insights_focus_standouts_numeric": {
     "placeholders": {
@@ -17029,6 +17086,7 @@
   "insights_profile_ascentDescent_title": "Average Ascent & Descent Rates",
   "insights_profile_avgAscent": "Avg Ascent",
   "insights_profile_avgDescent": "Avg Descent",
+  "insights_profile_deco_analyzing": "Analyzing dives: {analyzed} of {total}",
   "insights_profile_deco_decoDives": "Deco Dives",
   "insights_profile_deco_decoLabel": "Deco",
   "insights_profile_deco_decoRate": "Deco Rate",
@@ -17400,6 +17458,16 @@
       },
       "topCount": {
         "type": "Object"
+      }
+    }
+  },
+  "@insights_profile_deco_analyzing": {
+    "placeholders": {
+      "analyzed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
       }
     }
   },
@@ -32013,6 +32081,8 @@
   "numberInput_notNegative": "Enter 0 or more",
   "numberInput_atLeastOne": "Enter 1 or more",
   "numberInput_percentRange": "Enter 0 to 100",
+  "diveCenters_gearHere_title": "Your gear here",
+  "@diveCenters_gearHere_title": {"description": "Heading on a dive center's page listing the diver's own gear left at that center"},
   "diveCenters_rental_sectionTitle": "Rental gear",
   "diveCenters_rental_lastTimeAt": "Last time at {center}",
   "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},

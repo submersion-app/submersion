@@ -218,6 +218,14 @@ void main() {
       expect(windows.breathedBefore(2400), 1200);
     });
 
+    test('within clips the periods to a stretch of the dive', () {
+      expect(windows.within(300, 1500), [
+        (start: 300, end: 600),
+        (start: 1200, end: 1500),
+      ]);
+      expect(windows.within(600, 1200), isEmpty);
+    });
+
     test('covers includes both ends of a period', () {
       expect(windows.covers(600), isTrue);
       expect(windows.covers(1200), isTrue);

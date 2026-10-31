@@ -13,7 +13,6 @@ import 'package:submersion/features/dive_log/presentation/table/dive_table_menus
 import 'package:submersion/features/dive_log/query/dive_column_filter_edits.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/dive_log/query/dive_cell_filter_options.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
 /// The dive list's table (#2984): the shared [EntityTableView] fed by
@@ -54,13 +53,12 @@ class DiveTableView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(tableViewConfigProvider);
     final notifier = ref.read(tableViewConfigProvider.notifier);
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
     final intervalsAsync = ref.watch(diveSurfaceIntervalsProvider);
     final intervals = intervalsAsync.value ?? const <String, Duration?>{};
     final computers = ref.watch(allDiveComputersProvider);
     final prefs = ref.watch(queryUnitPrefsProvider);
     final filter = ref.watch(diveFilterProvider);
-    final units = UnitFormatter(settings);
     // Cell menus read only settled data: a value still loading could offer
     // a rule that drops the dive it was offered on.
     final menuIntervals = intervalsAsync.isLoading
@@ -83,7 +81,7 @@ class DiveTableView extends ConsumerWidget {
       entities: dives,
       idExtractor: (d) => d.id,
       adapter: DiveFieldAdapter(
-        gasModel: settings.gasModel,
+        gasModel: units.settings.gasModel,
         diveTypeLabel: diveTypeLabelResolver,
         surfaceIntervals: intervals,
       ),

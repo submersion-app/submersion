@@ -4,43 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/auto_update/domain/entities/update_status.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 
+import '../../helpers/main_scaffold_stubs.dart';
 import '../../support/fake_app_settings_repository.dart';
 
 /// Nav shortcuts (#2936) in the shell: selection and navigation.
 ///
 /// The harness mirrors `main_scaffold_test.dart`'s, trimmed to the routes a
 /// shortcut touches.
-
-class _StubUpdateStatusNotifier extends StateNotifier<UpdateStatus>
-    implements UpdateStatusNotifier {
-  _StubUpdateStatusNotifier() : super(const UpToDate());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _StubDownloadNotifier extends StateNotifier<DownloadState>
-    implements DownloadNotifier {
-  _StubDownloadNotifier() : super(const DownloadState());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _StubSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _StubSettingsNotifier() : super(const AppSettings());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 void _useSize(WidgetTester tester, Size size) {
   tester.view.physicalSize = size;
@@ -80,9 +56,11 @@ Future<Widget> _buildHarness(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
       updateServiceProvider.overrideWith((ref) async => null),
-      updateStatusProvider.overrideWith((ref) => _StubUpdateStatusNotifier()),
-      downloadNotifierProvider.overrideWith((ref) => _StubDownloadNotifier()),
-      settingsProvider.overrideWith((ref) => _StubSettingsNotifier()),
+      updateStatusProvider.overrideWith((ref) => StubUpdateStatusNotifier()),
+      downloadNotifierProvider.overrideWith((ref) => StubDownloadNotifier()),
+      settingsProvider.overrideWith(
+        (ref) => StubSettingsNotifier(const AppSettings()),
+      ),
       appSettingsRepositoryProvider.overrideWithValue(repo),
     ],
     child: MaterialApp.router(

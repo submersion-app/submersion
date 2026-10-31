@@ -28,13 +28,21 @@ void main() {
   );
   final photos = [...testPhotos, stray];
 
-  setUp(() {
-    dir = Directory.systemTemp.createTempSync('demo_build');
+  // For a test that seeds a whole 700-dive logbook of its own, which a shared
+  // CI runner can take past the usual two minutes for.
+  const wholeBuild = Timeout(Duration(minutes: 6));
+
+  void writePhotos(Directory root) {
     for (final photo in photos) {
-      File(p.join(dir.path, 'photos', photo.fileName))
+      File(p.join(root.path, 'photos', photo.fileName))
         ..createSync(recursive: true)
         ..writeAsBytesSync([0xFF, 0xD8, 0xFF]);
     }
+  }
+
+  setUp(() {
+    dir = Directory.systemTemp.createTempSync('demo_build');
+    writePhotos(dir);
   });
 
   tearDown(() {
@@ -42,93 +50,127 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  Future<DemoBuildOutput> build({List<Object>? seeders}) => DemoBuilder().build(
-    shapes: syntheticShapes(),
-    photosDir: p.join(dir.path, 'photos'),
-    photos: photos,
-    seed: 7,
-    anchor: DateTime(2026, 10, 1),
-    outDir: p.join(dir.path, 'out'),
-    seeders: seeders?.cast(),
-  );
-
-  test(
-    'a synthetic build produces a zip whose manifest entry matches it',
-    () async {
-      final out = await build();
-
-      final bytes = out.zip.readAsBytesSync();
-      expect(out.package.sha256, sha256.convert(bytes).toString());
-      expect(out.package.size, bytes.length);
-      expect(out.package.schemaVersion, AppDatabase.currentSchemaVersion);
-      expect(out.package.url.toString(), endsWith(p.basename(out.zip.path)));
-      final names = ZipDecoder()
-          .decodeBytes(bytes)
-          .files
-          .map((f) => f.name)
-          .toSet();
-      expect(names, contains('submersion_demo.db'));
-      expect(names, containsAll(testPhotos.map((f) => 'photos/${f.fileName}')));
-      expect(names, isNot(contains('photos/${stray.fileName}')));
-      expect(
-        File(p.join(dir.path, 'out', 'manifest-entry.json')).existsSync(),
-        isTrue,
-      );
-    },
-  );
-
-  test('no value in the published database names a build folder', () async {
-    final out = await build();
-
-    // The database as the zip carries it, opened from a copy.
-    final entry = ZipDecoder()
-        .decodeBytes(out.zip.readAsBytesSync())
-        .files
-        .firstWhere((f) => f.name == 'submersion_demo.db');
-    final copy = File(p.join(dir.path, 'published.db'))
-      ..writeAsBytesSync(entry.content);
-    final db = AppDatabase(
-      NativeDatabase(copy, setup: registerAppSqlFunctions),
+  Future<DemoBuildOutput> build({
+    Directory? root,
+    List<Object>? seeders,
+    Set<String> refusedNames = const {},
+  }) {
+    final folder = (root ?? dir).path;
+    return DemoBuilder().build(
+      shapes: syntheticShapes(),
+      photosDir: p.join(folder, 'photos'),
+      photos: photos,
+      seed: 7,
+      anchor: DateTime(2026, 10, 1),
+      outDir: p.join(folder, 'out'),
+      seeders: seeders?.cast(),
+      refusedNames: refusedNames,
     );
-    addTearDown(db.close);
+  }
 
-    final paths = await db
-        .customSelect('SELECT file_path, local_path FROM media')
-        .get();
-    expect(paths, isNotEmpty);
-    for (final row in paths) {
-      // Relative to the package, which the device relinks on entry.
-      expect(row.read<String?>('file_path'), startsWith('photos/'));
-      expect(row.read<String?>('local_path'), startsWith('photos/'));
-    }
+  // One whole logbook, shared by the tests that start from what a build
+  // produced. setUpAll has twelve minutes, where a test has two.
+  group('from one build', () {
+    late Directory builtDir;
+    late DemoBuildOutput built;
+
+    setUpAll(() async {
+      builtDir = Directory.systemTemp.createTempSync('demo_built');
+      writePhotos(builtDir);
+      built = await build(root: builtDir);
+    });
+
+    tearDownAll(() {
+      DatabaseService.instance.resetForTesting();
+      builtDir.deleteSync(recursive: true);
+    });
+
+    test(
+      'a synthetic build produces a zip whose manifest entry matches it',
+      () {
+        final bytes = built.zip.readAsBytesSync();
+        expect(built.package.sha256, sha256.convert(bytes).toString());
+        expect(built.package.size, bytes.length);
+        expect(built.package.schemaVersion, AppDatabase.currentSchemaVersion);
+        expect(
+          built.package.url.toString(),
+          endsWith(p.basename(built.zip.path)),
+        );
+        final names = ZipDecoder()
+            .decodeBytes(bytes)
+            .files
+            .map((f) => f.name)
+            .toSet();
+        expect(names, contains('submersion_demo.db'));
+        expect(
+          names,
+          containsAll(testPhotos.map((f) => 'photos/${f.fileName}')),
+        );
+        expect(names, isNot(contains('photos/${stray.fileName}')));
+        expect(
+          File(
+            p.join(builtDir.path, 'out', 'manifest-entry.json'),
+          ).existsSync(),
+          isTrue,
+        );
+      },
+    );
+
+    test('no value in the published database names a build folder', () async {
+      final db = _publishedDatabase(built, dir);
+      addTearDown(db.close);
+
+      final paths = await db
+          .customSelect('SELECT file_path, local_path FROM media')
+          .get();
+      expect(paths, isNotEmpty);
+      for (final row in paths) {
+        // Relative to the package, which the device relinks on entry.
+        expect(row.read<String?>('file_path'), startsWith('photos/'));
+        expect(row.read<String?>('local_path'), startsWith('photos/'));
+      }
+    });
+
+    test('each photo is taken during its dive, on the same clock', () async {
+      final db = _publishedDatabase(built, dir);
+      addTearDown(db.close);
+
+      final rows = await db
+          .customSelect(
+            'SELECT m.taken_at - d.dive_date_time AS gap FROM media m '
+            'JOIN dives d ON d.id = m.dive_id',
+          )
+          .get();
+      expect(rows, isNotEmpty);
+      for (final row in rows) {
+        expect(
+          row.read<int>('gap'),
+          inInclusiveRange(0, const Duration(hours: 1).inMilliseconds),
+        );
+      }
+    });
+
+    test('a refused name never reaches the logbook', () async {
+      final names = await _buddyNames(built, dir);
+      final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
+
+      final again = await build(refusedNames: {refused});
+
+      expect(await _buddyNames(again, dir), isNot(contains(refused)));
+    }, timeout: wholeBuild);
   });
 
-  test('each photo is taken during its dive, on the same clock', () async {
-    final out = await build();
-    final entry = ZipDecoder()
-        .decodeBytes(out.zip.readAsBytesSync())
-        .files
-        .firstWhere((f) => f.name == 'submersion_demo.db');
-    final copy = File(p.join(dir.path, 'published.db'))
-      ..writeAsBytesSync(entry.content);
-    final db = AppDatabase(
-      NativeDatabase(copy, setup: registerAppSqlFunctions),
-    );
-    addTearDown(db.close);
+  test('the build writes without syncing each commit to disk', () async {
+    final probe = _CommitProbe();
 
-    final rows = await db
-        .customSelect(
-          'SELECT m.taken_at - d.dive_date_time AS gap FROM media m '
-          'JOIN dives d ON d.id = m.dive_id',
-        )
-        .get();
-    expect(rows, isNotEmpty);
-    for (final row in rows) {
-      expect(
-        row.read<int>('gap'),
-        inInclusiveRange(0, const Duration(hours: 1).inMilliseconds),
-      );
-    }
+    await expectLater(
+      build(seeders: [probe]),
+      throwsA(isA<DemoBuildRefused>()),
+    );
+
+    // Issue #3814: why these two are set is in the builder.
+    expect(probe.synchronous, 0);
+    expect(probe.journalMode, 'memory');
   });
 
   test('the build is refused when a value names a build folder', () async {
@@ -143,16 +185,18 @@ void main() {
       ),
     );
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
-  });
+  }, timeout: wholeBuild);
 
   test('the build is refused when a table is left empty', () async {
-    final partial = demoSeeders()
-        .where((s) => s.name != 'queries, rules, safety and views')
-        .toList();
-
     await expectLater(
-      build(seeders: partial),
-      throwsA(isA<DemoBuildRefused>()),
+      build(seeders: const []),
+      throwsA(
+        isA<DemoBuildRefused>().having(
+          (e) => '$e',
+          'message',
+          contains('empty tables'),
+        ),
+      ),
     );
     expect(Directory(p.join(dir.path, 'out')).existsSync(), isFalse);
   });
@@ -191,30 +235,6 @@ void main() {
     expect(DemoBuilder.maxPackageBytes, 28 * 1024 * 1024);
   });
 
-  test(
-    'a refused name never reaches the logbook',
-    () async {
-      final plain = await build();
-      final names = await _buddyNames(plain);
-      final refused = names.firstWhere((n) => n != 'Mara Lindqvist');
-
-      final again = await DemoBuilder().build(
-        shapes: syntheticShapes(),
-        photosDir: p.join(dir.path, 'photos'),
-        photos: photos,
-        seed: 7,
-        anchor: DateTime(2026, 10, 1),
-        outDir: p.join(dir.path, 'out2'),
-        refusedNames: {refused},
-      );
-
-      expect(await _buddyNames(again), isNot(contains(refused)));
-    },
-    // Two whole 700-dive builds, which a shared CI runner can take past the
-    // usual two minutes for.
-    timeout: const Timeout(Duration(minutes: 6)),
-  );
-
   test('manifest entries merge, keeping older schemas for older apps', () {
     final merged = DemoBuilder.mergeManifest(
       existing:
@@ -242,15 +262,41 @@ class _MachinePathSeeder implements DemoSeeder {
   );
 }
 
-/// The buddies' names in a built package's database.
-Future<List<String>> _buddyNames(DemoBuildOutput out) async {
+/// Reads how the build's connection commits. The tables stay empty, so the
+/// build is refused without seeding a logbook.
+class _CommitProbe implements DemoSeeder {
+  int? synchronous;
+  String? journalMode;
+
+  @override
+  String get name => 'commit probe';
+
+  @override
+  Future<void> seed(DemoSeedContext ctx) async {
+    final sync = await ctx.db.customSelect('PRAGMA synchronous').getSingle();
+    synchronous = sync.read<int>('synchronous');
+    final journal = await ctx.db
+        .customSelect('PRAGMA journal_mode')
+        .getSingle();
+    journalMode = journal.read<String>('journal_mode');
+  }
+}
+
+/// The database as a built package's zip carries it, opened from a copy in
+/// [folder].
+AppDatabase _publishedDatabase(DemoBuildOutput out, Directory folder) {
   final entry = ZipDecoder()
       .decodeBytes(out.zip.readAsBytesSync())
       .files
       .firstWhere((f) => f.name == 'submersion_demo.db');
-  final copy = File(p.join(out.zip.parent.path, 'names.db'))
+  final copy = File(p.join(folder.path, 'published.db'))
     ..writeAsBytesSync(entry.content);
-  final db = AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+  return AppDatabase(NativeDatabase(copy, setup: registerAppSqlFunctions));
+}
+
+/// The buddies' names in a built package's database.
+Future<List<String>> _buddyNames(DemoBuildOutput out, Directory folder) async {
+  final db = _publishedDatabase(out, folder);
   try {
     final rows = await db.customSelect('SELECT name FROM buddies').get();
     return [for (final r in rows) r.read<String>('name')];

@@ -29,6 +29,13 @@ extension TankUsageWindows on List<TankUsageWindow> {
   int breathedBetween(int start, int end) =>
       breathedBefore(end) - breathedBefore(start);
 
+  /// The parts of these periods from [start] to [end].
+  List<TankUsageWindow> within(int start, int end) => [
+    for (final w in this)
+      if (w.start < end && w.end > start)
+        (start: math.max(w.start, start), end: math.min(w.end, end)),
+  ];
+
   /// Whether a period includes [timestamp], either end of it counting.
   bool covers(int timestamp) =>
       any((w) => timestamp >= w.start && timestamp <= w.end);

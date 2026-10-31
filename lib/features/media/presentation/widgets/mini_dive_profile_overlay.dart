@@ -4,9 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A compact dive profile chart overlay for the photo viewer.
@@ -24,7 +24,7 @@ class MiniDiveProfileOverlay extends StatelessWidget {
   final double? photoDepthMeters;
 
   /// App settings for unit formatting.
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
 
   /// Callback when the overlay is tapped (e.g., to dismiss or expand).
   final VoidCallback? onTap;
@@ -288,7 +288,7 @@ class PositionedMiniProfileOverlay extends StatelessWidget {
   final List<DiveProfilePoint> profile;
   final int photoElapsedSeconds;
   final double? photoDepthMeters;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final bool visible;
   final VoidCallback? onTap;
 

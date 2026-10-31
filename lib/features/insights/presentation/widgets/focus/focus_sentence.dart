@@ -67,7 +67,7 @@ class _FocusSentenceState extends ConsumerState<FocusSentence> {
     _threshold = TextEditingController(
       text: _thresholdText(
         selection.threshold,
-        _units(selection.metric, ref.read(settingsProvider)),
+        FocusMetricUnits(selection.metric, ref.read(unitFormatterProvider)),
       ),
     );
   }
@@ -119,7 +119,7 @@ class _FocusSentenceState extends ConsumerState<FocusSentence> {
     }
     _threshold.text = _thresholdText(
       mean,
-      _units(selection.metric, ref.read(settingsProvider)),
+      FocusMetricUnits(selection.metric, ref.read(unitFormatterProvider)),
     );
     setState(() => _thresholdError = null);
     _set(selection.copyWith(threshold: mean));
@@ -185,7 +185,10 @@ class _FocusSentenceState extends ConsumerState<FocusSentence> {
     ref.listen(settingsProvider, _onSettingsChanged);
     ref.listen(focusThresholdDefaultProvider, (_, next) => _applyDefault(next));
     final selection = ref.watch(focusSelectionProvider);
-    final units = _units(selection.metric, ref.watch(settingsProvider));
+    final units = FocusMetricUnits(
+      selection.metric,
+      ref.watch(unitFormatterProvider),
+    );
     final style = Theme.of(context).textTheme.titleMedium;
 
     final template = selection.mode.isRanked

@@ -142,8 +142,8 @@ void main() {
 
     test('averages the depth of every breathing period', () {
       // Left at 10 m for its first period and 30 m for its second, right at
-      // 40 m. Samples sit on the switches, so each boundary sample at 40 m
-      // joins left's two periods as well: 10 at 10 m, 10 at 30 m, 2 at 40 m.
+      // 40 m. Each period ends on a minute climbing to 40 m, and the time
+      // between them, on right, counts for nothing: 25200 m.s over 1200 s.
       double depthAt(int t) {
         if (t < 600) return 10;
         if (t >= 1200 && t < 1800) return 30;
@@ -162,10 +162,7 @@ void main() {
         gasSwitches: alternating,
       );
 
-      expect(
-        sacOf(results, 'left').avgDepthDuringUse,
-        closeTo((10 * 10 + 10 * 30 + 2 * 40) / 22, 1e-9),
-      );
+      expect(sacOf(results, 'left').avgDepthDuringUse, closeTo(21, 1e-9));
     });
 
     test('takes the whole drop of a transmitter series across its periods', () {
@@ -453,20 +450,16 @@ void main() {
         ],
       );
 
+      // The bottom phase holds 30 m but for its last two minutes, and left
+      // misses the ten at 30 m on right: 48120 m.s over 1620 s. The ascent
+      // climbs steadily from 22 m to 10 m.
       expect(segments, hasLength(2));
-      for (final segment in segments!) {
-        expect(segment.tankId, 'left');
-        final breathedDepths = [
-          for (final p in profile)
-            if (p.timestamp >= segment.startTimestamp &&
-                p.timestamp < segment.endTimestamp &&
-                (p.timestamp <= 600 || p.timestamp >= 1200))
-              p.depth,
-        ];
-        final depth =
-            breathedDepths.reduce((a, b) => a + b) / breathedDepths.length;
-        expect(segment.sacRate, closeTo(100 / 30 / (depth / 10 + 1), 1e-9));
-      }
+      expect(segments!.every((s) => s.tankId == 'left'), isTrue);
+      expect(
+        segments.first.sacRate,
+        closeTo(100 / 30 / (48120 / 1620 / 10 + 1), 1e-9),
+      );
+      expect(segments.last.sacRate, closeTo(100 / 30 / 2.6, 1e-9));
     });
   });
 }

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -72,22 +73,14 @@ class GasAnalysisService {
         orElse: () => tanks.first,
       );
 
-      // Get profile points for this segment
-      final segmentProfile = profile
-          .where((p) => p.timestamp >= startTime && p.timestamp < endTime)
-          .toList();
-
-      if (segmentProfile.isEmpty) continue;
-
       // Calculate depth statistics
-      final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
-      final minDepth = depths.reduce(math.min);
-      final maxDepth = depths.reduce(math.max);
+      final segmentDepths = _segmentDepths(profile, startTime, endTime);
+      if (segmentDepths == null) continue;
+      final (:avgDepth, :minDepth, :maxDepth) = segmentDepths;
 
       // Calculate SAC for this segment
       final sacRate = _calculateSegmentSac(
-        profile: segmentProfile,
+        avgDepth: avgDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
@@ -191,12 +184,6 @@ class GasAnalysisService {
     // Calculate SAC for each phase segment
     final segments = <SacSegment>[];
     for (final seg in mergedSegments) {
-      final segmentProfile = profile
-          .where((p) => p.timestamp >= seg.start && p.timestamp < seg.end)
-          .toList();
-
-      if (segmentProfile.isEmpty) continue;
-
       // Find active tank for this segment
       final tank = activeTankAt(
         tanks: tanks,
@@ -207,10 +194,9 @@ class GasAnalysisService {
       if (tank == null) continue;
 
       // Calculate depth statistics
-      final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
-      final minD = depths.reduce(math.min);
-      final maxD = depths.reduce(math.max);
+      final segmentDepths = _segmentDepths(profile, seg.start, seg.end);
+      if (segmentDepths == null) continue;
+      final (:avgDepth, minDepth: minD, maxDepth: maxD) = segmentDepths;
 
       // Calculate SAC
       final usageWindows = _prorationWindows(
@@ -221,15 +207,18 @@ class GasAnalysisService {
       );
       // A phase can outlast its cylinder's breathing time; only what was
       // breathed of it drew on this tank, at the depths it was breathed.
-      final breathedProfile = segmentProfile
-          .where((p) => usageWindows.covers(p.timestamp))
-          .toList();
-      final sacProfile = breathedProfile.isEmpty
-          ? segmentProfile
-          : breathedProfile;
+      final breathedWindows = usageWindows.within(seg.start, seg.end);
+      final breathedDepth =
+          timeWeightedMeanAcross(
+            profile,
+            windows: breathedWindows,
+            time: (p) => p.timestamp,
+            value: (p) => p.depth,
+          ) ??
+          avgDepth;
 
       final sacRate = _calculateSegmentSac(
-        profile: sacProfile,
+        avgDepth: breathedDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
@@ -240,12 +229,9 @@ class GasAnalysisService {
 
       if (sacRate == null) continue;
 
-      final breathedSec = usageWindows.breathedBetween(seg.start, seg.end);
+      final breathedSec = breathedWindows.breathedSeconds;
       final durationMin =
           (breathedSec > 0 ? breathedSec : seg.end - seg.start) / 60.0;
-      final breathedDepth =
-          sacProfile.map((p) => p.depth).reduce((a, b) => a + b) /
-          sacProfile.length;
       final ambientPressureBar = (breathedDepth / 10.0) + 1.0;
       final gasConsumed = sacRate * durationMin * ambientPressureBar;
 
@@ -327,18 +313,13 @@ class GasAnalysisService {
           ? recordedSeconds
           : usageWindows.breathedSeconds;
 
-      // Get profile points during tank usage
-      final usageProfile = profile
-          .where((p) => usageWindows.covers(p.timestamp))
-          .toList();
-
       // Calculate average depth during usage
-      double? avgDepthDuringUse;
-      if (usageProfile.isNotEmpty) {
-        avgDepthDuringUse =
-            usageProfile.map((p) => p.depth).reduce((a, b) => a + b) /
-            usageProfile.length;
-      }
+      final avgDepthDuringUse = timeWeightedMeanAcross(
+        profile,
+        windows: usageWindows,
+        time: (p) => p.timestamp,
+        value: (p) => p.depth,
+      );
 
       // Check if we have time-series pressure data for this tank (matched by
       // id, or adopted from a re-keyed/orphaned series).
@@ -451,6 +432,30 @@ class GasAnalysisService {
     return knownGasSwitches(tanks, gasSwitches, before: diveEnd).isEmpty
         ? [(start: diveStart, end: diveEnd)]
         : const [];
+  }
+
+  /// Depth over the whole of a segment, reading the profile at its edges so a
+  /// stint between two samples still has one. Null when the profile does not
+  /// reach the segment.
+  static ({double avgDepth, double minDepth, double maxDepth})? _segmentDepths(
+    List<DiveProfilePoint> profile,
+    int start,
+    int end,
+  ) {
+    final window = samplesInWindow(
+      profile,
+      start: start,
+      end: end,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+    if (window.isEmpty) return null;
+    final depths = window.map((s) => s.value);
+    return (
+      avgDepth: timeWeightedMeanOfWindow(window)!,
+      minDepth: depths.reduce(math.min),
+      maxDepth: depths.reduce(math.max),
+    );
   }
 
   /// Compute SAC rate under [model], using its gas volumes.
@@ -586,7 +591,7 @@ class GasAnalysisService {
 
   /// Calculate SAC for a segment from profile data
   double? _calculateSegmentSac({
-    required List<DiveProfilePoint> profile,
+    required double avgDepth,
     required DiveTank tank,
     // The tank's own size, else its matched partner's (issue #3109).
     required double? tankVolume,
@@ -595,14 +600,9 @@ class GasAnalysisService {
     required int endTime,
     required List<TankUsageWindow> prorationWindows,
   }) {
-    if (profile.isEmpty) return null;
-
     final durationSec = endTime - startTime;
     if (durationSec < minSegmentDuration) return null;
 
-    // Calculate average depth
-    final depths = profile.map((p) => p.depth).toList();
-    final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
     if (avgDepth <= 0) return null;
 
     double? pressureUsed;
@@ -629,14 +629,14 @@ class GasAnalysisService {
     if (pressureUsed == null || pressureUsed <= 0) {
       if (tank.startPressure != null && tank.endPressure != null) {
         // Prorate across the window the tank was actually breathed, NOT the
-        // segment's own span: the profile passed in is the segment slice, so
-        // dividing by it made proportion ~1.0 and charged every segment the
-        // entire cylinder (#110). The window is the tank's usage range when
-        // gas switches identify it -- spreading a stage/deco tank's drop over
-        // the whole dive would understate its SAC by the ratio of its stint
-        // to the dive, and calculateCylinderSac already prorates this way.
-        // Time counts only inside the window, which a tank the diver came
-        // back to leaves and re-enters and a phase can outlast (#3900).
+        // segment's own span: dividing by that made proportion ~1.0 and
+        // charged every segment the entire cylinder (#110). The window is the
+        // tank's usage range when gas switches identify it -- spreading a
+        // stage/deco tank's drop over the whole dive would understate its SAC
+        // by the ratio of its stint to the dive, and calculateCylinderSac
+        // already prorates this way. Time counts only inside the window,
+        // which a tank the diver came back to leaves and re-enters and a
+        // phase can outlast (#3900).
         final totalDuration = prorationWindows.breathedSeconds;
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;

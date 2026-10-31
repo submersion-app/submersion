@@ -13,7 +13,6 @@ import 'package:submersion/features/equipment/presentation/widgets/service_statu
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -109,7 +108,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     if (!_loaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

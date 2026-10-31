@@ -55,7 +55,11 @@ class CcrLoopSlots {
     }
 
     if (!result.any((t) => t.role == TankRole.diluent)) {
-      final breathedIds = segments.map((s) => s.tankId).toSet();
+      // A cylinder only a mid-plan bailout breathes is bailout, not diluent.
+      final breathedIds = segments
+          .where((s) => !s.leavesCcrLoop)
+          .map((s) => s.tankId)
+          .toSet();
       final eligible = result
           .where((t) => t.role != TankRole.oxygenSupply)
           .toList();

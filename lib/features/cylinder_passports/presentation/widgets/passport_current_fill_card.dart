@@ -9,7 +9,6 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest fill: mix, pressure, station, and the depth limits at the
@@ -27,8 +26,7 @@ class PassportCurrentFillCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final newest = ref.watch(newestFillProvider(equipmentId)).value;
     final theme = Theme.of(context);
     return Card(
@@ -42,7 +40,7 @@ class PassportCurrentFillCard extends ConsumerWidget {
             if (newest == null)
               Text(l10n.passport_fill_none)
             else
-              _FillSummary(fill: newest, units: units, settings: settings),
+              _FillSummary(fill: newest, units: units),
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
@@ -75,15 +73,10 @@ class PassportCurrentFillCard extends ConsumerWidget {
 }
 
 class _FillSummary extends StatelessWidget {
-  const _FillSummary({
-    required this.fill,
-    required this.units,
-    required this.settings,
-  });
+  const _FillSummary({required this.fill, required this.units});
 
   final CylinderFill fill;
   final UnitFormatter units;
-  final AppSettings settings;
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +84,9 @@ class _FillSummary extends StatelessWidget {
     final theme = Theme.of(context);
     final limits = PassportGasLimits.compute(
       mix: fill.gasMix,
-      ppO2Working: settings.ppO2MaxWorking,
-      ppO2Deco: settings.ppO2MaxDeco,
-      o2Narcotic: settings.o2Narcotic,
+      ppO2Working: units.settings.ppO2MaxWorking,
+      ppO2Deco: units.settings.ppO2MaxDeco,
+      o2Narcotic: units.settings.o2Narcotic,
     );
     String ppo2(double v) => formatFixedForDisplay(v, 1);
     return Column(
@@ -136,13 +129,13 @@ class _FillSummary extends StatelessWidget {
         Text(
           l10n.passport_fill_mod(
             units.formatDepth(limits.modWorkingM),
-            ppo2(settings.ppO2MaxWorking),
+            ppo2(units.settings.ppO2MaxWorking),
           ),
         ),
         Text(
           l10n.passport_fill_mod(
             units.formatDepth(limits.modDecoM),
-            ppo2(settings.ppO2MaxDeco),
+            ppo2(units.settings.ppO2MaxDeco),
           ),
         ),
         if (limits.endAtWorkingModM != null)

@@ -18,7 +18,6 @@ import 'package:submersion/features/certifications/presentation/utils/currency_s
 import 'package:submersion/features/certifications/presentation/widgets/currency_event_dialog.dart';
 import 'package:submersion/features/certifications/presentation/widgets/currency_interval_dialog.dart';
 import 'package:submersion/features/certifications/presentation/widgets/currency_mapping_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -56,7 +55,7 @@ class CertificationCurrencySection extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
