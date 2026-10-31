@@ -1136,11 +1136,22 @@ class DiveComputerRepository {
           ? [Variable(normalizedDiverId)]
           : <Variable>[];
 
-      // Search for dives within the tolerance window
+      // Search for dives within the tolerance window.
+      //
+      // [durationSeconds] is the computer's runtime, so total_seconds follows
+      // Dive.effectiveRuntime: runtime, then exit minus entry, then bottom
+      // time. It skips that getter's profile step, which this query cannot
+      // reach.
       final result = await _db
           .customSelect(
             '''
-        SELECT id, dive_date_time, entry_time, bottom_time, max_depth,
+        SELECT id, dive_date_time, entry_time, max_depth,
+          COALESCE(
+            runtime,
+            CASE WHEN exit_time > entry_time
+              THEN (exit_time - entry_time) / 1000 END,
+            bottom_time
+          ) as total_seconds,
           COALESCE(entry_time, dive_date_time) as effective_time,
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
@@ -1185,7 +1196,7 @@ class DiveComputerRepository {
       for (final row in result) {
         final diveId = row.data['id'] as String;
         final timeDiff = row.data['time_diff'] as int;
-        final diveDuration = row.data['bottom_time'] as int?;
+        final diveDuration = row.data['total_seconds'] as int?;
         final diveMaxDepth = row.data['max_depth'] as double?;
 
         final durationDiff = (durationSeconds != null && diveDuration != null)
