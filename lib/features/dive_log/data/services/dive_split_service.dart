@@ -9,9 +9,11 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
+import 'package:submersion/features/dive_log/domain/services/source_runtime.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -146,6 +148,7 @@ class DiveSplitService {
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
       // leave the logbook entry (site, notes, number) behind.
+      final newDiveTiming = _snapshotTiming([source], source, diveRow);
       await _db
           .into(_db.dives)
           .insert(
@@ -175,18 +178,18 @@ class DiveSplitService {
                           movingProfiles,
                           sourceId: source.id,
                           computerId: source.computerId,
-                          runtimeSeconds: source.duration,
+                          runtimeSeconds: newDiveTiming.runtimeSeconds,
                         ) ??
                         diveRow.bottomTime,
                   ),
+                  // The source's own, or the copied row would keep the
+                  // original dive's across the source's span (issue #3899).
+                  runtime: Value(
+                    newDiveTiming.runtimeSeconds ?? diveRow.runtime,
+                  ),
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
-                  entryTime: Value(
-                    source.entryTime?.millisecondsSinceEpoch ??
-                        diveRow.entryTime,
-                  ),
-                  exitTime: Value(
-                    source.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-                  ),
+                  entryTime: Value(newDiveTiming.entryMs),
+                  exitTime: Value(newDiveTiming.exitMs),
                   surfaceIntervalSeconds: Value(
                     source.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
                   ),
@@ -574,6 +577,12 @@ class DiveSplitService {
           );
         }
 
+        final promotedTiming = _snapshotTiming(
+          sources.where((s) => s.id != source.id).toList()
+            ..sort(compareDataSourcesInShownOrder),
+          promoted,
+          diveRow,
+        );
         diveUpdate = diveUpdate.copyWith(
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
@@ -585,17 +594,14 @@ class DiveSplitService {
                   allProfileSeries.where((s) => !movingProfiles.contains(s)),
                   sourceId: promoted.id,
                   computerId: promoted.computerId,
-                  runtimeSeconds: promoted.duration,
+                  runtimeSeconds: promotedTiming.runtimeSeconds,
                 ) ??
                 diveRow.bottomTime,
           ),
+          runtime: Value(promotedTiming.runtimeSeconds ?? diveRow.runtime),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
-          entryTime: Value(
-            promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,
-          ),
-          exitTime: Value(
-            promoted.exitTime?.millisecondsSinceEpoch ?? diveRow.exitTime,
-          ),
+          entryTime: Value(promotedTiming.entryMs),
+          exitTime: Value(promotedTiming.exitMs),
           surfaceIntervalSeconds: Value(
             promoted.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
           ),
@@ -623,5 +629,27 @@ class DiveSplitService {
 
     SyncEventBus.notifyLocalChange();
     return newDiveId;
+  }
+
+  /// The timing [row] gives a dive, among [rows]: each timestamp falls back
+  /// to [diveRow]'s, and the runtime is null when neither yields one, leaving
+  /// the caller to keep the dive's own alongside those timestamps.
+  ({int? entryMs, int? exitMs, int? runtimeSeconds}) _snapshotTiming(
+    List<DiveDataSourcesData> rows,
+    DiveDataSourcesData row,
+    Dive diveRow,
+  ) {
+    final timing = dataSourceStrandTiming(rows, row);
+    final entryMs = timing.entryMs ?? diveRow.entryTime;
+    final exitMs = timing.exitMs ?? diveRow.exitTime;
+    return (
+      entryMs: entryMs,
+      exitMs: exitMs,
+      runtimeSeconds: sourceRuntimeSeconds(
+        durationSeconds: timing.durationSeconds,
+        entryTimeMs: entryMs,
+        exitTimeMs: exitMs,
+      ),
+    );
   }
 }

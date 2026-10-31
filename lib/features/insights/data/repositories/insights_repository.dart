@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
@@ -158,6 +159,10 @@ class InsightsRepository {
   final _log = LoggerService.forClass(InsightsRepository);
   final _profileSeries = ProfileSeriesRepository();
 
+  /// Late because the constructor builds a large graph of repositories, which
+  /// only a filtered [watchInsightsChanges] needs.
+  late final _diveRepository = DiveRepository();
+
   /// How many dives' packed series the profile aggregates read at once.
   ///
   /// The aggregates run over the whole filtered library, and a packed series
@@ -205,8 +210,9 @@ class InsightsRepository {
   /// stale after a sync applied a tank-pressure-only changeset, which never
   /// touches the `dives` row.
   ///
-  /// Narrower than [DiveRepository.watchDiveDetailChanges], which also fires on
-  /// media, tide records, and safety findings that no statistic reads.
+  /// Not [DiveRepository.watchDiveDetailChanges], which also fires on media,
+  /// tide records, and safety findings that no statistic reads, and misses
+  /// tables this one follows, such as `dive_profile_events`.
   ///
   /// Replaces `statisticsVersionProvider`, a counter incremented from exactly
   /// one line in the app (inside `PaginatedDiveListNotifier`), which merge,
@@ -215,11 +221,20 @@ class InsightsRepository {
   /// [DiveRepository.changeTickDebounce]-debounced so a multi-changeset sync
   /// recomputes the charts once on the settled state rather than once per
   /// intermediate commit.
-  Stream<void> watchInsightsChanges() => _db
+  ///
+  /// Pass the [filter] a provider scopes by to also follow the tables it reads
+  /// (#3894): a text search reaches tag, custom field and dive type names, so
+  /// renaming a tag changes which dives match without writing one. They join
+  /// this one debounced stream, never a second tick beside it, so a write to
+  /// both sets refreshes once.
+  Stream<void> watchInsightsChanges({DiveFilterState? filter}) => _db
       .tableUpdates(
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // The deco card classifies a dive from its stop events, which a
+          // sync pull can write without touching the dive.
+          TableUpdateQuery.onTable(_db.diveProfileEvents),
           TableUpdateQuery.onTable(_db.diveTanks),
           // The tank configuration card reads which cylinders were switched
           // to and which recording is primary (#3421); a sync pull or a
@@ -250,6 +265,13 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.siteTypes),
           TableUpdateQuery.onTable(_db.diveCenters),
           TableUpdateQuery.onTable(_db.trips),
+          // As the query compiler reports them, so a new filter field is
+          // followed without editing this list.
+          if (filter != null)
+            for (final table in _diveRepository.tablesNamed(
+              diveFilterTablesTouched(filter),
+            ))
+              TableUpdateQuery.onTable(table),
         ]),
       )
       .debounce(DiveRepository.changeTickDebounce);
