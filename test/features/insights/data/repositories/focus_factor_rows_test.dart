@@ -41,6 +41,7 @@ void main() {
     double? visibilityMeters,
     double? visibilityMinMeters,
     double? visibilityMaxMeters,
+    double? legacyWeight = 6,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -56,7 +57,7 @@ void main() {
             runtime: Value(runtime),
             bottomTime: Value(bottomTime),
             waterTemp: const Value(24),
-            weightAmount: const Value(6),
+            weightAmount: Value(legacyWeight),
             diverRole: Value(diverRole),
             buddy: Value(buddy),
             visibilityMeters: Value(visibilityMeters),
@@ -273,6 +274,12 @@ void main() {
       expect(byId['legacy']!.weight, 6);
     },
   );
+
+  test('a zero legacy weight is no recorded weight (issue #3914)', () async {
+    await dive('zero', legacyWeight: 0);
+    final rows = await repository.getFocusFactorRows(visibilityScale: scale);
+    expect(rows.single.weight, isNull);
+  });
 
   test(
     'duration falls back to entry and exit times like the dive page',

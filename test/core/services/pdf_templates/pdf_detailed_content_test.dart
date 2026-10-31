@@ -353,6 +353,11 @@ void main() {
       },
     );
 
+    test('omits a zero legacy weight, as the dive page does', () async {
+      final text = pdfVisibleText(await render(dive.copyWith(weightAmount: 0)));
+      expect(text, isNot(contains('0.0 kg')));
+    });
+
     test('omits the weather group when nothing was recorded', () async {
       final text = pdfVisibleText(await render(dive));
       expect(text, isNot(contains('Precipitation')));

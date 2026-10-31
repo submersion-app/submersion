@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/models/pre_dive_session_filter.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -87,7 +86,7 @@ class _PreDiveSessionFilterSheetState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final templateNames = ref.watch(preDiveSessionTemplateNamesProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,

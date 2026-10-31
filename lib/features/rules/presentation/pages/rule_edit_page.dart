@@ -18,7 +18,6 @@ import 'package:submersion/features/rules/presentation/widgets/rule_action_card.
 import 'package:submersion/features/rules/presentation/widgets/rule_action_editor.dart';
 import 'package:submersion/features/rules/presentation/widgets/rule_action_picker_sheet.dart';
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -266,7 +265,7 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
   }
 
   List<Widget> _actionCards(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final nameOf = ref.watch(ruleNameOfProvider).value;
     if (nameOf == null) return const [];
     return [

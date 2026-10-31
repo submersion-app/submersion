@@ -132,13 +132,16 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
   http.Client? get authClient => _delegate?.authClient;
 
   @override
-  Future<void> authenticate() async => (await _resolve()).authenticate();
+  Future<void> authenticate({String? expectedAccount}) async =>
+      (await _resolve()).authenticate(expectedAccount: expectedAccount);
 
   @override
   Future<bool> attemptSilentAuth() async {
+    _silentAuthThrew = false;
     try {
       return await (await _resolve()).attemptSilentAuth();
     } catch (e, stackTrace) {
+      _silentAuthThrew = true;
       // The seam contract forbids throwing here; a failed resolution must
       // read as "not signed in", not as a crash on a cold launch.
       _log.warning(
@@ -149,6 +152,12 @@ class KeychainGatedAuthenticator implements GoogleDriveAuthenticator {
       return false;
     }
   }
+
+  @override
+  bool get lastSilentAuthThrew =>
+      _silentAuthThrew || (_delegate?.lastSilentAuthThrew ?? false);
+
+  bool _silentAuthThrew = false;
 
   @override
   Future<String?> get userEmail async => (await _resolve()).userEmail;
@@ -181,13 +190,16 @@ class _UnconfiguredDesktopAuthenticator implements GoogleDriveAuthenticator {
   http.Client? get authClient => null;
 
   @override
-  Future<void> authenticate() async =>
+  Future<void> authenticate({String? expectedAccount}) async =>
       throw const CloudStorageException(_message);
 
   /// False, never throwing: the seam contract forbids it, and a cold launch
   /// must read as "not signed in" rather than crash.
   @override
   Future<bool> attemptSilentAuth() async => false;
+
+  @override
+  bool get lastSilentAuthThrew => false;
 
   @override
   Future<String?> get userEmail async => null;

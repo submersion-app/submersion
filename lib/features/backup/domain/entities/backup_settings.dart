@@ -39,6 +39,9 @@ class BackupSettings extends Equatable {
   /// Cloud backup is on but the most recent backup did not reach the cloud.
   final bool lastCloudCopyMissing;
 
+  /// The server refused that copy, so signing in again would help (#3811).
+  final bool lastCloudCopyNeedsSignIn;
+
   /// Where the most recent backup went, or null before the first backup
   /// made by a version that records it.
   final LastBackupDestination? lastBackupDestination;
@@ -73,6 +76,7 @@ class BackupSettings extends Equatable {
     this.lastScheduledFailureAt,
     this.lastScheduledFailureMessage,
     this.lastCloudCopyMissing = false,
+    this.lastCloudCopyNeedsSignIn = false,
     this.lastBackupDestination,
     this.lastBackupCloudAccountId,
     this.copyAccountId,
@@ -91,6 +95,7 @@ class BackupSettings extends Equatable {
     DateTime? lastScheduledFailureAt,
     String? lastScheduledFailureMessage,
     bool? lastCloudCopyMissing,
+    bool? lastCloudCopyNeedsSignIn,
     LastBackupDestination? lastBackupDestination,
     String? lastBackupCloudAccountId,
     String? copyAccountId,
@@ -111,6 +116,8 @@ class BackupSettings extends Equatable {
       lastScheduledFailureMessage:
           lastScheduledFailureMessage ?? this.lastScheduledFailureMessage,
       lastCloudCopyMissing: lastCloudCopyMissing ?? this.lastCloudCopyMissing,
+      lastCloudCopyNeedsSignIn:
+          lastCloudCopyNeedsSignIn ?? this.lastCloudCopyNeedsSignIn,
       lastBackupDestination:
           lastBackupDestination ?? this.lastBackupDestination,
       lastBackupCloudAccountId:
@@ -158,6 +165,7 @@ class BackupSettings extends Equatable {
     lastScheduledFailureAt,
     lastScheduledFailureMessage,
     lastCloudCopyMissing,
+    lastCloudCopyNeedsSignIn,
     lastBackupDestination,
     lastBackupCloudAccountId,
     copyAccountId,

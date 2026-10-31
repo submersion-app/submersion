@@ -36,6 +36,13 @@ class CloudStorageException implements Exception {
 
   const CloudStorageException(this.message, [this.cause, this.stackTrace]);
 
+  /// Whether the server refused this account: a revoked grant, a missing
+  /// scope, a wrong key. Sync and backup offer Sign in again for these alone
+  /// (issue #3811), so an outage, a quota or having no session on this device
+  /// must never set it. A type rather than text: the media stores classify by
+  /// substring on [message], and provider words must stay out of that.
+  bool get accessRefused => false;
+
   /// User-facing message that appends the underlying [cause] when present.
   ///
   /// The top-level [message] is intentionally generic (e.g. "Could not reach
@@ -63,6 +70,42 @@ class CloudStorageException implements Exception {
       return ' (${Error.safeToString(cause)})';
     }
   }
+}
+
+/// A [CloudStorageException] raised because the server refused the account.
+class CloudAccessRefusedException extends CloudStorageException {
+  const CloudAccessRefusedException(
+    super.message, [
+    super.cause,
+    super.stackTrace,
+  ]);
+
+  @override
+  bool get accessRefused => true;
+}
+
+/// A sign-in that came back as an account other than the one expected. Raised
+/// before anything of that account is kept (issue #3811): a device holds one
+/// Google and one Dropbox account, and the provider id does not say which, so
+/// syncing on would write this library into someone's other Drive.
+class CloudAccountMismatchException extends CloudStorageException {
+  const CloudAccountMismatchException(this.signedInAs)
+    : super('Signed in to a different account');
+
+  final String signedInAs;
+}
+
+/// Whether [error] is the server refusing the account.
+bool isAccessRefused(Object? error) =>
+    error is CloudStorageException && error.accessRefused;
+
+/// Whether [actual] is the account [expected] names. With nothing to compare
+/// on either side, it is taken to be: a row from before identities were
+/// recorded, or a grant that names no account.
+bool isSameAccount(String? expected, String? actual) {
+  final wanted = expected?.trim().toLowerCase() ?? '';
+  final got = actual?.trim().toLowerCase() ?? '';
+  return wanted.isEmpty || got.isEmpty || wanted == got;
 }
 
 /// Abstract interface for cloud storage providers (iCloud, Google Drive, etc.)

@@ -33,6 +33,8 @@ class BackupPreferences {
       'backup_last_scheduled_failure_message';
   static const String _lastCloudCopyMissingKey =
       'backup_last_cloud_copy_missing';
+  static const String _lastCloudCopyNeedsSignInKey =
+      'backup_last_cloud_copy_needs_sign_in';
   static const String _lastBackupDestinationKey = 'backup_last_destination';
   static const String _lastBackupCloudAccountIdKey =
       'backup_last_cloud_account_id';
@@ -75,6 +77,8 @@ class BackupPreferences {
         _lastScheduledFailureMessageKey,
       ),
       lastCloudCopyMissing: _prefs.getBool(_lastCloudCopyMissingKey) ?? false,
+      lastCloudCopyNeedsSignIn:
+          _prefs.getBool(_lastCloudCopyNeedsSignInKey) ?? false,
       lastBackupDestination: LastBackupDestination.values
           .asNameMap()[_prefs.getString(_lastBackupDestinationKey)],
       lastBackupCloudAccountId: _prefs.getString(_lastBackupCloudAccountIdKey),
@@ -137,6 +141,11 @@ class BackupPreferences {
   /// Whether the most recent backup's requested cloud copy is missing.
   Future<void> setLastCloudCopyMissing(bool value) async {
     await _prefs.setBool(_lastCloudCopyMissingKey, value);
+  }
+
+  /// Whether that copy is missing because the server refused the account.
+  Future<void> setLastCloudCopyNeedsSignIn(bool value) async {
+    await _prefs.setBool(_lastCloudCopyNeedsSignInKey, value);
   }
 
   /// Where the most recent backup went (Settings > Data, #3482), and for a

@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Result returned from the scan results dialog.
@@ -180,7 +179,7 @@ class _ScanResultsDialogState extends ConsumerState<ScanResultsDialog> {
   }
 
   List<Widget> _buildDiveItems(ColorScheme colorScheme, TextTheme textTheme) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final sortedDives = widget.scanResult.matchedByDive.keys.toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 

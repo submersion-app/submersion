@@ -104,7 +104,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.gasConsumed:
         return _computeGasConsumed(dive);
       case DiveField.totalWeight:
-        return dive.totalWeight > 0 ? dive.totalWeight : null;
+        return dive.recordedWeightKg;
       case DiveField.diveComputerModel:
         return dive.diveComputerModel;
       case DiveField.gradientFactorLow:

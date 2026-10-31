@@ -3077,6 +3077,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
+  String get buddies_field_excludedFromRankings => '不计入潜伴排行';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint => '共同潜水仍计为有潜伴的潜水。';
+
+  @override
   String get buddies_field_nameRequired => '姓名 *';
 
   @override
@@ -3415,6 +3421,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => '共同潜水次数';
+
+  @override
+  String get buddies_stat_excludedFromRankings => '不计入潜伴排行';
 
   @override
   String get buddies_stat_favoriteSite => '最爱潜水点';
@@ -5395,6 +5404,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_markCompleted => '标记为已完成';
 
   @override
+  String get courses_action_chooseDive => '选择潜水记录';
+
+  @override
   String get courses_action_unlinkDive => '取消关联潜水';
 
   @override
@@ -5582,6 +5594,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => '建议的潜水';
+
+  @override
+  String get courses_requirement_allDives => '全部潜水';
+
+  @override
+  String get courses_requirement_noDives => '没有可关联的潜水';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return '没有与“$query”匹配的潜水';
+  }
+
+  @override
+  String get courses_requirement_searchDives => '搜索潜水';
 
   @override
   String get courses_requirements_empty => '跟踪此课程的探险潜水、先决条件和核对项。';
@@ -8366,6 +8392,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_ceiling => '上升限制';
+
+  @override
+  String get diveLog_legend_label_ceilingCalculated => '上升限制（计算）';
 
   @override
   String get diveLog_legend_label_decoStops => '减压停留';
@@ -15458,6 +15487,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_kind_storage => '存放处';
 
   @override
+  String get equipment_location_kind_diveCenter => '潜水中心';
+
+  @override
   String get equipment_location_kind_serviceShop => '维修店';
 
   @override
@@ -15675,6 +15707,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => '类型';
+
+  @override
+  String get equipment_locations_savedCenterLabel => '已保存的潜水中心';
+
+  @override
+  String get equipment_locations_savedCenterNone => '无';
+
+  @override
+  String get equipment_locations_savedCenterClear => '移除已保存的潜水中心';
 
   @override
   String get equipment_locations_notesLabel => '备注';
@@ -16969,6 +17010,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => '已添加';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => '补充';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => '压力';
@@ -19553,7 +19597,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_range_title => '范围表';
 
   @override
+  String get plannerCanvas_results_calculating => '正在计算';
+
+  @override
+  String get plannerCanvas_results_failed => '无法计算';
+
+  @override
   String get plannerCanvas_results_noDeco => '无需减压';
+
+  @override
+  String get plannerCanvas_results_updating => '正在更新';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -21844,6 +21897,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_cloudSync_status_syncError => '同步错误';
+
+  @override
+  String get settings_cloudSync_status_signInNeeded => '需要登录';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account 需要您重新登录。';
+  }
 
   @override
   String get settings_cloudSync_status_syncing => '同步中...';
@@ -27916,6 +27977,38 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '全部 $count 次均为$value（在已记录此项的 $coverage中占 $baseline）';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total 次中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '在已记录此项的 $groupCoverage中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -28189,6 +28282,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => '平均下降';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return '正在分析潜水：$analyzed / $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => '减压潜水';
@@ -35881,6 +35979,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_accounts_signInAgain => '重新登录';
 
   @override
+  String get settings_accounts_differentAccount_title => '这是另一个账户';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion 使用的是 $expected，但您登录的是 $signedIn。';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return '未同步任何内容，也未连接 $signedIn。';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return '在此设备上用于$features';
   }
@@ -37023,6 +37137,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
+
+  @override
+  String get diveLog_detail_sacSegments_time => '时间';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => '阶段';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => '气体';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => '深度';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => '下潜';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => '水底';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => '上升';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => '安全停留';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => '减压';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return '峰值 $rate（$range）';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {
@@ -50548,6 +50709,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => '请输入 0 到 100 之间的数';
+
+  @override
+  String get diveCenters_gearHere_title => '存放在此的装备';
 
   @override
   String get diveCenters_rental_sectionTitle => '租赁装备';

@@ -7,7 +7,6 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
@@ -43,7 +42,7 @@ class CompactBuddyListTile extends ConsumerWidget {
     ref.watch(certificationCatalogSyncProvider);
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final slots = ref.watch(buddyCompactCardConfigProvider).slots;
     final adapter = BuddyFieldAdapter.withCatalog(context.certificationCatalog);
     final secondaryTextColor = colorScheme.onSurfaceVariant;

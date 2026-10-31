@@ -93,7 +93,13 @@ class DropboxAuthManager {
   /// Exchanges the pasted [code] for tokens, fetches the account labels,
   /// and persists the connection. Requires a preceding [beginAuthorization]
   /// in this session (the PKCE verifier is memory-only by design).
-  Future<DropboxAuthData> completeAuthorization(String code) async {
+  ///
+  /// With [expectedAccount], another account throws
+  /// [CloudAccountMismatchException] before anything is persisted.
+  Future<DropboxAuthData> completeAuthorization(
+    String code, {
+    String? expectedAccount,
+  }) async {
     final verifier = _pendingVerifier;
     if (verifier == null) {
       throw const CloudStorageException(
@@ -126,6 +132,13 @@ class DropboxAuthManager {
       _log.warning('Could not fetch Dropbox account info: $e');
     }
 
+    final signedInAs = email ?? displayName;
+    if (!isSameAccount(expectedAccount, signedInAs)) {
+      _pendingVerifier = null;
+      await _revokeRefused(tokens['access_token'] as String);
+      throw CloudAccountMismatchException(signedInAs!);
+    }
+
     final auth = DropboxAuthData(
       refreshToken: refreshToken,
       email: email,
@@ -136,6 +149,17 @@ class DropboxAuthManager {
     _cacheAccessToken(tokens);
     _log.info('Dropbox connected');
     return auth;
+  }
+
+  /// Ends the token of an account that was refused, so that account's list of
+  /// connected apps does not keep Submersion. Best effort: the app keeps
+  /// nothing of it either way.
+  Future<void> _revokeRefused(String token) async {
+    try {
+      await _http.post(_revokeUri, headers: {'Authorization': 'Bearer $token'});
+    } on Exception catch (e) {
+      _log.warning('Dropbox token revoke failed (ignored): $e');
+    }
   }
 
   /// A currently valid access token, refreshing through the stored refresh
@@ -202,12 +226,18 @@ class DropboxAuthManager {
     } on Exception catch (e, st) {
       throw CloudStorageException('Could not reach Dropbox', e, st);
     }
+    // Dropbox's own refusals. Not every 4xx: a 429 is a rate limit, and must
+    // not ask a diver to sign in again.
+    if (response.statusCode == 400 || response.statusCode == 401) {
+      throw CloudAccessRefusedException(
+        'Dropbox rejected the authorization. Reconnect Dropbox in '
+        'the Cloud Sync settings.',
+        _bodySummary(response),
+      );
+    }
     if (response.statusCode != 200) {
       throw CloudStorageException(
-        response.statusCode >= 400 && response.statusCode < 500
-            ? 'Dropbox rejected the authorization. Reconnect Dropbox in '
-                  'the Cloud Sync settings.'
-            : 'Dropbox authorization failed (${response.statusCode})',
+        'Dropbox authorization failed (${response.statusCode})',
         _bodySummary(response),
       );
     }

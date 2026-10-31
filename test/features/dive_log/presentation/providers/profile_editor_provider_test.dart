@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 
 void main() {
@@ -70,6 +71,92 @@ void main() {
   test('detectOutliers stores results in state', () {
     notifier.detectOutliers();
     expect(notifier.state.detectedOutliers, isNotNull);
+  });
+
+  group('detected outliers go stale when the profile is edited', () {
+    late ProfileEditorNotifier outlierNotifier;
+
+    setUp(() {
+      outlierNotifier = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 4, depth: 10),
+          DiveProfilePoint(timestamp: 8, depth: 90),
+          DiveProfilePoint(timestamp: 12, depth: 10),
+          DiveProfilePoint(timestamp: 16, depth: 10),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      outlierNotifier.detectOutliers();
+      expect(outlierNotifier.state.detectedOutliers, isNotEmpty);
+    });
+
+    test('deleteSegment clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 4);
+      outlierNotifier.deleteSegment();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothing clears them', () {
+      outlierNotifier.applySmoothing();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('applySmoothingToRange clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 12);
+      outlierNotifier.applySmoothingToRange();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('shiftSegmentDepth clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentDepth(1.0);
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('shiftSegmentTime clears them', () {
+      outlierNotifier.setSelectedRange(start: 0, end: 8);
+      outlierNotifier.shiftSegmentTime(1);
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('generateProfileFromWaypoints clears them', () {
+      outlierNotifier.addWaypoint(
+        const ProfileWaypoint(timestamp: 0, depth: 5),
+      );
+      outlierNotifier.addWaypoint(
+        const ProfileWaypoint(timestamp: 8, depth: 5),
+      );
+      outlierNotifier.generateProfileFromWaypoints();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('trimEndZeros clears them', () {
+      final trimNotifier = ProfileEditorNotifier(
+        originalProfile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 4, depth: 90),
+          DiveProfilePoint(timestamp: 8, depth: 10),
+          DiveProfilePoint(timestamp: 12, depth: 0),
+          DiveProfilePoint(timestamp: 16, depth: 0),
+          DiveProfilePoint(timestamp: 20, depth: 0),
+        ],
+        editingService: ProfileEditingService(),
+      );
+      trimNotifier.detectOutliers();
+      expect(trimNotifier.state.detectedOutliers, isNotEmpty);
+
+      trimNotifier.trimEndZeros();
+
+      expect(trimNotifier.state.detectedOutliers, isNull);
+    });
+
+    test('undo clears them', () {
+      outlierNotifier.applySmoothing();
+      outlierNotifier.detectOutliers();
+      outlierNotifier.undo();
+      expect(outlierNotifier.state.detectedOutliers, isNull);
+    });
   });
 
   test('setSelectedRange stores range', () {

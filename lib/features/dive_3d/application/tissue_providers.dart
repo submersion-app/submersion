@@ -28,11 +28,6 @@ final tissueDecoStatusesProvider =
       return analysis?.decoStatuses ?? const [];
     });
 
-/// The active tissue color scheme (matches the 2D heat map's coloring).
-final tissueColorSchemeProvider = Provider<TissueColorScheme>(
-  (ref) => ref.watch(settingsProvider).tissueColorScheme,
-);
-
 /// The Scene3d + TissueSurfaceGrid for a dive, built in a single pass so the
 /// mesh, the draped wireframe, and the hover picker never drift apart. Uses the
 /// same DecoStatus series, the same subsurfacePercentage value, and the diver's

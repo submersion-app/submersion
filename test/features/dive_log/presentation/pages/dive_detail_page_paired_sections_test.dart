@@ -20,7 +20,6 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
@@ -196,8 +195,7 @@ final _sacAnalysis = ProfileAnalysis.empty().copyWith(
 
 /// Drives the Gas consumption card from [analysis]; null = no segments.
 ///
-/// Time-interval segmentation reads the segments straight off the analysis,
-/// so no phase or gas-switch provider is in play.
+/// The time breakdown reads the segments straight off the analysis.
 List<Override> _sacOverrides(Dive dive, ProfileAnalysis? analysis) => [
   profileAnalysisProvider(dive.id).overrideWith((ref) async => analysis),
   ..._sacSupportOverrides(dive),
@@ -205,9 +203,6 @@ List<Override> _sacOverrides(Dive dive, ProfileAnalysis? analysis) => [
 
 /// Everything the Gas consumption card reads besides the analysis itself.
 List<Override> _sacSupportOverrides(Dive dive) => [
-  selectedSegmentationProvider.overrideWith(
-    (ref) => SacSegmentationType.timeInterval,
-  ),
   gasSwitchesProvider(
     dive.id,
   ).overrideWith((ref) async => <GasSwitchWithTank>[]),

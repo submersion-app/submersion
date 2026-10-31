@@ -8,7 +8,6 @@ import 'package:submersion/features/media/presentation/helpers/dive_group_header
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/capture_time_offset_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
@@ -67,7 +66,7 @@ class FileReviewPane extends ConsumerWidget {
     final dives = {
       for (final d in ref.watch(divesProvider).value ?? const <Dive>[]) d.id: d,
     };
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final headers = {
       for (final entry in state.match.matched.entries)
         entry.key: diveGroupHeaderText(

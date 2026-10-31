@@ -5,6 +5,7 @@ import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
@@ -33,13 +34,12 @@ const _month =
 const _day =
     "CAST(strftime('%d', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 
-/// No weight entry at all: neither a `dive_weights` row nor the legacy
-/// scalar the edit form migrates into the table on load (#1392). ONE rule,
-/// read by the `weight` field and the `weights` relation so `weight:none`
-/// and `weights:none` cannot disagree.
-const kDiveNoWeightSql =
-    '({r}.weight_amount IS NULL AND NOT EXISTS '
-    '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
+/// No weight entry at all: neither a `dive_weights` row nor a positive legacy
+/// scalar, the one the edit form migrates into the table on load (#1392). ONE
+/// rule, read by the `weight` field and the `weights` relation so `weight:none`
+/// and `weights:none` cannot disagree, and defined as the NULL case of
+/// [recordedWeightKgSql] so neither can disagree with the value (#3914).
+final kDiveNoWeightSql = '(${recordedWeightKgSql('{r}')} IS NULL)';
 
 /// The gear union the equipment axes have always used: items linked
 /// through `dive_equipment`, cylinders the transmitter registry matched
@@ -406,8 +406,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     // legacy scalar the edit form retired (#1392). Empty means neither.
     _num(
       'weight',
-      'COALESCE((SELECT SUM(w.amount_kg) FROM dive_weights w '
-          'WHERE w.dive_id = {r}.id), {r}.weight_amount)',
+      recordedWeightKgSql('{r}'),
       aliases: ['lead'],
       dimension: FieldDimension.weight,
       emptySql: kDiveNoWeightSql,

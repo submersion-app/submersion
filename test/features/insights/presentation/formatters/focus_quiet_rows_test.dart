@@ -17,6 +17,8 @@ void main() {
     id: FocusFactorId.entryMethod,
     groupCovered: top.isEmpty ? 0 : 3,
     groupSize: 3,
+    baselineCovered: 10,
+    baselineSize: 10,
     top: top,
   );
   CategoryShare share(double g, double b, {bool standsOut = false}) =>

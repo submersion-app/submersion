@@ -195,7 +195,7 @@ class _ActiveFilterBar extends ConsumerWidget {
       PreDiveSessionStatus.aborted => l10n.preDive_sessions_statusAborted,
     };
 
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
@@ -442,7 +442,7 @@ class _SessionTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final flagged =
         ref.watch(preDiveSessionStatsProvider).value?[session.id]?.flagged ?? 0;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final hasLinkedDive = session.diveId != null;
 

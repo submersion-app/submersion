@@ -63,7 +63,7 @@ class BackupCopySheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // A sheet opened while idle stays open if a backup then starts, and the
     // notifier ignores a copy-out while busy: offer nothing it would ignore.
     final busy = ref.watch(isBackupInProgressProvider);

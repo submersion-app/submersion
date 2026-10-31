@@ -60,7 +60,7 @@ class MediaInfoPanel extends ConsumerWidget {
     // fallback for the frame before the read lands.
     final live = ref.watch(mediaByIdProvider(item.id)).value ?? item;
     final provenance = ref.watch(mediaProvenanceProvider(live));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return ListView(
       controller: scrollController,

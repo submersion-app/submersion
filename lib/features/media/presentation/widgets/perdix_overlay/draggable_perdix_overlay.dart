@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 
@@ -37,7 +37,7 @@ class DraggablePerdixOverlay extends StatefulWidget {
   /// (enrichment.elapsedSeconds).
   final int baseElapsedSeconds;
 
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
 
   /// Ticks with video playback (a VideoPlayerController works directly);
   /// null renders the static photo mode.
