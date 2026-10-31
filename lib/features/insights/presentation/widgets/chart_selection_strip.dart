@@ -44,46 +44,49 @@ class _ChartSelectionStripState extends State<ChartSelectionStrip> {
     final canOpen = widget.onOpen != null;
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: Material(
-        color: theme.colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(8),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: canOpen ? _open : null,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${widget.label} · ${widget.countText}',
-                    style: text,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+      child: Semantics(
+        button: canOpen,
+        child: Material(
+          color: theme.colorScheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(8),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: canOpen ? _open : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${widget.label} · ${widget.countText}',
+                      style: text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                if (canOpen) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.insights_chart_viewDives,
-                    style: text?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 2),
-                  SizedBox.square(
-                    dimension: 18,
-                    child: _opening
-                        ? const Padding(
-                            padding: EdgeInsets.all(2),
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            Icons.chevron_right,
-                            size: 18,
-                            color: text?.color,
-                          ),
-                  ),
+                  if (canOpen) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n.insights_chart_viewDives,
+                      style: text?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 2),
+                    SizedBox.square(
+                      dimension: 18,
+                      child: _opening
+                          ? const Padding(
+                              padding: EdgeInsets.all(2),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: text?.color,
+                            ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

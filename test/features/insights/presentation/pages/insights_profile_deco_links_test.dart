@@ -98,4 +98,13 @@ void main() {
 
     expect(find.text('dive list'), findsNothing);
   });
+
+  testWidgets('a deco tile is one stop for a screen reader', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpPage(tester);
+
+    final nodes = find.semantics.byLabel('Deco Dives: 2');
+    expect(nodes, findsOne);
+    semantics.dispose();
+  });
 }

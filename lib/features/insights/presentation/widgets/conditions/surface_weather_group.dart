@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
+import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_band_card.dart';
@@ -48,7 +49,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ConditionsGroupHeader(title: title),
-                ..._cards(context, stats, units),
+                ..._cards(context, ref, stats, units),
               ],
             );
           },
@@ -57,6 +58,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
 
   List<Widget> _cards(
     BuildContext context,
+    WidgetRef ref,
     ConditionsStats stats,
     UnitFormatter units,
   ) {
@@ -80,6 +82,15 @@ class SurfaceWeatherGroup extends ConsumerWidget {
             footer: ConditionsCoverageLine(
               recorded: stats.airTemp.recorded,
               total: total,
+              onOpenUnrecorded: stats.airTemp.unrecordedDiveIds.isEmpty
+                  ? null
+                  : () => openChartDives(
+                      context,
+                      ref,
+                      chart: l10n.insights_conditions_airTempTrend_title,
+                      row: l10n.insights_chart_notRecorded,
+                      load: (_, _, _) async => stats.airTemp.unrecordedDiveIds,
+                    ),
             ),
           ),
         ),

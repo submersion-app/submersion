@@ -56,7 +56,7 @@ tank configurations, solo and buddy dives, and more.
   because it is a share rather than a count.
 
 The dive list opens with one chip naming what you opened, such as
-`Day of week: Saturday (142)`, and holds exactly the dives the number counted
+`Dives by Day of Week: Sat (142)`, and holds exactly the dives the number counted
 under your Insights filter. Dives excluded from statistics stay out. The list is
 a snapshot: if you edit a dive so that it no longer belongs, it stays in the
 list until you go back, and the chart then shows the new number. Back returns

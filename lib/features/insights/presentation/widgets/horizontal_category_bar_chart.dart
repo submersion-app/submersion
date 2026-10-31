@@ -79,6 +79,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
           for (final (index, item) in data.indexed)
             _tappable(
               index,
+              item.count,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
@@ -123,7 +124,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (onOpenRow != null)
+                    if (onOpenRow != null && item.count > 0)
                       const Icon(Icons.chevron_right, size: 16),
                   ],
                 ),
@@ -134,9 +135,9 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     );
   }
 
-  Widget _tappable(int index, Widget row) {
+  Widget _tappable(int index, int count, Widget row) {
     final open = onOpenRow;
-    if (open == null) return row;
+    if (open == null || count == 0) return row;
     return Semantics(
       button: true,
       child: InkWell(onTap: () => open(index), child: row),

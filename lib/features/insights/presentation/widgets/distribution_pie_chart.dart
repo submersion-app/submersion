@@ -183,12 +183,14 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (onOpenSegment != null)
+                          if (onOpenSegment != null && segment.count > 0)
                             const Icon(Icons.chevron_right, size: 16),
                         ],
                       ),
                     );
-                    if (onOpenSegment == null) return row;
+                    if (onOpenSegment == null || segment.count == 0) {
+                      return row;
+                    }
                     return Semantics(
                       button: true,
                       child: InkWell(

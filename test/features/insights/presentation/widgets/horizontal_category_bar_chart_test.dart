@@ -148,4 +148,22 @@ void main() {
 
     expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
+
+  testWidgets('a row with no dives opens nothing', (tester) async {
+    int? opened;
+    await tester.pumpWidget(
+      _wrap(
+        HorizontalCategoryBarChart(
+          data: const [(label: 'Wreck', count: 10), (label: 'Lake', count: 0)],
+          onOpenRow: (i) async => opened = i,
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+    await tester.tap(find.text('Lake'));
+    await tester.pump();
+
+    expect(opened, isNull);
+  });
 }

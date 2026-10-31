@@ -59,6 +59,9 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
   /// the left axis and so narrows the bars too.
   static const double _leftAxisNameSize = 18;
 
+  /// The chart's border, drawn on every side; [FlBorderData]'s default width.
+  static const double _borderWidth = 1;
+
   int? _marked;
 
   double get _leftInset =>
@@ -71,13 +74,13 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
   }
 
   /// Taps go by column rather than by rod, so a very short bar can be hit.
+  /// [FlTouchEvent.localPosition] is already measured from the plot area,
+  /// which sits inside the left axis and the chart's border.
   void _onTouch(FlTouchEvent event, double chartWidth) {
     if (event is! FlTapUpEvent) return;
     final bars = widget.data.length;
-    final column =
-        (event.localPosition.dx - _leftInset) /
-        (chartWidth - _leftInset) *
-        bars;
+    final plotWidth = chartWidth - _leftInset - _borderWidth * 2;
+    final column = event.localPosition.dx / plotWidth * bars;
     final index = column.floor().clamp(0, bars - 1);
     setState(() => _marked = _marked == index ? null : index);
   }
@@ -164,13 +167,14 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     final marked = _marked;
     if (onOpenBar == null || marked == null) return chart;
     final item = data[marked];
+    final xAxisLabel = widget.xAxisLabel;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         chart,
         ChartSelectionStrip(
-          label: item.label,
+          label: xAxisLabel == null ? item.label : '${item.label} $xAxisLabel',
           countText:
               widget.valueFormatter?.call(item.count) ??
               context.l10n.insights_filterBar_diveCount(item.count),

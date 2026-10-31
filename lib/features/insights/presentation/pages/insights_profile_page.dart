@@ -398,6 +398,7 @@ class InsightsProfilePage extends ConsumerWidget {
       label: statLabel(name: label, value: value),
       button: onTap != null,
       onTap: onTap,
+      excludeSemantics: onTap != null,
       child: onTap == null
           ? tile
           : InkWell(

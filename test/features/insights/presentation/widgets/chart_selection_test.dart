@@ -153,6 +153,90 @@ void main() {
       expect(find.textContaining('·'), findsNothing);
     });
 
+    for (final bars in [7, 12]) {
+      testWidgets('every one of $bars bars can be marked on a phone', (
+        tester,
+      ) async {
+        final data = [
+          for (var i = 0; i < bars; i++) (label: 'Bar$i', count: i + 1),
+        ];
+        await pump(
+          tester,
+          SizedBox(
+            width: 330,
+            child: CategoryBarChart(data: data, onOpenBar: (_) async {}),
+          ),
+        );
+
+        for (var i = 0; i < bars; i++) {
+          await tester.tapAt(columnTop(tester, i, bars));
+          await tester.pumpAndSettle();
+          expect(
+            find.textContaining('Bar$i · '),
+            findsOneWidget,
+            reason: 'column $i',
+          );
+          await tester.tapAt(columnTop(tester, i, bars));
+          await tester.pumpAndSettle();
+        }
+      });
+    }
+
+    testWidgets('a y-axis label narrows the columns too', (tester) async {
+      await pump(
+        tester,
+        SizedBox(
+          width: 330,
+          child: CategoryBarChart(
+            data: const [
+              (label: 'A', count: 1),
+              (label: 'B', count: 2),
+              (label: 'C', count: 3),
+              (label: 'D', count: 4),
+              (label: 'E', count: 5),
+            ],
+            yAxisLabel: 'min',
+            onOpenBar: (_) async {},
+          ),
+        ),
+      );
+
+      final chart = tester.getRect(find.byType(BarChart));
+      const leftAxis = 44.0 + 18.0;
+      final column = (chart.width - leftAxis) / 5;
+      await tester.tapAt(
+        Offset(chart.left + leftAxis + column * 4.5, chart.top + 12),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('E · '), findsOneWidget);
+    });
+
+    testWidgets('the strip names the unit of the axis', (tester) async {
+      await pump(
+        tester,
+        CategoryBarChart(data: week, xAxisLabel: '°C', onOpenBar: (_) async {}),
+      );
+
+      await tester.tapAt(columnTop(tester, 1, 3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tue °C · 300 dives'), findsOneWidget);
+    });
+
+    testWidgets('the strip is a button to a screen reader', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pump(tester, CategoryBarChart(data: week, onOpenBar: (_) async {}));
+      await tester.tapAt(columnTop(tester, 1, 3));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.text('View dives')),
+        containsSemantics(isButton: true, hasTapAction: true),
+      );
+      semantics.dispose();
+    });
+
     testWidgets('with no callback a tap shows no strip', (tester) async {
       await pump(tester, const CategoryBarChart(data: week));
 
@@ -241,6 +325,26 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(opened, 1);
+    });
+
+    testWidgets('a legend row with no dives opens nothing', (tester) async {
+      int? opened;
+      await pump(
+        tester,
+        DistributionPieChart(
+          data: [
+            DistributionSegment(label: 'Salt', count: 60, percentage: 100),
+            DistributionSegment(label: 'Fresh', count: 0, percentage: 0),
+          ],
+          onOpenSegment: (i) async => opened = i,
+        ),
+      );
+
+      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      await tester.tap(find.text('Fresh'));
+      await tester.pumpAndSettle();
+
+      expect(opened, isNull);
     });
 
     testWidgets('with no callback a legend row has no chevron', (tester) async {

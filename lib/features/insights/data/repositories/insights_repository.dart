@@ -2000,8 +2000,8 @@ class InsightsRepository with InsightsChartDives {
   /// (#2623). Each row shows the first spelling in binary order.
   ///
   /// Like every Insights card, the count leaves out planned dives and dives
-  /// excluded from statistics (DiveStatsScope); the dive list a row opens
-  /// still shows the excluded ones.
+  /// excluded from statistics (DiveStatsScope), and so does the dive list a
+  /// row opens.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
     int limit = 10,
