@@ -2577,17 +2577,11 @@ class UddfEntityImporter {
   List<DiveDataSourcesCompanion> _restoredSourceCompanions({
     required List<Map<String, dynamic>> entries,
     required String diveId,
-    required Map<String, String> computerIdByKey,
-    required String? fallbackComputerId,
+    required List<String?> computers,
     required String? sourceFileName,
     required DateTime now,
   }) {
     final primaryIndex = _primaryEntryIndex(entries);
-    final computers = _restoredSourceComputers(
-      entries: entries,
-      computerIdByKey: computerIdByKey,
-      fallbackComputerId: fallbackComputerId,
-    );
 
     return [
       for (var i = 0; i < entries.length; i++)
@@ -3498,8 +3492,7 @@ class UddfEntityImporter {
         final restored = _restoredSourceCompanions(
           entries: sourceEntries,
           diveId: diveId,
-          computerIdByKey: computerIdByKey,
-          fallbackComputerId: computerId,
+          computers: sourceComputers,
           sourceFileName: diveSourceFileName,
           now: now,
         );

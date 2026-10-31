@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -148,6 +149,30 @@ void main() {
     );
 
     final xml = await backup();
+    await restoreUddfDives(xml, diverId: diverId);
+
+    expect(await restoredProfiles(), {
+      'src-a.uddf': '0:0.0 30:10.0 60:0.0',
+      'src-b.uddf': '10:0.0 40:20.0 70:0.0',
+    });
+  });
+
+  test('a dives-only export restores each source too', () async {
+    await seedDive([(0, 0), (30, 10), (60, 0)]);
+    await repository.saveComputerReading(reading('src-a', primary: true));
+    await repository.saveAdditionalComputerReading(
+      reading: reading('src-b', primary: false, order: 1),
+      profile: points([(10, 0), (40, 20), (70, 0)]),
+    );
+    final dives = await attachMergedProfiles(
+      repository,
+      await repository.getAllDives(diverId: diverId),
+    );
+
+    final xml = await UddfExportService().generateDivesUddfContent(
+      dives,
+      dataSources: await repository.getSourcesForExport(['dive-a']),
+    );
     await restoreUddfDives(xml, diverId: diverId);
 
     expect(await restoredProfiles(), {

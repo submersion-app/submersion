@@ -8271,6 +8271,10 @@ class DiveRepository {
   /// cover them, or a dive with one plain source beside one carrying bytes
   /// would restore with fewer sources than it had.
   ///
+  /// On a dive with two or more rows this also reads the depth series each
+  /// row carries as [DiveSourceExport.profileSeries] (issue #3965), so it costs
+  /// a read of those dives' samples.
+  ///
   /// This MUST stay a Drift typed select. Issue #227 puts a `TypeConverter`
   /// on `raw_data`; typed selects run converters and `customSelect` does not,
   /// so a raw SQL version would return `SRD1` framed zlib and the export
