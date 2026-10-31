@@ -97,7 +97,10 @@ void main() {
         .insert(
           DivesCompanion.insert(
             id: diveId,
-            diveDateTime: ms,
+            // A month after the gear was added, as a stored wall clock: a part
+            // inherits only the dives from its install date, and a dive on
+            // that same instant falls either side of it by time zone.
+            diveDateTime: DateTime.utc(2026, 2).millisecondsSinceEpoch,
             createdAt: ms,
             updatedAt: ms,
           ).copyWith(diverId: const Value('me')),
