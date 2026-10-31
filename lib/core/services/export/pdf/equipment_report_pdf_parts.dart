@@ -44,6 +44,7 @@ pw.Widget reportHeader({
 /// a whole phrase, such as "38 items".
 pw.Widget summaryStrip(List<({String value, String? label})> items) =>
     pw.Container(
+      width: double.infinity,
       padding: const pw.EdgeInsets.symmetric(vertical: 5),
       margin: const pw.EdgeInsets.only(bottom: 8),
       decoration: const pw.BoxDecoration(
