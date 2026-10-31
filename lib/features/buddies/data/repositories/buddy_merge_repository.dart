@@ -132,6 +132,7 @@ class BuddyMergeRepository {
       photo: row.photo,
       notes: row.notes,
       isFavorite: row.isFavorite,
+      excludedFromRankings: row.excludedFromRankings,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       // Buddy card fields (issue #3728) ride through the snapshot, so an
@@ -549,6 +550,7 @@ class BuddyMergeRepository {
                   photo: Value(buddy.photo),
                   notes: Value(buddy.notes),
                   isFavorite: Value(buddy.isFavorite),
+                  excludedFromRankings: Value(buddy.excludedFromRankings),
                   createdAt: Value(buddy.createdAt.millisecondsSinceEpoch),
                   updatedAt: Value(buddy.updatedAt.millisecondsSinceEpoch),
                 ),
@@ -734,6 +736,7 @@ class BuddyMergeRepository {
         photo: Value(buddy.photo),
         notes: Value(buddy.notes),
         isFavorite: Value(buddy.isFavorite),
+        excludedFromRankings: Value(buddy.excludedFromRankings),
         updatedAt: Value(now),
       ),
     );

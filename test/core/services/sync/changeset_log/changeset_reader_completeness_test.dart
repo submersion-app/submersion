@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -80,6 +81,61 @@ void main() {
 
     expect(result.incompletePeerDeviceIds, isEmpty);
     expect(result.unpublishedPeerDeviceIds, isEmpty);
+  });
+
+  test('a refused read stops the pull', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publishAsPeer();
+    provider.downloadFailure = const CloudAccessRefusedException('refused');
+
+    await expectLater(
+      pullAs('reader-x'),
+      throwsA(isA<CloudAccessRefusedException>()),
+    );
+  });
+
+  test('a refused base read stops the pull', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer(); // base @1
+    final basePart = ChangesetLogLayout.basePartName(peerId, 1, 0);
+    provider.matchedDownloadFailure = const CloudAccessRefusedException(
+      'refused',
+    );
+    provider.failDownloadsWhere = (id) => id.endsWith(basePart);
+
+    await expectLater(
+      pullAs('reader-x'),
+      throwsA(isA<CloudAccessRefusedException>()),
+    );
+  });
+
+  test('an interrupted base read stays with its peer', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer(); // base @1
+    final basePart = ChangesetLogLayout.basePartName(peerId, 1, 0);
+    provider.failDownloadsWhere = (id) => id.endsWith(basePart);
+
+    final result = await pullAs('reader-x');
+
+    expect(result.incompletePeerDeviceIds, {peerId});
+  });
+
+  test('an ordinary read failure stays with its peer', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final peerId = await publishAsPeer();
+    provider.downloadFailure = const CloudStorageException('outage');
+
+    final result = await pullAs('reader-x');
+
+    expect(result.readFailedPeerDeviceIds, {peerId});
   });
 
   test('a changeset gap marks the peer incomplete', () async {

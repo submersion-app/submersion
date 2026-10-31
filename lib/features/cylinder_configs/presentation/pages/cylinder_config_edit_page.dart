@@ -10,7 +10,6 @@ import 'package:submersion/features/cylinder_configs/presentation/widgets/cylind
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -129,7 +128,7 @@ class _CylinderConfigEditPageState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     // ReorderableListView draws a drag handle over each card's end edge on
     // desktop; on mobile a long press drags and there is no handle.
     final dragHandleShown = switch (Theme.of(context).platform) {

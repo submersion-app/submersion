@@ -30,6 +30,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   int silentAuthCalls = 0;
   int authFailures = 0;
   bool silentAuthResult = true;
+
+  @override
+  bool lastSilentAuthThrew = false;
   bool signedOut = false;
 
   /// When set, a successful silent re-auth publishes this client, the way a
@@ -43,7 +46,12 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   set authClient(http.Client? client) => _client = client;
 
   @override
-  Future<void> authenticate() async => authenticateCalls++;
+  Future<void> authenticate({String? expectedAccount}) async {
+    authenticateCalls++;
+    this.expectedAccount = expectedAccount;
+  }
+
+  String? expectedAccount;
 
   @override
   Future<bool> attemptSilentAuth() async {
@@ -185,6 +193,20 @@ void main() {
         ? GoogleDriveClientConfig.hasDesktopClient
         : true;
     expect(await provider.isAvailable(), expected);
+  });
+
+  test('authenticateAs hands the expected account to the sign-in', () async {
+    final auth = _FakeAuthenticator(null);
+    final provider = GoogleDriveStorageProvider(authenticator: auth);
+
+    // No client comes back from the fake, which is the provider's own error;
+    // what this pins is what the authenticator was asked for.
+    await expectLater(
+      provider.authenticateAs('diver@example.com'),
+      throwsA(isA<CloudStorageException>()),
+    );
+
+    expect(auth.expectedAccount, 'diver@example.com');
   });
 
   test('isAuthenticated delegates to silent auth when no client yet', () async {
@@ -477,6 +499,43 @@ void main() {
         expect(auth.authFailures, 2);
       });
 
+      test('that survives re-auth counts as a refusal', () async {
+        drive_.failuresRemaining = 2;
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
+        );
+      });
+
+      test('with a refresh that throws is neither refused nor raw', () async {
+        // A dropped network fails the refresh too, so this says nothing about
+        // the account, and the header must stay off the screen on this path
+        // as well.
+        auth
+          ..silentAuthResult = false
+          ..lastSilentAuthThrew = true;
+        drive_.failuresRemaining = 1;
+
+        await expectLater(
+          provider.listFiles(namePattern: 'ssv1.'),
+          throwsA(
+            isA<CloudStorageException>()
+                .having((e) => e.accessRefused, 'accessRefused', isFalse)
+                .having(
+                  (e) => e.displayMessage,
+                  'displayMessage',
+                  isNot(contains('www-authenticate')),
+                ),
+          ),
+        );
+      });
+
       test('during an upload lookup is not read as a missing file', () async {
         // Masked as "not found", the retry-free path went on to create a
         // second file of the same name beside the one it failed to see.
@@ -527,6 +586,22 @@ void main() {
         await expectLater(
           provider.getOrCreateSyncFolder(),
           throwsA(asksForTheDriveBox),
+        );
+      });
+
+      test('counts as a refusal, so the error offers Sign in again', () async {
+        // Read as anything else, sync files this as a network failure and the
+        // diver is told to check a connection that is fine (issue #3811).
+        drive_.failuresRemaining = 1;
+        await expectLater(
+          provider.getOrCreateSyncFolder(),
+          throwsA(
+            isA<CloudStorageException>().having(
+              (e) => e.accessRefused,
+              'accessRefused',
+              isTrue,
+            ),
+          ),
         );
       });
 
@@ -590,6 +665,26 @@ void main() {
             'error_description': 'Token has been expired or revoked.',
           },
         );
+
+    test('a refresh that fails on an outage is not a refusal', () async {
+      final failingAuth =
+          _FakeAuthenticator(
+              MockClient((_) async => throw refreshError('invalid_grant')),
+            )
+            ..silentAuthResult = false
+            ..lastSilentAuthThrew = true;
+
+      await expectLater(
+        refreshFailing(failingAuth).listFiles(namePattern: 'ssv1.'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.accessRefused,
+            'accessRefused',
+            isFalse,
+          ),
+        ),
+      );
+    });
 
     test('invalid_grant clears the grant and asks to sign in again', () async {
       final failingAuth = _FakeAuthenticator(

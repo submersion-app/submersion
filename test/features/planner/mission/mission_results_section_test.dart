@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -82,6 +83,7 @@ Future<ProviderContainer> _pump(
     testApp(
       locale: locale,
       overrides: [
+        ...plannerResultsInline(),
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         missionSettleDelayProvider.overrideWithValue(Duration.zero),
         missionEngineRunnerProvider.overrideWithValue(runner),
@@ -494,6 +496,7 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
+          ...plannerResultsInline(),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           missionSettleDelayProvider.overrideWithValue(Duration.zero),
           missionEngineRunnerProvider.overrideWithValue(_syncRunner),

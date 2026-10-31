@@ -16,7 +16,6 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -124,8 +123,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final state = ref.watch(divePlanNotifierProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final prediction = ref.watch(planWeightPredictionProvider);
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     final itemsById = {for (final item in equipment) item.id: item};
@@ -244,7 +242,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
                           observations: observations,
                           exposureItemId: exposureItemId,
                           incrementKg:
-                              settings.weightUnit == WeightUnit.kilograms
+                              units.settings.weightUnit == WeightUnit.kilograms
                               ? 0.5
                               : 0.45359237,
                         );

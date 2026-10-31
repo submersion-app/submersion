@@ -30,20 +30,25 @@ class CloudAuthCancelled implements Exception {
 ///
 /// Throws [CloudAuthCancelled] if the user cancels.
 ///
+/// [signIn] replaces [CloudStorageProvider.authenticate] for a caller that
+/// has more to say about the sign-in, such as which account it expects.
+///
 /// [debugForceBrowserWait] overrides the platform check so the dialog branch
 /// is reachable in tests on any host; production callers leave it null.
 Future<void> authenticateWithBrowserWait(
   BuildContext context,
   CloudStorageProvider cloudProvider,
   CloudProviderType provider, {
+  Future<void> Function()? signIn,
   @visibleForTesting bool? debugForceBrowserWait,
 }) async {
+  final authenticate = signIn ?? cloudProvider.authenticate;
   final needsDialog =
       debugForceBrowserWait ??
       (provider == CloudProviderType.googledrive &&
           (Platform.isWindows || Platform.isLinux));
   if (!needsDialog) {
-    await cloudProvider.authenticate();
+    await authenticate();
     return;
   }
 
@@ -61,7 +66,7 @@ Future<void> authenticateWithBrowserWait(
     navigator.pop(cancelled);
   }
 
-  final auth = cloudProvider.authenticate();
+  final auth = authenticate();
   unawaited(
     auth.then((_) => closeDialog(false), onError: (_) => closeDialog(false)),
   );

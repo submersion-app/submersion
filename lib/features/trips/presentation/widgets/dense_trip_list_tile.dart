@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
@@ -46,7 +45,7 @@ class DenseTripListTile extends ConsumerWidget {
 
     // Month and day, plus the year outside the current one, ordered by the
     // diver's date format preference (#964).
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final startStr = units.formatMonthDayWithYear(trip.startDate);
     final endStr = units.formatMonthDayWithYear(trip.endDate);
     final dateRangeStr = '$startStr - $endStr';

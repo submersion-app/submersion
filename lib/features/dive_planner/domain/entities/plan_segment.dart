@@ -78,6 +78,14 @@ class PlanSegment extends Equatable {
     this.order = 0,
   });
 
+  /// Whether [diveModeOverride] takes this segment off a CCR loop: a mid-plan
+  /// bailout, breathing the cylinder [tankId] names directly rather than a
+  /// diluent through the loop.
+  bool get leavesCcrLoop {
+    final override = diveModeOverride;
+    return override != null && override != PlanMode.ccr;
+  }
+
   /// Duration formatted as MM:SS.
   String get durationFormatted {
     final minutes = durationSeconds ~/ 60;

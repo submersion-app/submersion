@@ -6,7 +6,6 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "Needs attention": the expired and soon-due documents, as a row of
@@ -37,7 +36,7 @@ class DocumentsExpiringStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final items = due(entries, DateTime.now());
     if (items.isEmpty) return const SizedBox.shrink();
     return Column(

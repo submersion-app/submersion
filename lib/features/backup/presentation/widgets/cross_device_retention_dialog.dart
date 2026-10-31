@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Asks before a cross-device prune removes [plan]'s backups (issue #3503),
@@ -29,7 +28,7 @@ class _CrossDeviceRetentionDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final count = plan.toDelete.length;
     return AlertDialog(
       title: Text(l10n.backup_retention_confirm_title(count)),

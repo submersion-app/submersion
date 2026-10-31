@@ -52,11 +52,13 @@ Future<List<(domain.ConnectedAccount, AccountStatus)>> _withStatus(
 ) async {
   final repository = ref.watch(connectedAccountsRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchAccountsChanges());
+  // Before the first await: a read nothing holds is disposed while it waits,
+  // and a disposed Ref throws (issue #3780).
+  final registry = ref.watch(accountProviderRegistryProvider);
   final accounts = [
     for (final a in await repository.getAll())
       if (kinds == null || kinds.contains(a.kind)) a,
   ];
-  final registry = ref.watch(accountProviderRegistryProvider);
   // Status probes hit the keychain / provider sessions: run them
   // concurrently so one slow probe cannot serialize the page load.
   return Future.wait([
@@ -109,7 +111,8 @@ final connectedAccountUsageProvider =
 /// sign-in state and what it is used for on this device (issue #3482).
 ///
 /// Probes every row (keychain, provider sessions), so only the pages that
-/// show accounts read it; the Settings > Data page never does.
+/// show accounts read it. The Settings > Data page does only while a cloud
+/// copy is missing, to tell whether its account needs a sign-in.
 final accountGroupsProvider = FutureProvider.autoDispose<List<AccountGroup>>(
   (ref) => _groups(ref, ref.watch(connectedAccountsWithStatusProvider.future)),
   retry: _noRetry,
@@ -136,9 +139,9 @@ Future<List<AccountGroup>> _groups(
   final usageRead = ref
       .watch(connectedAccountUsageProvider.future)
       .then<AccountUsageSnapshot?>((u) => u, onError: (Object _) => null);
+  final registry = ref.watch(accountProviderRegistryProvider);
   final withStatus = await statuses;
   final usage = await usageRead;
-  final registry = ref.watch(accountProviderRegistryProvider);
   final s3 = registry.capabilityFor<S3AccountAdapter>(AccountKind.s3);
   final webdav = registry.capabilityFor<WebDavAccountAdapter>(
     AccountKind.webdav,

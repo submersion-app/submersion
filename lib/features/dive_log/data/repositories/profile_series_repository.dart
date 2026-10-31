@@ -115,6 +115,42 @@ class ProfileSeriesRepository {
     return rowId;
   }
 
+  /// Slides every sample of [series] by [seconds] (negative moves them
+  /// earlier), in place. For a dive whose timeline gets a new zero: the
+  /// recording itself is unchanged, so unlike an edit this adds no revision,
+  /// and each series keeps its id, its flags and its place in the lineage.
+  Future<void> shiftSamples(
+    Iterable<ProfileSeries> series,
+    int seconds, {
+    required int now,
+  }) async {
+    if (seconds == 0) return;
+    await _db.transaction(() async {
+      for (final s in series) {
+        final encoded = _codec.encode([
+          for (final p in s.samples) p.shiftedBy(seconds),
+        ]);
+        await (_db.update(
+          _db.diveProfileSeries,
+        )..where((t) => t.id.equals(s.id))).write(
+          DiveProfileSeriesCompanion(
+            startTimestamp: Value(encoded.summary.startTimestamp),
+            endTimestamp: Value(encoded.summary.endTimestamp),
+            codecVersion: Value(encoded.codecVersion),
+            samples: Value(encoded.bytes),
+            updatedAt: Value(now),
+          ),
+        );
+        await _db.customStatement(
+          'UPDATE $_historyTable SET content_hash = ? WHERE series_id = ?',
+          [_seriesContentHash(encoded.bytes), s.id],
+        );
+        await _markPending(s.id, now);
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// The currently active primary series id for [diveId], or null when the
   /// dive has no primary series.
   Future<String?> primarySeriesIdForDive(String diveId) async {
@@ -973,8 +1009,9 @@ class ProfileSeriesRepository {
   }
 
   /// Raw rows of every series of [diveIds], undecoded, for snapshots that
-  /// restore them verbatim through [restoreSeriesRow] and for summaries that
-  /// decode them on a background isolate.
+  /// restore them verbatim through [restoreSeriesRow] and for reads that
+  /// decode them on a background isolate. For one dive, the rows come back in
+  /// the order [getSeriesForDive] uses.
   Future<List<DiveProfileSeriesRow>> getRowsForDives(
     List<String> diveIds,
   ) async {

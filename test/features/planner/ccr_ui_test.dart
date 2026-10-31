@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/widgets/ccr_settings_se
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -40,6 +41,7 @@ void main() {
   });
 
   List<dynamic> overrides() => [
+    ...plannerResultsInline(),
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
   ];
 
@@ -181,6 +183,53 @@ void main() {
     expect(find.textContaining('used:'), findsNWidgets(3));
   });
 
+  testWidgets('a bailout cylinder an authored OC segment breathes joins the '
+      'main gas list, so the gas it spent is visible (#3898)', (tester) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides(),
+        child: SizedBox(
+          width: 500,
+          height: 700,
+          child: PlanResultsSheet(controller: ScrollController()),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanResultsSheet)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    notifier.updateMode(domain.PlanMode.ccr);
+    notifier.addTank(
+      const DiveTank(
+        id: 'bo',
+        volume: 11.1,
+        startPressure: 207,
+        gasMix: GasMix(o2: 50),
+        role: TankRole.bailout,
+      ),
+    );
+    final bottom = container.read(divePlanNotifierProvider).segments.last;
+    notifier.updateSegment(
+      bottom.id,
+      bottom.copyWith(
+        tankId: 'bo',
+        gasMix: const GasMix(o2: 50),
+        diveModeOverride: domain.PlanMode.oc,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The two loop slots and the bailout cylinder in the main list, plus
+    // that cylinder's worst-case row in the bailout section.
+    expect(find.textContaining('used:'), findsNWidgets(4));
+  });
+
   testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (
     tester,
   ) async {
@@ -226,6 +275,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
@@ -267,6 +317,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),
@@ -311,6 +362,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: [
+            ...plannerResultsInline(),
             settingsProvider.overrideWith(
               (ref) => _TestSettingsNotifier(
                 const AppSettings(ccrSetpointLow: 0.6, ccrSetpointHigh: 1.2),

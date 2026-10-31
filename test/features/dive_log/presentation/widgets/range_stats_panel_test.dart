@@ -46,6 +46,8 @@ Future<void> _pumpPanel(
   Map<String, List<TankPressurePoint>> tankPressures = const {},
   GasConsumptionDisplay display = GasConsumptionDisplay.both,
   bool isRebreather = false,
+  int duration = 600,
+  (int, int)? range,
 }) async {
   tester.view.physicalSize = Size(width, 600);
   tester.view.devicePixelRatio = 1.0;
@@ -65,9 +67,10 @@ Future<void> _pumpPanel(
     ],
   );
   addTearDown(container.dispose);
-  container.read(rangeSelectionProvider('d1').notifier)
-    ..initialize(600)
+  final selection = container.read(rangeSelectionProvider('d1').notifier)
+    ..initialize(duration)
     ..enableRangeMode();
+  if (range != null) selection.setRange(range.$1, range.$2);
 
   await tester.pumpWidget(
     UncontrolledProviderScope(
@@ -141,6 +144,108 @@ void main() {
     );
   });
 
+  group('the selected interval (#3890)', () {
+    /// The stat chip under [label], as the diver reads it.
+    String valueOf(WidgetTester tester, String label) {
+      final chip = find.ancestor(
+        of: find.text(label),
+        matching: find.byType(Column),
+      );
+      final texts = tester.widgetList<Text>(
+        find.descendant(of: chip.first, matching: find.byType(Text)),
+      );
+      return texts.last.data!;
+    }
+
+    /// Flat at 10 m, sampled every 30 s for two minutes.
+    final flatEvery30s = [
+      for (var t = 0; t <= 120; t += 30)
+        DiveProfilePoint(timestamp: t, depth: 10),
+    ];
+
+    testWidgets('Elapsed is the whole selection', (tester) async {
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (15, 105),
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '01:30');
+    });
+
+    testWidgets('a selection between two samples is not a surface interval', (
+      tester,
+    ) async {
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (15, 25),
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '00:10');
+      expect(valueOf(tester, 'Min Depth'), '10.0m');
+      expect(valueOf(tester, 'Max Depth'), '10.0m');
+      expect(valueOf(tester, 'Avg Depth'), '10.0m');
+    });
+
+    testWidgets('a selection between two samples shows SAC at its depth', (
+      tester,
+    ) async {
+      // No sample inside the range, so the depth comes from the plotted
+      // line: 10 bar/min of the series at 2 bar ambient.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: flatEvery30s,
+        duration: 120,
+        range: (35, 55),
+        tanks: const [DiveTank(id: 'bg', volume: 12, role: TankRole.backGas)],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+    });
+
+    testWidgets('a value that cannot be derived is shown as unavailable', (
+      tester,
+    ) async {
+      // Trimmed: the plotted line starts at 5:00, after the selection ends.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 300, depth: 10),
+          DiveProfilePoint(timestamp: 360, depth: 12),
+          DiveProfilePoint(timestamp: 420, depth: 12),
+        ],
+        duration: 420,
+        range: (100, 200),
+        tanks: const [DiveTank(id: 'bg', volume: 12, role: TankRole.backGas)],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(valueOf(tester, 'Elapsed'), '01:40');
+      for (final label in const [
+        'Depth Delta',
+        'Min Depth',
+        'Max Depth',
+        'Avg Depth',
+        'Avg Vert Speed',
+        'Max Descent',
+        'Max Ascent',
+      ]) {
+        expect(valueOf(tester, label), '--', reason: label);
+      }
+      // SAC divides by the depth, so it has none to divide by.
+      expect(find.text('SAC'), findsNothing);
+      expect(find.text('RMV'), findsNothing);
+    });
+  });
+
   group('gas consumption (#2928)', () {
     const backGas = DiveTank(id: 'bg', volume: 12, role: TankRole.backGas);
 
@@ -187,6 +292,75 @@ void main() {
 
       expect(find.text('5.0 bar/min'), findsOneWidget);
       expect(find.text('60.0 L/min'), findsOneWidget);
+    });
+
+    testWidgets('averages depth over time, for SAC and RMV too (#3891)', (
+      tester,
+    ) async {
+      // The default range, 150 s to 450 s: 60 s at 10 m, a 60 s ramp to
+      // 30 m, 180 s at 30 m. A sample average would say 20 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 150, depth: 10),
+          DiveProfilePoint(timestamp: 210, depth: 10),
+          DiveProfilePoint(timestamp: 270, depth: 30),
+          DiveProfilePoint(timestamp: 450, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      // (60 * 10 + 60 * 20 + 180 * 30) / 300 is 24 m, so 3.4 bar ambient:
+      // 50 bar over 5 min is 2.9 bar/min, 35.3 L/min of 12 L.
+      expect(find.text('24.0m'), findsOneWidget);
+      expect(find.text('2.9 bar/min'), findsOneWidget);
+      expect(find.text('35.3 L/min'), findsOneWidget);
+    });
+
+    testWidgets('interpolates depth at the range edges (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds only t=400, at 30 m, but starts on the
+      // ramp at 13.3 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 100, depth: 10),
+          DiveProfilePoint(timestamp: 400, depth: 30),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+      );
+
+      expect(find.text('23.1m'), findsOneWidget);
+      expect(find.text('13.3m'), findsOneWidget);
+      expect(find.text('30.0m'), findsOneWidget);
+    });
+
+    testWidgets('a range between two samples still has depth and SAC (#3891)', (
+      tester,
+    ) async {
+      // The 150 s to 450 s range holds no sample: 15 m to 25 m on the ramp.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 10),
+          DiveProfilePoint(timestamp: 600, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('15.0m'), findsOneWidget);
+      expect(find.text('25.0m'), findsOneWidget);
+      expect(find.text('20.0m'), findsOneWidget);
+      // 50 bar over 5 min at 3 bar ambient: 3.3 bar/min, 40.0 L/min of 12 L.
+      expect(find.text('3.3 bar/min'), findsOneWidget);
+      expect(find.text('40.0 L/min'), findsOneWidget);
     });
 
     testWidgets('follows a SAC-only display preference', (tester) async {

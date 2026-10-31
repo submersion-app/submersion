@@ -22,6 +22,9 @@ class ProfileEditorChart extends ConsumerStatefulWidget {
   final List<ProfileWaypoint>? waypoints;
   final ({int start, int end})? selectedRange;
   final EditorMode mode;
+
+  /// Called on a draw mode tap with [depth] in meters, whatever unit the chart
+  /// is displaying.
   final void Function(int timestamp, double depth)? onTap;
   final void Function(int waypointIndex, int timestamp, double depth)?
   onWaypointDrag;
@@ -80,8 +83,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+
     final colorScheme = Theme.of(context).colorScheme;
 
     // Calculate max depth in display units
@@ -294,7 +297,9 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
     final touchedSpot = spots.first;
     final timestamp = touchedSpot.x.toInt();
-    final depth = -touchedSpot.y;
+    // Chart Y is negated and in display units; convert back to stored meters
+    final units = ref.read(unitFormatterProvider);
+    final depth = units.depthToMeters(-touchedSpot.y);
     widget.onTap?.call(timestamp, depth);
   }
 }

@@ -10,7 +10,6 @@ import 'package:submersion/features/gas_calculators/presentation/gas_calculator_
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Colour of a density level, shared with the assessment card.
@@ -31,7 +30,7 @@ class ModDepthCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final result = ref.watch(modCalculatorResultProvider);
     final isTec = result.mode != ModCalculatorMode.rec;
     final columns = [
