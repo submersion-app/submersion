@@ -210,8 +210,9 @@ class InsightsRepository {
   /// stale after a sync applied a tank-pressure-only changeset, which never
   /// touches the `dives` row.
   ///
-  /// Narrower than [DiveRepository.watchDiveDetailChanges], which also fires on
-  /// media, tide records, and safety findings that no statistic reads.
+  /// Not [DiveRepository.watchDiveDetailChanges], which also fires on media,
+  /// tide records, and safety findings that no statistic reads, and misses
+  /// tables this one follows, such as `dive_profile_events`.
   ///
   /// Replaces `statisticsVersionProvider`, a counter incremented from exactly
   /// one line in the app (inside `PaginatedDiveListNotifier`), which merge,
