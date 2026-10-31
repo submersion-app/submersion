@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 /// The item page's Trips row reads dives through their gear and tank links,
 /// neither of which writes `equipment` or `trips`, so it has to tick on those
@@ -21,8 +22,9 @@ void main() {
   late EquipmentItem item;
   late ProviderContainer container;
 
-  /// Long enough for a debounced dive tick to fire and the refresh to settle.
-  final settle = DiveRepository.changeTickDebounce * 2;
+  /// Long enough for a debounced dive tick to fire, for the cases that need
+  /// it to land at a known moment rather than eventually.
+  final tickDelivered = DiveRepository.changeTickDebounce * 2;
 
   Future<void> addTrip(String id) => db
       .into(db.trips)
@@ -48,10 +50,13 @@ void main() {
         ).copyWith(tripId: Value(tripId)),
       );
 
-  Future<void> link(String diveId) => db
+  Future<void> link(String diveId, [String? equipmentId]) => db
       .into(db.diveEquipment)
       .insert(
-        DiveEquipmentCompanion.insert(diveId: diveId, equipmentId: item.id),
+        DiveEquipmentCompanion.insert(
+          diveId: diveId,
+          equipmentId: equipmentId ?? item.id,
+        ),
       );
 
   /// Dive D moves to trip B, then a new dive E takes the item on trip A: no
@@ -67,6 +72,27 @@ void main() {
 
   Future<Set<String>> tripIds() async =>
       (await container.read(equipmentTripIdsProvider(item.id).future)).toSet();
+
+  /// Listens to both Trips families as the item page does, until the test
+  /// closes the subscriptions or ends.
+  List<ProviderSubscription<Object?>> openPage() {
+    final page = <ProviderSubscription<Object?>>[
+      container.listen(equipmentTripCountProvider(item.id), (_, _) {}),
+      container.listen(equipmentTripIdsProvider(item.id), (_, _) {}),
+    ];
+    addTearDown(() {
+      for (final subscription in page) {
+        subscription.close();
+      }
+    });
+    return page;
+  }
+
+  Future<void> rowReads(Set<String> trips) async {
+    await waitUntil(() async => await tripCount() == trips.length);
+    await waitUntil(() async => (await tripIds()).containsAll(trips));
+    expect(await tripIds(), trips);
+  }
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -90,86 +116,63 @@ void main() {
   });
 
   test('moving a dive and linking another refreshes an open page', () async {
-    final count = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(count.close);
-    final ids = container.listen(equipmentTripIdsProvider(item.id), (_, _) {});
-    addTearDown(ids.close);
-    expect(await tripCount(), 1);
-    expect(await tripIds(), {'A'});
+    openPage();
+    await rowReads({'A'});
 
     await moveDiveAndAddAnother();
-    await Future<void>.delayed(settle);
 
-    expect(await tripCount(), 2);
-    expect(await tripIds(), {'A', 'B'});
+    await rowReads({'A', 'B'});
+  });
+
+  test('taking the item off its dive refreshes an open page', () async {
+    openPage();
+    await rowReads({'A'});
+
+    await (db.delete(
+      db.diveEquipment,
+    )..where((t) => t.diveId.equals('D'))).go();
+
+    await waitUntil(() async => await tripCount() == 0);
+    await waitUntil(() async => (await tripIds()).isEmpty);
   });
 
   test('the changes reach a page opened again after them', () async {
-    final count = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    final ids = container.listen(equipmentTripIdsProvider(item.id), (_, _) {});
-    expect(await tripCount(), 1);
-    expect(await tripIds(), {'A'});
-    count.close();
-    ids.close();
+    final page = openPage();
+    await rowReads({'A'});
+    for (final subscription in page) {
+      subscription.close();
+    }
 
     await moveDiveAndAddAnother();
-    await Future<void>.delayed(settle);
+    await Future<void>.delayed(tickDelivered);
 
-    final reopenedCount = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(reopenedCount.close);
-    final reopenedIds = container.listen(
-      equipmentTripIdsProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(reopenedIds.close);
-    await Future<void>.delayed(Duration.zero);
-
-    expect(await tripCount(), 2);
-    expect(await tripIds(), {'A', 'B'});
+    openPage();
+    await rowReads({'A', 'B'});
   });
 
   test('the changes reach a page paused behind another route', () async {
-    final count = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(count.close);
-    final ids = container.listen(equipmentTripIdsProvider(item.id), (_, _) {});
-    addTearDown(ids.close);
-    expect(await tripCount(), 1);
-    expect(await tripIds(), {'A'});
-    count.pause();
-    ids.pause();
+    final page = openPage();
+    await rowReads({'A'});
+    for (final subscription in page) {
+      subscription.pause();
+    }
 
     await moveDiveAndAddAnother();
-    await Future<void>.delayed(settle);
-    count.resume();
-    ids.resume();
-    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(tickDelivered);
 
-    expect(await tripCount(), 2);
-    expect(await tripIds(), {'A', 'B'});
+    for (final subscription in page) {
+      subscription.resume();
+    }
+    await rowReads({'A', 'B'});
   });
 
   test('a tank naming the item on another trip refreshes the row', () async {
-    final count = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(count.close);
-    expect(await tripCount(), 1);
+    openPage();
+    await rowReads({'A'});
 
+    // Let the new dive's own tick pass, so only the tank write can refresh.
     await addDive('T', 'B');
-    await Future<void>.delayed(settle);
+    await Future<void>.delayed(tickDelivered);
     expect(await tripCount(), 1);
 
     await db
@@ -180,9 +183,8 @@ void main() {
             diveId: 'T',
           ).copyWith(equipmentId: Value(item.id)),
         );
-    await Future<void>.delayed(settle);
 
-    expect(await tripCount(), 2);
+    await rowReads({'A', 'B'});
   });
 
   test('folding another item in brings its trips to the survivor', () async {
@@ -190,25 +192,13 @@ void main() {
       const EquipmentItem(id: '', name: 'Old BCD', type: EquipmentType.bcd),
     );
     await addDive('other', 'B');
-    await db
-        .into(db.diveEquipment)
-        .insert(
-          DiveEquipmentCompanion.insert(
-            diveId: 'other',
-            equipmentId: duplicate.id,
-          ),
-        );
-    final count = container.listen(
-      equipmentTripCountProvider(item.id),
-      (_, _) {},
-    );
-    addTearDown(count.close);
-    expect(await tripCount(), 1);
+    await link('other', duplicate.id);
+    openPage();
+    await rowReads({'A'});
 
     // The fold moves gear links in raw SQL, which Drift's streams cannot see.
     await EquipmentItemFold().fold(fromId: duplicate.id, intoId: item.id);
-    await Future<void>.delayed(settle);
 
-    expect(await tripCount(), 2);
+    await rowReads({'A', 'B'});
   });
 }
