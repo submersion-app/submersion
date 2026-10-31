@@ -16569,7 +16569,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Afficher $count de plus',
-      one: 'Afficher 1 de plus',
+      one: 'Afficher $count de plus',
     );
     return '$_temp0';
   }

@@ -4734,7 +4734,7 @@
   "equipment_locations_notesHint": "Adresse, téléphone, numéro de casier",
   "equipment_list_retryButton": "Réessayer",
   "equipment_list_searchTooltip": "Rechercher de l'équipement",
-  "equipment_list_showMore": "{count, plural, =1{Afficher 1 de plus} other{Afficher {count} de plus}}",
+  "equipment_list_showMore": "{count, plural, =1{Afficher {count} de plus} other{Afficher {count} de plus}}",
   "equipment_list_sortTitle": "Trier l'équipement",
   "equipment_list_sortTooltip": "Trier",
   "equipment_menu_delete": "Supprimer",

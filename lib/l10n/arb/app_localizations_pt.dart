@@ -16523,7 +16523,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Mostrar mais $count',
-      one: 'Mostrar mais 1',
+      one: 'Mostrar mais $count',
     );
     return '$_temp0';
   }

@@ -4835,7 +4835,7 @@
   "equipment_locations_notesHint": "Morada, telefone, número do cacifo",
   "equipment_list_retryButton": "Tentar Novamente",
   "equipment_list_searchTooltip": "Buscar Equipamento",
-  "equipment_list_showMore": "{count, plural, =1{Mostrar mais 1} other{Mostrar mais {count}}}",
+  "equipment_list_showMore": "{count, plural, =1{Mostrar mais {count}} other{Mostrar mais {count}}}",
   "equipment_list_sortTitle": "Ordenar Equipamento",
   "equipment_list_sortTooltip": "Ordenar",
   "equipment_menu_delete": "Excluir",
