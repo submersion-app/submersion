@@ -103,10 +103,11 @@ class BulkDiveEditService {
               ),
             );
           }
+        // Once per request: the form can send four of these, and nothing has
+        // been written yet, so each would read the same links. Undo needs only
+        // who was on each dive and their roles, so the lean reader is enough.
         case BuddiesOp():
-          priorBuddies = {
-            for (final id in ids) id: await _buddyRepo.getBuddiesForDive(id),
-          };
+          priorBuddies ??= await _buddyRepo.getBuddiesForDivesInChunks(ids);
         case DiverRolesOp():
           priorDiverRoleIds = await _roleLinks.diverRoleIdsForDives(ids);
         case TanksOp():

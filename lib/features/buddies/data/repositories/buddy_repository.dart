@@ -518,27 +518,39 @@ class BuddyRepository {
     return byDive;
   }
 
+  /// [getBuddiesForDives] for a selection of any size, with an entry for
+  /// every dive: one with no buddies maps to an empty list rather than being
+  /// absent. The ids are bound in runs of [chunkSize], since a selection has
+  /// no upper bound and each id is one SQL variable.
+  Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDivesInChunks(
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    final ids = diveIds.toSet().toList();
+    final byDive = <String, List<domain.BuddyWithRole>>{
+      for (final id in ids) id: const [],
+    };
+    for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
+      byDive.addAll(await getBuddiesForDives(chunk));
+    }
+    return byDive;
+  }
+
   /// [dives] with [dive_domain.Dive.buddies] loaded from the `dive_buddies`
-  /// junction, in batched [getBuddiesForDives] queries.
+  /// junction, through [getBuddiesForDivesInChunks].
   ///
   /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
   /// junction unloaded (`getAllDives` and `getDivesByIdsWithoutSamples` hydrate
-  /// it), when the caller shows or exports the people on them (#3039). The ids
-  /// are bound in runs of [chunkSize], since a whole trip or a large export
-  /// selection has no upper bound and each id is one SQL variable.
+  /// it), when the caller shows or exports the people on them (#3039).
   Future<List<dive_domain.Dive>> withBuddies(
     List<dive_domain.Dive> dives, {
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,
   }) async {
-    final ids = dives.map((d) => d.id).toSet().toList();
-    final byDive = <String, List<domain.BuddyWithRole>>{};
-    for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
-      byDive.addAll(await getBuddiesForDives(chunk));
-    }
-    return [
-      for (final dive in dives)
-        dive.copyWith(buddies: byDive[dive.id] ?? const []),
-    ];
+    final byDive = await getBuddiesForDivesInChunks(
+      dives.map((d) => d.id).toList(),
+      chunkSize: chunkSize,
+    );
+    return [for (final dive in dives) dive.copyWith(buddies: byDive[dive.id]!)];
   }
 
   /// [getBuddiesForDives] plus each person's derived primary certification,
