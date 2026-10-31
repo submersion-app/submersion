@@ -424,8 +424,12 @@ void main() {
         },
       );
 
+      // The default range sees 25 bar of 7 L, which is 14.58 bar of 12 L,
+      // over 5 min at 2 bar ambient.
       expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('1.5 bar/min'), findsOneWidget);
       expect(find.text('RMV'), findsOneWidget);
+      expect(find.text('17.5 L/min'), findsOneWidget);
     });
 
     const ccrTanks = [
