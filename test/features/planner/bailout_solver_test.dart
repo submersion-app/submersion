@@ -18,8 +18,8 @@ const _diluentTank = DiveTank(
   role: TankRole.diluent,
 );
 
-/// Reaches the 60 m default plan (MOD 67 m at the 1.4 bottom limit), which
-/// a richer gas alone cannot: past every MOD there is no ascent to test (#3961).
+/// Reaches the 60 m default plan (MOD 67 m at the 1.4 bottom limit), which a
+/// richer gas alone cannot: past every MOD there is no ascent to test (#3961).
 const _deepBailoutGas = GasMix(o2: 18, he: 35);
 
 DiveTank _bailout({
