@@ -2461,6 +2461,7 @@
   "diveImport_uddf_trips": "旅行",
   "diveLog_bulkDelete_confirm": "确定要删除 {count} {count, plural, =1{次潜水} other{次潜水}}吗？此操作无法撤消。",
   "diveLog_bulkDelete_restored": "潜水已恢复",
+  "diveLog_bulkDelete_restoredIncomplete": "潜水已恢复，但部分记录的数据无法找回",
   "diveLog_bulkDelete_snackbar": "已删除 {count} {count, plural, =1{次潜水} other{次潜水}}",
   "diveLog_bulkDelete_title": "删除潜水",
   "diveLog_bulkDelete_undo": "撤消",

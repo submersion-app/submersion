@@ -7104,6 +7104,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Duiken hersteld';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Duiken hersteld, maar sommige opgenomen gegevens konden niet worden teruggehaald';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -7146,6 +7146,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Mergulhos restaurados';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Mergulhos restaurados, mas não foi possível recuperar alguns dados registados';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

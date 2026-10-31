@@ -2279,6 +2279,7 @@
   "diveImport_uddf_trips": "טיולים",
   "diveLog_bulkDelete_confirm": "האם אתה בטוח שברצונך למחוק {count} {count, plural, =1{צלילה} other{צלילות}}? פעולה זו אינה ניתנת לביטול.",
   "diveLog_bulkDelete_restored": "הצלילות שוחזרו",
+  "diveLog_bulkDelete_restoredIncomplete": "הצלילות שוחזרו, אך לא ניתן היה לשחזר חלק מהנתונים המוקלטים",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{צלילה נמחקה} other{צלילות נמחקו}}",
   "diveLog_bulkDelete_title": "מחיקת צלילות",
   "diveLog_bulkDelete_undo": "ביטול",

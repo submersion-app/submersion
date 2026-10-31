@@ -6996,6 +6996,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'הצלילות שוחזרו';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'הצלילות שוחזרו, אך לא ניתן היה לשחזר חלק מהנתונים המוקלטים';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

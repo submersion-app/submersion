@@ -6779,6 +6779,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkDelete_restored => '潜水已恢复';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete => '潜水已恢复，但部分记录的数据无法找回';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

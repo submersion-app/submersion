@@ -2279,6 +2279,7 @@
   "diveImport_uddf_trips": "Voyages",
   "diveLog_bulkDelete_confirm": "Es-tu sûr de vouloir supprimer {count} {count, plural, =1{plongée} other{plongées}} ? Cette action est irréversible.",
   "diveLog_bulkDelete_restored": "Plongées restaurées",
+  "diveLog_bulkDelete_restoredIncomplete": "Plongées restaurées, mais certaines données enregistrées n'ont pas pu être récupérées",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{plongée supprimée} other{plongées supprimées}}",
   "diveLog_bulkDelete_title": "Supprimer des plongées",
   "diveLog_bulkDelete_undo": "Annuler",

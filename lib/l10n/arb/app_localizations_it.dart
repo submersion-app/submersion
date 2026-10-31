@@ -7147,6 +7147,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Immersioni ripristinate';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Immersioni ripristinate, ma non è stato possibile recuperare alcuni dati registrati';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

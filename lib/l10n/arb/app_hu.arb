@@ -2279,6 +2279,7 @@
   "diveImport_uddf_trips": "Utak",
   "diveLog_bulkDelete_confirm": "Biztosan törölni szeretne {count} {count, plural, =1{merülést} other{merülést}}? Ez a művelet nem vonható vissza.",
   "diveLog_bulkDelete_restored": "Merülések visszaállítva",
+  "diveLog_bulkDelete_restoredIncomplete": "Merülések visszaállítva, de néhány rögzített adatot nem sikerült helyreállítani",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{merülés} other{merülés}} törölve",
   "diveLog_bulkDelete_title": "Merülések törlése",
   "diveLog_bulkDelete_undo": "Visszavonás",
