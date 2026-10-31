@@ -5,9 +5,11 @@ import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show TankPressurePoint;
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -122,6 +124,35 @@ final _pressures = {
   }),
 };
 
+final _switches = {
+  'd1': [
+    GasSwitchWithTank(
+      gasSwitch: GasSwitch(
+        id: 'switch-1',
+        diveId: 'd1',
+        timestamp: 30,
+        tankId: 'tank-a',
+        createdAt: DateTime.utc(2026),
+      ),
+      tankName: 'Stage',
+      gasMix: 'EAN50',
+      o2Fraction: 0.5,
+    ),
+  ],
+};
+
+class _Dives extends Fake implements DiveRepository {
+  final calls = <List<String>>[];
+
+  @override
+  Future<Map<String, List<GasSwitchWithTank>>> getGasSwitchesForDives(
+    List<String> diveIds,
+  ) async {
+    calls.add(diveIds);
+    return _switches;
+  }
+}
+
 class _TankPressures extends Fake implements TankPressureRepository {
   final calls = <List<String>>[];
 
@@ -211,8 +242,29 @@ void main() {
     expect(extras.diveTankPressures, _pressures);
   });
 
+  test('fetches the dives\' gas switches whatever the checkboxes', () async {
+    // The dive's own record too; a switch names a tank, not a participant
+    // or a piece of gear (issue #3966).
+    final dives = _Dives();
+    final extras = await resolveDivesExtras(
+      _Buddies(),
+      _Components(),
+      _Roles(),
+      _TankPressures(),
+      'diver-1',
+      ['d1'],
+      const UddfExportOptions(includeParticipants: false, includeGear: false),
+      dives: dives,
+    );
+    expect(dives.calls, [
+      ['d1'],
+    ]);
+    expect(extras.diveGasSwitches, _switches);
+  });
+
   test('the provider reads every repository for the active diver', () async {
     final roles = _Roles();
+    final dives = _Dives();
     final classification = _Classification();
     final container = ProviderContainer(
       overrides: [
@@ -220,6 +272,7 @@ void main() {
         equipmentComponentRepositoryProvider.overrideWithValue(_Components()),
         diveRoleRepositoryProvider.overrideWithValue(roles),
         tankPressureRepositoryProvider.overrideWithValue(_TankPressures()),
+        diveRepositoryProvider.overrideWithValue(dives),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
         siteClassificationRepositoryProvider.overrideWithValue(classification),
         siteTypeRepositoryProvider.overrideWithValue(_SiteTypes()),
@@ -234,6 +287,7 @@ void main() {
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
     expect(extras.diveTankPressures, _pressures);
+    expect(extras.diveGasSwitches, _switches);
     expect(classification.siteQueries, [
       ['d1'],
     ]);
