@@ -63,8 +63,16 @@ void main() {
       expect(seeded.exact.entry, entry);
     });
 
-    test('shows an estimated exit but does not hold it as stored', () {
+    test('estimates a missing exit from runtime, not held as stored', () {
       final seeded = SeededDiveTimes.of(imported());
+
+      // 10:00:50 + 2960 s = 10:50:10.
+      expect(seeded.shown.exit, DateTime.utc(2026, 1, 1, 10, 50));
+      expect(seeded.exact.exit, isNull);
+    });
+
+    test('estimates a missing exit from bottom time with no runtime', () {
+      final seeded = SeededDiveTimes.of(imported(run: null));
 
       // 10:00:50 + 2409 s = 10:40:59.
       expect(seeded.shown.exit, DateTime.utc(2026, 1, 1, 10, 40));
@@ -194,7 +202,7 @@ void main() {
 
     test('picking an exit for a dive without one derives runtime', () {
       final seeded = SeededDiveTimes.of(imported());
-      final picked = DateTime.utc(2026, 1, 1, 10, 50);
+      final picked = DateTime.utc(2026, 1, 1, 10, 55);
 
       final saved = resolveDiveTimes(
         seeded.shown.copyWith(exit: picked),
@@ -324,13 +332,28 @@ void main() {
 
   group('SeededDiveTimes.withExitPicked', () {
     test('saves an estimated exit the diver confirmed at the minute shown', () {
+      final seeded = SeededDiveTimes.of(imported(run: null));
+      final confirmed = DateTime.utc(2026, 1, 1, 10, 40);
+
+      final saved = resolveDiveTimes(
+        seeded.shown,
+        seeded: seeded.withExitPicked(),
+      );
+
+      expect(saved.exit, confirmed);
+      expect(saved.runtime, confirmed.difference(entry));
+    });
+
+    test('a confirmed estimate does not bring runtime down to bottom time', () {
       final seeded = SeededDiveTimes.of(imported());
-      final form = seeded.shown;
 
-      final saved = resolveDiveTimes(form, seeded: seeded.withExitPicked());
+      final saved = resolveDiveTimes(
+        seeded.shown,
+        seeded: seeded.withExitPicked(),
+      );
 
-      expect(saved.exit, DateTime.utc(2026, 1, 1, 10, 40));
-      expect(saved.runtime, DateTime.utc(2026, 1, 1, 10, 40).difference(entry));
+      // Exit 10:50:00 minus entry 10:00:50, the minute the picker holds.
+      expect(saved.runtime, const Duration(seconds: 2950));
     });
 
     test('keeps a stored exit confirmed at the same minute', () {

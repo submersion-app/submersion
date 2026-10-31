@@ -50,12 +50,13 @@ class SeededDiveTimes {
         ? dive.exitTime!.difference(dive.entryTime!)
         : null;
     final runtime = dive.runtime ?? timedRuntime;
-    // A dive with no exit shows one estimated from its bottom time. The
-    // estimate stays on the form: saved, it would stand in for a recorded
-    // exit and set the runtime from a bottom time.
+    // A dive with no exit shows one estimated from its runtime, or failing
+    // that its bottom time. The estimate stays on the form: saved, it would
+    // stand in for a recorded exit, and a bottom time must not reach runtime.
+    final estimateSpan = dive.runtime ?? dive.bottomTime;
     final shownExit =
         dive.exitTime ??
-        (dive.bottomTime == null ? null : entry.add(dive.bottomTime!));
+        (estimateSpan == null ? null : entry.add(estimateSpan));
     return SeededDiveTimes(
       shown: DiveTimeInputs(
         entry: _wholeMinute(entry),
