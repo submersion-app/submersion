@@ -207,6 +207,26 @@ void main() {
       expect(const ProfileSeriesCodec().decode(series.blob).single.depth, 9);
     });
 
+    test('passes a series through without decoding it', () async {
+      await insertSource('src-1', 'dive-1', isPrimary: true);
+      await insertSource('src-2', 'dive-1');
+      await insertSeries(at: 0, sourceId: 'src-1');
+      final unreadable = await insertSeries(
+        at: 10,
+        sourceId: 'src-2',
+        isPrimary: false,
+      );
+      // Not a blob this build can read, which a newer peer can sync here.
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      await (db.update(db.diveProfileSeries)
+            ..where((t) => t.id.equals(unreadable)))
+          .write(DiveProfileSeriesCompanion(samples: Value(bytes)));
+
+      final sources = await repository.getSourcesForExport(['dive-1']);
+
+      expect(sources[1].profileSeries.single.blob, bytes);
+    });
+
     test('a row that collapsed into a chip keeps its own series', () async {
       await insertSource(
         'src-1',

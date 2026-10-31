@@ -71,10 +71,13 @@ Map<String, SourceProfile> _profilesBySource(
 /// Keyed by row, not by shown source: a row that collapsed into another's chip
 /// still owns its series, and a restore gives it them back. A series naming no
 /// row goes to the row the read gives it to.
-SeriesReduce<Map<String, List<ProfileSeries>>> liveSeriesBySourceRow({
+///
+/// Reads only identity and summary columns, so [series] may hold no samples.
+Map<String, List<ProfileSeries>> liveSeriesBySourceRow({
+  required List<ProfileSeries> series,
   required List<ShownSource> shownSources,
   required Map<String, String> shownIdByRow,
-}) => (series) {
+}) {
   final live = _liveSeriesByShownSource(series, shownSources, shownIdByRow);
   final byRow = <String, List<ProfileSeries>>{};
   for (final entry in live.byShownId.entries) {
@@ -86,7 +89,7 @@ SeriesReduce<Map<String, List<ProfileSeries>>> liveSeriesBySourceRow({
     }
   }
   return byRow;
-};
+}
 
 /// [series] grouped by the shown source that speaks for it, without the ones
 /// a saved edit superseded. [shownSources] is never empty.

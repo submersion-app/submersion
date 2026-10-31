@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.da
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_sparkline_summaries.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_profile_grouping.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -8272,8 +8273,7 @@ class DiveRepository {
   /// would restore with fewer sources than it had.
   ///
   /// On a dive with two or more rows this also reads the depth series each
-  /// row carries as [DiveSourceExport.profileSeries] (issue #3965), so it costs
-  /// a read of those dives' samples.
+  /// row carries as [DiveSourceExport.profileSeries] (issue #3965), undecoded.
   ///
   /// This MUST stay a Drift typed select. Issue #227 puts a `TypeConverter`
   /// on `raw_data`; typed selects run converters and `customSelect` does not,
@@ -8388,6 +8388,11 @@ class DiveRepository {
   ///
   /// A lone row is skipped: it owns the whole of `Dive.profile`, so reading
   /// its samples a second time would buy nothing.
+  ///
+  /// No blob is decoded. The choice needs only each row's columns, so this
+  /// costs a backup no time on the UI isolate, and a blob this build cannot
+  /// read still travels: a newer build can restore it, and this one falls
+  /// back to the dive's merged samples.
   Future<Map<String, List<SourceSeriesExport>>> _liveSeriesOfMultiSourceDives(
     List<DiveDataSourcesData> rows,
   ) async {
@@ -8409,17 +8414,14 @@ class DiveRepository {
           in seriesRowsByDive.entries) {
         final diveRows = rowsByDive[diveId]!;
         final shownIdByRow = _shownIdByRow(diveRows);
-        final live = await _reduceRows(
-          seriesRows,
-          liveSeriesBySourceRow(
-            shownSources: [
-              for (final row in diveRows)
-                if (shownIdByRow[row.id] == row.id)
-                  (id: row.id, computerId: row.computerId),
-            ],
-            shownIdByRow: shownIdByRow,
-          ),
-          offUiIsolate: false,
+        final live = liveSeriesBySourceRow(
+          series: seriesRows.map(undecodedProfileSeriesRow).toList(),
+          shownSources: [
+            for (final row in diveRows)
+              if (shownIdByRow[row.id] == row.id)
+                (id: row.id, computerId: row.computerId),
+          ],
+          shownIdByRow: shownIdByRow,
         );
         final blobById = {for (final row in seriesRows) row.id: row.samples};
         for (final MapEntry(key: rowId, value: series) in live.entries) {

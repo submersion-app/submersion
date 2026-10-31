@@ -6,7 +6,8 @@ import 'package:equatable/equatable.dart';
 /// its `ProfileSeriesCodec` blob, as stored (issue #3965).
 ///
 /// The blob rather than the samples, since nothing in an export reads them
-/// and a logbook of two-computer dives holds millions.
+/// and a logbook of two-computer dives holds millions. It is never decoded on
+/// the way out.
 class SourceSeriesExport extends Equatable {
   const SourceSeriesExport({
     required this.blob,
