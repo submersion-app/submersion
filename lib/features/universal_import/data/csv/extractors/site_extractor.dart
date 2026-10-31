@@ -68,20 +68,12 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
     return sites;
   }
 
-  /// Returns the generated UUID for a site name, or null if not seen. Of
-  /// several sites sharing the name, this is the first.
-  ///
-  /// The lookup is case-insensitive.
-  String? siteIdForName(String name) {
-    return _sitesByName[name.toLowerCase()]?.first['id'] as String?;
-  }
-
   /// Returns the generated UUID for the site [row] belongs to, or null when
   /// the row named no site and carried no coordinates.
   ///
-  /// This is the lookup the correlator needs: a row whose site exists only
-  /// because of its `gps` has no name to look up, so the caller cannot use
-  /// [siteIdForName] on its own.
+  /// The lookup is on the row, not a name, because a name can belong to
+  /// several sites and a row whose site exists only because of its `gps` has
+  /// no name at all. It is case-insensitive.
   String? siteIdForRow(Map<String, dynamic> row) {
     final name = _siteNameOf(row);
     if (name == null) return null;

@@ -81,6 +81,17 @@ void main() {
       expect(sites.map((s) => s['region']), ['Andros', 'Long Island']);
     });
 
+    test('two cities under one name stay two sites', () async {
+      final sites = await sitesOf(
+        twoBlocks(
+          'LOCNAME=[Blue Hole],CITY=[Andros],COUNTRY=[Bahamas]',
+          'LOCNAME=[Blue Hole],CITY=[Nassau],COUNTRY=[Bahamas]',
+        ),
+      );
+
+      expect(sites, hasLength(2));
+    });
+
     test('one place written twice stays one site', () async {
       final sites = await sitesOf(
         twoBlocks(

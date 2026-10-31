@@ -242,7 +242,12 @@ class DanDl7Parser implements ImportParser {
 
     final name = named['name'] as String;
     // A name alone is not an identity: two places can share it (#4015).
-    final identity = [name, ?zar.country, ?zar.stateProvince].join('|');
+    final identity = [
+      name,
+      ?zar.country,
+      ?zar.stateProvince,
+      ?zar.city,
+    ].join('|');
     return <String, dynamic>{
       ...named,
       'uddfId': 'dl7_site_${identity.toLowerCase()}',

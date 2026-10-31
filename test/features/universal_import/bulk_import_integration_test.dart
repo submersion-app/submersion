@@ -316,7 +316,7 @@ void main() {
       expect(mergedSites, hasLength(1));
       expect(
         mergedSites.single['uddfId'],
-        'f0:dl7_site_molokini crater|united states|hawaii',
+        'f0:dl7_site_molokini crater|united states|hawaii|kihei',
       );
       expect(mergedSites.single['name'], 'Molokini Crater');
 
