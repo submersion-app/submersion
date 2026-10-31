@@ -46,14 +46,12 @@ void main() {
 
   group('average depth over uneven samples (#3891)', () {
     // 60 s at 10 m, a 60 s ramp to 30 m, then 480 s at 30 m: 27 m over time
-    // and 20 m over samples. A gas switch segment leaves out the sample at
-    // its end, so the last one here only closes the segment at 610 s.
+    // and 20 m over samples.
     const uneven = [
       DiveProfilePoint(timestamp: 0, depth: 10),
       DiveProfilePoint(timestamp: 60, depth: 10),
       DiveProfilePoint(timestamp: 120, depth: 30),
       DiveProfilePoint(timestamp: 600, depth: 30),
-      DiveProfilePoint(timestamp: 610, depth: 30),
     ];
     const tank = DiveTank(
       id: 't1',
@@ -84,7 +82,7 @@ void main() {
             profile: profile,
             tanks: const [tank],
             gasSwitches: switches,
-            tankPressures: {'t1': linearPressure('t1', 200, 100, 610)},
+            tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
           )!
           .single;
 
@@ -143,16 +141,14 @@ void main() {
     });
 
     test('a cylinder reports its time-weighted depth during use', () {
-      final profile = uneven.take(4).toList();
-
       final results = service.calculateCylinderSac(
         dive: Dive(
           id: 'dive-1',
           dateTime: DateTime(2026),
-          profile: profile,
+          profile: uneven,
           tanks: const [tank],
         ),
-        profile: profile,
+        profile: uneven,
         tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
       );
 

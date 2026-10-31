@@ -82,7 +82,7 @@ class GasAnalysisService {
 
       // Calculate depth statistics
       final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = _meanDepthOf(segmentProfile);
+      final avgDepth = _segmentMeanDepth(profile, startTime, endTime);
       final minDepth = depths.reduce(math.min);
       final maxDepth = depths.reduce(math.max);
 
@@ -98,7 +98,7 @@ class GasAnalysisService {
       );
 
       final sacRate = _calculateSegmentSac(
-        profile: segmentProfile,
+        avgDepth: avgDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
@@ -215,7 +215,7 @@ class GasAnalysisService {
 
       // Calculate depth statistics
       final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = _meanDepthOf(segmentProfile);
+      final avgDepth = _segmentMeanDepth(profile, seg.start, seg.end);
       final minD = depths.reduce(math.min);
       final maxD = depths.reduce(math.max);
 
@@ -232,7 +232,7 @@ class GasAnalysisService {
       );
 
       final sacRate = _calculateSegmentSac(
-        profile: segmentProfile,
+        avgDepth: avgDepth,
         tank: tank,
         tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
@@ -433,6 +433,17 @@ class GasAnalysisService {
         value: (p) => p.depth,
       )!;
 
+  /// Time-weighted mean depth from [start] through the sample at [end]. A
+  /// segment's slice stops short of that sample, which would leave out the
+  /// interval leading up to it.
+  static double _segmentMeanDepth(
+    List<DiveProfilePoint> profile,
+    int start,
+    int end,
+  ) => _meanDepthOf(
+    profile.where((p) => p.timestamp >= start && p.timestamp <= end).toList(),
+  );
+
   /// Compute SAC rate under [model], using its gas volumes.
   ///
   /// Returns the SAC rate in bar/min at surface, or null if gas used ≤ 0.
@@ -566,7 +577,7 @@ class GasAnalysisService {
 
   /// Calculate SAC for a segment from profile data
   double? _calculateSegmentSac({
-    required List<DiveProfilePoint> profile,
+    required double avgDepth,
     required DiveTank tank,
     // The tank's own size, else its matched partner's (issue #3109).
     required double? tankVolume,
@@ -576,13 +587,9 @@ class GasAnalysisService {
     required int prorationStart,
     required int prorationEnd,
   }) {
-    if (profile.isEmpty) return null;
-
     final durationSec = endTime - startTime;
     if (durationSec < minSegmentDuration) return null;
 
-    // Calculate average depth
-    final avgDepth = _meanDepthOf(profile);
     if (avgDepth <= 0) return null;
 
     double? pressureUsed;
@@ -602,12 +609,12 @@ class GasAnalysisService {
     if (pressureUsed == null || pressureUsed <= 0) {
       if (tank.startPressure != null && tank.endPressure != null) {
         // Prorate across the window the tank was actually breathed, NOT the
-        // segment's own span: the profile passed in is the segment slice, so
-        // dividing by it made proportion ~1.0 and charged every segment the
-        // entire cylinder (#110). The window is the tank's usage range when
-        // gas switches identify it -- spreading a stage/deco tank's drop over
-        // the whole dive would understate its SAC by the ratio of its stint
-        // to the dive, and calculateCylinderSac already prorates this way.
+        // segment's own span: dividing by that made proportion ~1.0 and
+        // charged every segment the entire cylinder (#110). The window is the
+        // tank's usage range when gas switches identify it -- spreading a
+        // stage/deco tank's drop over the whole dive would understate its SAC
+        // by the ratio of its stint to the dive, and calculateCylinderSac
+        // already prorates this way.
         final totalDuration = prorationEnd - prorationStart;
         if (totalDuration > 0) {
           final tankPressureUsed = tank.startPressure! - tank.endPressure!;
