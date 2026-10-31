@@ -20,7 +20,7 @@ class IdleRow {
 /// [items] the diver owns and has not dived within [period]: longest idle
 /// first, then never-dived gear by name. Never-dived gear counts only once
 /// the diver has had it longer than [period], so a purchase from last week
-/// is not idle.
+/// is not idle, and nor is gear whose age is unknown.
 List<IdleRow> buildIdleGear({
   required List<EquipmentItem> items,
   required Map<String, DateTime> lastDives,
@@ -44,7 +44,7 @@ List<IdleRow> buildIdleGear({
       }
     } else {
       final had = item.purchaseDate ?? item.createdAt;
-      if (had == null || had.isBefore(cutoff)) never.add(IdleRow(item: item));
+      if (had != null && had.isBefore(cutoff)) never.add(IdleRow(item: item));
     }
   }
   dived.sort((a, b) => a.lastDive!.compareTo(b.lastDive!));

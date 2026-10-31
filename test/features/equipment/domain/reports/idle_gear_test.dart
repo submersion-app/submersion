@@ -102,6 +102,10 @@ void main() {
     expect(_build([_item('a', created: DateTime(2020))]), hasLength(1));
   });
 
+  test('never-dived gear of unknown age is not called idle', () {
+    expect(_build([_item('a')]), isEmpty);
+  });
+
   test('since is whole years and months between last dive and now', () {
     final rows = _build([_item('a')], lastDives: {'a': DateTime(2024, 6, 30)});
     expect(rows.single.since, (years: 2, months: 4));
