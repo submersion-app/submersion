@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -404,7 +405,13 @@ class CourseRepository {
   /// resurrect them; a non-atomic delete that failed after the cascade but
   /// before the tombstones would leave the children permanently gone locally
   /// yet un-tombstoned, so a peer would re-send them.
-  Future<void> deleteCourse(String id) async {
+  Future<void> deleteCourse(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteCourseInner(id),
+  );
+
+  Future<void> _deleteCourseInner(String id) async {
     try {
       _log.info('Deleting course: $id');
 

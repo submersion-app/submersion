@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
-import 'package:submersion/features/insights/presentation/insights_place_dives.dart';
+import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 
 import '../../../helpers/test_database.dart';
 

@@ -74,19 +74,19 @@ void _warnUnreadable(Map<String, dynamic> diveData, Object error) {
 /// source's recording between them, and joining the two would make them
 /// span the other.
 ///
-/// [tanks] are the dive's tanks as the importer built them, in the order of
-/// the parsed `tanks` list, whose `uddfTankId` is what a series' `tankRef`
-/// names. A series naming no tank of the dive is dropped.
+/// [tankIds] are the ids of the dive's tanks, in the order of the parsed
+/// `tanks` list, whose `uddfTankId` is what a series' `tankRef` names. A
+/// series naming no tank of the dive is dropped.
 ///
 /// Empty when the dive carries no series block, which leaves the restore to
 /// the waypoint pressures as before.
 List<RestoredTankSeries> restoredTankPressureSeries(
   Map<String, dynamic> diveData,
-  List<DiveTank> tanks,
+  List<String> tankIds,
 ) {
   final entries = diveData[UddfSourceAttribution.seriesKey];
   if (entries is! List || entries.isEmpty) return const [];
-  final tankIdByRef = _tankIdByRef(diveData, tanks);
+  final tankIdByRef = _tankIdByRef(diveData, tankIds);
   return [
     for (final entry in entries.cast<Map<String, dynamic>>())
       if (tankIdByRef[entry['tankRef']] case final tankId?)
@@ -113,7 +113,9 @@ Map<String, ({String? sourceId, String? computerId})> restoredTankAttribution(
 }) {
   final rows = diveData[UddfSourceAttribution.tanksKey];
   if (rows is! List || rows.isEmpty) return const {};
-  final tankIdByRef = _tankIdByRef(diveData, tanks);
+  final tankIdByRef = _tankIdByRef(diveData, [
+    for (final tank in tanks) tank.id,
+  ]);
   return {
     for (final row in rows.cast<Map<String, dynamic>>())
       if (tankIdByRef[row['tankRef']] case final tankId?)
@@ -128,16 +130,16 @@ Map<String, ({String? sourceId, String? computerId})> restoredTankAttribution(
 }
 
 /// Restored tank id by the `<tankdata>` id the file declared it under.
-/// [tanks] are built in the order of the parsed `tanks` list.
+/// [tankIds] are in the order of the parsed `tanks` list.
 Map<String, String> _tankIdByRef(
   Map<String, dynamic> diveData,
-  List<DiveTank> tanks,
+  List<String> tankIds,
 ) {
   final tanksData = diveData['tanks'];
   return {
     if (tanksData is List)
-      for (var i = 0; i < tanksData.length && i < tanks.length; i++)
+      for (var i = 0; i < tanksData.length && i < tankIds.length; i++)
         if ((tanksData[i] as Map)['uddfTankId'] case final String ref)
-          ref: tanks[i].id,
+          ref: tankIds[i],
   };
 }

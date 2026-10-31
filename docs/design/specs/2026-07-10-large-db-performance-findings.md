@@ -143,6 +143,13 @@ Signatures (what the profiler actually showed):
   type checks = hydrating enormous object graphs (double full-profile read,
   Buhlmann + residual CNS/tissue/OTU + weekly OTU lookback chains fully
   hydrating dozens of prior dives). WS2's items map one-to-one.
+  Update 2026-10-30 (#3816): the full-profile read is not gone. An open reads
+  the series up to four times: `getDiveById`, `getProfilesByDataSource`,
+  `getDiveForAnalysis`, and `getDiveProfile` behind the Buoyancy card. #3884
+  then moved the decode of these single-dive reads off the UI isolate, which
+  was most of what each one cost it. WS2 left the reads on the same evidence.
+  Sharing them would mean merging providers that refresh on different ticks
+  on purpose, so they stay until a profile shows it matters.
 - Ceiling toggle: Skia dash-path measurement (SkContourMeasure::getSegment)
   + full series rebuild = undecimated 4,762-point curves redrawn wholesale
   per toggle. WS3 (decimation + per-series cache scoping) maps directly.

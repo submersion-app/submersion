@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -56,7 +57,14 @@ class DiveSplitService {
   /// the new dive's id. Throws [ArgumentError] when the source does not
   /// belong to the dive or is the dive's only source. All-or-nothing: one
   /// transaction, full rollback on any failure.
-  Future<String> split({
+  Future<String> split({required String diveId, required String sourceId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.splitDive,
+        body: () => _splitInner(diveId: diveId, sourceId: sourceId),
+      );
+
+  Future<String> _splitInner({
     required String diveId,
     required String sourceId,
   }) async {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/storage/storage_category.dart';
 import 'package:submersion/core/utils/byte_format.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_storage_row.dart';
 import 'package:submersion/features/settings/presentation/providers/database_reclaim_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_usage_providers.dart';
@@ -51,6 +53,7 @@ class StorageUsagePage extends ConsumerWidget {
                 ref.invalidate(storageCategorySizeProvider(category.id));
               }
               ref.invalidate(databaseSpaceProvider);
+              ref.invalidate(changeLogStorageBytesProvider);
               ref.invalidate(deviceReclaimableBytesProvider);
             },
           ),
@@ -66,8 +69,10 @@ class StorageUsagePage extends ConsumerWidget {
               for (final category in grouped[group]!) ...[
                 StorageUsageRow(category: category),
                 // How much of the file a compaction would give back.
-                if (category.id == StorageCategoryId.database)
+                if (category.id == StorageCategoryId.database) ...[
                   DatabaseReclaimRow(),
+                  const ChangeLogStorageRow(),
+                ],
               ],
               if (group == StorageGroup.backups)
                 const UnrecognizedBackupsNotice(),

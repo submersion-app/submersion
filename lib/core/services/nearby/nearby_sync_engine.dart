@@ -173,6 +173,7 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
   }) async => _sync().applyNearbyBaseFile(
     path,
     lastSync: await _lastSync(peerDeviceId),
+    peerDeviceId: peerDeviceId,
     onProgress: onProgress,
   );
 

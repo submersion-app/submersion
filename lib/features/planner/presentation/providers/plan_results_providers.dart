@@ -185,16 +185,24 @@ final planLostGasProvider =
     }, retry: (_, _) => null);
 
 /// What the chart does about the bailout picture: [picture] to draw in place
-/// of the live plan, if any, and [status] to say on the chart, if any. Both
-/// are null outside [ChartDisplayMode.bailout].
+/// of the live plan, if any, and [status] and [gasGap] to say on the chart, if
+/// any. All are null outside [ChartDisplayMode.bailout].
 ///
 /// A pending result keeps the last picture, because it clears in moments. A
 /// failed one does not: nothing replaces it until the next edit, and a full
-/// bailout curve reads as current in a way dimmed text does not. The gate is
-/// read first, so removing the last bailout tank drops the picture that frame.
+/// bailout curve reads as current in a way dimmed text does not. A gas gap
+/// has no picture either, since the curve would be an ascent no carried gas
+/// can make (#3961). The gate is read first, so removing the last bailout
+/// tank drops the picture that frame.
 final planChartBailoutProvider =
-    Provider<({BailoutOutcome? picture, PlanResultStatus? status})>((ref) {
-      const nothing = (picture: null, status: null);
+    Provider<
+      ({
+        BailoutOutcome? picture,
+        PlanResultStatus? status,
+        BailoutGasGap? gasGap,
+      })
+    >((ref) {
+      const nothing = (picture: null, status: null, gasGap: null);
       if (ref.watch(chartDisplayModeProvider) != ChartDisplayMode.bailout) {
         return nothing;
       }
@@ -203,9 +211,13 @@ final planChartBailoutProvider =
         ref.watch(planBailoutProvider),
         ref.watch(divePlanNotifierProvider.select((s) => s.id)),
       );
+      final outcome = view.status == PlanResultStatus.failed
+          ? null
+          : view.value;
       return (
-        picture: view.status == PlanResultStatus.failed ? null : view.value,
+        picture: outcome?.gasGap == null ? outcome : null,
         status: view.isMarked ? view.status : null,
+        gasGap: outcome?.gasGap,
       );
     });
 

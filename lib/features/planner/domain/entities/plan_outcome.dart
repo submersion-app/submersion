@@ -20,6 +20,11 @@ enum PlanIssueType {
   gasOut,
   ndlExceededNoDecoGas,
   noBailoutCarried,
+
+  /// A loop plan goes deeper than the MOD of every bailout gas it carries
+  /// (#3961). [PlanIssue.value] is the plan's deepest point and
+  /// [PlanIssue.threshold] the deepest MOD carried, both in meters.
+  noEligibleBailoutGas,
   minGasViolation,
 
   /// A back gas whose rock-bottom minimum is at or above its fill, so no
@@ -41,9 +46,21 @@ class PlanIssue extends Equatable {
   final PlanIssueType type;
   final PlanIssueSeverity severity;
   final String message;
+
+  /// Elapsed dive time, in seconds, at which the issue first starts: where
+  /// a limit is first passed, a running total first reaches its threshold or
+  /// a cylinder first drops below its limit. The chart marks the issue here
+  /// (#3738). 0 when the dive starts with it, as a repetitive dive can; null
+  /// for an issue with no single moment, such as a missing deco gas.
   final int? atRuntime;
+
+  /// The depth the issue's message names, such as the deepest point of the
+  /// leg a limit is passed on. Not necessarily the depth at [atRuntime].
   final double? atDepth;
   final String? segmentId;
+
+  /// The cylinder a gas issue is about.
+  final String? tankId;
   final double? value;
   final double? threshold;
 
@@ -54,6 +71,7 @@ class PlanIssue extends Equatable {
     this.atRuntime,
     this.atDepth,
     this.segmentId,
+    this.tankId,
     this.value,
     this.threshold,
   });
@@ -66,6 +84,7 @@ class PlanIssue extends Equatable {
     atRuntime,
     atDepth,
     segmentId,
+    tankId,
     value,
     threshold,
   ];
@@ -362,6 +381,11 @@ class PlanOutcome {
   final BuhlmannState endTissue;
   final List<(int runtimeSeconds, BuhlmannState state)> tissueTimeline;
 
+  /// Tissue state on reaching the surface: [endTissue] carried through the
+  /// computed ascent, its stops and their air breaks. What a later dive of a
+  /// series starts from.
+  final BuhlmannState surfacedTissue;
+
   /// The deco ceiling sampled at a fixed 30-second interval (see
   /// `PlanEngine.ceilingSampleSeconds`) across the whole dive (user segments
   /// plus the computed ascent and stops), so the chart can draw it as the
@@ -387,6 +411,7 @@ class PlanOutcome {
     required this.issues,
     required this.endTissue,
     required this.tissueTimeline,
+    required this.surfacedTissue,
     required this.ceilingTrace,
     this.authoredDecoSeconds = 0,
   });

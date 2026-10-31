@@ -855,7 +855,7 @@ void main() {
     });
 
     test('throws ArgumentError whose message names the notOverlapping reason '
-        '(so dive_detail_page.dart can map it to the right error text)', () {
+        '(so the combine dialog can map it to the right error text)', () {
       expect(
         () => builder.build([
           makeDive('a', entry: t, runtimeMin: 30),

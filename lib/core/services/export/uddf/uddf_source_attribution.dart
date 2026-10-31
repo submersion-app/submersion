@@ -1,15 +1,20 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 
 /// Submersion's extension blocks that say which `<source>` of a dive
 /// recorded what (issue #2492): each tank row, each tank pressure series,
-/// and each depth series (issue #3965). A gas switch names its computer the
-/// same way (#3966), in a `<computer>` of its own `<gasswitch>`.
+/// and each depth series (issue #3965). The pressure series block is also
+/// the one lossless record of a series, since the waypoints hold readings
+/// only as they fall on the depth clock (issue #3917). A gas switch names
+/// its computer the same way (#3966), in a `<computer>` of its own
+/// `<gasswitch>`.
 ///
 /// The standard `<tankpressure>` in a waypoint names a cylinder and nothing
 /// else, and holds one reading per cylinder per sample. So a backup of a
@@ -81,14 +86,15 @@ class UddfSourceAttribution {
     return byDive;
   }
 
-  /// Writes the blocks for every dive of [dives] that has two or more
-  /// entries in [sources], with its pressure series from [pressures] and its
-  /// depth series from [sources]. Writes nothing when no dive does.
+  /// Writes the blocks for [dives], with their pressure series from
+  /// [pressures] and their depth series from [sources]. Writes nothing when
+  /// no dive has anything for them.
   ///
-  /// A dive with one source needs none: the restore gives that lone
-  /// source every series it writes from the samples and every tank it can
-  /// claim. A dive with none in the file (raw data left out) restores as a
-  /// single new source, so the blocks could not keep anything apart either.
+  /// Only a dive with two or more entries in [sources] has tank rows or
+  /// depth series: one with a lone source restores every tank and sample
+  /// under it, and one with none in the file (raw data left out) restores
+  /// as a single new source. See [_seriesToWrite] for which pressure series
+  /// each dive writes.
   static void write(
     XmlBuilder builder, {
     required List<Dive> dives,
@@ -96,16 +102,14 @@ class UddfSourceAttribution {
     required List<DiveSourceExport> sources,
   }) {
     final sourcesByDive = groupByDive(sources);
-    final attributed = [
-      for (final dive in dives)
-        if ((sourcesByDive[dive.id]?.length ?? 0) >= 2) dive,
-    ];
-    if (attributed.isEmpty) return;
+    List<DiveSourceExport> sourcesOf(Dive dive) =>
+        sourcesByDive[dive.id] ?? const [];
 
     final tanks = [
-      for (final dive in attributed)
-        for (final tank in dive.tanks)
-          ?_tankRow(dive.id, tank, sourcesByDive[dive.id]!),
+      for (final dive in dives)
+        if (sourcesOf(dive).length >= 2)
+          for (final tank in dive.tanks)
+            ?_tankRow(dive.id, tank, sourcesOf(dive)),
     ];
     if (tanks.isNotEmpty) {
       builder.element(
@@ -119,13 +123,17 @@ class UddfSourceAttribution {
     }
 
     final series = [
-      for (final dive in attributed)
-        for (final s in pressures[dive.id]?.series ?? const [])
+      for (final dive in dives)
+        for (final s in _seriesToWrite(
+          dive,
+          pressures[dive.id],
+          sourcesOf(dive),
+        ))
           (
             dive.id,
             s,
-            _ordinalOf(sourcesByDive[dive.id]!, s.sourceId),
-            _computerOrdinal(sourcesByDive[dive.id]!, s.computerId, s.sourceId),
+            _ordinalOf(sourcesOf(dive), s.sourceId),
+            _computerOrdinal(sourcesOf(dive), s.computerId, s.sourceId),
           ),
     ];
     if (series.isNotEmpty) {
@@ -159,7 +167,8 @@ class UddfSourceAttribution {
     }
 
     _writeProfiles(builder, [
-      for (final dive in attributed) sourcesByDive[dive.id]!,
+      for (final dive in dives)
+        if (sourcesOf(dive).length >= 2) sourcesOf(dive),
     ]);
   }
 
@@ -196,12 +205,112 @@ class UddfSourceAttribution {
     );
   }
 
+  /// Whether any of [dives] writes a series of its own, for a file that
+  /// would otherwise have no `<applicationdata>` to put the block in.
+  static bool hasSeries({
+    required List<Dive> dives,
+    required Map<String, DiveTankPressureExport> pressures,
+    required List<DiveSourceExport> sources,
+  }) {
+    final sourcesByDive = groupByDive(sources);
+    return dives.any(
+      (dive) => _seriesToWrite(
+        dive,
+        pressures[dive.id],
+        sourcesByDive[dive.id] ?? const [],
+      ).isNotEmpty,
+    );
+  }
+
+  /// The series of [dive] that go in the block, given its entries in
+  /// [sources].
+  ///
+  /// With two or more sources, all of them: the block says who recorded
+  /// each. With fewer, a restore has one source to give them to, so only
+  /// the series the app draws can go, since two recordings of one stretch
+  /// under one source would interleave (#2440). Even those are left to the
+  /// samples when the samples restore them exactly, which is most dives:
+  /// their readings share the depth clock.
+  static List<TankPressureSeries> _seriesToWrite(
+    Dive dive,
+    DiveTankPressureExport? pressures,
+    List<DiveSourceExport> sources,
+  ) {
+    if (pressures == null) return const [];
+    if (sources.length >= 2) return pressures.series;
+    return _samplesRestore(dive, pressures.displayedByTank)
+        ? const []
+        : pressures.displayedSeries;
+  }
+
+  /// Whether the `<tankpressure>` elements of [dive]'s waypoints read back
+  /// as exactly [byTank]. A reading no depth sample is near is lost, one
+  /// merely near a depth sample comes back at that sample's time, and one
+  /// near several comes back once for each.
+  static bool _samplesRestore(
+    Dive dive,
+    Map<String, List<TankPressurePoint>> byTank,
+  ) => byTank.values.every((points) {
+    final restored = [
+      for (final point in dive.profile)
+        if (findPressureAtTimestamp(points, point.timestamp)
+            case final pressure?)
+          (point.timestamp, pressure),
+    ];
+    return const ListEquality<(int, double)>().equals(restored, [
+      for (final point in points) (point.timestamp, point.pressure),
+    ]);
+  });
+
+  /// Find pressure at a given timestamp using binary search.
+  /// Points must be sorted by timestamp (ascending).
+  /// Returns null if no point exists within 2 seconds of [timestamp].
+  static double? findPressureAtTimestamp(
+    List<TankPressurePoint> points,
+    int timestamp,
+  ) {
+    if (points.isEmpty) return null;
+
+    // Binary search for the insertion point
+    int low = 0;
+    int high = points.length;
+    while (low < high) {
+      final mid = low + ((high - low) >> 1);
+      if (points[mid].timestamp < timestamp) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+
+    // Check the two candidates (before and at insertion point)
+    const maxDiff = 3; // exclusive, so diffs of 0, 1 and 2 are accepted
+    TankPressurePoint? closest;
+    int minDiff = maxDiff;
+
+    if (low > 0) {
+      final diff = (points[low - 1].timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = points[low - 1];
+      }
+    }
+    if (low < points.length) {
+      final diff = (points[low].timestamp - timestamp).abs();
+      if (diff < minDiff) {
+        closest = points[low];
+      }
+    }
+
+    return closest?.pressure;
+  }
+
   /// Writes the `<computer>` of a `<gasswitch>` that [computerId] logged, the
   /// ordinal of one of its dive's [sources] that computer recorded. Writes
   /// nothing for a switch with no computer, which stays the whole dive's, or
   /// one no source recorded.
   ///
-  /// A dive with one source needs this too, unlike the blocks: that source
+  /// A dive with one source needs this too, unlike the tank rows: that source
   /// adopts what a restore cannot place, but a switch left unattributed
   /// applies to every computer rather than to it.
   static void writeSwitchComputer(

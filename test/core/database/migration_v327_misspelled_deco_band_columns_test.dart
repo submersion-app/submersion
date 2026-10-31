@@ -86,6 +86,9 @@ void main() {
             updatedAt: 0,
           ),
         );
+    // A change log trigger names these columns, and an upgraded database
+    // this old has none.
+    await dropChangeLogTriggers(before);
     for (final table in misspelled.entries) {
       for (final column in table.value.entries) {
         await before.customStatement(

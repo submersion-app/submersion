@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -493,6 +495,21 @@ class ReparseService {
   ///
   /// Returns a record with the count of succeeded and failed re-parses.
   Future<({int succeeded, int failed})> reparseAllForComputer(
+    String computerId, {
+    required Future<pigeon.ParsedDive> Function(
+      String vendor,
+      String product,
+      int model,
+      Uint8List rawData,
+    )
+    parseFn,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.reparse,
+    body: () => _reparseAllForComputerInner(computerId, parseFn: parseFn),
+  );
+
+  Future<({int succeeded, int failed})> _reparseAllForComputerInner(
     String computerId, {
     required Future<pigeon.ParsedDive> Function(
       String vendor,

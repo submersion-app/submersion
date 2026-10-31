@@ -4,6 +4,7 @@ import 'package:sqlite3/sqlite3.dart' show SqliteException;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/existing_row_ids.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
@@ -108,7 +109,14 @@ class RuleUndoService {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  Future<RuleUndoResult> undo(String runId) async {
+  Future<RuleUndoResult> undo(String runId) => ChangeLogScope.run(
+    DatabaseService.instance.databaseOrNull,
+    source: ChangeLogSource.rule,
+    label: ChangeLogLabels.undoRule,
+    body: () => _undoInner(runId),
+  );
+
+  Future<RuleUndoResult> _undoInner(String runId) async {
     final run = await _runs.getRun(runId);
     if (run == null || run.isUndone) {
       return const RuleUndoResult(alreadyUndone: true);
