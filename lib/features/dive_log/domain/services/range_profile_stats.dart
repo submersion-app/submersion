@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/data/services/profile_surface_lead_in.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 
 /// Statistics over a selected span of a dive profile.
 ///
@@ -77,110 +77,59 @@ RangeProfileStats rangeProfileStats({
   );
   final temperatures = recorded.map((p) => p.temperature).nonNulls.toList();
   final heartRates = recorded.map((p) => p.heartRate).nonNulls.toList();
-  final minTemp = temperatures.isEmpty ? null : temperatures.reduce(math.min);
-  final maxTemp = temperatures.isEmpty ? null : temperatures.reduce(math.max);
-  final minHR = heartRates.isEmpty ? null : heartRates.reduce(math.min);
-  final maxHR = heartRates.isEmpty ? null : heartRates.reduce(math.max);
-  final elapsedSeconds = endTimestamp - startTimestamp;
 
-  final line = _selectedLine(profile, startTimestamp, endTimestamp);
-  if (line.isEmpty) {
-    return RangeProfileStats(
-      elapsedSeconds: elapsedSeconds,
-      minTemp: minTemp,
-      maxTemp: maxTemp,
-      minHR: minHR,
-      maxHR: maxHR,
-    );
-  }
+  final line = samplesInWindow(
+    shouldDrawSurfaceLeadIn(profile)
+        ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
+        : profile,
+    start: startTimestamp,
+    end: endTimestamp,
+    time: (p) => p.timestamp,
+    value: (p) => p.depth,
+  );
+  final depths = line.map((s) => s.value).toList();
+  final change = _depthChange(line);
 
-  final depths = line.map((p) => p.depth);
-  final minDepth = depths.reduce(math.min);
-  final maxDepth = depths.reduce(math.max);
+  return RangeProfileStats(
+    elapsedSeconds: endTimestamp - startTimestamp,
+    depthDelta: change?.delta,
+    minDepth: depths.isEmpty ? null : depths.reduce(math.min),
+    maxDepth: depths.isEmpty ? null : depths.reduce(math.max),
+    avgDepth: timeWeightedMeanOfWindow(line),
+    avgVerticalSpeed: change?.avgSpeed,
+    maxDescentRate: change?.maxDescentRate,
+    maxAscentRate: change?.maxAscentRate,
+    minTemp: temperatures.isEmpty ? null : temperatures.reduce(math.min),
+    maxTemp: temperatures.isEmpty ? null : temperatures.reduce(math.max),
+    minHR: heartRates.isEmpty ? null : heartRates.reduce(math.min),
+    maxHR: heartRates.isEmpty ? null : heartRates.reduce(math.max),
+  );
+}
 
-  // The selection only touches the line at one point: there is a depth, but
-  // no time for it to have changed over.
-  final lineSeconds = line.last.timestamp - line.first.timestamp;
-  if (lineSeconds <= 0) {
-    return RangeProfileStats(
-      elapsedSeconds: elapsedSeconds,
-      minDepth: minDepth,
-      maxDepth: maxDepth,
-      avgDepth: line.first.depth,
-      minTemp: minTemp,
-      maxTemp: maxTemp,
-      minHR: minHR,
-      maxHR: maxHR,
-    );
-  }
+/// How depth changes along [line], in meters and m/min, or null when the
+/// selection reaches at most one point of it: that has a depth, but no time
+/// for the depth to have changed over.
+({double delta, double avgSpeed, double maxDescentRate, double maxAscentRate})?
+_depthChange(List<({num time, double value})> line) {
+  if (line.isEmpty) return null;
+  final seconds = line.last.time - line.first.time;
+  if (seconds <= 0) return null;
 
-  var depthSeconds = 0.0;
   var maxDescentRate = 0.0;
   var maxAscentRate = 0.0;
   for (var i = 0; i < line.length - 1; i++) {
-    final dt = line[i + 1].timestamp - line[i].timestamp;
+    final dt = line[i + 1].time - line[i].time;
     if (dt <= 0) continue;
-    depthSeconds += (line[i].depth + line[i + 1].depth) / 2 * dt;
-    final rate = (line[i + 1].depth - line[i].depth) / (dt / 60.0); // m/min
+    final rate = (line[i + 1].value - line[i].value) / (dt / 60.0);
     maxDescentRate = math.max(maxDescentRate, rate);
     maxAscentRate = math.max(maxAscentRate, -rate);
   }
 
-  final depthDelta = line.last.depth - line.first.depth;
-  return RangeProfileStats(
-    elapsedSeconds: elapsedSeconds,
-    depthDelta: depthDelta,
-    minDepth: minDepth,
-    maxDepth: maxDepth,
-    avgDepth: depthSeconds / lineSeconds,
-    avgVerticalSpeed: depthDelta / (lineSeconds / 60.0),
+  final delta = line.last.value - line.first.value;
+  return (
+    delta: delta,
+    avgSpeed: delta / (seconds / 60.0),
     maxDescentRate: maxDescentRate,
     maxAscentRate: maxAscentRate,
-    minTemp: minTemp,
-    maxTemp: maxTemp,
-    minHR: minHR,
-    maxHR: maxHR,
-  );
-}
-
-/// The vertices of the plotted line between [start] and [end], with a vertex
-/// added at each edge that falls between two samples. Empty when the
-/// selection does not reach the line at all.
-List<DiveProfilePoint> _selectedLine(
-  List<DiveProfilePoint> profile,
-  int start,
-  int end,
-) {
-  if (profile.isEmpty) return const [];
-  final plotted = shouldDrawSurfaceLeadIn(profile)
-      ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
-      : profile;
-
-  final from = math.max(start, plotted.first.timestamp);
-  final to = math.min(end, plotted.last.timestamp);
-  if (from > to) return const [];
-
-  final inside = plotted
-      .where((p) => p.timestamp >= from && p.timestamp <= to)
-      .toList();
-  return [
-    if (inside.isEmpty || inside.first.timestamp > from)
-      _pointOnLine(plotted, from),
-    ...inside,
-    if (inside.isEmpty || inside.last.timestamp < to) _pointOnLine(plotted, to),
-  ];
-}
-
-/// The line's point at [timestamp], which must fall strictly between two of
-/// its vertices: the first one past it is then later, so the span is never 0.
-DiveProfilePoint _pointOnLine(List<DiveProfilePoint> plotted, int timestamp) {
-  final index = indexForTimestamp(plotted, timestamp)!;
-  final before = plotted[index];
-  final after = plotted[index + 1];
-  final fraction =
-      (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
-  return DiveProfilePoint(
-    timestamp: timestamp,
-    depth: before.depth + (after.depth - before.depth) * fraction,
   );
 }
