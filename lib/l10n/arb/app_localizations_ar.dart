@@ -20778,6 +20778,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
+  String get plannerCanvas_link_action => 'ربط بغطسة مسجلة';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'تغيير الغطسة المرتبطة';
+
+  @override
+  String get plannerCanvas_unlink_action => 'إلغاء ربط الغطسة';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'نُفذت كغطسة #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'نُفذت في $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'احفظ الخطة أولاً';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'الغطسة $letter';
   }
@@ -53115,6 +53137,37 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'تفرّع من هذه الغطسة في أي لحظة وقارن ما كان سيحدث.';
+
+  @override
+  String get diveLab_compare_waiting => 'بانتظار الغطسة';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'إلغاء ربط هذه الخطة؟';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'تبقى الخطة والغطسة معاً، لكن لن تتم مقارنتهما بعد الآن.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'إلغاء الربط';
+
+  @override
+  String get diveLab_link_moveTitle => 'نقل ربط هذه الخطة؟';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'هذه الخطة مرتبطة بغطسة أخرى. ربطها هنا يزيل ذلك الربط.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'استبدال خطة هذه الغطسة؟';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'تتم مقارنة هذه الغطسة مع \"$plan\". ربط خطة أخرى يلغي ربطها.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'ربط';
 
   @override
   String get diveDetailSection_diveLab_name => 'مقارنة';

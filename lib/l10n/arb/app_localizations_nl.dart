@@ -20359,6 +20359,28 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging';
 
   @override
+  String get plannerCanvas_link_action => 'Koppelen aan een gelogde duik';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Gekoppelde duik wijzigen';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Duik ontkoppelen';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Gedoken als #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Gedoken op $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Sla het plan eerst op';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Duik $letter';
   }
@@ -52172,6 +52194,37 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Vertak deze duik op elk moment en vergelijk wat er gebeurd zou zijn.';
+
+  @override
+  String get diveLab_compare_waiting => 'Wacht op de duik';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Dit plan ontkoppelen?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Het plan en de duik blijven allebei bestaan. Ze worden alleen niet meer vergeleken.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Ontkoppelen';
+
+  @override
+  String get diveLab_link_moveTitle => 'Koppeling van dit plan verplaatsen?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Dit plan is aan een andere duik gekoppeld. Hier koppelen verwijdert die koppeling.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Plan van deze duik vervangen?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Deze duik wordt vergeleken met \"$plan\". Een ander plan koppelen ontkoppelt dat plan.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Koppelen';
 
   @override
   String get diveDetailSection_diveLab_name => 'Vergelijken';

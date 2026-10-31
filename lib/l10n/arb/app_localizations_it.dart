@@ -20491,6 +20491,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profilo per quell\'immersione — intervallo di superficie impostato senza saturazione dei tessuti';
 
   @override
+  String get plannerCanvas_link_action => 'Collega a un\'immersione registrata';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambia immersione collegata';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Scollega immersione';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Eseguita come #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Eseguita il $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Salva prima il piano';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Immersione $letter';
   }
@@ -52509,6 +52531,39 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Dirama questa immersione in qualsiasi momento e confronta cosa sarebbe successo.';
+
+  @override
+  String get diveLab_compare_waiting => 'In attesa dell\'immersione';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Scollegare questo piano?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Il piano e l\'immersione restano entrambi. Semplicemente non vengono più confrontati.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Scollega';
+
+  @override
+  String get diveLab_link_moveTitle =>
+      'Spostare il collegamento di questo piano?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Questo piano è collegato a un\'altra immersione. Collegarlo qui rimuove quel collegamento.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      'Sostituire il piano di questa immersione?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Questa immersione è confrontata con \"$plan\". Collegare un altro piano lo scollega.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Collega';
 
   @override
   String get diveDetailSection_diveLab_name => 'Confronta';

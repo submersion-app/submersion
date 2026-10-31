@@ -20482,6 +20482,28 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin datos de perfil en esa inmersión — intervalo en superficie establecido sin saturación de tejidos';
 
   @override
+  String get plannerCanvas_link_action => 'Vincular a una inmersión registrada';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambiar inmersión vinculada';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Desvincular inmersión';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Realizada como #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Realizada el $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Guarda primero el plan';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Inmersión $letter';
   }
@@ -52557,6 +52579,38 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.';
+
+  @override
+  String get diveLab_compare_waiting => 'A la espera de la inmersión';
+
+  @override
+  String get diveLab_link_unlinkTitle => '¿Desvincular este plan?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'El plan y la inmersión se conservan. Solo dejan de compararse.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Desvincular';
+
+  @override
+  String get diveLab_link_moveTitle => '¿Mover el vínculo de este plan?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Este plan está vinculado a otra inmersión. Vincularlo aquí elimina ese vínculo.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      '¿Reemplazar el plan de esta inmersión?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Esta inmersión se compara con \"$plan\". Vincular otro plan lo desvincula.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Vincular';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparar';

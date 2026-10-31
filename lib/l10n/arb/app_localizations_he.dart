@@ -20034,6 +20034,28 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
 
   @override
+  String get plannerCanvas_link_action => 'קישור לצלילה מתועדת';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'שינוי הצלילה המקושרת';
+
+  @override
+  String get plannerCanvas_unlink_action => 'ביטול קישור הצלילה';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'בוצעה כצלילה #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'בוצעה ב-$date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'שמור תחילה את התוכנית';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'צלילה $letter';
   }
@@ -51376,6 +51398,37 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
+
+  @override
+  String get diveLab_compare_waiting => 'ממתין לצלילה';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'התוכנית והצלילה נשארות. הן פשוט לא יושוו יותר.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'ביטול קישור';
+
+  @override
+  String get diveLab_link_moveTitle => 'להעביר את הקישור של התוכנית?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'התוכנית מקושרת לצלילה אחרת. קישור כאן יסיר את הקישור הקודם.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'להחליף את התוכנית של הצלילה?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'הצלילה מושווית אל \"$plan\". קישור תוכנית אחרת יבטל את הקישור אליה.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'קישור';
 
   @override
   String get diveDetailSection_diveLab_name => 'השוואה';

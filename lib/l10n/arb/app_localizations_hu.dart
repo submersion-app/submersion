@@ -20416,6 +20416,28 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
 
   @override
+  String get plannerCanvas_link_action => 'Összekapcsolás naplózott merüléssel';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Kapcsolt merülés módosítása';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Merülés leválasztása';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Merülve: #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Merülve: $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Először mentsd a tervet';
+
+  @override
   String plannerSeries_dive(String letter) {
     return '$letter merülés';
   }
@@ -52213,6 +52235,37 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+
+  @override
+  String get diveLab_compare_waiting => 'Várakozás a merülésre';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Leválasztod ezt a tervet?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'A terv és a merülés is megmarad, csak már nem hasonlítjuk össze őket.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Leválasztás';
+
+  @override
+  String get diveLab_link_moveTitle => 'Áthelyezed a terv kapcsolatát?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Ez a terv egy másik merüléshez kapcsolódik. Az itteni összekapcsolás megszünteti azt.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Lecseréled a merülés tervét?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Ez a merülés a(z) \"$plan\" tervvel van összehasonlítva. Másik terv kapcsolása leválasztja azt.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Összekapcsolás';
 
   @override
   String get diveDetailSection_diveLab_name => 'Összehasonlítás';

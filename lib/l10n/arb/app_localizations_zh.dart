@@ -19491,6 +19491,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_follow_noTissues => '该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度';
 
   @override
+  String get plannerCanvas_link_action => '关联到已记录的潜水';
+
+  @override
+  String get plannerCanvas_link_changeAction => '更改关联的潜水';
+
+  @override
+  String get plannerCanvas_unlink_action => '取消关联潜水';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return '已潜水，编号 #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return '潜水日期 $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => '请先保存计划';
+
+  @override
   String plannerSeries_dive(String letter) {
     return '潜水 $letter';
   }
@@ -49237,6 +49259,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
+
+  @override
+  String get diveLab_compare_waiting => '等待潜水';
+
+  @override
+  String get diveLab_link_unlinkTitle => '取消关联此计划？';
+
+  @override
+  String get diveLab_link_unlinkBody => '计划和潜水都会保留，只是不再进行比较。';
+
+  @override
+  String get diveLab_link_unlinkConfirm => '取消关联';
+
+  @override
+  String get diveLab_link_moveTitle => '移动此计划的关联？';
+
+  @override
+  String get diveLab_link_moveBody => '此计划已关联到另一次潜水。在此关联将移除原有关联。';
+
+  @override
+  String get diveLab_link_replaceTitle => '替换此潜水的计划？';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return '此潜水正在与“$plan”比较。关联其他计划将取消该关联。';
+  }
+
+  @override
+  String get diveLab_link_confirm => '关联';
 
   @override
   String get diveDetailSection_diveLab_name => '对比';

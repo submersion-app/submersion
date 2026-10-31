@@ -32610,6 +32610,42 @@ abstract class AppLocalizations {
   /// **'No profile data on that dive — surface interval set without tissue seeding'**
   String get plannerCanvas_follow_noTissues;
 
+  /// No description provided for @plannerCanvas_link_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a logged dive'**
+  String get plannerCanvas_link_action;
+
+  /// No description provided for @plannerCanvas_link_changeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change linked dive'**
+  String get plannerCanvas_link_changeAction;
+
+  /// No description provided for @plannerCanvas_unlink_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink dive'**
+  String get plannerCanvas_unlink_action;
+
+  /// No description provided for @plannerCanvas_link_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived as #{number}'**
+  String plannerCanvas_link_badge(int number);
+
+  /// No description provided for @plannerCanvas_link_badgeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived {date}'**
+  String plannerCanvas_link_badgeDate(String date);
+
+  /// No description provided for @plannerCanvas_link_saveFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the plan first'**
+  String get plannerCanvas_link_saveFirst;
+
   /// The planned dive's letter within its series: A, B, C
   ///
   /// In en, this message translates to:
@@ -83179,6 +83215,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Branch this dive at any moment and compare what would have happened.'**
   String get diveLab_section_hint;
+
+  /// No description provided for @diveLab_compare_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the dive'**
+  String get diveLab_compare_waiting;
+
+  /// No description provided for @diveLab_link_unlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink this plan?'**
+  String get diveLab_link_unlinkTitle;
+
+  /// No description provided for @diveLab_link_unlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan and the dive both stay. They just stop being compared.'**
+  String get diveLab_link_unlinkBody;
+
+  /// No description provided for @diveLab_link_unlinkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get diveLab_link_unlinkConfirm;
+
+  /// No description provided for @diveLab_link_moveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move this plan\'s link?'**
+  String get diveLab_link_moveTitle;
+
+  /// No description provided for @diveLab_link_moveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan is linked to another dive. Linking it here removes that link.'**
+  String get diveLab_link_moveBody;
+
+  /// No description provided for @diveLab_link_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace this dive\'s plan?'**
+  String get diveLab_link_replaceTitle;
+
+  /// No description provided for @diveLab_link_replaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is compared with \"{plan}\". Linking another plan unlinks that one.'**
+  String diveLab_link_replaceBody(String plan);
+
+  /// No description provided for @diveLab_link_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get diveLab_link_confirm;
 
   /// No description provided for @diveDetailSection_diveLab_name.
   ///

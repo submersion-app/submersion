@@ -20184,6 +20184,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'No profile data on that dive — surface interval set without tissue seeding';
 
   @override
+  String get plannerCanvas_link_action => 'Link to a logged dive';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Change linked dive';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Unlink dive';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Dived as #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Dived $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Save the plan first';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Dive $letter';
   }
@@ -51676,6 +51698,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Branch this dive at any moment and compare what would have happened.';
+
+  @override
+  String get diveLab_compare_waiting => 'Waiting for the dive';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Unlink this plan?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'The plan and the dive both stay. They just stop being compared.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Unlink';
+
+  @override
+  String get diveLab_link_moveTitle => 'Move this plan\'s link?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'This plan is linked to another dive. Linking it here removes that link.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Replace this dive\'s plan?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'This dive is compared with \"$plan\". Linking another plan unlinks that one.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Link';
 
   @override
   String get diveDetailSection_diveLab_name => 'Compare';

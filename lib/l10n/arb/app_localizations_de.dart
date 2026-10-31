@@ -20466,6 +20466,28 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Profildaten für diesen Tauchgang — Oberflächenpause ohne Gewebesättigung übernommen';
 
   @override
+  String get plannerCanvas_link_action => 'Mit geloggtem Tauchgang verknüpfen';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Verknüpften Tauchgang ändern';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Tauchgang trennen';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Getaucht als #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Getaucht am $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Plan zuerst speichern';
+
+  @override
   String plannerSeries_dive(String letter) {
     return 'Tauchgang $letter';
   }
@@ -52389,6 +52411,37 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLab_section_hint =>
       'Zweige diesen Tauchgang an beliebiger Stelle ab und vergleiche, was passiert wäre.';
+
+  @override
+  String get diveLab_compare_waiting => 'Wartet auf den Tauchgang';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Diesen Plan trennen?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'Plan und Tauchgang bleiben beide erhalten. Sie werden nur nicht mehr verglichen.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Trennen';
+
+  @override
+  String get diveLab_link_moveTitle => 'Verknüpfung dieses Plans verschieben?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Dieser Plan ist mit einem anderen Tauchgang verknüpft. Eine Verknüpfung hier hebt sie auf.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Plan dieses Tauchgangs ersetzen?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Dieser Tauchgang wird mit \"$plan\" verglichen. Ein anderer Plan hebt diese Verknüpfung auf.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Verknüpfen';
 
   @override
   String get diveDetailSection_diveLab_name => 'Vergleichen';
