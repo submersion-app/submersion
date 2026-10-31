@@ -43,6 +43,64 @@ void main() {
   }
 
   group('calculateGasSwitchSegments', () {
+    group('time before the first switch', () {
+      const backGas = DiveTank(
+        id: 't1',
+        name: 'Back gas',
+        role: TankRole.backGas,
+        startPressure: 200,
+        endPressure: 100,
+        gasMix: GasMix(o2: 21, he: 0),
+      );
+      const stage = DiveTank(
+        id: 't2',
+        name: 'Stage',
+        role: TankRole.stage,
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: GasMix(o2: 50, he: 0),
+      );
+
+      GasSwitchWithTank switchTo(DiveTank tank, int timestamp) =>
+          GasSwitchWithTank(
+            gasSwitch: GasSwitch(
+              id: 'gs$timestamp',
+              diveId: 'd1',
+              timestamp: timestamp,
+              tankId: tank.id,
+              createdAt: DateTime.utc(2026),
+            ),
+            tankName: tank.name!,
+            gasMix: tank.gasMix.name,
+            o2Fraction: tank.gasMix.o2 / 100,
+          );
+
+      test('belongs to the starting cylinder', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.map((s) => s.tankId), ['t1', 't2']);
+        expect(segments.first.startTimestamp, 0);
+        expect(segments.first.endTimestamp, 3000);
+        expect(segments.first.tankName, 'Back gas');
+      });
+
+      test('adds nothing when a switch opens the dive', () {
+        final segments = service.calculateGasSwitchSegments(
+          profile: flatProfile(3600, 20),
+          tanks: const [backGas, stage],
+          gasSwitches: [switchTo(backGas, 0), switchTo(stage, 3000)],
+          tankPressures: const {},
+        )!;
+
+        expect(segments.map((s) => s.startTimestamp), [0, 3000]);
+      });
+    });
+
     test('a stage tank prorates over its own stint, not the whole dive '
         '(#110)', () {
       // 60-minute dive: back gas for 50 minutes, then a deco tank for the
