@@ -68,7 +68,7 @@ class DerivedMetricsRepository {
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
     if (dive == null) return null;
     final siteId = dive.siteId;
-    final site = siteId == null
+    final site = dive.waterType != null || siteId == null
         ? null
         : await (_db.select(
             _db.diveSites,

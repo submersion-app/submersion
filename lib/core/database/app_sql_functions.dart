@@ -70,6 +70,9 @@ void registerAppSqlFunctions(CommonDatabase db) {
   );
 }
 
+/// Held once: [_diveAmbientBar] runs for every row of a statement.
+final Map<String, WaterType> _waterTypesByName = WaterType.values.asNameMap();
+
 /// A number, or null for anything else: SQLite's affinity lets text into a
 /// REAL column, and a throw here would fail the whole statement, not the row.
 double? _realOrNull(Object? value) => value is num ? value.toDouble() : null;
@@ -80,7 +83,7 @@ Object? _diveAmbientBar(SqliteArguments arguments) {
   final environment = DiveEnvironment.forConditions(
     altitudeMeters: _realOrNull(arguments[1]),
     surfacePressureBar: _realOrNull(arguments[2]),
-    waterType: WaterType.values.asNameMap()[arguments[3]],
+    waterType: _waterTypesByName[arguments[3]],
   );
   return environment.pressureAtDepth(depth);
 }

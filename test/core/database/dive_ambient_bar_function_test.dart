@@ -59,6 +59,20 @@ void main() {
     expect(ambient(null, 3000.0, null, 'fresh'), isNull);
   });
 
+  test('a surface pressure or altitude with no pressure is not used', () {
+    // Past the top of the barometric formula, and a logged zero: a NULL here
+    // would throw from the repositories reading this as a double.
+    expect(ambient(10.0, 50000.0, null, null), closeTo(2.0, 1e-9));
+    expect(ambient(10.0, null, 0.0, null), closeTo(2.0, 1e-9));
+    expect(
+      ambient(10.0, 3000.0, 0.0, null),
+      closeTo(
+        DiveEnvironment.forConditions(altitudeMeters: 3000).pressureAtDepth(10),
+        1e-12,
+      ),
+    );
+  });
+
   test('values a column should not hold fall back rather than throw', () {
     // A throw here would fail the whole statement, not this one row.
     expect(ambient(10.0, 'high', 'low', 'lake'), closeTo(2.0, 1e-9));

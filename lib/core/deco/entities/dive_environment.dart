@@ -64,7 +64,9 @@ class DiveEnvironment extends Equatable {
   ///
   /// An explicit [surfacePressureBar] wins over [altitudeMeters]. A null
   /// altitude keeps the legacy 1.0 bar surface so dives without altitude
-  /// data are unchanged.
+  /// data are unchanged. Neither counts unless it gives a positive pressure:
+  /// a logged 0 or an altitude past the top of the barometric formula (which
+  /// gives NaN) would otherwise be divided by.
   ///
   /// Density precedence: [waterDensityKgM3], then [salinityPpt], then
   /// [waterType], then EN13319.
@@ -75,11 +77,15 @@ class DiveEnvironment extends Equatable {
     double? salinityPpt,
     double? waterDensityKgM3,
   }) {
+    double? usable(double? bar) => bar != null && bar > 0 ? bar : null;
     final surface =
-        surfacePressureBar ??
-        (altitudeMeters != null
-            ? AltitudeCalculator.calculateBarometricPressure(altitudeMeters)
-            : 1.0);
+        usable(surfacePressureBar) ??
+        usable(
+          altitudeMeters == null
+              ? null
+              : AltitudeCalculator.calculateBarometricPressure(altitudeMeters),
+        ) ??
+        1.0;
     final density =
         waterDensityKgM3 ??
         (salinityPpt != null
