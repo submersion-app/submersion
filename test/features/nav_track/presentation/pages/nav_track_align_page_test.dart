@@ -1654,18 +1654,21 @@ void main() {
           site: site,
         );
 
+        // The constraint itself, not a height threshold: how much the
+        // content wraps (and so how tall it naturally is) already varies
+        // with window width on its own, which would make any fixed
+        // threshold here fragile. double.infinity is the direct proof
+        // that nothing caps this panel at desktop width.
         expect(
           tester
-              .getSize(
+              .widget<ConstrainedBox>(
                 find.byKey(const ValueKey('nav-track-align-controls-panel')),
               )
-              .height,
-          greaterThan(bodyHeight(tester) * 0.45),
-          reason:
-              'the panel should render at its full natural height on a '
-              'desktop-width window, not the phone cap',
+              .constraints
+              .maxHeight,
+          double.infinity,
         );
-        // Not merely tall: Save must be directly tappable with no
+        // And functionally: Save must be directly tappable with no
         // scrolling, proving the cap truly does not apply here.
         await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
         await tester.pumpAndSettle();

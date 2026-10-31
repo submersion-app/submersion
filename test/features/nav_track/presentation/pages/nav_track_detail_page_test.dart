@@ -397,6 +397,13 @@ void main() {
     'the inline map preview renders a TileLayer with the app\'s tile URL '
     '(item 3)',
     (tester) async {
+      // The title card (#4022) pushed the map further down the ListView,
+      // past the default 800x600 test surface -- a ListView only builds
+      // the children within its viewport, so TileLayer/FlutterMap are not
+      // in the tree at all here without the extra room (same hazard as
+      // the compass test below, #3386/#3635).
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -414,6 +421,10 @@ void main() {
     'the inline map fits its camera to the whole route, not a fixed zoom '
     'on the anchor alone (a long route was cut off at the map edge)',
     (tester) async {
+      // See the TileLayer test above: the title card (#4022) pushes the
+      // map below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       final route = _route(anchorLatitude: 47.1, anchorLongitude: 8.3).copyWith(
         points: [
           for (var i = 0; i < 5; i++)
@@ -437,6 +448,10 @@ void main() {
   testWidgets('a route crossing the antimeridian still fits without crashing '
       '(Copilot review on PR #3637: a raw LatLngBounds.fromPoints asserts '
       'east <= 180 and cannot express a wrapped route)', (tester) async {
+    // See the TileLayer test above: the title card (#4022) pushes the map
+    // below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     // Anchor just west of the dateline; an 11 km east offset pushes the
     // second point past 180 deg, where it wraps to a negative longitude.
     final route = _route(anchorLatitude: 0, anchorLongitude: 179.95).copyWith(
@@ -466,6 +481,10 @@ void main() {
     'falls back to the anchor-centered fixed zoom when there is nothing '
     'to fit a camera to',
     (tester) async {
+      // See the TileLayer test above: the title card (#4022) pushes the
+      // map below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await _pump(
         tester,
         route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -923,6 +942,10 @@ void main() {
   testWidgets('shows the "set start point" placeholder when unanchored', (
     tester,
   ) async {
+    // See the TileLayer test above: the title card (#4022) pushes this
+    // card below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await _pump(tester, route: _route());
 
     expect(
@@ -1390,6 +1413,10 @@ void main() {
 
   testWidgets('the inline map zooms and scrolls like the other maps '
       '(#3664)', (tester) async {
+    // See the TileLayer test above: the title card (#4022) pushes the map
+    // below the default test viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await _pump(
       tester,
       route: _route(anchorLatitude: 47.1, anchorLongitude: 8.3),
@@ -1513,6 +1540,10 @@ void main() {
     testWidgets('tapping the correction status card opens the alignment page', (
       tester,
     ) async {
+      // See the TileLayer test above: the title card (#4022) pushes this
+      // card below the default test viewport.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       final route = _route();
       final router = routerTo(
         route,
