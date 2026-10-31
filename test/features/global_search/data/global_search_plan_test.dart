@@ -43,6 +43,7 @@ void main() {
       kinds(plan('depth > 30m')),
       containsAll({
         GlobalSearchKind.dives,
+        GlobalSearchKind.sites,
         GlobalSearchKind.divePlans,
         GlobalSearchKind.underwaterRoutes,
       }),
