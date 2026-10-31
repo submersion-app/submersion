@@ -30,7 +30,10 @@ class SafetyReviewService {
   /// whose span moves onto the primary's own samples is a new finding, so a
   /// dismissal made on the interleaved one does not carry over.
   /// v6: late and missed deco gas switches against the ideal ascent (#2939).
-  static const int engineVersion = 6;
+  /// v7: a depth spike is repaired by time-weighted interpolation rather than
+  /// the midpoint of its neighbours, which changes the rates and tissue
+  /// loading graded on an unevenly sampled dive (#3910).
+  static const int engineVersion = 7;
 
   const SafetyReviewService();
 

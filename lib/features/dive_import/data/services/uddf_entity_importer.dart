@@ -484,11 +484,19 @@ class UddfEntityImporter {
   /// spends minutes there (issue #3216). Every other stage is local database
   /// work.
   ///
-  /// [preResolvedBuddyIds], [preResolvedTagIds] and [preResolvedEquipmentIds]
-  /// map source refs (uddfId/name) to EXISTING database ids for flagged
-  /// duplicates the reviewer chose not to import as new rows. Seeding the id
-  /// mappings with them makes dive linking resolve to the existing record
-  /// instead of silently dropping the association (#756).
+  /// [preResolvedBuddyIds], [preResolvedTagIds], [preResolvedEquipmentIds],
+  /// [preResolvedDiveCenterIds] and [preResolvedTripIds] map source refs
+  /// (uddfId/name) to EXISTING database ids for flagged duplicates the
+  /// reviewer chose not to import as new rows. Seeding the id mappings with
+  /// them makes dive linking resolve to the existing record instead of
+  /// silently dropping the association (#756, #3852).
+  ///
+  /// [preResolvedCertificationIds] does the same for the certifications a
+  /// course earned. It stays out of the mapping currency restores from: prefs
+  /// and events ride only with a certification this import created. A
+  /// certification that already belongs to a course is left there, because
+  /// linking moves it and courses have no dedup: a re-import would strip it
+  /// from the original course for that course's twin.
   ///
   /// [preResolvedDiveTypeIds] does the same for dive types, keyed by the id
   /// the file's dives reference. The review matches a type by name before
@@ -504,6 +512,9 @@ class UddfEntityImporter {
     Map<String, String> preResolvedTagIds = const {},
     Map<String, String> preResolvedEquipmentIds = const {},
     Map<String, String> preResolvedDiveTypeIds = const {},
+    Map<String, String> preResolvedDiveCenterIds = const {},
+    Map<String, String> preResolvedTripIds = const {},
+    Map<String, String> preResolvedCertificationIds = const {},
     ImportFormat? sourceFormat,
     Uint8List? sourceFileBytes,
     String? sourceFileName,
@@ -519,10 +530,10 @@ class UddfEntityImporter {
     );
 
     // ID mappings for cross-references
-    final tripIdMapping = <String, String>{};
+    final tripIdMapping = <String, String>{...preResolvedTripIds};
     final equipmentIdMapping = <String, String>{...preResolvedEquipmentIds};
     final buddyIdMapping = <String, String>{...preResolvedBuddyIds};
-    final diveCenterIdMapping = <String, String>{};
+    final diveCenterIdMapping = <String, String>{...preResolvedDiveCenterIds};
     final tagIdMapping = <String, String>{...preResolvedTagIds};
     final diveTypeIdMapping = <String, String>{...preResolvedDiveTypeIds};
     final siteIdMapping = <String, DiveSite>{};
@@ -867,7 +878,13 @@ class UddfEntityImporter {
             diverId,
             courseIdMapping,
             buddyIdMapping,
-            certIdMapping,
+            {
+              ...await _courselessCertifications(
+                preResolvedCertificationIds,
+                repositories.certificationRepository,
+              ),
+              ...certIdMapping,
+            },
             now,
             onProgress,
             certResolver,
@@ -2285,6 +2302,21 @@ class UddfEntityImporter {
 
   // -- Course import --
 
+  /// The entries of [preResolved] whose existing certification has no course
+  /// yet, the only ones a new course can link without taking them from
+  /// another.
+  Future<Map<String, String>> _courselessCertifications(
+    Map<String, String> preResolved,
+    CertificationRepository repository,
+  ) async {
+    final courseless = <String, String>{};
+    for (final MapEntry(key: ref, value: id) in preResolved.entries) {
+      final existing = await repository.getCertificationById(id);
+      if (existing != null && existing.courseId == null) courseless[ref] = id;
+    }
+    return courseless;
+  }
+
   Future<int> _importCourses(
     List<Map<String, dynamic>> items,
     Set<int> selected,
@@ -2809,12 +2841,12 @@ class UddfEntityImporter {
         if (directSiteId != null) linkedSite = siteIdMapping[directSiteId];
       }
 
-      // Link to imported trip
+      // Link to the imported or pre-resolved trip
       String? linkedTripId;
       final tripRef = diveData['tripRef'] as String?;
       if (tripRef != null) linkedTripId = tripIdMapping[tripRef];
 
-      // Link to imported dive center
+      // Link to the imported or pre-resolved dive center
       DiveCenter? linkedDiveCenter;
       final diveCenterRef = diveData['diveCenterRef'] as String?;
       if (diveCenterRef != null) {

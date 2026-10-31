@@ -27,8 +27,7 @@ class PlanGasSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

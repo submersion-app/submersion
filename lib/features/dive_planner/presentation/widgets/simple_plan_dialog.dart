@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_number_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -55,8 +54,7 @@ class _SimplePlanDialogState extends ConsumerState<SimplePlanDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
 
     return AlertDialog(

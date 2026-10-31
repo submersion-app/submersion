@@ -1,7 +1,7 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// One active-filter chip: its label and how to clear just that axis.
@@ -18,7 +18,7 @@ class ActiveFilterChip {
 List<ActiveFilterChip> activeFilterChipLabels(
   DiveFilterState f,
   AppLocalizations l10n,
-  AppSettings settings, {
+  UnitFormatterSettings settings, {
   required String? Function(String id) siteName,
   required String? Function(String id) speciesName,
   required String? Function(String id) computerName,

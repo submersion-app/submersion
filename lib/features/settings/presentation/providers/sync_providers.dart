@@ -1454,6 +1454,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         status: SyncStatus.error,
         message: result.message ?? _l10n.settings_cloudSync_message_adoptFailed,
       );
+      await _recordRefusal(result);
       return;
     }
     await realignActiveDiverAfterDataReplace(
@@ -1566,6 +1567,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
         );
   }
 
+  /// For an operation outside [performSync]: a refusal it met has to reach
+  /// Data health, or its error offers no sign-in (issue #3811).
+  Future<void> _recordRefusal(SyncResult result) async {
+    if (!result.accessRefused) return;
+    await _recordSyncFailure(SyncFailureKind.auth, result.message ?? '');
+  }
+
   /// One sync, run inside [performSync]'s single flight. True when it
   /// completed successfully (with or without conflicts).
   Future<bool> _runSyncOnce({required bool auto}) async {
@@ -1626,7 +1634,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       var result = await _syncService.performSync();
       if (result.status == SyncResultStatus.authError &&
           preCheckCloudError != null) {
-        result = SyncResult(status: result.status, message: preCheckCloudError);
+        result = SyncResult(
+          status: result.status,
+          message: preCheckCloudError,
+          accessRefused: result.accessRefused,
+        );
       }
       _log.debug('Result: ${result.status}, message: ${result.message}');
       // This notifier can be disposed while a launch-triggered sync is in
@@ -1784,12 +1796,17 @@ class SyncNotifier extends StateNotifier<SyncState> {
           message: message,
           progress: null,
         );
-        await _recordSyncFailure(
-          result.status == SyncResultStatus.networkError
-              ? SyncFailureKind.network
-              : SyncFailureKind.other,
-          message,
-        );
+        await _recordSyncFailure(switch (result.status) {
+          SyncResultStatus.networkError => SyncFailureKind.network,
+          // No session here is read live from isAuthenticated, so it clears
+          // itself. Stored as a sign-in failure, an offline cold launch would
+          // keep asking for a sign-in after the network came back.
+          SyncResultStatus.authError =>
+            result.accessRefused
+                ? SyncFailureKind.auth
+                : SyncFailureKind.network,
+          _ => SyncFailureKind.other,
+        }, message);
         if (!mounted) return false;
       }
     } catch (e) {
@@ -1803,7 +1820,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
         message: message,
         progress: null,
       );
-      await _recordSyncFailure(SyncFailureKind.other, message);
+      await _recordSyncFailure(
+        isAccessRefused(e) ? SyncFailureKind.auth : SyncFailureKind.other,
+        message,
+      );
       if (!mounted) return false;
     }
 
@@ -2024,6 +2044,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       // Keep the error visible: refreshState (which recomputes status from the
       // repository) must NOT run here, or it would clear the reason.
       state = state.copyWith(status: SyncStatus.error, message: result.message);
+      await _recordRefusal(result);
       return;
     }
     state = state.copyWith(

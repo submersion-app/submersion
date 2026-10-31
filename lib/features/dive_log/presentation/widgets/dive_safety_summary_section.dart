@@ -37,10 +37,12 @@ class DiveSafetySummarySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final enabled = ref.watch(safetyReviewEnabledProvider);
+    final disabled = ref.watch(safetyReviewDisabledRulesProvider);
     final review = ref.watch(safetyReviewProvider(diveId)).value;
     final reviewHasContent =
-        hasProfile && hasVisibleSafetyFindings(settings, review);
+        hasProfile &&
+        hasVisibleSafetyFindings(review, enabled: enabled, disabled: disabled);
 
     final incidents = ref.watch(incidentsForDiveProvider(diveId)).value;
     final incidentsHasContent = incidents != null && incidents.isNotEmpty;

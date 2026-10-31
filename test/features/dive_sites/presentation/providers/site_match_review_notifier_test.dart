@@ -5,6 +5,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -65,10 +66,13 @@ void main() {
       ),
     ).thenAnswer((_) async => eligible);
     when(dives.setSite(any, any)).thenAnswer((_) async {});
-    // DiveListNotifier.refresh() (triggered by confirm) reloads via getAllDives.
+    // DiveListNotifier.refresh() (triggered by confirm) reloads via a snapshot.
     when(
-      dives.getAllDives(diverId: anyNamed('diverId')),
-    ).thenAnswer((_) async => <Dive>[]);
+      dives.getDiveListSnapshot(
+        diverId: anyNamed('diverId'),
+        previous: anyNamed('previous'),
+      ),
+    ).thenAnswer((_) async => const DiveListSnapshot.empty());
     // PaginatedDiveListNotifier.refresh() (triggered by confirm) reloads via
     // getDiveSummaries + getDiveCount; both must answer for loadFirstPage().
     when(
@@ -105,6 +109,9 @@ void main() {
     ).thenAnswer((_) => const Stream<void>.empty());
     when(
       dives.watchDiveListChanges(),
+    ).thenAnswer((_) => const Stream<void>.empty());
+    when(
+      dives.watchDiveHydrationWrites(),
     ).thenAnswer((_) => const Stream<void>.empty());
     when(
       sites.watchSitesChanges(),
@@ -212,15 +219,23 @@ void main() {
 
     final notifier = container.read(siteMatchReviewProvider(null).notifier);
     // Nothing has reloaded the dive list yet (init only reads dives needing
-    // matching, never the full list via getAllDives).
-    verifyNever(dives.getAllDives(diverId: anyNamed('diverId')));
+    // matching, never the full list).
+    verifyNever(
+      dives.getDiveListSnapshot(
+        diverId: anyNamed('diverId'),
+        previous: anyNamed('previous'),
+      ),
+    );
 
     await notifier.confirm();
 
     // confirm() must refresh DiveListNotifier so the dives list drops the
     // stale "unknown site" rows for the dives it just linked.
     verify(
-      dives.getAllDives(diverId: anyNamed('diverId')),
+      dives.getDiveListSnapshot(
+        diverId: anyNamed('diverId'),
+        previous: anyNamed('previous'),
+      ),
     ).called(greaterThanOrEqualTo(1));
   });
 

@@ -23,6 +23,7 @@ import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency_analyzer.d
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -38,7 +39,10 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 ///
 /// v2: a dive with several computers is analysed over the primary source's
 /// own samples, not every computer's interleaved by timestamp (#2888).
-const int analysisEngineVersion = 2;
+/// v3: a depth spike is repaired by time-weighted interpolation rather than
+/// the midpoint of its neighbours, so an unevenly sampled dive replays
+/// different depths (#3910).
+const int analysisEngineVersion = 3;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
@@ -148,27 +152,7 @@ enum SacSegmentationType {
   gasSwitch,
 
   /// Segments based on dive phases (descent, bottom, ascent, etc.)
-  depthPhase;
-
-  /// Display name for UI
-  String get displayName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'Time',
-      SacSegmentationType.depthBased => 'Depth',
-      SacSegmentationType.gasSwitch => 'Gas',
-      SacSegmentationType.depthPhase => 'Phase',
-    };
-  }
-
-  /// Icon name for UI
-  String get iconName {
-    return switch (this) {
-      SacSegmentationType.timeInterval => 'timer',
-      SacSegmentationType.depthBased => 'layers',
-      SacSegmentationType.gasSwitch => 'swap_horiz',
-      SacSegmentationType.depthPhase => 'trending_down',
-    };
-  }
+  depthPhase,
 }
 
 /// Represents a phase of the dive for depth-phase segmentation.
@@ -196,17 +180,6 @@ enum DivePhase {
       DivePhase.ascent => 'Ascent',
       DivePhase.safetyStop => 'Safety Stop',
       DivePhase.deco => 'Deco',
-    };
-  }
-
-  /// Short label for compact display
-  String get shortLabel {
-    return switch (this) {
-      DivePhase.descent => '↓',
-      DivePhase.bottom => '—',
-      DivePhase.ascent => '↑',
-      DivePhase.safetyStop => '⏸',
-      DivePhase.deco => '⚠',
     };
   }
 }
@@ -262,6 +235,11 @@ class ProfileAnalysis {
   /// True when [ppO2Curve] values are derived from averaging O2 cells (no
   /// computer-supplied ppO2 was available). Used to label the chart tooltip.
   final bool ppO2FromSensorAverage;
+
+  /// True when [decoStopCurve] holds the computer's recorded stops while
+  /// [ceilingCurve] stays the calculated curve, so the chart draws two models
+  /// on one axis and labels the ceiling as calculated (issue #2552).
+  final bool computerStopsWithCalculatedCeiling;
 
   /// SAC rate at each point (bar/min at surface) - null if no pressure data
   final List<double>? sacCurve;
@@ -368,6 +346,7 @@ class ProfileAnalysis {
     this.o2SensorCurves,
     this.o2CellMvCurves,
     this.ppO2FromSensorAverage = false,
+    this.computerStopsWithCalculatedCeiling = false,
     this.sacCurve,
     this.smoothedSacCurve,
     this.sacSegments,
@@ -469,6 +448,7 @@ class ProfileAnalysis {
     List<List<double?>>? o2SensorCurves,
     List<List<int?>>? o2CellMvCurves,
     bool? ppO2FromSensorAverage,
+    bool? computerStopsWithCalculatedCeiling,
     List<double>? sacCurve,
     List<double>? smoothedSacCurve,
     List<SacSegment>? sacSegments,
@@ -507,6 +487,9 @@ class ProfileAnalysis {
       o2CellMvCurves: o2CellMvCurves ?? this.o2CellMvCurves,
       ppO2FromSensorAverage:
           ppO2FromSensorAverage ?? this.ppO2FromSensorAverage,
+      computerStopsWithCalculatedCeiling:
+          computerStopsWithCalculatedCeiling ??
+          this.computerStopsWithCalculatedCeiling,
       sacCurve: sacCurve ?? this.sacCurve,
       smoothedSacCurve: smoothedSacCurve ?? this.smoothedSacCurve,
       sacSegments: sacSegments ?? this.sacSegments,
@@ -704,14 +687,13 @@ class ProfileAnalysisService {
     if (diveMode == DiveMode.gauge) {
       double maxDepth = 0;
       int maxDepthTimestamp = 0;
-      double depthSum = 0;
       for (int i = 0; i < depths.length; i++) {
         if (depths[i] > maxDepth) {
           maxDepth = depths[i];
           maxDepthTimestamp = timestamps[i];
         }
-        depthSum += depths[i];
       }
+      final meanDepthCurve = _calculateMeanDepthCurve(depths, timestamps);
       final gaugeEvents = _detectEvents(
         diveId: diveId,
         depths: depths,
@@ -733,9 +715,9 @@ class ProfileAnalysisService {
         decoStatuses: const [],
         o2Exposure: const O2Exposure(),
         ppO2Curve: const [],
-        meanDepthCurve: _calculateMeanDepthCurve(depths),
+        meanDepthCurve: meanDepthCurve,
         maxDepth: maxDepth,
-        averageDepth: depths.isNotEmpty ? depthSum / depths.length : 0,
+        averageDepth: meanDepthCurve.last,
         maxDepthTimestamp: maxDepthTimestamp,
         durationSeconds: timestamps.isNotEmpty
             ? timestamps.last - timestamps.first
@@ -905,17 +887,16 @@ class ProfileAnalysisService {
     // Calculate basic stats
     double maxDepth = 0;
     int maxDepthTimestamp = 0;
-    double depthSum = 0;
 
     for (int i = 0; i < depths.length; i++) {
       if (depths[i] > maxDepth) {
         maxDepth = depths[i];
         maxDepthTimestamp = timestamps[i];
       }
-      depthSum += depths[i];
     }
 
-    final averageDepth = depthSum / depths.length;
+    final meanDepthCurve = _calculateMeanDepthCurve(depths, timestamps);
+    final averageDepth = meanDepthCurve.last;
     final durationSeconds = timestamps.isNotEmpty
         ? timestamps.last - timestamps.first
         : 0;
@@ -1039,7 +1020,6 @@ class ProfileAnalysisService {
           );
     final gfCurve = _calculateGfCurve(decoStatuses);
     final surfaceGfCurve = _calculateSurfaceGfCurve(decoStatuses);
-    final meanDepthCurve = _calculateMeanDepthCurve(depths);
     final ttsCurve = decoStatuses.map((s) => s.ttsSeconds).toList();
     // Same pressure track as the SAC curve, blanked by this analysis's own
     // ceiling so GTR and the deco band never disagree about deco being in
@@ -1490,13 +1470,11 @@ class ProfileAnalysisService {
 
       if (duration >= minDuration && pressureDrop > 0) {
         // Calculate average depth over the window
-        double depthSum = 0;
-        int depthCount = 0;
+        final windowDepth = TimeWeightedMean();
         for (int j = startIdx; j <= endIdx; j++) {
-          depthSum += depths[j];
-          depthCount++;
+          windowDepth.add(timestamps[j], depths[j]);
         }
-        final avgDepth = depthCount > 0 ? depthSum / depthCount : depths[i];
+        final avgDepth = windowDepth.value!;
 
         // Calculate SAC
         final ambientPressure = 1.0 + (avgDepth / 10.0);
@@ -1609,14 +1587,14 @@ class ProfileAnalysisService {
       }
 
       // Calculate segment metrics
-      double depthSum = 0;
+      final segmentDepth = TimeWeightedMean();
       double minDepth = double.infinity;
       double maxDepth = 0;
       int count = 0;
 
       for (int i = startIdx; i <= endIdx; i++) {
         final depth = depths[i];
-        depthSum += depth;
+        segmentDepth.add(timestamps[i], depth);
         minDepth = math.min(minDepth, depth);
         maxDepth = math.max(maxDepth, depth);
         count++;
@@ -1627,7 +1605,7 @@ class ProfileAnalysisService {
         continue;
       }
 
-      final avgDepth = depthSum / count;
+      final avgDepth = segmentDepth.value!;
       final pressureStart = pressures[startIdx];
       final pressureEnd = pressures[endIdx];
       final pressureDrop = pressureStart - pressureEnd;
@@ -1659,84 +1637,6 @@ class ProfileAnalysisService {
 
       segmentStart = segmentEnd;
     }
-
-    return segments;
-  }
-
-  /// Calculate SAC segments based on depth zones.
-  ///
-  /// Groups the dive into segments based on depth ranges (0-10m, 10-20m, etc.)
-  List<SacSegment> calculateDepthBasedSegments({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
-    double depthInterval = 10.0,
-  }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
-
-    // Group points by depth zone
-    final zoneData = <int, List<int>>{}; // zone -> list of indices
-
-    for (int i = 0; i < depths.length; i++) {
-      final zone = (depths[i] / depthInterval).floor();
-      zoneData.putIfAbsent(zone, () => []).add(i);
-    }
-
-    final segments = <SacSegment>[];
-
-    for (final entry in zoneData.entries) {
-      final indices = entry.value;
-      if (indices.length < 2) continue;
-
-      // Sort indices by timestamp
-      indices.sort((a, b) => timestamps[a].compareTo(timestamps[b]));
-
-      final startIdx = indices.first;
-      final endIdx = indices.last;
-
-      // Calculate metrics
-      double depthSum = 0;
-      double minDepth = double.infinity;
-      double maxDepth = 0;
-
-      for (final i in indices) {
-        depthSum += depths[i];
-        minDepth = math.min(minDepth, depths[i]);
-        maxDepth = math.max(maxDepth, depths[i]);
-      }
-
-      final avgDepth = depthSum / indices.length;
-      final pressureStart = pressures[startIdx];
-      final pressureEnd = pressures[endIdx];
-      final pressureDrop = pressureStart - pressureEnd;
-      final segmentDuration = timestamps[endIdx] - timestamps[startIdx];
-
-      double sacRate = 0;
-      if (pressureDrop > 0 && segmentDuration > 0) {
-        final ambientPressure = 1.0 + (avgDepth / 10.0);
-        final consumptionRate = pressureDrop / (segmentDuration / 60.0);
-        sacRate = consumptionRate / ambientPressure;
-      }
-
-      if (segmentDuration > 30) {
-        segments.add(
-          SacSegment(
-            startTimestamp: timestamps[startIdx],
-            endTimestamp: timestamps[endIdx],
-            avgDepth: avgDepth,
-            minDepth: minDepth == double.infinity ? 0 : minDepth,
-            maxDepth: maxDepth,
-            sacRate: sacRate,
-            gasConsumed: pressureDrop > 0 ? pressureDrop : 0,
-          ),
-        );
-      }
-    }
-
-    // Sort by start timestamp
-    segments.sort((a, b) => a.startTimestamp.compareTo(b.startTimestamp));
 
     return segments;
   }
@@ -2142,17 +2042,18 @@ class ProfileAnalysisService {
 
   /// Calculate mean depth curve (running average from start).
   ///
-  /// Shows the average depth from dive start to each point.
+  /// Shows the time-weighted average depth from dive start to each point.
   /// Useful for gas consumption calculations.
-  List<double> _calculateMeanDepthCurve(List<double> depths) {
-    if (depths.isEmpty) return [];
-
+  List<double> _calculateMeanDepthCurve(
+    List<double> depths,
+    List<int> timestamps,
+  ) {
     final meanDepths = <double>[];
-    double depthSum = 0;
+    final runningMean = TimeWeightedMean();
 
     for (int i = 0; i < depths.length; i++) {
-      depthSum += depths[i];
-      meanDepths.add(depthSum / (i + 1));
+      runningMean.add(timestamps[i], depths[i]);
+      meanDepths.add(runningMean.value!);
     }
 
     return meanDepths;

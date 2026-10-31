@@ -308,6 +308,15 @@ void main() {
       expect(dir.listSync(), isEmpty);
     });
 
+    test('a refused download comes out as itself', () async {
+      const refused = CloudAccessRefusedException('refused');
+      await expectLater(
+        assembling((_) async => throw refused),
+        throwsA(same(refused)),
+      );
+      expect(dir.listSync(), isEmpty);
+    });
+
     test('a hasher failure is an interruption', () async {
       final failing = BasePartFileSink(
         tempDirProvider: () async => dir,

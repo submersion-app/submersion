@@ -22,6 +22,7 @@ Tap the **+** button (or **Add Buddy** on desktop) to open the edit form. The fi
 | **Name** | Required. |
 | **Email** | Optional. Tapping it on the detail page opens your mail app. |
 | **Phone** | Optional. Tapping it on the detail page opens your phone dialer. |
+| **Leave out of buddy rankings** | Optional. See [Leaving a buddy out of the rankings](#leaving-a-buddy-out-of-the-rankings). |
 | **Certifications** | Tap **Add certification** for each card the buddy holds, with its agency and level. A buddy with an instructor-level certification is offered first when you pick an instructor. |
 | **Notes** | Free text. |
 
@@ -58,6 +59,12 @@ Selected buddies appear as chips on the dive form, each showing the person's nam
 
 The buddy detail page shows a **Dive Statistics** card with the number of dives you have done together, the date of your first and last shared dive, and your most-visited site together. Under **Shared Dives**, **View All** opens the dive list filtered to just those dives.
 
+### Leaving a buddy out of the rankings
+
+If you remember diving with someone but not their name, you can add a buddy called "Unknown" and still record those dives as buddy dives. To stop that record showing up as your top buddy, turn on **Leave out of buddy rankings** in the buddy's edit form. It works for any buddy, not only a placeholder.
+
+A buddy left out of the rankings no longer appears in **Top Dive Buddies** in Insights, as a regular buddy in your Insights observations, or under **Most Dives** in the Buddies overview. Everything else stays the same: their dives still count as buddy dives in **Solo vs Buddy Dives**, and they stay in your buddy list and on each dive. Their detail page shows **Left out of buddy rankings** in the **Dive Statistics** card.
+
 ### Merging duplicate buddies
 
 If the same person has been entered more than once (for example, with slightly different name spellings), you can merge the duplicates into one record without losing any dive history.
@@ -66,6 +73,8 @@ If the same person has been entered more than once (for example, with slightly d
 2. Choose **Merge** from the selection action bar.
 3. The merge form shows conflicting field values from each duplicate and lets you choose which value to keep by tapping the cycle button next to any field.
 4. Confirm to merge. The surviving record absorbs all dive links from the deleted duplicates. If both records were on the same dive, the surviving buddy keeps the roles of both. The merge can be undone immediately after it completes.
+
+**Leave out of buddy rankings** starts on in the merge form only if every buddy you are merging has it on, so merging an "Unknown" record into a real person puts that person in the rankings. You can change it before you confirm.
 
 ### Buddy signatures on training dives
 

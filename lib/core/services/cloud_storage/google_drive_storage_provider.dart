@@ -12,6 +12,7 @@ import 'package:submersion/core/services/cloud_storage/google_drive/desktop_oaut
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_client_config.dart';
+import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_errors.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_sign_in_authenticator.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/keychain_gated_authenticator.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -91,8 +92,13 @@ class GoogleDriveStorageProvider
   }
 
   @override
-  Future<void> authenticate() async {
-    await _authenticator.authenticate();
+  Future<void> authenticate() => authenticateAs(null);
+
+  /// [authenticate], refusing an account other than [expectedAccount] with
+  /// [CloudAccountMismatchException]. Not on [CloudStorageProvider]: only
+  /// Google and Dropbox let a diver pick another account at sign-in.
+  Future<void> authenticateAs(String? expectedAccount) async {
+    await _authenticator.authenticate(expectedAccount: expectedAccount);
     _driveApi = null; // rebuilt lazily from the fresh auth client
     _syncFolderId = null; // this sign-in may be another account's
     if (_api == null) {
@@ -204,7 +210,9 @@ class GoogleDriveStorageProvider
       if (!_isAuthRejection(e)) rethrow;
       _log.info('Drive rejected the sign-in ($e); attempting silent re-auth');
       if (!await _reauthorize(client)) {
-        throw _signInExpired(e);
+        throw _authenticator.lastSilentAuthThrew
+            ? driveRefreshFailed(e)
+            : driveSignInExpired(e);
       }
       final retryClient = _authenticator.authClient;
       try {
@@ -216,7 +224,7 @@ class GoogleDriveStorageProvider
         if (!_isAuthRejection(retryError)) rethrow;
         _log.warning('Drive rejected the re-authorized sign-in: $retryError');
         await _dropRejectedAuth(retryClient);
-        throw _signInExpired(retryError);
+        throw driveSignInExpired(retryError);
       }
     }
   }
@@ -235,7 +243,7 @@ class GoogleDriveStorageProvider
   ) async {
     _log.warning('Drive refused a sign-in without Drive access: $refusal');
     await _dropRejectedAuth(client);
-    return const CloudStorageException(googleDriveAccessNotAllowed);
+    return const CloudAccessRefusedException(googleDriveAccessNotAllowed);
   }
 
   /// Replaces [rejected] with a freshly authorized client, sharing one
@@ -281,14 +289,6 @@ class GoogleDriveStorageProvider
       (e is drive.DetailedApiRequestError && e.status == 401) ||
       isRevokedDriveGrant(e);
 
-  static CloudStorageException _signInExpired(Object cause) =>
-      CloudStorageException(
-        'Google Drive sign-in expired. Please sign in again.',
-        // That exception's text is the raw challenge header, which
-        // displayMessage would append. [_run] has already logged it.
-        cause is gauth.AccessDeniedException ? null : cause,
-      );
-
   /// Maps a Drive error to a CloudStorageException with an actionable
   /// message where one exists (quota); otherwise a generic wrapper.
   CloudStorageException _mapDriveError(
@@ -301,6 +301,15 @@ class GoogleDriveStorageProvider
         e.errors.any((d) => d.reason == 'storageQuotaExceeded')) {
       return CloudStorageException(
         'Google Drive storage is full',
+        e,
+        stackTrace,
+      );
+    }
+    if (e is drive.DetailedApiRequestError &&
+        e.status == 403 &&
+        e.errors.any((d) => driveRefusedReasons.contains(d.reason))) {
+      return CloudAccessRefusedException(
+        '$operation failed: $e',
         e,
         stackTrace,
       );

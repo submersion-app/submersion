@@ -9,7 +9,6 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One plan in a comparison: the aggregate, its engine outcome, and the
@@ -67,7 +66,7 @@ class PlanComparePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final comparison = ref.watch(planComparisonProvider(planIds.join(',')));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.plannerCanvas_compare_title)),

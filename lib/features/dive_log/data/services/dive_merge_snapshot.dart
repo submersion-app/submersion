@@ -2,7 +2,9 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 
 /// Plain-data capture of every row touched by a dive merge (#449), taken
 /// before mutation so a merge can later be undone.
@@ -33,6 +35,8 @@ class DiveMergeSnapshot {
     this.buddyRoleRows = const [],
     this.profileSeriesRows = const [],
     this.tankSeriesRows = const [],
+    this.navTrackRows = const [],
+    this.linkedRows = const [],
   });
 
   /// The id assigned to the new merged dive.
@@ -104,6 +108,14 @@ class DiveMergeSnapshot {
   /// dropped the row-per-sample tables this class used to snapshot too.
   final List<DiveProfileSeriesRow> profileSeriesRows;
   final List<TankPressureSeriesRow> tankSeriesRows;
+
+  /// The routes linked to the captured dives (issue #3918), with `points`
+  /// left empty: an undo restores only their link columns.
+  final List<NavTrackRow> navTrackRows;
+
+  /// The other records that point at the captured dives (issue #3918), for
+  /// an undo to point back.
+  final List<DiveLinkedRow> linkedRows;
 
   /// The sync key (entity type, record id) of every data source, tide record
   /// and gear link, the children an undo restores by a verbatim batch insert
@@ -191,6 +203,8 @@ class DiveMergeSnapshot {
         database: db,
         syncRepository: SyncRepository(database: db),
       ).getRowsForDives(diveIds),
+      navTrackRows: await NavTrackRepository().linkedRowsForDives(diveIds),
+      linkedRows: await DiveFoldLinks().read(diveIds),
     );
   }
 }

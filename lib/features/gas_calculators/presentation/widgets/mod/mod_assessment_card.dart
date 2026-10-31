@@ -8,7 +8,6 @@ import 'package:submersion/features/gas_calculators/domain/gas_density_calculato
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -148,12 +147,12 @@ class ModAssessmentCard extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
     final items = modAssessments(
       ref.watch(modCalculatorResultProvider),
       l10n: l10n,
-      units: UnitFormatter(settings),
-      endLimitMeters: settings.endLimit,
+      units: units,
+      endLimitMeters: units.settings.endLimit,
     );
 
     return Card(

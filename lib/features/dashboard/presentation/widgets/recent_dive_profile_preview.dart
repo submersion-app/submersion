@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Depth profile of the newest dive, shown beside the recent-dives list on
@@ -96,7 +95,7 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final formatter = UnitFormatter(ref.watch(settingsProvider));
+    final formatter = ref.watch(unitFormatterProvider);
     final siteName = dive.site?.name;
 
     return Row(

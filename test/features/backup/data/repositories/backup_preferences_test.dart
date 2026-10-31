@@ -54,6 +54,12 @@ void main() {
       expect(backupPreferences.getSettings().lastCloudCopyMissing, isTrue);
     });
 
+    test('lastCloudCopyNeedsSignIn defaults false and round-trips', () async {
+      expect(backupPreferences.getSettings().lastCloudCopyNeedsSignIn, isFalse);
+      await backupPreferences.setLastCloudCopyNeedsSignIn(true);
+      expect(backupPreferences.getSettings().lastCloudCopyNeedsSignIn, isTrue);
+    });
+
     test('lastBackupDestination defaults null and round-trips', () async {
       expect(backupPreferences.getSettings().lastBackupDestination, isNull);
       await backupPreferences.setLastBackupDestination(

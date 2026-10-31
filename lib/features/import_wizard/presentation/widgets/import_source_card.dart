@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -95,7 +94,7 @@ class ImportSourceCard extends ConsumerWidget {
     final lines = importSourceLines(
       source,
       l10n: context.l10n,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
     );
 
     return Card(

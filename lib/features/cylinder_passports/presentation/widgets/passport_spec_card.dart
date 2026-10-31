@@ -7,7 +7,6 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Volume, working pressure, material and valve from the attributes; free
@@ -21,8 +20,7 @@ class PassportSpecCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final newest = ref.watch(newestFillProvider(equipment.id)).value;
     final metrics = PassportSpecMetrics.compute(
       volumeL: equipment.volumeL,
@@ -30,7 +28,7 @@ class PassportSpecCard extends ConsumerWidget {
       material: equipment.tankMaterial,
       o2Percent: newest?.o2Percent ?? 21,
       hePercent: newest?.hePercent ?? 0,
-      gasModel: settings.gasModel,
+      gasModel: units.settings.gasModel,
     );
     final valve = equipment.attrText('valve_type');
     final rows = <(String, String)>[

@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_gas_record_providers.dart';
@@ -41,7 +40,7 @@ class TripCylinderRecordView extends ConsumerWidget {
             : const CircularProgressIndicator(),
       );
     }
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final header = <Widget>[
       _Totals(
         record: record,
@@ -238,7 +237,7 @@ Future<void> showUnlinkedTanksSheet(
                   final record = ref.watch(tripGasRecordProvider(tripId)).value;
                   final tanks = record?.unlinked ?? const <TripUnlinkedTank>[];
                   final showDivers = record?.multipleDivers ?? false;
-                  final units = UnitFormatter(ref.watch(settingsProvider));
+                  final units = ref.watch(unitFormatterProvider);
                   // Lazy: before any link, every tank on the trip is a gap.
                   return ListView.builder(
                     controller: scrollController,

@@ -11,15 +11,18 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Whether [review] has any finding [settings] would show, once the
-/// diver's disabled-rule filter is applied.
+/// Whether [review] has any finding to show, with the review [enabled] and
+/// the diver's [disabled] rules filtered out.
 ///
 /// Shared with [DiveSafetySummarySection] so the section that decides
 /// whether to reserve space for [SafetyReviewSection] and the widget that
 /// decides whether to render it agree on the same answer.
-bool hasVisibleSafetyFindings(AppSettings settings, SafetyReview? review) {
-  if (!settings.safetyReviewEnabled || review == null) return false;
-  final disabled = settings.safetyReviewDisabledRules;
+bool hasVisibleSafetyFindings(
+  SafetyReview? review, {
+  required bool enabled,
+  required Set<String> disabled,
+}) {
+  if (!enabled || review == null) return false;
   return review.findings.any((f) => !disabled.contains(f.ruleId.dbValue));
 }
 
@@ -46,13 +49,17 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final enabled = ref.watch(safetyReviewEnabledProvider);
+    final disabled = ref.watch(safetyReviewDisabledRulesProvider);
     final review = ref.watch(safetyReviewProvider(widget.diveId)).value;
-    if (!hasVisibleSafetyFindings(settings, review)) {
+    if (!hasVisibleSafetyFindings(
+      review,
+      enabled: enabled,
+      disabled: disabled,
+    )) {
       return const SizedBox.shrink();
     }
 
-    final disabled = settings.safetyReviewDisabledRules;
     final visible = review!.findings
         .where((f) => !disabled.contains(f.ruleId.dbValue))
         .toList();
@@ -60,7 +67,7 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
     final dismissed = visible.where((f) => f.isDismissed).toList();
 
     final l10n = context.l10n;
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final selectedFinding = ref.watch(
       selectedSafetyFindingProvider(widget.diveId),
     );

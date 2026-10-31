@@ -13,7 +13,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_chip.dart';
@@ -38,8 +37,7 @@ class PlanTankList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     // The planner derives roles rather than storing them, so each chip's
     // glyph follows the plan as the diver edits it (issue #2901).
     final roles = const TankRoleResolver().rolesFor(

@@ -19,7 +19,7 @@ class PlanDecoSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

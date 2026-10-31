@@ -7,7 +7,6 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The item page's check-in list: every observation on the item, newest
@@ -99,7 +98,7 @@ class _ObservationRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final scheme = Theme.of(context).colorScheme;
     final title = observation.displayTitle(l10n);
     final note = observation.noteSummary;

@@ -6,6 +6,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/insights/domain/observations/observation_inputs.dart';
 
 /// Read-only SQL for the observation rules (#2381): one row per in-scope
@@ -27,8 +28,7 @@ class ObservationInputsQueries {
             'SELECT d.id AS id, d.dive_date_time AS ms, '
             'd.max_depth AS max_depth, '
             '${measuredRuntimeSecondsSql('d')} AS runtime_s, '
-            '(SELECT SUM(w.amount_kg) FROM dive_weights w '
-            'WHERE w.dive_id = d.id) AS weight_kg, '
+            '${recordedWeightKgSql('d')} AS weight_kg, '
             'd.site_id AS site_id, ds.name AS site_name, '
             'ds.country AS country, '
             'EXISTS (SELECT 1 FROM dive_profile_series s '
@@ -72,7 +72,9 @@ class ObservationInputsQueries {
   }
 
   /// Each in-scope dive's linked buddies, once per buddy even when one
-  /// buddy is linked to a dive under two roles.
+  /// buddy is linked to a dive under two roles. A buddy excluded from the
+  /// rankings is left out (issue #3624): the rule that reads this names the
+  /// diver's regular buddy.
   Future<Map<String, List<ObservationBuddy>>> _buddiesByDive(
     String diverFilter,
     List<Variable<Object>> variables,
@@ -82,7 +84,8 @@ class ObservationInputsQueries {
           'SELECT DISTINCT db.dive_id AS dive_id, b.id AS id, b.name AS name '
           'FROM dive_buddies db JOIN buddies b ON b.id = db.buddy_id '
           'JOIN dives d ON d.id = db.dive_id '
-          'WHERE 1=1 $diverFilter ${DiveStatsScope.and(alias: 'd')} '
+          'WHERE b.excluded_from_rankings = 0 $diverFilter '
+          '${DiveStatsScope.and(alias: 'd')} '
           'ORDER BY b.name, b.id',
           variables: variables,
           readsFrom: {_db.diveBuddies, _db.buddies, _db.dives},

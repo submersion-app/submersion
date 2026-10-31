@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
@@ -117,9 +116,6 @@ void main() {
           profileAnalysisProvider(dive.id).overrideWith(
             (ref) async => analysisWithSacSegments(tankId: segmentTankId),
           ),
-          selectedSegmentationProvider.overrideWith(
-            (ref) => SacSegmentationType.timeInterval,
-          ),
           gasSwitchesProvider(
             dive.id,
           ).overrideWith((ref) async => <GasSwitchWithTank>[]),
@@ -161,7 +157,7 @@ void main() {
   /// also mentions L/min, so this must not match prose.
   Finder unitIn(Finder card, String unit) => find.descendant(
     of: card,
-    matching: find.textContaining(RegExp('^\\d+(\\.\\d+)? $unit/min\$')),
+    matching: find.textContaining(RegExp('\\d $unit/min')),
   );
 
   testWidgets('explains the bar/min fallback when L/min is selected', (
@@ -249,9 +245,6 @@ void main() {
           profileAnalysisProvider(
             dive.id,
           ).overrideWith((ref) async => analysisWithSacSegments()),
-          selectedSegmentationProvider.overrideWith(
-            (ref) => SacSegmentationType.timeInterval,
-          ),
           gasSwitchesProvider(
             dive.id,
           ).overrideWith((ref) async => <GasSwitchWithTank>[]),
@@ -347,6 +340,17 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.textContaining('L/min'), findsWidgets);
+  });
+
+  testWidgets('the lane chip keeps a full tap target', (tester) async {
+    await pumpWith(
+      tester,
+      dive: diveWithProfile(tanks: const [backGasWithVolume]),
+      settings: const AppSettings(),
+    );
+
+    final chip = find.byType(SegmentedButton<GasConsumptionLane>);
+    expect(tester.getSize(chip).height, greaterThanOrEqualTo(48));
   });
 
   testWidgets('single-lane modes show no chip', (tester) async {

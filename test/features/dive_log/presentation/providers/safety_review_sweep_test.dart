@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -131,7 +133,13 @@ void main() {
 
   /// A container whose analysis always yields a rapid-ascent fixture, so every
   /// dive produces a persistable review.
-  ProviderContainer makeContainer(SafetyFindingsRepository repo) {
+  ///
+  /// [onAnalyzeD1] runs at the start of the analysis of d1, so a test can hold
+  /// it mid-load.
+  ProviderContainer makeContainer(
+    SafetyFindingsRepository repo, {
+    Future<void> Function()? onAnalyzeD1,
+  }) {
     final profile = rapidAscentProfile();
     // Stamped with the loaded settings' fingerprint, as the real pipeline
     // does: a review is saved only from an analysis that records them.
@@ -146,7 +154,10 @@ void main() {
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         safetyFindingsRepositoryProvider.overrideWithValue(repo),
         safetyReviewEnabledProvider.overrideWithValue(true),
-        profileAnalysisProvider('d1').overrideWith((ref) async => analysis),
+        profileAnalysisProvider('d1').overrideWith((ref) async {
+          await onAnalyzeD1?.call();
+          return analysis;
+        }),
         profileAnalysisProvider('d2').overrideWith((ref) async => analysis),
         profileAnalysisProvider(
           'd-newer',
@@ -168,6 +179,39 @@ void main() {
     expect(result.failed, 0);
     expect(result.cancelled, isFalse);
   });
+
+  // Issue #3807: nothing but the sweep reads these reviews, and invalidating an
+  // unlistened provider mid-load strands its future.
+  for (final recompute in [false, true]) {
+    test('a review invalidated mid-load does not stall the sweep '
+        '(recompute: $recompute)', () async {
+      final started = Completer<void>();
+      final gate = Completer<void>();
+      final container = makeContainer(
+        _RecordingRepo(),
+        onAnalyzeD1: () {
+          if (!started.isCompleted) started.complete();
+          return gate.future;
+        },
+      );
+
+      final sweep = container
+          .read(safetyReviewSweepProvider)
+          .run(diverId: 'diver-a', recompute: recompute);
+      await started.future.timeout(const Duration(seconds: 5));
+      container.invalidate(profileAnalysisProvider('d1'));
+      container.invalidate(
+        recompute
+            ? safetyReviewRecomputeProvider('d1')
+            : safetyReviewProvider('d1'),
+      );
+      await pumpEventQueue();
+      gate.complete();
+
+      final result = await sweep.timeout(const Duration(seconds: 5));
+      expect(result.swept, 1);
+    });
+  }
 
   test('scopes to a single diver when diverId is supplied', () async {
     final repo = _RecordingRepo();

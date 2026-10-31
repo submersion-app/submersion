@@ -12,9 +12,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// and the Insights filter only, so a unit change does not re-query.
 final conditionsRowsProvider = FutureProvider<List<ConditionsRow>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchInsightsChanges());
-  final diverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges(filter: filter));
+  final diverId = ref.watch(currentDiverIdProvider);
   return repository.getConditionsRows(diverId: diverId, filter: filter);
 });
 
