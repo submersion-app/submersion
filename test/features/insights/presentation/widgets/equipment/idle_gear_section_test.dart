@@ -18,12 +18,10 @@ Future<ProviderContainer> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [idleGearProvider.overrideWith((ref) => load())],
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
-          body: SingleChildScrollView(child: IdleGearSection()),
-        ),
+        home: Scaffold(body: SingleChildScrollView(child: IdleGearSection())),
       ),
     ),
   );

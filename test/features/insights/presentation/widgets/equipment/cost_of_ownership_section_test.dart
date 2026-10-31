@@ -50,10 +50,10 @@ Future<void> _pump(
     ProviderScope(
       key: UniqueKey(),
       overrides: [costOfOwnershipProvider.overrideWith((ref) => load())],
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(
+        home: Scaffold(
           body: SingleChildScrollView(child: CostOfOwnershipSection()),
         ),
       ),
