@@ -215,6 +215,26 @@ void main() {
       expect(cleaned[0].depth, 10.0);
     });
 
+    test('handles outlier at last point', () {
+      final profile = [
+        const DiveProfilePoint(timestamp: 0, depth: 10.0),
+        const DiveProfilePoint(timestamp: 4, depth: 12.0),
+        const DiveProfilePoint(timestamp: 8, depth: 50.0), // outlier
+      ];
+      final outliers = [
+        const OutlierResult(
+          index: 2,
+          timestamp: 8,
+          depth: 50.0,
+          depthDelta: 38.0,
+          zScore: 5.0,
+        ),
+      ];
+      final cleaned = service.removeOutliers(profile, outliers);
+      // Last point has no right neighbor -- use left neighbor's depth
+      expect(cleaned[2].depth, 12.0);
+    });
+
     test('returns original when no outliers provided', () {
       final profile = [
         const DiveProfilePoint(timestamp: 0, depth: 10.0),
