@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
+import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -286,6 +287,41 @@ class ChangeLogRepository {
       }
     }
     return references;
+  }
+
+  /// Whether the record still exists, for offering a link to it.
+  Future<bool> recordExists(String table, String id) async {
+    final specs = changeLogSpecsFor(_db);
+    final spec = specs.where((s) => s.table == table).firstOrNull;
+    if (spec == null) return false;
+    final match = changeLogKeyMatch(spec, id);
+    final row = await _db
+        .customSelect(
+          'SELECT 1 FROM "$table" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    return row != null;
+  }
+
+  /// What each of [roots] is called now, as a reference. A record that has
+  /// gone comes back marked missing.
+  Future<Map<ChangeLogRoot, ConflictReference>> describeRoots(
+    Iterable<ChangeLogRoot> roots,
+  ) async {
+    final resolver = ConflictReferenceResolver(SyncDataSerializer());
+    final names = <ChangeLogRoot, ConflictReference>{};
+    for (final root in roots) {
+      try {
+        names[root] = await resolver.describe(
+          changeLogEntityType(root.table),
+          root.id,
+        );
+      } catch (error) {
+        _log.warning('Could not name ${root.table}: $error');
+      }
+    }
+    return names;
   }
 
   /// Removes [diverId]'s entries, and returns how many. Entries with no

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
@@ -226,6 +227,11 @@ class _CertificationDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'certifications',
+                rootId: certification.id,
+              ),
               PopupMenuItem(
                 value: 'delete',
                 child: Row(
@@ -329,6 +335,11 @@ class _CertificationDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'certifications',
+                rootId: certification.id,
+              ),
               PopupMenuItem(
                 value: 'delete',
                 child: Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -154,6 +155,11 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'equipment_sets',
+                rootId: setId,
+              ),
               PopupMenuItem(
                 value: _toggleFigureAction,
                 child: ListTile(

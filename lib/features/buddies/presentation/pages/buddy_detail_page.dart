@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
@@ -224,6 +225,11 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'buddies',
+                rootId: buddy.id,
+              ),
               openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',
@@ -340,6 +346,11 @@ class _BuddyDetailContent extends ConsumerWidget {
               }
             },
             itemBuilder: (context) => [
+              changeLogHistoryMenuItem(
+                context,
+                rootTable: 'buddies',
+                rootId: buddy.id,
+              ),
               openInConnectionsMenuItem(context),
               PopupMenuItem(
                 value: 'share',

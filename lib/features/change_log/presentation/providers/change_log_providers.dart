@@ -115,6 +115,61 @@ final changeLogFeedProvider = AsyncNotifierProvider.autoDispose
       ChangeLogFeedNotifier.new,
     );
 
+/// The most records an entry's page lists.
+const int kChangeLogDetailLimit = 500;
+
+/// Everything an entry's page shows.
+class ChangeLogEntryDetail {
+  const ChangeLogEntryDetail({
+    required this.operation,
+    required this.events,
+    required this.references,
+    required this.rootNames,
+    required this.rootExists,
+  });
+
+  final ChangeLogOperation operation;
+
+  /// Oldest first, up to [kChangeLogDetailLimit].
+  final List<ChangeLogEvent> events;
+  final Map<String, List<ConflictReference>> references;
+  final Map<ChangeLogRoot, ConflictReference> rootNames;
+
+  /// Whether the entry's one record still exists. False for a bulk entry.
+  final bool rootExists;
+}
+
+final changeLogEntryDetailProvider = FutureProvider.autoDispose
+    .family<ChangeLogEntryDetail?, String>((ref, id) async {
+      final repository = ref.watch(changeLogRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      final operation = await repository.getOperation(id);
+      if (operation == null) return null;
+      final events = await repository.getEvents(
+        id,
+        limit: kChangeLogDetailLimit,
+      );
+      final rootTable = operation.rootTable;
+      final rootId = operation.rootId;
+      return ChangeLogEntryDetail(
+        operation: operation,
+        events: events,
+        references: await repository.resolveReferences([
+          for (final event in events)
+            if (event.action == ChangeLogAction.update) ...event.fields,
+        ]),
+        rootNames: operation.isBulk
+            ? await repository.describeRoots({
+                for (final event in events) event.root,
+              })
+            : const {},
+        rootExists:
+            rootTable != null &&
+            rootId != null &&
+            await repository.recordExists(rootTable, rootId),
+      );
+    });
+
 /// One entry, for its detail page.
 final changeLogOperationProvider = FutureProvider.autoDispose
     .family<ChangeLogOperation?, String>((ref, id) {

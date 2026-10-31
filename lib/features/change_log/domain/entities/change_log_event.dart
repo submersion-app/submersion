@@ -14,6 +14,9 @@ enum ChangeLogAction {
       values.firstWhere((action) => action.code == code);
 }
 
+/// The record a change belongs to in the feed.
+typedef ChangeLogRoot = ({String table, String id});
+
 /// One changed column. A value keeps the type SQLite stored it with, so it
 /// can be text, a number, bytes or null.
 class ChangeLogFieldChange extends Equatable {
@@ -63,6 +66,8 @@ class ChangeLogEvent extends Equatable {
 
   /// The changed columns of an update, or every non-null column of a delete.
   final List<ChangeLogFieldChange> fields;
+
+  ChangeLogRoot get root => (table: rootTable ?? table, id: rootId ?? recordId);
 
   @override
   List<Object?> get props => [
