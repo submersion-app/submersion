@@ -1827,7 +1827,11 @@ class InsightsRepository {
   // Social & Buddies Statistics
   // ============================================================================
 
-  /// Get top buddies by dive count
+  /// Get top buddies by dive count.
+  ///
+  /// A buddy excluded from the rankings is left out here rather than dropped
+  /// by the caller, so the [limit] is filled by buddies who rank (issue
+  /// #3624).
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
     int limit = 10,
@@ -1848,7 +1852,7 @@ class InsightsRepository {
         FROM buddies b
         JOIN dive_buddies db ON db.buddy_id = b.id
         JOIN dives d ON d.id = db.dive_id
-        WHERE 1=1 $diverFilter ${df.clause}
+        WHERE b.excluded_from_rankings = 0 $diverFilter ${df.clause}
         GROUP BY b.id
         ORDER BY dive_count DESC
         LIMIT ?

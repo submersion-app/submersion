@@ -197,6 +197,19 @@ void main() {
       expect(galleryPhoto.isGalleryPhoto, true);
     });
 
+    test('isGalleryPhoto returns false for an empty asset id', () {
+      final blank = MediaItem(
+        id: 'media-1',
+        platformAssetId: '',
+        mediaType: MediaType.photo,
+        takenAt: now,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      expect(blank.isGalleryPhoto, false);
+    });
+
     test('isGalleryPhoto returns false for file path only', () {
       final filePhoto = MediaItem(
         id: 'media-1',
