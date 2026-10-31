@@ -492,7 +492,7 @@ class GitBranchSession {
   /// A small blob of ours: kept in the store too, so reading it back needs
   /// no fetch.
   Future<GitTreePut> _bytesPut(Uint8List body) async {
-    final id = hashGitObject(GitObjectType.blob, body);
+    final id = await hashGitObjectOffIsolate(GitObjectType.blob, body);
     await store.put(
       GitStoredObject(id: id, type: GitObjectType.blob, body: body),
     );
@@ -520,7 +520,7 @@ class GitBranchSession {
       branch: branch,
       oldTip: oldTip,
       newTip: commitId,
-      pack: writePack([
+      pack: await preparePack([
         ...objects,
         PackEntrySource.bytes(GitObjectType.commit, commit),
       ]),

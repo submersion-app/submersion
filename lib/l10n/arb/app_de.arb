@@ -4479,6 +4479,7 @@
   "equipment_deleteDialog_title": "Ausrüstung löschen",
   "equipment_detail_brandLabel": "Marke",
   "equipment_detail_detailsTitle": "Details",
+  "equipment_detail_diveTimeLabel": "Tauchzeit",
   "equipment_detail_divesCountPlural": "{count} Tauchgänge",
   "equipment_detail_divesCountSingular": "{count} Tauchgang",
   "equipment_detail_divesLabel": "Tauchgänge",

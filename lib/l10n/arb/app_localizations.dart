@@ -24517,6 +24517,12 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get equipment_detail_detailsTitle;
 
+  /// No description provided for @equipment_detail_diveTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive Time'**
+  String get equipment_detail_diveTimeLabel;
+
   /// No description provided for @equipment_detail_divesCountPlural.
   ///
   /// In en, this message translates to:

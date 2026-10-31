@@ -4345,6 +4345,7 @@
   "equipment_deleteDialog_title": "Supprimer l'équipement",
   "equipment_detail_brandLabel": "Marque",
   "equipment_detail_detailsTitle": "Détails",
+  "equipment_detail_diveTimeLabel": "Temps de plongée",
   "equipment_detail_divesCountPlural": "{count} plongées",
   "equipment_detail_divesCountSingular": "{count} plongée",
   "equipment_detail_divesLabel": "Plongées",

@@ -15184,6 +15184,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Details';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Tauchzeit';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count Tauchgänge';
   }

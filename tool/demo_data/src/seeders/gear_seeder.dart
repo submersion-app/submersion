@@ -220,7 +220,6 @@ class GearSeeder implements DemoSeeder {
           equipmentIds: [for (final k in items) ctx.equipment[k]!],
           isDefault: key == 'warm',
           autoApplyOnComputerImport: key == 'lake',
-          showFigure: key == 'tech',
           createdAt: created,
           updatedAt: created,
         ),

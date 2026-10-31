@@ -15399,6 +15399,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'التفاصيل';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'وقت الغوص';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count غوصات';
   }

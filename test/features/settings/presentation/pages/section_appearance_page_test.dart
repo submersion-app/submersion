@@ -97,27 +97,26 @@ void main() {
       expect(find.text('Show data source badges'), findsOneWidget);
     });
 
-    testWidgets(
-      'the dive figure switch is under Dive Details, off, and saves',
-      (tester) async {
-        await tester.binding.setSurfaceSize(const Size(400, 4000));
-        addTearDown(() => tester.binding.setSurfaceSize(null));
-        final notifier = MockSettingsNotifier();
+    testWidgets('the dive figure switch is under Dive Details, on, and saves', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = MockSettingsNotifier();
 
-        await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+      await tester.pumpAndSettle();
 
-        final tile = find.widgetWithText(
-          SwitchListTile,
-          'Show diver figure on dives',
-        );
-        expect(tile, findsOneWidget);
-        expect(tester.widget<SwitchListTile>(tile).value, isFalse);
-        await tester.tap(tile);
-        await tester.pumpAndSettle();
-        expect(notifier.state.showDiveFigure, isTrue);
-      },
-    );
+      final tile = find.widgetWithText(
+        SwitchListTile,
+        'Show diver figure on dives',
+      );
+      expect(tile, findsOneWidget);
+      expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(notifier.state.showDiveFigure, isFalse);
+    });
 
     testWidgets(
       'the late gas switches switch is under Dive Profile, on, and saves',

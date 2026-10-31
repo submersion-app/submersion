@@ -1289,14 +1289,37 @@ class SyncService {
     );
     for (final f in files) {
       if (!ChangesetLogLayout.isManifest(f.name)) continue;
-      try {
-        final m = SyncManifest.fromBytes(await provider.downloadFile(f.id));
-        if (m.epochId == epochId && m.baseSeq != null) return true;
-      } catch (_) {
-        continue;
-      }
+      final m = await _usableManifest(provider, f.id);
+      if (m != null && m.epochId == epochId && m.baseSeq != null) return true;
     }
     return false;
+  }
+
+  /// The manifest in [fileId], or null when the cloud holds one this device
+  /// cannot use.
+  ///
+  /// A manifest that could not be fetched says nothing about the cloud, so that
+  /// failure propagates. Both callers count what is readable to decide whether
+  /// a library exists, and a "no" ends in a delete-all refill or in
+  /// [_reestablishEpochFromLocalLibrary] wiping every sync file: a dropped
+  /// connection must not be able to answer that.
+  Future<SyncManifest?> _usableManifest(
+    CloudStorageProvider provider,
+    String fileId,
+  ) async {
+    final Uint8List bytes;
+    try {
+      bytes = await provider.downloadFile(fileId);
+    } on EnvelopeCorruptException {
+      return null;
+    } on SyncEncryptionRequired {
+      return null;
+    }
+    try {
+      return SyncManifest.fromBytes(bytes);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Twin-identity split: if this device's own cloud manifest carries an
@@ -2182,10 +2205,10 @@ class SyncService {
   ///   2. parent-row id->updatedAt and contradiction keys (skips giant tables),
   ///   3. batched apply of every row through the existing [_mergeEntity].
   /// Applies a peer's base file. Tries the worker-isolate path (file read +
-  /// JSON parse off the UI isolate; the whole-file SHA-256 still runs on the
-  /// main isolate in BasePartFileSink.assemble -- folding it in is a deferred
-  /// follow-up) and falls back to the inline path on any worker failure, so a
-  /// broken isolate degrades to old behaviour and never fails or corrupts sync.
+  /// JSON parse off the UI isolate) and falls back to the inline path on any
+  /// worker failure, so a broken isolate degrades to old behaviour and never
+  /// fails or corrupts sync. The base's checksums were already verified, off
+  /// the UI isolate, by BasePartFileSink.assemble.
   ///
   /// [onProgress] receives a 0.0 to 1.0 fraction spanning the three passes
   /// (each pass is one third), with a final 1.0 once the transaction commits.
@@ -2238,8 +2261,7 @@ class SyncService {
   }
 
   /// Worker-backed base apply: the file read + JSON parse run in [client]'s
-  /// isolate; the merge/writes (and, for now, the whole-file SHA-256 in
-  /// BasePartFileSink.assemble) run here. Mirrors [_applyRemoteBaseFileInline]
+  /// isolate; the merge/writes run here. Mirrors [_applyRemoteBaseFileInline]
   /// exactly, fed by streamed rows in file order instead of an inline parse (so
   /// per-table batching and mergeOrder match).
   Future<_MergeResult> _applyRemoteBaseFileViaWorker(
@@ -5640,7 +5662,10 @@ class SyncService {
   /// which verifies per-part and whole-file checksums as bytes land), its base
   /// export time, and its post-base changesets decoded in memory (small
   /// deltas). Skips a device whose base parts are not all present or whose base
-  /// fails its checksum (a publish still in flight -> retry next adopt).
+  /// fails its checksum (a publish still in flight -> retry next adopt). A
+  /// fetch that was interrupted is not that: it says nothing about the cloud,
+  /// so the failure propagates, as [BaseFetchInterrupted] for a base and as
+  /// itself for a manifest or changeset, and the caller aborts.
   /// Replaces the old in-memory collect that decoded every device's whole base
   /// into RAM and OOM-crashed iOS adopting a large library (#358). The caller
   /// owns the returned temp files and must delete them.
@@ -5686,94 +5711,102 @@ class SyncService {
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
     final selfDeviceId = await _syncRepository.getDeviceId();
-    for (final deviceId in deviceIds) {
-      if (excludeDeviceIds.contains(deviceId)) continue;
-      final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
-      if (manifestFile == null) continue;
-      SyncManifest manifest;
-      try {
-        manifest = SyncManifest.fromBytes(
-          await provider.downloadFile(manifestFile.id),
+    try {
+      for (final deviceId in deviceIds) {
+        if (excludeDeviceIds.contains(deviceId)) continue;
+        final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
+        if (manifestFile == null) continue;
+        final manifest = await _usableManifest(provider, manifestFile.id);
+        if (manifest == null) continue;
+        // Recorded unconditionally: the manifest parsed, so a missing name is
+        // the peer's current state and clears any name it published before.
+        //
+        // Never for this device, though. Unlike a pull, this scan reads every
+        // manifest in the folder including its own, and PeerDeviceNameStore
+        // documents that this device is not in it: the device identity
+        // service already knows its own name, and a self entry would show up
+        // as a peer to anything that lists the map.
+        //
+        // Guarded on its own: nothing above catches here, so a failed
+        // preferences write would abort the whole scan and with it the
+        // library adoption, over optional metadata.
+        if (deviceId != selfDeviceId) {
+          try {
+            await _peerNames?.record(deviceId, manifest.deviceName);
+          } catch (e) {
+            _log.warning(
+              'Could not record the name for peer $deviceId',
+              error: e,
+            );
+          }
+        }
+        if (manifest.epochId != epochId) continue;
+        final baseSeq = manifest.baseSeq;
+        if (baseSeq == null) continue;
+        // Compatibility-floor filter, the adopt-side twin of the one in
+        // ChangesetReader.pull: a manifest's schemaVersion is its writer's
+        // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
+        // check because a base-less peer contributes nothing to adopt either
+        // way (pull holds its changesets on its own).
+        final peerSchema = manifest.schemaVersion;
+        if (peerSchema != null &&
+            peerSchema > AppDatabase.currentSchemaVersion) {
+          newerSchemaPeerDeviceIds.add(deviceId);
+          final name = manifest.deviceName;
+          if (name != null && name.isNotEmpty) {
+            newerSchemaPeerNames[deviceId] = name;
+          }
+          continue;
+        }
+        // Once any peer is held the collection is void: keep scanning manifests
+        // only to name every held peer, and fetch no more bases.
+        if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
+        final partCount = manifest.basePartCount ?? 0;
+        if (partCount <= 0) continue;
+        final path = await _baseSink.assemble(
+          name: 'ssv1_adopt_${deviceId}_$baseSeq',
+          partCount: partCount,
+          wholeChecksum: manifest.baseChecksum,
+          partChecksums: manifest.basePartChecksums,
+          downloadPart: (i) async {
+            final pf =
+                byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
+            if (pf == null) return null;
+            return provider.downloadFile(pf.id);
+          },
         );
-      } catch (_) {
-        continue;
-      }
-      // Recorded unconditionally: the manifest parsed, so a missing name is
-      // the peer's current state and clears any name it published before.
-      //
-      // Never for this device, though. Unlike a pull, this scan reads every
-      // manifest in the folder including its own, and PeerDeviceNameStore
-      // documents that this device is not in it: the device identity
-      // service already knows its own name, and a self entry would show up
-      // as a peer to anything that lists the map.
-      //
-      // Guarded on its own: nothing above catches here, so a failed
-      // preferences write would abort the whole scan and with it the
-      // library adoption, over optional metadata.
-      if (deviceId != selfDeviceId) {
-        try {
-          await _peerNames?.record(deviceId, manifest.deviceName);
-        } catch (e) {
-          _log.warning(
-            'Could not record the name for peer $deviceId',
-            error: e,
+        // Base incomplete/corrupt: skip this device.
+        if (path == null) continue;
+        baseFilePaths.add(path);
+        baseExportedAt.add(await _readBaseExportedAt(path));
+        // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
+        // first gap) so adopt can record it as this peer's cursor -- otherwise the
+        // next sync cold-starts and re-downloads the whole base we just applied.
+        var appliedThrough = baseSeq;
+        for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
+          final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
+          if (cf == null) break;
+          changesets.add(
+            _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
           );
+          appliedThrough = seq;
         }
+        cursors.add((
+          deviceId: deviceId,
+          baseSeq: baseSeq,
+          appliedThrough: appliedThrough,
+        ));
       }
-      if (manifest.epochId != epochId) continue;
-      final baseSeq = manifest.baseSeq;
-      if (baseSeq == null) continue;
-      // Compatibility-floor filter, the adopt-side twin of the one in
-      // ChangesetReader.pull: a manifest's schemaVersion is its writer's
-      // AppDatabase.minimumCompatibleSchemaVersion. Checked after the base
-      // check because a base-less peer contributes nothing to adopt either
-      // way (pull holds its changesets on its own).
-      final peerSchema = manifest.schemaVersion;
-      if (peerSchema != null && peerSchema > AppDatabase.currentSchemaVersion) {
-        newerSchemaPeerDeviceIds.add(deviceId);
-        final name = manifest.deviceName;
-        if (name != null && name.isNotEmpty) {
-          newerSchemaPeerNames[deviceId] = name;
-        }
-        continue;
+    } catch (_) {
+      // BaseFetchInterrupted says nothing about this device's base, and both
+      // callers are delete-all-refill: going on without it would drop its
+      // rows, and an empty set would read as "no library". So it, like any
+      // other failure here, aborts the collection. The temp files assembled so
+      // far are not the caller's to delete until this returns.
+      for (final path in baseFilePaths) {
+        await _baseSink.deleteQuietly(path);
       }
-      // Once any peer is held the collection is void: keep scanning manifests
-      // only to name every held peer, and fetch no more bases.
-      if (newerSchemaPeerDeviceIds.isNotEmpty) continue;
-      final partCount = manifest.basePartCount ?? 0;
-      if (partCount <= 0) continue;
-      final path = await _baseSink.assemble(
-        name: 'ssv1_adopt_${deviceId}_$baseSeq',
-        partCount: partCount,
-        wholeChecksum: manifest.baseChecksum,
-        partChecksums: manifest.basePartChecksums,
-        downloadPart: (i) async {
-          final pf =
-              byName[ChangesetLogLayout.basePartName(deviceId, baseSeq, i)];
-          if (pf == null) return null;
-          return provider.downloadFile(pf.id);
-        },
-      );
-      if (path == null) continue; // base incomplete/corrupt -> skip this device
-      baseFilePaths.add(path);
-      baseExportedAt.add(await _readBaseExportedAt(path));
-      // Track the last CONTIGUOUS seq we apply (base, then changesets up to the
-      // first gap) so adopt can record it as this peer's cursor -- otherwise the
-      // next sync cold-starts and re-downloads the whole base we just applied.
-      var appliedThrough = baseSeq;
-      for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
-        final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
-        if (cf == null) break;
-        changesets.add(
-          _changesetCodec.decodeChangeset(await provider.downloadFile(cf.id)),
-        );
-        appliedThrough = seq;
-      }
-      cursors.add((
-        deviceId: deviceId,
-        baseSeq: baseSeq,
-        appliedThrough: appliedThrough,
-      ));
+      rethrow;
     }
     if (newerSchemaPeerDeviceIds.isNotEmpty) {
       for (final path in baseFilePaths) {

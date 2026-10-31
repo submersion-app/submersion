@@ -4446,6 +4446,7 @@
   "equipment_deleteDialog_title": "حذف المعدات",
   "equipment_detail_brandLabel": "العلامة التجارية",
   "equipment_detail_detailsTitle": "التفاصيل",
+  "equipment_detail_diveTimeLabel": "وقت الغوص",
   "equipment_detail_divesCountPlural": "{count} غوصات",
   "equipment_detail_divesCountSingular": "{count} غوصة",
   "equipment_detail_divesLabel": "الغوصات",

@@ -4446,6 +4446,7 @@
   "equipment_deleteDialog_title": "Uitrusting verwijderen",
   "equipment_detail_brandLabel": "Merk",
   "equipment_detail_detailsTitle": "Details",
+  "equipment_detail_diveTimeLabel": "Duiktijd",
   "equipment_detail_divesCountPlural": "{count} duiken",
   "equipment_detail_divesCountSingular": "{count} duik",
   "equipment_detail_divesLabel": "Duiken",

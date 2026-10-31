@@ -4446,6 +4446,7 @@
   "equipment_deleteDialog_title": "Eliminar equipo",
   "equipment_detail_brandLabel": "Marca",
   "equipment_detail_detailsTitle": "Detalles",
+  "equipment_detail_diveTimeLabel": "Tiempo de inmersión",
   "equipment_detail_divesCountPlural": "{count} inmersiones",
   "equipment_detail_divesCountSingular": "{count} inmersión",
   "equipment_detail_divesLabel": "Inmersiones",

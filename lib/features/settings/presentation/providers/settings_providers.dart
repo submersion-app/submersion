@@ -585,7 +585,7 @@ class AppSettings {
   final bool showDataSourceBadges;
 
   /// Draw the dive's gear on the diver figure in the dive detail equipment
-  /// card (issue #2326). Off by default.
+  /// card (issue #2326). On by default (issue #3889).
   final bool showDiveFigure;
 
   /// Warm up underwater photos and videos on screen from the depth each was
@@ -854,7 +854,7 @@ class AppSettings {
     this.tripServiceLeadDays = 14,
     this.reminderTime = const TimeOfDay(hour: 9, minute: 0),
     this.showDataSourceBadges = true,
-    this.showDiveFigure = false,
+    this.showDiveFigure = true,
     this.autoColorCorrection = false,
     this.plannerDescentRate = 18.0,
     this.plannerAscentRate = 9.0,

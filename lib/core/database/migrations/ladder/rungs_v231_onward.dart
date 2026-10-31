@@ -43,7 +43,7 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 235) await reportProgress();
     // v237: diver_settings.show_dive_figure (issue #2326). Column-only
-    // rung, default off, no backfill.
+    // rung, no backfill; v329 turned the figure on for stored divers.
     if (from < 237) {
       await _assertShowDiveFigureColumn();
     }
@@ -701,5 +701,12 @@ extension RungsFromV231 on AppDatabase {
       await _dropMisspelledPpO2DecoBandColumns();
     }
     if (from < 327) await reportProgress();
+    // v329: the diver figure goes from opt-in to on by default (issue #3889),
+    // so every stored set and diver is turned on once. Not in the backstop,
+    // which runs on every open and would undo a later Hide.
+    if (from < 329) {
+      await _turnDiverFigureOnForEveryone();
+    }
+    if (from < 329) await reportProgress();
   }
 }

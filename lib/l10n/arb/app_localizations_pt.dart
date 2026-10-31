@@ -15190,6 +15190,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Detalhes';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Tempo de Mergulho';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count mergulhos';
   }

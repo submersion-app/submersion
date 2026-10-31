@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_source.dart';
+import 'package:submersion/core/services/sync/changeset_log/base_part_hasher_logged.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
@@ -229,15 +230,19 @@ class ChangesetWriter {
         final present = resumed == null
             ? const <int>{}
             : await _uploadedParts(provider, folderId, deviceId, seq);
-        final upload = await BasePartFileSource(publish.dataPath).uploadAll(
-          (i, bytes) => provider.uploadFile(
-            bytes,
-            ChangesetLogLayout.basePartName(deviceId, seq, i),
-            folderId: folderId,
-          ),
-          onPartUploaded: onBasePartUploaded,
-          skipPart: present.contains,
-        );
+        final upload =
+            await BasePartFileSource(
+              publish.dataPath,
+              openHasher: openLoggedBasePartHasher,
+            ).uploadAll(
+              (i, bytes) => provider.uploadFile(
+                bytes,
+                ChangesetLogLayout.basePartName(deviceId, seq, i),
+                folderId: folderId,
+              ),
+              onPartUploaded: onBasePartUploaded,
+              skipPart: present.contains,
+            );
         final manifest = SyncManifest(
           deviceId: deviceId,
           deviceName: deviceName,
@@ -543,14 +548,18 @@ class ChangesetWriter {
     );
     final BasePartUploadResult upload;
     try {
-      upload = await BasePartFileSource(base.path).uploadAll(
-        (i, bytes) => provider.uploadFile(
-          bytes,
-          ChangesetLogLayout.basePartName(deviceId, compSeq, i),
-          folderId: folderId,
-        ),
-        onPartUploaded: onBasePartUploaded,
-      );
+      upload =
+          await BasePartFileSource(
+            base.path,
+            openHasher: openLoggedBasePartHasher,
+          ).uploadAll(
+            (i, bytes) => provider.uploadFile(
+              bytes,
+              ChangesetLogLayout.basePartName(deviceId, compSeq, i),
+              folderId: folderId,
+            ),
+            onPartUploaded: onBasePartUploaded,
+          );
     } finally {
       try {
         await File(base.path).delete();

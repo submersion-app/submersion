@@ -14877,6 +14877,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'פרטים';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'זמן צלילה';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count צלילות';
   }

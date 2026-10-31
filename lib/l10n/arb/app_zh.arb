@@ -4573,6 +4573,7 @@
   "equipment_deleteDialog_title": "删除装备",
   "equipment_detail_brandLabel": "品牌",
   "equipment_detail_detailsTitle": "详情",
+  "equipment_detail_diveTimeLabel": "潜水时间",
   "equipment_detail_divesCountPlural": "{count} 次潜水",
   "equipment_detail_divesCountSingular": "{count} 潜水",
   "equipment_detail_divesLabel": "潜水",
