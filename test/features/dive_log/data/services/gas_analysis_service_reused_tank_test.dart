@@ -253,6 +253,59 @@ void main() {
       }
     });
 
+    group('a stale switch resolved to a cylinder the others rule out', () {
+      // The first cylinder is a stage no switch names, breathed never as far
+      // as the known switches go, and a stale id falls back to it from 10:00.
+      const stage = DiveTank(
+        id: 'stage',
+        volume: 7,
+        startPressure: 200,
+        endPressure: 150,
+        role: TankRole.stage,
+      );
+      const backGas = DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 100,
+        role: TankRole.backGas,
+        order: 1,
+      );
+      final switches = [switchTo('back', 0), switchTo('stale-id', 600)];
+
+      test('charges it nothing on logged pressures', () {
+        final dive = makeDive(const [stage, backGas]);
+
+        final segments = service.calculateGasSwitchSegments(
+          profile: dive.profile,
+          tanks: dive.tanks,
+          gasSwitches: switches,
+        );
+
+        expect(segments!.map((s) => s.tankId), ['back']);
+      });
+
+      test('keeps a drop its transmitter measured', () {
+        // A falling series is direct evidence the cylinder was on the
+        // regulator, whatever the stale switch failed to say.
+        TankPressurePoint point(int t, double bar) =>
+            TankPressurePoint(tankId: 'stage', timestamp: t, pressure: bar);
+        final dive = makeDive(const [stage, backGas]);
+
+        final segments = service.calculateGasSwitchSegments(
+          profile: dive.profile,
+          tanks: dive.tanks,
+          gasSwitches: switches,
+          tankPressures: {
+            'stage': [point(600, 200), point(2400, 150)],
+          },
+        );
+
+        expect(segments!.last.tankId, 'stage');
+        expect(segments.last.sacRate, closeTo(50 / 30 / 3, 1e-9));
+      });
+    });
+
     test('picks each period up at the pressure the last one left', () {
       // Only the real gas model's rate depends on the absolute pressures.
       final dive = makeDive(const [left, right]);

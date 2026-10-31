@@ -429,7 +429,8 @@ class GasAnalysisService {
   /// When [tank]'s logged pressure drop happened, to share it among segments:
   /// its usage windows when the gas switches identify any, else the whole
   /// dive. A tank only breathed for part of the dive must not have its drop
-  /// spread across all of it.
+  /// spread across all of it. Empty when the switches name other cylinders
+  /// and never this one: a stale switch that fell back to it says nothing.
   static List<TankUsageWindow> _prorationWindows({
     required DiveTank tank,
     required List<DiveTank> tanks,
@@ -445,7 +446,10 @@ class GasAnalysisService {
       diveEnd: diveEnd,
       tanks: tanks,
     );
-    return windows.isEmpty ? [(start: diveStart, end: diveEnd)] : windows;
+    if (windows.isNotEmpty) return windows;
+    return knownGasSwitches(tanks, gasSwitches, before: diveEnd).isEmpty
+        ? [(start: diveStart, end: diveEnd)]
+        : const [];
   }
 
   /// Compute SAC rate under [model], using its gas volumes.
@@ -604,7 +608,8 @@ class GasAnalysisService {
     double? startPressure;
     double? endPressure;
     // A phase can outlast the tank's breathing time, which is what its drop
-    // happened over. None at all is a segment a stale switch handed to it.
+    // happened over. None at all is a segment a stale switch handed to it,
+    // where only a transmitter can say the tank was on the regulator.
     final breathedInSegment = prorationWindows.breathedBetween(
       startTime,
       endTime,
