@@ -415,6 +415,40 @@ void main() {
       expect(pin, {'pinned': 180, 'unpinned': null});
     });
 
+    test('keeps a photo at its moment on the profile', () async {
+      await seedRecording('a', startMinutes: 0);
+      await seedRecording('b', startMinutes: 2);
+      await consolidation.apply(targetDiveId: 'a', secondaryDiveIds: ['b']);
+      await db
+          .into(db.media)
+          .insert(
+            const MediaCompanion(
+              id: Value('photo'),
+              diveId: Value('a'),
+              filePath: Value('photo.jpg'),
+              createdAt: Value(1),
+              updatedAt: Value(1),
+            ),
+          );
+      await db
+          .into(db.mediaEnrichment)
+          .insert(
+            const MediaEnrichmentCompanion(
+              id: Value('placed'),
+              mediaId: Value('photo'),
+              diveId: Value('a'),
+              elapsedSeconds: Value(300),
+              createdAt: Value(1),
+            ),
+          );
+
+      await splitter.split(diveId: 'a', sourceId: 'src-a');
+
+      final row = await db.select(db.mediaEnrichment).getSingle();
+      expect(row.elapsedSeconds, 180);
+      expect(row.hlc, isNotNull);
+    });
+
     test(
       'drops the safety review, which graded the computer that left',
       () async {

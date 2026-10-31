@@ -5167,6 +5167,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       ref.invalidate(diveProfileProvider(dive.id));
       ref.invalidate(sourceProfilesProvider(dive.id));
       ref.invalidate(diveDataSourcesProvider(dive.id));
+      ref.invalidate(mediaForDiveProvider(dive.id));
       ref.invalidate(paginatedDiveListProvider);
       ref.invalidate(divesProvider);
       ScaffoldMessenger.of(context).showSnackBar(

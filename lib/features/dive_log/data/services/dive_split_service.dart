@@ -671,8 +671,8 @@ class DiveSplitService {
   /// Makes the moment [offset] seconds along [diveId]'s timeline its new
   /// zero. Everything on the timeline moves back by [offset] together, so
   /// the remaining strands stay aligned with one another and each of their
-  /// recorded offsets stays true, and a pinned photo stays at its moment. Run
-  /// after the departing source's rows are gone.
+  /// recorded offsets stays true, and a photo stays at its moment. Run after
+  /// the departing source's rows are gone.
   Future<void> _rezeroTimeline(
     String diveId,
     int offset, {
@@ -733,6 +733,27 @@ class DiveSplitService {
       );
       await _sync.markRecordPending(
         entityType: 'media',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    // A shift, not a job for the enricher: nothing recomputes a row that
+    // already exists until the diver next pins or opens that photo.
+    final placed =
+        await (_db.select(_db.mediaEnrichment)..where(
+              (t) => t.diveId.equals(diveId) & t.elapsedSeconds.isNotNull(),
+            ))
+            .get();
+    for (final row in placed) {
+      await (_db.update(
+        _db.mediaEnrichment,
+      )..where((t) => t.id.equals(row.id))).write(
+        MediaEnrichmentCompanion(
+          elapsedSeconds: Value(row.elapsedSeconds! - offset),
+        ),
+      );
+      await _sync.markRecordPending(
+        entityType: 'mediaEnrichment',
         recordId: row.id,
         localUpdatedAt: now,
       );
