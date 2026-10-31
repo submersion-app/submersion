@@ -200,8 +200,8 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
       color: colorScheme.primary,
       barWidth: 2.5,
       isStrokeCapRound: true,
-      // Off spares paint the walk over every sample when nothing is marked,
-      // except in Draw mode: fl_chart sizes its touch indicator from this flag.
+      // Off when nothing is marked, so paint skips its walk over every sample.
+      // Draw mode stays on: fl_chart sizes its touch indicator from this flag.
       dotData: FlDotData(
         show: widget.mode == EditorMode.draw || markedTimes.isNotEmpty,
         checkToShowDot: (spot, _) => markedTimes.contains(spot.x.toInt()),
@@ -216,18 +216,13 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
 
   /// The sample times this mode marks. Only Outlier and Draw mode mark any.
   Set<int> _markedTimestamps() => switch (widget.mode) {
-    EditorMode.outlier => {
-      for (final outlier in widget.outliers ?? const <OutlierResult>[])
-        outlier.timestamp,
-    },
-    EditorMode.draw => {
-      for (final waypoint in widget.waypoints ?? const <ProfileWaypoint>[])
-        waypoint.timestamp,
-    },
+    EditorMode.outlier => {...?widget.outliers?.map((o) => o.timestamp)},
+    EditorMode.draw => {...?widget.waypoints?.map((w) => w.timestamp)},
     EditorMode.select || EditorMode.smooth || EditorMode.trim => const {},
   };
 
   /// One painter serves every marked sample: it keeps nothing between draws.
+  /// Modes that mark nothing never reach it.
   FlDotPainter _buildMarkerPainter(ColorScheme colorScheme) =>
       switch (widget.mode) {
         EditorMode.draw => FlDotCirclePainter(
