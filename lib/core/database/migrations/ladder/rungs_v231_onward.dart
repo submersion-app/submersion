@@ -4,6 +4,10 @@ part of '../app_database_migrations.dart';
 ///
 /// New rungs are appended here. When this file nears 800 lines, give
 /// it a closed range like its neighbours and start the next one.
+///
+/// A rung that rewrites stored values in place (not one that only adds
+/// columns or copies them) lists the column in `changeLogRewrittenColumns`,
+/// so a revert will not put back a value from before the rewrite.
 extension RungsFromV231 on AppDatabase {
   Future<void> _rungsFromV231(
     Migrator m,

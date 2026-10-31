@@ -66,6 +66,9 @@ abstract final class ChangeLogScope {
   /// In a scope's zone, so a bulk action can tell it is part of one.
   static final _scopeKey = Object();
 
+  /// The operation of the scope running in this zone.
+  static String? get currentOperationId => Zone.current[_scopeKey] as String?;
+
   /// Runs [body] with its changes filed under one new operation.
   static Future<T> run<T>(
     AppDatabase? db, {

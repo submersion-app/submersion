@@ -159,20 +159,7 @@ class ChangeLogRepository {
     );
     return [
       for (final row in rows)
-        ChangeLogEvent(
-          id: row.read<int>('id'),
-          operationId: operationId,
-          table: row.read<String>('table_name'),
-          recordId: row.read<String>('record_id'),
-          action: ChangeLogAction.fromCode(row.read<String>('action')),
-          changedAt: DateTime.fromMillisecondsSinceEpoch(
-            row.read<int>('changed_at'),
-          ),
-          schemaVersion: row.read<int>('schema_version'),
-          rootTable: row.data['root_table'] as String?,
-          rootId: row.data['root_id'] as String?,
-          fields: fields[row.read<int>('id')] ?? const [],
-        ),
+        _event(row.data, fields[row.read<int>('id')] ?? const []),
     ];
   }
 
@@ -289,6 +276,39 @@ class ChangeLogRepository {
     return references;
   }
 
+  /// One event with its fields, without reading the rest of its operation.
+  Future<ChangeLogEvent?> getEvent(int id) async {
+    final row = await _db
+        .customSelect(
+          'SELECT * FROM change_log_events WHERE id = ? '
+          'AND operation_id IS NOT NULL',
+          variables: [Variable<int>(id)],
+        )
+        .getSingleOrNull();
+    if (row == null) return null;
+    final fields = await _db
+        .customSelect(
+          'SELECT f.*, e.table_name FROM change_log_fields f '
+          'JOIN change_log_events e ON e.id = f.event_id '
+          'WHERE f.event_id = ? ORDER BY f.column_name',
+          variables: [Variable<int>(id)],
+        )
+        .get();
+    return _event(row.data, [for (final r in fields) _field(r.data)]);
+  }
+
+  /// The columns [table] really has in this file, which may be fewer than
+  /// drift declares.
+  Future<Set<String>> liveColumns(String table) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT name FROM pragma_table_info(?)',
+          variables: [Variable<String>(table)],
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('name')};
+  }
+
   /// Whether the record still exists, for offering a link to it.
   Future<bool> recordExists(String table, String id) async {
     final specs = changeLogSpecsFor(_db);
@@ -349,6 +369,22 @@ class ChangeLogRepository {
       );
     });
   }
+
+  ChangeLogEvent _event(
+    Map<String, Object?> row,
+    List<ChangeLogFieldChange> fields,
+  ) => ChangeLogEvent(
+    id: row['id']! as int,
+    operationId: row['operation_id']! as String,
+    table: row['table_name']! as String,
+    recordId: row['record_id']! as String,
+    action: ChangeLogAction.fromCode(row['action']! as String),
+    changedAt: DateTime.fromMillisecondsSinceEpoch(row['changed_at']! as int),
+    schemaVersion: row['schema_version']! as int,
+    rootTable: row['root_table'] as String?,
+    rootId: row['root_id'] as String?,
+    fields: fields,
+  );
 
   ChangeLogFieldChange _field(Map<String, Object?> row) => ChangeLogFieldChange(
     table: row['table_name']! as String,
