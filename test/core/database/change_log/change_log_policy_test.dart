@@ -68,6 +68,16 @@ void main() {
     }
   });
 
+  test('every machine owner column exists', () {
+    final columns = _columnsByTable(db);
+    for (final entry in changeLogMachineOwners.entries) {
+      for (final owner in entry.value.entries) {
+        expect(columns[entry.key], contains(owner.key), reason: entry.key);
+        expect(columns, contains(owner.value));
+      }
+    }
+  });
+
   test('parent chains end', () {
     for (final start in changeLogParents.keys) {
       final seen = <String>{};

@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "Wijzigingen",
   "changeLog_label_bulkEdit": "Bulkbewerking",
   "changeLog_label_bulkDelete": "Bulkverwijdering",
+  "changeLog_label_deletedRecord": "Record verwijderd",
   "changeLog_label_merge": "Records samengevoegd",
   "changeLog_label_undoMerge": "Samenvoeging ongedaan gemaakt",
   "changeLog_label_undoRule": "Regel ongedaan gemaakt",

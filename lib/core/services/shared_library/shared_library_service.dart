@@ -118,7 +118,12 @@ class SharedLibraryService {
     _gates[libraryId] = previous.then((_) => completer.future);
     await previous;
     try {
-      return await _syncOnce(libraryId, diverId: diverId);
+      return await ChangeLogScope.run(
+        DatabaseService.instance.databaseOrNull,
+        source: ChangeLogSource.sync,
+        label: (await _store.getLibrary(libraryId))?.name,
+        body: () => _syncOnce(libraryId, diverId: diverId),
+      );
     } finally {
       completer.complete();
     }
@@ -722,12 +727,7 @@ class SharedLibraryService {
     final bool changedLocal;
     if (merged.deleted) {
       if (hasRow) {
-        await ChangeLogScope.run(
-          DatabaseService.instance.databaseOrNull,
-          source: ChangeLogSource.sync,
-          label: library.name,
-          body: () => _remover(siteId: siteId, ownerDiverId: diverId),
-        );
+        await _remover(siteId: siteId, ownerDiverId: diverId);
       }
       changedLocal = hasRow;
     } else {
@@ -735,16 +735,11 @@ class SharedLibraryService {
           ? outcome.remoteWon
           : merged.fields.keys.toSet();
       if (fields.isNotEmpty) {
-        await ChangeLogScope.run(
-          DatabaseService.instance.databaseOrNull,
-          source: ChangeLogSource.sync,
-          label: library.name,
-          body: () => _bridge.apply(
-            merged,
-            libraryId: library.id,
-            vocabularyDiverId: diverId,
-            fields: fields,
-          ),
+        await _bridge.apply(
+          merged,
+          libraryId: library.id,
+          vocabularyDiverId: diverId,
+          fields: fields,
         );
       }
       changedLocal = fields.isNotEmpty;

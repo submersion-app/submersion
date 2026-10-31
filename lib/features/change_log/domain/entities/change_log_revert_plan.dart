@@ -96,7 +96,7 @@ class ChangeLogRevertPlan extends Equatable {
 
   int get changedSinceCount => items
       .where((item) => item.changedSince && !item.isBlocked)
-      .map((item) => (item.event.table, item.event.recordId))
+      .map((item) => item.event.root)
       .toSet()
       .length;
 

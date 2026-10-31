@@ -727,6 +727,22 @@ class SiteRepository {
     bool cascadeMedia = true,
     String? actingDiverId,
     bool? logTombstones,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteSiteInner(
+      id,
+      cascadeMedia: cascadeMedia,
+      actingDiverId: actingDiverId,
+      logTombstones: logTombstones,
+    ),
+  );
+
+  Future<bool> _deleteSiteInner(
+    String id, {
+    bool cascadeMedia = true,
+    String? actingDiverId,
+    bool? logTombstones,
   }) async {
     try {
       final ownership = await _siteOwnership([id], actingDiverId);

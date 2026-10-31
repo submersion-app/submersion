@@ -33702,6 +33702,7 @@
   "changeLog_title_changes": "Changes",
   "changeLog_label_bulkEdit": "Bulk edit",
   "changeLog_label_bulkDelete": "Bulk delete",
+  "changeLog_label_deletedRecord": "Deleted a record",
   "changeLog_label_merge": "Merged records",
   "changeLog_label_undoMerge": "Undid a merge",
   "changeLog_label_undoRule": "Undid a rule run",

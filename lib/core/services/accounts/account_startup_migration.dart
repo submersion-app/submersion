@@ -53,14 +53,16 @@ class AccountStartupMigration {
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
-  Future<void> run() => ChangeLogScope.automatic(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.accountMigration,
-    body: () => _runInner(),
-  );
+  Future<void> run() async {
+    if (_prefs.getBool(doneFlagKey) ?? false) return;
+    await ChangeLogScope.automatic(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.accountMigration,
+      body: _runInner,
+    );
+  }
 
   Future<void> _runInner() async {
-    if (_prefs.getBool(doneFlagKey) ?? false) return;
     try {
       await _migrateSyncProvider();
       await _migrateMediaStoreAttachment();

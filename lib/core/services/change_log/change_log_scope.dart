@@ -39,6 +39,7 @@ final _log = LoggerService.forClass(ChangeLogScope);
 abstract final class ChangeLogLabels {
   static const bulkEdit = 'bulk_edit';
   static const bulkDelete = 'bulk_delete';
+  static const deletedRecord = 'deleted_record';
   static const merge = 'merge';
   static const undoMerge = 'undo_merge';
   static const undoRule = 'undo_rule';
@@ -137,7 +138,6 @@ abstract final class ChangeLogScope {
     required String label,
     required ChangeLogSource source,
     int? Function(T result)? summaryCount,
-    bool writeSummary = true,
     Duration lease = kChangeLogLease,
     required Future<T> Function() body,
   }) async {
@@ -156,14 +156,12 @@ abstract final class ChangeLogScope {
     }
     renewal?.cancel();
     if (held) await _endSuppression(db);
-    if (writeSummary) {
-      await summary(
-        db,
-        label: label,
-        source: source,
-        count: summaryCount?.call(result),
-      );
-    }
+    await summary(
+      db,
+      label: label,
+      source: source,
+      count: summaryCount?.call(result),
+    );
     return result;
   }
 

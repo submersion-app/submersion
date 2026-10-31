@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "تغييرات",
   "changeLog_label_bulkEdit": "تعديل جماعي",
   "changeLog_label_bulkDelete": "حذف جماعي",
+  "changeLog_label_deletedRecord": "تم حذف سجل",
   "changeLog_label_merge": "تم دمج السجلات",
   "changeLog_label_undoMerge": "تم التراجع عن دمج",
   "changeLog_label_undoRule": "تم التراجع عن تشغيل قاعدة",

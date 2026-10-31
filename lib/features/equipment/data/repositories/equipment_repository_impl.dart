@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -730,7 +731,13 @@ class EquipmentRepository {
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
-  Future<void> deleteEquipment(String id) async {
+  Future<void> deleteEquipment(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteEquipmentInner(id),
+  );
+
+  Future<void> _deleteEquipmentInner(String id) async {
     try {
       _log.info('Deleting equipment: $id');
       // Attachments first, outside the transaction: the coordinator's queue

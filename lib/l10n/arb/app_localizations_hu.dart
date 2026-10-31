@@ -56989,6 +56989,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Tömeges törlés';
 
   @override
+  String get changeLog_label_deletedRecord => 'Rekord törölve';
+
+  @override
   String get changeLog_label_merge => 'Rekordok egyesítve';
 
   @override

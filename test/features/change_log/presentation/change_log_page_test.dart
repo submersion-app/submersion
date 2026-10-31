@@ -7,7 +7,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
 import 'package:submersion/features/change_log/presentation/pages/change_log_page.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -246,6 +248,37 @@ void main() {
     await settle(tester);
 
     expect(find.textContaining('Edited', findRichText: true), findsNothing);
+  });
+
+  testWidgets('a settle keeps the pages already loaded', (tester) async {
+    await tester.runAsync(() async {
+      for (var i = 0; i < 60; i++) {
+        await db.customStatement(
+          "UPDATE dives SET notes = 'Edit $i' WHERE id = 'mine'",
+        );
+        await db.customStatement(
+          'UPDATE change_log_events SET changed_at = changed_at - ? '
+          'WHERE settled = 0',
+          [(60 - i) * 60000],
+        );
+        await ChangeLogRepository().settleAll();
+      }
+    });
+    final container = await pump(tester);
+    final provider = changeLogFeedProvider(const ChangeLogFilter());
+    await tester.runAsync(() => container.read(provider.notifier).loadMore());
+    await settle(tester);
+    expect(container.read(provider).value!.operations.length, greaterThan(50));
+
+    await tester.runAsync(
+      () => db.customStatement(
+        "UPDATE dives SET notes = 'Newest' WHERE id = 'mine'",
+      ),
+    );
+    await tester.runAsync(ChangeLogRepository().settleAll);
+    await settle(tester);
+
+    expect(container.read(provider).value!.operations.length, greaterThan(50));
   });
 
   testWidgets('entries are grouped by day', (tester) async {

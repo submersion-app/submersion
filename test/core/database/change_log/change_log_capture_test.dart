@@ -168,6 +168,16 @@ void main() {
     expect(await logEvents(db), isEmpty);
   });
 
+  test('a display setting logs nothing', () async {
+    await db.customStatement(
+      'INSERT INTO settings (key, value, updated_at) '
+      "VALUES ('media_library_sort', 'newest', 0)",
+    );
+    await db.customStatement("UPDATE settings SET value = 'oldest'");
+
+    expect(await logEvents(db), isEmpty);
+  });
+
   test('a suppressed window logs nothing', () async {
     final until = DateTime.now().millisecondsSinceEpoch + 60000;
     await db.customStatement(

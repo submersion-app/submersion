@@ -17,6 +17,9 @@ import 'package:submersion/features/change_log/domain/entities/change_log_operat
 
 const int _settleBatch = 500;
 
+/// How much of an entry a preview reads. An entry about one record is small.
+const int _previewEvents = 200;
+
 /// Reads the change log (issue #3922). The raw value columns keep their
 /// SQLite type, so everything here goes through `customSelect` and
 /// `row.data` rather than the generated row classes.
@@ -120,6 +123,41 @@ class ChangeLogRepository {
       "OR (o.root_table = 'trips' AND EXISTS (SELECT 1 FROM trip_shares s "
       'WHERE s.trip_id = o.root_id AND s.diver_id = ?)))';
 
+  /// The entry, if [diverId] may see it now.
+  Future<ChangeLogOperation?> getVisibleOperation(
+    String id,
+    String diverId,
+  ) async {
+    final row = await _db
+        .customSelect(
+          'SELECT o.* FROM change_log_operations o '
+          'WHERE o.id = ? AND $_visibleTo',
+          variables: [
+            Variable<String>(id),
+            for (var i = 0; i < 4; i++) Variable<String>(diverId),
+          ],
+          readsFrom: {_db.changeLogOperations},
+        )
+        .getSingleOrNull();
+    return row == null ? null : _operation(row.data);
+  }
+
+  /// How many of [operationId]'s records the entry's page can list.
+  Future<int> countEvents(String operationId) async {
+    final marks = List.filled(_machineTables.length, '?').join(', ');
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS c FROM change_log_events WHERE operation_id = ? '
+          'AND table_name NOT IN ($marks)',
+          variables: [
+            Variable<String>(operationId),
+            ..._machineTables.map(Variable<String>.new),
+          ],
+        )
+        .getSingle();
+    return row.read<int>('c');
+  }
+
   Future<ChangeLogOperation?> getOperation(String id) async {
     final row = await _db
         .customSelect(
@@ -203,7 +241,7 @@ class ChangeLogRepository {
     final fields = <String, List<ChangeLogFieldChange>>{};
     final totals = <String, int>{};
     for (final id in operationIds) {
-      final net = netFieldChanges(await getEvents(id));
+      final net = netFieldChanges(await getEvents(id, limit: _previewEvents));
       if (net.isEmpty) continue;
       fields[id] = [for (final change in net.take(perOperation)) change.field];
       totals[id] = net.length;

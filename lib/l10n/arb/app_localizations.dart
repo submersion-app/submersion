@@ -90428,6 +90428,12 @@ abstract class AppLocalizations {
   /// **'Bulk delete'**
   String get changeLog_label_bulkDelete;
 
+  /// No description provided for @changeLog_label_deletedRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted a record'**
+  String get changeLog_label_deletedRecord;
+
   /// No description provided for @changeLog_label_merge.
   ///
   /// In en, this message translates to:

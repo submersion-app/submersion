@@ -53788,6 +53788,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_bulkDelete => '批量删除';
 
   @override
+  String get changeLog_label_deletedRecord => '已删除记录';
+
+  @override
   String get changeLog_label_merge => '已合并记录';
 
   @override

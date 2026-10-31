@@ -265,6 +265,28 @@ void main() {
     expect(await _operations(db), isEmpty);
   });
 
+  test(
+    'an insert, delete and insert in one operation keeps the insert',
+    () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        body: () async {
+          await insertDive(db, 'back', diverId: 'diver');
+          await db.customStatement("DELETE FROM dives WHERE id = 'back'");
+          await insertDive(db, 'back', diverId: 'diver');
+        },
+      );
+
+      await settler.settle();
+
+      final events = await logEvents(db);
+      expect(events.map((e) => e['action']), ['I']);
+      expect(events.single['settled'], 1);
+      expect((await _operations(db)).single.eventCount, 1);
+    },
+  );
+
   test('an empty scope leaves no operation', () async {
     await ChangeLogScope.run(
       db,
@@ -430,6 +452,28 @@ void main() {
 
     expect(await logEvents(db), isEmpty);
     expect(await _operations(db), isEmpty);
+  });
+
+  test('a machine row keeps its copy when its direct owner went', () async {
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 'tank', diveId: 'dive'));
+    await db.customStatement(
+      'INSERT INTO tank_pressure_series (id, dive_id, tank_id, sample_count, '
+      'start_timestamp, end_timestamp, codec_version, samples, created_at, '
+      "updated_at) VALUES ('curve', 'dive', 'tank', 1, 0, 1, 1, x'01', 0, 0)",
+    );
+    await settler.settle();
+    await clearLog(db);
+    await db.customStatement('DELETE FROM change_log_operations');
+
+    await db.customStatement("DELETE FROM dive_tanks WHERE id = 'tank'");
+    await settler.settle();
+
+    expect(
+      (await logEvents(db)).map((e) => e['table_name']),
+      containsAll(['dive_tanks', 'tank_pressure_series']),
+    );
   });
 
   test('a deleted dive keeps its machine rows', () async {

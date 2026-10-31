@@ -10,28 +10,72 @@ class ChangeLogReference {
     required this.table,
     required this.column,
     required this.recordId,
+    this.cascades = false,
   });
 
   final String table;
   final String column;
   final String recordId;
 
+  /// Whether removing the record it points at also clears this row.
+  final bool cascades;
+
   /// Whether this row belongs to the record it points at, as a dive's tank
   /// does: it goes when that record goes, so it is an edit to the record
-  /// rather than a use of it.
+  /// rather than a use of it. A key with no delete action needs a child
+  /// removed first, so such a row counts as a use.
   bool get isOwnedChild {
     final parent = changeLogParents[table];
-    return parent != null && parent.column == column;
+    return cascades && parent != null && parent.column == column;
   }
 }
 
+/// Columns that hold another row's id with no constraint behind them, so
+/// `PRAGMA foreign_key_list` cannot see them.
+const List<({String table, String column, String parent})> _softReferences = [
+  (table: 'trips', column: 'parent_trip_id', parent: 'trips'),
+  (
+    table: 'service_records',
+    column: 'service_kind_id',
+    parent: 'service_kinds',
+  ),
+  (
+    table: 'service_schedules',
+    column: 'service_kind_id',
+    parent: 'service_kinds',
+  ),
+  (table: 'dive_dive_types', column: 'dive_type_id', parent: 'dive_types'),
+  (table: 'site_site_types', column: 'site_type_id', parent: 'site_types'),
+  (table: 'dive_plan_mission_members', column: 'buddy_id', parent: 'buddies'),
+  (
+    table: 'dive_plan_mission_members',
+    column: 'scooter_equipment_id',
+    parent: 'equipment',
+  ),
+];
+
 class _ForeignKey {
-  const _ForeignKey(this.table, this.column, this.parent, this.parentColumn);
+  const _ForeignKey(
+    this.table,
+    this.column,
+    this.parent,
+    this.parentColumn,
+    this.onDelete, {
+    this.soft = false,
+  });
 
   final String table;
   final String column;
   final String parent;
   final String parentColumn;
+
+  /// SQLite's delete action, `NO ACTION` for a soft reference.
+  final String onDelete;
+
+  /// No constraint backs it, so nothing fails if the parent is missing.
+  final bool soft;
+
+  bool get cascades => onDelete == 'CASCADE' || onDelete == 'SET NULL';
 }
 
 /// The foreign keys of this file, read from `PRAGMA foreign_key_list`, so a
@@ -47,28 +91,37 @@ class ChangeLogDependencyIndex {
     final rows = await db
         .customSelect(
           'SELECT m.name AS tbl, f."table" AS parent, f."from" AS col, '
-          'f."to" AS target FROM sqlite_master m '
+          'f."to" AS target, f.on_delete AS on_delete FROM sqlite_master m '
           "JOIN pragma_foreign_key_list(m.name) f WHERE m.type = 'table'",
         )
         .get();
-    return ChangeLogDependencyIndex._(
-      db,
-      [
-        for (final row in rows)
+    final specs = {for (final spec in changeLogSpecsFor(db)) spec.table: spec};
+    return ChangeLogDependencyIndex._(db, [
+      for (final row in rows)
+        _ForeignKey(
+          row.read<String>('tbl'),
+          row.read<String>('col'),
+          row.read<String>('parent'),
+          row.data['target'] as String? ?? 'id',
+          row.read<String>('on_delete'),
+        ),
+      for (final soft in _softReferences)
+        if (specs[soft.table]?.columns.contains(soft.column) ?? false)
           _ForeignKey(
-            row.read<String>('tbl'),
-            row.read<String>('col'),
-            row.read<String>('parent'),
-            row.data['target'] as String? ?? 'id',
+            soft.table,
+            soft.column,
+            soft.parent,
+            'id',
+            'NO ACTION',
+            soft: true,
           ),
-      ],
-      {for (final spec in changeLogSpecsFor(db)) spec.table: spec},
-    );
+    ], specs);
   }
 
-  /// Rows of tracked tables that point at the record. Machine rows are left
-  /// out: they belong to their record and go with it, so they never make it
-  /// "in use".
+  /// Rows that point at the record. Machine and excluded rows on a cascading
+  /// key are left out: they go with the record, so they never make it "in
+  /// use". On a key with no delete action any row counts, since the delete
+  /// would fail.
   Future<List<ChangeLogReference>> referencesTo(
     String table,
     String recordId,
@@ -76,13 +129,16 @@ class ChangeLogDependencyIndex {
     final references = <ChangeLogReference>[];
     for (final key in _keys) {
       if (key.parent != table) continue;
-      if (changeLogTables[key.table] != ChangeLogClass.tracked) continue;
-      final spec = _specs[key.table];
-      if (spec == null) continue;
+      final tracked = changeLogTables[key.table] == ChangeLogClass.tracked;
+      if (!tracked && key.cascades) continue;
+      final keyColumns = _specs[key.table]?.keyColumns ?? const <String>[];
+      final idSql = keyColumns.isEmpty
+          ? "''"
+          : changeLogRecordIdSql('"${key.table}"', keyColumns);
       final rows = await _db
           .customSelect(
-            'SELECT ${changeLogRecordIdSql('"${key.table}"', spec.keyColumns)} '
-            'AS record_id FROM "${key.table}" WHERE "${key.column}" = ?',
+            'SELECT $idSql AS record_id FROM "${key.table}" '
+            'WHERE "${key.column}" = ?',
             variables: [Variable<String>(recordId)],
           )
           .get();
@@ -92,6 +148,7 @@ class ChangeLogDependencyIndex {
             table: key.table,
             column: key.column,
             recordId: row.read<String>('record_id'),
+            cascades: key.cascades,
           ),
         );
       }
@@ -108,7 +165,7 @@ class ChangeLogDependencyIndex {
   ) async {
     final missing = <String>[];
     for (final key in _keys) {
-      if (key.table != table) continue;
+      if (key.table != table || key.soft) continue;
       final value = row[key.column];
       if (value == null) continue;
       final parent = '${key.parent}|$value';

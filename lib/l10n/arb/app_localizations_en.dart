@@ -56406,6 +56406,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Bulk delete';
 
   @override
+  String get changeLog_label_deletedRecord => 'Deleted a record';
+
+  @override
   String get changeLog_label_merge => 'Merged records';
 
   @override

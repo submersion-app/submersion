@@ -57314,6 +57314,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Eliminazione in blocco';
 
   @override
+  String get changeLog_label_deletedRecord => 'Record eliminato';
+
+  @override
   String get changeLog_label_merge => 'Record uniti';
 
   @override

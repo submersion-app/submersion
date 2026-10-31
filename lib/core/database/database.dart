@@ -291,7 +291,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SharedSiteSuggestions,
     SharedLibraryBackups,
     LibrarySiteNotes,
-    // Per-device change log (v328, issue #3922)
+    // Per-device change log (v332, issue #3922)
     ChangeLogContext,
     ChangeLogOperations,
     ChangeLogEvents,

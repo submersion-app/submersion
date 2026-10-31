@@ -132,6 +132,49 @@ void main() {
     expect(find.text('One'), findsNothing);
   });
 
+  testWidgets('another diver\'s entry does not open', (tester) async {
+    final id = await tester.runAsync(() async {
+      await insertDiver(db, 'them');
+      await insertDive(db, 'theirs', diverId: 'them', notes: 'Flat');
+      await ChangeLogRepository().settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      await db.customStatement(
+        "UPDATE dives SET notes = 'Private' WHERE id = 'theirs'",
+      );
+      await ChangeLogRepository().settleAll();
+      final row = await db
+          .customSelect('SELECT id FROM change_log_operations')
+          .getSingle();
+      return row.read<String>('id');
+    });
+
+    await pump(tester, id!);
+
+    expect(find.text('Private'), findsNothing);
+    expect(find.text('Revert'), findsNothing);
+  });
+
+  testWidgets('a deleted dive shows no false more records line', (
+    tester,
+  ) async {
+    final id = await tester.runAsync(() async {
+      await db.customStatement(
+        'INSERT INTO tide_records (id, dive_id, height_meters, tide_state, '
+        "created_at) VALUES ('tide', 'dive', 1.0, 'rising', 0)",
+      );
+      await ChangeLogRepository().settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      await db.customStatement("DELETE FROM dives WHERE id = 'dive'");
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(find.textContaining('more record'), findsNothing);
+  });
+
   testWidgets('a bulk entry lists its records', (tester) async {
     final id = await tester.runAsync(() async {
       await insertDive(db, 'second', diverId: 'me');

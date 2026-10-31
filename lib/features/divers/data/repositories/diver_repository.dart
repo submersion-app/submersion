@@ -579,17 +579,22 @@ class DiverRepository {
   ///
   /// Returns a [DeleteDiverResult] describing what was reassigned.
   Future<DeleteDiverResult> deleteDiverWithReassignment(String id) async {
-    // Nothing of the diver's is kept in the log, so their records going are
-    // not recorded either, and what they had logged goes with them.
-    final result = await ChangeLogScope.suppressed(
+    final result = await ChangeLogScope.bulk(
       DatabaseService.instance.databaseOrNull,
-      label: ChangeLogLabels.bulkDelete,
-      source: ChangeLogSource.manual,
-      writeSummary: false,
-      lease: kChangeLogLongLease,
+      label: ChangeLogLabels.deletedRecord,
       body: () => _deleteDiverWithReassignment(id),
     );
-    await ChangeLogRepository().clearForDiver(id);
+    // The delete is done by now, so a failure here must not report it as
+    // failed. What survivors inherited stays in the log under their own name.
+    try {
+      await ChangeLogRepository().clearForDiver(id);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not clear the change log of diver $id',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
     return result;
   }
 

@@ -131,7 +131,8 @@ class _SettlePass {
     // Machine rows are kept only to bring back a deleted record. While the
     // record lives, a sweep replacing them is nothing the diver did.
     if (changeLogTables[event.table] == ChangeLogClass.deleteCopyOnly &&
-        await _exists(root)) {
+        await _exists(root) &&
+        !await _machineOwnerGone(event)) {
       await _deleteEvents([event.id]);
       return;
     }
@@ -372,12 +373,13 @@ class _SettlePass {
     final between = await _db
         .customSelect(
           'SELECT id FROM change_log_events WHERE operation_id = ? '
-          'AND table_name = ? AND record_id = ? AND id >= ?',
+          'AND table_name = ? AND record_id = ? AND id >= ? AND id <= ?',
           variables: [
             Variable.withString(operation.id),
             Variable.withString(event.table),
             Variable.withString(event.recordId),
             Variable.withInt(insert.read<int>('id')),
+            Variable.withInt(event.id),
           ],
         )
         .get();
@@ -439,6 +441,19 @@ class _SettlePass {
       }
     }
     return (label: null, ordinal: null);
+  }
+
+  /// Whether the row a machine row belongs to, other than its root, has gone.
+  Future<bool> _machineOwnerGone(_Event event) async {
+    final owners = changeLogMachineOwners[event.table];
+    if (owners == null) return false;
+    for (final MapEntry(key: column, value: table) in owners.entries) {
+      final owner = await _columnOf(event.table, event.recordId, column);
+      if (owner is String && !await _exists((table: table, id: owner))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<bool> _exists(_Root root) async {

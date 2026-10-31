@@ -149,18 +149,32 @@ void main() {
   test('deleting a diver deletes their entries', () async {
     await insertDive(db, 'theirs', diverId: 'other', notes: 'Flat');
     await db.customStatement(
-      "UPDATE dives SET notes = 'Changed' WHERE id = 'theirs'",
-    );
-    await db.customStatement(
       "UPDATE dives SET notes = 'Mine' WHERE id = 'dive'",
     );
     await repository.settleAll();
+    await db.customStatement(
+      "UPDATE dives SET notes = 'Changed' WHERE id = 'theirs'",
+    );
 
+    // Nothing settled since that last edit: it must not outlive the diver
+    // with no owner, where every profile would see it.
     await DiverRepository().deleteDiverWithReassignment('other');
     await repository.settleAll();
 
     final rows = await db.select(db.changeLogOperations).get();
     expect(rows.map((o) => o.diverId).toSet(), {'me'});
-    expect(rows, hasLength(1));
+    expect(
+      await logEvents(db),
+      isNot(anyElement(containsPair('record_id', 'theirs'))),
+    );
+  });
+
+  test('a failure clearing the log does not fail the delete', () async {
+    await db.customStatement('DROP TABLE change_log_operations');
+
+    await expectLater(
+      DiverRepository().deleteDiverWithReassignment('other'),
+      completes,
+    );
   });
 }

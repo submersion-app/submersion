@@ -36,6 +36,7 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
     switch (label) {
       ChangeLogLabels.bulkEdit => l.changeLog_label_bulkEdit,
       ChangeLogLabels.bulkDelete => l.changeLog_label_bulkDelete,
+      ChangeLogLabels.deletedRecord => l.changeLog_label_deletedRecord,
       ChangeLogLabels.merge => l.changeLog_label_merge,
       ChangeLogLabels.undoMerge => l.changeLog_label_undoMerge,
       ChangeLogLabels.undoRule => l.changeLog_label_undoRule,

@@ -11,7 +11,6 @@ import 'package:submersion/features/change_log/presentation/change_log_value_for
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_revert_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -71,7 +70,7 @@ class _EntryBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final peerNames =
         ref.watch(peerDeviceNamesProvider).value ?? const <String, String>{};
     final formatter = ChangeLogValueFormatter(
@@ -116,12 +115,12 @@ class _EntryBody extends ConsumerWidget {
           ..._bulkRows(context, l, units, formatter)
         else
           ..._recordRows(context, ref, l, formatter),
-        if (operation.eventCount > detail.events.length)
+        if (detail.eventCount > detail.events.length)
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
               l.changeLog_detail_moreRecords(
-                operation.eventCount - detail.events.length,
+                detail.eventCount - detail.events.length,
               ),
               style: theme.textTheme.bodySmall,
             ),

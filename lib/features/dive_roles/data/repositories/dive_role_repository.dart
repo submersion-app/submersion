@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -229,7 +230,13 @@ class DiveRoleRepository {
   }
 
   /// Delete a custom dive role (built-ins cannot be deleted).
-  Future<void> deleteDiveRole(String id) async {
+  Future<void> deleteDiveRole(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteDiveRoleInner(id),
+  );
+
+  Future<void> _deleteDiveRoleInner(String id) async {
     try {
       final existing = await getDiveRoleById(id);
       if (existing == null) return;

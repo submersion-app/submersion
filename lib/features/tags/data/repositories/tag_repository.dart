@@ -458,7 +458,13 @@ class TagRepository {
   }
 
   /// Delete a tag
-  Future<void> deleteTag(String id) async {
+  Future<void> deleteTag(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteTagInner(id),
+  );
+
+  Future<void> _deleteTagInner(String id) async {
     try {
       _log.info('Deleting tag: $id');
       await (_db.delete(_db.tags)..where((t) => t.id.equals(id))).go();

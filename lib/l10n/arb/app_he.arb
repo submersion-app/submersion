@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "שינויים",
   "changeLog_label_bulkEdit": "עריכה מרובה",
   "changeLog_label_bulkDelete": "מחיקה מרובה",
+  "changeLog_label_deletedRecord": "רשומה נמחקה",
   "changeLog_label_merge": "רשומות מוזגו",
   "changeLog_label_undoMerge": "מיזוג בוטל",
   "changeLog_label_undoRule": "הרצת כלל בוטלה",

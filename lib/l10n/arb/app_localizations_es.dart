@@ -57358,6 +57358,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Eliminación masiva';
 
   @override
+  String get changeLog_label_deletedRecord => 'Registro eliminado';
+
+  @override
   String get changeLog_label_merge => 'Registros combinados';
 
   @override

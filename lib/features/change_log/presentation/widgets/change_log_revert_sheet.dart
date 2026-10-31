@@ -8,7 +8,6 @@ import 'package:submersion/features/change_log/domain/entities/change_log_revert
 import 'package:submersion/features/change_log/presentation/change_log_labels.dart';
 import 'package:submersion/features/change_log/presentation/change_log_value_format.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -41,7 +40,7 @@ Future<void> runChangeLogRevert(
   final messenger = ScaffoldMessenger.of(context);
   final formatter = ChangeLogValueFormatter(
     l10n: l,
-    units: UnitFormatter(ref.read(settingsProvider)),
+    units: ref.read(unitFormatterProvider),
   );
   try {
     final planned = await plan(service);
@@ -169,15 +168,21 @@ Future<void> _showKept(
   ChangeLogRevertResult result,
 ) async {
   final l = context.l10n;
-  final units = UnitFormatter(ref.read(settingsProvider));
+  final units = ref.read(unitFormatterProvider);
+  // A kept dive's tanks stay with it, so naming the dive says it all.
+  final roots = [
+    for (final item in result.keptItems)
+      if (item.event.root == _recordOf(item)) item,
+  ];
+  final kept = roots.isEmpty ? result.keptItems : roots;
   final names = await ref.read(changeLogRepositoryProvider).describeRoots({
-    for (final item in result.keptItems) _recordOf(item),
+    for (final item in kept) _recordOf(item),
   });
   if (!context.mounted) return;
   await showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(l.changeLog_result_kept(result.keptItems.length)),
+      title: Text(l.changeLog_result_kept(kept.length)),
       content: SizedBox(
         width: 400,
         child: ListView(
@@ -188,7 +193,7 @@ Future<void> _showKept(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(l.changeLog_result_reverted(result.reverted)),
               ),
-            for (final item in result.keptItems)
+            for (final item in kept)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(switch (names[_recordOf(item)]) {

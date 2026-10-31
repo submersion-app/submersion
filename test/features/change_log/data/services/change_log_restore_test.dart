@@ -168,6 +168,75 @@ void main() {
     expect(result.kept, 1);
   });
 
+  test('an edit back to a deleted parent is blocked', () async {
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('a', 'me', 'A', 0, 0), ('b', 'me', 'B', 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET site_id = 'a'");
+    await forget();
+    await db.customStatement("UPDATE dives SET site_id = 'b'");
+    final operation = await newestOperation();
+    await db.customStatement("DELETE FROM dive_sites WHERE id = 'a'");
+    await repository.settleAll();
+
+    final plan = await service.planOperation(operation);
+
+    expect(plan.items.single.block, ChangeLogBlock.parentGone);
+    final result = await service.execute(plan);
+    expect(result.kept, 1);
+  });
+
+  test('an edit back to a parent restored with it is allowed', () async {
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, diver_id, name, created_at, updated_at) '
+      "VALUES ('a', 'me', 'A', 0, 0), ('b', 'me', 'B', 0, 0)",
+    );
+    await db.customStatement("UPDATE dives SET site_id = 'a'");
+    await forget();
+
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.manual,
+      body: () async {
+        await db.customStatement("UPDATE dives SET site_id = 'b'");
+        await db.customStatement("DELETE FROM dive_sites WHERE id = 'a'");
+      },
+    );
+    await service.execute(await service.planOperation(await newestOperation()));
+
+    final row = await db.customSelect('SELECT site_id FROM dives').getSingle();
+    expect(row.data['site_id'], 'a');
+  });
+
+  test('an edit and a delete in one entry restore the original', () async {
+    await db.customStatement(
+      "UPDATE dives SET notes = 'Edited' WHERE id = 'dive'",
+    );
+    await DiveRepository().deleteDive('dive');
+    final operation = await newestOperation();
+
+    final plan = await service.planOperation(operation);
+
+    expect(plan.items.where((i) => i.isBlocked), isEmpty);
+    await service.execute(plan);
+    expect(await count('dives', "id = 'dive' AND notes = 'Calm'"), 1);
+  });
+
+  test('two deletes of one record in an entry restore it once', () async {
+    await db.customStatement("DELETE FROM dive_tanks WHERE id = 'tank'");
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 'tank', diveId: 'dive'));
+    await db.customStatement("UPDATE dive_tanks SET tank_name = 'Later'");
+    await db.customStatement("DELETE FROM dive_tanks WHERE id = 'tank'");
+    final operation = await newestOperation();
+
+    await service.execute(await service.planOperation(operation));
+
+    expect(await count('dive_tanks', "id = 'tank'"), 1);
+  });
+
   group('undoing a bulk action', () {
     Future<String> importDive() async {
       await ChangeLogScope.run(
@@ -325,6 +394,157 @@ void main() {
       expect(await count('dives', "id = 'imported'"), 1);
       expect(await count('equipment', "name = 'Reg'"), 1);
       expect(result.keptItems.map((i) => i.event.recordId), ['imported']);
+    });
+
+    test('a skipped dive keeps its children', () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        body: () async {
+          await insertDive(db, 'imported', diverId: 'me');
+          await db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion.insert(id: 'new-tank', diveId: 'imported'),
+              );
+        },
+      );
+      final operation = await newestOperation();
+      await db.customStatement(
+        "UPDATE dives SET notes = 'Mine now' WHERE id = 'imported'",
+      );
+      await repository.settleAll();
+
+      await service.execute(
+        await service.planOperation(operation),
+        includeChangedSince: false,
+      );
+
+      expect(await count('dives', "id = 'imported'"), 1);
+      expect(await count('dive_tanks', "id = 'new-tank'"), 1);
+      expect(
+        await count('deletion_log', "record_id = 'new-tank'"),
+        0,
+        reason: 'a tombstone would take the tank off every other device',
+      );
+    });
+
+    test('a dive kept because it is in use keeps its children', () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        body: () async {
+          await insertDive(db, 'imported', diverId: 'me');
+          await db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion.insert(id: 'new-tank', diveId: 'imported'),
+              );
+        },
+      );
+      final operation = await newestOperation();
+      await db.customStatement(
+        'INSERT INTO dive_plans (id, name, linked_dive_id, created_at, '
+        "updated_at) VALUES ('plan', 'Plan', 'imported', 0, 0)",
+      );
+      await repository.settleAll();
+
+      final plan = await service.planOperation(operation);
+
+      expect(plan.items.map((i) => i.block).toSet(), {ChangeLogBlock.inUse});
+      await service.execute(plan);
+      expect(await count('dive_tanks', "id = 'new-tank'"), 1);
+    });
+
+    test('an owned child with no delete action keeps the record', () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        body: () => db.customStatement(
+          'INSERT INTO trips (id, diver_id, name, start_date, end_date, '
+          "created_at, updated_at) VALUES ('trip', 'me', 'Red Sea', 0, 0, 0, 0)",
+        ),
+      );
+      final operation = await newestOperation();
+      await db.customStatement(
+        'INSERT INTO trip_itinerary_days (id, trip_id, day_number, date, '
+        "created_at, updated_at) VALUES ('day', 'trip', 1, 0, 0, 0)",
+      );
+      await repository.settleAll();
+
+      final plan = await service.planOperation(operation);
+
+      expect(plan.items.single.block, ChangeLogBlock.inUse);
+      final result = await service.execute(plan);
+      expect(result.kept, 1);
+      expect(await count('trips', "id = 'trip'"), 1);
+    });
+
+    test('a soft reference keeps the record too', () async {
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        body: () => db.customStatement(
+          'INSERT INTO dive_types (id, diver_id, name, created_at, updated_at) '
+          "VALUES ('my-wreck', 'me', 'Wreck', 0, 0)",
+        ),
+      );
+      final operation = await newestOperation();
+      await db.customStatement(
+        'INSERT INTO dive_dive_types (id, dive_id, dive_type_id, created_at) '
+        "VALUES ('link', 'dive', 'my-wreck', 0)",
+      );
+      await repository.settleAll();
+
+      final plan = await service.planOperation(operation);
+
+      expect(plan.items.single.block, ChangeLogBlock.inUse);
+    });
+
+    test('a partial undo leaves the entry open to retry', () async {
+      final operation = await importDive();
+      await db.customStatement(
+        "UPDATE dives SET notes = 'Mine now' WHERE id = 'imported'",
+      );
+      await repository.settleAll();
+
+      await service.execute(
+        await service.planOperation(operation),
+        includeChangedSince: false,
+      );
+
+      expect(
+        await count(
+          'change_log_operations',
+          "id = '$operation' AND reverted_by_id IS NOT NULL",
+        ),
+        0,
+      );
+    });
+
+    test('reverting a revert clears the badge on the original', () async {
+      final operation = await importDive();
+      final result = await service.execute(
+        await service.planOperation(operation),
+      );
+      await repository.settleAll();
+      expect(
+        await count(
+          'change_log_operations',
+          "id = '$operation' AND reverted_by_id IS NOT NULL",
+        ),
+        1,
+      );
+
+      await service.execute(await service.planOperation(result.operationId!));
+
+      expect(
+        await count(
+          'change_log_operations',
+          "id = '$operation' AND reverted_by_id IS NOT NULL",
+        ),
+        0,
+      );
     });
 
     test('a record kept by a skipped dive stays in use', () async {

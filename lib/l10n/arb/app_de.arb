@@ -17140,6 +17140,7 @@
   "changeLog_title_changes": "Änderungen",
   "changeLog_label_bulkEdit": "Massenbearbeitung",
   "changeLog_label_bulkDelete": "Massenlöschung",
+  "changeLog_label_deletedRecord": "Eintrag gelöscht",
   "changeLog_label_merge": "Einträge zusammengeführt",
   "changeLog_label_undoMerge": "Zusammenführung rückgängig gemacht",
   "changeLog_label_undoRule": "Regellauf rückgängig gemacht",

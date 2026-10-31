@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "更改",
   "changeLog_label_bulkEdit": "批量编辑",
   "changeLog_label_bulkDelete": "批量删除",
+  "changeLog_label_deletedRecord": "已删除记录",
   "changeLog_label_merge": "已合并记录",
   "changeLog_label_undoMerge": "已撤销合并",
   "changeLog_label_undoRule": "已撤销规则运行",

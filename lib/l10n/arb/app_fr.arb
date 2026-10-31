@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "Modifications",
   "changeLog_label_bulkEdit": "Modification groupée",
   "changeLog_label_bulkDelete": "Suppression groupée",
+  "changeLog_label_deletedRecord": "Enregistrement supprimé",
   "changeLog_label_merge": "Enregistrements fusionnés",
   "changeLog_label_undoMerge": "Fusion annulée",
   "changeLog_label_undoRule": "Exécution de règle annulée",

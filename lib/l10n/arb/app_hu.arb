@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "Változások",
   "changeLog_label_bulkEdit": "Tömeges szerkesztés",
   "changeLog_label_bulkDelete": "Tömeges törlés",
+  "changeLog_label_deletedRecord": "Rekord törölve",
   "changeLog_label_merge": "Rekordok egyesítve",
   "changeLog_label_undoMerge": "Egyesítés visszavonva",
   "changeLog_label_undoRule": "Szabályfuttatás visszavonva",

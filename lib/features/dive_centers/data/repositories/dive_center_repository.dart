@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -309,7 +310,13 @@ class DiveCenterRepository {
   /// write no deletion-log rows, so a peer would otherwise resurrect them
   /// (issue #2075). One transaction, so a failed delete leaves the dives
   /// linked and the notes in place.
-  Future<void> deleteDiveCenter(String id) async {
+  Future<void> deleteDiveCenter(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteDiveCenterInner(id),
+  );
+
+  Future<void> _deleteDiveCenterInner(String id) async {
     try {
       _log.info('Deleting dive center: $id');
       await _db.transaction(() async {

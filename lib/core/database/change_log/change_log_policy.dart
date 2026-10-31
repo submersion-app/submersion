@@ -459,13 +459,36 @@ bool changeLogDeleteCopySkips(String column) =>
     column.endsWith('_hlc') ||
     changeLogCredentialColumns.contains(column);
 
+/// Keys of the `settings` table that record how a list was left, for the
+/// same reason [changeLogIgnoredColumns] leaves out a diver's list
+/// arrangement.
+const Set<String> _displaySettingsKeys = {
+  'media_library_view_mode',
+  'media_library_sort',
+  'equipment_arrangement',
+};
+
+/// Machine tables whose row belongs to another row besides its root, by
+/// column and that row's table. Such a row's delete copy is kept when that
+/// row has gone, even with the root alive: reverting a deleted tank must
+/// bring its pressure curve back.
+const Map<String, Map<String, String>> changeLogMachineOwners = {
+  'tank_pressure_series': {
+    'tank_id': 'dive_tanks',
+    'source_id': 'dive_data_sources',
+  },
+  'dive_profile_series': {'source_id': 'dive_data_sources'},
+  'media_enrichment': {'media_id': 'media'},
+};
+
 /// An extra trigger guard for tables where some rows are not user data, or
 /// null. [prefix] is `OLD` or `NEW`.
 String? changeLogRowGuard(String table, String prefix) {
   if (table != 'settings') return null;
-  final keys = (deviceLocalSettingsKeys.toList()..sort())
-      .map((key) => "'$key'")
-      .join(', ');
+  final keys = ({
+    ...deviceLocalSettingsKeys,
+    ..._displaySettingsKeys,
+  }.toList()..sort()).map((key) => "'$key'").join(', ');
   return '$prefix."key" NOT IN ($keys)';
 }
 

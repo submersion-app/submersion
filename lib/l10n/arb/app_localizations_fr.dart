@@ -57440,6 +57440,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Suppression groupée';
 
   @override
+  String get changeLog_label_deletedRecord => 'Enregistrement supprimé';
+
+  @override
   String get changeLog_label_merge => 'Enregistrements fusionnés';
 
   @override

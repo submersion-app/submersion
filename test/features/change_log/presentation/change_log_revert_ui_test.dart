@@ -297,6 +297,9 @@ void main() {
         "UPDATE dives SET notes = 'Current' WHERE id = 'dive'",
       );
       final id = await newestOperation();
+      await db.customStatement(
+        'UPDATE change_log_operations SET ended_at = ended_at - 60000',
+      );
       await db.customStatement("DELETE FROM dives WHERE id = 'dive'");
       await repository.settleAll();
       return id;

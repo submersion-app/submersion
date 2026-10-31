@@ -10,6 +10,9 @@ String _recordKey(String table, String id) => '$table|$id';
 
 String _keyOf(ChangeLogEvent event) => _recordKey(event.table, event.recordId);
 
+String _rootKeyOf(ChangeLogEvent event) =>
+    _recordKey(event.root.table, event.root.id);
+
 /// Works out which deleted records can return and which created records can
 /// go, before anything is written.
 class ChangeLogRecordPlanner {
@@ -30,9 +33,11 @@ class ChangeLogRecordPlanner {
   Future<List<ChangeLogRevertItem>> planRestores(
     List<ChangeLogEvent> events,
   ) async {
-    final deletes = events
-        .where((e) => e.action == ChangeLogAction.delete)
-        .toList();
+    // A record deleted twice in one entry returns as it last stood.
+    final deletes = {
+      for (final event in events)
+        if (event.action == ChangeLogAction.delete) _keyOf(event): event,
+    }.values.toList();
     final blocks = <String, ChangeLogBlock>{};
     final restoring = <String>{};
     for (final event in deletes) {
@@ -87,20 +92,32 @@ class ChangeLogRecordPlanner {
   Future<List<ChangeLogRevertItem>> planRemovals(
     List<ChangeLogEvent> events,
   ) async {
-    final removing = [
-      for (final event in events)
-        if (event.action == ChangeLogAction.insert &&
-            await _repository.recordExists(event.table, event.recordId))
-          ChangeLogRevertItem(
-            event: event,
-            changedSince: await _changedSince(event),
-          ),
-    ];
-    return settleRemovals(removing);
+    final created = <ChangeLogEvent>[];
+    final changed = <String>{};
+    for (final event in events) {
+      if (event.action != ChangeLogAction.insert) continue;
+      if (!await _repository.recordExists(event.table, event.recordId)) {
+        continue;
+      }
+      created.add(event);
+      if (await _changedSince(event)) changed.add(_keyOf(event));
+    }
+    // A dive skipped because it was edited keeps what belongs to it, so its
+    // children count as changed along with it.
+    return settleRemovals([
+      for (final event in created)
+        ChangeLogRevertItem(
+          event: event,
+          changedSince:
+              changed.contains(_keyOf(event)) ||
+              changed.contains(_rootKeyOf(event)),
+        ),
+    ]);
   }
 
   /// Marks [items] that data outside them still uses. Keeping one can keep
-  /// another that it points at, so this repeats until nothing changes.
+  /// another that it points at, and everything that belongs to it, so this
+  /// repeats until nothing changes.
   /// Both kinds of foreign key need this: a no-action key would fail the
   /// removal and roll back the whole undo, and a cascading one would silently
   /// strip the record from later data.
@@ -124,7 +141,8 @@ class ChangeLogRecordPlanner {
               !r.isOwnedChild &&
               !removing.contains(_recordKey(r.table, r.recordId)),
         );
-        if (!inUse) continue;
+        // A record that stays keeps what belongs to it.
+        if (!inUse && !kept.contains(_rootKeyOf(item.event))) continue;
         removing.remove(key);
         kept.add(key);
         changed = true;

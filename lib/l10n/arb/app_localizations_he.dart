@@ -56106,6 +56106,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'מחיקה מרובה';
 
   @override
+  String get changeLog_label_deletedRecord => 'רשומה נמחקה';
+
+  @override
   String get changeLog_label_merge => 'רשומות מוזגו';
 
   @override

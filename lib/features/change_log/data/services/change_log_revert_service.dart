@@ -55,11 +55,15 @@ class ChangeLogRevertService {
     // Every save to this field in the entry, not just this one: a Revert
     // goes back to what the entry found.
     final events = await _repository.getEvents(event.operationId);
-    final items = await _planEdits([
-      for (final other in events)
-        if (other.table == event.table && other.recordId == event.recordId)
-          other,
-    ], only: column);
+    final items = await _planEdits(
+      [
+        for (final other in events)
+          if (other.table == event.table && other.recordId == event.recordId)
+            other,
+      ],
+      only: column,
+      dependencies: await ChangeLogDependencyIndex.load(_db),
+    );
     final operation = await _repository.getOperation(event.operationId);
     return ChangeLogRevertPlan(
       operationId: event.operationId,
@@ -98,35 +102,45 @@ class ChangeLogRevertService {
   /// Everything undoing [events] involves. An edit to a record the same
   /// events created goes with the record, so it is not listed.
   Future<List<ChangeLogRevertItem>> _plan(List<ChangeLogEvent> events) async {
-    final planner = await _planner();
+    final dependencies = await ChangeLogDependencyIndex.load(_db);
+    final planner = _plannerWith(dependencies);
     final created = {
       for (final event in events)
         if (event.action == ChangeLogAction.insert)
           (event.table, event.recordId),
     };
+    final restores = await planner.planRestores(events);
+    final restoring = {
+      for (final item in restores)
+        if (!item.isBlocked) '${item.event.table}|${item.event.recordId}',
+    };
     return [
-      ...await planner.planRestores(events),
-      ...await _planEdits([
-        for (final event in events)
-          if (!created.contains((event.table, event.recordId))) event,
-      ]),
+      ...restores,
+      ...await _planEdits(
+        [
+          for (final event in events)
+            if (!created.contains((event.table, event.recordId))) event,
+        ],
+        dependencies: dependencies,
+        restoring: restoring,
+      ),
       ...await planner.planRemovals(events),
     ];
   }
 
-  Future<ChangeLogRecordPlanner> _planner() async => ChangeLogRecordPlanner(
-    _db,
-    _repository,
-    await ChangeLogDependencyIndex.load(_db),
-    _rewrittenColumns,
-  );
+  ChangeLogRecordPlanner _plannerWith(ChangeLogDependencyIndex dependencies) =>
+      ChangeLogRecordPlanner(_db, _repository, dependencies, _rewrittenColumns);
 
   /// The column edits among [events], oldest first. Several edits to one
   /// column in an entry count as one: the value goes back to what the first
-  /// found, and "changed since" compares with what the last left.
+  /// found, and "changed since" compares with what the last left. A record
+  /// in [restoring] returns from its delete copy first, which is the edited
+  /// row, so its edits still apply.
   Future<List<ChangeLogRevertItem>> _planEdits(
     List<ChangeLogEvent> events, {
     String? only,
+    required ChangeLogDependencyIndex dependencies,
+    Set<String> restoring = const {},
   }) async {
     final first = <(String, String, String), ChangeLogFieldChange>{};
     final last = <(String, String, String), (ChangeLogEvent, Object?)>{};
@@ -144,7 +158,15 @@ class ChangeLogRevertService {
     for (final MapEntry(:key, value: (event, logged)) in last.entries) {
       final (table, recordId, column) = key;
       final target = first[key]!.oldValue;
-      final block = await _editBlock(event, column);
+      final returning = restoring.contains('$table|$recordId');
+      final block = await _editBlock(
+        event,
+        column,
+        target,
+        dependencies: dependencies,
+        restoring: restoring,
+        returning: returning,
+      );
       if (block != null) {
         items.add(
           ChangeLogRevertItem(
@@ -157,7 +179,9 @@ class ChangeLogRevertService {
         );
         continue;
       }
-      final current = await _liveValue(table, recordId, column);
+      final current = returning
+          ? logged
+          : await _liveValue(table, recordId, column);
       if (_same(current, target)) continue;
       items.add(
         ChangeLogRevertItem(
@@ -176,17 +200,25 @@ class ChangeLogRevertService {
   Future<ChangeLogBlock?> _editBlock(
     ChangeLogEvent event,
     String column,
-  ) async {
+    Object? target, {
+    required ChangeLogDependencyIndex dependencies,
+    required Set<String> restoring,
+    required bool returning,
+  }) async {
     final columns = await _repository.liveColumns(event.table);
     if (!columns.contains(column)) return ChangeLogBlock.columnGone;
     final rewrittenAt = _rewrittenColumns['${event.table}.$column'];
     if (rewrittenAt != null && event.schemaVersion < rewrittenAt) {
       return ChangeLogBlock.rewritten;
     }
-    if (!await _repository.recordExists(event.table, event.recordId)) {
+    if (!returning &&
+        !await _repository.recordExists(event.table, event.recordId)) {
       return ChangeLogBlock.recordGone;
     }
-    return null;
+    final missing = await dependencies.missingParents(event.table, {
+      column: target,
+    }, restoring);
+    return missing.isEmpty ? null : ChangeLogBlock.parentGone;
   }
 
   Future<Object?> _liveValue(
@@ -220,7 +252,8 @@ class ChangeLogRevertService {
 
     // Skipping a record can leave what it uses in use, and a plan can be
     // older than the data, so removals are checked again here.
-    final removals = await (await _planner()).settleRemovals([
+    final planner = _plannerWith(await ChangeLogDependencyIndex.load(_db));
+    final removals = await planner.settleRemovals([
       for (final item in plan.items)
         if (item.removesRecord && applies(item)) item,
     ]);
@@ -264,7 +297,7 @@ class ChangeLogRevertService {
         return ChangeLogScope.currentOperationId;
       },
     );
-    await _finish(plan, applying, operationId);
+    await _finish(plan, applying, kept, operationId);
     return ChangeLogRevertResult(
       reverted: applying.length,
       kept: kept.length,
@@ -398,10 +431,13 @@ class ChangeLogRevertService {
   }
 
   /// What every write of the app does after a commit, and the link from the
-  /// original entry to its revert.
+  /// original entry to its revert. An entry shows as reverted only when all
+  /// of it went back, so what a partial undo kept can be tried again.
+  /// Reverting a revert puts the entry it undid back as it was.
   Future<void> _finish(
     ChangeLogRevertPlan plan,
     List<ChangeLogRevertItem> applied,
+    List<ChangeLogRevertItem> kept,
     String? operationId,
   ) async {
     _afterDiveWrites({
@@ -409,15 +445,20 @@ class ChangeLogRevertService {
         if (item.event.root.table == 'dives') item.event.root.id,
     });
     SyncEventBus.notifyLocalChange();
-    if (plan.wholeOperation && operationId != null) {
-      await _db.customUpdate(
-        'UPDATE change_log_operations SET reverted_by_id = ? WHERE id = ?',
-        variables: [
-          Variable<String>(operationId),
-          Variable<String>(plan.operationId),
-        ],
-        updates: {_db.changeLogOperations},
-      );
-    }
+    if (!plan.wholeOperation || kept.isNotEmpty || operationId == null) return;
+    await _db.customUpdate(
+      'UPDATE change_log_operations SET reverted_by_id = ? WHERE id = ?',
+      variables: [
+        Variable<String>(operationId),
+        Variable<String>(plan.operationId),
+      ],
+      updates: {_db.changeLogOperations},
+    );
+    await _db.customUpdate(
+      'UPDATE change_log_operations SET reverted_by_id = NULL WHERE id = '
+      '(SELECT revert_of_id FROM change_log_operations WHERE id = ?)',
+      variables: [Variable<String>(plan.operationId)],
+      updates: {_db.changeLogOperations},
+    );
   }
 }

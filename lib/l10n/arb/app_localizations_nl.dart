@@ -56956,6 +56956,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'Bulkverwijdering';
 
   @override
+  String get changeLog_label_deletedRecord => 'Record verwijderd';
+
+  @override
   String get changeLog_label_merge => 'Records samengevoegd';
 
   @override

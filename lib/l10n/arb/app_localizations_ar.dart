@@ -58072,6 +58072,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_label_bulkDelete => 'حذف جماعي';
 
   @override
+  String get changeLog_label_deletedRecord => 'تم حذف سجل';
+
+  @override
   String get changeLog_label_merge => 'تم دمج السجلات';
 
   @override

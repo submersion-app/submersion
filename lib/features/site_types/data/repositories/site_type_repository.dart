@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -167,7 +168,13 @@ class SiteTypeRepository {
   /// Deletes a custom type and every site link to it. The junction has no
   /// foreign key to cascade through, so the links are deleted and tombstoned
   /// here, in the same transaction.
-  Future<void> deleteSiteType(String id) async {
+  Future<void> deleteSiteType(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteSiteTypeInner(id),
+  );
+
+  Future<void> _deleteSiteTypeInner(String id) async {
     final existing = await getSiteTypeById(id);
     if (existing != null && existing.isBuiltIn) {
       throw Exception('Cannot delete built-in site types');

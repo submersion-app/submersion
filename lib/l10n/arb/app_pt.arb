@@ -17015,6 +17015,7 @@
   "changeLog_title_changes": "Alterações",
   "changeLog_label_bulkEdit": "Edição em massa",
   "changeLog_label_bulkDelete": "Eliminação em massa",
+  "changeLog_label_deletedRecord": "Registo eliminado",
   "changeLog_label_merge": "Registos combinados",
   "changeLog_label_undoMerge": "Combinação anulada",
   "changeLog_label_undoRule": "Execução de regra anulada",
