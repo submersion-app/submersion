@@ -15,6 +15,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dar
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 
+import 'base_parts.dart';
 import 'test_database.dart';
 
 /// A base-file apply callback for [ChangesetReader.pull] tests: decodes the
@@ -36,7 +37,7 @@ ApplyBaseFile spyApplyBaseFile(List<SyncPayload> applied) {
 /// - `cloud.seedFile('submersion_sync_<peer>.json', bytes)` -> [seedPeerLog]
 ///   (publish real data as a peer) or [seedPeerManifest] (just make a peer
 ///   discoverable).
-/// - `SyncPayload.fromJson(jsonDecode(cloud.syncFileBytes()) as Map<String, dynamic>)` -> [cloudBasePayload]
+/// - Parsing `cloud.syncFileBytes()` back into a payload -> [cloudBasePayload]
 ///   (read our own exported base back) / [hasPublishedLog] / [ownManifest].
 
 /// A writer with compaction disabled: a single changeset can exceed 30% of a
@@ -147,7 +148,7 @@ Future<void> seedPeerBaseFromPayload(
   const codec = ChangesetCodec();
   final folder = await cloud.getOrCreateSyncFolder();
   final fullBytes = await codec.encodeChangeset(payload);
-  final parts = BaseChunker.slice(fullBytes);
+  final parts = sliceBaseParts(fullBytes);
   for (var i = 0; i < parts.length; i++) {
     await cloud.uploadFile(
       parts[i],
@@ -179,8 +180,8 @@ Future<void> seedPeerBaseFromPayload(
 }
 
 /// Read [deviceId]'s own base payload back from its log (manifest -> base
-/// parts -> decoded [SyncPayload]), or null if it has no base. Replaces the old
-/// `deserializePayload(cloud.syncFileBytes())` for export-shape assertions.
+/// parts -> decoded [SyncPayload]), or null if it has no base. For
+/// export-shape assertions.
 Future<SyncPayload?> cloudBasePayload(
   CloudStorageProvider cloud,
   String deviceId,
@@ -202,7 +203,7 @@ Future<SyncPayload?> cloudBasePayload(
   }
   if (parts.isEmpty) return null;
   return (await const ChangesetCodec().decodeVerifiedChangeset(
-    BaseChunker.reassemble(parts),
+    joinBaseParts(parts),
   )).payload;
 }
 

@@ -676,6 +676,31 @@ void main() {
       );
     });
 
+    test('adoption stops at a changeset whose envelope is corrupt', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedChangesetAfterBase({...row!, 'id': 'sealed'});
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+      final changeset = ChangesetLogLayout.changesetName('replacer', 2);
+      cloud
+        ..failDownloadsWhere = ((id) => id.endsWith(changeset))
+        ..downloadFailure = const EnvelopeCorruptException('bad tag');
+
+      final result = await service.adoptReplacedLibrary();
+
+      // Held in the cloud but unusable here, as a failed checksum is, so the
+      // library is adopted up to it and pull retries from there.
+      expect(result.isSuccess, isTrue);
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(await SyncDataSerializer().fetchRecord('dives', 'sealed'), isNull);
+    });
+
     test('a dropped connection reports failure and recovers nothing', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),

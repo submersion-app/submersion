@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -10,23 +9,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 
-/// A real isolate that keeps count. runOffIsolate reruns anything a worker
-/// could not do on this isolate, so a closure that drags the database along
-/// would still give the right answer here. [failures] is what tells them apart.
-class _Hops {
-  var count = 0;
-  final failures = <Object>[];
-
-  Future<R> run<R>(FutureOr<R> Function() work) async {
-    count++;
-    try {
-      return await Isolate.run(work);
-    } catch (e) {
-      failures.add(e);
-      rethrow;
-    }
-  }
-}
+import '../../../../helpers/isolate_hops.dart';
 
 const _hlcA = '000000000000005:000000:aaa';
 const _hlcB = '000000000000009:000000:bbb';
@@ -85,7 +68,7 @@ void main() {
   group('encodeChangeset', () {
     test('writes exactly what jsonEncode of the payload writes', () async {
       final payload = _payload();
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final inline = await const ChangesetCodec().encodeChangeset(payload);
       final viaWorker = await ChangesetCodec(
@@ -101,7 +84,7 @@ void main() {
     });
 
     test('a small payload stays on this isolate', () async {
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       await ChangesetCodec(
         offIsolateRunner: hops.run,
@@ -111,7 +94,7 @@ void main() {
     });
 
     test('a payload past the threshold goes to a worker', () async {
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       await ChangesetCodec(
         offIsolateRunner: hops.run,
@@ -122,7 +105,7 @@ void main() {
     });
 
     test('many small rows count as much as one large one', () async {
-      final hops = _Hops();
+      final hops = IsolateHops();
       final rows = [
         for (var i = 0; i < kOffIsolateMinBytes ~/ 20; i++)
           {'id': 'row-$i', 'hlc': _hlcA},
@@ -151,7 +134,7 @@ void main() {
   });
 
   group('decodeVerifiedChangeset', () {
-    Future<VerifiedChangeset> viaWorker(Uint8List bytes, _Hops hops) =>
+    Future<VerifiedChangeset> viaWorker(Uint8List bytes, IsolateHops hops) =>
         ChangesetCodec(
           offIsolateMinBytes: 0,
           offIsolateRunner: hops.run,
@@ -160,7 +143,7 @@ void main() {
     test('a worker hands back the whole payload, verified', () async {
       final sent = _payload();
       final bytes = await const ChangesetCodec().encodeChangeset(sent);
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final decoded = await viaWorker(bytes, hops);
 
@@ -194,7 +177,7 @@ void main() {
       final inline = await const ChangesetCodec().decodeVerifiedChangeset(
         bytes,
       );
-      final remote = await viaWorker(bytes, _Hops());
+      final remote = await viaWorker(bytes, IsolateHops());
 
       expect(remote.checksumValid, inline.checksumValid);
       expect(remote.payload.rawDataJson, inline.payload.rawDataJson);
@@ -213,7 +196,7 @@ void main() {
       final inline = await const ChangesetCodec().decodeVerifiedChangeset(
         bytes,
       );
-      final remote = await viaWorker(bytes, _Hops());
+      final remote = await viaWorker(bytes, IsolateHops());
 
       expect(inline.checksumValid, isFalse);
       expect(remote.checksumValid, isFalse);
@@ -251,7 +234,7 @@ void main() {
       final inline = await const ChangesetCodec().decodeVerifiedChangeset(
         bytes,
       );
-      final remote = await viaWorker(bytes, _Hops());
+      final remote = await viaWorker(bytes, IsolateHops());
 
       expect(inline.checksumValid, isTrue);
       expect(remote.checksumValid, isTrue);
@@ -271,7 +254,7 @@ void main() {
         },
       });
 
-      final remote = await viaWorker(bytes, _Hops());
+      final remote = await viaWorker(bytes, IsolateHops());
 
       expect(remote.checksumValid, isTrue);
       expect(remote.payload.deletions['dives']!.single.id, 'old-id');
@@ -284,7 +267,7 @@ void main() {
         const ChangesetCodec().decodeVerifiedChangeset(bytes),
         throwsFormatException,
       );
-      await expectLater(viaWorker(bytes, _Hops()), throwsFormatException);
+      await expectLater(viaWorker(bytes, IsolateHops()), throwsFormatException);
     });
 
     test('a malformed document is not decoded a second time here', () async {
@@ -310,7 +293,7 @@ void main() {
     test('small bytes stay on this isolate', () async {
       final bytes = await const ChangesetCodec().encodeChangeset(_payload());
 
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final decoded = await ChangesetCodec(
         offIsolateRunner: hops.run,
@@ -324,7 +307,7 @@ void main() {
       final bytes = await const ChangesetCodec().encodeChangeset(
         _largePayload(),
       );
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final decoded = await ChangesetCodec(
         offIsolateRunner: hops.run,
@@ -339,7 +322,7 @@ void main() {
   group('checksumOfOffIsolate', () {
     test('a worker computes the same checksum as this isolate', () async {
       final data = _payload().data;
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final remote = await SyncDataSerializer.checksumOfOffIsolate(
         data,
@@ -354,7 +337,7 @@ void main() {
 
     test('small data stays on this isolate', () async {
       final data = _payload().data;
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       final checksum = await SyncDataSerializer.checksumOfOffIsolate(
         data,
@@ -366,7 +349,7 @@ void main() {
     });
 
     test('large data goes to a worker', () async {
-      final hops = _Hops();
+      final hops = IsolateHops();
 
       await SyncDataSerializer.checksumOfOffIsolate(
         _largePayload().data,
@@ -418,7 +401,7 @@ void main() {
     });
 
     test('a long list of deletions counts toward a hop', () async {
-      final hops = _Hops();
+      final hops = IsolateHops();
       final payload = _payload();
       final heavy = SyncPayload(
         version: payload.version,

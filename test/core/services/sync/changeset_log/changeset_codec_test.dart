@@ -1,12 +1,9 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
-import 'package:submersion/core/services/sync/changeset_log/base_chunker.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -16,6 +13,7 @@ import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 
 import '../../../../helpers/changeset_test_helpers.dart';
+import '../../../../helpers/isolate_hops.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../support/fake_cloud_storage_provider.dart';
@@ -45,42 +43,12 @@ void main() {
     expect(SyncDataSerializer.checksumIsValid(back), isTrue);
   });
 
-  test('base encode (chunked) -> reassemble -> decode round-trips', () async {
-    final deviceId = await SyncRepository().getDeviceId();
-    final payload = await serializer.exportData(
-      deviceId: deviceId,
-      deletions: const [],
-    );
-    final parts = BaseChunker.slice(
-      await codec.encodeChangeset(payload),
-      partSize: 64,
-    );
-    expect(parts.length, greaterThanOrEqualTo(1));
-    final back = (await codec.decodeVerifiedChangeset(
-      BaseChunker.reassemble(parts),
-    )).payload;
-    expect(SyncDataSerializer.checksumIsValid(back), isTrue);
-  });
-
   group('on a worker', () {
     // runOffIsolate reruns what a worker could not do, so a payload that cannot
     // cross to an isolate shows up here and nowhere else.
-    final failures = <Object>[];
-    var hops = 0;
-    Future<R> recorded<R>(FutureOr<R> Function() work) async {
-      hops++;
-      try {
-        return await Isolate.run(work);
-      } catch (e) {
-        failures.add(e);
-        rethrow;
-      }
-    }
+    late IsolateHops hops;
 
-    setUp(() {
-      failures.clear();
-      hops = 0;
-    });
+    setUp(() => hops = IsolateHops());
 
     test('a real export crosses to a worker and back unchanged', () async {
       final deviceId = await SyncRepository().getDeviceId();
@@ -96,7 +64,7 @@ void main() {
       expect(payload.data.dives, isNotEmpty);
       final worker = ChangesetCodec(
         offIsolateMinBytes: 0,
-        offIsolateRunner: recorded,
+        offIsolateRunner: hops.run,
       );
 
       final bytes = await worker.encodeChangeset(payload);
@@ -105,13 +73,13 @@ void main() {
       expect(bytes, utf8.encode(jsonEncode(payload.toJson())));
       expect(decoded.checksumValid, isTrue);
       expect(decoded.payload.data.dives, payload.data.dives);
-      expect(hops, 2);
-      expect(failures, isEmpty);
+      expect(hops.count, 2);
+      expect(hops.failures, isEmpty);
     });
 
     test('a changeset past the threshold goes from writer to reader', () async {
       final db = DatabaseService.instance.database;
-      final worker = ChangesetCodec(offIsolateRunner: recorded);
+      final worker = ChangesetCodec(offIsolateRunner: hops.run);
       final writer = ChangesetWriter(
         serializer,
         worker,
@@ -155,8 +123,8 @@ void main() {
       final large = applied.last.data.dives.singleWhere((d) => d['id'] == 'd2');
       expect(large['notes'], notes);
       // One to write it, one to read it.
-      expect(hops, 2);
-      expect(failures, isEmpty);
+      expect(hops.count, 2);
+      expect(hops.failures, isEmpty);
     });
   });
 }
