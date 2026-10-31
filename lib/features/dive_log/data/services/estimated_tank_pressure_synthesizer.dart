@@ -1,13 +1,17 @@
+import 'package:equatable/equatable.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 
 /// Real per-tank pressures augmented with in-memory linear estimates, plus the
 /// set of tankIds that were synthesized (so the UI can label them "estimated").
-class EstimatedTankPressures {
+class EstimatedTankPressures extends Equatable {
   final Map<String, List<TankPressurePoint>> pressures;
   final Set<String> estimatedTankIds;
   const EstimatedTankPressures(this.pressures, this.estimatedTankIds);
+
+  @override
+  List<Object?> get props => [pressures, estimatedTankIds];
 }
 
 /// Builds transmitter-style linear pressure series for tanks that have both

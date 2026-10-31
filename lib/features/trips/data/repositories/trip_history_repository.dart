@@ -23,8 +23,10 @@ class TripHistoryRepository {
   ///
   /// [diverId] scopes it to one diver's own dives, which matters because
   /// trips are shared: both the count and the day count then come from
-  /// their dives alone. Null applies no scoping at all and counts every
-  /// diver's dives, which is what a library with no active diver wants.
+  /// their dives alone. It also limits the sample to the trips they can see,
+  /// and a side trip of a parent they cannot see counts as its own trip
+  /// (issue #3933). Null applies no scoping at all and counts every diver's
+  /// dives, which is what a library with no active diver wants.
   Future<List<double>> divesPerDiveDay({
     String? diverId,
     required DateTime before,
@@ -34,6 +36,7 @@ class TripHistoryRepository {
     // dives too, and counting those would report a rate this diver never
     // swam.
     final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
+    final topLevel = topLevelTripFilter(diverId: diverId, conjunction: 'AND');
     final rows = await _db
         .customSelect(
           '''
@@ -43,7 +46,7 @@ class TripHistoryRepository {
           FROM trips t
           ${tripDivesJoinSql(tripAlias: 't', diveAlias: 'd', joinKind: '')}
           WHERE t.end_date < ? AND d.is_planned = 0 $diverFilter
-            AND $topLevelTripSql
+            ${topLevel.whereClause}
           GROUP BY t.id
           ORDER BY t.end_date DESC
           LIMIT ?
@@ -51,6 +54,7 @@ class TripHistoryRepository {
           variables: [
             Variable(before.millisecondsSinceEpoch),
             if (diverId != null) Variable(diverId),
+            ...topLevel.variables,
             Variable(limit),
           ],
         )

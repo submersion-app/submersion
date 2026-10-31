@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
+import 'package:submersion/core/database/database.dart'
+    show DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -338,6 +339,29 @@ void main() {
       WaterType.fresh,
       WaterType.salt,
     ]);
+  });
+
+  test('a blank water type on the dive takes its site one (#3958)', () async {
+    final site = await SiteRepository().createSite(
+      const DiveSite(id: '', name: 'Quarry', waterType: WaterType.fresh),
+    );
+    final dive = await diveRepository.createDive(
+      Dive(
+        id: '',
+        diverId: diverId,
+        dateTime: DateTime(2026, 1, 1),
+        site: site,
+        weightAmount: 5.0,
+      ),
+    );
+    final db = DatabaseService.instance.database;
+    await (db.update(db.dives)..where((t) => t.id.equals(dive.id))).write(
+      const DivesCompanion(waterType: Value('')),
+    );
+
+    final observations = await repository.observationsForDiver(diverId);
+
+    expect(observations.single.waterType, WaterType.fresh);
   });
 
   test('watchSiteWaterTypeChanges ticks only for a water type edit', () async {

@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -701,7 +702,13 @@ class SpeciesRepository {
   /// Delete a species. Throws if the species is referenced by sightings or
   /// photo tags, so no `media_species` row can exist by the time the row
   /// goes (unlike `site_species`, which is derived and cleared here).
-  Future<void> deleteSpecies(String id) async {
+  Future<void> deleteSpecies(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteSpeciesInner(id),
+  );
+
+  Future<void> _deleteSpeciesInner(String id) async {
     if (await isSpeciesInUse(id)) {
       throw Exception(
         'Cannot delete species that is referenced by sightings or photo tags',

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
@@ -237,6 +238,11 @@ class _GpsTrackDetailPageState extends ConsumerState<GpsTrackDetailPage> {
               tooltip: l10n.gpsTrack_action_export,
               onSelected: (action) => _onMenu(action, track),
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'gps_tracks',
+                  rootId: track.id,
+                ),
                 PopupMenuItem(
                   value: _TrackAction.shareGpx,
                   child: Text(l10n.gpsTrack_action_shareGpx),

@@ -46,9 +46,11 @@ void main() {
     }
   });
 
-  test('topLevelTripSql keeps every trip that is not a valid side trip', () {
+  test('topLevelTripFilter with no profile keeps every non-side trip', () {
+    final filter = topLevelTripFilter(diverId: null, conjunction: 'WHERE');
+    expect(filter.variables, isEmpty);
     return expectLater(
-      ids('SELECT t.id FROM trips t WHERE $topLevelTripSql'),
+      ids('SELECT t.id FROM trips t ${filter.whereClause}'),
       completion({'A', 'C', 'D', 'E'}),
     );
   });

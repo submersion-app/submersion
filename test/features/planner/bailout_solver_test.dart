@@ -18,11 +18,19 @@ const _diluentTank = DiveTank(
   role: TankRole.diluent,
 );
 
-DiveTank _bailout({double volume = 11.1, double pressure = 207}) => DiveTank(
+/// Reaches the 60 m default plan (MOD 67 m at the 1.4 bottom limit), which a
+/// richer gas alone cannot: past every MOD there is no ascent to test (#3961).
+const _deepBailoutGas = GasMix(o2: 18, he: 35);
+
+DiveTank _bailout({
+  double volume = 11.1,
+  double pressure = 207,
+  GasMix gasMix = _deepBailoutGas,
+}) => DiveTank(
   id: 'bo',
   volume: volume,
   startPressure: pressure,
-  gasMix: const GasMix(o2: 50),
+  gasMix: gasMix,
   role: TankRole.bailout,
 );
 
@@ -197,11 +205,14 @@ void main() {
     // Whole-minute stop snapping (brought in line with PlanEngine's own
     // policy by a Copilot review) rounds a stop duration up to the next
     // full minute, a slightly bigger single-sample step than the plain
-    // unsnapped grid gave, hence the wider tolerance.
+    // unsnapped grid gave, hence the wider tolerance. The widest step on a
+    // single gas is a lone 9 m stop gaining a 3 m one: its whole climb out was
+    // at the final rate, and only the last 3 m is now, about a tenth of the
+    // demand at that early point.
     for (var i = 1; i < bottomPoints.length; i++) {
       expect(
         bottomPoints[i].litersRequired,
-        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.97),
+        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.90),
         reason: 'sample $i fell more than one grid step below its predecessor',
       );
     }
@@ -268,7 +279,7 @@ void main() {
       }
       for (final row in outcome.worstCaseRows.sublist(bailoutStart)) {
         expect(row.tankId, 'bo', reason: 'row at ${row.depthMeters} m');
-        expect(row.gasFO2, closeTo(0.50, 1e-9));
+        expect(row.gasFO2, closeTo(_deepBailoutGas.o2 / 100, 1e-9));
       }
     });
 

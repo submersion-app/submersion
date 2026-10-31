@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -117,6 +118,8 @@ domain.DivePlan divePlanFromState(
     stopMinimums: state.stopMinimums,
     surfaceInterval: state.surfaceInterval,
     clearSurfaceInterval: state.surfaceInterval == null,
+    startCns: _startCns(state),
+    startOtu: state.initialOtu ?? 0,
     segments: state.segments,
     tanks: state.tanks,
     equipmentIds: state.equipmentIds,
@@ -129,6 +132,17 @@ domain.DivePlan divePlanFromState(
     createdAt: state.createdAt,
     updatedAt: state.updatedAt,
   );
+}
+
+/// The CNS% a dive starts with: the previous dive's end CNS decayed over
+/// the surface interval, the same way the tissues are off-gassed for the
+/// seed (issue #3565).
+double _startCns(DivePlanState state) {
+  final carried = state.initialCns;
+  if (carried == null) return 0;
+  final interval = state.surfaceInterval;
+  if (interval == null) return carried;
+  return CnsTable.cnsAfterSurfaceInterval(carried, interval.inMinutes);
 }
 
 /// What the engine reads from [state]: the plan without its name, notes and

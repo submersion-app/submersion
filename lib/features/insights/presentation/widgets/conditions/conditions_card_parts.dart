@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -40,20 +41,39 @@ class ConditionsCoverageLine extends StatelessWidget {
     super.key,
     required this.recorded,
     required this.total,
+    this.onOpenUnrecorded,
   });
 
   final int recorded;
   final int total;
 
+  /// Set while some dives are unrecorded, to open them (issue #3805).
+  final Future<void> Function()? onOpenUnrecorded;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurfaceVariant;
+    final text = Text(
+      context.l10n.insights_conditions_coverage(recorded, total),
+      style: theme.textTheme.bodySmall?.copyWith(color: color),
+    );
+    final open = onOpenUnrecorded;
+    if (open == null) {
+      return Padding(padding: const EdgeInsets.only(top: 8), child: text);
+    }
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Text(
-        context.l10n.insights_conditions_coverage(recorded, total),
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+      padding: const EdgeInsets.only(top: 4),
+      child: ChartRowLink(
+        onTap: open,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(child: text),
+              Icon(Icons.chevron_right, size: 16, color: color),
+            ],
+          ),
         ),
       ),
     );
@@ -108,6 +128,7 @@ class ConditionsChartCard extends StatelessWidget {
     required this.chart,
     required this.recorded,
     required this.total,
+    this.onOpenUnrecorded,
   });
 
   final String title;
@@ -118,6 +139,7 @@ class ConditionsChartCard extends StatelessWidget {
   final Widget chart;
   final int recorded;
   final int total;
+  final Future<void> Function()? onOpenUnrecorded;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +158,11 @@ class ConditionsChartCard extends StatelessWidget {
               ),
               child: chart,
             ),
-            ConditionsCoverageLine(recorded: recorded, total: total),
+            ConditionsCoverageLine(
+              recorded: recorded,
+              total: total,
+              onOpenUnrecorded: onOpenUnrecorded,
+            ),
           ],
         ),
       ),

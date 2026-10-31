@@ -114,6 +114,7 @@ void main() {
             diveCenterListViewModeProvider.overrideWith(
               (ref) => ListViewMode.table,
             ),
+            diveCenterDiveCountsProvider.overrideWith((ref) => const {}),
             diveCenterByIdProvider(
               center.id,
             ).overrideWith((ref) async => center),
@@ -173,6 +174,7 @@ void main() {
             diveCenterListViewModeProvider.overrideWith(
               (ref) => ListViewMode.table,
             ),
+            diveCenterDiveCountsProvider.overrideWith((ref) => const {}),
             diveCenterByIdProvider(
               center.id,
             ).overrideWith((ref) async => center),

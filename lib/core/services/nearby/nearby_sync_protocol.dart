@@ -17,6 +17,7 @@ import 'package:submersion/core/services/nearby/nearby_session.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/nearby/nearby_transfer.dart';
 import 'package:submersion/core/services/nearby/nearby_watermarks.dart';
+import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart'
     show NearbyApplyResult;
@@ -257,13 +258,16 @@ class NearbySyncProtocol {
     try {
       final NearbyApplyResult result;
       if (kind == 'delta') {
-        final payload = SyncPayload.fromJson(
-          jsonDecode(await json.readAsString()) as Map<String, dynamic>,
+        final decoded = await const ChangesetCodec().decodeVerifiedChangeset(
+          await json.readAsBytes(),
         );
-        if (!SyncDataSerializer.checksumIsValid(payload)) {
+        if (!decoded.checksumValid) {
           throw const FormatException('nearby delta checksum');
         }
-        result = await _engine.applyPayload(payload, peerDeviceId: _peerId);
+        result = await _engine.applyPayload(
+          decoded.payload,
+          peerDeviceId: _peerId,
+        );
       } else {
         result = await _engine.applyBaseFile(json.path, peerDeviceId: _peerId);
       }
@@ -489,7 +493,7 @@ class NearbySyncProtocol {
         final base = await _engine.exportFull();
         return _files.prepareFull(_peerId, const Uuid().v4(), File(base.path));
       case NearbyExportKind.delta:
-        final payload = NearbyExportPlanner.filterByWriter(
+        final payload = await NearbyExportPlanner.filterByWriter(
           await _engine.exportDelta(from!),
           theirs,
         );
@@ -497,7 +501,7 @@ class NearbySyncProtocol {
         return _files.prepareDelta(
           _peerId,
           const Uuid().v4(),
-          jsonEncode(payload.toJson()),
+          await const ChangesetCodec().encodeChangeset(payload),
         );
     }
   }

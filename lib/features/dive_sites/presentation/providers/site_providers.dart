@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
@@ -707,10 +709,16 @@ class SiteListNotifier
     List<domain.DiveSite> sites, {
     SiteLinks links = const SiteLinks(),
   }) async {
-    for (final site in sites) {
-      await _repository.createSite(site);
-    }
-    await _repository.restoreSiteLinks(links);
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.bulkEdit,
+      body: () async {
+        for (final site in sites) {
+          await _repository.createSite(site);
+        }
+        await _repository.restoreSiteLinks(links);
+      },
+    );
     // The delete cancelled the restored documents' reminders (#2613).
     await _ref.read(documentMutationsProvider).rearmReminders([
       for (final entry in links.documents) entry.document,

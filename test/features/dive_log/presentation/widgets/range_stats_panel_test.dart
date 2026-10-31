@@ -363,6 +363,96 @@ void main() {
       expect(find.text('40.0 L/min'), findsOneWidget);
     });
 
+    group('depth over the pressure coverage (#3973)', () {
+      // 30 m, up to 10 m over the fifth minute, then 10 m to 10:00.
+      const profile = [
+        DiveProfilePoint(timestamp: 0, depth: 30),
+        DiveProfilePoint(timestamp: 240, depth: 30),
+        DiveProfilePoint(timestamp: 300, depth: 10),
+        DiveProfilePoint(timestamp: 600, depth: 10),
+      ];
+
+      Future<void> pumpRange(
+        WidgetTester tester, {
+        required (int, int) range,
+        required Map<String, List<TankPressurePoint>> tankPressures,
+        List<DiveProfilePoint> profile = profile,
+      }) => _pumpPanel(
+        tester,
+        width: 1400,
+        profile: profile,
+        tanks: const [backGas],
+        tankPressures: tankPressures,
+        range: range,
+      );
+
+      // 200 -> 150 bar across the 10 m stretch alone: 50 bar over 5 min at
+      // 2 bar ambient is 5 bar/min, 60 L/min of 12 L.
+      const lateStart = {
+        'bg': [
+          TankPressurePoint(tankId: 'bg', timestamp: 300, pressure: 200),
+          TankPressurePoint(tankId: 'bg', timestamp: 600, pressure: 150),
+        ],
+      };
+
+      testWidgets('a selection of the covered stretch alone', (tester) async {
+        await pumpRange(tester, range: (300, 600), tankPressures: lateStart);
+
+        expect(find.text('5.0 bar/min'), findsOneWidget);
+        expect(find.text('60.0 L/min'), findsOneWidget);
+      });
+
+      testWidgets('a transmitter that starts late keeps the same rate', (
+        tester,
+      ) async {
+        await pumpRange(tester, range: (0, 600), tankPressures: lateStart);
+
+        expect(find.text('5.0 bar/min'), findsOneWidget);
+        expect(find.text('60.0 L/min'), findsOneWidget);
+        // Avg Depth still describes the whole selection.
+        expect(find.text('19.0m'), findsOneWidget);
+      });
+
+      testWidgets('a transmitter that stops early keeps the same rate', (
+        tester,
+      ) async {
+        // 200 -> 120 bar over the 30 m stretch alone: 80 bar over 4 min at
+        // 4 bar ambient is 5 bar/min, 60 L/min of 12 L.
+        await pumpRange(
+          tester,
+          range: (0, 600),
+          tankPressures: const {
+            'bg': [
+              TankPressurePoint(tankId: 'bg', timestamp: 0, pressure: 200),
+              TankPressurePoint(tankId: 'bg', timestamp: 240, pressure: 120),
+            ],
+          },
+        );
+
+        expect(find.text('5.0 bar/min'), findsOneWidget);
+        expect(find.text('60.0 L/min'), findsOneWidget);
+      });
+
+      testWidgets('shows neither when the plotted line misses the coverage', (
+        tester,
+      ) async {
+        // The selection has a depth, but only where nothing read pressure.
+        await pumpRange(
+          tester,
+          range: (0, 600),
+          tankPressures: lateStart,
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 30),
+            DiveProfilePoint(timestamp: 240, depth: 30),
+          ],
+        );
+
+        expect(find.text('30.0m'), findsWidgets);
+        expect(find.text('SAC'), findsNothing);
+        expect(find.text('RMV'), findsNothing);
+      });
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 
@@ -402,6 +492,34 @@ void main() {
 
       expect(find.text('SAC'), findsNothing);
       expect(find.text('RMV'), findsNothing);
+    });
+
+    testWidgets('shows SAC when only a stage is breathed (#3974)', (
+      tester,
+    ) async {
+      List<TankPressurePoint> series(String id, double from, double to) => [
+        TankPressurePoint(tankId: id, timestamp: 0, pressure: from),
+        TankPressurePoint(tankId: id, timestamp: 600, pressure: to),
+      ];
+
+      await pumpGas(
+        tester,
+        tanks: const [
+          backGas,
+          DiveTank(id: 'deco', volume: 7, role: TankRole.deco, order: 1),
+        ],
+        tankPressures: {
+          'bg': series('bg', 150, 150),
+          'deco': series('deco', 200, 150),
+        },
+      );
+
+      // The default range sees 25 bar of 7 L, which is 14.58 bar of 12 L,
+      // over 5 min at 2 bar ambient.
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('1.5 bar/min'), findsOneWidget);
+      expect(find.text('RMV'), findsOneWidget);
+      expect(find.text('17.5 L/min'), findsOneWidget);
     });
 
     const ccrTanks = [

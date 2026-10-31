@@ -80,9 +80,7 @@ RangeProfileStats rangeProfileStats({
   final heartRates = recorded.map((p) => p.heartRate).nonNulls.toList();
 
   final line = samplesInWindow(
-    shouldDrawSurfaceLeadIn(profile)
-        ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
-        : profile,
+    _plottedSamples(profile),
     start: startTimestamp,
     end: endTimestamp,
     time: (p) => p.timestamp,
@@ -106,6 +104,34 @@ RangeProfileStats rangeProfileStats({
     maxHR: heartRates.isEmpty ? null : heartRates.reduce(math.max),
   );
 }
+
+/// Time-weighted average depth in meters of [profile] across [windows]
+/// (seconds from the dive's start), over the same line as
+/// [rangeProfileStats]. The time between them counts for nothing. Null when
+/// that line reaches none of them.
+double? rangeAverageDepth({
+  required List<DiveProfilePoint> profile,
+  required Iterable<({num start, num end})> windows,
+}) => timeWeightedMeanAcross(
+  _plottedSamples(profile),
+  windows: windows,
+  time: (p) => p.timestamp,
+  value: (p) => p.depth,
+);
+
+/// The time the depth line the chart draws for [profile] runs over, in seconds
+/// from the dive's start, or null for an empty profile.
+({int start, int end})? plottedSpan(List<DiveProfilePoint> profile) {
+  final samples = _plottedSamples(profile);
+  if (samples.isEmpty) return null;
+  return (start: samples.first.timestamp, end: samples.last.timestamp);
+}
+
+/// The samples of the depth line the chart draws for [profile].
+List<DiveProfilePoint> _plottedSamples(List<DiveProfilePoint> profile) =>
+    shouldDrawSurfaceLeadIn(profile)
+    ? [const DiveProfilePoint(timestamp: 0, depth: 0), ...profile]
+    : profile;
 
 /// How depth changes along [line], in meters and m/min, or null when the
 /// selection reaches at most one point of it: that has a depth, but no time

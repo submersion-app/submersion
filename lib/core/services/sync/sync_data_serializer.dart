@@ -20,11 +20,13 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
@@ -325,6 +327,7 @@ class SyncData {
   final List<Map<String, dynamic>> divePlanMissionLegs;
   final List<Map<String, dynamic>> divePlanMissionMembers;
   final List<Map<String, dynamic>> divePlanEquipment;
+  final List<Map<String, dynamic>> diveScenarios;
   final List<Map<String, dynamic>> diverWeightEntries;
   final List<Map<String, dynamic>> tags;
   final List<Map<String, dynamic>> diveTags;
@@ -470,6 +473,7 @@ class SyncData {
     this.divePlanMissionLegs = const [],
     this.divePlanMissionMembers = const [],
     this.divePlanEquipment = const [],
+    this.diveScenarios = const [],
     this.diverWeightEntries = const [],
     this.tags = const [],
     this.diveTags = const [],
@@ -603,6 +607,7 @@ class SyncData {
     'divePlanMissionLegs': divePlanMissionLegs,
     'divePlanMissionMembers': divePlanMissionMembers,
     'divePlanEquipment': divePlanEquipment,
+    'diveScenarios': diveScenarios,
     'diverWeightEntries': diverWeightEntries,
     'tags': tags,
     'diveTags': diveTags,
@@ -747,6 +752,7 @@ class SyncData {
       divePlanMissionLegs: _parseList(json['divePlanMissionLegs']),
       divePlanMissionMembers: _parseList(json['divePlanMissionMembers']),
       divePlanEquipment: _parseList(json['divePlanEquipment']),
+      diveScenarios: _parseList(json['diveScenarios']),
       diverWeightEntries: _parseList(json['diverWeightEntries']),
       tags: _parseList(json['tags']),
       diveTags: _parseList(json['diveTags']),
@@ -907,13 +913,13 @@ class SyncDataSerializer {
     try {
       _log.info('Exporting full data snapshot');
       final data = await _buildSyncData(null);
-      final dataJson = jsonEncode(data.toJson());
+      final checksum = await checksumOfOffIsolate(data);
       return SyncPayload(
         version: syncFormatVersion,
         exportedAt: DateTime.now().millisecondsSinceEpoch,
         deviceId: deviceId,
         lastSyncTimestamp: lastSyncTimestamp,
-        checksum: _computeChecksum(dataJson),
+        checksum: checksum,
         data: data,
         deletions: _groupDeletions(deletions),
         uploadNonce: uploadNonce,
@@ -961,12 +967,12 @@ class SyncDataSerializer {
         : deletions
               .where((d) => d.hlc == null || d.hlc!.compareTo(hlcWatermark) > 0)
               .toList();
-    final dataJson = jsonEncode(data.toJson());
+    final checksum = await checksumOfOffIsolate(data);
     return SyncPayload(
       version: syncFormatVersion,
       exportedAt: DateTime.now().millisecondsSinceEpoch,
       deviceId: deviceId,
-      checksum: _computeChecksum(dataJson),
+      checksum: checksum,
       data: data,
       deletions: _groupDeletions(includedDeletions),
       seq: seq,
@@ -1268,6 +1274,7 @@ class SyncDataSerializer {
       blob: false,
       full: () => _exportDivePlanEquipment(null),
     ),
+    (key: 'diveScenarios', table: _db.diveScenarios, blob: false, full: null),
     (
       key: 'diverWeightEntries',
       table: _db.diverWeightEntries,
@@ -1647,7 +1654,7 @@ class SyncDataSerializer {
     String? maxRowHlc;
     var rowCount = 0;
 
-    // Writes + hashes only the `data` object bytes (matches _computeChecksum,
+    // Writes + hashes only the `data` object bytes (matches checksumOf,
     // which hashes jsonEncode(data.toJson())).
     Future<void> writeData(String s) async {
       final bytes = utf8.encode(s);
@@ -2580,6 +2587,10 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      diveScenarios: await _safeExport(
+        'diveScenarios',
+        () => _exportDiveScenarios(hlcSince),
+      ),
       diverWeightEntries: await _safeExport(
         'diverWeightEntries',
         () => _exportDiverWeightEntries(hlcSince),
@@ -2958,37 +2969,33 @@ class SyncDataSerializer {
   /// True when a previous apply left rows staged that it could not place.
   Future<bool> hasStagedLegacySamples() => hasStagedLegacyRows(_db);
 
-  /// Convert payload to JSON string
-  String serializePayload(SyncPayload payload) {
-    return jsonEncode(payload.toJson());
-  }
-
-  /// Parse JSON string to payload
-  SyncPayload deserializePayload(String json) {
-    final map = jsonDecode(json) as Map<String, dynamic>;
-    return SyncPayload.fromJson(map);
-  }
-
   /// Validate checksum of payload.
   ///
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
-
-  /// [validateChecksum] without an instance, for nearby sync's receiver.
   static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
     return _sha256Hex(dataJson) == payload.checksum;
   }
 
-  /// Compute SHA-256 checksum
-  String _computeChecksum(String data) => _sha256Hex(data);
-
-  /// The checksum a payload carrying [data] must have, for a caller that
-  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  /// The checksum a payload carrying [data] must have.
   static String checksumOf(SyncData data) =>
       _sha256Hex(jsonEncode(data.toJson()));
+
+  /// [checksumOf] on a worker once [data] is substantial: hashing costs more
+  /// than the JSON it covers, and a sync usually runs on the UI isolate. Static
+  /// so that the closure holds [data] alone, not this serializer's database.
+  static Future<String> checksumOfOffIsolate(
+    SyncData data, {
+    @visibleForTesting int minBytes = kOffIsolateMinBytes,
+    @visibleForTesting OffIsolateRunner runner = isolateRun,
+  }) => runOffIsolate(
+    () => checksumOf(data),
+    bytes: syncJsonWeight(data.toJson(), limit: minBytes),
+    minBytes: minBytes,
+    runner: runner,
+  );
 
   static String _sha256Hex(String data) =>
       sha256.convert(utf8.encode(data)).toString();
@@ -3455,6 +3462,11 @@ class SyncDataSerializer {
       case 'divePlans':
         final row = await (_db.select(
           _db.divePlans,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveScenarios':
+        final row = await (_db.select(
+          _db.diveScenarios,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'divePlanTanks':
@@ -4083,6 +4095,11 @@ class SyncDataSerializer {
       case 'divePlans':
         final rows = await (_db.select(
           _db.divePlans,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'diveScenarios':
+        final rows = await (_db.select(
+          _db.diveScenarios,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'divePlanTanks':
@@ -5539,6 +5556,13 @@ class SyncDataSerializer {
             .into(_db.divePlans)
             .insertOnConflictUpdate(DivePlan.fromJson(data).toCompanion(false));
         return;
+      case 'diveScenarios':
+        await _db
+            .into(_db.diveScenarios)
+            .insertOnConflictUpdate(
+              DiveScenario.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'divePlanTanks':
         await _db
             .into(_db.divePlanTanks)
@@ -6790,6 +6814,16 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveScenarios':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveScenarios,
+            records
+                .map((r) => DiveScenario.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'divePlanTanks':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -7893,6 +7927,8 @@ class SyncDataSerializer {
         return plain(_db.navTracks, _db.navTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
+      case 'diveScenarios':
+        return plain(_db.diveScenarios, _db.diveScenarios.id);
       case 'divePlanTanks':
         return plain(_db.divePlanTanks, _db.divePlanTanks.id);
       case 'divePlanSegments':
@@ -8438,6 +8474,8 @@ class SyncDataSerializer {
         return _db.navTracks;
       case 'divePlans':
         return _db.divePlans;
+      case 'diveScenarios':
+        return _db.diveScenarios;
       case 'divePlanTanks':
         return _db.divePlanTanks;
       case 'divePlanSegments':
@@ -8970,6 +9008,11 @@ class SyncDataSerializer {
       case 'divePlans':
         await (_db.delete(
           _db.divePlans,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveScenarios':
+        await (_db.delete(
+          _db.diveScenarios,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'divePlanTanks':
@@ -10255,6 +10298,17 @@ class SyncDataSerializer {
 
   Future<List<Map<String, dynamic>>> _exportDivePlans(String? hlcSince) async {
     final query = _db.select(_db.divePlans);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportDiveScenarios(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.diveScenarios);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

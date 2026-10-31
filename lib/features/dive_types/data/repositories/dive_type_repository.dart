@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -309,7 +310,13 @@ class DiveTypeRepository {
   }
 
   /// Delete a custom dive type (built-in types cannot be deleted)
-  Future<void> deleteDiveType(String id) async {
+  Future<void> deleteDiveType(String id) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.deletedRecord,
+    body: () => _deleteDiveTypeInner(id),
+  );
+
+  Future<void> _deleteDiveTypeInner(String id) async {
     try {
       // Check if it's a built-in type
       final existing = await getDiveTypeById(id);

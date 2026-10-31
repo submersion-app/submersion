@@ -130,9 +130,7 @@ void main() {
     await seedLocal();
     final tmpDir = await Directory.systemTemp.createTemp('adopt_parity');
     final tmp = File('${tmpDir.path}/base.json');
-    await tmp.writeAsBytes(
-      utf8.encode(SyncDataSerializer().serializePayload(base)),
-    );
+    await tmp.writeAsBytes(utf8.encode(jsonEncode(base.toJson())));
     await _svc().debugAdoptStreaming([tmp.path], [base.exportedAt], [
       changeset,
     ]);
@@ -179,9 +177,7 @@ void main() {
     await setUpTestDatabase();
     final tmpDir = await Directory.systemTemp.createTemp('adopt_parity_big');
     final tmp = File('${tmpDir.path}/base.json');
-    await tmp.writeAsBytes(
-      utf8.encode(SyncDataSerializer().serializePayload(base)),
-    );
+    await tmp.writeAsBytes(utf8.encode(jsonEncode(base.toJson())));
     await _svc().debugAdoptStreaming([tmp.path], [base.exportedAt], const []);
     final streamed = await _dump();
     await tmpDir.delete(recursive: true);
