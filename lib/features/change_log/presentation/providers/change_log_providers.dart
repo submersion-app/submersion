@@ -30,9 +30,11 @@ final changeLogMaintenanceProvider = Provider<ChangeLogMaintenance>((ref) {
 });
 
 /// What the log takes up, for the Storage usage page.
-final changeLogStorageBytesProvider = FutureProvider.autoDispose<int>(
-  (ref) => ref.watch(changeLogRepositoryProvider).storageBytes(),
-);
+final changeLogStorageBytesProvider = FutureProvider.autoDispose<int>((ref) {
+  final repository = ref.watch(changeLogRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return repository.storageBytes();
+});
 
 /// The pages of the feed loaded so far.
 class ChangeLogFeedState {
@@ -40,6 +42,7 @@ class ChangeLogFeedState {
     this.operations = const [],
     this.previews = const {},
     this.references = const {},
+    this.recordCounts = const {},
     this.hasMore = false,
     this.isLoadingMore = false,
   });
@@ -49,6 +52,9 @@ class ChangeLogFeedState {
 
   /// The records the previews' values point at, for the formatter.
   final Map<String, List<ConflictReference>> references;
+
+  /// How many records each bulk entry touched.
+  final Map<String, int> recordCounts;
   final bool hasMore;
   final bool isLoadingMore;
 
@@ -56,12 +62,14 @@ class ChangeLogFeedState {
     List<ChangeLogOperation>? operations,
     Map<String, ChangeLogPreview>? previews,
     Map<String, List<ConflictReference>>? references,
+    Map<String, int>? recordCounts,
     bool? hasMore,
     bool? isLoadingMore,
   }) => ChangeLogFeedState(
     operations: operations ?? this.operations,
     previews: previews ?? this.previews,
     references: references ?? this.references,
+    recordCounts: recordCounts ?? this.recordCounts,
     hasMore: hasMore ?? this.hasMore,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
   );
@@ -107,10 +115,15 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
     final references = await repository.resolveReferences([
       for (final preview in previews.values) ...preview.fields,
     ]);
+    final recordCounts = await repository.getRecordCounts([
+      for (final operation in page)
+        if (operation.isBulk) operation.id,
+    ]);
     return ChangeLogFeedState(
       operations: [...current.operations, ...page],
       previews: {...current.previews, ...previews},
       references: {...current.references, ...references},
+      recordCounts: {...current.recordCounts, ...recordCounts},
       hasMore: page.length == kChangeLogPageSize,
     );
   }

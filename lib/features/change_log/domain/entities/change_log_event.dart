@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 enum ChangeLogAction {
@@ -81,6 +82,42 @@ class ChangeLogEvent extends Equatable {
     rootTable,
     rootId,
     fields,
+  ];
+}
+
+/// What [events] did to each field overall: several saves to one field are
+/// one change from the first old value to the last new one, and a field saved
+/// back to where it started is no change. Each is listed under the first
+/// event that touched it.
+List<({ChangeLogEvent event, ChangeLogFieldChange field})> netFieldChanges(
+  Iterable<ChangeLogEvent> events,
+) {
+  final first = <(String, String, String), ChangeLogEvent>{};
+  final old = <(String, String, String), Object?>{};
+  final latest = <(String, String, String), Object?>{};
+  for (final event in events) {
+    if (event.action != ChangeLogAction.update) continue;
+    for (final field in event.fields) {
+      final key = (event.table, event.recordId, field.column);
+      if (!first.containsKey(key)) {
+        first[key] = event;
+        old[key] = field.oldValue;
+      }
+      latest[key] = field.newValue;
+    }
+  }
+  return [
+    for (final MapEntry(:key, value: event) in first.entries)
+      if (!const DeepCollectionEquality().equals(old[key], latest[key]))
+        (
+          event: event,
+          field: ChangeLogFieldChange(
+            table: event.table,
+            column: key.$3,
+            oldValue: old[key],
+            newValue: latest[key],
+          ),
+        ),
   ];
 }
 

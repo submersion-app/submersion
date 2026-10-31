@@ -14,6 +14,7 @@ class ChangeLogEntryTile extends StatelessWidget {
     super.key,
     required this.operation,
     required this.preview,
+    this.recordCount,
     required this.formatter,
     required this.units,
     required this.peerNames,
@@ -22,6 +23,9 @@ class ChangeLogEntryTile extends StatelessWidget {
 
   final ChangeLogOperation operation;
   final ChangeLogPreview? preview;
+
+  /// How many records a bulk entry touched.
+  final int? recordCount;
   final ChangeLogValueFormatter formatter;
   final UnitFormatter units;
   final Map<String, String> peerNames;
@@ -99,7 +103,9 @@ class ChangeLogEntryTile extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        l.changeLog_viewRecords(operation.eventCount),
+                        l.changeLog_viewRecords(
+                          recordCount ?? operation.eventCount,
+                        ),
                         style: muted?.copyWith(color: colors.primary),
                       ),
                     ),

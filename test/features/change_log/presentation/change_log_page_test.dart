@@ -155,6 +155,26 @@ void main() {
     expect(find.text('Imported from Perdix'), findsOneWidget);
   });
 
+  testWidgets('a bulk entry counts records, not changes', (tester) async {
+    await tester.runAsync(() async {
+      await insertDive(db, 'second', diverId: 'me');
+      await clearLog(db);
+      await ChangeLogScope.run(
+        db,
+        source: ChangeLogSource.import,
+        label: 'Perdix',
+        body: () async {
+          await db.customStatement("UPDATE dives SET notes = 'A'");
+          await db.customStatement("UPDATE dives SET notes = 'B'");
+        },
+      );
+    });
+
+    await pump(tester);
+
+    expect(find.text('View 2 records'), findsOneWidget);
+  });
+
   testWidgets('a deleted record reads as deleted', (tester) async {
     await tester.runAsync(
       () => db.customStatement("DELETE FROM dives WHERE id = 'mine'"),

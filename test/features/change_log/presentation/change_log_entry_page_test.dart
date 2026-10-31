@@ -112,6 +112,26 @@ void main() {
     expect(find.text('Calm'), findsOneWidget);
   });
 
+  testWidgets('two saves to one field show as one change', (tester) async {
+    final id = await tester.runAsync(() async {
+      await db.customStatement(
+        "UPDATE dives SET notes = 'One' WHERE id = 'dive'",
+      );
+      await db.customStatement(
+        "UPDATE dives SET notes = 'Two' WHERE id = 'dive'",
+      );
+      return onlyOperation();
+    });
+
+    await pump(tester, id!);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('Calm'), findsOneWidget);
+    expect(find.text('Two'), findsOneWidget);
+    expect(find.text('One'), findsNothing);
+  });
+
   testWidgets('a bulk entry lists its records', (tester) async {
     final id = await tester.runAsync(() async {
       await insertDive(db, 'second', diverId: 'me');

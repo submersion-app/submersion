@@ -250,6 +250,7 @@ class _ChangeLogList extends ConsumerWidget {
           return ChangeLogEntryTile(
             operation: operation,
             preview: state.previews[operation.id],
+            recordCount: state.recordCounts[operation.id],
             formatter: formatter,
             units: units,
             peerNames: peerNames,

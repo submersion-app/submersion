@@ -53,6 +53,13 @@ void main() {
     );
   });
 
+  test('empty text reads as not set', () {
+    expect(
+      formatter().value('equipment', 'notes', ''),
+      l10n.settings_conflict_notSet,
+    );
+  });
+
   test('a stored flag reads as yes or no', () {
     expect(
       formatter().value('dives', 'is_favorite', 1),

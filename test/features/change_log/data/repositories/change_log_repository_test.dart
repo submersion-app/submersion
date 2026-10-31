@@ -313,6 +313,61 @@ void main() {
     expect(preview.fields.first.table, 'dives');
   });
 
+  test('two saves to one field preview as one change', () async {
+    await _editNotes(db, 'mine', 'One');
+    await _editNotes(db, 'mine', 'Two');
+    await repository.settleAll();
+    final operation = (await repository.getFeed(
+      diverId: 'me',
+      filter: _noFilter,
+    )).single;
+
+    final preview = (await repository.getPreviewFields([
+      operation.id,
+    ]))[operation.id]!;
+
+    expect(preview.total, 1);
+    expect(preview.fields.single.oldValue, 'Calm');
+    expect(preview.fields.single.newValue, 'Two');
+  });
+
+  test('a field saved back to its start is no change', () async {
+    await _editNotes(db, 'mine', 'One');
+    await _editNotes(db, 'mine', 'Calm');
+    await repository.settleAll();
+    final operation = (await repository.getFeed(
+      diverId: 'me',
+      filter: _noFilter,
+    )).single;
+
+    final preview = (await repository.getPreviewFields([
+      operation.id,
+    ]))[operation.id];
+
+    expect(preview?.total ?? 0, 0);
+  });
+
+  test('record counts count roots, not events', () async {
+    await insertDive(db, 'second', diverId: 'me');
+    await clearLog(db);
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.rule,
+      body: () async {
+        await _editNotes(db, 'mine', 'One');
+        await _editNotes(db, 'mine', 'Two');
+        await _editNotes(db, 'second', 'Three');
+      },
+    );
+    await repository.settleAll();
+    final operation = (await repository.getFeed(
+      diverId: 'me',
+      filter: _noFilter,
+    )).firstWhere((o) => o.isBulk);
+
+    expect(await repository.getRecordCounts([operation.id]), {operation.id: 2});
+  });
+
   test('clear removes one diver\'s entries and their fields', () async {
     await _editNotes(db, 'mine', 'One');
     await _editNotes(db, 'theirs', 'Two');

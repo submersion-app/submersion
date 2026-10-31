@@ -13,7 +13,7 @@
 /// subscription broke `shareByDefaultProvider` at build time even though the
 /// read it guarded was fine.
 ///
-/// This test reads each of the 162 tick-subscribing providers once against a
+/// This test reads each of the 164 tick-subscribing providers once against a
 /// real in-memory database and asserts only that the build resolves without
 /// throwing. An empty database returning `null` or an empty list is a PASS --
 /// nothing here asserts on the returned data. Providers that genuinely cannot
@@ -990,6 +990,14 @@ void main() {
     (
       name: 'changeLogEventsProvider',
       read: (c) => c.read(changeLogEventsProvider(_id).future),
+    ),
+    (
+      name: 'changeLogEntryDetailProvider',
+      read: (c) => c.read(changeLogEntryDetailProvider(_id).future),
+    ),
+    (
+      name: 'changeLogStorageBytesProvider',
+      read: (c) => c.read(changeLogStorageBytesProvider.future),
     ),
   ]);
 

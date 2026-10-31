@@ -139,21 +139,25 @@ class _EntryBody extends ConsumerWidget {
     ChangeLogValueFormatter formatter,
   ) {
     final rootTable = detail.operation.rootTable;
+    final net = netFieldChanges(detail.events);
     return [
       for (final event in detail.events) ...[
-        if (event.table != rootTable)
-          _ChildHeader(event: event)
-        else if (event.action != ChangeLogAction.update)
-          _ActionRow(
-            text: _actionLabel(l, event.action),
-            block: _recordBlock(event),
-          ),
-        if (event.action == ChangeLogAction.update)
-          for (final field in event.fields)
+        if (event.action != ChangeLogAction.update)
+          event.table == rootTable
+              ? _ActionRow(
+                  text: _actionLabel(l, event.action),
+                  block: _recordBlock(event),
+                )
+              : _ChildHeader(event: event)
+        else if (event.table != rootTable &&
+            net.any((change) => change.event.id == event.id))
+          _ChildHeader(event: event),
+        for (final change in net)
+          if (change.event.id == event.id)
             _FieldRow(
-              field: field,
+              field: change.field,
               formatter: formatter,
-              trailing: _fieldRevert(context, ref, l, event, field),
+              trailing: _fieldRevert(context, ref, l, event, change.field),
             ),
       ],
     ];
@@ -216,13 +220,8 @@ class _EntryBody extends ConsumerWidget {
           title: Text(_rootName(l, units, entry.key, entry.value)),
           subtitle: Text(_rootSummary(l, entry.key, entry.value)),
           children: [
-            for (final event in entry.value) ...[
-              if (entry.value.length > 1 || event.table != entry.key.table)
-                _ChildHeader(event: event),
-              if (event.action == ChangeLogAction.update)
-                for (final field in event.fields)
-                  _FieldRow(field: field, formatter: formatter),
-            ],
+            for (final change in netFieldChanges(entry.value))
+              _FieldRow(field: change.field, formatter: formatter),
           ],
         ),
     ];

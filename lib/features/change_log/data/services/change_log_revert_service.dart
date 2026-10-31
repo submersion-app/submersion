@@ -52,12 +52,21 @@ class ChangeLogRevertService {
     if (event == null) {
       throw ArgumentError.value(eventId, 'eventId', 'No such change log event');
     }
-    final items = await _planEdits([event], only: column);
+    // Every save to this field in the entry, not just this one: a Revert
+    // goes back to what the entry found.
+    final events = await _repository.getEvents(event.operationId);
+    final items = await _planEdits([
+      for (final other in events)
+        if (other.table == event.table && other.recordId == event.recordId)
+          other,
+    ], only: column);
     final operation = await _repository.getOperation(event.operationId);
     return ChangeLogRevertPlan(
       operationId: event.operationId,
       items: items,
-      wholeOperation: operation?.eventCount == 1 && event.fields.length == 1,
+      wholeOperation:
+          operation?.eventCount == events.length &&
+          netFieldChanges(events).length == 1,
     );
   }
 

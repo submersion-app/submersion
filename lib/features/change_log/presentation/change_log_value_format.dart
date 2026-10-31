@@ -37,7 +37,7 @@ class ChangeLogValueFormatter {
       conflictFieldFor(columnJsonKey(table), columnJsonKey(column)).label(l10n);
 
   String value(String table, String column, Object? value, {int? clip}) {
-    if (value == null) return l10n.settings_conflict_notSet;
+    if (value == null || value == '') return l10n.settings_conflict_notSet;
     if (value is Uint8List) {
       return l10n.changeLog_value_data(formatBytes(value.length));
     }

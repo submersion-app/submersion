@@ -192,37 +192,21 @@ class ChangeLogRepository {
   }
 
   /// The first [perOperation] changed fields of each of [operationIds], and
-  /// how many each has.
+  /// how many each has, net of repeat saves to one field. For entries about
+  /// one record, which hold few events.
   Future<Map<String, ChangeLogPreview>> getPreviewFields(
     List<String> operationIds, {
     int perOperation = 2,
   }) async {
     if (operationIds.isEmpty) return const {};
     final marks = List.filled(operationIds.length, '?').join(', ');
-    final rows = await _db
-        .customSelect(
-          'SELECT * FROM (SELECT e.operation_id, e.table_name, f.column_name, '
-          'f.old_value, f.new_value, '
-          'ROW_NUMBER() OVER (PARTITION BY e.operation_id '
-          'ORDER BY e.id, f.column_name) AS n, '
-          'COUNT(*) OVER (PARTITION BY e.operation_id) AS total '
-          'FROM change_log_events e '
-          'JOIN change_log_fields f ON f.event_id = e.id '
-          "WHERE e.action = 'U' AND e.operation_id IN ($marks)) "
-          'WHERE n <= ? ORDER BY operation_id, n',
-          variables: [
-            ...operationIds.map(Variable<String>.new),
-            Variable<int>(perOperation),
-          ],
-        )
-        .get();
-
     final fields = <String, List<ChangeLogFieldChange>>{};
     final totals = <String, int>{};
-    for (final row in rows) {
-      final id = row.read<String>('operation_id');
-      (fields[id] ??= []).add(_field(row.data));
-      totals[id] = row.read<int>('total');
+    for (final id in operationIds) {
+      final net = netFieldChanges(await getEvents(id));
+      if (net.isEmpty) continue;
+      fields[id] = [for (final change in net.take(perOperation)) change.field];
+      totals[id] = net.length;
     }
 
     final actions = await _db
@@ -248,6 +232,25 @@ class ChangeLogRepository {
           total: totals[id] ?? 0,
           rootAction: rootActions[id],
         ),
+    };
+  }
+
+  /// How many records each of [operationIds] touched, counting a dive and
+  /// its tanks as one.
+  Future<Map<String, int>> getRecordCounts(List<String> operationIds) async {
+    if (operationIds.isEmpty) return const {};
+    final marks = List.filled(operationIds.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          "SELECT operation_id, COUNT(DISTINCT root_table || '|' || root_id) "
+          'AS records FROM change_log_events '
+          'WHERE operation_id IN ($marks) GROUP BY operation_id',
+          variables: [...operationIds.map(Variable<String>.new)],
+        )
+        .get();
+    return {
+      for (final row in rows)
+        row.read<String>('operation_id'): row.read<int>('records'),
     };
   }
 
