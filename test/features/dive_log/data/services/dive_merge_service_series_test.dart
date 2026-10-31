@@ -254,8 +254,8 @@ void main() {
     expect(before.where((r) => r.parentSeriesId != null), isNotEmpty);
 
     final outcome = await service.apply(['a', 'b']);
-    // This file runs with foreign keys off; the app's cascade takes these.
-    await db.customStatement('DELETE FROM dive_profile_series_history');
+    expect(await profileSeries.getRevisionsForDive('a'), isEmpty);
+
     await service.undo(outcome.snapshot);
 
     expect(await profileSeries.getRevisionsForDive('a'), before);

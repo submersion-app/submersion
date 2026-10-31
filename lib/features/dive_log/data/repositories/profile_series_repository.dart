@@ -766,8 +766,8 @@ class ProfileSeriesRepository {
   }
 
   /// Puts back revision nodes read by [getRevisionsForDives], once their
-  /// series have returned from the delete whose cascade took them. Lineage is
-  /// local to this device, so nothing that restores the series carries it.
+  /// series have returned through [restoreSeriesRow], which does not carry
+  /// them: lineage is local to this device.
   /// A series that did not return is skipped, and a child whose parent did
   /// not return keeps no parent, as that parent's own delete leaves it.
   Future<void> restoreRevisions(
