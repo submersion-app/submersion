@@ -21899,6 +21899,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_status_syncError => '同步错误';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => '需要登录';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account 需要您重新登录。';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => '同步中...';
 
   @override
@@ -35969,6 +35977,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => '重新登录';
+
+  @override
+  String get settings_accounts_differentAccount_title => '这是另一个账户';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion 使用的是 $expected，但您登录的是 $signedIn。';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return '未同步任何内容，也未连接 $signedIn。';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {

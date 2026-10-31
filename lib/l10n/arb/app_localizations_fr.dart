@@ -23143,6 +23143,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Erreur de synchronisation';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'Connexion requise';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account vous demande de vous reconnecter.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Synchronisation...';
 
   @override
@@ -38343,6 +38351,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_accounts_signInAgain => 'Se reconnecter';
+
+  @override
+  String get settings_accounts_differentAccount_title =>
+      'C\'est un autre compte';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion utilise $expected, mais vous vous êtes connecté avec $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Rien n\'a été synchronisé et $signedIn n\'a pas été associé.';
+  }
 
   @override
   String settings_accounts_usedHere(String features) {

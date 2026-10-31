@@ -82,6 +82,37 @@ class TankPressureSeriesRepository {
     return rowId;
   }
 
+  /// Slides every sample of [series] by [seconds] (negative moves them
+  /// earlier), in place, keeping each series' id. See
+  /// `ProfileSeriesRepository.shiftSamples`.
+  Future<void> shiftSamples(
+    Iterable<domain.TankPressureSeries> series,
+    int seconds, {
+    required int now,
+  }) async {
+    if (seconds == 0) return;
+    await _db.transaction(() async {
+      for (final s in series) {
+        final encoded = _codec.encode([
+          for (final p in s.samples) p.shiftedBy(seconds),
+        ]);
+        await (_db.update(
+          _db.tankPressureSeries,
+        )..where((t) => t.id.equals(s.id))).write(
+          TankPressureSeriesCompanion(
+            startTimestamp: Value(encoded.summary.startTimestamp),
+            endTimestamp: Value(encoded.summary.endTimestamp),
+            codecVersion: Value(encoded.codecVersion),
+            samples: Value(encoded.bytes),
+            updatedAt: Value(now),
+          ),
+        );
+        await _markPending(s.id, now);
+      }
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Timestamp order, ties in input order. Every writer hands over whatever
   /// order it has; the codec and every reader assume ascending timestamps.
   static List<TankPressureSample> _sortedByTimestamp(
