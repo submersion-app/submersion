@@ -444,6 +444,23 @@ class InsightsConditionsPage extends ConsumerWidget {
                   barColor: Colors.cyan.shade600,
                   valueFormatter: l10n.insights_summary_tagUsage_diveCount,
                   xAxisLabel: symbol,
+                  onOpenBar: (band) => openChartDives(
+                    context,
+                    ref,
+                    chart: l10n.insights_conditions_waterTempBands_title,
+                    row: '${chartData[band].label} $symbol',
+                    load: (repository, diverId, scope) async {
+                      final bands = await repository.getWaterTempBandPerDive(
+                        unit: ref.read(settingsProvider).temperatureUnit,
+                        diverId: diverId,
+                        filter: scope,
+                      );
+                      return [
+                        for (final entry in bands.entries)
+                          if (entry.value == band) entry.key,
+                      ];
+                    },
+                  ),
                 ),
               ),
               _buildTemperatureBandMetrics(context, ref),

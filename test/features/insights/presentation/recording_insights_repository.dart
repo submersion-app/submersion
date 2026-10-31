@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 
@@ -20,4 +21,14 @@ class RecordingInsightsRepository extends InsightsRepository {
     lastGas = gas;
     return ids;
   }
+
+  /// What [getWaterTempBandPerDive] answers.
+  Map<String, int> bandPerDive = const {};
+
+  @override
+  Future<Map<String, int>> getWaterTempBandPerDive({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async => bandPerDive;
 }

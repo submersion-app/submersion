@@ -131,6 +131,49 @@ void main() {
     ]);
   });
 
+  group('the dives behind each number (#3805)', () {
+    test('each category holds the ids of the dives it counted', () {
+      final clear = row(cloudCover: CloudCover.clear);
+      final overcast = row(cloudCover: CloudCover.overcast);
+      final alsoClear = row(cloudCover: CloudCover.clear);
+      final stats = ConditionsStats.fromRows([
+        clear,
+        overcast,
+        alsoClear,
+      ], metric);
+
+      expect(stats.cloudCover.diveIdsByValue, {
+        CloudCover.clear: [clear.diveId, alsoClear.diveId],
+        CloudCover.overcast: [overcast.diveId],
+      });
+    });
+
+    test('a band holds the dives displayed in it', () {
+      // Stored just under the edge, but shown as 20.0.
+      final rounded = row(airTemp: 19.96);
+      final cooler = row(airTemp: 15);
+      final stats = ConditionsStats.fromRows([rounded, cooler], metric);
+
+      final bands = stats.airTemp.bands;
+      final twenty = bands.indexWhere((b) => b.lower == 20);
+      final fifteen = bands.indexWhere((b) => b.upper == 20);
+      expect(stats.airTemp.diveIdsByBand[twenty], [rounded.diveId]);
+      expect(stats.airTemp.diveIdsByBand[fifteen], [cooler.diveId]);
+      for (final (index, band) in bands.indexed) {
+        expect(stats.airTemp.diveIdsByBand[index], hasLength(band.count));
+      }
+    });
+
+    test('unrecorded ids are the dives with no value', () {
+      final recorded = row(cloudCover: CloudCover.clear, airTemp: 20);
+      final blank = row();
+      final stats = ConditionsStats.fromRows([recorded, blank], metric);
+
+      expect(stats.cloudCover.unrecordedDiveIds, [blank.diveId]);
+      expect(stats.airTemp.unrecordedDiveIds, [blank.diveId]);
+    });
+  });
+
   test('numeric fields bin in metric units', () {
     final stats = ConditionsStats.fromRows([
       row(

@@ -206,6 +206,32 @@ void main() {
       );
     });
 
+    testWidgets('a water temperature band opens the dives binned in it', (
+      tester,
+    ) async {
+      repository.bandPerDive = const {'cold': 0, 'warm': 2, 'warmer': 2};
+      await pumpPage(tester, const InsightsConditionsPage(embedded: true), [
+        ...overrides(),
+        waterTempBandDistributionProvider.overrideWith(
+          (ref) async => const [
+            (lower: null, upper: 10, count: 1),
+            (lower: 10, upper: 20, count: 0),
+            (lower: 20, upper: null, count: 2),
+          ],
+        ),
+        waterTempBandMetricsProvider.overrideWith((ref) async => const []),
+      ]);
+
+      final chart = tester.widget<CategoryBarChart>(
+        inCard('Dives by Water Temperature', find.byType(CategoryBarChart)),
+      );
+      await chart.onOpenBar!(2);
+      await tester.pumpAndSettle();
+
+      expect(find.text('dive list'), findsOneWidget);
+      expect(container.read(diveFilterProvider).diveIds, ['warm', 'warmer']);
+    });
+
     testWidgets('an entry method opens that method', (tester) async {
       await pumpPage(
         tester,
