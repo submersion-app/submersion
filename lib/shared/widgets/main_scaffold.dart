@@ -59,6 +59,24 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     super.dispose();
   }
 
+  /// The demo strip already sits below the status bar, so the page under it
+  /// must not pad for the status bar a second time (issue #3708).
+  ///
+  /// The Builder reads the MediaQuery below the shell's Scaffold, which has
+  /// taken the keyboard and the bottom bar's padding out of it. Read from this
+  /// State's context, both come back, and a page's own Scaffold clears the
+  /// keyboard a second time (issue #3784).
+  Widget _belowDemoStrip(Widget child) {
+    final removeTop = ref.watch(demoModeActiveProvider);
+    return Builder(
+      builder: (context) => MediaQuery.removePadding(
+        context: context,
+        removeTop: removeTop,
+        child: child,
+      ),
+    );
+  }
+
   /// The layout while a page holds a hide request: the page alone, edge to
   /// edge, with no rail, bottom bar, banner, strip or SafeArea inset.
   ///
@@ -66,14 +84,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// every page on the shell navigator alive: go_router builds that
   /// navigator with a GlobalKey (ShellRoute.navigatorKey), so the element is
   /// reparented rather than rebuilt.
-  /// The demo strip already sits below the status bar, so the page under it
-  /// must not pad for the status bar a second time (issue #3708).
-  Widget _belowDemoStrip(Widget child) => MediaQuery.removePadding(
-    context: context,
-    removeTop: ref.watch(demoModeActiveProvider),
-    child: child,
-  );
-
   Widget _buildChromelessScaffold() => Scaffold(
     body: GlobalDropTarget(
       child: Column(

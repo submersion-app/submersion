@@ -1857,6 +1857,7 @@
   "courses_action_editRequirement": "Vereiste bewerken",
   "courses_action_exportTrainingLog": "Trainingslogboek exporteren",
   "courses_action_markCompleted": "Markeren als voltooid",
+  "courses_action_chooseDive": "Duik kiezen",
   "courses_action_unlinkDive": "Duik ontkoppelen",
   "courses_action_moreOptions": "Meer opties",
   "courses_action_retry": "Opnieuw proberen",
@@ -1914,6 +1915,17 @@
   "courses_requirement_kind_checklist": "Afvinkpunt",
   "courses_requirement_kind_dive": "Duikvereiste",
   "courses_requirement_suggestions": "Voorgestelde duiken",
+  "courses_requirement_allDives": "Alle duiken",
+  "courses_requirement_noDives": "Geen duiken om te koppelen",
+  "courses_requirement_noDivesMatch": "Geen duiken komen overeen met \"{query}\"",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Duiken zoeken",
   "courses_requirements_empty": "Houd adventure-duiken, voorvereisten en afvinkpunten bij voor deze cursus.",
   "courses_requirements_progress": "{satisfied} van {total} voltooid",
   "courses_section_details": "Cursusdetails",

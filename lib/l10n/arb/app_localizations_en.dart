@@ -5625,6 +5625,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_action_markCompleted => 'Mark as Completed';
 
   @override
+  String get courses_action_chooseDive => 'Choose dive';
+
+  @override
   String get courses_action_unlinkDive => 'Unlink dive';
 
   @override
@@ -5815,6 +5818,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Suggested dives';
+
+  @override
+  String get courses_requirement_allDives => 'All dives';
+
+  @override
+  String get courses_requirement_noDives => 'No dives to link';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'No dives match \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Search dives';
 
   @override
   String get courses_requirements_empty =>

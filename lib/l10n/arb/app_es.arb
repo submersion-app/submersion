@@ -1857,6 +1857,7 @@
   "courses_action_editRequirement": "Editar requisito",
   "courses_action_exportTrainingLog": "Exportar Registro de Entrenamiento",
   "courses_action_markCompleted": "Marcar como Completado",
+  "courses_action_chooseDive": "Elegir inmersión",
   "courses_action_unlinkDive": "Desvincular inmersión",
   "courses_action_moreOptions": "Más opciones",
   "courses_action_retry": "Reintentar",
@@ -1914,6 +1915,17 @@
   "courses_requirement_kind_checklist": "Elemento de verificación",
   "courses_requirement_kind_dive": "Requisito de inmersión",
   "courses_requirement_suggestions": "Inmersiones sugeridas",
+  "courses_requirement_allDives": "Todas las inmersiones",
+  "courses_requirement_noDives": "No hay inmersiones para vincular",
+  "courses_requirement_noDivesMatch": "Ninguna inmersión coincide con «{query}»",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Buscar inmersiones",
   "courses_requirements_empty": "Registra inmersiones de aventura, requisitos previos y elementos de verificación para este curso.",
   "courses_requirements_progress": "{satisfied} de {total} completados",
   "courses_section_details": "Detalles del Curso",

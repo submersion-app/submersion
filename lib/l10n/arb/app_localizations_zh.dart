@@ -5404,6 +5404,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_markCompleted => '标记为已完成';
 
   @override
+  String get courses_action_chooseDive => '选择潜水记录';
+
+  @override
   String get courses_action_unlinkDive => '取消关联潜水';
 
   @override
@@ -5591,6 +5594,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => '建议的潜水';
+
+  @override
+  String get courses_requirement_allDives => '全部潜水';
+
+  @override
+  String get courses_requirement_noDives => '没有可关联的潜水';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return '没有与“$query”匹配的潜水';
+  }
+
+  @override
+  String get courses_requirement_searchDives => '搜索潜水';
 
   @override
   String get courses_requirements_empty => '跟踪此课程的探险潜水、先决条件和核对项。';

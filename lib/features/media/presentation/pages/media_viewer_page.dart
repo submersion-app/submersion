@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/metadata_write_service.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -122,6 +123,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// guards kept missing.
   List<MediaItem> get _pageableMedia =>
       widget.mediaList.where((m) => !m.isDocument).toList();
+
+  final _metadataWriter = MetadataWriteService();
 
   late PageController _pageController;
   int _currentIndex = 0;
@@ -682,7 +685,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           : null,
                       canWriteMetadata:
                           enrichment?.depthMeters != null &&
-                          !currentItem.isVideo,
+                          _metadataWriter.canWriteTo(currentItem),
                       showPerdixToggle: perdixToggleAvailable,
                       perdixEnabled: settings.perdixOverlayEnabled,
                       onTogglePerdix: () => ref
@@ -890,10 +893,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<void> _writeMetadataToPhoto(MediaItem item) async {
     final l10n = context.l10n;
     debugPrint('[MediaViewerPage] _writeMetadataToPhoto called');
-    if (item.platformAssetId == null) {
-      _showError(l10n.media_photoViewer_cannotWriteMetadata);
-      return;
-    }
 
     final settings = ref.read(settingsProvider);
 
@@ -947,7 +946,26 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     debugPrint('[MediaViewerPage] Loading dialog shown, calling service...');
 
     try {
-      final metadataService = MetadataWriteService();
+      // The stored platformAssetId belongs to the device that linked the
+      // photo. Sent as is from any other device, it names a different photo
+      // or none. Resolved under the spinner: on a device that has not seen
+      // this photo yet, it searches the gallery.
+      final resolution = await ref
+          .read(assetResolutionServiceProvider)
+          .resolveAssetId(item);
+      final assetId = resolution.localAssetId;
+      if (resolution.status != ResolutionStatus.resolved || assetId == null) {
+        dismissLoadingDialog();
+        _showError(switch (resolution.status) {
+          ResolutionStatus.accessDenied when resolution.limitedAccess =>
+            l10n.media_unavailablePlaceholder_limitedAccess,
+          ResolutionStatus.accessDenied =>
+            l10n.media_unavailablePlaceholder_accessDenied,
+          _ => l10n.media_photoViewer_cannotWriteMetadata,
+        });
+        return;
+      }
+
       final metadata = DiveMediaMetadata.fromMediaItem(
         item,
         siteName: siteName,
@@ -955,8 +973,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       final isVideo = item.mediaType == MediaType.video;
 
       debugPrint('[MediaViewerPage] Calling writeMetadata...');
-      final success = await metadataService.writeMetadata(
-        platformAssetId: item.platformAssetId!,
+      final success = await _metadataWriter.writeMetadata(
+        platformAssetId: assetId,
         metadata: metadata,
         isVideo: isVideo,
       );

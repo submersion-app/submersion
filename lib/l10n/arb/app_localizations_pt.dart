@@ -5708,6 +5708,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_action_markCompleted => 'Marcar como Concluído';
 
   @override
+  String get courses_action_chooseDive => 'Escolher mergulho';
+
+  @override
   String get courses_action_unlinkDive => 'Desvincular mergulho';
 
   @override
@@ -5903,6 +5906,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Mergulhos sugeridos';
+
+  @override
+  String get courses_requirement_allDives => 'Todos os mergulhos';
+
+  @override
+  String get courses_requirement_noDives => 'Não há mergulhos para vincular';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Nenhum mergulho corresponde a \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Procurar mergulhos';
 
   @override
   String get courses_requirements_empty =>

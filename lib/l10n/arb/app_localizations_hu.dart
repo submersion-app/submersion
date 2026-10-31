@@ -5694,6 +5694,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_action_markCompleted => 'Megjelölés befejezettként';
 
   @override
+  String get courses_action_chooseDive => 'Merülés választása';
+
+  @override
   String get courses_action_unlinkDive => 'Merülés leválasztása';
 
   @override
@@ -5889,6 +5892,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Javasolt merülések';
+
+  @override
+  String get courses_requirement_allDives => 'Összes merülés';
+
+  @override
+  String get courses_requirement_noDives => 'Nincs kapcsolható merülés';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Nincs a következőre illeszkedő merülés: „$query”';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Merülések keresése';
 
   @override
   String get courses_requirements_empty =>

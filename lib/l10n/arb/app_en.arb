@@ -3470,6 +3470,7 @@
   "courses_action_editRequirement": "Edit requirement",
   "courses_action_exportTrainingLog": "Export Training Log",
   "courses_action_markCompleted": "Mark as Completed",
+  "courses_action_chooseDive": "Choose dive",
   "courses_action_unlinkDive": "Unlink dive",
   "courses_action_moreOptions": "More options",
   "courses_action_retry": "Retry",
@@ -3541,6 +3542,17 @@
   "courses_requirement_kind_checklist": "Check-off item",
   "courses_requirement_kind_dive": "Dive requirement",
   "courses_requirement_suggestions": "Suggested dives",
+  "courses_requirement_allDives": "All dives",
+  "courses_requirement_noDives": "No dives to link",
+  "courses_requirement_noDivesMatch": "No dives match \"{query}\"",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "Search dives",
   "courses_requirements_empty": "Track adventure dives, prerequisites, and check-offs for this course.",
   "courses_requirements_progress": "{satisfied} of {total} complete",
   "courses_section_details": "Course Details",

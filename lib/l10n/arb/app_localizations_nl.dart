@@ -5679,6 +5679,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_action_markCompleted => 'Markeren als voltooid';
 
   @override
+  String get courses_action_chooseDive => 'Duik kiezen';
+
+  @override
   String get courses_action_unlinkDive => 'Duik ontkoppelen';
 
   @override
@@ -5873,6 +5876,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Voorgestelde duiken';
+
+  @override
+  String get courses_requirement_allDives => 'Alle duiken';
+
+  @override
+  String get courses_requirement_noDives => 'Geen duiken om te koppelen';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Geen duiken komen overeen met \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Duiken zoeken';
 
   @override
   String get courses_requirements_empty =>

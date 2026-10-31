@@ -5708,6 +5708,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get courses_action_markCompleted => 'Segna come Completato';
 
   @override
+  String get courses_action_chooseDive => 'Scegli immersione';
+
+  @override
   String get courses_action_unlinkDive => 'Scollega immersione';
 
   @override
@@ -5904,6 +5907,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Immersioni suggerite';
+
+  @override
+  String get courses_requirement_allDives => 'Tutte le immersioni';
+
+  @override
+  String get courses_requirement_noDives => 'Nessuna immersione da collegare';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Nessuna immersione corrisponde a \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Cerca immersioni';
 
   @override
   String get courses_requirements_empty =>

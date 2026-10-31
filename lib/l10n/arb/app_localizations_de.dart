@@ -5714,6 +5714,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_action_markCompleted => 'Als abgeschlossen markieren';
 
   @override
+  String get courses_action_chooseDive => 'Tauchgang wählen';
+
+  @override
   String get courses_action_unlinkDive => 'Tauchgang trennen';
 
   @override
@@ -5909,6 +5912,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Vorgeschlagene Tauchgänge';
+
+  @override
+  String get courses_requirement_allDives => 'Alle Tauchgänge';
+
+  @override
+  String get courses_requirement_noDives => 'Keine Tauchgänge zum Verknüpfen';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'Keine Tauchgänge für „$query“';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Tauchgänge suchen';
 
   @override
   String get courses_requirements_empty =>

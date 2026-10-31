@@ -1857,6 +1857,7 @@
   "courses_action_editRequirement": "تعديل المتطلب",
   "courses_action_exportTrainingLog": "تصدير سجل التدريب",
   "courses_action_markCompleted": "وضع علامة كمكتمل",
+  "courses_action_chooseDive": "اختيار غطسة",
   "courses_action_unlinkDive": "إلغاء ربط الغطسة",
   "courses_action_moreOptions": "المزيد من الخيارات",
   "courses_action_retry": "إعادة المحاولة",
@@ -1914,6 +1915,17 @@
   "courses_requirement_kind_checklist": "عنصر تحقق",
   "courses_requirement_kind_dive": "متطلب غطس",
   "courses_requirement_suggestions": "غطسات مقترحة",
+  "courses_requirement_allDives": "كل الغطسات",
+  "courses_requirement_noDives": "لا توجد غطسات للربط",
+  "courses_requirement_noDivesMatch": "لا توجد غطسات تطابق \"{query}\"",
+  "@courses_requirement_noDivesMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "courses_requirement_searchDives": "البحث في الغطسات",
   "courses_requirements_empty": "تتبع غطسات المغامرة والمتطلبات المسبقة وعناصر التحقق لهذه الدورة.",
   "courses_requirements_progress": "{satisfied} من {total} مكتملة",
   "courses_section_details": "تفاصيل الدورة",

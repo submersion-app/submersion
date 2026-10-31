@@ -8916,6 +8916,12 @@ abstract class AppLocalizations {
   /// **'Mark as Completed'**
   String get courses_action_markCompleted;
 
+  /// No description provided for @courses_action_chooseDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dive'**
+  String get courses_action_chooseDive;
+
   /// No description provided for @courses_action_unlinkDive.
   ///
   /// In en, this message translates to:
@@ -9257,6 +9263,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suggested dives'**
   String get courses_requirement_suggestions;
+
+  /// No description provided for @courses_requirement_allDives.
+  ///
+  /// In en, this message translates to:
+  /// **'All dives'**
+  String get courses_requirement_allDives;
+
+  /// No description provided for @courses_requirement_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives to link'**
+  String get courses_requirement_noDives;
+
+  /// No description provided for @courses_requirement_noDivesMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives match \"{query}\"'**
+  String courses_requirement_noDivesMatch(String query);
+
+  /// No description provided for @courses_requirement_searchDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Search dives'**
+  String get courses_requirement_searchDives;
 
   /// No description provided for @courses_requirements_empty.
   ///
