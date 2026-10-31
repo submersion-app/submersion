@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// One series of a backup's per-source block, resolved to a restored tank:
@@ -10,6 +11,37 @@ typedef RestoredTankSeries = ({
   int? computerOrdinal,
   List<({int timestamp, double pressure})> samples,
 });
+
+/// One depth series of a backup's per-source block (issue #3965), with the
+/// `ordinal`s of the `<source>` that owns it and of one its computer recorded
+/// (either null when the file names none).
+typedef RestoredProfileSeries = ({
+  int? sourceOrdinal,
+  int? computerOrdinal,
+  bool isPrimary,
+  List<ProfileSample> samples,
+});
+
+/// [diveData]'s per-source depth series.
+///
+/// Empty when the dive carries no such block, which leaves the restore to the
+/// merged `<samples>`: every foreign file and every older backup, and a
+/// backup whose block could not be read.
+List<RestoredProfileSeries> restoredProfileSeries(
+  Map<String, dynamic> diveData,
+) {
+  final entries = diveData[UddfSourceAttribution.profilesKey];
+  if (entries is! List || entries.isEmpty) return const [];
+  return [
+    for (final entry in entries.cast<Map<String, dynamic>>())
+      (
+        sourceOrdinal: entry['sourceOrdinal'] as int?,
+        computerOrdinal: entry['computerOrdinal'] as int?,
+        isPrimary: entry['isPrimary'] as bool,
+        samples: entry['samples'] as List<ProfileSample>,
+      ),
+  ];
+}
 
 /// [diveData]'s per-source tank series (issue #2492), each still a series
 /// of its own: one source can record a tank in two stretches with another

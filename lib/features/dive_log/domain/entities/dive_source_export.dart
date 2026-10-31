@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+
 /// One `dive_data_sources` row as the UDDF exporter needs to see it.
 ///
 /// This is the whole row rather than just the bytes. A UDDF `<dive>` carries
@@ -55,6 +57,7 @@ class DiveSourceExport extends Equatable {
     this.gradientFactorLow,
     this.gradientFactorHigh,
     this.lastParsedAt,
+    this.profileSeries = const [],
   });
 
   final String id;
@@ -103,6 +106,13 @@ class DiveSourceExport extends Equatable {
   final int? gradientFactorHigh;
   final DateTime? lastParsedAt;
 
+  /// The depth series this row owns on a dive with two or more rows, each one
+  /// the app shows under this source (issue #3965). A backup needs them
+  /// because `<samples>` holds every source interleaved; nothing in a UDDF
+  /// document could take that stream apart again. Empty on a lone row, which
+  /// owns every sample anyway.
+  final List<ProfileSeries> profileSeries;
+
   /// Whether this row contributes a `<dcdump>` to the export.
   bool get hasDump => rawData != null && rawData!.isNotEmpty;
 
@@ -148,5 +158,6 @@ class DiveSourceExport extends Equatable {
     gradientFactorLow,
     gradientFactorHigh,
     lastParsedAt,
+    profileSeries,
   ];
 }

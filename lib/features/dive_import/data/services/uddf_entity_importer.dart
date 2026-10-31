@@ -2581,8 +2581,12 @@ class UddfEntityImporter {
     required String? sourceFileName,
     required DateTime now,
   }) {
-    var primaryIndex = entries.indexWhere((e) => e['isPrimary'] == true);
-    if (primaryIndex < 0) primaryIndex = 0;
+    final primaryIndex = _primaryEntryIndex(entries);
+    final computers = _restoredSourceComputers(
+      entries: entries,
+      computerIdByKey: computerIdByKey,
+      fallbackComputerId: fallbackComputerId,
+    );
 
     return [
       for (var i = 0; i < entries.length; i++)
@@ -2590,16 +2594,35 @@ class UddfEntityImporter {
           entries[i],
           diveId: diveId,
           isPrimary: i == primaryIndex,
-          computerId:
-              computerIdByKey[computerKeyFor(
-                entries[i]['computerModel'] as String?,
-                entries[i]['computerSerial'] as String?,
-              )] ??
-              (i == primaryIndex ? fallbackComputerId : null),
+          computerId: computers[i],
           sourceFileName: sourceFileName,
           now: now,
         ),
     ];
+  }
+
+  /// The computer each of [entries] is restored with, in entry order.
+  List<String?> _restoredSourceComputers({
+    required List<Map<String, dynamic>> entries,
+    required Map<String, String> computerIdByKey,
+    required String? fallbackComputerId,
+  }) {
+    final primaryIndex = _primaryEntryIndex(entries);
+    return [
+      for (var i = 0; i < entries.length; i++)
+        computerIdByKey[computerKeyFor(
+              entries[i]['computerModel'] as String?,
+              entries[i]['computerSerial'] as String?,
+            )] ??
+            (i == primaryIndex ? fallbackComputerId : null),
+    ];
+  }
+
+  /// The entry restored as the primary source: the one marked so, else the
+  /// first.
+  int _primaryEntryIndex(List<Map<String, dynamic>> entries) {
+    final marked = entries.indexWhere((e) => e['isPrimary'] == true);
+    return marked < 0 ? 0 : marked;
   }
 
   DiveDataSourcesCompanion _companionForEntry(
@@ -3131,7 +3154,18 @@ class UddfEntityImporter {
         dive = dive.copyWith(bottomTime: durationValue);
       }
 
-      await repos.diveRepository.createDive(dive);
+      // A backup of a dive several sources recorded carries each recording
+      // apart (issue #3965). The merged samples still derive the bottom time
+      // above, but stored too they would hand the primary source everyone's
+      // readings, so the series are written below once their sources exist.
+      final sourceEntries = _entriesForDive(diveData, dataSourcesByDiveRef);
+      final perSourceProfiles = sourceEntries.isEmpty
+          ? const <RestoredProfileSeries>[]
+          : restoredProfileSeries(diveData);
+
+      await repos.diveRepository.createDive(
+        perSourceProfiles.isEmpty ? dive : dive.copyWith(profile: const []),
+      );
 
       // Sightings are a child row, not a column: createDive writes the dive
       // and its tanks, weights, custom fields and gear, and nothing else
@@ -3237,8 +3271,7 @@ class UddfEntityImporter {
       // recorded each pressure series (issue #2492). Those series are
       // written once the source rows exist, below, in place of the
       // waypoint pressures, which hold only the series the app drew.
-      final perSourceSeries =
-          _entriesForDive(diveData, dataSourcesByDiveRef).isEmpty
+      final perSourceSeries = sourceEntries.isEmpty
           ? const <RestoredTankSeries>[]
           : restoredTankPressureSeries(diveData, tanks);
 
@@ -3285,6 +3318,21 @@ class UddfEntityImporter {
           }
         }
 
+        // Each switch under the computer that logged it (issue #3965): one
+        // with none applies to every computer, and another computer's
+        // switches in a source's schedule can blank its analysis. The source
+        // rows come later, but their computers are registered by now.
+        final sourceComputers = _restoredSourceComputers(
+          entries: sourceEntries,
+          computerIdByKey: computerIdByKey,
+          fallbackComputerId: computerId,
+        );
+        final switchComputerByOrdinal = <int, String?>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: sourceComputers[i],
+        };
+
         final switches = gasSwitchesData
             .map((gs) {
               final timestamp = gs['timestamp'] as int?;
@@ -3316,6 +3364,7 @@ class UddfEntityImporter {
                 tankId: tankId,
                 depth: gs['depth'] as double?,
                 createdAt: now,
+                computerId: switchComputerByOrdinal[gs['computerOrdinal']],
               );
             })
             .whereType<GasSwitch>()
@@ -3373,7 +3422,6 @@ class UddfEntityImporter {
       // writing both would leave the dive with one more source than it was
       // exported with. A dive with no entries keeps today's behaviour
       // exactly, which is every foreign UDDF file and every older export.
-      final sourceEntries = _entriesForDive(diveData, dataSourcesByDiveRef);
 
       // Which file this dive came from. A merged batch payload stamps every
       // item with `_sourceFileId`; the display name it also carries is not a
@@ -3477,6 +3525,18 @@ class UddfEntityImporter {
                 tankId: s.tankId,
                 sourceId: sourceIdByOrdinal[s.sourceOrdinal],
                 computerId: computerIdByOrdinal[s.computerOrdinal],
+                samples: s.samples,
+              ),
+          ]);
+        }
+        // Each depth series under its source, as the tank series above.
+        if (perSourceProfiles.isNotEmpty) {
+          await repos.diveRepository.restoreSourceProfiles(diveId, [
+            for (final s in perSourceProfiles)
+              (
+                sourceId: sourceIdByOrdinal[s.sourceOrdinal],
+                computerId: computerIdByOrdinal[s.computerOrdinal],
+                isPrimary: s.isPrimary,
                 samples: s.samples,
               ),
           ]);

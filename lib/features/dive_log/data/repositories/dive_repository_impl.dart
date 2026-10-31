@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/data/repositories/source_profile_gr
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
@@ -41,6 +42,8 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    show ProfileSeries;
 import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
@@ -8313,6 +8316,7 @@ class DiveRepository {
         rows.addAll(await query.get());
       }
 
+      final seriesByRow = await _liveSeriesOfMultiSourceDives(rows);
       final ordinalByDive = <String, int>{};
       return rows
           .map((row) {
@@ -8362,6 +8366,7 @@ class DiveRepository {
               gradientFactorLow: row.gradientFactorLow,
               gradientFactorHigh: row.gradientFactorHigh,
               lastParsedAt: row.lastParsedAt,
+              profileSeries: seriesByRow[row.id] ?? const [],
             );
           })
           .toList(growable: false);
@@ -8373,6 +8378,45 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// The live depth series of every dive in [rows] that has two or more
+  /// source rows, keyed by the row that owns each (issue #3965). [rows] are
+  /// in shown order within a dive, as [getSourcesForExport] selects them.
+  ///
+  /// A lone row is skipped: it owns the whole of `Dive.profile`, so reading
+  /// its samples a second time would buy nothing.
+  Future<Map<String, List<ProfileSeries>>> _liveSeriesOfMultiSourceDives(
+    List<DiveDataSourcesData> rows,
+  ) async {
+    final rowsByDive = <String, List<DiveDataSourcesData>>{};
+    for (final row in rows) {
+      (rowsByDive[row.diveId] ??= []).add(row);
+    }
+    final diveIds = [
+      for (final entry in rowsByDive.entries)
+        if (entry.value.length >= 2) entry.key,
+    ];
+    final byRow = <String, List<ProfileSeries>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final seriesByDive = await _profileSeries.getSeriesForDives(chunk);
+      for (final entry in seriesByDive.entries) {
+        final diveRows = rowsByDive[entry.key]!;
+        final shownIdByRow = _shownIdByRow(diveRows);
+        byRow.addAll(
+          liveSeriesBySourceRow(
+            series: entry.value,
+            shownSources: [
+              for (final row in diveRows)
+                if (shownIdByRow[row.id] == row.id)
+                  (id: row.id, computerId: row.computerId),
+            ],
+            shownIdByRow: shownIdByRow,
+          ),
+        );
+      }
+    }
+    return byRow;
   }
 
   /// Get every non-empty `source_uuid` and hex-encoded `raw_fingerprint`
@@ -8695,6 +8739,47 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to restore tank attribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Writes a backup's depth series for [diveId] once its restored source rows
+  /// exist (issue #3965), in place of the dive's merged samples. Each keeps
+  /// the source, computer and primary flag it was exported with.
+  ///
+  /// One transaction, so a dive never ends up with half of its recordings.
+  Future<void> restoreSourceProfiles(
+    String diveId,
+    List<
+      ({
+        String? sourceId,
+        String? computerId,
+        bool isPrimary,
+        List<ProfileSample> samples,
+      })
+    >
+    series,
+  ) async {
+    if (series.isEmpty) return;
+    try {
+      await _db.transaction(() async {
+        for (final s in series) {
+          await _profileSeries.insertSeries(
+            diveId: diveId,
+            computerId: s.computerId,
+            sourceId: s.sourceId,
+            isPrimary: s.isPrimary,
+            samples: s.samples,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore source profiles for dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );

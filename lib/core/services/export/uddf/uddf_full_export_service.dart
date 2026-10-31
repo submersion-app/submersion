@@ -105,6 +105,10 @@ class UddfFullExportService {
     final sources = options.includeRawData
         ? (dataSources ?? const <DiveSourceExport>[])
         : const <DiveSourceExport>[];
+    final sourcesByDive = <String, List<DiveSourceExport>>{};
+    for (final source in sources) {
+      (sourcesByDive[source.diveId] ??= []).add(source);
+    }
     final withBytes = sources.where((s) => s.hasDump).toList(growable: false);
     final encoded = await UddfDumpCodec.encodeAll(
       withBytes.map((s) => s.rawData!).toList(growable: false),
@@ -376,6 +380,7 @@ class UddfFullExportService {
                         gasSwitchList,
                         tankPressures:
                             diveTankPressures?[dive.id]?.displayedByTank,
+                        sources: sourcesByDive[dive.id] ?? const [],
                       );
                     }
                   },

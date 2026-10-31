@@ -670,8 +670,9 @@ class UddfFullImportService {
       if (entries.isNotEmpty) dive['dataSources'] = entries;
     }
 
-    // Which source recorded each tank and each tank pressure series (issue
-    // #2492), on the dive's own map for the same reason.
+    // Which source recorded each tank, each tank pressure series (issue
+    // #2492) and each depth series (issue #3965), on the dive's own map for
+    // the same reason.
     for (final (key, byDiveRef) in [
       (
         UddfSourceAttribution.tanksKey,
@@ -680,6 +681,10 @@ class UddfFullImportService {
       (
         UddfSourceAttribution.seriesKey,
         UddfSourceAttribution.parseSeries(uddfElement),
+      ),
+      (
+        UddfSourceAttribution.profilesKey,
+        UddfSourceAttribution.parseProfiles(uddfElement),
       ),
     ]) {
       if (byDiveRef.isEmpty) continue;
@@ -1720,7 +1725,11 @@ class UddfFullImportService {
       if (switchesElement != null) {
         final switchesList = <Map<String, dynamic>>[];
         for (final gsElement in switchesElement.findElements('gasswitch')) {
-          final gs = <String, dynamic>{};
+          final gs = <String, dynamic>{
+            'computerOrdinal': int.tryParse(
+              gsElement.getAttribute('computer') ?? '',
+            ),
+          };
           final time = UddfImportParsers.getElementText(gsElement, 'time');
           if (time != null) {
             gs['timestamp'] = UddfImportParsers.parseUddfInt(time);

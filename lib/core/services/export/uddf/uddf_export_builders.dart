@@ -161,6 +161,8 @@ class UddfExportBuilders {
     List<Trip>? trips,
     List<GasSwitchWithTank> gasSwitches, {
     Map<String, List<TankPressurePoint>>? tankPressures,
+    // This dive's <source> entries, which name the computer of a gas switch.
+    List<DiveSourceExport> sources = const [],
   }) {
     // Find the trip this dive belongs to
     Trip? diveTrip;
@@ -715,8 +717,13 @@ class UddfExportBuilders {
                 'gasswitches',
                 nest: () {
                   for (final gs in gasSwitches) {
+                    final computer = UddfSourceAttribution.computerOrdinalOf(
+                      sources,
+                      gs.gasSwitch.computerId,
+                    );
                     builder.element(
                       'gasswitch',
+                      attributes: {'computer': ?computer?.toString()},
                       nest: () {
                         builder.element('time', nest: gs.timestamp.toString());
                         if (gs.depth != null) {

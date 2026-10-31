@@ -3,7 +3,9 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -41,8 +43,23 @@ void main() {
     Uint8List? rawData,
     bool isPrimary = false,
     int? mergeSourceSlot,
+    String? computerId,
     DateTime? createdAt,
   }) async {
+    if (computerId != null) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: Value(computerId),
+              name: Value(computerId),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+    }
     final stamp = createdAt ?? DateTime(2019, 6, 2, 18, 41, 7);
     await db
         .into(db.diveDataSources)
@@ -51,6 +68,7 @@ void main() {
             id: Value(id),
             diveId: Value(diveId),
             isPrimary: Value(isPrimary),
+            computerId: Value(computerId),
             rawData: rawData == null ? const Value.absent() : Value(rawData),
             mergeSourceSlot: mergeSourceSlot == null
                 ? const Value.absent()
@@ -63,6 +81,145 @@ void main() {
           ),
         );
   }
+
+  /// Each source's series of 'dive-1' as start timestamps, by source id.
+  Future<Map<String, List<int>>> exportedSeries() async {
+    final sources = await repository.getSourcesForExport(['dive-1']);
+    return {
+      for (final source in sources)
+        source.id: [
+          for (final s in source.profileSeries) s.samples.first.timestamp,
+        ],
+    };
+  }
+
+  Future<String> insertSeries({
+    required int at,
+    String? sourceId,
+    String? computerId,
+    bool isPrimary = true,
+    int? activatedAt,
+  }) => ProfileSeriesRepository().insertSeries(
+    diveId: 'dive-1',
+    sourceId: sourceId,
+    computerId: computerId,
+    isPrimary: isPrimary,
+    activatedAt: Value(activatedAt),
+    samples: [ProfileSample(timestamp: at, depth: 5)],
+  );
+
+  group('profileSeries (issue #3965)', () {
+    setUp(() => insertDive('dive-1'));
+
+    test('a lone source carries none', () async {
+      await insertSource('src-1', 'dive-1', isPrimary: true);
+      await insertSeries(at: 0, sourceId: 'src-1');
+
+      expect(await exportedSeries(), {'src-1': <int>[]});
+    });
+
+    test('each source of a dive carries the series it owns', () async {
+      await insertSource('src-1', 'dive-1', isPrimary: true);
+      await insertSource('src-2', 'dive-1');
+      await insertSeries(at: 0, sourceId: 'src-1');
+      await insertSeries(at: 10, sourceId: 'src-2', isPrimary: false);
+
+      expect(await exportedSeries(), {
+        'src-1': [0],
+        'src-2': [10],
+      });
+    });
+
+    test('a series naming no source goes where the read puts it', () async {
+      await insertSource(
+        'src-1',
+        'dive-1',
+        isPrimary: true,
+        computerId: 'comp-1',
+      );
+      await insertSource('src-2', 'dive-1', computerId: 'comp-2');
+      await insertSeries(at: 0);
+      await insertSeries(at: 10, computerId: 'comp-2', isPrimary: false);
+
+      expect(await exportedSeries(), {
+        'src-1': [0],
+        'src-2': [10],
+      });
+    });
+
+    test('leaves out the originals a saved edit superseded', () async {
+      await insertSource(
+        'src-1',
+        'dive-1',
+        isPrimary: true,
+        computerId: 'comp-1',
+      );
+      await insertSource('src-2', 'dive-1', computerId: 'comp-2');
+      await insertSeries(
+        at: 0,
+        sourceId: 'src-1',
+        computerId: 'comp-1',
+        isPrimary: false,
+      );
+      await insertSeries(at: 1, sourceId: 'src-1');
+      await insertSeries(
+        at: 10,
+        sourceId: 'src-2',
+        computerId: 'comp-2',
+        isPrimary: false,
+      );
+
+      expect(await exportedSeries(), {
+        'src-1': [1],
+        'src-2': [10],
+      });
+    });
+
+    test('keeps only the live generation of a demoted source', () async {
+      await insertSource('src-1', 'dive-1', isPrimary: true);
+      await insertSource('src-2', 'dive-1');
+      await insertSeries(at: 0, sourceId: 'src-1');
+      await insertSeries(
+        at: 10,
+        sourceId: 'src-2',
+        isPrimary: false,
+        activatedAt: 100,
+      );
+      await insertSeries(
+        at: 10,
+        sourceId: 'src-2',
+        isPrimary: false,
+        activatedAt: 200,
+      );
+
+      final sources = await repository.getSourcesForExport(['dive-1']);
+
+      expect(sources[1].profileSeries, hasLength(1));
+      expect(sources[1].profileSeries.single.activatedAt, 200);
+    });
+
+    test('a row that collapsed into a chip keeps its own series', () async {
+      await insertSource(
+        'src-1',
+        'dive-1',
+        mergeSourceSlot: 0,
+        createdAt: DateTime(2019, 6, 2, 10),
+      );
+      await insertSource(
+        'src-2',
+        'dive-1',
+        mergeSourceSlot: 0,
+        createdAt: DateTime(2019, 6, 2, 11),
+      );
+      await insertSeries(at: 0, sourceId: 'src-1', isPrimary: false);
+      await insertSeries(at: 100, sourceId: 'src-2', isPrimary: false);
+
+      expect(await exportedSeries(), {
+        'src-1': [0],
+        'src-2': [100],
+      });
+    });
+  });
 
   test('returns raw bytes byte identical to what was written', () async {
     // The load bearing assertion. Under issue #227 raw_data carries a Drift
