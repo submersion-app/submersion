@@ -8755,6 +8755,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gasmix (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Flesconfiguratie';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Flesextra\'s';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Minimale beoordeling';
 
   @override
@@ -28821,6 +28827,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String insights_chart_barRowSemanticLabel(String count, String label) {
+    return '$label, $count';
+  }
+
+  @override
   String insights_chart_distributionSemanticLabel(Object count) {
     return 'Cirkeldiagram met $count segmenten';
   }
@@ -48112,6 +48123,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count flesconfiguraties';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count flesextra\'s';
+  }
+
+  @override
   String get diveLog_filter_sectionSpecies => 'Zeeleven';
 
   @override
@@ -50400,7 +50421,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_selectRangeHint =>
-      'Selecteer een bereik op de grafiek om bewerkingen in te schakelen';
+      'Sleep over de grafiek om een bereik te selecteren en bewerkingen in te schakelen';
 
   @override
   String get diveLog_profileEditor_depthPlusOneMeter => 'Diepte +1 m';
@@ -50505,6 +50526,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_profileEditor_noProfileData =>
       'Geen profielgegevens beschikbaar';
+
+  @override
+  String get diveLog_profileEditor_timeShiftBlocked =>
+      'Verschuiven niet mogelijk: de selectie heeft geen ruimte in die richting';
+
+  @override
+  String get diveLog_profileEditor_deleteAllBlocked =>
+      'Het volledige profiel kan niet worden verwijderd';
+
+  @override
+  String get diveLog_profileEditor_smoothTooFewBlocked =>
+      'Afvlakken niet mogelijk: selecteer minstens drie metingen';
 
   @override
   String get diveLog_profileEditor_undo => 'Ongedaan maken';
@@ -51976,6 +52009,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_summary_excluded => 'Uitgesloten';
+
+  @override
+  String get insights_empty_allExcluded_title =>
+      'Al je duiken zijn uitgesloten van statistieken';
+
+  @override
+  String get insights_empty_allExcluded_subtitle =>
+      'Ze staan nog in je logboek. Bewerk een duik om hem weer mee te tellen.';
 
   @override
   String insights_excludedDivesFootnote(int count) {
@@ -54089,6 +54130,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_hasProfile => 'Heeft profiel';
+
+  @override
+  String get query_dives_tankConfig => 'Flesconfiguratie';
+
+  @override
+  String get query_dives_stages => 'Stagefles(sen)';
+
+  @override
+  String get query_dives_decoGas => 'Decogas';
+
+  @override
+  String get query_dives_multiGas => 'Meerdere gassen';
 
   @override
   String get query_dives_id => 'Duik-ID';
