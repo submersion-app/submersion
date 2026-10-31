@@ -64,6 +64,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series_revi
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_depth_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
@@ -1448,24 +1449,9 @@ class DiveRepository {
         }
 
         // Recalculate dive stats from edited profile
-        if (editedPoints.isNotEmpty) {
-          double maxDepth = 0;
-          double depthSum = 0;
-          for (final point in editedPoints) {
-            if (point.depth > maxDepth) maxDepth = point.depth;
-            depthSum += point.depth;
-          }
-          final avgDepth = depthSum / editedPoints.length;
-
-          await (_db.update(
-            _db.dives,
-          )..where((t) => t.id.equals(diveId))).write(
-            DivesCompanion(
-              maxDepth: Value(maxDepth),
-              avgDepth: Value(avgDepth),
-              updatedAt: Value(now),
-            ),
-          );
+        final depths = profileDepthSummary(editedPoints);
+        if (depths != null) {
+          await _writeDepthSummary(diveId, depths, now: now);
         }
       });
 
@@ -1792,22 +1778,8 @@ class DiveRepository {
     String diveId, {
     required int now,
   }) async {
-    final points = await getDiveProfile(diveId);
-    if (points.isNotEmpty) {
-      var maxDepth = 0.0;
-      var depthSum = 0.0;
-      for (final point in points) {
-        if (point.depth > maxDepth) maxDepth = point.depth;
-        depthSum += point.depth;
-      }
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(
-          maxDepth: Value(maxDepth),
-          avgDepth: Value(depthSum / points.length),
-          updatedAt: Value(now),
-        ),
-      );
-    }
+    final depths = profileDepthSummary(await getDiveProfile(diveId));
+    if (depths != null) await _writeDepthSummary(diveId, depths, now: now);
     await SafetyFindingsRepository.clearReviewForDive(
       _db,
       _syncRepository,
@@ -1820,6 +1792,18 @@ class DiveRepository {
     );
     SyncEventBus.notifyLocalChange();
   }
+
+  Future<void> _writeDepthSummary(
+    String diveId,
+    ProfileDepthSummary depths, {
+    required int now,
+  }) => (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+    DivesCompanion(
+      maxDepth: Value(depths.maxDepth),
+      avgDepth: Value(depths.avgDepth),
+      updatedAt: Value(now),
+    ),
+  );
 
   /// Load downsampled profile points for multiple dives in a single query.
   ///
@@ -9160,6 +9144,13 @@ class DiveRepository {
             computerId: newPrimary.computerId,
             now: now,
           );
+        }
+
+        // The source row holds what its recording reports. An edit that is
+        // live now describes the dive instead (issue #3931).
+        final editDepths = await _profileSeries.liveEditDepthSummary(diveId);
+        if (editDepths != null) {
+          await _writeDepthSummary(diveId, editDepths, now: now);
         }
       });
       SyncEventBus.notifyLocalChange();

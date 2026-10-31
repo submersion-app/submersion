@@ -311,7 +311,8 @@ class DiveReimportService {
   /// leaving the dive contradicting its own profile. Water temp and GPS are
   /// the two exceptions a re-parse makes, because another source or the diver
   /// may have stamped them and the source snapshot still records what this
-  /// parse had to say.
+  /// parse had to say. The third is the depth summary under a live manual
+  /// edit, which keeps describing the edit (issue #3931).
   ///
   /// `diveDateTime` is the one column that cannot be cleared: it is NOT NULL,
   /// and a candidate without a clock never reaches here from the orchestrator.
@@ -335,6 +336,7 @@ class DiveReimportService {
     final exitLongitude = _asDouble(diveData['exitLongitude']);
 
     final maxDepth = _asDouble(diveData['maxDepth']);
+    final editDepths = await _profileSeries.liveEditDepthSummary(diveId);
     final diveMode = _parsedDiveModeOrNull(diveData['diveMode']);
     final decoAlgorithm = _asString(diveData['decoAlgorithm']);
     final decoConservatism = _asInt(diveData['decoConservatism']);
@@ -349,8 +351,10 @@ class DiveReimportService {
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
-        maxDepth: Value(maxDepth),
-        avgDepth: Value(avgDepth == 0.0 ? null : avgDepth),
+        maxDepth: Value(editDepths?.maxDepth ?? maxDepth),
+        avgDepth: Value(
+          editDepths?.avgDepth ?? (avgDepth == 0.0 ? null : avgDepth),
+        ),
         runtime: Value(runtime?.inSeconds),
         diveDateTime: dateTime != null
             ? Value(dateTime.millisecondsSinceEpoch)
@@ -665,13 +669,7 @@ class DiveReimportService {
     if (profileData == null) return;
 
     final identities = await _profileSeries.getIdentitiesForDive(diveId);
-    final hasDemoted = identities.any((s) => !s.isPrimary);
-    final editIds = hasDemoted
-        ? {
-            for (final s in identities)
-              if (s.isPrimary && s.computerId == null) s.id,
-          }
-        : const <String>{};
+    final editIds = await _profileSeries.liveEditIds(diveId);
 
     await _profileSeries.deleteByIds([
       for (final s in identities)

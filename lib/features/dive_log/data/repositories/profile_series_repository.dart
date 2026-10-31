@@ -12,7 +12,9 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_depth_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_sample_dedupe.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -605,13 +607,16 @@ class ProfileSeriesRepository {
   /// the UI isolate, per tick. It is also lossier for this purpose, because
   /// a blob that will not decode drops its whole row and with it a computer
   /// the dive really does have.
-  Future<List<({String id, String? computerId, bool isPrimary})>>
+  Future<
+    List<({String id, String? computerId, String? sourceId, bool isPrimary})>
+  >
   getIdentitiesForDive(String diveId) async {
     final rows =
         await (_db.selectOnly(_db.diveProfileSeries)
               ..addColumns([
                 _db.diveProfileSeries.id,
                 _db.diveProfileSeries.computerId,
+                _db.diveProfileSeries.sourceId,
                 _db.diveProfileSeries.isPrimary,
               ])
               ..where(_db.diveProfileSeries.diveId.equals(diveId))
@@ -625,6 +630,7 @@ class ProfileSeriesRepository {
         (
           id: r.read(_db.diveProfileSeries.id)!,
           computerId: r.read(_db.diveProfileSeries.computerId),
+          sourceId: r.read(_db.diveProfileSeries.sourceId),
           isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
         ),
     ];
@@ -687,6 +693,44 @@ class ProfileSeriesRepository {
             .get();
     return rows.isNotEmpty;
   }
+
+  /// The live series of [diveId] that are manual edits, for a source that may
+  /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
+  /// series is primary with no computer too.
+  ///
+  /// What gives an edit away is the generation it superseded, demoted beneath
+  /// it: a series of the edit's own source, or one with no source at all. A
+  /// demoted series another source owns says nothing, which is every dive
+  /// with a second computer below an unedited file. History would name an
+  /// edit outright, but it does not sync, so a peer holds the edit without it.
+  Future<Set<String>> liveEditIds(String diveId) async {
+    final series = await getIdentitiesForDive(diveId);
+    return {
+      for (final live in series)
+        if (live.isPrimary &&
+            live.computerId == null &&
+            series.any(
+              (s) =>
+                  !s.isPrimary &&
+                  (s.sourceId == null || s.sourceId == live.sourceId),
+            ))
+          live.id,
+    };
+  }
+
+  /// The depth summary of the profile [diveId] shows, null with no readable
+  /// live samples.
+  Future<ProfileDepthSummary?> liveDepthSummary(String diveId) async =>
+      profileDepthSummary(
+        mergeSeriesPoints(await getSeriesForDive(diveId, primaryOnly: true)),
+      );
+
+  /// The depth summary of [diveId]'s live edit, null when [liveEditIds] finds
+  /// none, so the dive's summary is its primary source's to set.
+  Future<ProfileDepthSummary?> liveEditDepthSummary(String diveId) async =>
+      (await liveEditIds(diveId)).isEmpty
+      ? null
+      : await liveDepthSummary(diveId);
 
   /// Stamps [sourceId] on every series of [diveId] that has no source yet
   /// (the first `dive_data_sources` row of a dive adopts the unattributed

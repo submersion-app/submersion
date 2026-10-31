@@ -469,6 +469,23 @@ class DiveSplitService {
         );
       }
 
+      // The row above took the source's own depths. An edit that moved with
+      // it is what the new dive shows, so its depths are the dive's (issue
+      // #3931).
+      final movedEditDepths = await _profileSeries.liveEditDepthSummary(
+        newDiveId,
+      );
+      if (movedEditDepths != null) {
+        await (_db.update(
+          _db.dives,
+        )..where((t) => t.id.equals(newDiveId))).write(
+          DivesCompanion(
+            maxDepth: Value(movedEditDepths.maxDepth),
+            avgDepth: Value(movedEditDepths.avgDepth),
+          ),
+        );
+      }
+
       // 6. Tank pressure series, re-pointed at the moved or cloned tanks.
       for (final s in movingPressures) {
         await _tankSeries.insertSeries(
@@ -598,7 +615,8 @@ class DiveSplitService {
         // `promoted.computerId != null`, so a file-imported source promoted
         // nothing and left the remaining dive with zero is_primary series --
         // the same stranding as issue #1149.
-        if (!await _profileSeries.hasPrimarySeries(diveId)) {
+        final keepsLiveSeries = await _profileSeries.hasPrimarySeries(diveId);
+        if (!keepsLiveSeries) {
           await _profileSeries.promoteOwnedBy(
             diveId,
             sourceId: promoted.id,
@@ -628,6 +646,12 @@ class DiveSplitService {
         // one graded the computer that just left.
         await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
 
+        // Samples that stayed live describe the dive; the promoted source's
+        // row describes a recording the dive is not showing (issue #3931).
+        final keptDepths = keepsLiveSeries
+            ? await _profileSeries.liveDepthSummary(diveId)
+            : null;
+
         final promotedTiming = _snapshotTiming(
           sources.where((s) => s.id != source.id).toList()
             ..sort(compareDataSourcesInShownOrder),
@@ -644,8 +668,12 @@ class DiveSplitService {
           computerId: Value(promoted.computerId),
           diveComputerModel: Value(promoted.computerModel),
           diveComputerSerial: Value(promoted.computerSerial),
-          maxDepth: Value(promoted.maxDepth ?? diveRow.maxDepth),
-          avgDepth: Value(promoted.avgDepth ?? diveRow.avgDepth),
+          maxDepth: Value(
+            keptDepths?.maxDepth ?? promoted.maxDepth ?? diveRow.maxDepth,
+          ),
+          avgDepth: Value(
+            keptDepths?.avgDepth ?? promoted.avgDepth ?? diveRow.avgDepth,
+          ),
           bottomTime: Value(
             sourceBottomTimeSeconds(
                   allProfileSeries.where((s) => !movingProfiles.contains(s)),
