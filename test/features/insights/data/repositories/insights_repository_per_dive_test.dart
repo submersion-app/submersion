@@ -25,6 +25,8 @@ void main() {
     double? maxDepth,
     int? bottomTimeSeconds,
     double? waterTemp,
+    double? legacyWeight,
+    bool excludedFromStats = false,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -36,6 +38,8 @@ void main() {
             maxDepth: Value(maxDepth),
             bottomTime: Value(bottomTimeSeconds),
             waterTemp: Value(waterTemp),
+            weightAmount: Value(legacyWeight),
+            excludedFromStats: Value(excludedFromStats),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -175,10 +179,106 @@ void main() {
       expect(points.map((p) => p.value), [7.0, 5.0]);
     });
 
-    test('skips dives with no weight rows', () async {
+    test('skips dives with no recorded weight', () async {
       await insertDive(id: 'a', at: DateTime.utc(2024, 5, 10));
 
       expect(await repository.getWeightPerDive(), isEmpty);
+    });
+
+    test('reads the legacy scalar on a dive with no weight rows', () async {
+      // Issue #3914: an inner join on dive_weights dropped these dives even
+      // though the dive page shows their lead.
+      await insertDive(
+        id: 'legacy',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 6.0,
+      );
+      await insertDive(id: 'modern', at: DateTime.utc(2024, 5, 20));
+      await insertWeight(diveId: 'modern', id: 'w1', amountKg: 4.0);
+      await insertWeight(
+        diveId: 'modern',
+        id: 'w2',
+        amountKg: 2.0,
+        weightType: 'Trim',
+      );
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.map((p) => p.diveId), ['legacy', 'modern']);
+      expect(points.map((p) => p.value), [6.0, 6.0]);
+    });
+
+    test('never adds the legacy scalar to weight rows', () async {
+      await insertDive(
+        id: 'a',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 9.0,
+      );
+      await insertWeight(diveId: 'a', id: 'w1', amountKg: 6.0);
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.single.value, 6.0);
+    });
+
+    test('keeps weight rows that total zero over the scalar', () async {
+      await insertDive(
+        id: 'a',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 9.0,
+      );
+      await insertWeight(diveId: 'a', id: 'w1', amountKg: 0.0);
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.single.value, 0.0);
+    });
+
+    test('a zero legacy scalar is not a recorded weight', () async {
+      // The dive page shows no weight for these, so a 0 kg point here would
+      // be a dive the diver cannot find a weight on.
+      await insertDive(
+        id: 'a',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 0.0,
+      );
+
+      expect(await repository.getWeightPerDive(), isEmpty);
+    });
+
+    test('orders dives at the same moment by id', () async {
+      final at = DateTime.utc(2024, 5, 10);
+      await insertDive(id: 'b', at: at, legacyWeight: 5.0);
+      await insertDive(id: 'a', at: at, legacyWeight: 7.0);
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.map((p) => p.diveId), ['a', 'b']);
+    });
+
+    test('scopes legacy scalar dives like every other dive', () async {
+      await insertDive(
+        id: 'old',
+        at: DateTime.utc(2020, 5, 10),
+        legacyWeight: 8.0,
+      );
+      await insertDive(
+        id: 'excluded',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 7.0,
+        excludedFromStats: true,
+      );
+      await insertDive(
+        id: 'kept',
+        at: DateTime.utc(2024, 5, 20),
+        legacyWeight: 6.0,
+      );
+
+      final points = await repository.getWeightPerDive(
+        filter: DiveFilterState(startDate: DateTime.utc(2023, 1, 1)),
+      );
+
+      expect(points.map((p) => p.diveId), ['kept']);
     });
 
     test('includes a dive far older than five years', () async {

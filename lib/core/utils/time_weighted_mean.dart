@@ -114,3 +114,37 @@ double? timeWeightedMeanBetween<T>(
 }) => timeWeightedMeanOfWindow(
   samplesInWindow(samples, start: start, end: end, time: time, value: value),
 );
+
+/// The mean of [value] over several [windows], each read as
+/// [timeWeightedMeanBetween] reads one. The time between them counts for
+/// nothing, so a series left and rejoined has no weight in the gap. Null when
+/// [samples] reach none of them.
+double? timeWeightedMeanAcross<T>(
+  Iterable<T> samples, {
+  required Iterable<({num start, num end})> windows,
+  required num Function(T sample) time,
+  required double Function(T sample) value,
+}) {
+  double area = 0;
+  num span = 0;
+  final means = <double>[];
+  for (final window in windows) {
+    final mean = TimeWeightedMean();
+    final points = samplesInWindow(
+      samples,
+      start: window.start,
+      end: window.end,
+      time: time,
+      value: value,
+    );
+    for (final point in points) {
+      mean.add(point.time, point.value);
+    }
+    area += mean.area;
+    span += mean.span;
+    final windowMean = mean.value;
+    if (windowMean != null) means.add(windowMean);
+  }
+  if (span > 0) return area / span;
+  return means.isEmpty ? null : means.reduce((a, b) => a + b) / means.length;
+}
