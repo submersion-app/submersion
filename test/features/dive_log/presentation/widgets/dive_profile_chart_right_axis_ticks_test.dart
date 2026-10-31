@@ -20,19 +20,14 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// A dive to 40 m (44 m plot extent) whose mean depth peaks at 22 m, as in
-/// issue #3892.
-Future<void> _pumpMeanDepthChart(
+/// A desktop-sized chart, as in the screenshots of issue #3055: tall enough
+/// that fl_chart lays out ticks finer than a whole degree apart.
+Future<void> _pumpChart(
   WidgetTester tester, {
+  required List<DiveProfilePoint> profile,
+  List<double>? meanDepthCurve,
   AppSettings settings = const AppSettings(),
 }) async {
-  final profile = List.generate(
-    41,
-    (i) => DiveProfilePoint(
-      timestamp: i * 30,
-      depth: i <= 20 ? i * 2.0 : (40 - i) * 2.0,
-    ),
-  );
   tester.view.physicalSize = const Size(1800, 1000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -50,7 +45,7 @@ Future<void> _pumpMeanDepthChart(
             height: 900,
             child: DiveProfileChart(
               profile: profile,
-              meanDepthCurve: List.generate(41, (i) => i * 0.55),
+              meanDepthCurve: meanDepthCurve,
             ),
           ),
         ),
@@ -58,6 +53,26 @@ Future<void> _pumpMeanDepthChart(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+/// A dive to 40 m (44 m plot extent) whose mean depth peaks at 22 m, as in
+/// issue #3892.
+Future<void> _pumpMeanDepthChart(
+  WidgetTester tester, {
+  AppSettings settings = const AppSettings(),
+}) async {
+  await _pumpChart(
+    tester,
+    profile: List.generate(
+      41,
+      (i) => DiveProfilePoint(
+        timestamp: i * 30,
+        depth: i <= 20 ? i * 2.0 : (40 - i) * 2.0,
+      ),
+    ),
+    meanDepthCurve: List.generate(41, (i) => i * 0.55),
+    settings: settings,
+  );
   ProviderScope.containerOf(tester.element(find.byType(DiveProfileChart)))
       .read(profileLegendProvider.notifier)
       .setRightAxisMetric(ProfileRightAxisMetric.meanDepth);
@@ -100,30 +115,7 @@ void main() {
         temperature: 29.0 + (i % 3),
       ),
     );
-    // A desktop-sized chart, as in the issue's screenshots: tall enough that
-    // fl_chart lays out ticks finer than a whole degree apart.
-    tester.view.physicalSize = const Size(1800, 1000);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-        ],
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SizedBox(
-              width: 1700,
-              height: 900,
-              child: DiveProfileChart(profile: profile),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await _pumpChart(tester, profile: profile);
 
     // The labels fl_chart actually laid out on the right axis, at the tick
     // interval it chose itself (the right axis sets none).
@@ -175,6 +167,7 @@ void main() {
         await tester.pump();
       }
 
+      expect(_axisTicks(tester, AxisSide.left).keys, isNot(contains('0')));
       _expectRightAxisMatchesDepthAxis(tester);
     });
   });

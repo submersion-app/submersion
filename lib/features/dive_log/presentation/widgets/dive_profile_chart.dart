@@ -3718,6 +3718,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Apply zoom and pan to calculate visible bounds (see ChartViewport).
     final visibleRangeX = totalMaxTime * _viewport.visibleWidth;
     final visibleRangeY = totalMaxDepth * _viewport.visibleHeight;
+    final depthInterval = _calculateDepthInterval(visibleRangeY);
 
     final visibleMinX = _viewport.offsetX * totalMaxTime;
     final visibleMaxX = visibleMinX + visibleRangeX;
@@ -4136,7 +4137,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
-              horizontalInterval: _calculateDepthInterval(visibleRangeY),
+              horizontalInterval: depthInterval,
               verticalInterval: _calculateTimeInterval(visibleRangeX),
               getDrawingHorizontalLine: (value) => FlLine(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -4158,13 +4159,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
-                  interval: _calculateDepthInterval(visibleRangeY),
+                  interval: depthInterval,
                   getTitlesWidget: (value, meta) {
                     // Suppress interval ticks too close to the min boundary
                     // (min is the most-negative value = deepest depth).
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
                     return SideTitleWidget(
@@ -4245,18 +4245,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
-                  interval: rightAxisIsDepthScale
-                      ? _calculateDepthInterval(visibleRangeY)
-                      : null,
+                  interval: rightAxisIsDepthScale ? depthInterval : null,
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
                       return const SizedBox();
                     }
                     // Suppress interval ticks too close to the min boundary
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
                     final String label;
