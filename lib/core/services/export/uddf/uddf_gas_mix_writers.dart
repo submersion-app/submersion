@@ -21,8 +21,12 @@ class UddfGasMixWriters {
   /// values as they download. Ten decimals sit far below any analyzer's
   /// precision and far above that error, so this tells one gas from another
   /// without telling a gas from its own noise.
-  static double cleanPercent(double percent) =>
-      double.parse(percent.toStringAsFixed(10));
+  static double cleanPercent(double percent) => _rounded(percent, 10);
+
+  /// [value] at [decimals] places. Adding zero turns the -0.0 a tiny negative
+  /// value rounds to, such as the n2 of a 99.9/0.1 mix, into 0.0.
+  static double _rounded(double value, int decimals) =>
+      double.parse(value.toStringAsFixed(decimals)) + 0.0;
 
   static String _percentId(double percent) {
     final text = cleanPercent(percent).toString();
@@ -60,5 +64,5 @@ class UddfGasMixWriters {
   /// [percent] as UDDF's fraction, at [cleanPercent]'s precision: 12 decimals
   /// of a fraction are 10 of a percentage.
   static String _fraction(double percent) =>
-      double.parse((percent / 100).toStringAsFixed(12)).toString();
+      _rounded(percent / 100, 12).toString();
 }

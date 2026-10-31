@@ -115,6 +115,16 @@ void main() {
         expect(mix.getElement('he')?.innerText, '0.001');
       });
 
+      test('a mix with no nitrogen writes a plain zero', () async {
+        // 100 - 99.9 - 0.1 is a tiny negative number, not 0.
+        final xml = await write(const [GasMix(o2: 99.9, he: 0.1)]);
+
+        final mix = XmlDocument.parse(xml)
+            .findAllElements('mix')
+            .firstWhere((m) => m.getAttribute('id') == 'mix_99.9_0.1');
+        expect(mix.getElement('n2')?.innerText, '0.0');
+      });
+
       test('two cylinders of one gas share one definition', () async {
         const mixes = [GasMix(o2: 32.1), GasMix(o2: 32.1)];
         final xml = await write(mixes);
