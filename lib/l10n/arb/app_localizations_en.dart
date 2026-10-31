@@ -16672,6 +16672,212 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_export_saved_maintenance => 'Maintenance log saved';
 
   @override
+  String get transfer_export_inventoryTitle => 'Equipment Inventory';
+
+  @override
+  String get transfer_export_inventorySubtitle =>
+      'PDF with serial numbers and what you paid';
+
+  @override
+  String get transfer_export_serviceReportTitle => 'Service Report';
+
+  @override
+  String get transfer_export_serviceReportSubtitle =>
+      'PDF of what is due, with service history';
+
+  @override
+  String get settings_export_progress_inventory => 'Building inventory...';
+
+  @override
+  String get settings_export_success_inventory => 'Inventory exported';
+
+  @override
+  String get settings_export_saved_inventory => 'Inventory saved';
+
+  @override
+  String get settings_export_progress_serviceReport =>
+      'Building service report...';
+
+  @override
+  String get settings_export_success_serviceReport => 'Service report exported';
+
+  @override
+  String get settings_export_saved_serviceReport => 'Service report saved';
+
+  @override
+  String get equipmentReport_sheet_continue => 'Continue';
+
+  @override
+  String get equipmentReport_sheet_groupBy => 'Group by';
+
+  @override
+  String get equipmentReport_sheet_groupByType => 'Gear type';
+
+  @override
+  String get equipmentReport_sheet_groupByLocation => 'Location';
+
+  @override
+  String get equipmentReport_sheet_location => 'Location';
+
+  @override
+  String get equipmentReport_sheet_allLocations => 'All locations';
+
+  @override
+  String get equipmentReport_sheet_showPrices => 'Show prices';
+
+  @override
+  String get equipmentReport_sheet_showPricesHelp =>
+      'Turn off for a customs list';
+
+  @override
+  String get equipmentReport_sheet_gear => 'Gear';
+
+  @override
+  String get equipmentReport_sheet_gearAll => 'All gear';
+
+  @override
+  String get equipmentReport_sheet_gearTrip => 'Packed for a trip';
+
+  @override
+  String get equipmentReport_sheet_gearItem => 'One item';
+
+  @override
+  String get equipmentReport_sheet_trip => 'Trip';
+
+  @override
+  String get equipmentReport_sheet_item => 'Item';
+
+  @override
+  String get equipmentReport_sheet_history => 'Service history';
+
+  @override
+  String get equipmentReport_sheet_showCosts => 'Show costs';
+
+  @override
+  String get equipmentReport_pdf_inventoryTitle => 'Equipment inventory';
+
+  @override
+  String get equipmentReport_pdf_serviceTitle => 'Service report';
+
+  @override
+  String equipmentReport_pdf_printedOn(String date) {
+    return 'Printed $date';
+  }
+
+  @override
+  String equipmentReport_pdf_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentReport_pdf_currencyTotal(String currency) {
+    return '$currency total';
+  }
+
+  @override
+  String get equipmentReport_pdf_noLocation => 'No location set';
+
+  @override
+  String get equipmentReport_pdf_colItem => 'Item';
+
+  @override
+  String get equipmentReport_pdf_colSerial => 'Serial';
+
+  @override
+  String get equipmentReport_pdf_colBought => 'Bought';
+
+  @override
+  String get equipmentReport_pdf_colPaid => 'Paid';
+
+  @override
+  String get equipmentReport_pdf_pricesNote =>
+      'Prices are what was paid, not current value.';
+
+  @override
+  String equipmentReport_pdf_noPrice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items have no price.',
+      one: '$count item has no price.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_overdue => 'overdue';
+
+  @override
+  String get equipmentReport_pdf_dueSoon => 'due soon';
+
+  @override
+  String get equipmentReport_pdf_upToDate => 'up to date';
+
+  @override
+  String get equipmentReport_pdf_colService => 'Service';
+
+  @override
+  String get equipmentReport_pdf_colDue => 'Due';
+
+  @override
+  String get equipmentReport_pdf_colStatus => 'Status';
+
+  @override
+  String get equipmentReport_pdf_statusOverdue => 'Overdue';
+
+  @override
+  String get equipmentReport_pdf_statusDueSoon => 'Due soon';
+
+  @override
+  String get equipmentReport_pdf_statusUpToDate => 'Up to date';
+
+  @override
+  String get equipmentReport_pdf_allUpToDate => 'Everything is up to date.';
+
+  @override
+  String equipmentReport_pdf_noSchedule(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items have no service schedule.',
+      one: '$count item has no service schedule.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipmentReport_pdf_colDate => 'Date';
+
+  @override
+  String get equipmentReport_pdf_colWork => 'Work';
+
+  @override
+  String get equipmentReport_pdf_colShop => 'Shop';
+
+  @override
+  String get equipmentReport_pdf_colCost => 'Cost';
+
+  @override
+  String get equipmentReport_pdf_noHistory => 'No service recorded';
+
+  @override
+  String equipmentReport_pdf_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_serviceKinds_defaultCurrencyInherit =>
       'Use default currency';
 
@@ -20338,6 +20544,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Decompression plan carries no bailout gas';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'No bailout gas reaches $depth: the deepest MOD carried is $deepestMod. Carry a gas usable at that depth; more of the same gas will not help.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
@@ -28802,6 +29016,160 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get insights_equipment_findings_subtitleAllDives =>
       'Open findings by rule, across all dives';
+
+  @override
+  String get insights_equipment_showAll => 'Show all';
+
+  @override
+  String get insights_equipment_showLess => 'Show less';
+
+  @override
+  String insights_equipment_mostUsedGear_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '$count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_title => 'Cost of ownership';
+
+  @override
+  String get insights_equipment_cost_subtitle =>
+      'Purchase plus service, across all your dives';
+
+  @override
+  String get insights_equipment_cost_spentTotal => 'Spent in total';
+
+  @override
+  String get insights_equipment_cost_perDive => 'Per dive';
+
+  @override
+  String get insights_equipment_cost_byYear => 'Spending by year';
+
+  @override
+  String get insights_equipment_cost_metricPerDive => 'Per dive';
+
+  @override
+  String get insights_equipment_cost_metricPerHour => 'Per hour';
+
+  @override
+  String get insights_equipment_cost_metricTotal => 'Total';
+
+  @override
+  String insights_equipment_cost_rowPerDive(String amount) {
+    return '$amount / dive';
+  }
+
+  @override
+  String insights_equipment_cost_rowPerHour(String amount) {
+    return '$amount / hour';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverDives(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount over $count dives',
+      one: '$amount over $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_rowOverHours(String amount, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount over $count hours',
+      one: '$amount over $count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_noDives => 'no dives yet';
+
+  @override
+  String insights_equipment_cost_undated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count purchases have no date',
+      one: '$count purchase has no date',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_cost_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items have no cost recorded',
+      one: '$count item has no cost recorded',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_cost_empty =>
+      'No purchase prices or service costs recorded yet';
+
+  @override
+  String get insights_equipment_cost_error => 'Could not load gear costs';
+
+  @override
+  String get insights_equipment_idle_title => 'Idle gear';
+
+  @override
+  String get insights_equipment_idle_subtitle =>
+      'Gear you own and have not dived lately, across all your dives';
+
+  @override
+  String get insights_equipment_idle_over6Months => 'Over 6 months';
+
+  @override
+  String get insights_equipment_idle_over1Year => 'Over 1 year';
+
+  @override
+  String get insights_equipment_idle_over2Years => 'Over 2 years';
+
+  @override
+  String get insights_equipment_idle_neverDived => 'Never dived';
+
+  @override
+  String insights_equipment_idle_years(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count yrs',
+      one: '$count yr',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String insights_equipment_idle_months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mo',
+      one: '$count mo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_equipment_idle_empty =>
+      'All your gear has been dived recently';
+
+  @override
+  String get insights_equipment_idle_error => 'Could not load idle gear';
 
   @override
   String get insights_equipment_findings_empty => 'No open findings';

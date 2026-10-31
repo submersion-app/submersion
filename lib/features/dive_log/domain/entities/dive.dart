@@ -578,7 +578,8 @@ class Dive extends Equatable {
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
   /// at the surface, in bar of [sacReferenceTank]. Every other breathed
   /// cylinder adds its drop converted to that cylinder's size (issue #3109,
-  /// see [referencePressureDrop]). Null on a rebreather dive, whose
+  /// see [referencePressureDrop]), so a [sacReferenceTank] left idle adds
+  /// zero to what the others used (#3974). Null on a rebreather dive, whose
   /// cylinders do not drain with the diver's breathing (issue #3673).
   ///
   /// Needs no cylinder volume, so it exists for every dive-computer download

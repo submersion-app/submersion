@@ -31,6 +31,7 @@ const _censusFiles = <String>[
   'lib/features/marine_life/data/repositories/seen_species_repository.dart',
   'lib/features/marine_life/data/repositories/species_repository.dart',
   'lib/features/equipment/data/repositories/equipment_repository_impl.dart',
+  'lib/features/equipment/data/repositories/equipment_usage_repository.dart',
   'lib/features/courses/data/repositories/course_repository.dart',
   'lib/features/courses/data/repositories/course_requirement_repository.dart',
   'lib/features/connections/data/connections_scope_sql.dart',
