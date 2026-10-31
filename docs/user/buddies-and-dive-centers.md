@@ -63,7 +63,7 @@ The buddy detail page shows a **Dive Statistics** card with the number of dives 
 
 If you remember diving with someone but not their name, you can add a buddy called "Unknown" and still record those dives as buddy dives. To stop that record showing up as your top buddy, turn on **Leave out of buddy rankings** in the buddy's edit form. It works for any buddy, not only a placeholder.
 
-A buddy left out of the rankings no longer appears in **Top Dive Buddies** in Insights, as the top buddy on the dashboard, as a regular buddy in your Insights observations, or under **Most Dives** in the Buddies overview. Everything else stays the same: their dives still count as buddy dives in **Solo vs Buddy Dives**, and they stay in your buddy list and on each dive. Their detail page shows **Left out of buddy rankings** in the **Dive Statistics** card.
+A buddy left out of the rankings no longer appears in **Top Dive Buddies** in Insights, as a regular buddy in your Insights observations, or under **Most Dives** in the Buddies overview. Everything else stays the same: their dives still count as buddy dives in **Solo vs Buddy Dives**, and they stay in your buddy list and on each dive. Their detail page shows **Left out of buddy rankings** in the **Dive Statistics** card.
 
 ### Merging duplicate buddies
 
