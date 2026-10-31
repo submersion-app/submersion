@@ -243,14 +243,16 @@ void main() {
     });
 
     test('asking again moves a queued key to the front', () async {
-      for (final key in ['a', 'b', 'c', 'd']) {
+      // 'd' is neither the oldest nor the newest waiting, so only moving it
+      // can start it next.
+      for (final key in ['a', 'b', 'c', 'd', 'e']) {
         unawaited(service.statsFor(key, sourceOf(key)));
       }
       await pumpEventQueue();
-      unawaited(service.statsFor('c', sourceOf('c')));
+      unawaited(service.statsFor('d', sourceOf('d')));
 
       await finish(0);
-      expect(started, ['a', 'b', 'c']);
+      expect(started, ['a', 'b', 'd']);
     });
 
     test('asking again for a running key does not start it twice', () async {

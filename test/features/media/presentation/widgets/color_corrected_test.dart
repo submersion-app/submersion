@@ -94,13 +94,17 @@ void main() {
     ColorAnalysisService service,
     MediaItem item, {
     Widget? tree,
+    bool diverAuto = true,
+    Future<VideoColorTrack?>? track,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           colorEnrichmentProvider.overrideWith((ref, id) async => null),
-          diverAutoColorCorrectionProvider.overrideWithValue(true),
+          diverAutoColorCorrectionProvider.overrideWithValue(diverAuto),
           colorAnalysisServiceProvider.overrideWithValue(service),
+          if (track != null)
+            videoColorTrackProvider.overrideWith((ref, key) => track),
         ],
         child: Directionality(
           textDirection: TextDirection.ltr,
@@ -224,6 +228,63 @@ void main() {
           analysisSource: analysisSource ?? source,
           child: const SizedBox(width: 10, height: 10),
         );
+
+    testWidgets('turning automatic correction off releases it', (tester) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+
+      await pumpTile(tester, service, photo, diverAuto: false);
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+      await finish();
+    });
+
+    testWidgets('holding the original releases it until let go', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :finish) = held(tester);
+      await pumpTile(tester, service, photo);
+      final peek = ProviderScope.containerOf(
+        tester.element(find.byType(ColorCorrected)),
+      ).read(colorPeekOriginalNotifierProvider.notifier);
+
+      peek.peek(photo.id);
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(photo)), isFalse);
+
+      peek.release();
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finish();
+    });
+
+    testWidgets('a video track arriving releases the poster', (tester) async {
+      final video = item(type: MediaType.video);
+      final (:service, :finish) = held(tester);
+      final track = Completer<VideoColorTrack?>();
+      await pumpTile(tester, service, video, track: track.future);
+      expect(service.isPending(colorStatsKey(video)), isTrue);
+
+      track.complete(
+        const VideoColorTrack([
+          VideoColorKey(
+            seconds: 1,
+            params: AutoCorrectionParams(
+              redFromGreen: 0.2,
+              gainR: 1.5,
+              gainG: 1,
+              gainB: 0.9,
+            ),
+          ),
+        ]),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(service.isPending(colorStatsKey(video)), isFalse);
+      await finish();
+    });
 
     testWidgets('a rebuild does not move it ahead of newer requests', (
       tester,
