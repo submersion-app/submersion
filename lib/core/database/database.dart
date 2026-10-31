@@ -4,8 +4,10 @@ import 'package:submersion/core/database/raw_dive_data_codec.dart';
 import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/certification_currency_tables.dart';
+import 'package:submersion/core/database/tables/change_log_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
+import 'package:submersion/core/database/tables/dive_lab_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -41,6 +43,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
+export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -182,6 +185,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentServiceStatus,
     // Saved queries (v238, issue #2365)
     SavedQueries,
+    // Dive Lab saved scenarios (v236)
+    DiveScenarios,
     // Logbook rules and their run history (v301, issue #3513)
     Rules,
     RuleRuns,
@@ -290,6 +295,11 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SharedSiteSuggestions,
     SharedLibraryBackups,
     LibrarySiteNotes,
+    // Per-device change log (v332, issue #3922)
+    ChangeLogContext,
+    ChangeLogOperations,
+    ChangeLogEvents,
+    ChangeLogFields,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -299,7 +309,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 333;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1080,6 +1090,13 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 232 and 234: trip cylinders (#2331) shipped 232, the
     // MacDive source diver key (#1921) 233 and equipment sharing (#2046) 234.
     235,
+    // v236 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    // Renumbered from 161, 228, 229, 231 and 232 as main shipped rungs while
+    // this branch was open; 236 was held for it when main took 237 to 240,
+    // so a database already past it gets the table from the beforeOpen
+    // backstop.
+    236,
     // v237: diver_settings.show_dive_figure, the diver-wide switch for the
     // figure in the dive detail equipment card (issue #2326). Additive, no
     // backfill, so the floor it needs stays at 224. Taken
@@ -1495,9 +1512,13 @@ class AppDatabase extends _$AppDatabase {
     // v331: equipment_locations.dive_center_id, the saved center a Dive
     // center place stands for (issue #3623).
     331,
-    // v332: dive_computers.auto_download_disabled, the per-device opt-out
-    // for passive auto-connect/auto-download (issue #3361).
+    // v332: the per-device change log tables (issue #3922). Local only and
+    // never synced, so the floor does not move.
     332,
+    // v333: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Renumbered from
+    // 332, which upstream claimed first for issue #3922.
+    333,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
@@ -117,7 +118,12 @@ class SharedLibraryService {
     _gates[libraryId] = previous.then((_) => completer.future);
     await previous;
     try {
-      return await _syncOnce(libraryId, diverId: diverId);
+      return await ChangeLogScope.run(
+        DatabaseService.instance.databaseOrNull,
+        source: ChangeLogSource.sync,
+        label: (await _store.getLibrary(libraryId))?.name,
+        body: () => _syncOnce(libraryId, diverId: diverId),
+      );
     } finally {
       completer.complete();
     }

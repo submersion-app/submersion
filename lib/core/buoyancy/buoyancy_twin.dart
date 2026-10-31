@@ -40,6 +40,10 @@ class TwinTankInput {
   final double? endPressureBar;
   final List<TwinPressureSample>? pressureSeries;
 
+  /// True for a simulated series, including a measured prefix with a
+  /// counterfactual tail. Interpolation still uses it, with estimated provenance.
+  final bool pressureSeriesIsEstimated;
+
   const TwinTankInput({
     required this.id,
     required this.label,
@@ -52,10 +56,13 @@ class TwinTankInput {
     this.startPressureBar,
     this.endPressureBar,
     this.pressureSeries,
+    this.pressureSeriesIsEstimated = false,
   });
 
   bool get hasMeasuredSeries =>
-      pressureSeries != null && pressureSeries!.isNotEmpty;
+      pressureSeries != null &&
+      pressureSeries!.isNotEmpty &&
+      !pressureSeriesIsEstimated;
 
   /// Whether the model had to guess this tank's material (see
   /// [BuoyancyPhysics.tankMaterialAssumed]).
@@ -300,7 +307,7 @@ BuoyancyTwinResult runBuoyancyTwin(TwinInput input) {
   // Pre-sort measured series once for the hot loop.
   final sortedSeries = <String, List<TwinPressureSample>>{};
   for (final tank in input.tanks) {
-    if (tank.hasMeasuredSeries) {
+    if (tank.pressureSeries != null && tank.pressureSeries!.isNotEmpty) {
       sortedSeries[tank.id] = [...tank.pressureSeries!]
         ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     }

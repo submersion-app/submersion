@@ -9,6 +9,7 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
@@ -54,6 +55,14 @@ class AccountStartupMigration {
 
   Future<void> run() async {
     if (_prefs.getBool(doneFlagKey) ?? false) return;
+    await ChangeLogScope.automatic(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.accountMigration,
+      body: _runInner,
+    );
+  }
+
+  Future<void> _runInner() async {
     try {
       await _migrateSyncProvider();
       await _migrateMediaStoreAttachment();

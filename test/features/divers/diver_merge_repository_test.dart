@@ -70,7 +70,7 @@ void main() {
           "SELECT m.name AS tbl FROM sqlite_master m "
           "JOIN pragma_table_info(m.name) p "
           "WHERE m.type = 'table' AND p.name = 'diver_id' "
-          "AND m.name != 'divers'",
+          "AND m.name != 'divers' AND m.name != 'change_log_operations'",
         )
         .get();
     return rows.map((r) => r.read<String>('tbl')).toList();
@@ -232,6 +232,24 @@ void main() {
     }
   });
 
+  test("the duplicate's change log entries follow the keeper", () async {
+    await seedRow('change_log_operations', dup, 'op-1');
+    // A summary, because a settle removes an entry with nothing in it.
+    await db.customStatement(
+      "UPDATE change_log_operations SET summary_count = 1 WHERE id = 'op-1'",
+    );
+
+    await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
+
+    expect(await countByDiver('change_log_operations', dup), 0);
+    final moved = await db
+        .customSelect(
+          "SELECT diver_id FROM change_log_operations WHERE id = 'op-1'",
+        )
+        .getSingle();
+    expect(moved.read<String>('diver_id'), keeper);
+  });
+
   test('the duplicate diver row is deleted and the keeper remains', () async {
     await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
     final ids = (await db.select(db.divers).get()).map((d) => d.id).toSet();
@@ -332,7 +350,8 @@ void main() {
                   .customSelect(
                     "SELECT m.name AS tbl FROM sqlite_master m "
                     "JOIN pragma_table_info(m.name) p "
-                    "WHERE m.type = 'table' AND p.name = 'diver_id'",
+                    "WHERE m.type = 'table' AND p.name = 'diver_id' "
+                    "AND m.name != 'change_log_operations'",
                   )
                   .get())
               .map((r) => r.read<String>('tbl'))
@@ -369,7 +388,7 @@ void main() {
             "SELECT m.name AS tbl FROM sqlite_master m "
             "JOIN pragma_table_info(m.name) p "
             "WHERE m.type = 'table' AND p.name = 'diver_id' "
-            "AND m.name != 'divers'",
+            "AND m.name != 'divers' AND m.name != 'change_log_operations'",
           )
           .get();
       var i = 0;

@@ -1,5 +1,6 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/device_display_name_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -115,18 +116,23 @@ class RuleEngine {
     final device = await _device();
     final rules = await _load(request, names);
     await _prepareDerived(request, rules);
-    final result = await _db.transaction(() async {
-      final pass = await _pass(request, rules);
-      if (!pass.changedAnything) return pass;
-      final runId = await _runs.insertRun(
-        diverId: request.diverId,
-        trigger: request.trigger,
-        sourceLabel: request.sourceLabel,
-        deviceLabel: device,
-        changes: pass.changes,
-      );
-      return pass.copyWith(runId: runId);
-    });
+    final result = await ChangeLogScope.run(
+      _db,
+      source: ChangeLogSource.rule,
+      label: request.sourceLabel,
+      body: () => _db.transaction(() async {
+        final pass = await _pass(request, rules);
+        if (!pass.changedAnything) return pass;
+        final runId = await _runs.insertRun(
+          diverId: request.diverId,
+          trigger: request.trigger,
+          sourceLabel: request.sourceLabel,
+          deviceLabel: device,
+          changes: pass.changes,
+        );
+        return pass.copyWith(runId: runId);
+      }),
+    );
     if (result.changedAnything) {
       SyncEventBus.notifyLocalChange();
       _afterDiveWrites({

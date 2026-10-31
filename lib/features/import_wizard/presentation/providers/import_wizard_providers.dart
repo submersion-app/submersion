@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
@@ -1175,61 +1177,69 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         clearError: true,
       );
 
-      final result = await _adapter.performImport(
-        bundle,
-        state.selections,
-        state.duplicateActions,
-        // A source with no numbers has nothing to retain; the review step
-        // disables the option for it, and this keeps a stale "on" from
-        // reaching the adapter anyway (issue #1832).
-        retainSourceDiveNumbers:
-            state.retainSourceDiveNumbers && bundle.hasSourceDiveNumbers,
-        onProgress: (phase, current, total) =>
-            _report(token, phase, current, total),
-        cancelToken: token,
-      );
-      written = result;
-      // The last photo phase would otherwise sit at 100% while the work
-      // below runs (#3555).
-      _report(token, ImportPhase.finishing, 0, 0);
-
-      // Position the dives from any recorded surface track before the
-      // summary, whose "Match sites" offer needs them (issue #3704). Here,
-      // not in an adapter, so every source gets it. Never throws.
-      final gps = _gpsTrackMatchService;
-      if (!token.isCancelled && gps != null) {
-        final positioned = await stampImportedDivesFromTracks(gps, result);
-        // Gear was chosen when the dives were written, without the
-        // position; choose again now that it is known. Never throws.
-        final defaulter = _equipmentDefaulter;
-        if (defaulter != null) {
-          await reequipPositionedDives(
-            defaulter,
-            result,
-            positionedDiveIds: positioned,
-            sourceType: _adapter.sourceType,
-          );
-        }
-      }
-
-      // Apply import tags to all imported dives.
-      // Tag application is non-fatal: dives are already imported, so we
-      // keep the result and advance to summary even if tagging fails.
-      // Skip it entirely if cancellation was requested — the user asked
-      // us to stop, not to do one more round of DB work.
       String? tagWarning;
-      if (!token.isCancelled &&
-          importTags.isNotEmpty &&
-          (result.importedDiveIds.isNotEmpty ||
-              result.diverOutcomes.any((o) => o.diveIds.isNotEmpty)) &&
-          _tagRepository != null) {
-        try {
-          await _applyImportTags(result, importTags);
-        } catch (e) {
-          _log.warning('Tag application failed after import: $e');
-          tagWarning = 'Dives imported successfully but tagging failed: $e';
-        }
-      }
+      final result = await ChangeLogScope.run(
+        DatabaseService.instance.databaseOrNull,
+        source: ChangeLogSource.import,
+        label: _adapter.displayName,
+        body: () async {
+          final result = await _adapter.performImport(
+            bundle,
+            state.selections,
+            state.duplicateActions,
+            // A source with no numbers has nothing to retain; the review step
+            // disables the option for it, and this keeps a stale "on" from
+            // reaching the adapter anyway (issue #1832).
+            retainSourceDiveNumbers:
+                state.retainSourceDiveNumbers && bundle.hasSourceDiveNumbers,
+            onProgress: (phase, current, total) =>
+                _report(token, phase, current, total),
+            cancelToken: token,
+          );
+          written = result;
+          // The last photo phase would otherwise sit at 100% while the work
+          // below runs (#3555).
+          _report(token, ImportPhase.finishing, 0, 0);
+
+          // Position the dives from any recorded surface track before the
+          // summary, whose "Match sites" offer needs them (issue #3704). Here,
+          // not in an adapter, so every source gets it. Never throws.
+          final gps = _gpsTrackMatchService;
+          if (!token.isCancelled && gps != null) {
+            final positioned = await stampImportedDivesFromTracks(gps, result);
+            // Gear was chosen when the dives were written, without the
+            // position; choose again now that it is known. Never throws.
+            final defaulter = _equipmentDefaulter;
+            if (defaulter != null) {
+              await reequipPositionedDives(
+                defaulter,
+                result,
+                positionedDiveIds: positioned,
+                sourceType: _adapter.sourceType,
+              );
+            }
+          }
+
+          // Apply import tags to all imported dives.
+          // Tag application is non-fatal: dives are already imported, so we
+          // keep the result and advance to summary even if tagging fails.
+          // Skip it entirely if cancellation was requested: the user asked
+          // us to stop, not to do one more round of DB work.
+          if (!token.isCancelled &&
+              importTags.isNotEmpty &&
+              (result.importedDiveIds.isNotEmpty ||
+                  result.diverOutcomes.any((o) => o.diveIds.isNotEmpty)) &&
+              _tagRepository != null) {
+            try {
+              await _applyImportTags(result, importTags);
+            } catch (e) {
+              _log.warning('Tag application failed after import: $e');
+              tagWarning = 'Dives imported successfully but tagging failed: $e';
+            }
+          }
+          return result;
+        },
+      );
 
       // Logbook rules run once the import has written everything (#3513);
       // like tagging, a failure keeps the import.

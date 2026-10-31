@@ -732,7 +732,7 @@ typedef DecoObligationStats = ({
   int unknownCount,
 });
 
-/// How far [decoObligationStatsProvider] has got through the dives it has to
+/// How far [decoDiveIdsProvider] has got through the dives it has to
 /// analyze: [stats] counts what is known so far, and [analyzed] of [total]
 /// dives needing analysis are done.
 typedef DecoClassificationProgress = ({
@@ -741,23 +741,28 @@ typedef DecoClassificationProgress = ({
   int total,
 });
 
-/// The state of the pass [decoObligationStatsProvider] is running, or null
+/// The state of the pass [decoDiveIdsProvider] is running, or null
 /// when none is. A first pass analyzes every dive with no recorded deco data
 /// and runs for minutes on a phone (#3807), which the card shows rather than
 /// spinning with nothing to say.
 final decoClassificationProgressProvider =
     StateProvider<DecoClassificationProgress?>((ref) => null);
 
-/// Deco obligation counts: recorded signals first, the app's own analysis as
-/// the fallback (#623).
+/// The dives behind each deco obligation count.
+typedef DecoDiveIds = ({
+  List<String> deco,
+  List<String> noDeco,
+  List<String> unknown,
+});
+
+/// The dives behind each deco obligation count: recorded signals first, the
+/// app's own analysis as the fallback (#623).
 ///
 /// A dive whose source recorded no deco columns is classified by the same
 /// analysis that draws the DECO badge on its detail page, so the card and the
 /// dive can no longer disagree. Dives with no profile at all stay unknown and
 /// are excluded from the rate rather than counted as no-deco.
-final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
-  ref,
-) async {
+final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
@@ -780,7 +785,7 @@ final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
   );
 
   // Dives [classified] leaves out and not still [pending] gave no answer.
-  DecoObligationStats tally(Map<String, bool> classified, {int pending = 0}) {
+  DecoObligationStats tally(Map<String, bool> classified, int pending) {
     final hadDeco = classified.values.where((deco) => deco).length;
     return (
       decoCount: scan.recordedDeco.length + hadDeco,
@@ -801,14 +806,43 @@ final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
       onProgress: (classified, pending) {
         if (pending == 0) return;
         publish((
-          stats: tally(classified, pending: pending),
+          stats: tally(classified, pending),
           analyzed: total - pending,
           total: total,
         ));
       },
     );
-    return tally(computed);
+    return (
+      deco: [
+        ...scan.recordedDeco,
+        for (final e in computed.entries)
+          if (e.value) e.key,
+      ],
+      noDeco: [
+        ...scan.recordedNoDeco,
+        for (final e in computed.entries)
+          if (!e.value) e.key,
+      ],
+      unknown: [
+        ...scan.noProfile,
+        for (final id in scan.needsCompute.keys)
+          if (!computed.containsKey(id)) id,
+      ],
+    );
   } finally {
     publish(null);
   }
+});
+
+/// Deco obligation counts, as [decoDiveIdsProvider] sorts the dives.
+final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final ids = await ref.watch(decoDiveIdsProvider.future);
+  return (
+    decoCount: ids.deco.length,
+    noDecoCount: ids.noDeco.length,
+    unknownCount: ids.unknown.length,
+  );
 });

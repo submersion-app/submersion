@@ -13,6 +13,8 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
+import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_computer_connection_seed.dart';
@@ -44,6 +46,7 @@ import 'package:submersion/features/documents/domain/entities/document_page.dart
 
 part 'before_open.dart';
 part 'before_open_backup_note.dart';
+part 'before_open_change_log.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_settings_columns.dart';
 part 'before_open_course_links.dart';
@@ -53,6 +56,7 @@ part 'before_open_view_configs.dart';
 part 'helpers/buddy_card_migrations.dart';
 part 'helpers/buddy_migrations.dart';
 part 'helpers/certification_currency_migrations.dart';
+part 'helpers/change_log_migrations.dart';
 part 'helpers/checklist_section_migrations.dart';
 part 'helpers/computer_tissue_migrations.dart';
 part 'helpers/connection_migrations.dart';
@@ -65,6 +69,7 @@ part 'helpers/dive_computer_connection_migrations.dart';
 part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
 part 'helpers/dive_profile_migrations.dart';
+part 'helpers/dive_lab_migrations.dart';
 part 'helpers/diver_migrations.dart';
 part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';

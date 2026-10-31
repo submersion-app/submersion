@@ -18,11 +18,15 @@ const _diluentTank = DiveTank(
   role: TankRole.diluent,
 );
 
-DiveTank _bailout({double volume = 11.1, double pressure = 207}) => DiveTank(
+DiveTank _bailout({
+  double volume = 11.1,
+  double pressure = 207,
+  GasMix gasMix = const GasMix(o2: 50),
+}) => DiveTank(
   id: 'bo',
   volume: volume,
   startPressure: pressure,
-  gasMix: const GasMix(o2: 50),
+  gasMix: gasMix,
   role: TankRole.bailout,
 );
 
@@ -212,14 +216,23 @@ void main() {
   });
 
   test('sufficiency flips with the carried bailout volume', () {
+    // A gas that reaches the bottom: past its MOD no volume is enough (#3961).
     final small = solver.solve(
-      _plan(tanks: [_diluentTank, _bailout(volume: 3.0, pressure: 100)]),
+      _plan(
+        tanks: [
+          _diluentTank,
+          _bailout(volume: 3.0, pressure: 100, gasMix: _diluent),
+        ],
+      ),
     )!;
     expect(small.sufficient, isFalse);
 
     final big = solver.solve(
       _plan(
-        tanks: [_diluentTank, _bailout(volume: 24.0, pressure: 232)],
+        tanks: [
+          _diluentTank,
+          _bailout(volume: 24.0, pressure: 232, gasMix: _diluent),
+        ],
         bottomMinutes: 10,
       ),
     )!;

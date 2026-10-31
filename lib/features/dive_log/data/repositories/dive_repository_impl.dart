@@ -3,6 +3,8 @@ import 'package:drift/drift.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -27,11 +29,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.da
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_sparkline_summaries.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_profile_grouping.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
@@ -845,7 +849,14 @@ class DiveRepository {
   /// null) and gets the site's snap from its own current values. Marks each
   /// dive pending. Does NOT open a transaction or notify sync;
   /// BulkDiveEditService owns those.
-  Future<void> bulkSetSite(List<String> diveIds, String? siteId) async {
+  Future<void> bulkSetSite(List<String> diveIds, String? siteId) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkSetSiteInner(diveIds, siteId),
+      );
+
+  Future<void> _bulkSetSiteInner(List<String> diveIds, String? siteId) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final siteRow = await _siteRowOrNull(siteId);
@@ -2606,6 +2617,15 @@ class DiveRepository {
   Future<List<String>> bulkDeleteDives(
     List<String> ids, {
     bool cascadeMedia = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkDelete,
+    body: () => _bulkDeleteDivesInner(ids, cascadeMedia: cascadeMedia),
+  );
+
+  Future<List<String>> _bulkDeleteDivesInner(
+    List<String> ids, {
+    bool cascadeMedia = true,
   }) async {
     if (ids.isEmpty) return [];
 
@@ -3946,22 +3966,12 @@ class DiveRepository {
       // which skipped the profile-derived step and reported a dive that only
       // has a profile as zero minutes. Bucketing stays in SQL so the whole
       // distribution comes back as at most 14 rows, not one row per dive.
-      const depthBucketSizeMeters = 10;
-      const depthBucketCount = 13; // 0-10m, 10-20m, ..., 120-130m
       final depthWhereClause = diverId != null
           ? 'WHERE d.max_depth IS NOT NULL AND d.diver_id = ?'
           : 'WHERE d.max_depth IS NOT NULL';
-      // The inner CAST forces real division whatever affinity the column
-      // value carries; the outer one truncates toward zero. Truncation is
-      // not floor for a negative, so the MAX/MIN pair clamps both ends: a
-      // stray negative depth lands in the first bucket, and anything at or
-      // past 130 m lands in the open-ended last one.
-      const depthBucketExpression =
-          'MIN(MAX(CAST(CAST(d.max_depth AS REAL) / $depthBucketSizeMeters '
-          'AS INTEGER), 0), $depthBucketCount)';
       final depthRows = await _db
           .customSelect(
-            'SELECT $depthBucketExpression AS bucket, '
+            'SELECT $depthBucketSql AS bucket, '
             'COUNT(*) AS count, '
             'SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time '
             'FROM dives d '
@@ -6602,7 +6612,18 @@ class DiveRepository {
   /// Dive numbers are a per-diver lifetime counter, so callers editing a
   /// single diver's numbering must pass their ID or the other diver's
   /// sequence will be overwritten.
-  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) async {
+  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () =>
+            _renumberAllDivesInner(startFrom: startFrom, diverId: diverId),
+      );
+
+  Future<void> _renumberAllDivesInner({
+    int startFrom = 1,
+    String? diverId,
+  }) async {
     try {
       _log.info(
         'Renumbering dives starting from $startFrom'
@@ -6701,7 +6722,14 @@ class DiveRepository {
   /// Absent columns are left untouched (Drift writes only present columns).
   /// Forces `updatedAt = now` and marks each dive pending. Does NOT open a
   /// transaction or notify sync — BulkDiveEditService owns those.
-  Future<void> bulkUpdateFields(
+  Future<void> bulkUpdateFields(List<String> diveIds, DivesCompanion partial) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkUpdateFieldsInner(diveIds, partial),
+      );
+
+  Future<void> _bulkUpdateFieldsInner(
     List<String> diveIds,
     DivesCompanion partial,
   ) async {
@@ -6737,7 +6765,14 @@ class DiveRepository {
   /// Markdown paragraph: a blank line after existing notes, so it never
   /// joins their last paragraph or list item (#3683). Empty existing notes
   /// receive just the text. No transaction/notify.
-  Future<void> bulkAppendNotes(
+  Future<void> bulkAppendNotes(List<String> diveIds, String textToAppend) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkAppendNotesInner(diveIds, textToAppend),
+      );
+
+  Future<void> _bulkAppendNotesInner(
     List<String> diveIds,
     String textToAppend,
   ) async {
@@ -6811,7 +6846,17 @@ class DiveRepository {
   /// Shifts dive_date_time always, entry_time/exit_time only when non-null.
   /// Forces `updated_at = now` and marks each dive pending. Does NOT open a
   /// transaction or notify sync -- the repair executor owns those.
-  Future<void> bulkShiftDiveTimes(List<String> diveIds, Duration offset) async {
+  Future<void> bulkShiftDiveTimes(List<String> diveIds, Duration offset) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkShiftDiveTimesInner(diveIds, offset),
+      );
+
+  Future<void> _bulkShiftDiveTimesInner(
+    List<String> diveIds,
+    Duration offset,
+  ) async {
     if (diveIds.isEmpty || offset == Duration.zero) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final ms = offset.inMilliseconds;
@@ -8083,7 +8128,17 @@ class DiveRepository {
   }
 
   /// Bulk update trip for multiple dives
-  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
+  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkUpdateTripInner(diveIds, tripId),
+      );
+
+  Future<void> _bulkUpdateTripInner(
+    List<String> diveIds,
+    String? tripId,
+  ) async {
     if (diveIds.isEmpty) return;
 
     try {
@@ -8127,6 +8182,16 @@ class DiveRepository {
   /// [notify] false leaves the sync notification to the caller (a rules
   /// run notifies once; its rolled-back preview must not notify at all).
   Future<void> bulkAddTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _bulkAddTagsInner(diveIds, tagIds, notify: notify),
+  );
+
+  Future<void> _bulkAddTagsInner(
     List<String> diveIds,
     List<String> tagIds, {
     bool notify = true,
@@ -8190,6 +8255,16 @@ class DiveRepository {
   /// Bulk remove tags from multiple dives
   /// [notify] as for [bulkAddTags].
   Future<void> bulkRemoveTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _bulkRemoveTagsInner(diveIds, tagIds, notify: notify),
+  );
+
+  Future<void> _bulkRemoveTagsInner(
     List<String> diveIds,
     List<String> tagIds, {
     bool notify = true,
@@ -8270,6 +8345,9 @@ class DiveRepository {
   /// cover them, or a dive with one plain source beside one carrying bytes
   /// would restore with fewer sources than it had.
   ///
+  /// On a dive with two or more rows this also reads the depth series each
+  /// row carries as [DiveSourceExport.profileSeries] (issue #3965), undecoded.
+  ///
   /// This MUST stay a Drift typed select. Issue #227 puts a `TypeConverter`
   /// on `raw_data`; typed selects run converters and `customSelect` does not,
   /// so a raw SQL version would return `SRD1` framed zlib and the export
@@ -8313,6 +8391,7 @@ class DiveRepository {
         rows.addAll(await query.get());
       }
 
+      final seriesByRow = await _liveSeriesOfMultiSourceDives(rows);
       final ordinalByDive = <String, int>{};
       return rows
           .map((row) {
@@ -8362,6 +8441,7 @@ class DiveRepository {
               gradientFactorLow: row.gradientFactorLow,
               gradientFactorHigh: row.gradientFactorHigh,
               lastParsedAt: row.lastParsedAt,
+              profileSeries: seriesByRow[row.id] ?? const [],
             );
           })
           .toList(growable: false);
@@ -8373,6 +8453,64 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// The live depth series of every dive in [rows] that has two or more
+  /// source rows, keyed by the row that owns each (issue #3965). [rows] are
+  /// in shown order within a dive, as [getSourcesForExport] selects them.
+  ///
+  /// A lone row is skipped: it owns the whole of `Dive.profile`, so reading
+  /// its samples a second time would buy nothing.
+  ///
+  /// No blob is decoded. The choice needs only each row's columns, so this
+  /// costs a backup no time on the UI isolate, and a blob this build cannot
+  /// read still travels: a newer build can restore it, and this one falls
+  /// back to the dive's merged samples.
+  Future<Map<String, List<SourceSeriesExport>>> _liveSeriesOfMultiSourceDives(
+    List<DiveDataSourcesData> rows,
+  ) async {
+    final rowsByDive = <String, List<DiveDataSourcesData>>{};
+    for (final row in rows) {
+      (rowsByDive[row.diveId] ??= []).add(row);
+    }
+    final diveIds = [
+      for (final entry in rowsByDive.entries)
+        if (entry.value.length >= 2) entry.key,
+    ];
+    final byRow = <String, List<SourceSeriesExport>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final seriesRowsByDive = <String, List<DiveProfileSeriesRow>>{};
+      for (final row in await _profileSeries.getRowsForDives(chunk)) {
+        (seriesRowsByDive[row.diveId] ??= []).add(row);
+      }
+      for (final MapEntry(key: diveId, value: seriesRows)
+          in seriesRowsByDive.entries) {
+        final diveRows = rowsByDive[diveId]!;
+        final shownIdByRow = _shownIdByRow(diveRows);
+        final live = liveSeriesBySourceRow(
+          series: seriesRows.map(undecodedProfileSeriesRow).toList(),
+          shownSources: [
+            for (final row in diveRows)
+              if (shownIdByRow[row.id] == row.id)
+                (id: row.id, computerId: row.computerId),
+          ],
+          shownIdByRow: shownIdByRow,
+        );
+        final blobById = {for (final row in seriesRows) row.id: row.samples};
+        for (final MapEntry(key: rowId, value: series) in live.entries) {
+          byRow[rowId] = [
+            for (final s in series)
+              SourceSeriesExport(
+                blob: blobById[s.id]!,
+                isPrimary: s.isPrimary,
+                sourceId: s.sourceId,
+                computerId: s.computerId,
+              ),
+          ];
+        }
+      }
+    }
+    return byRow;
   }
 
   /// Get every non-empty `source_uuid` and hex-encoded `raw_fingerprint`
@@ -8695,6 +8833,47 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to restore tank attribution',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Writes a backup's depth series for [diveId] once its restored source rows
+  /// exist (issue #3965), in place of the dive's merged samples. Each keeps
+  /// the source, computer and primary flag it was exported with.
+  ///
+  /// One transaction, so a dive never ends up with half of its recordings.
+  Future<void> restoreSourceProfiles(
+    String diveId,
+    List<
+      ({
+        String? sourceId,
+        String? computerId,
+        bool isPrimary,
+        List<ProfileSample> samples,
+      })
+    >
+    series,
+  ) async {
+    if (series.isEmpty) return;
+    try {
+      await _db.transaction(() async {
+        for (final s in series) {
+          await _profileSeries.insertSeries(
+            diveId: diveId,
+            computerId: s.computerId,
+            sourceId: s.sourceId,
+            isPrimary: s.isPrimary,
+            samples: s.samples,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to restore source profiles for dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );

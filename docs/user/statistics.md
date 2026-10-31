@@ -36,6 +36,37 @@ Two things ignore the filter:
 > visibility, gas, buddies, equipment), the more of these dashboards have
 > something to show. An empty card means that detail has not been logged yet.
 
+## Opening the dives behind a number
+
+When a number looks odd, you can open the dives that make it up. Most charts
+that count dives by category work this way: depth ranges, dive types, days,
+months and years, water type, the weather and water movement cards, gas mixes,
+tank configurations, solo and buddy dives, and more.
+
+- **Bars and pie slices** show their number first. Tap one to mark it, and a
+  strip under the chart gives its count and **View dives**. Tap the mark again
+  to clear it. This keeps a tap for reading a number from taking you away from
+  the chart.
+- **Rows** open straight away, because they already show their number. That
+  covers pie legends, horizontal bars and ranked lists of countries and regions.
+  A chevron marks anything that opens this way.
+- **"Based on 42 of 310 dives"** under a Conditions card opens the dives with
+  nothing recorded for that card.
+- **The Deco and No deco tiles** open their dives too, as does the line saying
+  how many dives have no deco data. The deco rate does not, because it is a
+  share rather than a count.
+
+The dive list opens with one chip naming what you opened, such as
+`Dives by Day of Week: Sat (142)`, and holds exactly the dives the number counted
+under your Insights filter. Dives excluded from statistics stay out. The list is
+a snapshot: if you edit a dive so that it no longer belongs, it stays in the
+list until you go back, and the chart then shows the new number. Back returns
+you to Insights, and removing the chip shows all your dives.
+
+Time at depth and SAC by tank role do not open dives, because they show minutes
+and averages rather than counts. Rankings of buddies, sites, gear and species
+open that item's own page.
+
 ## Overview
 
 The **Overview** is the first item in the list.
@@ -198,15 +229,14 @@ of the month, which are also outlined in the totals. Each row ends with its
 month's total, each column with that day's total, and the corner holds the
 grand total.
 
-Tap a cell to open the dives logged on that date in every year. The list keeps
-your Insights filter, and the filter chips clear it. When the year is wider
-than the card (on a phone, or beside the list on a desktop) the days scroll
-sideways under a scrollbar while the month names stay put.
+Tap a cell to open the dives logged on that date in every year, under your
+Insights filter. When the year is wider than the card (on a phone, or beside
+the list on a desktop) the days scroll sideways under a scrollbar while the
+month names stay put.
 
 A dive counts on the date it was logged, by the dive's own clock, so a night
 dive at 23:30 on 6 May counts on 6 May wherever you view it. Dives excluded
-from statistics are not counted, but they do appear in the list a cell opens,
-so that list can hold more dives than the cell shows.
+from statistics are not counted, and the list a cell opens leaves them out too.
 
 ### Profile Analysis
 

@@ -46,7 +46,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // read selects the whole row, for the same reason as the tank columns.
     await _assertEquipmentLocationCenterColumn();
 
-    // v332: dive_computers.auto_download_disabled (issue #3361). Every
+    // v333: dive_computers.auto_download_disabled (issue #3361). Every
     // computer read selects the whole row, for the same reason as the tank
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();

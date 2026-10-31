@@ -670,8 +670,9 @@ class UddfFullImportService {
       if (entries.isNotEmpty) dive['dataSources'] = entries;
     }
 
-    // Which source recorded each tank and each tank pressure series (issue
-    // #2492), on the dive's own map for the same reason.
+    // Which source recorded each tank, each tank pressure series (issue
+    // #2492) and each depth series (issue #3965), on the dive's own map for
+    // the same reason.
     for (final (key, byDiveRef) in [
       (
         UddfSourceAttribution.tanksKey,
@@ -680,6 +681,10 @@ class UddfFullImportService {
       (
         UddfSourceAttribution.seriesKey,
         UddfSourceAttribution.parseSeries(uddfElement),
+      ),
+      (
+        UddfSourceAttribution.profilesKey,
+        UddfSourceAttribution.parseProfiles(uddfElement),
       ),
     ]) {
       if (byDiveRef.isEmpty) continue;
