@@ -147,21 +147,13 @@ class MacDiveXmlParser implements ImportParser {
         if (name != null) {
           // Every dive repeats its `<site>`, which carries no id, and a name
           // is not one: two places can share it (#4015).
-          final mapped = sitesByPlace.putIfAbsent(
-            (name, site.country, site.location),
-            () => _mapSite(
-              site,
-              name,
-              uddfId: sitesByPlace.keys.any((key) => key.$1 == name)
-                  ? '$name|${site.country ?? ''}|${site.location ?? ''}'
-                  : name,
-            ),
-          );
+          final mapped = sitesByPlace.putIfAbsent((
+            name,
+            site.country,
+            site.location,
+          ), () => _mapSite(site, name));
           diveMap['siteName'] = name;
           // UddfEntityImporter links sites via `dive['site']['uddfId']`.
-          // Use the site name as the uddf-style id since MacDive doesn't
-          // carry a separate identifier; only a second place of that name
-          // needs more.
           diveMap['site'] = <String, dynamic>{'uddfId': mapped['uddfId']};
         }
       }
@@ -432,14 +424,15 @@ class MacDiveXmlParser implements ImportParser {
           })?['name']
           as String?;
 
-  Map<String, dynamic> _mapSite(
-    MacDiveXmlSite s,
-    String name, {
-    required String uddfId,
-  }) {
+  Map<String, dynamic> _mapSite(MacDiveXmlSite s, String name) {
     // UddfEntityImporter resolves `dive['site']['uddfId']` against this site
-    // during import linking.
-    final map = <String, dynamic>{'name': name, 'uddfId': uddfId};
+    // during import linking. MacDive carries no identifier, so the id is the
+    // site's identity, as JSON so that a separator inside one part cannot
+    // pass for the end of it.
+    final map = <String, dynamic>{
+      'name': name,
+      'uddfId': jsonEncode([name, s.country, s.location]),
+    };
     if (s.country != null) map['country'] = s.country;
     if (s.location != null) map['region'] = s.location;
     if (s.bodyOfWater != null) map['bodyOfWater'] = s.bodyOfWater;

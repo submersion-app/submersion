@@ -92,6 +92,17 @@ void main() {
       expect(sites, hasLength(2));
     });
 
+    test('a separator in a name cannot pass for a place', () async {
+      final sites = await sitesOf(
+        twoBlocks(
+          'LOCNAME=[A|B|C]',
+          'LOCNAME=[A],COUNTRY=[B],STATE/PROVINCE=[C]',
+        ),
+      );
+
+      expect(sites.map((s) => s['name']), ['A|B|C', 'A']);
+    });
+
     test('one place written twice stays one site', () async {
       final sites = await sitesOf(
         twoBlocks(

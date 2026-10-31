@@ -509,6 +509,30 @@ void main() {
       ]);
     });
 
+    test('a separator in a name cannot pass for a place', () async {
+      String dive(int day, String site) =>
+          '''
+  <dive>
+    <date>2024-01-0$day 09:00:00</date><identifier>d$day</identifier>
+    <maxDepth>20</maxDepth><duration>1800</duration>
+    <site>$site</site>
+    <samples/>
+  </dive>''';
+      final xml =
+          '''<?xml version="1.0"?>
+<dives><units>Metric</units><schema>2.2.0</schema>
+${dive(1, '<name>A|B|C</name>')}
+${dive(2, '<name>A</name><country>X</country>')}
+${dive(3, '<name>A</name><location>C</location><country>B</country>')}
+</dives>''';
+      final payload = await const MacDiveXmlParser().parse(
+        Uint8List.fromList(utf8.encode(xml)),
+      );
+
+      final sites = payload.entitiesOf(ImportEntityType.sites);
+      expect(sites.map((s) => s['uddfId']).toSet(), hasLength(3));
+    });
+
     test(
       'empty <item/> gear elements are skipped (no phantom entity)',
       () async {
