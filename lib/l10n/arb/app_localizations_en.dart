@@ -20253,7 +20253,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout =>
-      'CCR decompression plan carries no bailout gas';
+      'Decompression plan carries no bailout gas';
 
   @override
   String get plannerCanvas_issue_noDecoGas =>
