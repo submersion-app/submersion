@@ -2380,6 +2380,7 @@
   "diveImport_uddf_trips": "Viajes",
   "diveLog_bulkDelete_confirm": "¿Estás seguro de que deseas eliminar {count} {count, plural, =1{inmersión} other{inmersiones}}? Esta acción no se puede deshacer.",
   "diveLog_bulkDelete_restored": "Inmersiones restauradas",
+  "diveLog_bulkDelete_restoredIncomplete": "Inmersiones restauradas, pero no se pudieron recuperar algunos datos registrados",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{inmersión eliminada} other{inmersiones eliminadas}}",
   "diveLog_bulkDelete_title": "Eliminar inmersiones",
   "diveLog_bulkDelete_undo": "Deshacer",

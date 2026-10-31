@@ -1417,8 +1417,11 @@ class PaginatedDiveListNotifier
     return deleted;
   }
 
-  Future<void> restoreDives(DeletedDives deleted) async {
-    await _ref.read(diveBulkDeleteServiceProvider).restore(deleted);
+  /// Undoes a [bulkDeleteDives]. Returns false when some of it was lost.
+  Future<bool> restoreDives(DeletedDives deleted) async {
+    final complete = await _ref
+        .read(diveBulkDeleteServiceProvider)
+        .restore(deleted);
     // Restore is complex (ordering), reload first page
     await loadFirstPage();
     _invalidateStatistics();
@@ -1427,6 +1430,7 @@ class PaginatedDiveListNotifier
       _invalidateRelatedProviders(dive);
     }
     _invalidateOldProvider();
+    return complete;
   }
 
   Future<void> toggleFavorite(String diveId) async {

@@ -751,6 +751,20 @@ class ProfileSeriesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Deletes the revision nodes of [diveIds] ahead of their dives. Left to
+  /// the cascade, which table goes first depends on the order the schema was
+  /// built in, and a series going first clears its child's parent link
+  /// through ON DELETE SET NULL before the change log copies that child.
+  Future<void> deleteRevisionsForDives(List<String> diveIds) async {
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      await _db.customStatement(
+        'DELETE FROM $_historyTable WHERE dive_id IN ($placeholders)',
+        chunk,
+      );
+    }
+  }
+
   /// Puts back revision nodes read by [getRevisionsForDives], once their
   /// series have returned from the delete whose cascade took them. Lineage is
   /// local to this device, so nothing that restores the series carries it.

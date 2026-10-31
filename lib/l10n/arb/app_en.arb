@@ -4381,6 +4381,7 @@
   "diveComputer_title": "Dive Computer",
   "diveLog_bulkDelete_confirm": "Are you sure you want to delete {count} {count, plural, =1{dive} other{dives}}? This action cannot be undone.",
   "diveLog_bulkDelete_restored": "Dives restored",
+  "diveLog_bulkDelete_restoredIncomplete": "Dives restored, but some recorded data could not be recovered",
   "diveLog_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{dive} other{dives}}",
   "diveLog_bulkDelete_title": "Delete Dives",
   "diveLog_bulkDelete_undo": "Undo",

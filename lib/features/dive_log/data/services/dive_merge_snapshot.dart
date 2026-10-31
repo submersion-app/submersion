@@ -143,6 +143,10 @@ class DiveMergeSnapshot {
     final mediaRows = await (db.select(
       db.media,
     )..where((t) => t.diveId.isIn(diveIds))).get();
+    final series = ProfileSeriesRepository(
+      database: db,
+      syncRepository: SyncRepository(database: db),
+    );
 
     return DiveMergeSnapshot(
       mergedDiveId: mergedDiveId,
@@ -201,19 +205,13 @@ class DiveMergeSnapshot {
         )..where((t) => t.diveId.isIn(diveIds))).get())
           d.id: d.diveId!,
       },
-      profileSeriesRows: await ProfileSeriesRepository(
-        database: db,
-        syncRepository: SyncRepository(database: db),
-      ).getRowsForDives(diveIds),
+      profileSeriesRows: await series.getRowsForDives(diveIds),
       tankSeriesRows: await TankPressureSeriesRepository(
         database: db,
         syncRepository: SyncRepository(database: db),
       ).getRowsForDives(diveIds),
       profileRevisions: [
-        for (final nodes in (await ProfileSeriesRepository(
-          database: db,
-          syncRepository: SyncRepository(database: db),
-        ).getRevisionsForDives(diveIds)).values)
+        for (final nodes in (await series.getRevisionsForDives(diveIds)).values)
           ...nodes,
       ],
       navTrackRows: await NavTrackRepository().linkedRowsForDives(diveIds),

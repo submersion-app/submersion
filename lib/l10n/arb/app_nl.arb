@@ -2380,6 +2380,7 @@
   "diveImport_uddf_trips": "Reizen",
   "diveLog_bulkDelete_confirm": "Weet u zeker dat u {count} {count, plural, =1{duik} other{duiken}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
   "diveLog_bulkDelete_restored": "Duiken hersteld",
+  "diveLog_bulkDelete_restoredIncomplete": "Duiken hersteld, maar sommige opgenomen gegevens konden niet worden teruggehaald",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{duik} other{duiken}} verwijderd",
   "diveLog_bulkDelete_title": "Duiken verwijderen",
   "diveLog_bulkDelete_undo": "Ongedaan maken",

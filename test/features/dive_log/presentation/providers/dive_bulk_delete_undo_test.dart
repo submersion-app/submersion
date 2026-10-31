@@ -200,14 +200,16 @@ void main() {
     }
   }
 
-  /// Deletes [ids] and taps Undo, as the logbook's snackbar does.
-  Future<void> deleteAndUndo(List<String> ids) async {
+  /// Deletes [ids] and taps Undo, as the logbook's snackbar does. Returns
+  /// whether the Undo says everything came back.
+  Future<bool> deleteAndUndo(List<String> ids) async {
     final container = makeContainer();
     await loaded(container);
     final notifier = container.read(paginatedDiveListProvider.notifier);
     final deleted = await notifier.bulkDeleteDives(ids);
-    await notifier.restoreDives(deleted);
+    final complete = await notifier.restoreDives(deleted);
     await settleTrips(container);
+    return complete;
   }
 
   setUp(() async {
@@ -247,7 +249,7 @@ void main() {
     expect(before['dive_data_sources'], hasLength(2));
     expect(before['dive_profile_series'], hasLength(3));
 
-    await deleteAndUndo([diveId]);
+    expect(await deleteAndUndo([diveId]), isTrue);
 
     for (final MapEntry(key: table, value: order) in tables.entries) {
       expect(await rowsOf(table, order), before[table], reason: table);
@@ -383,13 +385,36 @@ void main() {
     expect(await count('documents', "id = 'doc' AND dive_id = '$diveId'"), 1);
   });
 
-  test('a delete the log did not record still returns the dive', () async {
+  test('a delete the log did not record returns the dive and says it is '
+      'incomplete', () async {
     await dropChangeLogTriggers(db);
 
-    await deleteAndUndo([diveId]);
+    expect(await deleteAndUndo([diveId]), isFalse);
 
     expect(await count('dives', "id = '$diveId'"), 1);
     expect(await count('dive_tanks', "dive_id = '$diveId'"), 1);
+  });
+
+  test('a record that could not return makes the Undo incomplete', () async {
+    await db.customStatement(
+      "INSERT INTO tags (id, name, created_at, updated_at) "
+      "VALUES ('tag', 'Night', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO dive_tags (id, dive_id, tag_id, created_at) "
+      "VALUES ('link', '$diveId', 'tag', 0)",
+    );
+    final container = makeContainer();
+    await loaded(container);
+    final notifier = container.read(paginatedDiveListProvider.notifier);
+    final deleted = await notifier.bulkDeleteDives([diveId]);
+    await db.customStatement("DELETE FROM tags WHERE id = 'tag'");
+
+    expect(await notifier.restoreDives(deleted), isFalse);
+    await settleTrips(container);
+
+    expect(await count('dives', "id = '$diveId'"), 1);
+    expect(await count('dive_tags'), 0);
   });
 
   group('documents', () {
@@ -426,7 +451,7 @@ void main() {
     test('a reverted document only has its reminders re-armed', () async {
       final bulk = service();
 
-      await bulk.restore(await bulk.delete([diveId]));
+      expect(await bulk.restore(await bulk.delete([diveId])), isTrue);
 
       expect(rearmed, ['doc']);
       expect(rebuilt, isEmpty);
@@ -445,7 +470,7 @@ void main() {
     test('a revert that fails still returns the dive', () async {
       final bulk = service(revert: _FailingRevert());
 
-      await bulk.restore(await bulk.delete([diveId]));
+      expect(await bulk.restore(await bulk.delete([diveId])), isFalse);
 
       expect(await count('dives', "id = '$diveId'"), 1);
       expect(rebuilt, ['doc']);

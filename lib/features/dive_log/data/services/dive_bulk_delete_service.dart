@@ -5,10 +5,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
-import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
@@ -19,7 +17,6 @@ class DeletedDives {
   const DeletedDives({
     required this.dives,
     required this.operationId,
-    required this.revisions,
     required this.documents,
   });
 
@@ -29,10 +26,6 @@ class DeletedDives {
   /// The delete's change log entry, which holds a copy of every row it took.
   /// Null with no database to log to.
   final String? operationId;
-
-  /// The dives' profile revision nodes: `dive_profile_series_history` is
-  /// outside the change log, so its entry cannot bring them back.
-  final List<ProfileSeriesRevision> revisions;
 
   /// The dives' documents with their pages and tags. A revert restores the
   /// rows but not the reminders the delete cancelled (issue #2613).
@@ -54,26 +47,23 @@ class DiveBulkDeleteService {
     required Future<void> Function(List<DocumentSnapshotEntry>)
     restoreDocuments,
     required Future<void> Function(Iterable<Document>) rearmDocuments,
-    ProfileSeriesRepository? series,
   }) : _dives = dives,
        _changeLog = changeLog,
        _revert = revert,
        _restoreDocuments = restoreDocuments,
-       _rearmDocuments = rearmDocuments,
-       _series = series ?? ProfileSeriesRepository();
+       _rearmDocuments = rearmDocuments;
 
   final DiveRepository _dives;
   final ChangeLogRepository _changeLog;
   final ChangeLogRevertService _revert;
   final Future<void> Function(List<DocumentSnapshotEntry>) _restoreDocuments;
   final Future<void> Function(Iterable<Document>) _rearmDocuments;
-  final ProfileSeriesRepository _series;
 
   /// Deletes [ids]. The scope opened here is the one
-  /// [DiveRepository.bulkDeleteDives] joins, so its entry is known.
+  /// [DiveRepository.bulkDeleteDives] joins, so its entry is known. The media
+  /// store's blobs wait, so that [restore] finds them where they were.
   Future<DeletedDives> delete(List<String> ids) async {
     final dives = await _dives.getDivesByIds(ids);
-    final revisions = await _series.getRevisionsForDives(ids);
     final documents = await DocumentRepository().captureForOwners(
       DocumentOwnerKind.dive,
       ids,
@@ -84,21 +74,21 @@ class DiveBulkDeleteService {
       label: ChangeLogLabels.bulkDelete,
       body: () {
         operationId = ChangeLogScope.currentOperationId;
-        return _dives.bulkDeleteDives(ids);
+        return _dives.bulkDeleteDives(ids, holdRemoteMedia: true);
       },
     );
     return DeletedDives(
       dives: dives,
       operationId: operationId,
-      revisions: [for (final nodes in revisions.values) ...nodes],
       documents: documents,
     );
   }
 
-  Future<void> restore(DeletedDives deleted) async {
-    await _revertDelete(deleted.operationId);
-    await _series.restoreRevisions(deleted.revisions);
-    await _rebuildMissingDives(deleted.dives);
+  /// Puts [deleted] back. Returns false when something could not return, so
+  /// the diver is not told a thinner dive was restored whole.
+  Future<bool> restore(DeletedDives deleted) async {
+    final reverted = await _revertDelete(deleted.operationId);
+    final rebuilt = await _rebuildMissingDives(deleted.dives);
 
     final db = DatabaseService.instance.database;
     final returned = await existingRowIds(db, db.documents, [
@@ -112,12 +102,14 @@ class DiveBulkDeleteService {
       for (final entry in deleted.documents)
         if (!returned.contains(entry.document.id)) entry,
     ]);
+    return reverted && !rebuilt;
   }
 
-  /// A failure costs only this route: logging never blocks work, so the
-  /// entry may be missing or short, and [_rebuildMissingDives] covers that.
-  Future<void> _revertDelete(String? operationId) async {
-    if (operationId == null) return;
+  /// Whether the entry brought back everything it holds. A failure costs only
+  /// this route: logging never blocks work, so the entry may be missing or
+  /// short, and [_rebuildMissingDives] covers that.
+  Future<bool> _revertDelete(String? operationId) async {
+    if (operationId == null) return false;
     try {
       await _changeLog.settleAll();
       final result = await _revert.execute(
@@ -126,19 +118,22 @@ class DiveBulkDeleteService {
       if (result.kept > 0) {
         _log.warning('Undo left ${result.kept} deleted records behind');
       }
+      return result.kept == 0;
     } catch (error, stackTrace) {
       _log.warning(
         'Could not revert a bulk dive delete',
         error: error,
         stackTrace: stackTrace,
       );
+      return false;
     }
   }
 
   /// The last resort for a delete the change log did not record, such as on
   /// a device whose triggers could not be installed: the dive comes back from
-  /// its domain object, without what that object cannot carry.
-  Future<void> _rebuildMissingDives(List<domain.Dive> dives) async {
+  /// its domain object, without what that object cannot carry. Returns
+  /// whether any dive needed it.
+  Future<bool> _rebuildMissingDives(List<domain.Dive> dives) async {
     final db = DatabaseService.instance.database;
     final returned = await existingRowIds(db, db.dives, [
       for (final dive in dives) dive.id,
@@ -147,7 +142,7 @@ class DiveBulkDeleteService {
       for (final dive in dives)
         if (!returned.contains(dive.id)) dive,
     ];
-    if (missing.isEmpty) return;
+    if (missing.isEmpty) return false;
     await ChangeLogScope.bulk(
       db,
       label: ChangeLogLabels.bulkEdit,
@@ -157,5 +152,6 @@ class DiveBulkDeleteService {
         }
       },
     );
+    return true;
   }
 }

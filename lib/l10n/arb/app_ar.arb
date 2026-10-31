@@ -2380,6 +2380,7 @@
   "diveImport_uddf_trips": "الرحلات",
   "diveLog_bulkDelete_confirm": "هل أنت متأكد أنك تريد حذف {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}؟ لا يمكن التراجع عن هذا الإجراء.",
   "diveLog_bulkDelete_restored": "تمت استعادة الغوصات",
+  "diveLog_bulkDelete_restoredIncomplete": "تمت استعادة الغوصات، لكن تعذّر استرجاع بعض البيانات المسجّلة",
   "diveLog_bulkDelete_snackbar": "تم حذف {count, plural, =1{غوصة واحدة} two{غوصتين} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "diveLog_bulkDelete_title": "حذف الغوصات",
   "diveLog_bulkDelete_undo": "تراجع",

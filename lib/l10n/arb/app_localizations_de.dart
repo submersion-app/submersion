@@ -7152,6 +7152,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Tauchgänge wiederhergestellt';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Tauchgänge wiederhergestellt, aber einige aufgezeichnete Daten konnten nicht zurückgeholt werden';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

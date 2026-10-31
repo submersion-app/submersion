@@ -763,15 +763,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               label: context.l10n.diveLog_bulkDelete_undo,
               onPressed: () async {
                 if (_deletedDives != null && _deletedDives!.dives.isNotEmpty) {
-                  await ref
+                  final complete = await ref
                       .read(paginatedDiveListProvider.notifier)
                       .restoreDives(_deletedDives!);
                   _deletedDives = null;
                   if (mounted) {
                     scaffoldMessenger.showSnackBar(
                       SnackBar(
-                        content: Text(context.l10n.diveLog_bulkDelete_restored),
-                        duration: const Duration(seconds: 2),
+                        content: Text(
+                          complete
+                              ? context.l10n.diveLog_bulkDelete_restored
+                              : context
+                                    .l10n
+                                    .diveLog_bulkDelete_restoredIncomplete,
+                        ),
+                        duration: Duration(seconds: complete ? 2 : 6),
                       ),
                     );
                   }

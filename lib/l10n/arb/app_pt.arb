@@ -2380,6 +2380,7 @@
   "diveImport_uddf_trips": "Viagens",
   "diveLog_bulkDelete_confirm": "Tem certeza que deseja excluir {count} {count, plural, =1{mergulho} other{mergulhos}}? Esta ação não pode ser desfeita.",
   "diveLog_bulkDelete_restored": "Mergulhos restaurados",
+  "diveLog_bulkDelete_restoredIncomplete": "Mergulhos restaurados, mas não foi possível recuperar alguns dados registados",
   "diveLog_bulkDelete_snackbar": "{count} {count, plural, =1{mergulho excluído} other{mergulhos excluídos}}",
   "diveLog_bulkDelete_title": "Excluir Mergulhos",
   "diveLog_bulkDelete_undo": "Desfazer",
