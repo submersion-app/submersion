@@ -19,15 +19,14 @@ void main() {
 
   Future<void> trip(
     String id, {
-    String owner = 'a',
     String? parent,
     bool shared = false,
     int endDay = 10,
   }) => db.customStatement(
     'INSERT INTO trips (id, name, location, start_date, end_date, diver_id, '
     'is_shared, parent_trip_id, created_at, updated_at) '
-    'VALUES (?, ?, ?, 0, ?, ?, ?, ?, 0, 0)',
-    [id, 'Trip $id', 'At $id', endDay * day, owner, shared ? 1 : 0, parent],
+    "VALUES (?, ?, ?, 0, ?, 'a', ?, ?, 0, 0)",
+    [id, 'Trip $id', 'At $id', endDay * day, shared ? 1 : 0, parent],
   );
 
   Future<void> dive(
