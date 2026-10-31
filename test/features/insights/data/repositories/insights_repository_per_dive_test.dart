@@ -221,6 +221,19 @@ void main() {
       expect(points.single.value, 6.0);
     });
 
+    test('keeps weight rows that total zero over the scalar', () async {
+      await insertDive(
+        id: 'a',
+        at: DateTime.utc(2024, 5, 10),
+        legacyWeight: 9.0,
+      );
+      await insertWeight(diveId: 'a', id: 'w1', amountKg: 0.0);
+
+      final points = await repository.getWeightPerDive();
+
+      expect(points.single.value, 0.0);
+    });
+
     test('a zero legacy scalar is not a recorded weight', () async {
       // The dive page shows no weight for these, so a 0 kg point here would
       // be a dive the diver cannot find a weight on.

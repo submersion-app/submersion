@@ -740,8 +740,7 @@ void main() {
       expect(DiveField.tankCount.extractFromDive(minimalDive), 0);
     });
 
-    test('totalWeight returns null when no weights (zero total)', () {
-      // totalWeight returns null when > 0 check fails
+    test('totalWeight returns null when no weight is recorded', () {
       expect(DiveField.totalWeight.extractFromDive(minimalDive), isNull);
     });
 
@@ -757,6 +756,24 @@ void main() {
       final both = testDive.copyWith(weightAmount: 9);
 
       expect(DiveField.totalWeight.extractFromDive(both), 6.0);
+    });
+
+    test('totalWeight keeps rows that total zero over the legacy scalar', () {
+      final noLead = Dive(
+        id: 'no-lead',
+        dateTime: now,
+        weightAmount: 9,
+        weights: const [
+          DiveWeight(
+            id: 'w',
+            diveId: 'no-lead',
+            weightType: WeightType.belt,
+            amountKg: 0,
+          ),
+        ],
+      );
+
+      expect(DiveField.totalWeight.extractFromDive(noLead), 0.0);
     });
 
     test('diluentGas returns null when not set', () {
