@@ -21,7 +21,7 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.da
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The platform side of sharing, injected so widget tests can record calls
