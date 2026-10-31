@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
@@ -29,9 +28,8 @@ class InsightsGasPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final display = settings.gasConsumptionDisplay;
+    final units = ref.watch(unitFormatterProvider);
+    final display = units.settings.gasConsumptionDisplay;
 
     final content = SingleChildScrollView(
       padding: const EdgeInsets.all(16),

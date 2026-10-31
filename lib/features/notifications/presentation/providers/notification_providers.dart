@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -36,7 +37,21 @@ final notificationPermissionProvider = FutureProvider<bool>((ref) async {
 
 /// Provider that schedules notifications when settings or equipment changes
 final notificationSchedulingProvider = FutureProvider<void>((ref) async {
-  final settings = ref.watch(settingsProvider);
+  // Everything [NotificationScheduler] reads. Rescheduling walks all the gear,
+  // so it sits out an edit that cannot move a reminder (issue #3818).
+  ref.watch(
+    settingsProvider.select(
+      (s) => (
+        s.notificationsEnabled,
+        s.serviceReminderDays,
+        s.reminderTime,
+        s.tripServiceLeadDays,
+        s.locale,
+        exposureThresholdsFromSettings(s),
+      ),
+    ),
+  );
+  final settings = ref.read(settingsProvider);
   final diverId = ref.watch(currentDiverIdProvider);
   final scheduler = ref.watch(notificationSchedulerProvider);
 

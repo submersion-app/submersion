@@ -66,7 +66,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
     final site = entry.site;
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final config = ref.watch(siteDetailedCardConfigProvider);
     final accent = resolveFeatureAccent(
       context,

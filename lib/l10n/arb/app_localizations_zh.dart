@@ -8394,6 +8394,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_ceiling => '上升限制';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => '上升限制（计算）';
+
+  @override
   String get diveLog_legend_label_decoStops => '减压停留';
 
   @override
@@ -27974,6 +27977,38 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '全部 $count 次均为$value（在已记录此项的 $coverage中占 $baseline）';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total 次中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '在已记录此项的 $groupCoverage中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -28247,6 +28282,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => '平均下降';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return '正在分析潜水：$analyzed / $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => '减压潜水';

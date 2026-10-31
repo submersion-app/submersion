@@ -31,8 +31,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final globalPpO2Working = ref.watch(ppO2MaxWorkingProvider);
     final globalPpO2Deco = ref.watch(ppO2MaxDecoProvider);
     // Typed so `??` does not infer the watch as nullable.
@@ -289,7 +288,7 @@ class PlanGasOptionsSection extends ConsumerWidget {
                   (
                     null,
                     context.l10n.divePlanner_label_defaultWithValue(
-                      settings.o2Narcotic
+                      units.settings.o2Narcotic
                           ? context.l10n.divePlanner_label_on
                           : context.l10n.divePlanner_label_off,
                     ),

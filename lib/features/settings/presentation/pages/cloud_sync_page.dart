@@ -12,7 +12,6 @@ import 'package:submersion/features/divers/data/repositories/diver_merge_reposit
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
 import 'package:submersion/features/settings/presentation/providers/data_health_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sign_in_again_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart'
     show StoragePlatformCapabilities, storagePlatformCapabilitiesProvider;
@@ -507,7 +506,7 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
     } else {
       // watch, not read: both callers render this into the widget tree, so a
       // preference change while the page is open must repaint it.
-      return UnitFormatter(ref.watch(settingsProvider)).formatDate(dateTime);
+      return ref.watch(unitFormatterProvider).formatDate(dateTime);
     }
   }
 }

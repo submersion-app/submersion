@@ -8832,6 +8832,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafon';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafon (szám.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Dekó megállók';
 
   @override
@@ -29524,6 +29527,38 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Mind a(z) $count $value volt ($baseline az ezt rögzítő $coverage közül)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total merülésből $count $value volt, szemben az ezt rögzítő $coverage $baseline arányával';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Az ezt rögzítő $groupCoverage közül $count $value volt, szemben az ezt rögzítő $coverage $baseline arányával';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -29813,6 +29848,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Átl. lesüllyedés';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Merülések elemzése: $analyzed / $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Dekó merülések';

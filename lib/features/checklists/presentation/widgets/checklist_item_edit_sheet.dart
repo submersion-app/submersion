@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
@@ -150,7 +149,7 @@ class _ChecklistItemEditSheetState
 
   @override
   Widget build(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return Padding(
       padding: EdgeInsets.only(
         left: 16,

@@ -8853,6 +8853,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Teto';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Teto (calc.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Paradas Deco';
 
   @override
@@ -29672,6 +29675,38 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Todos os $count foram $value ($baseline dos $coverage com este dado registado)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count de $total foram $value, contra $baseline dos $coverage com este dado registado';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count dos $groupCoverage com este dado registado foram $value, contra $baseline dos $coverage com este dado registado';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -29958,6 +29993,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Descida Média';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'A analisar mergulhos: $analyzed de $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Mergulhos Deco';

@@ -14,11 +14,17 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  test('the synthetic build fills every table that is not excluded', () async {
-    final ctx = await seedContext();
+  test(
+    'the synthetic build fills every table that is not excluded',
+    () async {
+      final ctx = await seedContext();
 
-    await seedAll(ctx);
+      await seedAll(ctx);
 
-    expect(await CoverageCheck.emptyTables(ctx.db), isEmpty);
-  });
+      expect(await CoverageCheck.emptyTables(ctx.db), isEmpty);
+    },
+    // A whole 700-dive logbook, which a shared CI runner can take past the
+    // usual two minutes for.
+    timeout: const Timeout(Duration(minutes: 6)),
+  );
 }

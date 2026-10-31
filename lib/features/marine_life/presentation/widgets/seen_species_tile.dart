@@ -8,7 +8,6 @@ import 'package:submersion/features/marine_life/presentation/utils/species_categ
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row of the Species page: the newest tagged photo (or the category
@@ -31,7 +30,7 @@ class SeenSpeciesTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final species = entry.species;
     final scientific = species.scientificName;
     final hasScientific = scientific != null && scientific.isNotEmpty;

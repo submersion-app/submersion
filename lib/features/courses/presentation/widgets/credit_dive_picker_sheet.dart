@@ -6,7 +6,6 @@ import 'package:submersion/features/courses/domain/entities/course_progress.dart
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 
@@ -203,7 +202,7 @@ class _DiveSliver extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return SliverList.builder(
       itemCount: dives.length,

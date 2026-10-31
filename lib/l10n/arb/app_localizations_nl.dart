@@ -8799,6 +8799,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafond (ber.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Decostops';
 
   @override
@@ -29478,6 +29481,38 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Alle $count waren $value ($baseline van de $coverage waarbij dit is vastgelegd)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van $total waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van de $groupCoverage waarbij dit is vastgelegd waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,
@@ -29763,6 +29798,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Gem. afdaling';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Duiken analyseren: $analyzed van $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Decoduiken';

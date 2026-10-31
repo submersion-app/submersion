@@ -18,7 +18,6 @@ import 'package:submersion/features/documents/presentation/widgets/document_form
 import 'package:submersion/features/documents/presentation/widgets/document_owner_field.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_owner_picker_sheet.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_strip.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
@@ -376,7 +375,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final title = Text(
       _isNew ? l10n.documents_edit_newTitle : l10n.documents_edit_editTitle,
     );

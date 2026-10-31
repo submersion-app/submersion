@@ -503,8 +503,7 @@ class _CertificationListContentState
         }
         final config = ref.watch(certificationTableConfigProvider);
         final notifier = ref.read(certificationTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         return EntityTableView<Certification, CertificationField>(
           entities: certifications,
@@ -938,7 +937,7 @@ class CertificationListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final statusLabel = certification.isExpired
         ? ', Expired'

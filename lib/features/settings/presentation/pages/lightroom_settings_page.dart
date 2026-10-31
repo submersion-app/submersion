@@ -16,7 +16,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/lightroom_connect_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -391,9 +390,7 @@ class _LightroomSettingsPageState extends ConsumerState<LightroomSettingsPage> {
               if (last == null) return const SizedBox.shrink();
               return Text(
                 l10n.settings_lightroom_lastPoll(
-                  UnitFormatter(
-                    ref.watch(settingsProvider),
-                  ).formatDate(last.toLocal()),
+                  ref.watch(unitFormatterProvider).formatDate(last.toLocal()),
                 ),
               );
             },

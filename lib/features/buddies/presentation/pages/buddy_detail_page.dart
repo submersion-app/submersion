@@ -137,7 +137,7 @@ class _BuddyDetailContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
     final statsAsync = ref.watch(buddyStatsProvider(buddy.id));
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),

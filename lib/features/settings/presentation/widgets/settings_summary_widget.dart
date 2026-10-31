@@ -12,7 +12,23 @@ class SettingsSummaryWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          unitPreset: s.unitPreset,
+          gfLow: s.gfLow,
+          gfHigh: s.gfHigh,
+          themeMode: s.themeMode,
+          depthUnit: s.depthUnit,
+          temperatureUnit: s.temperatureUnit,
+          pressureUnit: s.pressureUnit,
+          volumeUnit: s.volumeUnit,
+          weightUnit: s.weightUnit,
+          altitudeUnit: s.altitudeUnit,
+          distanceUnit: s.distanceUnit,
+        ),
+      ),
+    );
     final currentDiverAsync = ref.watch(currentDiverProvider);
 
     return SingleChildScrollView(
