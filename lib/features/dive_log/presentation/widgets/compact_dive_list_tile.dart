@@ -228,8 +228,7 @@ class CompactDiveListTile extends ConsumerWidget {
     // screen-reader label leave the number out.
     final isPlannedDive = isPlanned || summary?.isPlanned == true;
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     // Card coloring
     final colorAttribute = ref.watch(cardColorAttributeProvider);

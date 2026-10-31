@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_location_list_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
@@ -21,6 +22,28 @@ final equipmentLocationInUseProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(moves.watchChanges());
       return ref.watch(equipmentLocationRepositoryProvider).isInUse(id);
     });
+
+/// The saved center a place stands for, opening it. Nothing when the center
+/// is not on this device yet, so a late sync never shows a dead row.
+class _SavedCenterRow extends ConsumerWidget {
+  const _SavedCenterRow({required this.centerId});
+
+  final String centerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final center = ref.watch(diveCenterByIdProvider(centerId)).value;
+    if (center == null) return const SizedBox.shrink();
+    return ListTile(
+      key: const ValueKey('equipment_location_center_row'),
+      leading: const Icon(Icons.link),
+      title: Text(context.l10n.equipment_locations_savedCenterLabel),
+      subtitle: Text(center.name),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => context.push('/dive-centers/${center.id}'),
+    );
+  }
+}
 
 /// One place: its kind and notes, the gear there now, and edit, archive,
 /// restore and delete.
@@ -126,6 +149,8 @@ class EquipmentLocationDetailPage extends ConsumerWidget {
                 ? null
                 : MarkdownNotesView(place.notes),
           ),
+          if (place.diveCenterId case final centerId?)
+            _SavedCenterRow(centerId: centerId),
           const Divider(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),

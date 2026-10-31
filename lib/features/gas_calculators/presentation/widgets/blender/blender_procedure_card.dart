@@ -11,8 +11,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_blender.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_picker.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
-import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_step_table.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final _log = LoggerService.forClass(BlenderProcedureCard);
@@ -32,9 +31,8 @@ class BlenderProcedureCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final outcome = ref.watch(blenderResultProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final decimals = pressureDecimalsFor(settings.pressureUnit);
+    final units = ref.watch(unitFormatterProvider);
+    final decimals = pressureDecimalsFor(units.settings.pressureUnit);
 
     if (outcome.error != null) {
       return Card(
@@ -85,7 +83,11 @@ class BlenderProcedureCard extends ConsumerWidget {
             const SizedBox(height: 4),
             _temperatureSummary(context, units, fillTemp, settledTemp),
             const SizedBox(height: 12),
-            _stepTable(context, result.steps, units, decimals),
+            BlenderStepTable(
+              steps: result.steps,
+              units: units,
+              decimals: decimals,
+            ),
             // Only worth saying when the two temperatures differ. At equal
             // temperatures the last step already reads the target, and a
             // "settles to" line would restate it.
@@ -194,136 +196,6 @@ class BlenderProcedureCard extends ConsumerWidget {
           style: style,
         ),
       ],
-    );
-  }
-
-  /// A flexible `Row`/`Expanded` table with the units in its header, so the
-  /// columns compress in place on a narrow screen instead of overflowing
-  /// off-screen the way `DataTable`'s fixed column widths did (issue #1876
-  /// follow-up: the diver could not read the pressure or mix columns at all
-  /// on a phone).
-  static const List<int> _flex = [4, 4, 4, 4];
-
-  Widget _stepTable(
-    BuildContext context,
-    List<BlendStep> steps,
-    UnitFormatter units,
-    int decimals,
-  ) {
-    final onPrimaryContainer = Theme.of(context).colorScheme.onPrimaryContainer;
-    final headerStyle = blenderTableHeaderStyle(
-      context,
-      color: onPrimaryContainer,
-    );
-    final valueStyle = blenderTableValueStyle(
-      context,
-      color: onPrimaryContainer,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: _flex[0],
-              child: Text(
-                context.l10n.gasCalculators_blender_stepColumnAction,
-                style: headerStyle,
-              ),
-            ),
-            Expanded(
-              flex: _flex[1],
-              child: Text(
-                '${context.l10n.gasCalculators_blender_stepColumnAdded} '
-                '(${units.pressureSymbol})',
-                style: headerStyle,
-                textAlign: TextAlign.end,
-              ),
-            ),
-            Expanded(
-              flex: _flex[2],
-              child: Text(
-                '${context.l10n.gasCalculators_blender_stepColumnPressure} '
-                '(${units.pressureSymbol})',
-                style: headerStyle,
-                textAlign: TextAlign.end,
-              ),
-            ),
-            Expanded(
-              flex: _flex[3],
-              child: Text(
-                context.l10n.gasCalculators_blender_stepColumnMix,
-                style: headerStyle,
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        for (final step in steps)
-          _stepRow(context, step, units, decimals, valueStyle),
-      ],
-    );
-  }
-
-  Widget _stepRow(
-    BuildContext context,
-    BlendStep step,
-    UnitFormatter units,
-    int decimals,
-    TextStyle? style,
-  ) {
-    final action = step.fillGas == null
-        ? context.l10n.gasCalculators_blender_stepStartLabel
-        : context.l10n.gasCalculators_blender_stepAdd(
-            formatPreciseGasName(context, step.fillGas!),
-          );
-    final added = step.fillGas == null
-        ? ''
-        : '+${units.formatPressureValue(step.addedBar, decimals: decimals)}';
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: _flex[0],
-            child: Text(action, style: style),
-          ),
-          Expanded(
-            flex: _flex[1],
-            child: Text(added, style: style, textAlign: TextAlign.end),
-          ),
-          Expanded(
-            flex: _flex[2],
-            child: Text(
-              units.formatPressureValue(step.pressureBar, decimals: decimals),
-              style: style,
-              textAlign: TextAlign.end,
-            ),
-          ),
-          Expanded(
-            flex: _flex[3],
-            child: Text(
-              // Spaced around the '/' -- "Tx 14.7 / 55.9" rather than
-              // "Tx 14.7/55.9" -- so this narrow column wraps at the spaces
-              // instead of needing to fit the whole mix on one line (issue
-              // #1876 follow-up). Scoped to this column rather than
-              // formatPreciseMix itself, which other call sites (the
-              // invoice's fill title, the cost card) still want compact.
-              formatPreciseMix(
-                context,
-                step.resultingMix,
-              ).replaceAll('/', ' / '),
-              style: style,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

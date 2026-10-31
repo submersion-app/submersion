@@ -104,7 +104,7 @@ class _QuickSiteFromGpsDialogState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final coordinates = units.formatCoordinates(
       widget.latitude,
       widget.longitude,

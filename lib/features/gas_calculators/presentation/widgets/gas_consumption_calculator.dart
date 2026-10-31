@@ -27,12 +27,11 @@ class GasConsumptionCalculator extends ConsumerWidget {
     final gasModel = ref.watch(gasModelProvider);
     final tank = ref.watch(consumptionTankProvider);
     final result = ref.watch(consumptionResultProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final isMetricVolume = settings.volumeUnit == VolumeUnit.liters;
+    final isMetricVolume = units.settings.volumeUnit == VolumeUnit.liters;
     final depthSymbol = units.depthSymbol;
     final volumeSymbol = units.volumeSymbol;
     final pressureSymbol = units.pressureSymbol;
@@ -41,7 +40,7 @@ class GasConsumptionCalculator extends ConsumerWidget {
     final displayVolume = units.convertVolume(result.litersConsumed);
 
     // Consumption rounds UP: planning to need more gas than you do is safe.
-    final pressureGrid = settings.pressureUnit == PressureUnit.bar
+    final pressureGrid = units.settings.pressureUnit == PressureUnit.bar
         ? 10.0
         : 100.0;
     final displayPressure = roundUpTo(

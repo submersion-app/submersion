@@ -37,6 +37,12 @@ class Buddies extends Table {
   BlobColumn get photo => blob().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+
+  /// Keeps this buddy out of the buddy rankings (issue #3624), such as a
+  /// placeholder for someone whose name the diver forgot. Their dives still
+  /// count as buddy dives.
+  BoolColumn get excludedFromRankings =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

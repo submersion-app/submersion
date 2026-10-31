@@ -7,7 +7,6 @@ import 'package:submersion/features/connections/presentation/canvas/connection_k
 import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 import 'package:submersion/features/connections/presentation/views/table_rows.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every entity on the map as a sortable row; tapping one selects it.
@@ -49,7 +48,7 @@ class _EntitiesTableState extends ConsumerState<EntitiesTable> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final selected = widget.selection;
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The near-miss log: newest first, deliberately quiet styling.
@@ -71,7 +70,7 @@ class _IncidentTile extends ConsumerWidget {
     final theme = Theme.of(context);
     // occurredAt is a wall-clock UTC date; format its components directly (no
     // toLocal) so the shown day is stable across synced devices/timezones.
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final dateText = units.formatDate(incident.occurredAt);
 
     return Card(

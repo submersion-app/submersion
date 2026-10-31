@@ -6,7 +6,6 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How the card is headed: a cylinder not in the diver's gear leads with
@@ -86,7 +85,7 @@ class _PassportUsageCardState extends ConsumerState<PassportUsageCard> {
   Widget _usage(List<PassportUsageDive> dives) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final count = dives.length;
     final shown = _expanded
         ? dives

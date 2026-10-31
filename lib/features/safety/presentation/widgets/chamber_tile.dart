@@ -35,7 +35,7 @@ class ChamberTile extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final chamber = listing.chamber;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     final distance = listing.distanceMeters;
     final where = [

@@ -134,7 +134,7 @@ class _LocationPickerMapState extends ConsumerState<LocationPickerMap> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // Default to a world view if no initial location
     final initialCenter = widget.initialLocation ?? const LatLng(20.0, 0.0);

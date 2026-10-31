@@ -24,6 +24,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
@@ -1625,12 +1626,7 @@ class DiveComputerRepository {
         final computer = await getComputerById(computerId);
 
         // Use provided avgDepth, or calculate from profile points
-        final effectiveAvgDepth =
-            avgDepth ??
-            (points.isNotEmpty
-                ? points.map((p) => p.depth).reduce((a, b) => a + b) /
-                      points.length
-                : null);
+        final effectiveAvgDepth = avgDepth ?? _meanDepthOf(points);
 
         // durationSeconds from the dive computer is total runtime,
         // not bottom time. A bottom time the source reported wins (#1798);
@@ -1901,12 +1897,7 @@ class DiveComputerRepository {
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
                 maxDepth: maxDepth,
-                effectiveAvgDepth:
-                    avgDepth ??
-                    (points.isNotEmpty
-                        ? points.map((p) => p.depth).reduce((a, b) => a + b) /
-                              points.length
-                        : null),
+                effectiveAvgDepth: avgDepth ?? _meanDepthOf(points),
                 minWaterTemp:
                     minTemperature ??
                     (existingSampleTemps.isNotEmpty
@@ -2877,6 +2868,10 @@ class DiveComputerRepository {
         return 'info';
     }
   }
+
+  /// Time-weighted mean depth of [points], or null without any.
+  double? _meanDepthOf(List<ProfilePointData> points) =>
+      timeWeightedMean(points, time: (p) => p.timestamp, value: (p) => p.depth);
 
   /// Find the depth at a given timestamp by interpolating between profile
   /// points.

@@ -821,8 +821,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     if (widget.isMerging) {
       return FutureBuilder<_MergeLoadData>(

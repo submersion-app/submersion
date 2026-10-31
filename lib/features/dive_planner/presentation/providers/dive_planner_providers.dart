@@ -280,10 +280,15 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// form [_withCcrSlots] uses, against a tank list it computed itself
   /// rather than `state.tanks` (which [updateMode] has not yet committed
   /// at the point it needs this).
+  ///
+  /// A segment overridden off the loop keeps its cylinder: a mid-plan bailout
+  /// imported on a bailout tank (#3898) is not a loop segment, and moving it
+  /// would change both the gas it loads and the cylinder it is charged to.
   static PlanSegment _segmentOnDiluent(
     PlanSegment segment,
     List<DiveTank> tanks,
   ) {
+    if (segment.leavesCcrLoop) return segment;
     final diluents = _diluents(tanks);
     if (diluents.isEmpty || diluents.any((t) => t.id == segment.tankId)) {
       return segment;

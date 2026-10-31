@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart';
 
 const _slots = CcrLoopSlots();
@@ -112,6 +114,25 @@ void main() {
       expect(roles['deep'], TankRole.diluent);
       expect(roles['bo'], TankRole.backGas);
       expect(result.tanks, hasLength(3));
+    });
+
+    test('a cylinder only a mid-plan bailout breathes is not adopted', () {
+      final tanks = [
+        _tank('o2', o2: 100, role: TankRole.oxygenSupply),
+        _tank('loop'),
+        _tank('bo'),
+      ];
+      final result = _slots.ensure(
+        tanks,
+        segments: [
+          _seg('loop'),
+          _seg('bo').copyWith(diveModeOverride: PlanMode.oc),
+        ],
+        newId: () => 'new',
+      );
+
+      final diluents = result.tanks.where((t) => t.role == TankRole.diluent);
+      expect(diluents.map((t) => t.id), ['loop']);
     });
 
     test('with no segments yet, the first non-oxygen cylinder becomes the '
