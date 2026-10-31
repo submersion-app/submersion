@@ -74,7 +74,7 @@ class DiveFoldLinks {
     required int now,
   }) async {
     final rows = await read(fromDiveIds);
-    await restore([
+    await _write([
       for (final row in rows)
         DiveLinkedRow(entityType: row.entityType, id: row.id, diveId: toDiveId),
     ], now: now);
@@ -82,9 +82,13 @@ class DiveFoldLinks {
 
   /// Writes each of [rows] back to the dive it names, which must exist. A
   /// record deleted since it was read stays deleted.
-  Future<void> restore(List<DiveLinkedRow> rows, {required int now}) async {
+  Future<void> restore(List<DiveLinkedRow> rows, {required int now}) =>
+      _write(rows, now: now);
+
+  Future<void> _write(List<DiveLinkedRow> rows, {required int now}) async {
+    final tables = _tables;
     for (final row in rows) {
-      final table = _tables[row.entityType]!;
+      final table = tables[row.entityType]!;
       final changed = await _db.customUpdate(
         'UPDATE ${table.actualTableName} SET dive_id = ?, updated_at = ? '
         'WHERE id = ?',

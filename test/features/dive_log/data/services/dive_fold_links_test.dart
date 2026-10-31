@@ -114,6 +114,31 @@ void main() {
     return found;
   }
 
+  test(
+    'every SET NULL link to a dive is carried or deliberately left',
+    () async {
+      final rows = await db.customSelect('''
+      SELECT DISTINCT m.name AS name
+      FROM sqlite_master m, pragma_foreign_key_list(m.name) f
+      WHERE m.type = 'table' AND f."table" = 'dives'
+        AND f.on_delete = 'SET NULL'
+      ''').get();
+
+      // A new table here needs a decision: a fold deletes dives, so its rows
+      // lose their link unless they join DiveFoldLinks or have their own move.
+      expect(
+        {for (final r in rows) r.read<String>('name')},
+        {
+          ...tables,
+          'nav_tracks', // NavTrackRepository.moveLinks
+          'media', // moved by each fold service
+          'documents', // DocumentRepository.reassignOwner
+          'quality_findings', // recomputed by the next scan
+        },
+      );
+    },
+  );
+
   test('consolidation carries them onto the surviving dive', () async {
     await seedDive('a', base, serial: 'SN-a');
     await seedDive('b', base.add(const Duration(minutes: 1)), serial: 'SN-b');
