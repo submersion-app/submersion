@@ -72,10 +72,10 @@ class PiecewiseLinearSeries {
     return last;
   }
 
-  /// The series at [time].
+  /// The series at [time]. Past the last sample it holds that sample's value.
   double valueAt(int time, int index) {
     final before = times[index];
-    if (time == before) return values[index];
+    if (time <= before || index + 1 == times.length) return values[index];
     final progress = (time - before) / (times[index + 1] - before);
     return values[index] + (values[index + 1] - values[index]) * progress;
   }
@@ -85,6 +85,10 @@ class PiecewiseLinearSeries {
     final tail = (values[index] + valueAt(time, index)) / 2;
     return _areaTo[index] + (time - times[index]) * tail;
   }
+
+  /// The mean of the series from [start] to [end], a later time.
+  double meanBetween(int start, int startIndex, int end, int endIndex) =>
+      (areaTo(end, endIndex) - areaTo(start, startIndex)) / (end - start);
 }
 
 /// The mean of [value] over [samples] by elapsed [time], or null without any

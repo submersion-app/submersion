@@ -238,6 +238,15 @@ void main() {
       expect(series.valueAt(120, 3), 30);
     });
 
+    test('valueAt holds the last sample past the end', () {
+      expect(series.valueAt(500, 3), 30);
+    });
+
+    test('meanBetween averages over elapsed time between samples', () {
+      // 30 * (15 + 20) / 2 up to the step, 30 * (40 + 35) / 2 after it.
+      expect(series.meanBetween(30, 0, 90, 2), closeTo(1650 / 60, 1e-9));
+    });
+
     test('areaTo integrates up to a time, and a step adds nothing', () {
       expect(series.areaTo(0, 0), 0);
       // 30 * (10 + 15) / 2

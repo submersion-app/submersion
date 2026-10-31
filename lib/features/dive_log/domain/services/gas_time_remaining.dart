@@ -100,10 +100,12 @@ List<int?> calculateGtrCurve({
         pressureSeries.valueAt(windowStart, anchor) - pressures[i];
     if (pressureDrop <= 0) continue;
 
-    final windowArea =
-        depthSeries.areaTo(timestamps[i], i) -
-        depthSeries.areaTo(windowStart, anchor);
-    final meanDepth = windowArea / sacWindowSeconds;
+    final meanDepth = depthSeries.meanBetween(
+      windowStart,
+      anchor,
+      timestamps[i],
+      i,
+    );
     final consumptionAtDepth = pressureDrop / (sacWindowSeconds / 60.0);
     final sac = consumptionAtDepth / _ambientBar(meanDepth);
     if (sac <= 0) continue;

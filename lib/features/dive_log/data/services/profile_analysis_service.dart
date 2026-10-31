@@ -927,11 +927,19 @@ class ProfileAnalysisService {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
 
       if (sacCurve != null) {
+        final depthSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: depths,
+        );
+        final pressureSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: pressures,
+        );
+
         // Calculate 5-minute segment SAC values first (needed for fallback)
         sacSegments = _calculateSacSegments(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           intervalSeconds: 300, // 5 minutes
         );
 
@@ -939,9 +947,8 @@ class ProfileAnalysisService {
         // This is more accurate than smoothing the noisy point-by-point SAC values
         // Use 60-second window for better accuracy with sparse pressure data
         smoothedSacCurve = _calculateRollingWindowSac(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           windowSeconds: 60, // 60-second rolling window
         );
 
@@ -1405,14 +1412,11 @@ class ProfileAnalysisService {
   /// pressure are read at the window's edges, which stop at the ends of the
   /// dive, so sparse samples fill the same window as dense ones.
   List<double> _calculateRollingWindowSac({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int windowSeconds = 60,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
+    final timestamps = depthSeries.times;
 
     // Need at least 2 points to calculate any SAC
     if (timestamps.length < 2) {
@@ -1425,14 +1429,6 @@ class ProfileAnalysisService {
     // Minimum time span required for valid SAC calculation (5 seconds)
     const minDuration = 5;
 
-    final depthSeries = PiecewiseLinearSeries(
-      times: timestamps,
-      values: depths,
-    );
-    final pressureSeries = PiecewiseLinearSeries(
-      times: timestamps,
-      values: pressures,
-    );
     var startIdx = 0;
     var endIdx = 0;
 
@@ -1452,10 +1448,12 @@ class ProfileAnalysisService {
 
       if (duration >= minDuration && pressureDrop > 0) {
         // Calculate average depth over the window
-        final windowArea =
-            depthSeries.areaTo(windowEnd, endIdx) -
-            depthSeries.areaTo(windowStart, startIdx);
-        final avgDepth = windowArea / duration;
+        final avgDepth = depthSeries.meanBetween(
+          windowStart,
+          startIdx,
+          windowEnd,
+          endIdx,
+        );
 
         // Calculate SAC
         final ambientPressure = 1.0 + (avgDepth / 10.0);
@@ -1542,25 +1540,14 @@ class ProfileAnalysisService {
   /// Depth and pressure are read at each boundary, so segments meet with no
   /// gas between them however the dive was sampled.
   List<SacSegment> _calculateSacSegments({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int intervalSeconds = 300,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
-
+    final timestamps = depthSeries.times;
+    final depths = depthSeries.values;
     final segments = <SacSegment>[];
     final endTime = timestamps.last;
-    final depthSeries = PiecewiseLinearSeries(
-      times: timestamps,
-      values: depths,
-    );
-    final pressureSeries = PiecewiseLinearSeries(
-      times: timestamps,
-      values: pressures,
-    );
     var startIdx = 0;
     var endIdx = 0;
 
@@ -1585,10 +1572,12 @@ class ProfileAnalysisService {
           maxDepth = math.max(maxDepth, depths[i]);
         }
 
-        final segmentArea =
-            depthSeries.areaTo(segmentEnd, endIdx) -
-            depthSeries.areaTo(segmentStart, startIdx);
-        final avgDepth = segmentArea / segmentDuration;
+        final avgDepth = depthSeries.meanBetween(
+          segmentStart,
+          startIdx,
+          segmentEnd,
+          endIdx,
+        );
         final pressureDrop =
             pressureSeries.valueAt(segmentStart, startIdx) -
             pressureSeries.valueAt(segmentEnd, endIdx);
