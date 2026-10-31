@@ -129,7 +129,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
                       tooltip:
                           context.l10n.diveLog_detail_tooltip_viewFullscreen,
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => _showFullscreenProfile(context, dive),
+                      onPressed: () => _showFullscreenProfile(context),
                     ),
                   ],
                 ),
@@ -161,13 +161,13 @@ class DiveDetailProfileSection extends ConsumerWidget {
     );
   }
 
-  void _showFullscreenProfile(BuildContext context, Dive dive) {
+  void _showFullscreenProfile(BuildContext context) {
     // Root navigator, not the ShellRoute's: pushing on the shell navigator
     // renders the page inside MainScaffold, leaving the bottom navigation
     // bar painted under a supposedly fullscreen chart (#811).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenProfilePage(diveId: dive.id),
+        builder: (context) => FullscreenProfilePage(diveId: diveId),
       ),
     );
   }

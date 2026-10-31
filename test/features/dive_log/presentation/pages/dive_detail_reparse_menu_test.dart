@@ -28,12 +28,20 @@ import '../../../../helpers/mock_providers.dart';
 /// `pigeon.DiveComputerHostApi().parseRawDiveData` tear-off is never invoked
 /// and no platform channel is touched.
 class _FakeReparseService extends ReparseService {
-  _FakeReparseService({required super.db, required this.result, this.gate});
+  _FakeReparseService({
+    required super.db,
+    required this.result,
+    this.gate,
+    this.failure,
+  });
 
   final ({List<String> errors, int profilesPreserved}) result;
 
   /// Holds the re-parse open until completed.
   final Completer<void>? gate;
+
+  /// Thrown instead of a result, as a failed read of the sources is.
+  final Object? failure;
   final reparsedDiveIds = <String>[];
 
   @override
@@ -49,6 +57,8 @@ class _FakeReparseService extends ReparseService {
   }) async {
     reparsedDiveIds.add(diveId);
     await gate?.future;
+    final failure = this.failure;
+    if (failure != null) throw failure;
     return result;
   }
 }
@@ -69,10 +79,16 @@ void main() {
     required ({List<String> errors, int profilesPreserved}) result,
     bool embedded = false,
     Completer<void>? gate,
+    Object? failure,
   }) async {
     final dive = createTestDiveWithBottomTime();
     final overrides = await getBaseOverrides();
-    final service = _FakeReparseService(db: db, result: result, gate: gate);
+    final service = _FakeReparseService(
+      db: db,
+      result: result,
+      gate: gate,
+      failure: failure,
+    );
     diveReads = 0;
 
     router = GoRouter(
@@ -89,7 +105,7 @@ void main() {
         ),
         GoRoute(
           path: '/elsewhere',
-          builder: (context, state) => const SizedBox.shrink(),
+          builder: (context, state) => const Scaffold(),
         ),
       ],
     );
@@ -214,6 +230,24 @@ void main() {
     await tester.pump();
 
     expect(diveReads, readsBefore + 1);
+    expect(find.text('Dive re-parsed successfully'), findsOneWidget);
+  });
+
+  testWidgets('a failure before any source is parsed is reported', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      result: (errors: <String>[], profilesPreserved: 0),
+      failure: StateError('the read failed'),
+    );
+
+    await tapReparse(tester);
+
+    expect(
+      find.text('Re-parse failed: Bad state: the read failed'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('the embedded app bar runs the same action', (tester) async {

@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -55,6 +56,9 @@ void main() {
   late Signature? signature;
   late MockSettingsNotifier settings;
   var failDive = false;
+
+  // The same instance each read, so a refresh ends where it began.
+  const dataSources = <DiveDataSource>[];
 
   Dive testDive() => createTestDiveWithBottomTime().copyWith(
     notes: 'First note',
@@ -120,9 +124,7 @@ void main() {
           profileAnalysisProvider(
             id,
           ).overrideWith((ref) async => ProfileAnalysis.empty()),
-          diveDataSourcesProvider(
-            id,
-          ).overrideWith((ref) async => <DiveDataSource>[]),
+          diveDataSourcesProvider(id).overrideWith((ref) async => dataSources),
           gasSwitchesProvider(
             id,
           ).overrideWith((ref) async => <GasSwitchWithTank>[]),
@@ -337,6 +339,22 @@ void main() {
       fieldsReadIn(section + host).difference(fieldsReadIn(inputs)),
       isEmpty,
     );
+
+    // A helper handed the whole dive reads fields the scan above cannot see.
+    // These three read only compared fields; a new one needs the same check.
+    expect(
+      {
+        for (final match in RegExp(
+          r'(\w+)\((?:[\w.]+, )*dive\b(?![.:])',
+        ).allMatches(section + host))
+          match.group(1),
+      },
+      {
+        'DiveChartInputs',
+        'calculateSacNormalizationFactor',
+        'watchChartProfile',
+      },
+    );
   });
 
   testWidgets('a refresh that fails still reaches the error screen', (
@@ -401,6 +419,19 @@ void main() {
 
     expect(identical(chart(tester), before), isFalse);
     expect(chart(tester).tanks?.single.endPressure, 90);
+  });
+
+  testWidgets('a sources refresh leaves the header alone', (tester) async {
+    final container = await pumpDetail(tester);
+    final before = tester.widget(find.byType(DiveHeroHeader));
+
+    container.invalidate(diveDataSourcesProvider(current.id));
+    await settle(tester);
+
+    expect(
+      identical(tester.widget(find.byType(DiveHeroHeader)), before),
+      isTrue,
+    );
   });
 
   testWidgets('sections appearing on both sides of a card leave it mounted', (

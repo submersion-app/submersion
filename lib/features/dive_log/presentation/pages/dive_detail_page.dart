@@ -149,7 +149,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     setPrimarySource: _setPrimarySource,
     splitSource: _confirmAndSplit,
     separateSegments: _confirmAndSeparate,
-    scanGallery: (dive) => _scanGalleryForDive(context, ref, dive),
+    scanGallery: _scanGalleryForDive,
     addPhotos: _addPhotos,
     addDocument: (dive) => DocumentOpenHelper.pickAndAttach(
       context: context,
@@ -441,16 +441,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       case 'displayOptions':
         _displayOptionsMenu.open();
       case 'export':
-        _showExportOptions(
-          context,
-          ref,
-          dive,
-          shareAnchorFrom(menuKey.currentContext),
-        );
+        _showExportOptions(dive, shareAnchorFrom(menuKey.currentContext));
       case 'reparse':
-        _reparseDive(context, ref, dive);
+        _reparseDive(dive);
       case 'resync':
-        _resyncDive(context, ref, dive);
+        _resyncDive(dive);
       case 'logNearMiss':
         context.push('/incidents/new?diveId=$diveId');
       case 'markLogged':
@@ -458,13 +453,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       case 'logForBuddy':
         _logForBuddy(dive);
       case 'linkPreDive':
-        _linkPreDiveChecklist(context, dive);
+        _linkPreDiveChecklist(dive);
       case 'unlinkPreDive':
-        _unlinkPreDiveChecklist(context, linkedPreDive!);
+        _unlinkPreDiveChecklist(linkedPreDive!);
       case 'whatIf':
         showWhatIfSheet(context, dive);
       case 'delete':
-        _showDeleteConfirmation(context, ref);
+        _showDeleteConfirmation();
       case 'open':
         // Open in full-page mode. push (not go) so there's a back button and
         // the pushed page skips the master-detail redirect above instead of

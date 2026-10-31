@@ -44,8 +44,7 @@ class DiveDetailsSection extends ConsumerWidget {
       settingsProvider.select((s) => s.showDataSourceBadges),
     );
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];
+    final dataSources = watchDiveDataSources(ref, dive.id);
     final computedAttribution = FieldAttributionService.computeAttribution(
       dataSources,
       viewedSourceId: viewedSourceId,
@@ -103,13 +102,13 @@ class DiveDetailsSection extends ConsumerWidget {
                 label: context.l10n.diveLog_diveMode_title,
                 value: diveModeLabel(context.l10n, dive.diveMode),
               ),
-              if (dive.trip != null) _buildTripRow(context, dive),
+              if (dive.trip != null) _buildTripRow(context),
               if (dive.trip != null)
                 PartOfTripLink(
                   tripId: dive.trip!.id,
                   padding: const EdgeInsets.only(bottom: 8),
                 ),
-              if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
+              if (dive.diveCenter != null) _buildDiveCenterRow(context),
               // Free text from the editor or a MacDive/UDDF import (#3229).
               for (final (label, value) in [
                 (
@@ -164,7 +163,7 @@ class DiveDetailsSection extends ConsumerWidget {
                   label: context.l10n.diveLog_detail_label_diveMaster,
                   value: dive.diveMaster!.trim(),
                 ),
-              _buildGasConsumptionRows(context, ref, dive, units),
+              _buildGasConsumptionRows(context, ref, units),
               // Gradient factors (from dive computer)
               if (dive.gradientFactorLow != null &&
                   dive.gradientFactorHigh != null)
@@ -177,7 +176,6 @@ class DiveDetailsSection extends ConsumerWidget {
               ..._buildDiveComputerRows(
                 context,
                 ref,
-                dive,
                 activeComputerId: activeComputerId,
               ),
               // Surface interval: prefer imported value, fall back to calculated
@@ -224,7 +222,6 @@ class DiveDetailsSection extends ConsumerWidget {
   Widget _buildGasConsumptionRows(
     BuildContext context,
     WidgetRef ref,
-    Dive dive,
     UnitFormatter units,
   ) {
     final display = ref.watch(gasConsumptionDisplayProvider);
@@ -261,8 +258,7 @@ class DiveDetailsSection extends ConsumerWidget {
   /// Build dive computer rows from profile-linked computers or string fields.
   List<Widget> _buildDiveComputerRows(
     BuildContext context,
-    WidgetRef ref,
-    Dive dive, {
+    WidgetRef ref, {
     String? activeComputerId,
   }) {
     final computersAsync = ref.watch(computersForDiveProvider(dive.id));
@@ -278,15 +274,15 @@ class DiveDetailsSection extends ConsumerWidget {
           return [_buildLinkedComputerRow(context, active ?? computers.first)];
         }
         // Fall back to string fields on Dive entity
-        return _buildDiveComputerStringRows(context, dive);
+        return _buildDiveComputerStringRows(context);
       },
-      loading: () => _buildDiveComputerStringRows(context, dive),
-      error: (_, _) => _buildDiveComputerStringRows(context, dive),
+      loading: () => _buildDiveComputerStringRows(context),
+      error: (_, _) => _buildDiveComputerStringRows(context),
     );
   }
 
   /// Fallback: build computer rows from the Dive entity's string fields.
-  List<Widget> _buildDiveComputerStringRows(BuildContext context, Dive dive) {
+  List<Widget> _buildDiveComputerStringRows(BuildContext context) {
     if (dive.diveComputerModel == null || dive.diveComputerModel!.isEmpty) {
       return [];
     }
@@ -382,7 +378,7 @@ class DiveDetailsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildTripRow(BuildContext context, Dive dive) {
+  Widget _buildTripRow(BuildContext context) {
     final trip = dive.trip!;
     return Semantics(
       button: true,
@@ -399,7 +395,7 @@ class DiveDetailsSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildDiveCenterRow(BuildContext context, Dive dive) {
+  Widget _buildDiveCenterRow(BuildContext context) {
     return Semantics(
       button: true,
       label: context.l10n.diveLog_detail_semantics_viewDiveCenter(

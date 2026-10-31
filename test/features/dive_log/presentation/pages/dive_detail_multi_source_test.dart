@@ -51,6 +51,9 @@ class _RecordingSplitService extends DiveSplitService {
   /// Holds the split open until completed.
   Completer<void>? gate;
 
+  /// Thrown from the split when set.
+  Object? failure;
+
   @override
   Future<String> split({
     required String diveId,
@@ -58,6 +61,8 @@ class _RecordingSplitService extends DiveSplitService {
   }) async {
     calls.add((diveId, sourceId));
     await gate?.future;
+    final failure = this.failure;
+    if (failure != null) throw failure;
     return 'new-dive-id';
   }
 }
@@ -220,7 +225,7 @@ void main() {
                 ? Scaffold(
                     body: DiveDetailPage(diveId: dive.id, embedded: true),
                   )
-                : const SizedBox.shrink(),
+                : const Scaffold(),
           ),
         ),
       ),
@@ -440,6 +445,31 @@ void main() {
     await tester.pump();
 
     expect(diveReads, readsBefore + 1);
+    expect(find.text('Dive split'), findsOneWidget);
+  });
+
+  testWidgets('a split that fails after leaving still tells the diver', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 2400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpPage(tester);
+    final gate = splitService.gate = Completer<void>();
+    splitService.failure = StateError('the split failed');
+
+    tester.widget<DataSourcesSection>(find.byType(DataSourcesSection)).onSplit!(
+      'src-b',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Split'));
+    await tester.pump();
+    await leavePage(tester);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Split failed'), findsOneWidget);
   });
 
   testWidgets('leaving during a separate still refreshes the dive', (
@@ -465,6 +495,7 @@ void main() {
     await tester.pump();
 
     expect(diveReads, readsBefore + 1);
+    expect(find.text('2 dives restored'), findsOneWidget);
   });
 
   testWidgets(

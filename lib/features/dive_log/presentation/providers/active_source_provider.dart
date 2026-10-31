@@ -89,6 +89,15 @@ final activeSourceProfileProvider = Provider.autoDispose
           );
     });
 
+/// The dive's data sources, empty until they load.
+///
+/// Selects the list, so the loading flag of a refresh rebuilds nothing. This
+/// provider refreshes on every analysis-input tick, and the widgets reading it
+/// only want a new list when there is one.
+List<DiveDataSource> watchDiveDataSources(WidgetRef ref, String diveId) =>
+    ref.watch(diveDataSourcesProvider(diveId).select((a) => a.valueOrNull)) ??
+    const [];
+
 /// The series the chart draws for [dive], resolved by the same one rule the
 /// chart itself uses (#543): the active source's own points on a multi-source
 /// dive, dive.profile otherwise. Whatever indexes the chart (the point count,

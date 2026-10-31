@@ -5,7 +5,6 @@ import 'package:submersion/features/dive_log/domain/services/field_attribution_s
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -22,8 +21,7 @@ class DiveDetailSurfaceGpsSection extends ConsumerWidget {
       settingsProvider.select((s) => s.showDataSourceBadges),
     );
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];
+    final dataSources = watchDiveDataSources(ref, dive.id);
     final attribution = FieldAttributionService.computeAttribution(
       dataSources,
       viewedSourceId: viewedSourceId,

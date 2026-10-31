@@ -17,9 +17,8 @@ import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 /// first, falling back to the full localized name when none is available.
 ///
 /// Translucent-filled (unlike [DiveModeBadge]'s bare outline): the header
-/// can sit this badge over a live map background (see the location card in
-/// dive_detail_page.dart), whose gradient scrim is only lightly tinted right
-/// where the badge row sits. A fully transparent badge loses all contrast
+/// can sit this badge over a live map background (see `DiveHeroHeader`), whose
+/// gradient scrim is only lightly tinted right where the badge row sits. A fully transparent badge loses all contrast
 /// there, but a fully opaque one reads as a heavy, out-of-place block next
 /// to the plain-outline mode badge on a flat card -- so this splits the
 /// difference with a low-alpha fill: enough of a backing to stay legible

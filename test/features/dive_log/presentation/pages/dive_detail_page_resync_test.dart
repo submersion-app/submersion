@@ -93,7 +93,7 @@ void main() {
         ),
         GoRoute(
           path: '/elsewhere',
-          builder: (context, state) => const SizedBox.shrink(),
+          builder: (context, state) => const Scaffold(),
         ),
       ],
     );
@@ -194,6 +194,7 @@ void main() {
     await tester.pump();
 
     expect(diveReads, readsBefore + 1);
+    expect(find.text('Dive updated from the original file'), findsOneWidget);
   });
 
   testWidgets('shows Resync from original file only when a file is stored', (

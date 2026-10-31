@@ -31,28 +31,39 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     );
   }
 
-  Future<void> _linkPreDiveChecklist(BuildContext context, Dive dive) async {
+  Future<void> _linkPreDiveChecklist(Dive dive) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_linked;
+    final failureMessage = context.l10n.common_error_tryAgain;
     final repository = ref.read(preDiveSessionRepositoryProvider);
     final sessionId = await showLinkSessionPicker(
       context,
       diverId: dive.diverId,
     );
     if (sessionId == null) return;
-    await repository.linkToDive(sessionId, dive.id);
+    try {
+      await repository.linkToDive(sessionId, dive.id);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
+      return;
+    }
     // Nothing on this page renders the link, so the snackbar is the only
     // evidence the write happened.
     messenger.showSnackBar(SnackBar(content: Text(confirmation)));
   }
 
-  Future<void> _unlinkPreDiveChecklist(
-    BuildContext context,
-    PreDiveSession linked,
-  ) async {
+  Future<void> _unlinkPreDiveChecklist(PreDiveSession linked) async {
     final messenger = ScaffoldMessenger.of(context);
     final confirmation = context.l10n.preDive_link_unlinked;
-    await ref.read(preDiveSessionRepositoryProvider).unlinkFromDive(linked.id);
+    final failureMessage = context.l10n.common_error_tryAgain;
+    try {
+      await ref
+          .read(preDiveSessionRepositoryProvider)
+          .unlinkFromDive(linked.id);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
+      return;
+    }
     messenger.showSnackBar(SnackBar(content: Text(confirmation)));
   }
 
@@ -120,11 +131,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     await rulesAfterCreate(subject: RuleSubject.dives, ids: [dive.id]);
   }
 
-  Future<void> _scanGalleryForDive(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-  ) async {
+  Future<void> _scanGalleryForDive(Dive dive) async {
     if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
       return;
     }
@@ -147,7 +154,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         photoPickerService: photoPickerService,
       );
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
 
       if (assets == null) {
@@ -185,7 +192,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ),
       );
 
-      if (confirmed != true || !context.mounted) return;
+      if (confirmed != true || !mounted) return;
 
       // Show importing dialog
       showDialog(
@@ -212,7 +219,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         dive: dive,
       );
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop(); // Dismiss importing
 
       // Refresh media providers
@@ -229,8 +236,8 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ),
       );
     } catch (e) {
-      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-      if (context.mounted) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.media_diveScan_error('$e'))),
         );
@@ -259,6 +266,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     );
     if (confirmed != true || !mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final newDiveId = await ref
           .read(diveSplitServiceProvider)
@@ -270,18 +278,16 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       _refreshDive(container, dive.id);
       container.invalidate(paginatedDiveListProvider);
       container.invalidate(divesProvider);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text(l10n.diveLog_sources_splitDone),
           showCloseIcon: true,
         ),
       );
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.diveLog_sources_splitFailed)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),
+      );
     }
   }
 
@@ -308,6 +314,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     );
     if (confirmed != true || !mounted) return;
     final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final newDiveIds = await ref
           .read(diveUncombineServiceProvider)
@@ -320,8 +327,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       container.invalidate(diveSegmentCountProvider(dive.id));
       container.invalidate(paginatedDiveListProvider);
       container.invalidate(divesProvider);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             l10n.diveLog_sources_separateDone(newDiveIds.length + 1),
@@ -330,8 +336,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text(l10n.diveLog_sources_separateFailed)),
       );
     }
@@ -355,57 +360,59 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     _refreshDive(container, diveId);
   }
 
-  Future<void> _reparseDive(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-  ) async {
+  Future<void> _reparseDive(Dive dive) async {
     final service = ref.read(reparseServiceProvider);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
 
-    final result = await service.reparseDive(
-      dive.id,
-      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
-    );
+    final ({List<String> errors, int profilesPreserved}) result;
+    try {
+      result = await service.reparseDive(
+        dive.id,
+        parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
+      );
+    } catch (e) {
+      // The service reports each source's failure in its result. Reading the
+      // sources comes before that, and nothing awaits this.
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_detail_reparseFailed('$e'))),
+      );
+      return;
+    }
     final errors = result.errors;
 
     // Invalidate providers so the UI reflects the re-parsed data.
     _refreshDive(container, dive.id);
 
-    if (context.mounted) {
-      if (errors.isEmpty) {
-        // A combined dive's profile is user-authored, so re-parse refreshes
-        // only the source provenance and says so; otherwise the action
-        // looks like an unexplained no-op (#1164).
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.profilesPreserved > 0
-                  ? l10n.diveLog_detail_reparseProfilePreserved
-                  : l10n.diveLog_detail_reparseSuccess,
-            ),
+    if (errors.isEmpty) {
+      // A combined dive's profile is user-authored, so re-parse refreshes
+      // only the source provenance and says so; otherwise the action
+      // looks like an unexplained no-op (#1164).
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            result.profilesPreserved > 0
+                ? l10n.diveLog_detail_reparseProfilePreserved
+                : l10n.diveLog_detail_reparseSuccess,
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.diveLog_detail_reparseFailed(errors.first)),
-          ),
-        );
-      }
+        ),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.diveLog_detail_reparseFailed(errors.first)),
+        ),
+      );
     }
   }
 
-  Future<void> _resyncDive(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-  ) async {
+  Future<void> _resyncDive(Dive dive) async {
     if (!demoSealGuard(context, DemoSealedFeature.diveComputerDownload)) return;
     final orchestrator = ref.read(diveResyncOrchestratorProvider);
     final l10n = context.l10n;
     final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
 
     DiveResyncOutcome outcome;
     try {
@@ -422,8 +429,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
     _refreshDive(container, dive.id);
 
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
         content: Text(
           outcome.succeeded
@@ -442,7 +448,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+  void _showDeleteConfirmation() {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -459,7 +465,7 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
               await ref
                   .read(paginatedDiveListProvider.notifier)
                   .deleteDive(diveId);
-              if (context.mounted) {
+              if (mounted) {
                 if (widget.embedded && widget.onDeleted != null) {
                   // In embedded mode, call the callback to clear selection
                   widget.onDeleted!();

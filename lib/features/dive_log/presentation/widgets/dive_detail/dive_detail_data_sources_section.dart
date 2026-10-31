@@ -23,8 +23,7 @@ class DiveDetailDataSourcesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(unitFormatterProvider);
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];
+    final dataSources = watchDiveDataSources(ref, dive.id);
     // 2+ segments means a Combine stitched this dive together, so
     // it can be pulled back apart (issue #1504). Read separately
     // from the source count: the halves of a combined import

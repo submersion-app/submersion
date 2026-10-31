@@ -481,12 +481,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
   /// The sheet pops itself before either export runs, so it cannot be the
   /// anchor for the iPad popover. The button that opened it is still mounted,
   /// which is also where iOS normally points a toolbar-initiated share sheet.
-  void _showExportOptions(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive,
-    Rect? shareAnchor,
-  ) {
+  void _showExportOptions(Dive dive, Rect? shareAnchor) {
     showModalBottomSheet(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -539,8 +534,6 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
                     );
 
                 _handleSingleDiveExport(
-                  context,
-                  ref,
                   title: context.l10n.diveLog_export_csv,
                   offerCsvUnits: true,
                   shareFn: (choice) async => ref
@@ -573,8 +566,6 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
                 final sites = [if (dive.site != null) dive.site!];
                 Navigator.of(sheetContext).pop();
                 _handleSingleDiveExport(
-                  context,
-                  ref,
                   title: context.l10n.diveLog_export_uddf,
                   offerRawData: true,
                   offerDiveContent: true,
@@ -680,9 +671,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
   /// In master-detail layouts this page is embedded in the shell's only route,
   /// so a bare pop removes that route and leaves a black screen under a modal
   /// that can no longer be dismissed.
-  Future<void> _handleSingleDiveExport(
-    BuildContext context,
-    WidgetRef ref, {
+  Future<void> _handleSingleDiveExport({
     required String title,
     required Future<String> Function(ExportChoice choice) shareFn,
     required Future<String?> Function(ExportChoice choice) saveFn,
@@ -698,7 +687,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       showCsvUnitsToggle: offerCsvUnits,
       initialCsvUnitMode: ref.read(csvUnitModeProvider),
     );
-    if (choice == null || !context.mounted) return;
+    if (choice == null || !mounted) return;
     if (offerCsvUnits) {
       unawaited(ref.read(csvUnitModeProvider.notifier).set(choice.csvUnitMode));
     }
@@ -726,7 +715,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
         ExportDestination.share => await shareFn(choice),
         ExportDestination.saveToFile => await saveFn(choice),
       };
-      if (!context.mounted) return;
+      if (!mounted) return;
       if (showProgress) Navigator.of(context, rootNavigator: true).pop();
       // A null path means the save panel was dismissed, not a failure.
       if (path == null) return;
@@ -737,7 +726,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
         ),
       );
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         if (showProgress) Navigator.of(context, rootNavigator: true).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

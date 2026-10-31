@@ -30,8 +30,7 @@ class DiveDetailHeroSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(unitFormatterProvider);
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
-    final dataSources =
-        ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];
+    final dataSources = watchDiveDataSources(ref, dive.id);
     // Header stat values follow the active source when a non-primary source
     // is selected on a multi-source dive; the SOURCES bar carries the
     // attribution, so the stat metrics themselves stay badge-free.
@@ -46,8 +45,8 @@ class DiveDetailHeroSection extends ConsumerWidget {
       units: units,
       maxDepth: activeSource?.maxDepth,
       waterTemp: activeSource?.waterTemp,
-      runtimeText: _formatRuntimeForSource(dive, activeSource),
-      bottomTimeText: _formatBottomTimeForSource(ref, dive, activeSource),
+      runtimeText: _formatRuntimeForSource(activeSource),
+      bottomTimeText: _formatBottomTimeForSource(ref, activeSource),
       belowTitle: Consumer(
         builder: (context, ref, _) {
           final count =
@@ -94,7 +93,6 @@ class DiveDetailHeroSection extends ConsumerWidget {
   /// that yields one.
   String _formatBottomTimeForSource(
     WidgetRef ref,
-    Dive dive,
     DiveDataSource? activeSource,
   ) {
     int? seconds;
@@ -115,7 +113,7 @@ class DiveDetailHeroSection extends ConsumerWidget {
 
   /// Runtime for the active source: its entry/exit span when both are
   /// known, else the dive's own runtime.
-  String _formatRuntimeForSource(Dive dive, DiveDataSource? activeSource) {
+  String _formatRuntimeForSource(DiveDataSource? activeSource) {
     if (activeSource?.entryTime != null && activeSource?.exitTime != null) {
       final span = activeSource!.exitTime!.difference(activeSource.entryTime!);
       return '${span.inMinutes} min';

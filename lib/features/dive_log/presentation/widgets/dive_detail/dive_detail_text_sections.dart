@@ -14,8 +14,6 @@ class DiveTagsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (dive.tags.isEmpty) return const SizedBox.shrink();
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -102,8 +100,6 @@ class DiveCustomFieldsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (dive.customFields.isEmpty) return const SizedBox.shrink();
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
