@@ -5803,11 +5803,14 @@ class SyncService {
         for (var seq = baseSeq + 1; seq <= manifest.headSeq; seq++) {
           final cf = byName[ChangesetLogLayout.changesetName(deviceId, seq)];
           if (cf == null) break;
-          changesets.add(
-            await _changesetCodec.decodeChangeset(
-              await provider.downloadFile(cf.id),
-            ),
+          final decoded = await _changesetCodec.decodeVerifiedChangeset(
+            await provider.downloadFile(cf.id),
           );
+          // Same standing as a gap, and as a corrupt changeset in
+          // ChangesetReader.pull: the cursor stops short of it, which a
+          // replace reads as a library it must wait for.
+          if (!decoded.checksumValid) break;
+          changesets.add(decoded.payload);
           appliedThrough = seq;
         }
         cursors.add((

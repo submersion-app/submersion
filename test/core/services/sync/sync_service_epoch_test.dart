@@ -592,6 +592,61 @@ void main() {
       },
     );
 
+    test('adoption stops at a changeset that fails its checksum', () async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'cloud-dive'),
+      );
+      final row = await SyncDataSerializer().fetchRecord('dives', 'cloud-dive');
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      final folder = await cloud.getOrCreateSyncFolder();
+      // A whole row, valid JSON and a head that claims it, so only the
+      // checksum can refuse it.
+      await cloud.uploadFile(
+        Uint8List.fromList(
+          utf8.encode(
+            jsonEncode({
+              'version': syncFormatVersion,
+              'exportedAt': 1,
+              'deviceId': 'replacer',
+              'checksum': 'not the checksum',
+              'data': {
+                'dives': [
+                  {...row!, 'id': 'injected'},
+                ],
+              },
+              'deletions': <String, dynamic>{},
+              'seq': 2,
+            }),
+          ),
+        ),
+        ChangesetLogLayout.changesetName('replacer', 2),
+        folderId: folder,
+      );
+      final manifest = (await ownManifest(cloud, 'replacer'))!;
+      final manifestJson =
+          jsonDecode(utf8.decode(manifest.toBytes())) as Map<String, dynamic>;
+      await cloud.uploadFile(
+        Uint8List.fromList(
+          utf8.encode(jsonEncode({...manifestJson, 'headSeq': 2})),
+        ),
+        ChangesetLogLayout.manifestName('replacer'),
+        folderId: folder,
+      );
+      final service = buildService();
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      final cursor = await PeerCursorStore(
+        DatabaseService.instance.database,
+      ).get('replacer', cloud.providerId);
+      expect(cursor!.lastSeqApplied, 1);
+      expect(
+        await SyncDataSerializer().fetchRecord('dives', 'injected'),
+        isNull,
+      );
+    });
+
     test('a dropped connection reports failure and recovers nothing', () async {
       await DiveRepository().createDive(
         createTestDiveWithBottomTime(id: 'lib-1', diveNumber: 1),
