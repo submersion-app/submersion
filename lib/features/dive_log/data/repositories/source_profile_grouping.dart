@@ -11,17 +11,11 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 /// carry its whole raw download.
 typedef ShownSource = ({String id, String? computerId});
 
-/// Reduces a dive's series to one profile per source. Keys are source ids,
-/// primary source first.
+/// Reduces a dive's series to one profile per source, by the rules
+/// `DiveRepository.getProfilesByDataSource` documents.
 ///
 /// [shownSources] are the rows the dive shows, in shown order. [shownIdByRow]
 /// maps every source row to the shown row that speaks for it.
-///
-/// Rows with a null computerId belong to the primary source (schema
-/// convention). Rows whose computerId matches no source also fall back to the
-/// primary source so no data is ever dropped or bucketed under an invented
-/// key. When an edited profile exists, the primary source carries only the
-/// edited rows (isEdited: true).
 SeriesReduce<Map<String, SourceProfile>> sourceProfilesReduction({
   required String diveId,
   required List<ShownSource> shownSources,

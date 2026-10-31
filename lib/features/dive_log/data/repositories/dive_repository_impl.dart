@@ -1212,8 +1212,8 @@ class DiveRepository {
   Future<List<domain.DiveProfilePoint>> getDiveProfile(String diveId) async {
     return await PerfTimer.measure('getDiveProfile', () async {
       try {
-        // primaryOnly in SQL, not a filter here: the rows this drops are
-        // packed blobs, and an edited two-computer dive carries three
+        // Primary rows only in SQL, not a filter here: the rows this drops
+        // are packed blobs, and an edited two-computer dive carries three
         // demoted ones that were being inflated and decoded only to be
         // thrown away on the next line. This runs on the dive-detail tick
         // and on the dashboard's first frame.
@@ -1718,10 +1718,8 @@ class DiveRepository {
           rows,
           maxSamples: maxSamples,
         );
-        for (final id in summaries.unreadableSeriesIds) {
-          _log.warning('Skipping unreadable diveProfileSeries $id');
-        }
-        return summaries.byDive;
+        _logUnreadableSeries(summaries.unreadable);
+        return summaries.result;
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -4567,6 +4565,8 @@ class DiveRepository {
   }
 
   /// Legacy method that loads all related data for a single dive (used for detail views)
+  ///
+  /// [offUiIsolate] is for a read of one dive; see [_reduceRows].
   Future<domain.Dive> _mapRowToDive(
     Dive row, {
     bool offUiIsolate = false,
@@ -6116,7 +6116,7 @@ class DiveRepository {
   /// skips profile hydration for performance, so a logbook export has to load
   /// profiles itself, and doing that one dive at a time is an N+1 query.
   ///
-  /// Deliberately not the `primaryOnly` read. That keeps only `is_primary`
+  /// Deliberately not a primary-only read. That keeps only `is_primary`
   /// series, and per #623 a file-imported dive can end up with no primary
   /// series at all, which would render a blank chart for exactly the dives
   /// imported from another logbook. Sharing [mergedPointsReduction] with
@@ -6163,14 +6163,14 @@ class DiveRepository {
       // Absent for a dive that never needed the lookup, which resolves the
       // same way the single-dive path does when it skips the query.
       final primary = primaries[entry.key];
-      final points =
-          mergedPointsReduction(
-            hasSources: primary?.hasSources ?? true,
-            primaryComputerId: primary?.computerId,
-          )([
-            for (final s in entry.value)
-              if (!hiddenRevisionIds.contains(s.id)) s,
-          ]);
+      final reduce = mergedPointsReduction(
+        hasSources: primary?.hasSources ?? true,
+        primaryComputerId: primary?.computerId,
+      );
+      final points = reduce([
+        for (final s in entry.value)
+          if (!hiddenRevisionIds.contains(s.id)) s,
+      ]);
       if (points.isNotEmpty) result[entry.key] = points;
     }
     return result;
@@ -6245,10 +6245,15 @@ class DiveRepository {
     final reduction = offUiIsolate
         ? await reduceSeriesRowsInBackground(rows, reduce)
         : reduceSeriesRows(rows, reduce);
-    for (final id in reduction.unreadableSeriesIds) {
-      _log.warning('Skipping unreadable diveProfileSeries $id');
-    }
+    _logUnreadableSeries(reduction.unreadable);
     return reduction.result;
+  }
+
+  /// Logs each series of a [SeriesReduction] whose blob did not decode.
+  void _logUnreadableSeries(Map<String, String> unreadable) {
+    for (final MapEntry(key: id, value: reason) in unreadable.entries) {
+      _log.warning('Skipping unreadable diveProfileSeries $id: $reason');
+    }
   }
 
   /// Whether series with these primary flags need the primary
@@ -6260,8 +6265,8 @@ class DiveRepository {
   /// place both in one family and drop the demoted edit from merged reads.
   /// Shared by the single-dive and batched paths so the condition cannot
   /// drift.
-  bool _needsPrimarySource(Iterable<bool> isPrimary) =>
-      isPrimary.contains(true) && isPrimary.contains(false);
+  bool _needsPrimarySource(Iterable<bool> primaryFlags) =>
+      primaryFlags.contains(true) && primaryFlags.contains(false);
 
   /// The computer owning [diveId]'s primary data source, and whether the dive
   /// has any `dive_data_sources` rows to read that from.

@@ -15,19 +15,19 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 /// capture the repository along with it, and the send then fails.
 typedef SeriesReduce<R> = R Function(List<ProfileSeries> series);
 
-/// What a [SeriesReduce] produced, plus the ids of any series whose blob did
-/// not decode.
+/// What a [SeriesReduce] produced, plus why each series whose blob did not
+/// decode failed, keyed by series id.
 ///
-/// The unreadable ids come back rather than being logged where they are
-/// found, because the decoding may run on a background isolate and the logger
-/// lives on the UI one.
-typedef SeriesReduction<R> = ({R result, List<String> unreadableSeriesIds});
+/// The failures come back rather than being logged where they are found,
+/// because the decoding may run on a background isolate and the logger lives
+/// on the UI one.
+typedef SeriesReduction<R> = ({R result, Map<String, String> unreadable});
 
 /// The fewest stored samples worth handing to another isolate.
 ///
 /// The hand-off copies the blobs and waits an event-loop turn, so it always
 /// takes longer overall; what it buys is a UI isolate that keeps painting.
-/// Measured in a release build on an M-series Mac, a 4,000-sample dive across
+/// Measured in an AOT build on an M-series Mac, a 4,000-sample dive across
 /// two series costs 6 ms to decode and merge, and 580 samples 0.7 ms. Below
 /// this limit a read stalls the UI isolate for about 0.3 ms, which is not
 /// worth the extra wait even on a slower phone.
@@ -40,25 +40,26 @@ SeriesReduction<R> reduceSeriesRows<R>(
   SeriesReduce<R> reduce,
 ) {
   final series = <ProfileSeries>[];
-  final unreadable = <String>[];
+  final unreadable = <String, String>{};
   for (final row in rows) {
     try {
       series.add(decodeProfileSeriesRow(row));
-    } on ProfileSeriesCodecException {
-      unreadable.add(row.id);
+    } on ProfileSeriesCodecException catch (e) {
+      unreadable[row.id] = '$e';
     }
   }
-  return (result: reduce(series), unreadableSeriesIds: unreadable);
+  return (result: reduce(series), unreadable: unreadable);
 }
 
 /// [reduceSeriesRows] on a background isolate, unless [rows] hold fewer than
 /// [kInlineSeriesSampleLimit] samples between them.
 ///
-/// For a read of one dive. Opening a dive reads its blobs up to four times,
-/// and each read of a two-computer dive took a third of a frame on the UI
-/// isolate, more on a phone or a longer dive (#3820). Do not call this once
-/// per dive in a bulk read: every call starts its own isolate. On the web,
-/// where there are no isolates, [compute] runs the same work in place.
+/// Opening a dive reads its blobs up to four times, and each read of a
+/// two-computer dive took a third of a frame on the UI isolate, more on a
+/// phone or a longer dive (#3820). Do not run this for many dives at once:
+/// every call starts its own isolate, so a bulk read passes all its rows to
+/// one call. On the web, where there are no isolates, [compute] runs the same
+/// work in place.
 Future<SeriesReduction<R>> reduceSeriesRowsInBackground<R>(
   List<DiveProfileSeriesRow> rows,
   SeriesReduce<R> reduce,

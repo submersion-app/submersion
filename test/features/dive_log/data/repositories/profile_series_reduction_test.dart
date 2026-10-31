@@ -12,6 +12,8 @@ import '../../../../helpers/test_database.dart';
 
 String? _isolateName(Object? _) => Isolate.current.debugName;
 
+int _failToReduce(Object? _) => throw StateError('reduction failed');
+
 void main() {
   late AppDatabase db;
   late ProfileSeriesRepository series;
@@ -44,6 +46,15 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
+
+  Future<void> corrupt(String seriesId) =>
+      (db.update(
+        db.diveProfileSeries,
+      )..where((t) => t.id.equals(seriesId))).write(
+        DiveProfileSeriesCompanion(
+          samples: Value(Uint8List.fromList(const [1, 2, 3, 4])),
+        ),
+      );
 
   group('reduceSeriesRowsInBackground (#3820)', () {
     test('runs a full-resolution dive on another isolate', () async {
@@ -113,7 +124,7 @@ void main() {
       // series in its family as the original it replaced.
       expect(background.result, hasLength(600));
       expect(background.result.map((p) => p.depth), everyElement(lessThan(30)));
-      expect(background.unreadableSeriesIds, isEmpty);
+      expect(background.unreadable, isEmpty);
     });
 
     test('reports an unreadable blob instead of failing the read', () async {
@@ -127,13 +138,7 @@ void main() {
         samples: samples(600, offset: 5000),
         now: now,
       );
-      await (db.update(
-        db.diveProfileSeries,
-      )..where((t) => t.id.equals(badId))).write(
-        DiveProfileSeriesCompanion(
-          samples: Value(Uint8List.fromList(const [1, 2, 3, 4])),
-        ),
-      );
+      await corrupt(badId);
       final rows = await series.getRowsForDives(['dive-1']);
 
       final reduction = await reduceSeriesRowsInBackground(
@@ -142,7 +147,43 @@ void main() {
       );
 
       expect(reduction.result, hasLength(600));
-      expect(reduction.unreadableSeriesIds, [badId]);
+      expect(reduction.unreadable.keys, [badId]);
+      expect(
+        reduction.unreadable[badId],
+        contains('ProfileSeriesCodecException'),
+      );
+    });
+
+    test('reads as empty when no blob is readable', () async {
+      final badId = await series.insertSeries(
+        diveId: 'dive-1',
+        samples: samples(600),
+        now: now,
+      );
+      await corrupt(badId);
+      final rows = await series.getRowsForDives(['dive-1']);
+
+      final reduction = await reduceSeriesRowsInBackground(
+        rows,
+        mergeSeriesPoints,
+      );
+
+      expect(reduction.result, isEmpty);
+      expect(reduction.unreadable.keys, [badId]);
+    });
+
+    test('fails the read when the reduction throws', () async {
+      await series.insertSeries(
+        diveId: 'dive-1',
+        samples: samples(600),
+        now: now,
+      );
+      final rows = await series.getRowsForDives(['dive-1']);
+
+      await expectLater(
+        reduceSeriesRowsInBackground(rows, _failToReduce),
+        throwsStateError,
+      );
     });
   });
 }

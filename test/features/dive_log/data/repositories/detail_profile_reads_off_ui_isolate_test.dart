@@ -129,8 +129,8 @@ void main() {
   });
 
   group('an edited two-computer dive reads the same off the UI isolate', () {
-    /// Two computers, the primary one edited: every branch the merge and the
-    /// source grouping take, at a size that leaves the UI isolate.
+    // Two computers, the primary one edited: every branch the merge and the
+    // source grouping take, at a size that leaves the UI isolate.
     setUp(() async {
       for (final id in ['computer-a', 'computer-b']) {
         await db
