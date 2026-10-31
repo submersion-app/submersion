@@ -186,20 +186,50 @@ void main() {
       await finish();
     });
 
+    /// A service whose decodes each wait on their own gate, in [started]
+    /// order. `finishAll` ends them, as `held`'s `finish` does.
+    ({
+      ColorAnalysisService service,
+      List<ImageProvider> started,
+      List<Completer<Uint8List?>> gates,
+      Future<void> Function() finishAll,
+    })
+    gated(WidgetTester tester) {
+      final started = <ImageProvider>[];
+      final gates = <Completer<Uint8List?>>[];
+      return (
+        service: ColorAnalysisService(
+          decodeRgba: (provider) {
+            started.add(provider);
+            final gate = Completer<Uint8List?>();
+            gates.add(gate);
+            return gate.future;
+          },
+        ),
+        started: started,
+        gates: gates,
+        finishAll: () async {
+          for (var i = 0; i < gates.length; i++) {
+            if (!gates[i].isCompleted) gates[i].complete(null);
+            await tester.pump();
+          }
+        },
+      );
+    }
+
+    Widget tile(MediaItem photo, String key, {ImageProvider? analysisSource}) =>
+        ColorCorrected(
+          key: ValueKey(key),
+          item: photo,
+          analysisSource: analysisSource ?? source,
+          child: const SizedBox(width: 10, height: 10),
+        );
+
     testWidgets('a rebuild does not move it ahead of newer requests', (
       tester,
     ) async {
       final photo = item();
-      final gates = <Completer<Uint8List?>>[];
-      final started = <ImageProvider>[];
-      final service = ColorAnalysisService(
-        decodeRgba: (provider) {
-          started.add(provider);
-          final gate = Completer<Uint8List?>();
-          gates.add(gate);
-          return gate.future;
-        },
-      );
+      final (:service, :started, :gates, :finishAll) = gated(tester);
       final newer = MemoryImage(Uint8List(1));
       unawaited(service.statsFor('held-1', source));
       unawaited(service.statsFor('held-2', source));
@@ -210,35 +240,84 @@ void main() {
       gates.first.complete(null);
       await tester.pump();
       expect(started.last, same(newer));
+      await finishAll();
+    });
 
-      // Answers the rest, whose timeouts would otherwise outlive the test.
-      for (var i = 1; i < gates.length; i++) {
-        gates[i].complete(null);
-        await tester.pump();
-      }
+    testWidgets('a viewer of a queued photo moves it forward', (tester) async {
+      final photo = item();
+      final (:service, :started, :gates, :finishAll) = gated(tester);
+      final queued = MemoryImage(Uint8List(2));
+      unawaited(service.statsFor('held-1', source));
+      unawaited(service.statsFor('held-2', source));
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'grid', analysisSource: queued)]),
+      );
+      unawaited(service.statsFor('newer', MemoryImage(Uint8List(1))));
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(
+          children: [
+            tile(photo, 'grid', analysisSource: queued),
+            tile(photo, 'viewer'),
+          ],
+        ),
+      );
+      gates.first.complete(null);
+      await tester.pump();
+      expect(started.last, same(queued));
+      await finishAll();
+    });
+
+    testWidgets('after a failed decode each tile counts for its key again', (
+      tester,
+    ) async {
+      final photo = item();
+      final (:service, :started, :gates, :finishAll) = gated(tester);
+      final both = Column(children: [tile(photo, 'a'), tile(photo, 'b')]);
+      await pumpTile(tester, service, photo, tree: both);
+      unawaited(service.statsFor('held-1', source));
+      gates.first.complete(null);
+      await tester.pump();
+      unawaited(service.statsFor('held-2', source));
+      expect(started, hasLength(3));
+
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'a'), tile(photo, 'b')]),
+      );
+      await pumpTile(
+        tester,
+        service,
+        photo,
+        tree: Column(children: [tile(photo, 'b')]),
+      );
+      expect(service.isPending(colorStatsKey(photo)), isTrue);
+      await finishAll();
     });
 
     testWidgets('a second tile keeps a shared key queued', (tester) async {
       final photo = item();
       final (:service, :finish) = held(tester);
-      Widget tile(String key) => ColorCorrected(
-        key: ValueKey(key),
-        item: photo,
-        analysisSource: source,
-        child: const SizedBox(width: 10, height: 10),
-      );
       await pumpTile(
         tester,
         service,
         photo,
-        tree: Column(children: [tile('a'), tile('b')]),
+        tree: Column(children: [tile(photo, 'a'), tile(photo, 'b')]),
       );
 
       await pumpTile(
         tester,
         service,
         photo,
-        tree: Column(children: [tile('b')]),
+        tree: Column(children: [tile(photo, 'b')]),
       );
       expect(service.isPending(colorStatsKey(photo)), isTrue);
       await finish();

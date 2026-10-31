@@ -36,6 +36,7 @@ class ColorCorrected extends ConsumerStatefulWidget {
 }
 
 class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
+  /// This tile's request, while it is unanswered.
   ColorStatsRequest? _request;
 
   /// The last stats this tile drew, and for which item.
@@ -78,9 +79,10 @@ class _ColorCorrectedState extends ConsumerState<ColorCorrected> {
     // Analysed, and too few usable pixels: nothing to correct with.
     if (service.hasAnswer(key)) return null;
     final source = widget.analysisSource;
-    if (source != null && !(_request?.key == key && service.isPending(key))) {
+    if (source != null && _request?.key != key) {
       final request = _request = service.request(key, source);
       request.stats.then((stats) {
+        if (identical(_request, request)) _request = null;
         if (mounted && stats != null) setState(() {});
       });
     }
