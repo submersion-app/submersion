@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_results_pane
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/chart_mode_toggle.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_chips.dart';
@@ -32,7 +33,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_chart_read
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -110,9 +113,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
+    // A series of dives cannot be saved, or logged, until series
+    // persistence lands (issue #3565).
+    final saveAllowed = ref.watch(planSaveAllowedProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
-    _isReplan = planState.sourceDiveId != null;
+    // A series is not a throwaway: leaving must not lose what cannot be saved.
+    _isReplan = planState.sourceDiveId != null && saveAllowed;
     final units = ref.watch(unitFormatterProvider);
+    final followAllowed = ref.watch(followAllowedProvider);
     // A plan opened via the :planId route is known-persisted, so short-circuit
     // before watching the (DB-backed) summaries provider; that avoids an
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The
@@ -193,8 +201,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         actions: [
           IconButton(
             icon: Icon(planState.isDirty ? Icons.save : Icons.save_outlined),
-            tooltip: context.l10n.divePlanner_action_savePlan,
-            onPressed: planState.isDirty ? _savePlan : null,
+            tooltip: saveAllowed
+                ? context.l10n.divePlanner_action_savePlan
+                : context.l10n.plannerSeries_saveUnavailable,
+            onPressed: planState.isDirty && saveAllowed ? _savePlan : null,
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole app bar: it contributes no render object, so
@@ -222,6 +232,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'follow',
                   Icons.history,
                   context.l10n.plannerCanvas_follow_title,
+                  enabled: followAllowed,
+                  tooltip: followAllowed
+                      ? null
+                      : context.l10n.plannerSeries_followFirstDiveOnly,
                 ),
                 _menuItem(
                   'settings',
@@ -232,6 +246,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'convert',
                   Icons.scuba_diving,
                   context.l10n.divePlanner_action_convertToDive,
+                  enabled: saveAllowed,
+                  tooltip: saveAllowed
+                      ? null
+                      : context.l10n.plannerSeries_convertUnavailable,
                 ),
                 _menuItem(
                   'slate',
@@ -275,20 +293,24 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     domain.PlanMode.pscr => domain.PlanMode.oc,
   };
 
+  /// An overflow menu entry. [tooltip] says why a disabled entry is not
+  /// available.
   PopupMenuItem<String> _menuItem(
     String value,
     IconData icon,
     String label, {
     bool enabled = true,
+    String? tooltip,
   }) {
+    final tile = ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      contentPadding: EdgeInsets.zero,
+    );
     return PopupMenuItem(
       value: value,
       enabled: enabled,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(label),
-        contentPadding: EdgeInsets.zero,
-      ),
+      child: tooltip == null ? tile : Tooltip(message: tooltip, child: tile),
     );
   }
 
@@ -405,6 +427,10 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }) {
     return Column(
       children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
+          child: PlanSeriesNavigator(),
+        ),
         Expanded(
           child: Stack(
             children: [
@@ -482,6 +508,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // viewport (#1428).
     return CustomScrollView(
       slivers: [
+        const SliverToBoxAdapter(child: PlanSeriesNavigator()),
         SliverToBoxAdapter(
           child: SizedBox(
             height: chartHeight,
@@ -565,7 +592,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       case 0:
         return const Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: PlanTankList(),
+          child: Column(children: [PlanDiveDetailsCard(), PlanTankList()]),
         );
       case 1:
         return const Padding(

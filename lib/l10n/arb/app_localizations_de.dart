@@ -20457,6 +20457,81 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Profildaten für diesen Tauchgang — Oberflächenpause ohne Gewebesättigung übernommen';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'Tauchgang $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Tauchgang hinzufügen';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Tauchgang $letter entfernen';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'Tauchgang $letter und seine Änderungen werden aus der Serie entfernt.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'Tauchgang $letter hat Warnungen';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Tauchgangsdetails';
+
+  @override
+  String get plannerSeries_diveName => 'Name des Tauchgangs';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Tauchgang $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Oberflächenpause';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Oberflächenpause $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'Zeit als h:mm eingeben';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 Minuten weniger';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 Minuten mehr';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '$tank füllen';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Alle Flaschen füllen';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Eine Tauchgangsserie kann noch nicht gespeichert werden';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Eine Tauchgangsserie kann nicht als DPV-Mission geplant werden';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Nur der erste Tauchgang einer Serie kann einem geloggten Tauchgang folgen';
+
+  @override
   String get plannerCanvas_follow_title => 'Einem Tauchgang folgen';
 
   @override

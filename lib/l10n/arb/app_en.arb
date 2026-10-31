@@ -12766,6 +12766,82 @@
   },
   "plannerCanvas_follow_empty": "No logged dives yet",
   "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
+  "plannerSeries_dive": "Dive {letter}",
+  "@plannerSeries_dive": {
+    "description": "The planned dive's letter within its series: A, B, C",
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_addDive": "Add a dive",
+  "plannerSeries_removeDive": "Remove Dive {letter}",
+  "@plannerSeries_removeDive": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_removeDive_message": "Dive {letter} and its changes will be removed from the series.",
+  "@plannerSeries_removeDive_message": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_hasIssues": "Dive {letter} has warnings",
+  "@plannerSeries_hasIssues": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_diveDetails": "Dive details",
+  "plannerSeries_diveName": "Dive name",
+  "plannerSeries_diveNamed": "Dive {letter}: {name}",
+  "@plannerSeries_diveNamed": {
+    "description": "A named planned dive: its letter in the series, then the diver's name for it",
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_surfaceInterval": "Surface interval",
+  "plannerSeries_surfaceIntervalValue": "Surface interval {time}",
+  "@plannerSeries_surfaceIntervalValue": {
+    "description": "Tooltip on the surface interval mark between two planned dives; time is h:mm",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1:30"
+      }
+    }
+  },
+  "plannerSeries_surfaceInterval_invalid": "Enter a time as h:mm",
+  "plannerSeries_surfaceInterval_decrease": "15 minutes less",
+  "plannerSeries_surfaceInterval_increase": "15 minutes more",
+  "plannerSeries_fill": "Fill {tank}",
+  "@plannerSeries_fill": {
+    "description": "The tank's name or gas, such as EAN32",
+    "placeholders": {
+      "tank": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_fillAll": "Fill all tanks",
+  "plannerSeries_saveUnavailable": "A series of dives can't be saved yet",
+  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
+  "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
+  "plannerSeries_followFirstDiveOnly": "Only the first dive of a series can follow a logged dive",
   "plannerCanvas_follow_title": "Follow a dive",
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {

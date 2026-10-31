@@ -20769,6 +20769,80 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف تعريف لهذه الغطسة — تم ضبط الفاصل السطحي دون تحميل الأنسجة';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'الغطسة $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'إضافة غطسة';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'إزالة الغطسة $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'ستُزال الغطسة $letter وتغييراتها من السلسلة.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'الغطسة $letter بها تحذيرات';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'تفاصيل الغطسة';
+
+  @override
+  String get plannerSeries_diveName => 'اسم الغطسة';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'الغطسة $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'الفاصل السطحي $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid => 'أدخل المدة بصيغة س:دد';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => 'أقل بـ 15 دقيقة';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => 'أكثر بـ 15 دقيقة';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'ملء $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
+
+  @override
+  String get plannerSeries_saveUnavailable => 'لا يمكن حفظ سلسلة غطسات بعد';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'لا يمكن تخطيط سلسلة غطسات كمهمة DPV';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'يمكن للغطسة الأولى فقط في السلسلة اتباع غطسة مسجلة';
+
+  @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
 
   @override

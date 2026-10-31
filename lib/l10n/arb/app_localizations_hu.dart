@@ -20407,6 +20407,82 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return '$letter merülés';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Merülés hozzáadása';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return '$letter merülés eltávolítása';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'A(z) $letter merülés és a módosításai kikerülnek a sorozatból.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'A(z) $letter merülésnél figyelmeztetések vannak';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Merülés adatai';
+
+  @override
+  String get plannerSeries_diveName => 'Merülés neve';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return '$letter merülés: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Felszíni idő';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Felszíni idő: $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Adja meg az időt ó:pp formában';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 perccel kevesebb';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 perccel több';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '$tank töltése';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Minden palack töltése';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Merülések sorozata még nem menthető';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Merülések sorozata még nem alakítható naplózott merülésekké';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Merülések sorozata nem tervezhető DPV-küldetésként';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Csak a sorozat első merülése követhet egy naplózott merülést';
+
+  @override
   String get plannerCanvas_follow_title => 'Merülés követése';
 
   @override

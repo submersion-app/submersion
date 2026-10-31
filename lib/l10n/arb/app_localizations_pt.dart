@@ -20483,6 +20483,82 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem dados de perfil nesse mergulho — intervalo de superfície definido sem saturação dos tecidos';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'Mergulho $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Adicionar um mergulho';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Remover o mergulho $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'O mergulho $letter e as suas alterações serão removidos da série.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'O mergulho $letter tem avisos';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Detalhes do mergulho';
+
+  @override
+  String get plannerSeries_diveName => 'Nome do mergulho';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Mergulho $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Intervalo de superfície';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Intervalo de superfície $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Introduza uma duração como h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => 'Menos 15 minutos';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => 'Mais 15 minutos';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Encher $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Encher todas as garrafas';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Ainda não é possível guardar uma série de mergulhos';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Ainda não é possível converter uma série de mergulhos em mergulhos registados';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Não é possível planear uma série de mergulhos como missão DPV';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Só o primeiro mergulho de uma série pode seguir um mergulho registado';
+
+  @override
   String get plannerCanvas_follow_title => 'Seguir um mergulho';
 
   @override

@@ -137,6 +137,7 @@ void main() {
         otuTotal: 30,
         issues: issues,
         endTissue: const BuhlmannState(compartments: []),
+        surfacedTissue: const BuhlmannState(compartments: []),
         tissueTimeline: const [],
         ceilingTrace: const [],
       );

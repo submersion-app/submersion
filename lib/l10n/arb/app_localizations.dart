@@ -32598,6 +32598,120 @@ abstract class AppLocalizations {
   /// **'No profile data on that dive — surface interval set without tissue seeding'**
   String get plannerCanvas_follow_noTissues;
 
+  /// The planned dive's letter within its series: A, B, C
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter}'**
+  String plannerSeries_dive(String letter);
+
+  /// No description provided for @plannerSeries_addDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a dive'**
+  String get plannerSeries_addDive;
+
+  /// No description provided for @plannerSeries_removeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Dive {letter}'**
+  String plannerSeries_removeDive(String letter);
+
+  /// No description provided for @plannerSeries_removeDive_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter} and its changes will be removed from the series.'**
+  String plannerSeries_removeDive_message(String letter);
+
+  /// No description provided for @plannerSeries_hasIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter} has warnings'**
+  String plannerSeries_hasIssues(String letter);
+
+  /// No description provided for @plannerSeries_diveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive details'**
+  String get plannerSeries_diveDetails;
+
+  /// No description provided for @plannerSeries_diveName.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive name'**
+  String get plannerSeries_diveName;
+
+  /// A named planned dive: its letter in the series, then the diver's name for it
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {letter}: {name}'**
+  String plannerSeries_diveNamed(String letter, String name);
+
+  /// No description provided for @plannerSeries_surfaceInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get plannerSeries_surfaceInterval;
+
+  /// Tooltip on the surface interval mark between two planned dives; time is h:mm
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval {time}'**
+  String plannerSeries_surfaceIntervalValue(String time);
+
+  /// No description provided for @plannerSeries_surfaceInterval_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a time as h:mm'**
+  String get plannerSeries_surfaceInterval_invalid;
+
+  /// No description provided for @plannerSeries_surfaceInterval_decrease.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes less'**
+  String get plannerSeries_surfaceInterval_decrease;
+
+  /// No description provided for @plannerSeries_surfaceInterval_increase.
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes more'**
+  String get plannerSeries_surfaceInterval_increase;
+
+  /// The tank's name or gas, such as EAN32
+  ///
+  /// In en, this message translates to:
+  /// **'Fill {tank}'**
+  String plannerSeries_fill(String tank);
+
+  /// No description provided for @plannerSeries_fillAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill all tanks'**
+  String get plannerSeries_fillAll;
+
+  /// No description provided for @plannerSeries_saveUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A series of dives can\'t be saved yet'**
+  String get plannerSeries_saveUnavailable;
+
+  /// No description provided for @plannerSeries_convertUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A series of dives can\'t be converted to logged dives yet'**
+  String get plannerSeries_convertUnavailable;
+
+  /// No description provided for @plannerSeries_missionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A series of dives can\'t be planned as a DPV mission'**
+  String get plannerSeries_missionUnavailable;
+
+  /// No description provided for @plannerSeries_followFirstDiveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the first dive of a series can follow a logged dive'**
+  String get plannerSeries_followFirstDiveOnly;
+
   /// No description provided for @plannerCanvas_follow_title.
   ///
   /// In en, this message translates to:

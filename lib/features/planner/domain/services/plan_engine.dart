@@ -20,6 +20,7 @@ import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
@@ -805,8 +806,9 @@ class PlanEngine {
 
     var state = startState ?? model.initial();
     var runtime = 0;
-    var cns = 0.0;
-    var otu = 0.0;
+    // A repetitive dive starts with the exposure earlier dives left behind.
+    var cns = plan.startCns;
+    var otu = plan.startOtu;
     var maxPpO2 = 0.0;
     int? ndlAtBottom;
     var authoredDecoSeconds = 0;
@@ -929,12 +931,13 @@ class PlanEngine {
       loopSupplyTankId,
     );
 
-    // A separate, finely-sampled replay purely for the chart's ceiling curve.
+    // A separate, finely-sampled replay for the chart's ceiling curve.
     // It never feeds back into `state`/cns/otu/stops, so it cannot perturb
     // the numbers the rest of this method already computed and returned.
     // The same replay walks the authored legs at that resolution, so it is
-    // also where a leg that takes the diver above the ceiling shows up.
-    final (:trace, :breaches) = _ceilingTrace(
+    // also where a leg that takes the diver above the ceiling shows up, and
+    // it ends at the surface, so its last state is the surfaced tissue.
+    final (:trace, :breaches, :surfaced) = _ceilingTrace(
       model,
       plan,
       legs,
@@ -1048,6 +1051,7 @@ class PlanEngine {
       issues: issues,
       endTissue: state as BuhlmannState,
       tissueTimeline: timeline,
+      surfacedTissue: surfaced,
       ceilingTrace: trace,
     );
   }
@@ -1074,7 +1078,14 @@ class PlanEngine {
   /// descent only takes the diver deeper: when one starts above the ceiling
   /// (a repetitive dive begun while still owing deco), no edit to it could
   /// clear the breach.
-  ({List<(int, double)> trace, Iterable<_CeilingBreach> breaches})
+  ///
+  /// [surfaced] is the replay's tissue state at the end: the state on
+  /// reaching the surface, stops and air breaks included.
+  ({
+    List<(int, double)> trace,
+    Iterable<_CeilingBreach> breaches,
+    BuhlmannState surfaced,
+  })
   _ceilingTrace(
     DecoModel model,
     domain.DivePlan plan,
@@ -1162,10 +1173,11 @@ class PlanEngine {
       }
     }
 
-    BreathingConfig ascentBreathingAt(double depth) {
-      final gas = ascentPlan.gasForDepth(depth);
-      return OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
-    }
+    BreathingConfig breathing(AscentGas gas) =>
+        OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
+
+    BreathingConfig ascentBreathingAt(double depth) =>
+        breathing(ascentPlan.gasForDepth(depth));
 
     for (final leg in legs) {
       final segment = leg.segment;
@@ -1190,12 +1202,28 @@ class PlanEngine {
         phase: phase,
       );
       sampleLeg(depth, stop.depthMeters, legSeconds, ascentBreathingAt);
-      sampleLeg(
-        stop.depthMeters,
-        stop.depthMeters,
-        stop.durationSeconds,
-        (_) => ascentBreathingAt(stop.depthMeters),
-      );
+      // A stop with air breaks is breathed in the scheduler's own runs, so
+      // the tissues come out as they did when it timed the stop.
+      final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
+      final airBreaks = policy.airBreaks;
+      if (stop.airBreakSeconds > 0 && breakGas != null && airBreaks != null) {
+        final onBreak = breathing(breakGas);
+        for (final run in airBreakRuns(stop.durationSeconds, airBreaks)) {
+          sampleLeg(
+            stop.depthMeters,
+            stop.depthMeters,
+            run.seconds,
+            (_) => run.onBreak ? onBreak : ascentBreathingAt(stop.depthMeters),
+          );
+        }
+      } else {
+        sampleLeg(
+          stop.depthMeters,
+          stop.depthMeters,
+          stop.durationSeconds,
+          (_) => ascentBreathingAt(stop.depthMeters),
+        );
+      }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
     }
@@ -1208,7 +1236,11 @@ class PlanEngine {
       sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
     }
 
-    return (trace: trace, breaches: breaches.values);
+    return (
+      trace: trace,
+      breaches: breaches.values,
+      surfaced: traceState as BuhlmannState,
+    );
   }
 
   /// The diver-authored segment a resolved leg came from, or null for a leg

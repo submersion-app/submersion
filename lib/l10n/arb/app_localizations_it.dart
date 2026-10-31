@@ -20482,6 +20482,82 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profilo per quell\'immersione — intervallo di superficie impostato senza saturazione dei tessuti';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'Immersione $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Aggiungi un\'immersione';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Rimuovi l\'immersione $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'L\'immersione $letter e le sue modifiche verranno rimosse dalla serie.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'L\'immersione $letter ha degli avvisi';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Dettagli dell\'immersione';
+
+  @override
+  String get plannerSeries_diveName => 'Nome dell\'immersione';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Immersione $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Intervallo di superficie';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Intervallo di superficie $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Inserisci una durata come h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minuti in meno';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minuti in più';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Riempi $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Riempi tutte le bombole';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Non è ancora possibile salvare una serie di immersioni';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Non è ancora possibile convertire una serie di immersioni in immersioni registrate';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Non è possibile pianificare una serie di immersioni come missione DPV';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Solo la prima immersione di una serie può seguire un\'immersione registrata';
+
+  @override
   String get plannerCanvas_follow_title => 'Segui un\'immersione';
 
   @override

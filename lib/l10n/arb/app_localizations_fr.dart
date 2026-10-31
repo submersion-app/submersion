@@ -20539,6 +20539,82 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pas de données de profil pour cette plongée — intervalle de surface défini sans saturation des tissus';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'Plongée $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Ajouter une plongée';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Supprimer la plongée $letter';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'La plongée $letter et ses modifications seront retirées de la série.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'La plongée $letter comporte des avertissements';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Détails de la plongée';
+
+  @override
+  String get plannerSeries_diveName => 'Nom de la plongée';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Plongée $letter : $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Intervalle de surface';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Intervalle de surface $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Saisissez une durée au format h:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minutes de moins';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minutes de plus';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return 'Remplir $tank';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Remplir tous les blocs';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Une série de plongées ne peut pas encore être enregistrée';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Une série de plongées ne peut pas encore être convertie en plongées enregistrées';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Une série de plongées ne peut pas être planifiée comme mission DPV';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Seule la première plongée d\'une série peut suivre une plongée enregistrée';
+
+  @override
   String get plannerCanvas_follow_title => 'Suivre une plongée';
 
   @override

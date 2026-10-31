@@ -20350,6 +20350,82 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging';
 
   @override
+  String plannerSeries_dive(String letter) {
+    return 'Duik $letter';
+  }
+
+  @override
+  String get plannerSeries_addDive => 'Duik toevoegen';
+
+  @override
+  String plannerSeries_removeDive(String letter) {
+    return 'Duik $letter verwijderen';
+  }
+
+  @override
+  String plannerSeries_removeDive_message(String letter) {
+    return 'Duik $letter en de wijzigingen daarin worden uit de reeks verwijderd.';
+  }
+
+  @override
+  String plannerSeries_hasIssues(String letter) {
+    return 'Duik $letter heeft waarschuwingen';
+  }
+
+  @override
+  String get plannerSeries_diveDetails => 'Duikgegevens';
+
+  @override
+  String get plannerSeries_diveName => 'Naam van de duik';
+
+  @override
+  String plannerSeries_diveNamed(String letter, String name) {
+    return 'Duik $letter: $name';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval => 'Oppervlakte-interval';
+
+  @override
+  String plannerSeries_surfaceIntervalValue(String time) {
+    return 'Oppervlakte-interval $time';
+  }
+
+  @override
+  String get plannerSeries_surfaceInterval_invalid =>
+      'Voer een tijd in als u:mm';
+
+  @override
+  String get plannerSeries_surfaceInterval_decrease => '15 minuten minder';
+
+  @override
+  String get plannerSeries_surfaceInterval_increase => '15 minuten meer';
+
+  @override
+  String plannerSeries_fill(String tank) {
+    return '$tank vullen';
+  }
+
+  @override
+  String get plannerSeries_fillAll => 'Alle flessen vullen';
+
+  @override
+  String get plannerSeries_saveUnavailable =>
+      'Een reeks duiken kan nog niet worden opgeslagen';
+
+  @override
+  String get plannerSeries_convertUnavailable =>
+      'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
+
+  @override
+  String get plannerSeries_missionUnavailable =>
+      'Een reeks duiken kan niet als DPV-missie worden gepland';
+
+  @override
+  String get plannerSeries_followFirstDiveOnly =>
+      'Alleen de eerste duik van een reeks kan een gelogde duik volgen';
+
+  @override
   String get plannerCanvas_follow_title => 'Volg een duik';
 
   @override
