@@ -15949,6 +15949,12 @@ abstract class AppLocalizations {
   /// **'CNS {value}'**
   String diveLog_o2tox_cnsBadgeLabel(Object value);
 
+  /// No description provided for @diveLog_o2tox_cnsMinimumNote.
+  ///
+  /// In en, this message translates to:
+  /// **'An earlier dive has no oxygen data, so this may be higher.'**
+  String get diveLog_o2tox_cnsMinimumNote;
+
   /// No description provided for @diveLog_o2tox_cnsOxygenClock.
   ///
   /// In en, this message translates to:
@@ -32825,6 +32831,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
+
+  /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
+  ///
+  /// In en, this message translates to:
+  /// **'No bailout gas reaches {depth}: the deepest MOD carried is {deepestMod}. Carry a gas usable at that depth; more of the same gas will not help.'**
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  );
 
   /// No description provided for @plannerCanvas_issue_noDecoGas.
   ///

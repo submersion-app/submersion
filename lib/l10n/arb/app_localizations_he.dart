@@ -9864,6 +9864,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'לצלילה קודמת אין נתוני חמצן, ולכן הערך עשוי להיות גבוה יותר.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'שעון חמצן CNS';
 
   @override
@@ -20183,6 +20187,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'אף גז חילוץ (bailout) אינו מגיע ל-$depth: ה-MOD העמוק ביותר שנישא הוא $deepestMod. יש לשאת גז שמיש בעומק זה; תוספת מאותו גז לא תעזור.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

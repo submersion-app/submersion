@@ -48,7 +48,9 @@
 /// intervals, course-requirement progress, and the logbook list header all
 /// count excluded dives on purpose; each carries a doc comment saying so. A
 /// practice dive still cycled the regulator, and a dive the diver linked to a
-/// course requirement was linked on purpose.
+/// course requirement was linked on purpose. Gear wear still needs the dive to
+/// have happened, so equipment usage carries its own `is_planned = 0`: a plan
+/// has cycled nothing (issue #3932).
 ///
 /// See
 /// `docs/design/specs/2026-08-28-exclude-dive-from-statistics-design.md`.

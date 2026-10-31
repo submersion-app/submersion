@@ -10024,6 +10024,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Een eerdere duik heeft geen zuurstofgegevens, dus deze waarde kan hoger zijn.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS-zuurstofklok';
 
   @override
@@ -20510,6 +20514,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Decompressieplan heeft geen bailoutgas aan boord';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Geen bailoutgas bereikt $depth: de diepste meegenomen MOD is $deepestMod. Neem een gas mee dat op die diepte bruikbaar is; meer van hetzelfde gas helpt niet.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

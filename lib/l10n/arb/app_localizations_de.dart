@@ -10084,6 +10084,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Für einen früheren Tauchgang liegen keine Sauerstoffdaten vor, der Wert kann daher höher sein.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS-Sauerstoffuhr';
 
   @override
@@ -20616,6 +20620,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Dekompressionsplan führt kein Bailout-Gas mit';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Kein Bailout-Gas reicht bis $depth: Die tiefste mitgeführte MOD beträgt $deepestMod. Führe ein Gas mit, das in dieser Tiefe nutzbar ist; mehr vom selben Gas hilft nicht.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

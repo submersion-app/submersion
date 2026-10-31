@@ -9573,6 +9573,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote => '之前的一次潜水没有氧气数据，因此该数值可能更高。';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => '中枢神经系统氧时钟';
 
   @override
@@ -19633,6 +19636,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return '没有逃生气体能到达 $depth：所携带气体的最深 MOD 为 $deepestMod。请携带可在该深度使用的气体；增加同一种气体无济于事。';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas => '需要减压但未携带减压气体';

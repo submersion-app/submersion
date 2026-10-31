@@ -367,20 +367,33 @@ class DiveCenterRepository {
     return await query.map((row) => row.read(count)).getSingle() ?? 0;
   }
 
-  /// Get dive count for a dive center
-  Future<int> getDiveCountForCenter(String centerId) async {
-    final result = await _db
-        .customSelect(
-          '''
-      SELECT COUNT(*) as count
+  /// Dive count per center id, counted in SQL so any number of centers costs
+  /// one read. A center with no counted dives is absent from the map.
+  Future<Map<String, int>> getDiveCountsByCenter() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            '''
+      SELECT dive_center_id, COUNT(*) AS count
       FROM dives
-      WHERE dive_center_id = ?${DiveStatsScope.and(alias: 'dives')}
+      WHERE dive_center_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
+      GROUP BY dive_center_id
     ''',
-          variables: [Variable.withString(centerId)],
-        )
-        .getSingle();
-
-    return result.data['count'] as int? ?? 0;
+            readsFrom: {_db.dives},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('dive_center_id'): row.read<int>('count'),
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives per center',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// The newest real dive logged with [centerId], skipping planned dives

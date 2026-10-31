@@ -696,8 +696,8 @@ void main() {
   });
 
   // =========================================================================
-  // Gas segments wiring — exercises the inline buildGasUsageSegments logic
-  // added to DiveDetailPage._buildProfilePanel in the latest commit.
+  // Gas segments wiring: exercises the buildGasUsageSegments call in
+  // DiveProfileChartHost.
   // =========================================================================
 
   group('DiveDetailPage - gas segments wiring', () {

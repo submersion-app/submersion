@@ -10063,6 +10063,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Egy korábbi merüléshez nincs oxigénadat, ezért ez az érték magasabb is lehet.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS oxigén óra';
 
   @override
@@ -20567,6 +20571,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'A dekompressziós terv nem tartalmaz bailout gázt';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Egyetlen bailout gáz sem éri el a(z) $depth mélységet: a legmélyebb vitt MOD $deepestMod. Vigyél ezen a mélységen használható gázt; ugyanabból a gázból több nem segít.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

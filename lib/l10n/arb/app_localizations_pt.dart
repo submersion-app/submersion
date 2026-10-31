@@ -10087,6 +10087,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Um mergulho anterior não tem dados de oxigénio, por isso este valor pode ser mais alto.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'Relógio de Oxigenio CNS';
 
   @override
@@ -20643,6 +20647,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'O plano de descompressão não leva gás de bailout';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Nenhum gás de bailout chega a $depth: a MOD mais profunda transportada é $deepestMod. Leve um gás utilizável a essa profundidade; mais do mesmo gás não resolve.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

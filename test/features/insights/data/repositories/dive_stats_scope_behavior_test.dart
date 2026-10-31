@@ -317,7 +317,7 @@ void main() {
       );
     });
 
-    test('getDiveCountForCenter ignores excluded and planned dives', () async {
+    test('getDiveCountsByCenter ignores excluded and planned dives', () async {
       final at = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
       await db
           .into(db.diveCenters)
@@ -331,9 +331,9 @@ void main() {
           );
       await db.customStatement(
         "UPDATE dives SET dive_center_id = 'c1' "
-        "WHERE id IN ('included', 'excluded')",
+        "WHERE id IN ('included', 'excluded', 'planned')",
       );
-      expect(await DiveCenterRepository().getDiveCountForCenter('c1'), 1);
+      expect(await DiveCenterRepository().getDiveCountsByCenter(), {'c1': 1});
     });
   });
 }

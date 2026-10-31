@@ -10235,6 +10235,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'لا توجد بيانات أكسجين لغوصة سابقة، لذا قد تكون هذه القيمة أعلى.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'ساعة أكسجين CNS';
 
   @override
@@ -20926,6 +20930,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'خطة تخفيف الضغط لا تتضمن غاز إنقاذ (bailout)';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'لا يصل أي غاز إنقاذ (bailout) إلى $depth: أعمق MOD محمول هو $deepestMod. احمل غازًا صالحًا للاستخدام عند هذا العمق؛ فالمزيد من الغاز نفسه لن يفيد.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

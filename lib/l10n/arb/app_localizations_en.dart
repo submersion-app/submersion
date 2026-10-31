@@ -9929,6 +9929,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'An earlier dive has no oxygen data, so this may be higher.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS Oxygen Clock';
 
   @override
@@ -20334,6 +20338,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Decompression plan carries no bailout gas';
+
+  @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'No bailout gas reaches $depth: the deepest MOD carried is $deepestMod. Carry a gas usable at that depth; more of the same gas will not help.';
+  }
 
   @override
   String get plannerCanvas_issue_noDecoGas =>

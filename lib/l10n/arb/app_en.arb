@@ -5716,6 +5716,7 @@
   "diveLog_numbering_title": "Dive Numbering",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{dive} other{dives}} without numbers",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "An earlier dive has no oxygen data, so this may be higher.",
   "diveLog_o2tox_cnsOxygenClock": "CNS Oxygen Clock",
   "diveLog_o2tox_deltaDive": "+{value}% this dive",
   "diveLog_o2tox_details": "Details",
@@ -12953,6 +12954,17 @@
     }
   },
   "plannerCanvas_issue_noBailout": "Decompression plan carries no bailout gas",
+  "plannerCanvas_issue_noEligibleBailoutGas": "No bailout gas reaches {depth}: the deepest MOD carried is {deepestMod}. Carry a gas usable at that depth; more of the same gas will not help.",
+  "@plannerCanvas_issue_noEligibleBailoutGas": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "deepestMod": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_issue_noDecoGas": "Decompression required but no deco gas carried",
   "plannerCanvas_range_base": "Base",
   "plannerCanvas_range_legend": "Cells show time to surface; red = not diveable as planned",

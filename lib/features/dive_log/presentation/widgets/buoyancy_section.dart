@@ -16,8 +16,8 @@ import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 /// Dive-detail section presenting the modeled net buoyancy through the dive:
 /// a plain-language final-stop verdict, an expandable term breakdown, and
-/// summary metrics. Self-suppresses (renders nothing) while loading, on
-/// error, or when the dive is unmodelable.
+/// summary metrics. Self-suppresses (renders nothing) until it has an outcome,
+/// or when the dive is unmodelable.
 class BuoyancySection extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
@@ -26,12 +26,10 @@ class BuoyancySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(buoyancyTwinProvider(diveId));
-    return async.maybeWhen(
-      data: (outcome) =>
-          outcome == null ? const SizedBox.shrink() : _card(context, outcome),
-      orElse: () => const SizedBox.shrink(),
-    );
+    // AsyncValue.value keeps the last outcome while the provider reloads, as
+    // it does behind every refresh of the dive, so the card stays on screen.
+    final outcome = ref.watch(buoyancyTwinProvider(diveId)).value;
+    return outcome == null ? const SizedBox.shrink() : _card(context, outcome);
   }
 
   Widget _card(BuildContext context, BuoyancyTwinOutcome outcome) {

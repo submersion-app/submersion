@@ -115,7 +115,8 @@ Future<List<Override>> _buildOverrides({
     diveCenterTableConfigProvider.overrideWith(
       (ref) => _TestDCTableConfigNotifier(_testConfig),
     ),
-    // Override dive count provider so it returns 0 for any center
+    // Dive counts read 0 for any center, in the table and in the rows.
+    diveCenterDiveCountsProvider.overrideWith((ref) => const {}),
     diveCenterDiveCountProvider.overrideWith((ref, centerId) => 0),
   ];
 }
@@ -139,6 +140,7 @@ Future<List<Override>> _buildPhoneOverrides({
     diveCenterTableConfigProvider.overrideWith(
       (ref) => _TestDCTableConfigNotifier(_testConfig),
     ),
+    diveCenterDiveCountsProvider.overrideWith((ref) => const {}),
     diveCenterDiveCountProvider.overrideWith((ref, centerId) => 0),
     highlightedDiveCenterIdProvider.overrideWith(
       (ref) => highlightedDiveCenterId,

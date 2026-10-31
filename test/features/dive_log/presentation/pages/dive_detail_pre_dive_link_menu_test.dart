@@ -21,13 +21,25 @@ class _StubSessionRepository implements PreDiveSessionRepository {
   /// Every link write in order. A null diveId is an unlink.
   final List<({String sessionId, String? diveId})> linkWrites = [];
 
-  @override
-  Future<void> linkToDive(String sessionId, String diveId) async =>
-      linkWrites.add((sessionId: sessionId, diveId: diveId));
+  /// Thrown from the writes when set.
+  Object? failure;
+
+  void _throwIfFailing() {
+    final failure = this.failure;
+    if (failure != null) throw failure;
+  }
 
   @override
-  Future<void> unlinkFromDive(String sessionId) async =>
-      linkWrites.add((sessionId: sessionId, diveId: null));
+  Future<void> linkToDive(String sessionId, String diveId) async {
+    _throwIfFailing();
+    linkWrites.add((sessionId: sessionId, diveId: diveId));
+  }
+
+  @override
+  Future<void> unlinkFromDive(String sessionId) async {
+    _throwIfFailing();
+    linkWrites.add((sessionId: sessionId, diveId: null));
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -158,6 +170,44 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.linkWrites, [(sessionId: 's1', diveId: null)]);
+    });
+
+    testWidgets('$label: a link that fails tells the diver', (tester) async {
+      final repo = await pumpDetail(
+        tester,
+        embedded: embedded,
+        unlinked: [session('s1')],
+      );
+      repo.failure = StateError('the write failed');
+
+      await openMenu(tester);
+      await tester.tap(find.text('Link pre-dive checklist'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('CCR Build Check'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('$label: an unlink that fails tells the diver', (tester) async {
+      final repo = await pumpDetail(
+        tester,
+        embedded: embedded,
+        linked: session('s1'),
+      );
+      repo.failure = StateError('the write failed');
+
+      await openMenu(tester);
+      await tester.tap(find.text('Unlink pre-dive checklist'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
     });
   }
 }
