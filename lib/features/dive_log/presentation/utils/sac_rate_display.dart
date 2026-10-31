@@ -45,21 +45,18 @@ class SacRateDisplay {
   String unit(Iterable<String?> tankIds) =>
       tankIds.any(readsInVolume) ? units.rmvSymbol : units.sacSymbol;
 
-  /// The rate for a cell under a heading of [headingUnit]: the bare number,
-  /// or the number with its own unit on an entry that reads differently from
-  /// its column.
-  String cell(double sacRate, {String? tankId, required String headingUnit}) {
-    final barPerMin = sacRate * normalizationFactor;
-    final inVolume = readsInVolume(tankId);
+  /// The average of [segments] for a cell under a heading of [headingUnit]:
+  /// the bare number, or the number with its own unit on an entry that reads
+  /// differently from its column.
+  String cell(List<SacSegment> segments, {required String headingUnit}) {
+    final inVolume = segments.map((s) => s.tankId).every(readsInVolume);
     if ((inVolume ? units.rmvSymbol : units.sacSymbol) != headingUnit) {
-      return format(sacRate, tankId: tankId);
+      return formatAverage(segments);
     }
+    final value = averageRate(segments);
     return inVolume
-        ? formatFixedForDisplay(
-            units.convertRmv(barPerMin * volumeFor(tankId)!),
-            units.rmvDecimals,
-          )
-        : formatFixedForDisplay(units.convertSac(barPerMin), units.sacDecimals);
+        ? formatFixedForDisplay(units.convertRmv(value), units.rmvDecimals)
+        : formatFixedForDisplay(units.convertSac(value), units.sacDecimals);
   }
 
   /// The rate on a scale shared with every entry on [among], for sizing bars
@@ -82,9 +79,11 @@ class SacRateDisplay {
       ? units.formatRmv(value)
       : units.formatSac(value);
 
-  /// The duration-weighted mean of [segments], as a [comparable] value.
-  double averageRate(List<SacSegment> segments) {
-    final tankIds = segments.map((s) => s.tankId);
+  /// The duration-weighted mean of [segments], as a [comparable] value among
+  /// [among], which defaults to their own cylinders. Each stretch converts
+  /// with its own cylinder, since a phase can span a gas switch.
+  double averageRate(List<SacSegment> segments, {Iterable<String?>? among}) {
+    final tankIds = among ?? segments.map((s) => s.tankId);
     final totalSeconds = segments.fold(0, (sum, s) => sum + s.durationSeconds);
     if (totalSeconds <= 0) return 0;
     final weighted = segments.fold(

@@ -117,6 +117,75 @@ Offset _columnCenter(WidgetTester tester, int index, int count) {
 }
 
 void main() {
+  group('a merged row across cylinders', () {
+    testWidgets('converts each stretch with its own volume', (tester) async {
+      await _pump(
+        tester,
+        phases: [
+          _segment(0, 6, phase: DivePhase.ascent, tankId: 'twin'),
+          _segment(6, 10, phase: DivePhase.ascent, tankId: 'stage'),
+        ],
+        gases: const [],
+        rates: _rates(volumeFor: (id) => id == 'twin' ? 24.0 : 7.0),
+      );
+
+      expect(find.text('17.2'), findsOneWidget);
+    });
+  });
+
+  group('time the segments do not cover', () {
+    final gap = [_segment(0, 5, sacRate: 1.0), _segment(20, 25, sacRate: 2.0)];
+
+    testWidgets('a sample gap keeps the axis on real time', (tester) async {
+      await _pump(tester, time: gap);
+
+      expect(find.text('20 min'), findsOneWidget);
+    });
+
+    testWidgets('a tap in the gap picks the next column', (tester) async {
+      await _pump(tester, time: gap);
+      final chart = tester.getRect(find.byType(SacTimeColumns));
+
+      // 30% of 25 minutes is 7.5, past the first column's end at 5.
+      await tester.tapAt(
+        Offset(chart.left + chart.width * 0.3, chart.top + 30),
+      );
+      await tester.pump();
+      expect(find.textContaining('20-25 min'), findsOneWidget);
+    });
+
+    testWidgets('a late first sample does not shift the axis', (tester) async {
+      await _pump(
+        tester,
+        time: [_segment(10, 15), _segment(15, 20, sacRate: 2.0)],
+      );
+      final chart = tester.getRect(find.byType(SacTimeColumns));
+
+      expect(find.text('20 min'), findsOneWidget);
+      await tester.tapAt(
+        Offset(chart.left + chart.width * 0.6, chart.top + 30),
+      );
+      await tester.pump();
+      expect(find.textContaining('10-15 min'), findsOneWidget);
+    });
+  });
+
+  testWidgets('hovering inside one column does not rebuild the card', (
+    tester,
+  ) async {
+    await _pump(tester);
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    final center = _columnCenter(tester, 1, 4);
+    await gesture.addPointer(location: center);
+    await gesture.moveTo(center);
+    await tester.pump();
+
+    await gesture.moveTo(center + const Offset(2, 0));
+
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   group('all three breakdowns at once', () {
     testWidgets('shows time, phase and gas together with no mode control', (
       tester,

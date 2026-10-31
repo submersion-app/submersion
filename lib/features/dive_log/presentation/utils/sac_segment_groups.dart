@@ -14,20 +14,14 @@ class SacSegmentGroup {
   /// Time spent in this group, in seconds.
   final int durationSeconds;
 
-  /// Duration-weighted SAC rate (bar/min at surface).
-  final double sacRate;
-
   /// Duration-weighted average depth (meters).
   final double avgDepth;
 
   SacSegmentGroup(this.segments)
     : durationSeconds = segments.fold(0, (sum, s) => sum + s.durationSeconds),
-      sacRate = _weightedMean(segments, (s) => s.sacRate),
-      avgDepth = _weightedMean(segments, (s) => s.avgDepth);
+      avgDepth = _weightedDepth(segments);
 
   DivePhase? get phase => segments.first.phase;
-
-  String? get tankId => segments.first.tankId;
 
   String get label => segments.first.displayLabel;
 
@@ -36,15 +30,15 @@ class SacSegmentGroup {
     (s) => timestamp >= s.startTimestamp && timestamp <= s.endTimestamp,
   );
 
-  static double _weightedMean(
-    List<SacSegment> segments,
-    double Function(SacSegment) value,
-  ) {
+  static double _weightedDepth(List<SacSegment> segments) {
     final totalSeconds = segments.fold(0, (sum, s) => sum + s.durationSeconds);
     if (totalSeconds <= 0) {
-      return segments.fold(0.0, (sum, s) => sum + value(s)) / segments.length;
+      return segments.fold(0.0, (sum, s) => sum + s.avgDepth) / segments.length;
     }
-    return segments.fold(0.0, (sum, s) => sum + value(s) * s.durationSeconds) /
+    return segments.fold(
+          0.0,
+          (sum, s) => sum + s.avgDepth * s.durationSeconds,
+        ) /
         totalSeconds;
   }
 }

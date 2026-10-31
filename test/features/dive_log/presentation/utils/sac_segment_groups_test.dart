@@ -53,13 +53,12 @@ void main() {
       expect(ascent.durationSeconds, 120);
     });
 
-    test('weights rate and depth by duration', () {
+    test('weights depth by duration', () {
       final group = groupSegmentsByPhase([
-        _segment(0, 60, sacRate: 2.0, avgDepth: 30, phase: DivePhase.bottom),
-        _segment(60, 240, sacRate: 1.0, avgDepth: 10, phase: DivePhase.bottom),
+        _segment(0, 60, avgDepth: 30, phase: DivePhase.bottom),
+        _segment(60, 240, avgDepth: 10, phase: DivePhase.bottom),
       ]).single;
 
-      expect(group.sacRate, closeTo(1.25, 1e-9));
       expect(group.avgDepth, closeTo(15.0, 1e-9));
     });
 
@@ -69,11 +68,11 @@ void main() {
 
     test('zero-length segments average evenly instead of dividing by 0', () {
       final group = groupSegmentsByPhase([
-        _segment(60, 60, sacRate: 2.0, phase: DivePhase.deco),
-        _segment(60, 60, sacRate: 1.0, phase: DivePhase.deco),
+        _segment(60, 60, avgDepth: 20, phase: DivePhase.deco),
+        _segment(60, 60, avgDepth: 10, phase: DivePhase.deco),
       ]).single;
 
-      expect(group.sacRate, closeTo(1.5, 1e-9));
+      expect(group.avgDepth, closeTo(15.0, 1e-9));
     });
   });
 
@@ -87,7 +86,6 @@ void main() {
 
       expect(groups.map((g) => g.label), ['Left', 'Right']);
       expect(groups.first.durationSeconds, 1200);
-      expect(groups.first.tankId, 'left');
     });
 
     test('keeps two cylinders with the same name apart', () {

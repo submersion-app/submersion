@@ -75,21 +75,6 @@ void main() {
     });
   });
 
-  group('cell', () {
-    test('drops the unit when it matches the heading', () {
-      expect(display().cell(1.5, headingUnit: 'L/min'), '18.0');
-    });
-
-    test('keeps the unit on an entry that reads differently', () {
-      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
-
-      expect(
-        rates.cell(1.5, tankId: 'stage', headingUnit: 'L/min'),
-        '1.5 bar/min',
-      );
-    });
-  });
-
   group('comparable', () {
     test('is the displayed value when every entry converts', () {
       final rates = display(volumeFor: (id) => id == 'stage' ? 7.0 : 11.0);
@@ -128,6 +113,48 @@ void main() {
           gasConsumed: 1,
           tankId: tankId,
         );
+
+    group('cell', () {
+      test('drops the unit when it matches the heading', () {
+        expect(
+          display().cell([segment(60, 1.5)], headingUnit: 'L/min'),
+          '18.0',
+        );
+      });
+
+      test('keeps the unit on an entry that reads differently', () {
+        final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+        expect(
+          rates.cell([segment(60, 1.5, tankId: 'stage')], headingUnit: 'L/min'),
+          '1.5 bar/min',
+        );
+      });
+
+      test('converts each stretch with its own cylinder', () {
+        final rates = display(volumeFor: (id) => id == 'twin' ? 24.0 : 7.0);
+
+        expect(
+          rates.cell([
+            segment(360, 1.0, tankId: 'twin'),
+            segment(240, 1.0, tankId: 'stage'),
+          ], headingUnit: 'L/min'),
+          '17.2',
+        );
+      });
+    });
+
+    test('puts a group on the scale of every entry in [among]', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      expect(
+        rates.averageRate(
+          [segment(60, 1.5, tankId: 'back')],
+          among: const ['back', 'stage'],
+        ),
+        closeTo(1.5, 1e-9),
+      );
+    });
 
     test('weights each segment by its duration', () {
       final rates = display();

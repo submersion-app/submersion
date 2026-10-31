@@ -56,6 +56,14 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     }
   }
 
+  void _setHovered(int? index) {
+    if (index != _hoveredIndex) setState(() => _hoveredIndex = index);
+  }
+
+  void _setPinned(int? index) {
+    if (index != _pinnedIndex) setState(() => _pinnedIndex = index);
+  }
+
   String _timeRange(SacSegment segment) =>
       context.l10n.diveLog_detail_sacSegments_timeRange(
         '${segment.startTimestamp ~/ 60}',
@@ -101,11 +109,13 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     final tankIds = segments.map((s) => s.tankId);
     double comparable(SacSegment s) =>
         rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
-    final peakValue = segments.map(comparable).reduce(math.max);
+    final peak = segments.reduce(
+      (best, s) => comparable(s) > comparable(best) ? s : best,
+    );
+    final peakValue = comparable(peak);
     double share(double value) => peakValue > 0 ? value / peakValue : 0;
 
     final active = activeIndex == null ? null : segments[activeIndex];
-    final peak = segments.firstWhere((s) => comparable(s) == peakValue);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -129,6 +139,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           columns: [
             for (final segment in segments)
               SacTimeColumn(
+                startSeconds: segment.startTimestamp,
                 durationSeconds: segment.durationSeconds,
                 heightFactor: share(comparable(segment)),
                 semanticLabel: [
@@ -142,11 +153,9 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           activeIndex: activeIndex,
           endLabel: (minutes) =>
               l10n.diveLog_detail_sacSegments_axisMinutes('$minutes'),
-          onTap: (index) => setState(
-            () => _pinnedIndex = _pinnedIndex == index ? null : index,
-          ),
-          onScrub: (index) => setState(() => _pinnedIndex = index),
-          onHover: (index) => setState(() => _hoveredIndex = index),
+          onTap: (index) => _setPinned(_pinnedIndex == index ? null : index),
+          onScrub: _setPinned,
+          onHover: _setHovered,
         ),
         const SizedBox(height: 6),
         Text(
@@ -177,10 +186,12 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
 
     // Phase and gas bars share a scale, so a row compares across sections.
     final groups = [...phases, ...gases];
-    final tankIds = groups.map((g) => g.tankId);
+    final tankIds = [
+      for (final group in groups) ...group.segments.map((s) => s.tankId),
+    ];
     final headingUnit = rates.unit(tankIds);
     double comparable(SacSegmentGroup g) =>
-        rates.comparable(g.sacRate, tankId: g.tankId, among: tankIds);
+        rates.averageRate(g.segments, among: tankIds);
     final peak = groups.map(comparable).reduce(math.max);
 
     List<SacSegmentTableRow> rows(
@@ -197,17 +208,13 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
             label: label(group),
             icon: icon?.call(group),
             barFactor: peak > 0 ? comparable(group) / peak : 0,
-            rate: rates.cell(
-              group.sacRate,
-              tankId: group.tankId,
-              headingUnit: headingUnit,
-            ),
+            rate: rates.cell(group.segments, headingUnit: headingUnit),
             depth: _depth(group.avgDepth),
             duration: _duration(group.durationSeconds),
             selected: index == selected,
             semanticLabel: [
               label(group),
-              rates.format(group.sacRate, tankId: group.tankId),
+              rates.formatAverage(group.segments),
               _depth(group.avgDepth),
               _duration(group.durationSeconds),
             ].join(', '),

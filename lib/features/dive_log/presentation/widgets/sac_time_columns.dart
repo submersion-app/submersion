@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 
 /// One stretch of the dive in [SacTimeColumns].
 class SacTimeColumn {
+  /// Where the column starts on the time axis, in seconds from dive start.
+  final int startSeconds;
+
   /// Sets the column's width, so a short final stretch draws narrower.
   final int durationSeconds;
 
@@ -14,10 +17,13 @@ class SacTimeColumn {
   final String semanticLabel;
 
   const SacTimeColumn({
+    required this.startSeconds,
     required this.durationSeconds,
     required this.heightFactor,
     required this.semanticLabel,
   });
+
+  int get endSeconds => startSeconds + durationSeconds;
 }
 
 /// The minute marks for a time axis of [totalMinutes], four intervals at most.
@@ -34,7 +40,9 @@ List<int> sacTimeAxisTicks(int totalMinutes) {
 ///
 /// It stays the same height however long the dive is, which is why time gets
 /// a chart: a five-minute grid has one row per interval as a list. Time runs
-/// left to right in every locale, as it does on the profile chart.
+/// left to right in every locale, as it does on the profile chart. Time with
+/// no column, before the first sample or across a gap in the log, stays empty
+/// so that every column sits at its real time.
 class SacTimeColumns extends StatelessWidget {
   static const double _chartHeight = 70;
 
@@ -75,27 +83,23 @@ class SacTimeColumns extends StatelessWidget {
     colorScheme.surface,
   );
 
-  /// Column widths, with room for a zero-length stretch.
-  List<int> get _flexes =>
-      columns.map((c) => math.max(1, c.durationSeconds)).toList();
+  /// The empty time ahead of the column at [index].
+  int _gapBefore(int index) =>
+      columns[index].startSeconds -
+      (index == 0 ? 0 : columns[index - 1].endSeconds);
 
+  /// The column at [dx], or the next one when [dx] falls in a gap.
   int _indexAt(BuildContext context, double dx) {
-    final flexes = _flexes;
-    final total = flexes.fold(0, (sum, f) => sum + f);
-    final target = (dx / context.size!.width).clamp(0.0, 1.0) * total;
-    var edge = 0;
-    for (var i = 0; i < flexes.length; i++) {
-      edge += flexes[i];
-      if (target <= edge) return i;
-    }
-    return flexes.length - 1;
+    final fraction = (dx / context.size!.width).clamp(0.0, 1.0);
+    final seconds = fraction * columns.last.endSeconds;
+    final index = columns.indexWhere((c) => seconds <= c.endSeconds);
+    return index < 0 ? columns.length - 1 : index;
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final idle = idleColor(colorScheme);
-    final flexes = _flexes;
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -124,9 +128,11 @@ class SacTimeColumns extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (var i = 0; i < columns.length; i++)
+                        for (var i = 0; i < columns.length; i++) ...[
+                          if (_gapBefore(i) > 0) Spacer(flex: _gapBefore(i)),
                           Expanded(
-                            flex: flexes[i],
+                            // Room for a zero-length stretch.
+                            flex: math.max(1, columns[i].durationSeconds),
                             child: Semantics(
                               container: true,
                               label: columns[i].semanticLabel,
@@ -156,6 +162,7 @@ class SacTimeColumns extends StatelessWidget {
                               ),
                             ),
                           ),
+                        ],
                       ],
                     ),
                     IgnorePointer(
@@ -184,7 +191,7 @@ class SacTimeColumns extends StatelessWidget {
     final style = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.onSurfaceVariant,
     );
-    final totalSeconds = columns.fold(0, (sum, c) => sum + c.durationSeconds);
+    final totalSeconds = columns.last.endSeconds;
     final ticks = sacTimeAxisTicks(totalSeconds ~/ 60);
 
     return ExcludeSemantics(
