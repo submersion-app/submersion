@@ -249,26 +249,18 @@ class SyncInitializer {
   List<String> _recordedUploadNonces(String providerId) =>
       _prefs.getStringList(_uploadNoncesKey(providerId)) ?? const [];
 
-  /// Record a nonce this install is stamping into an upload to [providerId].
+  /// Record a nonce this install's own manifest on [providerId] carries, or is
+  /// about to. A nonce already held moves up rather than taking a second slot,
+  /// so a resumed publish retrying its manifest costs the ring nothing.
   Future<void> recordUploadNonce(String nonce, String providerId) async {
-    final nonces = [nonce, ..._recordedUploadNonces(providerId)];
+    final nonces = [
+      nonce,
+      ..._recordedUploadNonces(providerId).where((n) => n != nonce),
+    ];
     await _prefs.setStringList(
       _uploadNoncesKey(providerId),
       nonces.take(_maxRecordedNonces).toList(),
     );
-  }
-
-  /// Best-effort removal of a speculatively recorded nonce after its upload
-  /// failed outright. Never throws.
-  Future<void> removeUploadNonce(String nonce, String providerId) async {
-    try {
-      final nonces = _recordedUploadNonces(
-        providerId,
-      ).where((n) => n != nonce).toList();
-      await _prefs.setStringList(_uploadNoncesKey(providerId), nonces);
-    } catch (_) {
-      // Losing this cleanup only costs a ring slot.
-    }
   }
 
   /// Whether [nonce], read back from this install's OWN per-device cloud

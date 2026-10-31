@@ -148,6 +148,8 @@ void main() {
     expect(find.text('Breakwater'), findsOneWidget);
 
     // Tapping the row re-opens the editor seeded with the fence (edit action).
+    await tester.ensureVisible(find.text('Breakwater'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Breakwater'));
     await tester.pumpAndSettle();
     expect(find.text('Save geofence'), findsOneWidget);
@@ -156,6 +158,8 @@ void main() {
     expect(find.text('Breakwater'), findsOneWidget);
 
     // Remove the geofence.
+    await tester.ensureVisible(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.close));
     await tester.pump();
     expect(find.text('Breakwater'), findsNothing);
@@ -259,7 +263,19 @@ void main() {
     expect(saved?.name, 'Warm Water');
   });
 
-  testWidgets('the diver figure switch starts off and saves with the set', (
+  testWidgets('a new set saves with the diver figure on', (tester) async {
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, 'Reef set');
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+
+    final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
+    expect(sets.single.showFigure, isTrue);
+  });
+
+  testWidgets('the diver figure switch starts on and saves with the set', (
     tester,
   ) async {
     await tester.pumpWidget(await buildPage());
@@ -269,18 +285,18 @@ void main() {
       SwitchListTile,
       'Show diver figure',
     );
-    expect(tester.widget<SwitchListTile>(figureSwitch).value, isFalse);
+    expect(tester.widget<SwitchListTile>(figureSwitch).value, isTrue);
 
     await tester.enterText(find.byType(TextFormField).first, 'Reef set');
     await tester.tap(figureSwitch);
     await tester.pump();
-    expect(tester.widget<SwitchListTile>(figureSwitch).value, isTrue);
+    expect(tester.widget<SwitchListTile>(figureSwitch).value, isFalse);
 
     await tester.tap(appBarSave());
     await tester.pumpAndSettle();
 
     final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
-    expect(sets.single.showFigure, isTrue);
+    expect(sets.single.showFigure, isFalse);
   });
 
   testWidgets('saving a set survives a member being deleted while the form is '
@@ -308,6 +324,8 @@ void main() {
         diverId: 'd1',
         name: 'My Equipment',
         equipmentIds: const ['e1', 'e2', 'e3'],
+        // The figure would name each member a second time.
+        showFigure: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),

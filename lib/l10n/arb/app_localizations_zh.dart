@@ -3077,6 +3077,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
+  String get buddies_field_excludedFromRankings => '不计入潜伴排行';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint => '共同潜水仍计为有潜伴的潜水。';
+
+  @override
   String get buddies_field_nameRequired => '姓名 *';
 
   @override
@@ -3415,6 +3421,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => '共同潜水次数';
+
+  @override
+  String get buddies_stat_excludedFromRankings => '不计入潜伴排行';
 
   @override
   String get buddies_stat_favoriteSite => '最爱潜水点';
@@ -5395,6 +5404,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_action_markCompleted => '标记为已完成';
 
   @override
+  String get courses_action_chooseDive => '选择潜水记录';
+
+  @override
   String get courses_action_unlinkDive => '取消关联潜水';
 
   @override
@@ -5582,6 +5594,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => '建议的潜水';
+
+  @override
+  String get courses_requirement_allDives => '全部潜水';
+
+  @override
+  String get courses_requirement_noDives => '没有可关联的潜水';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return '没有与“$query”匹配的潜水';
+  }
+
+  @override
+  String get courses_requirement_searchDives => '搜索潜水';
 
   @override
   String get courses_requirements_empty => '跟踪此课程的探险潜水、先决条件和核对项。';
@@ -14491,6 +14517,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_detailsTitle => '详情';
 
   @override
+  String get equipment_detail_diveTimeLabel => '潜水时间';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count 次潜水';
   }
@@ -15455,6 +15484,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_location_kind_storage => '存放处';
 
   @override
+  String get equipment_location_kind_diveCenter => '潜水中心';
+
+  @override
   String get equipment_location_kind_serviceShop => '维修店';
 
   @override
@@ -15672,6 +15704,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => '类型';
+
+  @override
+  String get equipment_locations_savedCenterLabel => '已保存的潜水中心';
+
+  @override
+  String get equipment_locations_savedCenterNone => '无';
+
+  @override
+  String get equipment_locations_savedCenterClear => '移除已保存的潜水中心';
 
   @override
   String get equipment_locations_notesLabel => '备注';
@@ -16966,6 +17007,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => '已添加';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => '补充';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => '压力';
@@ -19550,7 +19594,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_range_title => '范围表';
 
   @override
+  String get plannerCanvas_results_calculating => '正在计算';
+
+  @override
+  String get plannerCanvas_results_failed => '无法计算';
+
+  @override
   String get plannerCanvas_results_noDeco => '无需减压';
+
+  @override
+  String get plannerCanvas_results_updating => '正在更新';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -28189,6 +28242,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => '平均下降';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return '正在分析潜水：$analyzed / $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => '减压潜水';
@@ -51038,6 +51096,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => '请输入 0 到 100 之间的数';
+
+  @override
+  String get diveCenters_gearHere_title => '存放在此的装备';
 
   @override
   String get diveCenters_rental_sectionTitle => '租赁装备';

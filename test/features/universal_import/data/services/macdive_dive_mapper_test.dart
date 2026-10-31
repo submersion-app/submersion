@@ -306,9 +306,27 @@ void main() {
             .entitiesOf(ImportEntityType.dives)
             .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-1');
         expect(dive1['tagRefs'], containsAll(['Reef', 'Photography']));
-        expect(dive1['unmatchedBuddyNames'], containsAll(['Alice', 'Bob']));
+        expect(dive1['buddyRefs'], containsAll(['Alice', 'Bob']));
+        // The buddy entities carry these people; naming them again would
+        // bypass the selection and count them twice (#3871).
+        expect(dive1.containsKey('unmatchedBuddyNames'), isFalse);
       },
     );
+
+    test('every buddy ref names a buddy entity by uddfId', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final payload = await MacDiveDiveMapper.toPayload(logbook);
+      final ids = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['uddfId'])
+          .toSet();
+      final refs = payload
+          .entitiesOf(ImportEntityType.dives)
+          .expand((d) => (d['buddyRefs'] as List?) ?? const [])
+          .toSet();
+      expect(refs, isNotEmpty);
+      expect(ids, containsAll(refs));
+    });
 
     test('dive 3 has no buddies or tags', () async {
       final logbook = await MacDiveDbReader.readAll(bytes);
@@ -317,7 +335,7 @@ void main() {
           .entitiesOf(ImportEntityType.dives)
           .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-3');
       expect(dive3['tagRefs'], anyOf(isNull, isEmpty));
-      expect(dive3['unmatchedBuddyNames'], anyOf(isNull, isEmpty));
+      expect(dive3['buddyRefs'], anyOf(isNull, isEmpty));
     });
 
     test('dive 1 tanks include gas mix and pressures', () async {

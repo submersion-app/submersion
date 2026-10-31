@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_chooser.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 export 'package:submersion/features/settings/presentation/widgets/accounts/account_chooser.dart'
     show AccountSheetChoice, ChoseAccount, ChoseNone;
+
+/// For a tap that needed the accounts before it could open the sheet: says
+/// they could not be read, and reads them again, since a held read keeps its
+/// failure and the next tap should be a fresh try.
+void showAccountsLoadFailed(BuildContext context, WidgetRef ref) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(context.l10n.settings_connectedAccounts_loadError)),
+  );
+  refreshAccountState(ref.invalidate);
+}
 
 /// The one account picker (spec section 7.4): the diver's accounts, then
 /// the kinds that can be added here. Returns the chosen account, signed in

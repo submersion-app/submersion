@@ -110,11 +110,11 @@ Future<({double daily, double weekly})> _currentOtuTotals(
       .where((dive) => !(dive.entryTime ?? dive.dateTime).isAfter(now))
       .toList();
 
-  // Read (not watch) to avoid cascading Riverpod invalidations, matching
+  // Await (not watch) to avoid cascading Riverpod invalidations, matching
   // the lookback pattern in profile_analysis_provider.dart. Both sums read
   // the same keep-alive analyses, so the second reuses the first's results.
   Future<ProfileAnalysis?> analysisOf(String id) =>
-      ref.read(profileAnalysisProvider(id).future);
+      ref.container.awaitFuture(profileAnalysisProvider(id).future);
 
   final (daily, weekly) = await (
     sumOtuInWindow(

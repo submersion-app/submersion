@@ -12,6 +12,7 @@ void main() {
       name: 'Sam',
       notes: '',
       isFavorite: false,
+      excludedFromRankings: false,
       createdAt: 1,
       updatedAt: 1,
       cardId: 'diver-sam',
@@ -31,6 +32,7 @@ void main() {
           name: 'Sam',
           notes: '',
           isFavorite: false,
+          excludedFromRankings: false,
           createdAt: 1,
           updatedAt: 1,
         ).toJson()..removeWhere(

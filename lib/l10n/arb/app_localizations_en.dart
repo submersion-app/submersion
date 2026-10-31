@@ -3209,6 +3209,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_field_nameHint => 'Enter buddy name';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Leave out of buddy rankings';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Dives together still count as buddy dives.';
+
+  @override
   String get buddies_field_nameRequired => 'Name *';
 
   @override
@@ -3562,6 +3570,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Dives Together';
+
+  @override
+  String get buddies_stat_excludedFromRankings => 'Left out of buddy rankings';
 
   @override
   String get buddies_stat_favoriteSite => 'Favorite Site';
@@ -5614,6 +5625,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get courses_action_markCompleted => 'Mark as Completed';
 
   @override
+  String get courses_action_chooseDive => 'Choose dive';
+
+  @override
   String get courses_action_unlinkDive => 'Unlink dive';
 
   @override
@@ -5804,6 +5818,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_requirement_suggestions => 'Suggested dives';
+
+  @override
+  String get courses_requirement_allDives => 'All dives';
+
+  @override
+  String get courses_requirement_noDives => 'No dives to link';
+
+  @override
+  String courses_requirement_noDivesMatch(String query) {
+    return 'No dives match \"$query\"';
+  }
+
+  @override
+  String get courses_requirement_searchDives => 'Search dives';
 
   @override
   String get courses_requirements_empty =>
@@ -14970,6 +14998,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_detailsTitle => 'Details';
 
   @override
+  String get equipment_detail_diveTimeLabel => 'Dive Time';
+
+  @override
   String equipment_detail_divesCountPlural(Object count) {
     return '$count dives';
   }
@@ -15985,6 +16016,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_location_kind_storage => 'Storage';
 
   @override
+  String get equipment_location_kind_diveCenter => 'Dive center';
+
+  @override
   String get equipment_location_kind_serviceShop => 'Service shop';
 
   @override
@@ -16212,6 +16246,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_locations_kindLabel => 'Kind';
+
+  @override
+  String get equipment_locations_savedCenterLabel => 'Saved dive center';
+
+  @override
+  String get equipment_locations_savedCenterNone => 'None';
+
+  @override
+  String get equipment_locations_savedCenterClear => 'Remove saved dive center';
 
   @override
   String get equipment_locations_notesLabel => 'Notes';
@@ -17559,6 +17602,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_stepColumnAdded => 'Added';
+
+  @override
+  String get gasCalculators_blender_stepColumnTopUp => 'Top up';
 
   @override
   String get gasCalculators_blender_stepColumnPressure => 'Pressure';
@@ -20248,7 +20294,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_range_title => 'Range table';
 
   @override
+  String get plannerCanvas_results_calculating => 'Calculating';
+
+  @override
+  String get plannerCanvas_results_failed => 'Could not be calculated';
+
+  @override
   String get plannerCanvas_results_noDeco => 'No decompression required';
+
+  @override
+  String get plannerCanvas_results_updating => 'Updating';
 
   @override
   String plannerCanvas_sac_useLogged(String sac) {
@@ -29399,6 +29454,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_profile_avgDescent => 'Avg Descent';
+
+  @override
+  String insights_profile_deco_analyzing(int analyzed, int total) {
+    return 'Analyzing dives: $analyzed of $total';
+  }
 
   @override
   String get insights_profile_deco_decoDives => 'Deco Dives';
@@ -53577,6 +53637,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get numberInput_percentRange => 'Enter 0 to 100';
+
+  @override
+  String get diveCenters_gearHere_title => 'Your gear here';
 
   @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';
