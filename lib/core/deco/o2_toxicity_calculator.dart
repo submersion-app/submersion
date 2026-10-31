@@ -189,7 +189,8 @@ class O2ToxicityCalculator {
     double totalOtu = 0.0;
     int timeAboveWarning = 0;
     int timeAboveCritical = 0;
-    double currentO2Fraction = initialO2Fraction;
+    double currentO2Fraction =
+        gasSwitches[timestamps.first] ?? initialO2Fraction;
     final sampledPpO2s = <double>[];
     final sampledDepths = <double>[];
 

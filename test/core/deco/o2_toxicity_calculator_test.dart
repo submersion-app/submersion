@@ -438,6 +438,22 @@ void main() {
         );
       });
 
+      test('applies a switch at the first sample from the start', () {
+        final exposure = calculator.calculateMultiGasExposure(
+          depths: [20.0, 20.0],
+          timestamps: [0, 60],
+          gasSwitches: {0: 0.50},
+          initialO2Fraction: 0.21,
+        );
+
+        expect(exposure.maxPpO2, closeTo(1.5, 1e-9));
+        expect(exposure.maxPpO2Depth, 20.0);
+        expect(
+          exposure.cnsEnd,
+          closeTo(calculator.calculateCnsForSegment(1.5, 60), 1e-9),
+        );
+      });
+
       test('counts the outgoing gas at the sample of a switch', () {
         // Arrives at 30 m on EAN50 (2.0 bar), then switches to a leaner mix.
         final exposure = calculator.calculateMultiGasExposure(
