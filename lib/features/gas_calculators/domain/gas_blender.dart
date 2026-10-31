@@ -348,7 +348,11 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
   final fillK = celsiusToKelvin(inputs.fillTempC);
   final settledK = celsiusToKelvin(inputs.settledTempC);
 
-  if (pf <= pi) {
+  // The two pressures are only comparable when read at one temperature. Across
+  // two, a warm cylinder can need gas to settle at the pressure it already
+  // shows, so leave the answer to the solve, which works in amounts of gas. A
+  // target of nothing has no amount to solve for at any temperature.
+  if (pf <= 0 || (inputs.fillTempC == inputs.settledTempC && pf <= pi)) {
     throw const BlendException(BlendError.targetPressureNotHigher);
   }
   _validateMix(gasI);
@@ -368,8 +372,11 @@ BlendResult computeBlend(GasBlenderInputs inputs) {
 
   // Topping up dilutes helium; it never removes it. Solving the O2 balance
   // alone would report the requested nitrox while leaving helium in the
-  // cylinder, and an O2 analyser would confirm the wrong label.
-  if (_isHeliumFree(gasF) && !_isHeliumFree(gasI)) {
+  // cylinder, and an O2 analyser would confirm the wrong label. An empty
+  // cylinder is exempt for the same reason as above: pressure and mix are
+  // edited separately, so draining a trimix cylinder leaves its old mix here
+  // describing gas that is no longer in it.
+  if (pi > 0 && _isHeliumFree(gasF) && !_isHeliumFree(gasI)) {
     throw const BlendException(BlendError.cannotRemoveHelium);
   }
 

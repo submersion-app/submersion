@@ -3,9 +3,21 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// Every sample with a temperature the chart can draw: the active source's and
+/// each overlaid source's, which share one temperature scale.
+Iterable<DiveProfilePoint> _temperatureSamples(DiveProfileChart config) =>
+    config.profile
+        .followedBy(
+          (config.overlays ?? const <ChartSourceOverlay>[]).expand(
+            (o) => o.points,
+          ),
+        )
+        .where((p) => p.temperature != null);
 
 /// Whether [metric] has any renderable data for this chart's curves.
 ///
@@ -18,9 +30,10 @@ bool hasDataForMetric(
 }) {
   switch (metric) {
     case ProfileRightAxisMetric.temperature:
-      return config.profile.any((p) => p.temperature != null);
+      return _temperatureSamples(config).isNotEmpty;
     case ProfileRightAxisMetric.pressure:
-      return hasMultiTankPressure;
+      return hasMultiTankPressure &&
+          tankPressureScale(config.tankPressures!) != null;
     case ProfileRightAxisMetric.heartRate:
       return config.profile.any((p) => p.heartRate != null);
     case ProfileRightAxisMetric.sac:
@@ -89,17 +102,15 @@ bool hasDataForMetric(
 }) {
   switch (metric) {
     case ProfileRightAxisMetric.temperature:
-      final temps = config.profile
-          .where((p) => p.temperature != null)
-          .map((p) => units.convertTemperature(p.temperature!));
+      final temps = _temperatureSamples(
+        config,
+      ).map((p) => units.convertTemperature(p.temperature!));
       if (temps.isEmpty) return null;
       return (min: temps.reduce(math.min) - 1, max: temps.reduce(math.max) + 1);
 
     case ProfileRightAxisMetric.pressure:
       if (!hasMultiTankPressure || config.tankPressures == null) return null;
-      final range = tankPressureRange(config.tankPressures!);
-      if (range == null) return null;
-      return (min: range.min - 10, max: range.max + 10);
+      return tankPressureScale(config.tankPressures!);
 
     case ProfileRightAxisMetric.heartRate:
       final hrs = config.profile
@@ -139,6 +150,8 @@ bool hasDataForMetric(
       return (min: 0.0, max: surfaceGfMaxScale);
 
     case ProfileRightAxisMetric.meanDepth:
+      // Only says the metric has data. Its line sits at real depth, so the
+      // axis reads the chart's depth scale rather than this range.
       if (config.meanDepthCurve == null) return null;
       final depths = config.meanDepthCurve!;
       if (depths.isEmpty) return null;

@@ -83,6 +83,10 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
+        repository.getDiveTimeForEquipment('test-id'),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.getTripCountForEquipment('test-id'),
         throwsA(anything),
       );

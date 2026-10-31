@@ -224,8 +224,8 @@ final modCalculatorNotifierProvider =
 /// default. A custom salinity maps to salt, the sea water it defaults to.
 WaterType modCalculatorWaterType(
   ModCalculatorPreferences prefs,
-  AppSettings settings,
-) => resolveWaterType(prefs.waterType, settings.defaultPlannerWaterType);
+  PlannerWaterType plannerDefault,
+) => resolveWaterType(prefs.waterType, plannerDefault);
 
 /// The profile's CCR high setpoint, held to the calculator's setpoint range.
 ///
@@ -259,10 +259,9 @@ ModProfileLimits modProfileLimits(AppSettings settings) => ModProfileLimits(
 final modCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
   final prefs = ref.watch(modCalculatorNotifierProvider);
   final diverId = ref.watch(currentDiverIdProvider);
-  final settings = ref.watch(settingsProvider);
   return resolveModLimits(
     prefs.overridesFor(diverId),
-    modProfileLimits(settings),
+    ref.watch(settingsProvider.select(modProfileLimits)),
   );
 });
 
@@ -270,7 +269,15 @@ final modCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
 /// diver's profile.
 final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
   final prefs = ref.watch(modCalculatorNotifierProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (
+        endLimit: s.endLimit,
+        o2Narcotic: s.o2Narcotic,
+        defaultPlannerWaterType: s.defaultPlannerWaterType,
+      ),
+    ),
+  );
   final limits = ref.watch(modCalculatorLimitsProvider);
   final mode = prefs.inputsFor(prefs.mode);
   return GasLimitsInputs(
@@ -285,7 +292,7 @@ final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
     endLimitMeters: settings.endLimit,
     o2Narcotic: settings.o2Narcotic,
     targetDepthMeters: mode.checkTargetDepth ? mode.targetDepthMeters : null,
-    waterType: modCalculatorWaterType(prefs, settings),
+    waterType: modCalculatorWaterType(prefs, settings.defaultPlannerWaterType),
     // Like the target depth, the chosen temperature only applies while its
     // switch is on; off, the check falls back to the conservative default.
     temperature: prefs.checkTemperature

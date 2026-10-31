@@ -112,22 +112,18 @@ class SafetyReviewSweep {
         // instead of saving its result over the recompute's. The invalidated
         // provider then rebuilds from the saved review on its next read, or at
         // once through its change tick for an open page, so it is not read
-        // here. The recompute provider is autoDispose: the listener holds it
-        // for this one read, and closing it disposes it.
+        // here. The recompute provider is autoDispose: the held listener
+        // keeps it for this one read, and closing it disposes it.
+        //
+        // Nothing else need be listening to either provider, so a bare read
+        // would never complete if the review were invalidated mid-load
+        // (#3807).
         _ref.invalidate(safetyReviewProvider(diveId));
-        if (recompute) {
-          final sub = _ref.listen(
-            safetyReviewRecomputeProvider(diveId).future,
-            (_, _) {},
-          );
-          try {
-            await sub.read();
-          } finally {
-            sub.close();
-          }
-        } else {
-          await _ref.read(safetyReviewProvider(diveId).future);
-        }
+        await _ref.container.awaitFuture(
+          recompute
+              ? safetyReviewRecomputeProvider(diveId).future
+              : safetyReviewProvider(diveId).future,
+        );
       } catch (_) {
         // A dive that fails analysis (corrupt profile) must not abort the
         // sweep; it stays unanalyzed. Counted so callers can report honestly

@@ -47,7 +47,7 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 235) await reportProgress();
     // v237: diver_settings.show_dive_figure (issue #2326). Column-only
-    // rung, default off, no backfill.
+    // rung, no backfill; v329 turned the figure on for stored divers.
     if (from < 237) {
       await _assertShowDiveFigureColumn();
     }
@@ -706,9 +706,28 @@ extension RungsFromV231 on AppDatabase {
     }
     if (from < 327) await reportProgress();
 
-    // v328: the per-device change log tables (issue #3922). Table-only rung,
+    // v329: the diver figure goes from opt-in to on by default (issue #3889),
+    // so every stored set and diver is turned on once. Not in the backstop,
+    // which runs on every open and would undo a later Hide.
+    if (from < 329) {
+      await _turnDiverFigureOnForEveryone();
+    }
+    if (from < 329) await reportProgress();
+
+    // v330: buddies.excluded_from_rankings (issue #3624). Column only, no
+    // backfill; re-asserted in beforeOpen.
+    if (from < 330) await _assertBuddyExcludedFromRankingsColumn();
+    if (from < 330) await reportProgress();
+
+    // v331: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623). Column only, no backfill;
+    // re-asserted in beforeOpen.
+    if (from < 331) await _assertEquipmentLocationCenterColumn();
+    if (from < 331) await reportProgress();
+
+    // v332: the per-device change log tables (issue #3922). Table-only rung,
     // no backfill; the log starts empty. Re-asserted in beforeOpen.
-    if (from < 328) await _assertChangeLogSchema();
-    if (from < 328) await reportProgress();
+    if (from < 332) await _assertChangeLogSchema();
+    if (from < 332) await reportProgress();
   }
 }

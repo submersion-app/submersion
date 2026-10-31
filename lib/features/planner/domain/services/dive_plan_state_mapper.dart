@@ -131,6 +131,16 @@ domain.DivePlan divePlanFromState(
   );
 }
 
+/// What the engine reads from [state]: the plan without its name, notes and
+/// timestamps, which change on a rename or a save and never change an
+/// outcome. Compare these to tell whether anything computed from the plan is
+/// out of date.
+domain.DivePlan planForEngine(DivePlanState state) => divePlanFromState(
+  state,
+).copyWith(name: '', notes: '', createdAt: _epoch, updatedAt: _epoch);
+
+final _epoch = DateTime.utc(2000);
+
 /// Restores the legacy planner state from a persisted plan.
 ///
 /// Segments are sorted by `order` on the way in. The state's list order is

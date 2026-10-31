@@ -120,13 +120,13 @@ void main() {
     expect(row.data['suppressed_until'], isNull);
   });
 
-  test('a v327 database upgrades to the new tables', () async {
-    expect(AppDatabase.migrationVersions, contains(328));
+  test('a v331 database upgrades to the new tables', () async {
+    expect(AppDatabase.migrationVersions, contains(332));
     expect(
-      AppDatabase.migrationStepCount(327),
-      AppDatabase.migrationStepCount(328) + 1,
+      AppDatabase.migrationStepCount(331),
+      AppDatabase.migrationStepCount(332) + 1,
     );
-    final file = await _databaseWithoutLogTables(327);
+    final file = await _databaseWithoutLogTables(331);
 
     final after = AppDatabase(
       NativeDatabase(file, setup: registerAppSqlFunctions),

@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
+import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
@@ -24,6 +25,7 @@ import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dar
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 
 /// Result of a successful merge: the new dive plus the pre-merge snapshot
 /// needed to undo it.
@@ -48,6 +50,8 @@ class DiveMergeService {
   final _tagRepository = TagRepository();
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
+  final _navTracks = NavTrackRepository();
+  final _foldLinks = DiveFoldLinks();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -647,6 +651,11 @@ class DiveMergeService {
         mergedId,
       );
 
+      // 12c. So do measured routes and whatever else points at the sources
+      // (issue #3918).
+      await _navTracks.moveLinks(fromDiveIds: diveIds, toDiveId: mergedId);
+      await _foldLinks.move(fromDiveIds: diveIds, toDiveId: mergedId, now: now);
+
       // 13. Delete sources through the tombstone-logging path.
       await _diveRepo.bulkDeleteDives(diveIds);
     });
@@ -918,6 +927,13 @@ class DiveMergeService {
           localUpdatedAt: now,
         );
       }
+
+      // Routes and the other records back on their sources (issue #3918).
+      await _navTracks.restoreLinks(
+        snapshot.navTrackRows,
+        survivingDiveId: mergedId,
+      );
+      await _foldLinks.restore(snapshot.linkedRows, now: now);
     });
 
     SyncEventBus.notifyLocalChange();

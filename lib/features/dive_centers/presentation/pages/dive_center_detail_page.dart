@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/gear_here_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -124,6 +125,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                   widget.centerId,
                 ),
               ),
+              GearHereSection(centerId: widget.centerId),
               const Divider(height: 32),
               RentalGearSection(centerId: widget.centerId),
               const Divider(height: 32),

@@ -12,6 +12,17 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/sigv4_signer.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
+
+/// SHA-256 of [payload] for its SigV4 signature, off the calling isolate when
+/// it is large. Top-level so the closure cannot capture the client, and with
+/// it the credentials, on its way to another isolate.
+Future<String> _payloadHash(Uint8List payload, OffIsolateRunner runner) =>
+    runOffIsolate(
+      () => SigV4Signer.hexSha256(payload),
+      bytes: payload.length,
+      runner: runner,
+    );
 
 /// Listing entry returned by [S3ApiClient.listObjects].
 class S3ObjectInfo {
@@ -66,6 +77,7 @@ class S3ApiClient {
     Duration idleTimeout = defaultIdleTimeout,
     Random? random,
     this.onRegionCorrected,
+    @visibleForTesting OffIsolateRunner hashRunner = isolateRun,
   }) : assert(maxAttempts >= 1, 'a request must be attempted at least once'),
        assert(
          !retryDelay.isNegative && !maxRetryDelay.isNegative,
@@ -82,7 +94,8 @@ class S3ApiClient {
        _responseTimeout = responseTimeout,
        _uploadTimeout = uploadTimeout,
        _idleTimeout = idleTimeout,
-       _random = random ?? Random();
+       _random = random ?? Random(),
+       _hashRunner = hashRunner;
 
   /// The client used when the caller injects none.
   ///
@@ -149,6 +162,7 @@ class S3ApiClient {
   final Duration _uploadTimeout;
   final Duration _idleTimeout;
   final Random _random;
+  final OffIsolateRunner _hashRunner;
 
   /// Called after a server region hint led to a successful replay, so the
   /// owner can persist the corrected region.
@@ -706,6 +720,7 @@ class S3ApiClient {
       canonicalUri: target.path,
       queryParams: queryParams,
       payload: payload,
+      payloadHash: await _payloadHash(payload, _hashRunner),
       accessKeyId: _config.accessKeyId,
       secretAccessKey: _config.secretAccessKey,
       region: _region,
@@ -782,7 +797,7 @@ class S3ApiClient {
           cause,
         );
       }
-      throw CloudStorageException(
+      throw CloudAccessRefusedException(
         'Access denied. Check the access key, secret key, and bucket '
         'permissions.',
         cause,

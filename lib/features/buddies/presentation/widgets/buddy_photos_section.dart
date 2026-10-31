@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/media_tag_navigation.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The photos and videos a buddy is tagged in (issue #1745), on the buddy
@@ -29,7 +29,7 @@ class BuddyPhotosSection extends ConsumerWidget {
     if (items.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(unitFormatterProvider).settings;
 
     return Padding(
       padding: const EdgeInsets.only(top: 24),

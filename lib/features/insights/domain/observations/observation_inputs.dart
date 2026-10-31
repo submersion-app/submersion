@@ -26,6 +26,9 @@ class ObservationDive extends Equatable {
 
   /// Whether the dive has a primary profile series.
   final bool hasProfile;
+
+  /// The dive's buddies who rank: one excluded from the rankings is left out
+  /// (issue #3624), so an empty list does not mean the dive had no buddy.
   final List<ObservationBuddy> buddies;
 
   const ObservationDive({

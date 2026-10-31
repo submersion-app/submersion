@@ -10,7 +10,6 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/presentation/widgets/rules_page_menus.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -127,7 +126,7 @@ class _RunTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     final details = [
       units.formatDateTime(run.ranAt, l10n: l),

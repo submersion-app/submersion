@@ -342,7 +342,7 @@ void main() {
     });
 
     test('total weight, which list loads never hydrate', () {
-      // getAllDives loads weights as const [], so the cell is always "--"
+      // getAllDives loads weights as const [], so a row-weighted cell is "--"
       // while the weight field reads dive_weights: "no Total Weight" would
       // drop the clicked dive.
       expect(options(DiveField.totalWeight, base), isEmpty);

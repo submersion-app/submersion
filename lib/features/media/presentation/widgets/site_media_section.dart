@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/site_attachment_layout.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
@@ -9,7 +11,6 @@ import 'package:submersion/features/media/presentation/widgets/attachment_detail
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_attachment_groups.dart';
 import 'package:submersion/features/media/presentation/widgets/site_category_picker.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -204,7 +205,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   @override
   Widget build(BuildContext context) {
     final mediaAsync = ref.watch(mediaForSiteProvider(widget.siteId));
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -230,7 +231,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
   Widget _buildCard(
     BuildContext context,
     AsyncValue<List<MediaItem>> mediaAsync,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
@@ -393,7 +394,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
 /// Collapsed, read-only group of photos aggregated from the site's dives.
 class _DivePhotosGroup extends ConsumerWidget {
   final String siteId;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
 
   const _DivePhotosGroup({required this.siteId, required this.settings});
 

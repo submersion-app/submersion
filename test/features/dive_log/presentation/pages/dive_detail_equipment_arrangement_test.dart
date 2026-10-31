@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -66,7 +67,12 @@ void main() {
       ),
     );
 
-    final base = await getBaseOverrides();
+    // The rows' order is under test; the figure would name the gear again.
+    final base = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(showDiveFigure: false),
+      ),
+    );
     return ProviderScope(
       overrides: [
         ...base,

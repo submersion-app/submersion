@@ -220,6 +220,22 @@ class ChartSourceOverlay {
   final ProfileAnalysis? analysis;
 }
 
+/// The extents of a chart's data, in display units: scans of every sample that
+/// no viewport or pointer change can move, so a pan frame must not repeat them.
+/// Each min/max pair is null when its series is hidden or has no data.
+typedef _ChartDataBounds = ({
+  double totalMaxTime,
+  double totalMaxDepth,
+  double? minTemp,
+  double? maxTemp,
+  double? minPressure,
+  double? maxPressure,
+  double? minHR,
+  double? maxHR,
+  double? minSac,
+  double? maxSac,
+});
+
 class DiveProfileChart extends ConsumerStatefulWidget {
   final List<DiveProfilePoint> profile;
   final Duration? diveDuration;
@@ -241,6 +257,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Deco stop levels in meters, same length as profile. Drawn as a stepped
   /// band from the stop depth up to the surface.
   final List<double>? decoStopCurve;
+
+  /// True when [decoStopCurve] is the computer's while [ceilingCurve] is
+  /// calculated, used to label the ceiling "Ceiling (calc)" (issue #2552).
+  final bool labelCeilingAsCalculated;
 
   /// Ascent rate data for each profile point
   final List<AscentRatePoint>? ascentRates;
@@ -347,7 +367,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   static const double _bottomTickReservedSize = 22.0;
 
   /// Optional key for exporting the chart as an image.
-  /// When provided, wraps the chart in a RepaintBoundary for screenshot capture.
+  /// Names the plot's RepaintBoundary, which is always there, for screenshot
+  /// capture.
   final GlobalKey? exportKey;
 
   /// Optional playback cursor timestamp in seconds.
@@ -707,6 +728,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.onTimeSelected,
     this.ceilingCurve,
     this.decoStopCurve,
+    this.labelCeilingAsCalculated = false,
     this.ascentRates,
     this.events,
     this.ndlCurve,
@@ -1137,8 +1159,47 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ? ' ${context.l10n.diveLog_pressure_estimatedSuffix}'
       : '';
 
-  // Zoom/pan state; see core/ui/chart_viewport.dart.
-  ChartViewport _viewport = ChartViewport.reset;
+  // Zoom/pan state; see core/ui/chart_viewport.dart. A gesture writes it once
+  // per pointer frame and only the plot reads it, so it reaches the plot
+  // through [_plotListenable] rather than a setState of the whole chart.
+  final ValueNotifier<ChartViewport> _viewportNotifier = ValueNotifier(
+    ChartViewport.reset,
+  );
+
+  ChartViewport get _viewport => _viewportNotifier.value;
+
+  set _viewport(ChartViewport value) {
+    // ChartViewport has no ==, and a pan held against the plot's edge clamps
+    // to a new instance of the same window.
+    if (value.sameWindowAs(_viewport)) return;
+    _viewportNotifier.value = value;
+    _zoomNotifier.value = value.zoom;
+  }
+
+  // The zoom level alone, for what sits outside the plot (the legend's zoom
+  // controls, the zoom hint): a pan leaves it unchanged and notifies nobody.
+  final ValueNotifier<double> _zoomNotifier = ValueNotifier(
+    ChartViewport.reset.zoom,
+  );
+
+  // Ticked when pointer state that only the plot reads changes: the cursor
+  // position, the cursor tooltip's rows and the hover highlight. Each of these
+  // changes per pointer frame too, and a mouse drag pan changes them alongside
+  // the viewport. See [_updatePlot].
+  final ValueNotifier<int> _plotPointerTick = ValueNotifier(0);
+
+  // Everything that rebuilds the plot without rebuilding the chart around it.
+  late final Listenable _plotListenable = Listenable.merge([
+    _viewportNotifier,
+    _plotPointerTick,
+  ]);
+
+  /// Applies [update] and rebuilds the plot alone. Takes the place of setState
+  /// for state only [_buildChart] reads.
+  void _updatePlot(VoidCallback update) {
+    update();
+    _plotPointerTick.value++;
+  }
 
   // Measured height of the legend row above the plot, so the in-chart
   // cursor tooltip knows how much further it may grow upward -- past the
@@ -1154,6 +1215,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (height != null && height != _legendHeight) {
       setState(() => _legendHeight = height);
     }
+  }
+
+  // Runs after each build, and on each zoom change: the reset button that
+  // appears once zoomed narrows the legend's rows, and a zoom does not rebuild
+  // this state.
+  void _scheduleLegendMeasure() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _measureLegendHeight();
+    });
   }
 
   // Snapshot of the viewport at the start of a continuous gesture; continuous
@@ -1301,11 +1371,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Drops the cursor-following tooltip and the hover-driven highlight/axis
   /// override. Called from every place a pointer stops actively hovering the
   /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
-  /// only need to reset pan/gesture bookkeeping, before this state existed,
-  /// so unlike [Listener.onPointerMove] they do not already run inside a
-  /// `setState`; skip the call entirely when nothing would actually change,
-  /// so a plain pointer-up on a chart that was never hovered does not force
-  /// an unnecessary rebuild.
+  /// only need to reset pan/gesture bookkeeping, before this state existed;
+  /// skip the call entirely when nothing would actually change, so a plain
+  /// pointer-up on a chart that was never hovered does not force an
+  /// unnecessary rebuild.
   void _clearCursorHoverState() {
     if (_lastPointerLocal == null &&
         _liveCursorTooltipRows.isEmpty &&
@@ -1316,7 +1385,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _decoStopTouchIndex == null) {
       return;
     }
-    setState(() {
+    _updatePlot(() {
       _lastPointerLocal = null;
       _liveCursorTooltipRows = const [];
       _hoverRightAxisMetric = null;
@@ -1387,8 +1456,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   final ChartSeriesCache<LineChartBarData> _flatBarsCache =
       ChartSeriesCache<LineChartBarData>();
 
-  // Per-group cache signatures, computed once per build in the legend-sync
-  // pass and consumed by the chart assembly (see _barsCache).
+  // Per-group cache signatures, computed by _syncBarSignatures each time the
+  // plot rebuilds and consumed by the chart assembly (see _barsCache).
   String _baseSig = '';
   String _sacSig = '';
   String _ascentSig = '';
@@ -1602,6 +1671,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
     _scheduleComputedEventsSeed();
+    _zoomNotifier.addListener(_scheduleLegendMeasure);
+  }
+
+  @override
+  void dispose() {
+    _viewportNotifier.dispose();
+    _zoomNotifier.dispose();
+    _plotPointerTick.dispose();
+    super.dispose();
   }
 
   @override
@@ -1769,7 +1847,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   void _resetZoom() {
-    setState(() => _viewport = ChartViewport.reset);
+    _viewport = ChartViewport.reset;
   }
 
   /// Resolve a touch callback's touched spots to the profile's global
@@ -1979,6 +2057,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    String ceilingRowLabel(bool calculated) => calculated
+        ? l10n.diveLog_legend_label_ceilingCalculated
+        : l10n.diveLog_tooltip_ceiling;
+
     // Ceiling (always shown once enabled, even where the curve has no data
     // for this sample -- a toggled-on row disappearing entirely reads as the
     // toggle having silently failed, issue #2228 follow-up).
@@ -1986,7 +2068,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final ceiling = _curveValueAt(widget.ceilingCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
-          label: l10n.diveLog_tooltip_ceiling,
+          label: ceilingRowLabel(widget.labelCeilingAsCalculated),
           value: ceiling != null && ceiling > 0
               ? units.formatDepth(ceiling)
               : '-',
@@ -2001,9 +2083,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         final curve = overlay.analysis?.ceilingCurve;
         if (idx == null || curve == null || idx >= curve.length) continue;
         final ceiling = curve[idx];
+        final label = ceilingRowLabel(
+          overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
+        );
         rows.add(
           TooltipRow(
-            label: '${l10n.diveLog_tooltip_ceiling} · ${overlay.name}',
+            label: '$label · ${overlay.name}',
             value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
             bulletColor: _overlayColor(
               overlay,
@@ -2635,10 +2720,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     UnitFormatter units,
   ) {
     // _hoverRightAxisMetric wins over the persisted preference here for the
-    // same reason as in build() -- so the plot rect (and so the gesture math
+    // same reason as in _buildChart -- so the plot rect (and so the gesture math
     // keyed on it) never disagrees with what the axis is showing this frame.
-    // Still ref.read, per the note just below: this runs from gesture
-    // callbacks too, outside build.
+    // Still ref.read: this runs from gesture callbacks too, outside build.
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
     final effectiveRightAxisMetric =
@@ -2651,11 +2735,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         : null;
     final hasRightAxisName =
         effectiveRightAxisMetric != null && rightAxisRange != null;
-    // ref.read (NOT _hasGasStrip's ref.watch): _plotInsets runs from gesture
-    // callbacks, outside build, where ref.watch must not be used.
-    final hasGasStrip = _gasStripVisible(
-      ref.read(profileLegendProvider).showGas,
-    );
 
     const border = DiveProfileChart._plotBorderWidth;
     return (
@@ -2676,7 +2755,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       bottom:
           DiveProfileChart._bottomAxisNameSize +
           DiveProfileChart._bottomTickReservedSize +
-          (hasGasStrip ? DiveProfileChart.gasTimelineHeight : 0) +
+          (_hasGasStrip ? DiveProfileChart.gasTimelineHeight : 0) +
           (_hasSafetyLane ? DiveProfileChart.safetyLaneHeight : 0) +
           border,
     );
@@ -2739,11 +2818,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Buttons have no cursor, so they zoom about the visible center.
   void _zoomIn() {
-    setState(() => _viewport = _viewport.zoomedAt(0.5, 0.5, 1.5));
+    _viewport = _viewport.zoomedAt(0.5, 0.5, 1.5);
   }
 
   void _zoomOut() {
-    setState(() => _viewport = _viewport.zoomedAt(0.5, 0.5, 1 / 1.5));
+    _viewport = _viewport.zoomedAt(0.5, 0.5, 1 / 1.5);
   }
 
   @override
@@ -2752,21 +2831,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       return _buildEmptyState(context);
     }
 
-    final settings = ref.watch(settingsProvider);
+    _metricRanges.clear();
+    _metricHasData.clear();
+    final units = ref.watch(unitFormatterProvider);
+    final profileMetricColors = ref.watch(
+      settingsProvider.select((s) => s.profileMetricColors),
+    );
     _palette = ProfileMetricPalette(
-      overrides: settings.profileMetricColors,
+      overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
     );
-    final units = UnitFormatter(settings);
     // Temperature data from the active source or any overlaid source should
     // surface the temperature toggle.
-    final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];
-    final hasTemperatureData =
-        widget.profile.any((p) => p.temperature != null) ||
-        overlaySources.any((o) => o.points.any((p) => p.temperature != null));
+    final hasTemperatureData = _hasDataForMetric(
+      ProfileRightAxisMetric.temperature,
+    );
     final hasPressureData = _hasMultiTankPressure;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
-    final colorScheme = Theme.of(context).colorScheme;
 
     // Watch legend state from provider
     final legendState = ref.watch(profileLegendProvider);
@@ -2796,7 +2877,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showLateGasSwitches = legendState.showLateGasSwitches;
     _showPhotoMarkers = legendState.showPhotoMarkers;
     // Must be synced before _metricBand() is read for the cache signatures
-    // below, or a mode flip would key bars on the outgoing band.
+    // (see _syncBarSignatures), or a mode flip would key bars on the outgoing
+    // band.
     _metricsFollowViewport = legendState.metricsFollowViewport;
     // Sync advanced deco/gas toggles
     _showNdl = legendState.showNdl;
@@ -2822,78 +2904,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ..clear()
       ..addAll(legendState.showTankPressure);
 
-    // Per-group signatures for the memoized bars (see _barsCache): playback /
-    // hover / zoom rebuilds inside one decimation bucket reuse every group;
-    // an analysis-curve re-emission (e.g. a ceiling-source toggle) rebuilds
-    // only the analysis group over decimated points.
-    final vpBucket = _viewportDecimationBucket();
-    // The one depth scan for this build; handed to _buildChart below so the
-    // chart body does not repeat it (see _totalMaxDepth).
-    final totalMaxDepth = _totalMaxDepth(units);
-    // Every band-mapped bar's Y position moves with the visible depth window,
-    // so the band belongs in each signature that covers one — otherwise a zoom
-    // or vertical pan is served stale bars from the cache. Every group holds at
-    // least one band-mapped series, so this sits in the common part.
-    //
-    // Rebuilding those bars is unavoidable: their spots genuinely move. What is
-    // avoidable is re-deciding *which* samples to draw, which depends on the X
-    // window alone — see _syncDecimationScope.
-    final metricBandSig = _metricBand(totalMaxDepth).cacheKey;
-    _syncDecimationScope();
-    final commonSig = _sigOf([
-      identityHashCode(widget.profile),
-      identityHashCode(legendState),
-      units.depthSymbol,
-      units.temperatureSymbol,
-      units.pressureSymbol,
-      units.sacSymbol,
-      units.rmvSymbol,
-      units.settings.gasConsumptionDisplay.name,
-      colorScheme.hashCode,
-      // The diver's metric colours (issue #3012): a pick made while the chart
-      // is open must redraw the cached series.
-      // An exact key, never a value hash: a collision would serve one
-      // colour set's bars for another.
-      _palette.overrides.cacheKey,
-      metricBandSig,
-    ]);
-    _baseSig = _sigOf([
-      commonSig,
-      identityHashCode(widget.ascentRates),
-      identityHashCode(widget.gasSwitches),
-      identityHashCode(widget.tanks),
-      identityHashCode(widget.tankPressures),
-      identityHashCode(widget.tankSourceColors),
-    ]);
-    _sacSig = _sigOf([commonSig, identityHashCode(widget.sacCurve), vpBucket]);
-    _ascentSig = _sigOf([commonSig, identityHashCode(widget.ascentRates)]);
-    _analysisSig = _sigOf([
-      commonSig,
-      identityHashCode(widget.ceilingCurve),
-      identityHashCode(widget.decoStopCurve),
-      identityHashCode(widget.ndlCurve),
-      identityHashCode(widget.ppO2Curve),
-      identityHashCode(widget.ppN2Curve),
-      identityHashCode(widget.ppHeCurve),
-      identityHashCode(widget.modCurve),
-      identityHashCode(widget.densityCurve),
-      identityHashCode(widget.gfCurve),
-      identityHashCode(widget.surfaceGfCurve),
-      identityHashCode(widget.meanDepthCurve),
-      identityHashCode(widget.ttsCurve),
-      identityHashCode(widget.gtrCurve),
-      identityHashCode(widget.cnsCurve),
-      identityHashCode(widget.otuCurve),
-      identityHashCode(widget.o2SensorCurves),
-      identityHashCode(widget.o2CellMvCurves),
-      vpBucket,
-    ]);
-    _markersSig = _sigOf([
-      commonSig,
-      identityHashCode(widget.markers),
-      identityHashCode(widget.tankPressures),
-    ]);
-    _overlaysSig = _sigOf([commonSig, identityHashCode(widget.overlays)]);
+    final bounds = _chartDataBounds(units, hasHeartRateData: hasHeartRateData);
 
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
@@ -2931,6 +2942,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasHeartRateData: hasHeartRateData,
       hasSacCurve: widget.sacCurve != null && widget.sacCurve!.isNotEmpty,
       hasCeilingCurve: widget.ceilingCurve != null,
+      labelCeilingAsCalculated: widget.labelCeilingAsCalculated,
       hasDecoStopCurve:
           widget.decoStopCurve != null && widget.decoStopCurve!.isNotEmpty,
       hasAscentRates: widget.ascentRates != null,
@@ -2974,9 +2986,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasOtuData: hasOtuData,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _measureLegendHeight();
-    });
+    _scheduleLegendMeasure();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -2985,8 +2995,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             DiveProfileChart._leftRightAxisNameSize +
             DiveProfileChart.leftAxisSize(constraints.maxWidth);
 
-        // The chart with gesture handling
-        // Wrapped in RepaintBoundary for PNG export when exportKey is provided
+        // The chart with gesture handling, on its own layer so a pan frame
+        // repaints the plot alone. exportKey, when given, names this boundary
+        // for PNG export.
         final plot = RepaintBoundary(
           key: widget.exportKey,
           child: _buildInteractiveChart(
@@ -2995,7 +3006,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             hasTemperatureData: hasTemperatureData,
             hasPressureData: hasPressureData,
             hasHeartRateData: hasHeartRateData,
-            totalMaxDepth: totalMaxDepth,
+            bounds: bounds,
           ),
         );
 
@@ -3011,7 +3022,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 Expanded(
                   child: DiveProfileLegend(
                     config: legendConfig,
-                    zoomLevel: _viewport.zoom,
+                    zoomLevel: _zoomNotifier,
                     minZoom: ChartViewport.minZoom,
                     maxZoom: ChartViewport.maxZoom,
                     onZoomIn: _zoomIn,
@@ -3061,21 +3072,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: !_viewport.isZoomed
-              ? const SizedBox.shrink()
-              : IgnorePointer(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      context.l10n.diveLog_profile_zoomHint(
-                        _viewport.zoom.toStringAsFixed(1),
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+          child: ValueListenableBuilder<double>(
+            valueListenable: _zoomNotifier,
+            builder: (context, zoom, _) => zoom <= ChartViewport.minZoom
+                ? const SizedBox.shrink()
+                : IgnorePointer(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        context.l10n.diveLog_profile_zoomHint(
+                          zoom.toStringAsFixed(1),
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),
-                ),
+          ),
         ),
         Positioned.fill(child: plot),
       ],
@@ -3088,7 +3102,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required bool hasTemperatureData,
     required bool hasPressureData,
     required bool hasHeartRateData,
-    required double totalMaxDepth,
+    required _ChartDataBounds bounds,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -3098,24 +3112,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // fl_chart's own recognizers.
         void zoomAt(Offset localPosition, double zoomDelta) {
           if (zoomDelta == 0) return;
-          setState(() {
-            _activePointerKind = PointerDeviceKind.trackpad;
-            final box = constraints.biggest;
-            final insets = _plotInsets(constraints.maxWidth, units);
-            final focal = chartFocalFraction(
-              localPosition,
-              box,
-              left: insets.left,
-              right: insets.right,
-              top: insets.top,
-              bottom: insets.bottom,
-            );
-            _viewport = _viewport.zoomedAt(
-              focal.fx,
-              focal.fy,
-              math.pow(2, zoomDelta).toDouble(),
-            );
-          });
+          _activePointerKind = PointerDeviceKind.trackpad;
+          final box = constraints.biggest;
+          final insets = _plotInsets(constraints.maxWidth, units);
+          final focal = chartFocalFraction(
+            localPosition,
+            box,
+            left: insets.left,
+            right: insets.right,
+            top: insets.top,
+            bottom: insets.bottom,
+          );
+          _viewport = _viewport.zoomedAt(
+            focal.fx,
+            focal.fy,
+            math.pow(2, zoomDelta).toDouble(),
+          );
         }
 
         return Semantics(
@@ -3192,23 +3204,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     !_touchDragClaimed) {
                   return;
                 }
-                setState(() {
-                  final box = constraints.biggest;
-                  final insets = _plotInsets(constraints.maxWidth, units);
-                  final plotW = (box.width - insets.left - insets.right).clamp(
-                    1.0,
-                    double.infinity,
-                  );
-                  final plotH = (box.height - insets.top - insets.bottom).clamp(
-                    1.0,
-                    double.infinity,
-                  );
-                  final d = event.localPosition - prev;
-                  _viewport = _viewport.pannedBy(
-                    -d.dx / plotW / _viewport.zoom,
-                    -d.dy / plotH / _viewport.zoom,
-                  );
-                });
+                final box = constraints.biggest;
+                final insets = _plotInsets(constraints.maxWidth, units);
+                final plotW = (box.width - insets.left - insets.right).clamp(
+                  1.0,
+                  double.infinity,
+                );
+                final plotH = (box.height - insets.top - insets.bottom).clamp(
+                  1.0,
+                  double.infinity,
+                );
+                final d = event.localPosition - prev;
+                _viewport = _viewport.pannedBy(
+                  -d.dx / plotW / _viewport.zoom,
+                  -d.dy / plotH / _viewport.zoom,
+                );
               },
               onPointerUp: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
@@ -3253,20 +3263,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               // it cannot also scroll the enclosing page).
               onPointerSignal: (event) {
                 if (event is PointerScrollEvent) {
-                  setState(() {
-                    final box = constraints.biggest;
-                    final insets = _plotInsets(constraints.maxWidth, units);
-                    final focal = chartFocalFraction(
-                      event.localPosition,
-                      box,
-                      left: insets.left,
-                      right: insets.right,
-                      top: insets.top,
-                      bottom: insets.bottom,
-                    );
-                    final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
-                    _viewport = _viewport.zoomedAt(focal.fx, focal.fy, factor);
-                  });
+                  final box = constraints.biggest;
+                  final insets = _plotInsets(constraints.maxWidth, units);
+                  final focal = chartFocalFraction(
+                    event.localPosition,
+                    box,
+                    left: insets.left,
+                    right: insets.right,
+                    top: insets.top,
+                    bottom: insets.bottom,
+                  );
+                  final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
+                  _viewport = _viewport.zoomedAt(focal.fx, focal.fy, factor);
                 }
               },
               onPointerHover: (event) {
@@ -3276,7 +3284,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 // a drag: a plain mouse hover carries no PointerDownEvent or
                 // PointerMoveEvent through this Listener, only this one.
                 if (_lastPointerLocal != event.localPosition) {
-                  setState(() => _lastPointerLocal = event.localPosition);
+                  _updatePlot(() => _lastPointerLocal = event.localPosition);
                 }
                 // fl_chart's touch callback already handled this event; when
                 // it resolved a sample that sample is the selection, so this
@@ -3314,15 +3322,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   // disappearing (issue #2228 follow-up).
                   _clearCursorHoverState();
                 },
-                child: _buildChart(
-                  context,
-                  units,
-                  availableWidth: constraints.maxWidth,
-                  availableHeight: constraints.maxHeight,
-                  hasTemperatureData: hasTemperatureData,
-                  hasPressureData: hasPressureData,
-                  hasHeartRateData: hasHeartRateData,
-                  totalMaxDepth: totalMaxDepth,
+                // The only part a pan, zoom or hover frame rebuilds. Everything
+                // above it, the gesture handling included, stays mounted.
+                child: ListenableBuilder(
+                  listenable: _plotListenable,
+                  builder: (context, _) => _buildChart(
+                    context,
+                    units,
+                    availableWidth: constraints.maxWidth,
+                    availableHeight: constraints.maxHeight,
+                    hasTemperatureData: hasTemperatureData,
+                    hasPressureData: hasPressureData,
+                    hasHeartRateData: hasHeartRateData,
+                    bounds: bounds,
+                  ),
                 ),
               ),
             ),
@@ -3377,35 +3390,30 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final p0 = _touchPositions[_pinchPointers[0]];
     final p1 = _touchPositions[_pinchPointers[1]];
     if (p0 == null || p1 == null) return;
-    setState(() {
-      final box = constraints.biggest;
-      final insets = _plotInsets(constraints.maxWidth, units);
-      final plotW = (box.width - insets.left - insets.right).clamp(
-        1.0,
-        double.infinity,
-      );
-      final plotH = (box.height - insets.top - insets.bottom).clamp(
-        1.0,
-        double.infinity,
-      );
-      final focal = chartFocalFraction(
-        _pinchStartFocal,
-        box,
-        left: insets.left,
-        right: insets.right,
-        top: insets.top,
-        bottom: insets.bottom,
-      );
-      final scale =
-          (p0 - p1).distance.clamp(1.0, double.infinity) / _pinchStartDistance;
-      var vp = _gestureStartViewport.zoomedAt(focal.fx, focal.fy, scale);
-      final panPx = (p0 + p1) / 2 - _pinchStartFocal;
-      vp = vp.pannedBy(
-        -panPx.dx / plotW / vp.zoom,
-        -panPx.dy / plotH / vp.zoom,
-      );
-      _viewport = vp;
-    });
+    final box = constraints.biggest;
+    final insets = _plotInsets(constraints.maxWidth, units);
+    final plotW = (box.width - insets.left - insets.right).clamp(
+      1.0,
+      double.infinity,
+    );
+    final plotH = (box.height - insets.top - insets.bottom).clamp(
+      1.0,
+      double.infinity,
+    );
+    final focal = chartFocalFraction(
+      _pinchStartFocal,
+      box,
+      left: insets.left,
+      right: insets.right,
+      top: insets.top,
+      bottom: insets.bottom,
+    );
+    final scale =
+        (p0 - p1).distance.clamp(1.0, double.infinity) / _pinchStartDistance;
+    var vp = _gestureStartViewport.zoomedAt(focal.fx, focal.fy, scale);
+    final panPx = (p0 + p1) / 2 - _pinchStartFocal;
+    vp = vp.pannedBy(-panPx.dx / plotW / vp.zoom, -panPx.dy / plotH / vp.zoom);
+    _viewport = vp;
   }
 
   /// Double-tap toggle: zoom 2x anchored at the tap, or reset when already
@@ -3416,23 +3424,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     BoxConstraints constraints,
     UnitFormatter units,
   ) {
-    setState(() {
-      if (_viewport.isZoomed) {
-        _viewport = ChartViewport.reset;
-      } else {
-        final box = constraints.biggest;
-        final insets = _plotInsets(constraints.maxWidth, units);
-        final focal = chartFocalFraction(
-          localPosition,
-          box,
-          left: insets.left,
-          right: insets.right,
-          top: insets.top,
-          bottom: insets.bottom,
-        );
-        _viewport = _viewport.zoomedAt(focal.fx, focal.fy, 2.0);
-      }
-    });
+    if (_viewport.isZoomed) {
+      _viewport = ChartViewport.reset;
+      return;
+    }
+    final box = constraints.biggest;
+    final insets = _plotInsets(constraints.maxWidth, units);
+    final focal = chartFocalFraction(
+      localPosition,
+      box,
+      left: insets.left,
+      right: insets.right,
+      top: insets.top,
+      bottom: insets.bottom,
+    );
+    _viewport = _viewport.zoomedAt(focal.fx, focal.fy, 2.0);
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -3484,19 +3490,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       (widget.safetyFindings?.isNotEmpty ?? false) &&
       widget.onSafetyFindingTap != null;
 
-  // ref.watch is correct here: _hasGasStrip is only read from build().
-  // Gesture paths must use _gasStripVisible with ref.read (see _plotInsets).
-  bool get _hasGasStrip => _gasStripVisible(
-    ref.watch(profileLegendProvider.select((s) => s.showGas)),
-  );
+  // ref.read, not ref.watch: [_buildChart] reads this, and it rebuilds without
+  // the consumer's own build() running. Only that build() drops old watches,
+  // and each select() is a new key, so a watch here added subscriptions on
+  // every pan frame. [build]'s watch of the whole legend state covers showGas.
+  bool get _hasGasStrip =>
+      _gasStripVisible(ref.read(profileLegendProvider).showGas);
 
   /// Full extent of the depth axis in display units, including the 10% padding.
   /// Overlaid sources widen it so a deeper overlay trace is never clipped.
   ///
-  /// Scans the profile and every overlay, so call it ONCE per build: [build]
-  /// computes it for the bar-cache signatures and hands the same value to
-  /// [_buildChart], which must not recompute it. The chart rebuilds on every
-  /// hover and pan frame, where a repeated O(samples) scan is not free.
+  /// Scans the profile and every overlay, so call it ONCE per build, through
+  /// [_chartDataBounds]. The plot rebuilds on every hover and pan frame, where
+  /// a repeated O(samples) scan is not free.
   double _totalMaxDepth(UnitFormatter units) {
     final maxDepthValueMeters = [
       widget.profile.map((p) => p.depth).reduce(math.max),
@@ -3513,8 +3519,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// axis, so metrics magnify and scroll with the depth trace and can leave the
   /// viewport when zoomed. When on, it is the currently visible depth window,
   /// so metrics stay on screen at any zoom. See [MetricBand].
-  /// Takes [totalMaxDepth] rather than recomputing it, so one build shares a
-  /// single depth scan between the cache signatures and the chart body.
+  /// Takes [totalMaxDepth] rather than recomputing it, so the cache signatures
+  /// and the chart body share a single depth scan.
   MetricBand _metricBand(double totalMaxDepth) {
     if (!_metricsFollowViewport) return MetricBand.full(totalMaxDepth);
     return MetricBand(
@@ -3523,19 +3529,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
-  Widget _buildChart(
-    BuildContext context,
+  /// The chart's data extents, scanned once per [build] and handed to the plot
+  /// (see [_ChartDataBounds]). Reads the legend toggles, so it runs after
+  /// [build] has synced them.
+  _ChartDataBounds _chartDataBounds(
     UnitFormatter units, {
-    required double availableWidth,
-    required double availableHeight,
-    required bool hasTemperatureData,
-    required bool hasPressureData,
     required bool hasHeartRateData,
-    required double totalMaxDepth,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final heartRateColor = _metricColor(ProfileMetric.heartRate);
-
     // Calculate full data bounds (all values stored in meters, convert for
     // display). Overlaid sources widen the extents so a deeper or longer
     // overlay trace is never clipped.
@@ -3546,9 +3546,172 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ...overlayPoints.map((p) => p.timestamp),
     ].reduce(math.max).toDouble();
 
+    // Temperature bounds (if showing), in the user's preferred unit. The
+    // right axis's own range, so the active source's and every overlaid
+    // source's curves read true against its labels. Overlays pool into it, so
+    // it moves as they are toggled (see _syncBarSignatures).
+    final tempRange = _showTemperature
+        ? _getMetricRange(ProfileRightAxisMetric.temperature, units)
+        : null;
+
+    // Pressure bounds from multi-tank pressure data, the same scale the tank
+    // lines are drawn on so a threshold marker sits on its own line.
+    final pressureScale = _getMetricRange(
+      ProfileRightAxisMetric.pressure,
+      units,
+    );
+
+    // Heart rate bounds (if showing)
+    double? minHR, maxHR;
+    if (_showHeartRate && hasHeartRateData) {
+      final hrs = widget.profile
+          .where((p) => p.heartRate != null)
+          .map((p) => p.heartRate!.toDouble());
+      if (hrs.isNotEmpty) {
+        minHR = hrs.reduce(math.min) - 5;
+        maxHR = hrs.reduce(math.max) + 5;
+      }
+    }
+
+    // SAC bounds (if showing)
+    double? minSac, maxSac;
+    if (_showSac && widget.sacCurve != null && widget.sacCurve!.isNotEmpty) {
+      final sacs = widget.sacCurve!.where((s) => s > 0);
+      if (sacs.isNotEmpty) {
+        minSac = 0; // Always start from 0 for SAC
+        maxSac = sacs.reduce(math.max) * 1.2; // Add 20% headroom
+      }
+    }
+
+    return (
+      totalMaxTime: totalMaxTime,
+      totalMaxDepth: _totalMaxDepth(units),
+      minTemp: tempRange?.min,
+      maxTemp: tempRange?.max,
+      minPressure: pressureScale?.min,
+      maxPressure: pressureScale?.max,
+      minHR: minHR,
+      maxHR: maxHR,
+      minSac: minSac,
+      maxSac: maxSac,
+    );
+  }
+
+  /// Per-group signatures for the memoized bars (see [_barsCache]): playback /
+  /// hover / zoom rebuilds inside one decimation bucket reuse every group; an
+  /// analysis-curve re-emission (e.g. a ceiling-source toggle) rebuilds only
+  /// the analysis group over decimated points.
+  ///
+  /// Part of [_buildChart], not [build]: the viewport feeds these signatures
+  /// and a viewport change rebuilds the plot alone.
+  void _syncBarSignatures(
+    BuildContext context,
+    UnitFormatter units,
+    _ChartDataBounds bounds,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final legendState = ref.read(profileLegendProvider);
+    final vpBucket = _viewportDecimationBucket();
+    // Every band-mapped bar's Y position moves with the visible depth window,
+    // so the band belongs in each signature that covers one; otherwise a zoom
+    // or vertical pan is served stale bars from the cache. Every group holds at
+    // least one band-mapped series, so this sits in the common part.
+    //
+    // Rebuilding those bars is unavoidable: their spots genuinely move. What is
+    // avoidable is re-deciding *which* samples to draw, which depends on the X
+    // window alone (see _syncDecimationScope).
+    final metricBandSig = _metricBand(bounds.totalMaxDepth).cacheKey;
+    _syncDecimationScope();
+    final commonSig = _sigOf([
+      identityHashCode(widget.profile),
+      identityHashCode(legendState),
+      units.depthSymbol,
+      units.temperatureSymbol,
+      units.pressureSymbol,
+      units.sacSymbol,
+      units.rmvSymbol,
+      units.settings.gasConsumptionDisplay.name,
+      colorScheme.hashCode,
+      // The diver's metric colours (issue #3012): a pick made while the chart
+      // is open must redraw the cached series.
+      // An exact key, never a value hash: a collision would serve one
+      // colour set's bars for another.
+      _palette.overrides.cacheKey,
+      metricBandSig,
+    ]);
+    _baseSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.ascentRates),
+      identityHashCode(widget.gasSwitches),
+      identityHashCode(widget.tanks),
+      identityHashCode(widget.tankPressures),
+      identityHashCode(widget.tankSourceColors),
+      // The temperature line lives in this group, on a scale overlays pool
+      // into: toggling one moves the line without touching widget.profile.
+      bounds.minTemp,
+      bounds.maxTemp,
+    ]);
+    _sacSig = _sigOf([commonSig, identityHashCode(widget.sacCurve), vpBucket]);
+    _ascentSig = _sigOf([commonSig, identityHashCode(widget.ascentRates)]);
+    _analysisSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.ceilingCurve),
+      identityHashCode(widget.decoStopCurve),
+      identityHashCode(widget.ndlCurve),
+      identityHashCode(widget.ppO2Curve),
+      identityHashCode(widget.ppN2Curve),
+      identityHashCode(widget.ppHeCurve),
+      identityHashCode(widget.modCurve),
+      identityHashCode(widget.densityCurve),
+      identityHashCode(widget.gfCurve),
+      identityHashCode(widget.surfaceGfCurve),
+      identityHashCode(widget.meanDepthCurve),
+      identityHashCode(widget.ttsCurve),
+      identityHashCode(widget.gtrCurve),
+      identityHashCode(widget.cnsCurve),
+      identityHashCode(widget.otuCurve),
+      identityHashCode(widget.o2SensorCurves),
+      identityHashCode(widget.o2CellMvCurves),
+      vpBucket,
+    ]);
+    _markersSig = _sigOf([
+      commonSig,
+      identityHashCode(widget.markers),
+      identityHashCode(widget.tankPressures),
+    ]);
+    _overlaysSig = _sigOf([commonSig, identityHashCode(widget.overlays)]);
+  }
+
+  Widget _buildChart(
+    BuildContext context,
+    UnitFormatter units, {
+    required double availableWidth,
+    required double availableHeight,
+    required bool hasTemperatureData,
+    required bool hasPressureData,
+    required bool hasHeartRateData,
+    required _ChartDataBounds bounds,
+  }) {
+    final (
+      :totalMaxTime,
+      :totalMaxDepth,
+      :minTemp,
+      :maxTemp,
+      :minPressure,
+      :maxPressure,
+      :minHR,
+      :maxHR,
+      :minSac,
+      :maxSac,
+    ) = bounds;
+    _syncBarSignatures(context, units, bounds);
+    final colorScheme = Theme.of(context).colorScheme;
+    final heartRateColor = _metricColor(ProfileMetric.heartRate);
+
     // Apply zoom and pan to calculate visible bounds (see ChartViewport).
     final visibleRangeX = totalMaxTime * _viewport.visibleWidth;
     final visibleRangeY = totalMaxDepth * _viewport.visibleHeight;
+    final depthInterval = _calculateDepthInterval(visibleRangeY);
 
     final visibleMinX = _viewport.offsetX * totalMaxTime;
     final visibleMaxX = visibleMinX + visibleRangeX;
@@ -3580,30 +3743,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // Same helper and same totalMaxDepth build() fed into the bar-cache
-    // signatures, so the band the bars are drawn with can never diverge from
-    // the band they are keyed on.
+    // Same helper and same totalMaxDepth _syncBarSignatures fed into the
+    // bar-cache signatures, so the band the bars are drawn with can never
+    // diverge from the band they are keyed on.
     final metricBand = _metricBand(totalMaxDepth);
-
-    // Temperature bounds (if showing) - convert to user's preferred unit.
-    // Pool the active source's and every overlaid source's readings so both
-    // curves share one temperature scale and the axis range doesn't jump as
-    // overlays are toggled.
-    double? minTemp, maxTemp;
-    if (_showTemperature && hasTemperatureData) {
-      final tempSource = widget.profile.followedBy(
-        (widget.overlays ?? const <ChartSourceOverlay>[]).expand(
-          (o) => o.points,
-        ),
-      );
-      final temps = tempSource
-          .where((p) => p.temperature != null)
-          .map((p) => units.convertTemperature(p.temperature!));
-      if (temps.isNotEmpty) {
-        minTemp = temps.reduce(math.min) - 1;
-        maxTemp = temps.reduce(math.max) + 1;
-      }
-    }
 
     // Determine effective right axis metric using settings default and fallback chain.
     // getEffectiveRightAxisMetric() returns null when the user chose "None".
@@ -3622,44 +3765,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
     _rightAxisSelectorActive = effectiveRightAxisMetric != null;
-
-    // Pressure bounds from multi-tank pressure data
-    double? minPressure, maxPressure;
-    if (_hasMultiTankPressure && widget.tankPressures != null) {
-      for (final pressurePoints in widget.tankPressures!.values) {
-        for (final point in pressurePoints) {
-          if (minPressure == null || point.pressure < minPressure) {
-            minPressure = point.pressure - 10;
-          }
-          if (maxPressure == null || point.pressure > maxPressure) {
-            maxPressure = point.pressure + 10;
-          }
-        }
-      }
-    }
-
-    // Heart rate bounds (if showing)
-    double? minHR, maxHR;
-    if (_showHeartRate && hasHeartRateData) {
-      final hrs = widget.profile
-          .where((p) => p.heartRate != null)
-          .map((p) => p.heartRate!.toDouble());
-      if (hrs.isNotEmpty) {
-        minHR = hrs.reduce(math.min) - 5;
-        maxHR = hrs.reduce(math.max) + 5;
-      }
-    }
-
-    // SAC bounds (if showing)
-    double? minSac, maxSac;
-    final hasSacData = widget.sacCurve != null && widget.sacCurve!.isNotEmpty;
-    if (_showSac && hasSacData) {
-      final sacs = widget.sacCurve!.where((s) => s > 0);
-      if (sacs.isNotEmpty) {
-        minSac = 0; // Always start from 0 for SAC
-        maxSac = sacs.reduce(math.max) * 1.2; // Add 20% headroom
-      }
-    }
+    // Mean depth is plotted at its real depth, not stretched across
+    // [metricBand], so its axis repeats the depth axis instead of unmapping
+    // the band (issue #3892).
+    final rightAxisIsDepthScale =
+        effectiveRightAxisMetric == ProfileRightAxisMetric.meanDepth;
+    // Axis values are negated display-unit depths (surface at 0).
+    String depthTickLabel(double axisValue) => '${(-axisValue).toInt()}';
 
     final combinedSig = _sigOf([
       _baseSig,
@@ -3728,8 +3840,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }),
         ..._barsCache.series('sac', _sacSig, () {
           // SAC curve line (if showing)
-          final sacLines =
-              (_showSac && hasSacData && minSac != null && maxSac != null)
+          final sacLines = (_showSac && minSac != null && maxSac != null)
               ? [_buildSacLine(metricBand, minSac, maxSac)]
               : const <LineChartBarData>[];
           return _tagAll(sacLines, ProfileRightAxisMetric.sac);
@@ -4019,7 +4130,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
-              horizontalInterval: _calculateDepthInterval(visibleRangeY),
+              horizontalInterval: depthInterval,
               verticalInterval: _calculateTimeInterval(visibleRangeX),
               getDrawingHorizontalLine: (value) => FlLine(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -4041,20 +4152,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
-                  interval: _calculateDepthInterval(visibleRangeY),
+                  interval: depthInterval,
                   getTitlesWidget: (value, meta) {
                     // Suppress interval ticks too close to the min boundary
                     // (min is the most-negative value = deepest depth).
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Show positive depth values (negate the negative axis values)
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        '${(-value).toInt()}',
+                        depthTickLabel(value),
                         style: Theme.of(context).textTheme.labelSmall,
                         maxLines: 1,
                       ),
@@ -4129,49 +4238,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
+                  interval: rightAxisIsDepthScale ? depthInterval : null,
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
                       return const SizedBox();
                     }
                     // Suppress interval ticks too close to the min boundary
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Map from inverted depth axis to the metric value
-                    final metricValue = metricBand.unmap(
-                      -value,
-                      rightAxisRange.min,
-                      rightAxisRange.max,
-                    );
-                    if (metricValue < rightAxisRange.min ||
-                        metricValue > rightAxisRange.max) {
-                      return const SizedBox();
+                    final String label;
+                    if (rightAxisIsDepthScale) {
+                      label = depthTickLabel(value);
+                    } else {
+                      // Map from inverted depth axis to the metric value
+                      final metricValue = metricBand.unmap(
+                        -value,
+                        rightAxisRange.min,
+                        rightAxisRange.max,
+                      );
+                      if (metricValue < rightAxisRange.min ||
+                          metricValue > rightAxisRange.max) {
+                        return const SizedBox();
+                      }
+                      // Metric distance to the neighbouring tick, so the
+                      // label carries enough decimals to differ from it.
+                      final tickStep =
+                          metricBand.unmap(
+                            -(value + meta.appliedInterval),
+                            rightAxisRange.min,
+                            rightAxisRange.max,
+                          ) -
+                          metricValue;
+                      label = formatRightAxisTick(
+                        effectiveRightAxisMetric,
+                        metricValue,
+                        units,
+                        tickStep: tickStep,
+                      );
                     }
                     final metricColor = _palette.rightAxisColor(
                       effectiveRightAxisMetric,
                       singleTank: _isSingleTankDive,
                     );
-                    // Metric distance to the neighbouring tick, so the
-                    // label carries enough decimals to differ from it.
-                    final tickStep =
-                        metricBand.unmap(
-                          -(value + meta.appliedInterval),
-                          rightAxisRange.min,
-                          rightAxisRange.max,
-                        ) -
-                        metricValue;
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        formatRightAxisTick(
-                          effectiveRightAxisMetric,
-                          metricValue,
-                          units,
-                          tickStep: tickStep,
-                        ),
+                        label,
                         style: Theme.of(
                           context,
                         ).textTheme.labelSmall?.copyWith(color: metricColor),
@@ -4362,7 +4477,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                           colorScheme: Theme.of(context).colorScheme,
                         );
                   if (rows.isNotEmpty || _liveCursorTooltipRows.isNotEmpty) {
-                    setState(() => _liveCursorTooltipRows = rows);
+                    _updatePlot(() => _liveCursorTooltipRows = rows);
                   }
                 }
 
@@ -4427,7 +4542,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 if (newHoverMetric != _hoverRightAxisMetric ||
                     newHighlightedBarIndex != _hoverHighlightedBarIndex ||
                     nearestTag != _hoverHighlightedMetric) {
-                  setState(() {
+                  _updatePlot(() {
                     _hoverRightAxisMetric = newHoverMetric;
                     _hoverHighlightedBarIndex = newHighlightedBarIndex;
                     _hoverHighlightedMetric = newHighlightedBarIndex != null
@@ -4480,7 +4595,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   }
                 }
                 if (hoveredAscentRateTimestamp != _hoveredAscentRateTimestamp) {
-                  setState(
+                  _updatePlot(
                     () => _hoveredAscentRateTimestamp =
                         hoveredAscentRateTimestamp,
                   );
@@ -4503,7 +4618,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     ? resolvedTouch.index
                     : null;
                 if (decoStopTouchIndex != _decoStopTouchIndex) {
-                  setState(() => _decoStopTouchIndex = decoStopTouchIndex);
+                  _updatePlot(() => _decoStopTouchIndex = decoStopTouchIndex);
                 }
               },
               touchTooltipData: LineTouchTooltipData(
@@ -5262,6 +5377,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             tintByMetric: overlay.tintByMetric,
             color: overlay.color,
             metrics: _overlayMetrics(overlay),
+            labelCeilingAsCalculated:
+                overlay.analysis?.computerStopsWithCalculatedCeiling ?? false,
           ),
     ];
   }
@@ -7236,12 +7353,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// Memo for [_hasDataForMetric], cleared with [_metricRanges]. A metric with
+  /// no data never stops its scan early, and the right axis's fallback chain
+  /// asks about each one several times a frame.
+  final Map<ProfileRightAxisMetric, bool> _metricHasData = {};
+
   /// Check if a specific metric has data available in this dive profile
-  bool _hasDataForMetric(ProfileRightAxisMetric metric) => hasDataForMetric(
-    metric,
-    widget,
-    hasMultiTankPressure: _hasMultiTankPressure,
-  );
+  bool _hasDataForMetric(ProfileRightAxisMetric metric) =>
+      _metricHasData.putIfAbsent(
+        metric,
+        () => hasDataForMetric(
+          metric,
+          widget,
+          hasMultiTankPressure: _hasMultiTankPressure,
+        ),
+      );
 
   /// Get the effective right axis metric using the fallback chain
   ProfileRightAxisMetric? _getEffectiveRightAxisMetric(
@@ -7285,26 +7411,36 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return maxMv;
   }
 
+  /// Memo for [_getMetricRange]. A range scans its metric's samples, and the
+  /// plot rect, the axis and the tooltip each read it several times a frame.
+  /// It depends on the data, units and legend, never the viewport or pointer,
+  /// and each of those arrives through [build], which clears this.
+  final Map<ProfileRightAxisMetric, ({double min, double max})?> _metricRanges =
+      {};
+
   /// Get the min/max value range for a metric
   ({double min, double max})? _getMetricRange(
     ProfileRightAxisMetric metric,
     UnitFormatter units,
-  ) => getMetricRange(
+  ) => _metricRanges.putIfAbsent(
     metric,
-    units,
-    widget,
-    hasMultiTankPressure: _hasMultiTankPressure,
-    cnsMaxScale: _getCnsMaxScale(),
-    otuMaxScale: _getOtuMaxScale(),
-    gfMaxScale: _getGfMaxScale(),
-    surfaceGfMaxScale: _getSurfaceGfMaxScale(),
-    ttsMaxScale: _getTtsMaxScale(),
-    ppO2MaxScale: _getPpO2MaxScale(),
-    ppN2MaxScale: _getPpN2MaxScale(),
-    ppHeMaxScale: _getPpHeMaxScale(),
-    densityMaxScale: _getDensityMaxScale(),
-    o2CellMvMax: _o2CellMvMax,
-    ascentRateAxisRange: _ascentRateAxisRange,
+    () => getMetricRange(
+      metric,
+      units,
+      widget,
+      hasMultiTankPressure: _hasMultiTankPressure,
+      cnsMaxScale: _getCnsMaxScale(),
+      otuMaxScale: _getOtuMaxScale(),
+      gfMaxScale: _getGfMaxScale(),
+      surfaceGfMaxScale: _getSurfaceGfMaxScale(),
+      ttsMaxScale: _getTtsMaxScale(),
+      ppO2MaxScale: _getPpO2MaxScale(),
+      ppN2MaxScale: _getPpN2MaxScale(),
+      ppHeMaxScale: _getPpHeMaxScale(),
+      densityMaxScale: _getDensityMaxScale(),
+      o2CellMvMax: _o2CellMvMax,
+      ascentRateAxisRange: _ascentRateAxisRange,
+    ),
   );
 
   /// Build axis label text for the right axis (e.g. "Temp (°C)").
@@ -7337,42 +7473,46 @@ class DiveProfileMiniChart extends StatelessWidget {
 
     return SizedBox(
       height: height,
-      child: LineChart(
-        LineChartData(
-          minX: 0,
-          maxX: maxTime,
-          minY: -maxDepth, // Inverted: negative depth at bottom
-          maxY: 0, // Surface (0m) at top
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineTouchData: const LineTouchData(enabled: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: [
-                // Descend from the surface so the silhouette reaches the left
-                // edge, matching the full chart (issue #684).
-                if (shouldDrawSurfaceLeadIn(profile)) const FlSpot(0, 0),
-                ...profile.map(
-                  (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
-                ), // Negate for inverted axis
-              ],
-              // Straight segments preserve the actual sample-to-sample shape
-              // (safety stops, multilevel ledges, abrupt descents). Catmull-
-              // Rom smoothing flattens those short features into rounded
-              // arcs, producing a less informative "blob" silhouette.
-              isCurved: false,
-              color: chartColor,
-              // A thin outline keeps the small silhouette light (issue #3496).
-              barWidth: 1,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
-                show: true,
-                color: chartColor.withValues(alpha: 0.2),
+      // Its own layer, so a list card's hover or ink repaint does not repaint
+      // the whole silhouette with it.
+      child: RepaintBoundary(
+        child: LineChart(
+          LineChartData(
+            minX: 0,
+            maxX: maxTime,
+            minY: -maxDepth, // Inverted: negative depth at bottom
+            maxY: 0, // Surface (0m) at top
+            gridData: const FlGridData(show: false),
+            titlesData: const FlTitlesData(show: false),
+            borderData: FlBorderData(show: false),
+            lineTouchData: const LineTouchData(enabled: false),
+            lineBarsData: [
+              LineChartBarData(
+                spots: [
+                  // Descend from the surface so the silhouette reaches the left
+                  // edge, matching the full chart (issue #684).
+                  if (shouldDrawSurfaceLeadIn(profile)) const FlSpot(0, 0),
+                  ...profile.map(
+                    (p) => FlSpot(p.timestamp.toDouble(), -p.depth),
+                  ), // Negate for inverted axis
+                ],
+                // Straight segments preserve the actual sample-to-sample shape
+                // (safety stops, multilevel ledges, abrupt descents). Catmull-
+                // Rom smoothing flattens those short features into rounded
+                // arcs, producing a less informative "blob" silhouette.
+                isCurved: false,
+                color: chartColor,
+                // A thin outline keeps the small silhouette light (issue #3496).
+                barWidth: 1,
+                isStrokeCapRound: true,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  color: chartColor.withValues(alpha: 0.2),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

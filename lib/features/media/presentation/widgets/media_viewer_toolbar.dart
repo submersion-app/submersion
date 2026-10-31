@@ -124,9 +124,10 @@ class MediaViewerToolbar extends StatelessWidget {
   final bool peopleTaggingActive;
 
   /// Whether the write-dive-data action is offered. Needs enrichment depth to
-  /// have anything to write, and a photo to write it to: videos cannot be
-  /// edited in place, and replacing one would destroy the original
-  /// (issue #1472).
+  /// have anything to write, and a photo in a device library to write it to:
+  /// videos cannot be edited in place, and replacing one would destroy the
+  /// original (issue #1472), and media outside a library has no original to
+  /// edit (issue #3808).
   final bool canWriteMetadata;
 
   /// Whether the Perdix overlay toggle is shown (media synced to a profile).

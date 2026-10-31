@@ -58,6 +58,7 @@ class SyncUsingRow extends ConsumerWidget {
           await ref.read(accountGroupsProvider.future),
         );
       } on Object {
+        if (context.mounted) showAccountsLoadFailed(context, ref);
         return;
       }
       if (!context.mounted) return;

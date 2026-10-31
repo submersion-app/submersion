@@ -5,6 +5,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 
 void main() {
+  group('isSameAccount', () {
+    test('ignores case and surrounding space', () {
+      expect(isSameAccount('Diver@Example.com ', 'diver@example.com'), isTrue);
+    });
+
+    test('nothing to compare counts as the same', () {
+      expect(isSameAccount(null, 'diver@example.com'), isTrue);
+      expect(isSameAccount('diver@example.com', null), isTrue);
+      expect(isSameAccount('', 'diver@example.com'), isTrue);
+      expect(isSameAccount('diver@example.com', '  '), isTrue);
+    });
+
+    test('two different accounts are not', () {
+      expect(isSameAccount('a@example.com', 'b@example.com'), isFalse);
+    });
+  });
+
+  test('a different account is not a refusal', () {
+    const e = CloudAccountMismatchException('other@example.com');
+    expect(e.signedInAs, 'other@example.com');
+    expect(e.accessRefused, isFalse);
+  });
+
   group('CloudStorageProviderMixin path-based defaults', () {
     late Directory tempDir;
     late _ByteOnlyProvider provider;

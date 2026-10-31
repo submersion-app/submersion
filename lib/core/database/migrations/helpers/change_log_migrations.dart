@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// The per-device change log (issue #3922).
 extension ChangeLogMigrations on AppDatabase {
-  /// v328: the four log tables, their indexes and the one context row.
+  /// v332: the four log tables, their indexes and the one context row.
   /// Idempotent. Also re-asserted in beforeOpen, which reaches a database
   /// that arrives by restore already at this version.
   Future<void> _assertChangeLogSchema() async {

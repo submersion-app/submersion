@@ -7,7 +7,6 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_com
 import 'package:submersion/features/settings/presentation/conflicts/conflict_device_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_choice_consequence.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_comparison_view.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/conflict_reference_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -95,7 +94,7 @@ class _ConflictResolutionDialogState
     final conflict = conflicts[_currentIndex];
     final comparison = buildConflictComparison(
       l10n: context.l10n,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
       conflict: conflict,
     );
     final localDevice = ref.watch(conflictLocalDeviceProvider).value;

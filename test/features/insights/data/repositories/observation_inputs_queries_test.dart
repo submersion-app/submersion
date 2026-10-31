@@ -35,6 +35,7 @@ void main() {
     int? bottomTime,
     int? entry,
     int? exit,
+    double? legacyWeight,
     bool excluded = false,
     bool planned = false,
   }) => db
@@ -50,6 +51,7 @@ void main() {
           bottomTime: Value(bottomTime),
           entryTime: Value(entry),
           exitTime: Value(exit),
+          weightAmount: Value(legacyWeight),
           excludedFromStats: Value(excluded),
           isPlanned: Value(planned),
           createdAt: const Value(0),
@@ -156,11 +158,70 @@ void main() {
     expect(d2.buddies, isEmpty);
   });
 
+  test(
+    'a buddy excluded from the rankings is left out (issue #3624)',
+    () async {
+      await db
+          .into(db.buddies)
+          .insert(
+            const BuddiesCompanion(
+              id: Value('unknown'),
+              diverId: Value('A'),
+              name: Value('Unknown'),
+              excludedFromRankings: Value(true),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      await db
+          .into(db.diveBuddies)
+          .insert(
+            const DiveBuddiesCompanion(
+              id: Value('d1-unknown'),
+              diveId: Value('d1'),
+              buddyId: Value('unknown'),
+              createdAt: Value(0),
+            ),
+          );
+
+      final dives = await ObservationInputsQueries().dives(diverId: 'A');
+
+      final d1 = dives.singleWhere((d) => d.id == 'd1');
+      expect(d1.buddies, const [ObservationBuddy(id: 'sam', name: 'Sam')]);
+    },
+  );
+
   test('bottom time never stands in for runtime (issue #3059)', () async {
     await diveRow('table-era', diverId: 'B', when: feb1, bottomTime: 35 * 60);
     final dives = await ObservationInputsQueries().dives(diverId: 'B');
     final tableEra = dives.singleWhere((d) => d.id == 'table-era');
     expect(tableEra.runtimeSeconds, isNull);
+  });
+
+  test('weight falls back to the legacy scalar (issue #3914)', () async {
+    await diveRow('legacy', diverId: 'B', when: feb1, legacyWeight: 6);
+    await diveRow('zero', diverId: 'B', when: feb1, legacyWeight: 0);
+    await diveRow('both', diverId: 'B', when: feb1, legacyWeight: 9);
+    await db
+        .into(db.diveWeights)
+        .insert(
+          const DiveWeightsCompanion(
+            id: Value('both-row'),
+            diveId: Value('both'),
+            weightType: Value('Belt'),
+            amountKg: Value(4),
+            createdAt: Value(0),
+          ),
+        );
+
+    final byId = {
+      for (final d in await ObservationInputsQueries().dives(diverId: 'B'))
+        d.id: d,
+    };
+
+    expect(byId['legacy']!.weightKg, 6);
+    expect(byId['zero']!.weightKg, isNull);
+    expect(byId['both']!.weightKg, 4, reason: 'the scalar is never added');
   });
 
   test('a null diver reads every diver', () async {

@@ -1255,8 +1255,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     if (_isLoading) {
       if (widget.embedded) {
@@ -5129,7 +5128,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     UnitFormatter units, {
     String? Function(String?)? validator,
   }) {
-    final scale = ref.watch(settingsProvider).visibilityScale;
+    final scale = ref.watch(settingsProvider.select((s) => s.visibilityScale));
     final band = effectiveVisibilityBand(
       band: _visibilityBand,
       rangeTouched: _rangeTouched,

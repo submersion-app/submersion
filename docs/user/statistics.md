@@ -179,6 +179,13 @@ the value across all dives and the difference; rows that say nothing fold
 behind **Show more factors**. **The dives** lists the group, five at a time,
 and opens any dive you tap. Dive focus needs at least three dives to compare.
 
+Percentages for a factor such as entry method or water type count only the
+dives that have that factor recorded, because a dive with nothing recorded
+is unknown rather than a dive with some other value. When some dives are
+missing it, Dive focus says so: "All 3 were Boat (60% of the 5 of 10 dives
+with this recorded)", and **Full comparison** shows "5 of 10 dives" under the
+percentages.
+
 ### Calendar days
 
 Calendar days, on Time Patterns, counts your dives on each date of the year

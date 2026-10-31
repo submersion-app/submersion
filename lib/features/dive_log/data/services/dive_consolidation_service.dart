@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_field_fill.dart';
+import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -54,6 +56,8 @@ class DiveConsolidationService {
   final _roleLinks = DiveRoleLinkRepository();
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
+  final _navTracks = NavTrackRepository();
+  final _foldLinks = DiveFoldLinks();
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -828,6 +832,19 @@ class DiveConsolidationService {
         localUpdatedAt: now,
       );
 
+      // Measured routes follow the secondaries' other data (issue #3918),
+      // after the fill above so a route with no position of its own inherits
+      // the site the fold settled on. So does whatever else points at them.
+      await _navTracks.moveLinks(
+        fromDiveIds: secondaryDiveIds,
+        toDiveId: targetDiveId,
+      );
+      await _foldLinks.move(
+        fromDiveIds: secondaryDiveIds,
+        toDiveId: targetDiveId,
+        now: now,
+      );
+
       // Delete secondaries through the tombstone-logging path (this is the
       // fix for mergeDives' raw delete, which never logged deletions and
       // let sync resurrect the folded dive).
@@ -897,6 +914,20 @@ class DiveConsolidationService {
       // consolidation-output rows for the verbatim re-inserts below to
       // collide with.
       final mergedId = snapshot.mergedDiveId;
+
+      // The dive REPLACE below fires every SET NULL link to the target, so
+      // what was linked since the fold is read now to survive it alongside
+      // what the snapshot captured (issue #3918).
+      final capturedRouteIds = {for (final r in snapshot.navTrackRows) r.id};
+      final routesLinkedSince = [
+        for (final r in await _navTracks.linkedRowsForDives([mergedId]))
+          if (!capturedRouteIds.contains(r.id)) r,
+      ];
+      final capturedLinkIds = {for (final r in snapshot.linkedRows) r.id};
+      final linkedSince = [
+        for (final r in await _foldLinks.read([mergedId]))
+          if (!capturedLinkIds.contains(r.id)) r,
+      ];
 
       // Tombstone the consolidation-created child rows (ids NOT in the
       // snapshot) before deleting them. The target dive survives the undo,
@@ -1272,6 +1303,16 @@ class DiveConsolidationService {
           localUpdatedAt: now,
         );
       }
+
+      // Routes and the other records back on their dives (issue #3918).
+      await _navTracks.restoreLinks([
+        ...snapshot.navTrackRows,
+        ...routesLinkedSince,
+      ], survivingDiveId: mergedId);
+      await _foldLinks.restore([
+        ...snapshot.linkedRows,
+        ...linkedSince,
+      ], now: now);
     });
 
     SyncEventBus.notifyLocalChange();

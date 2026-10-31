@@ -305,7 +305,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 328;
+  static const int currentSchemaVersion = 332;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1038,7 +1038,7 @@ class AppDatabase extends _$AppDatabase {
     // review.
     228,
     // v229: equipment_sets.show_figure, the per-set diver figure switch
-    // (issue #2326). Additive, default off, no backfill, so the floor stays.
+    // (issue #2326). Additive, no backfill, so the floor stays.
     // Kept below v230, which main shipped first with 229 reserved for this
     // rung: a database already at 230 skips this step, and the beforeOpen
     // backstop adds the column there.
@@ -1087,8 +1087,8 @@ class AppDatabase extends _$AppDatabase {
     // MacDive source diver key (#1921) 233 and equipment sharing (#2046) 234.
     235,
     // v237: diver_settings.show_dive_figure, the diver-wide switch for the
-    // figure in the dive detail equipment card (issue #2326). Additive,
-    // default off, no backfill, so the floor it needs stays at 224. Taken
+    // figure in the dive detail equipment card (issue #2326). Additive, no
+    // backfill, so the floor it needs stays at 224. Taken
     // above 235 and 236, which open branches claimed when this was cut,
     // and kept below v239, which main shipped first: a database already
     // past it skips this step, and the beforeOpen backstop adds the column.
@@ -1490,9 +1490,20 @@ class AppDatabase extends _$AppDatabase {
     // upgraded database (issue #3809). Drift never read or wrote them, and
     // sync never carried them, so the floor does not move.
     327,
-    // v328: the per-device change log tables (issue #3922). Local only and
+    // v329: turns the diver figure on for every stored set and diver, now it
+    // is on by default (issue #3889). A one-time UPDATE that stamps no row,
+    // so nothing new crosses sync and the floor does not move.
+    329,
+    // v330: buddies.excluded_from_rankings keeps a buddy out of the buddy
+    // rankings (issue #3624). A defaulted column an older peer omits, so the
+    // floor does not move.
+    330,
+    // v331: equipment_locations.dive_center_id, the saved center a Dive
+    // center place stands for (issue #3623).
+    331,
+    // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
-    328,
+    332,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

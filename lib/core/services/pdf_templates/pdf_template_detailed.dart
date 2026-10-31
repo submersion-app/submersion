@@ -609,12 +609,8 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       for (final child in node.children) ...rows(child, depth + 1),
     ];
     return [
-      // The current editor writes Dive.weights; weightAmount is the legacy
-      // scalar kept for older dives.
-      if (dive.weights.isNotEmpty)
-        _Field(l10n.pdf_weight, units.formatWeight(dive.totalWeight))
-      else if (dive.weightAmount != null)
-        _Field(l10n.pdf_weight, units.formatWeight(dive.weightAmount)),
+      if (dive.recordedWeightKg != null)
+        _Field(l10n.pdf_weight, units.formatWeight(dive.recordedWeightKg)),
       if (dive.weightType != null)
         _Field(l10n.pdf_weightType, dive.weightType!.localizedName(l10n)),
       if (setNames.isNotEmpty)

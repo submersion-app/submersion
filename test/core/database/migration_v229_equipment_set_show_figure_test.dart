@@ -5,9 +5,8 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v229: equipment_sets.show_figure, the per-set switch for the diver figure
-/// (issue #2326). Off by default, and off for every set that existed before
-/// the column: the figure is opt-in, never switched on for a diver's
-/// existing sets.
+/// (issue #2326). On by default since issue #3889, whose v329 rung also
+/// turned it on for every set already stored.
 void main() {
   Future<Set<String>> setColumns(AppDatabase db) async {
     final cols = await db
@@ -55,7 +54,7 @@ void main() {
     );
   });
 
-  test('a fresh database has the column, not null, off by default', () async {
+  test('a fresh database has the column, not null, on by default', () async {
     final db = AppDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -67,10 +66,10 @@ void main() {
     final byName = {for (final c in cols) c.read<String>('name'): c};
     expect(byName, contains('show_figure'));
     expect(byName['show_figure']!.read<int>('notnull'), 1);
-    expect(byName['show_figure']!.read<String?>('dflt_value'), '0');
+    expect(byName['show_figure']!.read<String?>('dflt_value'), '1');
   });
 
-  test('a v227 database upgrades, and an existing set reads off', () async {
+  test('a v227 database upgrades, and an existing set reads on', () async {
     final db = AppDatabase(strandedAt(227));
     addTearDown(db.close);
 
@@ -78,7 +77,7 @@ void main() {
     final row = await db
         .customSelect("SELECT show_figure FROM equipment_sets WHERE id = 'old'")
         .getSingle();
-    expect(row.read<int>('show_figure'), 0);
+    expect(row.read<int>('show_figure'), 1);
     final version = await db.customSelect('PRAGMA user_version').getSingle();
     expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });

@@ -3,7 +3,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -69,7 +68,7 @@ class _TripPickerState extends ConsumerState<TripPicker> {
   }
 
   String _formatTripDates(Trip trip) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     return '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}';
   }
 
@@ -256,7 +255,7 @@ class TripPickerSheet extends ConsumerWidget {
                   final trip = trips[index];
                   final isSelected = selectedTrip?.id == trip.id;
                   final isPacked = packedTripIds.contains(trip.id);
-                  final units = UnitFormatter(ref.watch(settingsProvider));
+                  final units = ref.watch(unitFormatterProvider);
                   final start = units.formatDate(trip.startDate);
                   final end = units.formatDate(trip.endDate);
 

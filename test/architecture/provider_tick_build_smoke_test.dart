@@ -639,6 +639,10 @@ void main() {
       read: (c) => c.read(equipmentDiveCountProvider(_id).future),
     ),
     (
+      name: 'equipmentDiveTimeProvider',
+      read: (c) => c.read(equipmentDiveTimeProvider(_id).future),
+    ),
+    (
       name: 'equipmentItemProvider',
       read: (c) => c.read(equipmentItemProvider(_id).future),
     ),

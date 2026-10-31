@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -449,6 +450,15 @@ class Dive extends Equatable {
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
 
+  /// The lead the detail page shows, or null when none is recorded: the weight
+  /// entries when there are any, else a positive legacy [weightAmount]. The
+  /// Dart spelling of `recordedWeightKgSql` (issue #3914).
+  double? get recordedWeightKg {
+    if (weights.isNotEmpty) return totalWeight;
+    final legacy = weightAmount;
+    return legacy != null && legacy > 0 ? legacy : null;
+  }
+
   // CCR/SCR computed properties
 
   /// Whether this is a CCR dive
@@ -637,18 +647,15 @@ class Dive extends Equatable {
 
   /// Calculate average depth from dive profile data.
   ///
-  /// Uses a simple arithmetic mean of all profile depth points.
-  /// Returns null if profile data is insufficient.
+  /// Weights the profile by elapsed time, so uneven sample intervals do not
+  /// skew it. Returns null if profile data is insufficient.
   double? calculateAvgDepthFromProfile() {
-    if (profile.isEmpty) return null;
-
-    double depthSum = 0;
-    for (final point in profile) {
-      depthSum += point.depth;
-    }
-
-    final avg = depthSum / profile.length;
-    return avg > 0 ? avg : null;
+    final avg = timeWeightedMean(
+      profile,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    );
+    return avg != null && avg > 0 ? avg : null;
   }
 
   /// Calculate runtime (total dive time) from dive profile data.

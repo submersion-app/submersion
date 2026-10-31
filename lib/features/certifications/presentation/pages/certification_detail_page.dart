@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
@@ -135,7 +134,7 @@ class _CertificationDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
       padding: const EdgeInsets.all(16),

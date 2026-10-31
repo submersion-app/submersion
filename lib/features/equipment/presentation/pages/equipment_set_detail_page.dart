@@ -122,7 +122,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
             locale: Localizations.localeOf(context),
           )
         : null;
-    // The figure is opt-in per set; without it the list's numbers would
+    // The figure can be hidden per set; without it the list's numbers would
     // point at nothing, so they go too.
     final numberById = model == null
         ? const <String, int>{}

@@ -10,7 +10,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -155,7 +154,7 @@ class _MoveEquipmentSheetState extends ConsumerState<_MoveEquipmentSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final pick = _pick;
     return SafeArea(
       child: Padding(
