@@ -289,6 +289,69 @@ void main() {
       );
     });
 
+    group('in the plan water (issue #3913)', () {
+      PlanOutcome outcomeOn(GasMix mix, domain.DivePlan plan) {
+        return const PlanEngine().compute(
+          plan.copyWith(
+            tanks: [
+              DiveTank(id: 'back', volume: 24, startPressure: 232, gasMix: mix),
+            ],
+            segments: [
+              PlanSegment.travel(
+                id: 's1',
+                fromDepth: 0,
+                targetDepth: 30,
+                tankId: 'back',
+                gasMix: mix,
+                order: 0,
+                ratePerMinute: 18,
+              ),
+              PlanSegment.hold(
+                id: 's2',
+                depth: 30,
+                durationMinutes: 5,
+                tankId: 'back',
+                gasMix: mix,
+                order: 1,
+              ),
+            ],
+          ),
+        );
+      }
+
+      test('a salt-water suggestion stays within the working limit', () {
+        final plan = _decoPlan().copyWith(
+          salinityPpt: DiveEnvironment.typicalSeaSalinityPpt,
+        );
+        final mix = suggestBestMixForPlan(
+          plan,
+          config,
+          depthMeters: 30.0,
+        ).recommended.mix;
+
+        // EAN35, the flat answer, is 1.41 bar at 30 m in salt water.
+        expect(mix.o2, 34);
+        expect(
+          outcomeOn(mix, plan).issues.map((i) => i.type),
+          isNot(contains(PlanIssueType.ppO2High)),
+        );
+      });
+
+      test('altitude and fresh water allow a richer mix than the flat one', () {
+        final plan = _decoPlan().copyWith(altitude: 3000.0, salinityPpt: 0.0);
+        final mix = suggestBestMixForPlan(
+          plan,
+          config,
+          depthMeters: 30.0,
+        ).recommended.mix;
+        final ppO2 =
+            PlanEngine.environmentFor(plan).pressureAtDepth(30) * mix.o2 / 100;
+
+        expect(mix.o2, greaterThan(35));
+        expect(ppO2, lessThanOrEqualTo(1.4));
+      });
+    });
+
     test('targets the plan best-mix END, not the Settings END limit '
         '(issue #1499)', () {
       final plan = _decoPlan().copyWith(bestMixEndMeters: 30.0);

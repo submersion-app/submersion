@@ -17,6 +17,7 @@ import 'package:submersion/features/buddies/domain/services/legacy_name_parser.d
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -2583,7 +2584,8 @@ class InsightsRepository {
 
   /// Total lead carried on every dive in scope, in kilograms, ordered by date.
   ///
-  /// Sums the dive's weight rows. The monthly version this replaced averaged
+  /// Sums the dive's weight rows, or reads the legacy scalar when it has none
+  /// ([recordedWeightKgSql]). The monthly version this replaced averaged
   /// across rows, so a 4 kg belt plus 2 kg of trim weights was reported as
   /// 3 kg rather than the 6 kg actually carried.
   Future<List<TrendDataPoint>> getWeightPerDive({
@@ -2598,13 +2600,11 @@ class InsightsRepository {
       final results = await _db.customSelect('''
         SELECT d.id AS dive_id,
                d.dive_date_time AS dive_date_time,
-               SUM(dw.amount_kg) AS total_kg
+               ${recordedWeightKgSql('d')} AS total_kg
         FROM dives d
-        JOIN dive_weights dw ON dw.dive_id = d.id
         WHERE 1 = 1 $diverFilter ${df.clause}
-        GROUP BY d.id
-        HAVING total_kg IS NOT NULL
-        ORDER BY d.dive_date_time
+          AND total_kg IS NOT NULL
+        ORDER BY d.dive_date_time, d.id
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
