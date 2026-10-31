@@ -483,18 +483,39 @@ class PlanEngineConfig extends Equatable {
     SegmentPhase.ascent || SegmentPhase.stop => sacDeco,
   };
 
-  /// Surface liters of [plan]'s problem-solving time at max depth, shared
-  /// with a buddy; nothing when the plan sets none or never leaves the
-  /// surface.
+  /// Surface liters a cylinder gives up over [minutes] at [ambientBar] on a
+  /// [sac] rate, breathed in [mode] (issue #3972).
+  ///
+  /// A constant-mass-flow loop draws its injection rate, whatever the depth or
+  /// the diver's ventilation. A passive loop replaces only the share of each
+  /// breath it vents, as Subsurface's update_cylinder_pressure charges it.
+  /// Everything else costs what open circuit does.
+  double cylinderLiters(
+    domain.PlanMode mode, {
+    required double sac,
+    required double minutes,
+    required double ambientBar,
+  }) => switch (mode) {
+    domain.PlanMode.scr => scrInjectionRateLpm * minutes,
+    domain.PlanMode.pscr => sac * minutes * ambientBar * pscrRatio / 1000.0,
+    domain.PlanMode.oc || domain.PlanMode.ccr => sac * minutes * ambientBar,
+  };
+
+  /// Surface liters of [plan]'s problem-solving time at max depth, breathed in
+  /// [mode] and shared with a buddy; nothing when the plan sets none or never
+  /// leaves the surface.
   double problemSolvingLiters(
     domain.DivePlan plan,
-    DiveEnvironment environment,
-  ) {
+    DiveEnvironment environment, {
+    required domain.PlanMode mode,
+  }) {
     if (problemSolvingMinutes <= 0 || plan.maxDepth <= 0) return 0;
-    return sacBottom *
-        buddyFactor *
-        problemSolvingMinutes *
-        environment.pressureAtDepth(plan.maxDepth);
+    return cylinderLiters(
+      mode,
+      sac: sacBottom * buddyFactor,
+      minutes: problemSolvingMinutes.toDouble(),
+      ambientBar: environment.pressureAtDepth(plan.maxDepth),
+    );
   }
 
   /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
@@ -1267,14 +1288,21 @@ class PlanEngine {
     }
 
     for (final leg in offLoopLegs) {
-      charge(leg.tankId, _openCircuitLiters(leg, environment));
+      charge(leg.tankId, _legLiters(plan, leg, environment));
     }
 
     // Only when the diver is off the loop at the bottom: a problem solved on
     // the loop draws nothing the plan charges by the minute.
     final bottomLeg = lastLegAtMaxDepth(plan, offLoopLegs);
     if (bottomLeg != null) {
-      charge(bottomLeg.tankId, config.problemSolvingLiters(plan, environment));
+      charge(
+        bottomLeg.tankId,
+        config.problemSolvingLiters(
+          plan,
+          environment,
+          mode: _modeFor(plan, bottomLeg.segment),
+        ),
+      );
     }
 
     return [
@@ -1330,11 +1358,18 @@ class PlanEngine {
     ];
   }
 
-  /// Surface liters [leg] costs breathed straight from a cylinder.
-  double _openCircuitLiters(ResolvedLeg leg, DiveEnvironment environment) =>
-      config.sacForPhase(leg.phase) *
-      (leg.durationSeconds / 60.0) *
-      environment.pressureAtDepth(leg.avgDepth);
+  /// Surface liters [leg] costs the cylinder it names, in its own breathing
+  /// mode.
+  double _legLiters(
+    domain.DivePlan plan,
+    ResolvedLeg leg,
+    DiveEnvironment environment,
+  ) => config.cylinderLiters(
+    _modeFor(plan, leg.segment),
+    sac: config.sacForPhase(leg.phase),
+    minutes: leg.durationSeconds / 60.0,
+    ambientBar: environment.pressureAtDepth(leg.avgDepth),
+  );
 
   /// The last of [legs] at [plan]'s max depth, which is what problem-solving
   /// time is charged to, or null when none of them reaches it.
@@ -1352,10 +1387,11 @@ class PlanEngine {
     return bottomLeg;
   }
 
-  /// SAC-based consumption: bottom SAC while the dive is still working
-  /// (descending, or level at depth), deco SAC once it is heading up (ascent
-  /// legs and stops), depth pressure via the plan's environment, remaining
-  /// pressure compressibility-corrected.
+  /// Consumption for every plan but CCR: bottom SAC while the dive is still
+  /// working (descending, or level at depth), deco SAC once it is heading up
+  /// (ascent legs and stops), depth pressure via the plan's environment,
+  /// remaining pressure compressibility-corrected. A semi-closed leg turns
+  /// that into what the loop draws (see [PlanEngineConfig.cylinderLiters]).
   List<PlanTankUsage> _computeTankUsages(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,
@@ -1380,21 +1416,37 @@ class PlanEngine {
         loopSupplyTankId ??
         _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe);
 
+    final ascentMode = loopSupplyTankId == null
+        ? domain.PlanMode.oc
+        : _modeFor(plan, legs.last.segment);
+    double ascentLiters(int seconds, double ambientBar) =>
+        config.cylinderLiters(
+          ascentMode,
+          sac: config.sacDeco,
+          minutes: seconds / 60.0,
+          ambientBar: ambientBar,
+        );
+
     // Reads sacBottom/sacDeco/problemSolvingMinutes from [config] (issue
     // #3552), not [plan] directly: by this point [config] is already
     // resolvedFor this plan, so an unset field already carries the diver's
     // Settings default. sacFactor has no absolute global value of its own -
     // it always resolves through config.buddyFactor (see resolvedFor).
     for (final leg in legs) {
-      charge(leg.tankId, _openCircuitLiters(leg, environment));
+      charge(leg.tankId, _legLiters(plan, leg, environment));
     }
 
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
+    final bottomLeg = lastLegAtMaxDepth(plan, legs);
     charge(
-      lastLegAtMaxDepth(plan, legs)?.tankId,
-      config.problemSolvingLiters(plan, environment),
+      bottomLeg?.tankId,
+      config.problemSolvingLiters(
+        plan,
+        environment,
+        mode: _modeFor(plan, bottomLeg?.segment),
+      ),
     );
 
     // Computed ascent: travel legs and stops on the deco SAC.
@@ -1432,9 +1484,10 @@ class PlanEngine {
           remaining -= subSeconds;
           charge(
             ascentTankFor(ascentPlan.gasForDepth(legDepth)),
-            config.sacDeco *
-                (subSeconds / 60.0) *
-                environment.pressureAtDepth((legDepth + legTo) / 2.0),
+            ascentLiters(
+              subSeconds,
+              environment.pressureAtDepth((legDepth + legTo) / 2.0),
+            ),
           );
           legDepth = legTo;
         }
@@ -1442,17 +1495,12 @@ class PlanEngine {
         final legAvg = (depth + stop.depthMeters) / 2.0;
         charge(
           stop.tankId,
-          config.sacDeco *
-              (legSeconds / 60.0) *
-              environment.pressureAtDepth(legAvg),
+          ascentLiters(legSeconds, environment.pressureAtDepth(legAvg)),
         );
       }
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
-      charge(
-        stop.tankId,
-        config.sacDeco * (primarySeconds / 60.0) * stopPressure,
-      );
+      charge(stop.tankId, ascentLiters(primarySeconds, stopPressure));
       if (stop.airBreakSeconds > 0) {
         final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
         final breakTankId = breakGas != null
@@ -1462,10 +1510,7 @@ class PlanEngine {
                 breakGas.fHe,
               )
             : stop.tankId;
-        charge(
-          breakTankId,
-          config.sacDeco * (stop.airBreakSeconds / 60.0) * stopPressure,
-        );
+        charge(breakTankId, ascentLiters(stop.airBreakSeconds, stopPressure));
       }
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
@@ -1478,9 +1523,7 @@ class PlanEngine {
       );
       charge(
         ascentTankFor(ascentPlan.gasForDepth(depth)),
-        config.sacDeco *
-            (legSeconds / 60.0) *
-            environment.pressureAtDepth(depth / 2.0),
+        ascentLiters(legSeconds, environment.pressureAtDepth(depth / 2.0)),
       );
     }
 

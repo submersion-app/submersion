@@ -318,7 +318,11 @@ class BailoutSolver {
       if (offLoop && identical(leg, offLoopBottomLeg)) {
         spent[tankId] =
             (spent[tankId] ?? 0) +
-            config.problemSolvingLiters(plan, environment);
+            config.problemSolvingLiters(
+              plan,
+              environment,
+              mode: modeFor(plan, segment),
+            );
       }
       var covered = 0;
       while (covered < segment.durationSeconds) {
@@ -358,9 +362,12 @@ class BailoutSolver {
         if (offLoop) {
           spent[tankId] =
               (spent[tankId] ?? 0) +
-              config.sacForPhase(leg.phase) *
-                  (chunk / 60.0) *
-                  environment.pressureAtDepth(chunkAvg);
+              config.cylinderLiters(
+                modeFor(plan, segment),
+                sac: config.sacForPhase(leg.phase),
+                minutes: chunk / 60.0,
+                ambientBar: environment.pressureAtDepth(chunkAvg),
+              );
         }
 
         if (chunkEndDepth > 0) {

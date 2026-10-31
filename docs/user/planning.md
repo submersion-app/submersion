@@ -113,6 +113,8 @@ as chips under the chart. The chart draws the ceiling, gas switches and stops.
   or "No decompression required". Tap a stop to set a minimum time for it.
 - **Gas Consumption** shows, for each tank, the gas used, the pressure left at
   the end, the turn pressure and the minimum gas.
+  On a semi-closed loop the supply is charged at what the loop draws: the
+  injection rate on SCR, and your RMV scaled by the pSCR ratio on pSCR.
 - **Bailout (open circuit)**, on a CCR plan, works out the worst-case bailout:
   when it happens, how long the ascent takes, and whether your bailout gas
   covers it.
