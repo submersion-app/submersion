@@ -26,7 +26,7 @@ class CcrSettingsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(divePlanNotifierProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final ccrSetpointLow = ref.watch(ccrSetpointLowProvider);
     final ccrSetpointHigh = ref.watch(ccrSetpointHighProvider);
 

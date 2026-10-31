@@ -5,7 +5,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
@@ -199,7 +198,7 @@ class _AddTripCylindersSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final presetsAsync = ref.watch(tankPresetsProvider);
     final presets = presetsAsync.value ?? const [];
     // Rentals take their specs from the chosen preset, so saving them needs

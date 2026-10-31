@@ -7,8 +7,10 @@ extension _CloudCopy on BackupService {
   /// Uploads [sourcePath] as the cloud copy [storedName]. Never throws: the
   /// backup on this device already succeeded, so a failed copy only leaves
   /// it local-only. The account is read before the upload: a switch while it
-  /// runs must not be recorded as this copy's account.
-  Future<({String? fileId, String? accountId})> _copyToCloud(
+  /// runs must not be recorded as this copy's account. [needsSignIn] says the
+  /// server refused the account (issue #3811): a sign-in could fix that, while
+  /// an outage or no session in this isolate could not.
+  Future<({String? fileId, String? accountId, bool needsSignIn})> _copyToCloud(
     String sourcePath,
     String storedName,
   ) async {
@@ -25,14 +27,18 @@ extension _CloudCopy on BackupService {
       } else {
         _log.info('Backup uploaded to cloud: $fileId');
       }
-      return (fileId: fileId, accountId: accountId);
+      return (fileId: fileId, accountId: accountId, needsSignIn: false);
     } catch (e, stack) {
       _log.error(
         'Cloud upload failed, backup is local-only',
         error: e,
         stackTrace: stack,
       );
-      return (fileId: null, accountId: accountId);
+      return (
+        fileId: null,
+        accountId: accountId,
+        needsSignIn: isAccessRefused(e),
+      );
     }
   }
 

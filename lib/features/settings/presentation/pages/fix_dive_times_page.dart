@@ -247,8 +247,7 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-    final formatter = UnitFormatter(settings);
+    final formatter = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final allSelected =

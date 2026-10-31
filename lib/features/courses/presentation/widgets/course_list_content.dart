@@ -499,8 +499,7 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
         }
         final config = ref.watch(courseTableConfigProvider);
         final notifier = ref.read(courseTableConfigProvider.notifier);
-        final settings = ref.watch(settingsProvider);
-        final units = UnitFormatter(settings);
+        final units = ref.watch(unitFormatterProvider);
 
         return EntityTableView<Course, CourseField>(
           entities: courses,

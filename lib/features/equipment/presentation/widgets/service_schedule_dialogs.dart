@@ -16,7 +16,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -418,9 +417,9 @@ class _ScheduleOverrideDialogState
                     child: Text(
                       _anchorDate == null
                           ? '-'
-                          : UnitFormatter(
-                              ref.watch(settingsProvider),
-                            ).formatDate(_anchorDate),
+                          : ref
+                                .watch(unitFormatterProvider)
+                                .formatDate(_anchorDate),
                     ),
                   ),
                 ),

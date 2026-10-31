@@ -6,7 +6,6 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -39,7 +38,7 @@ class InsightStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (tiles.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
     // Sized to its tiles, so the band beside them stays the canvas's own
     // (a full-width list would swallow pans and taps there).

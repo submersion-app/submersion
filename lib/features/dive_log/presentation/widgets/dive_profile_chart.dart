@@ -2833,18 +2833,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     _metricRanges.clear();
     _metricHasData.clear();
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final profileMetricColors = ref.watch(
+      settingsProvider.select((s) => s.profileMetricColors),
+    );
     _palette = ProfileMetricPalette(
-      overrides: settings.profileMetricColors,
+      overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
     );
-    final units = UnitFormatter(settings);
     // Temperature data from the active source or any overlaid source should
     // surface the temperature toggle.
-    final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];
-    final hasTemperatureData =
-        widget.profile.any((p) => p.temperature != null) ||
-        overlaySources.any((o) => o.points.any((p) => p.temperature != null));
+    final hasTemperatureData = _hasDataForMetric(
+      ProfileRightAxisMetric.temperature,
+    );
     final hasPressureData = _hasMultiTankPressure;
     final hasHeartRateData = widget.profile.any((p) => p.heartRate != null);
 
@@ -2903,11 +2904,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ..clear()
       ..addAll(legendState.showTankPressure);
 
-    final bounds = _chartDataBounds(
-      units,
-      hasTemperatureData: hasTemperatureData,
-      hasHeartRateData: hasHeartRateData,
-    );
+    final bounds = _chartDataBounds(units, hasHeartRateData: hasHeartRateData);
 
     // Check data availability for advanced curves
     final hasNdlData = widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
@@ -3537,7 +3534,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// [build] has synced them.
   _ChartDataBounds _chartDataBounds(
     UnitFormatter units, {
-    required bool hasTemperatureData,
     required bool hasHeartRateData,
   }) {
     // Calculate full data bounds (all values stored in meters, convert for
@@ -3550,40 +3546,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ...overlayPoints.map((p) => p.timestamp),
     ].reduce(math.max).toDouble();
 
-    // Temperature bounds (if showing) - convert to user's preferred unit.
-    // Pool the active source's and every overlaid source's readings so both
-    // curves share one temperature scale and the axis range doesn't jump as
-    // overlays are toggled.
-    double? minTemp, maxTemp;
-    if (_showTemperature && hasTemperatureData) {
-      final tempSource = widget.profile.followedBy(
-        (widget.overlays ?? const <ChartSourceOverlay>[]).expand(
-          (o) => o.points,
-        ),
-      );
-      final temps = tempSource
-          .where((p) => p.temperature != null)
-          .map((p) => units.convertTemperature(p.temperature!));
-      if (temps.isNotEmpty) {
-        minTemp = temps.reduce(math.min) - 1;
-        maxTemp = temps.reduce(math.max) + 1;
-      }
-    }
+    // Temperature bounds (if showing), in the user's preferred unit. The
+    // right axis's own range, so the active source's and every overlaid
+    // source's curves read true against its labels. Overlays pool into it, so
+    // it moves as they are toggled (see _syncBarSignatures).
+    final tempRange = _showTemperature
+        ? _getMetricRange(ProfileRightAxisMetric.temperature, units)
+        : null;
 
-    // Pressure bounds from multi-tank pressure data
-    double? minPressure, maxPressure;
-    if (_hasMultiTankPressure && widget.tankPressures != null) {
-      for (final pressurePoints in widget.tankPressures!.values) {
-        for (final point in pressurePoints) {
-          if (minPressure == null || point.pressure < minPressure) {
-            minPressure = point.pressure - 10;
-          }
-          if (maxPressure == null || point.pressure > maxPressure) {
-            maxPressure = point.pressure + 10;
-          }
-        }
-      }
-    }
+    // Pressure bounds from multi-tank pressure data, the same scale the tank
+    // lines are drawn on so a threshold marker sits on its own line.
+    final pressureScale = _getMetricRange(
+      ProfileRightAxisMetric.pressure,
+      units,
+    );
 
     // Heart rate bounds (if showing)
     double? minHR, maxHR;
@@ -3610,10 +3586,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return (
       totalMaxTime: totalMaxTime,
       totalMaxDepth: _totalMaxDepth(units),
-      minTemp: minTemp,
-      maxTemp: maxTemp,
-      minPressure: minPressure,
-      maxPressure: maxPressure,
+      minTemp: tempRange?.min,
+      maxTemp: tempRange?.max,
+      minPressure: pressureScale?.min,
+      maxPressure: pressureScale?.max,
       minHR: minHR,
       maxHR: maxHR,
       minSac: minSac,
@@ -3631,7 +3607,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   void _syncBarSignatures(
     BuildContext context,
     UnitFormatter units,
-    double totalMaxDepth,
+    _ChartDataBounds bounds,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final legendState = ref.read(profileLegendProvider);
@@ -3644,7 +3620,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Rebuilding those bars is unavoidable: their spots genuinely move. What is
     // avoidable is re-deciding *which* samples to draw, which depends on the X
     // window alone (see _syncDecimationScope).
-    final metricBandSig = _metricBand(totalMaxDepth).cacheKey;
+    final metricBandSig = _metricBand(bounds.totalMaxDepth).cacheKey;
     _syncDecimationScope();
     final commonSig = _sigOf([
       identityHashCode(widget.profile),
@@ -3670,6 +3646,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.tanks),
       identityHashCode(widget.tankPressures),
       identityHashCode(widget.tankSourceColors),
+      // The temperature line lives in this group, on a scale overlays pool
+      // into: toggling one moves the line without touching widget.profile.
+      bounds.minTemp,
+      bounds.maxTemp,
     ]);
     _sacSig = _sigOf([commonSig, identityHashCode(widget.sacCurve), vpBucket]);
     _ascentSig = _sigOf([commonSig, identityHashCode(widget.ascentRates)]);
@@ -3724,7 +3704,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       :minSac,
       :maxSac,
     ) = bounds;
-    _syncBarSignatures(context, units, totalMaxDepth);
+    _syncBarSignatures(context, units, bounds);
     final colorScheme = Theme.of(context).colorScheme;
     final heartRateColor = _metricColor(ProfileMetric.heartRate);
 

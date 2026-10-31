@@ -1,12 +1,12 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Title/subtitle shown for a downloaded dive: a dive computer download, or a
 /// cloud import's fetch-step selection list, and the shared Review step.
 ({String title, String subtitle}) formatDownloadedDiveSummary(
   DownloadedDive dive,
-  AppSettings settings,
+  UnitFormatterSettings settings,
 ) {
   // The dive's wall clock flagged UTC, like every stored dive time: format it
   // as is. Converting it to the device's zone would shift the listed time,

@@ -14,7 +14,6 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
@@ -50,7 +49,7 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
   Widget build(BuildContext context) {
     final summaries = ref.watch(divePlanSummariesProvider);
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
     final plans = summaries.valueOrNull;

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
@@ -94,13 +95,11 @@ class PlanChartGeometry {
   /// Time-weighted mean depth of a polyline profile (trapezoidal rule).
   static double meanDepthMeters(List<CanvasPoint> profile) {
     if (profile.length < 2) return 0;
-    double weighted = 0;
-    for (var i = 1; i < profile.length; i++) {
-      final dt = profile[i].timeSeconds - profile[i - 1].timeSeconds;
-      weighted += dt * (profile[i].depth + profile[i - 1].depth) / 2;
-    }
-    final total = profile.last.timeSeconds - profile.first.timeSeconds;
-    return total > 0 ? weighted / total : 0;
+    return timeWeightedMean(
+      profile,
+      time: (p) => p.timeSeconds,
+      value: (p) => p.depth,
+    )!;
   }
 
   @override

@@ -7,7 +7,6 @@ import 'package:submersion/features/certifications/presentation/certification_ti
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_owner_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -32,7 +31,7 @@ class DocumentOwnerField extends ConsumerWidget {
     // certification by its title (#3366), a dive by its number, name or
     // site, and date (#3391). The kind's own label only when there is
     // nothing to show (Personal).
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final String? text;
     if (owner.isPersonal) {
       text = null;

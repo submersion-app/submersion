@@ -18,7 +18,6 @@ import 'package:submersion/features/gear_passports/domain/services/gear_tag_code
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// QR of the current gear tag, print and link actions, NFC write, and the
@@ -38,7 +37,7 @@ class GearTagCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final passportId = ref.watch(passportIdProvider(equipment.id)).value;
     final recordsState = ref.watch(
       serviceRecordsForEquipmentProvider(equipment.id),

@@ -246,9 +246,10 @@ class BackupService {
     // uploads from a filesystem file holding the stored bytes, never from
     // the folder's ref, which on Android is a content:// URI.
     final wantsCopy = settings.cloudBackupEnabled && _cloudProvider != null;
-    ({String? fileId, String? accountId}) copy = (
+    ({String? fileId, String? accountId, bool needsSignIn}) copy = (
       fileId: null,
       accountId: null,
+      needsSignIn: false,
     );
 
     final String ref;
@@ -340,6 +341,7 @@ class BackupService {
     await _preferences.setLastCloudCopyMissing(
       settings.cloudBackupEnabled && location == BackupLocation.local,
     );
+    await _preferences.setLastCloudCopyNeedsSignIn(copy.needsSignIn);
     await _preferences.setLastBackupDestination(
       location == BackupLocation.both
           ? LastBackupDestination.cloud
@@ -1727,7 +1729,7 @@ class BackupService {
       return null;
     }
 
-    final folderId = await _getOrCreateCloudBackupFolder();
+    final folderId = await _getOrCreateCloudBackupFolder(rethrowRefused: true);
     if (folderId == null) return null;
 
     var uploadPath = localPath;
@@ -1853,12 +1855,17 @@ class BackupService {
     return deleted;
   }
 
-  Future<String?> _getOrCreateCloudBackupFolder() async {
+  /// [rethrowRefused] lets a refusal out for a caller that keeps the reason;
+  /// anything else is a null, as it is for every other caller.
+  Future<String?> _getOrCreateCloudBackupFolder({
+    bool rethrowRefused = false,
+  }) async {
     if (_cloudProvider == null) return null;
 
     try {
       return await _cloudProvider.createFolder(_cloudBackupFolder);
     } catch (e, stack) {
+      if (rethrowRefused && isAccessRefused(e)) rethrow;
       _log.error(
         'Failed to get/create cloud backup folder',
         error: e,

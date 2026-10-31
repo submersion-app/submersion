@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
@@ -94,8 +93,7 @@ class _OverviewBody extends ConsumerWidget {
       return const _EmptyState();
     }
 
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
+    final fmt = ref.watch(unitFormatterProvider);
     final recordsAsync = ref.watch(filteredDiveRecordsProvider);
 
     return SingleChildScrollView(

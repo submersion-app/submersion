@@ -14077,6 +14077,9 @@
   "settings_cloudSync_status_readyToSync": "Ready to sync",
   "settings_cloudSync_status_syncComplete": "Sync complete",
   "settings_cloudSync_status_syncError": "Sync error",
+  "settings_cloudSync_status_signInNeeded": "Sign-in needed",
+  "settings_cloudSync_signInNeeded_message": "{account} needs you to sign in again.",
+  "@settings_cloudSync_signInNeeded_message": {"description": "Cloud Sync status card while the account needs signing in again; account is its name", "placeholders": {"account": {"type": "String"}}},
   "settings_cloudSync_status_syncing": "Syncing...",
   "settings_cloudSync_storageSettings": "Storage Settings",
   "settings_cloudSync_syncNow": "Sync Now",
@@ -23300,6 +23303,11 @@
   "settings_accounts_continue": "Continue",
   "settings_accounts_add": "Add account",
   "settings_accounts_signInAgain": "Sign in again",
+  "settings_accounts_differentAccount_title": "That's a different account",
+  "settings_accounts_differentAccount_body": "Submersion uses {expected}, but you signed in as {signedIn}.",
+  "settings_accounts_differentAccount_nothingSynced": "Nothing was synced, and {signedIn} was not connected.",
+  "@settings_accounts_differentAccount_body": {"description": "Dialog after signing in to a different account than the one in use; both are addresses", "placeholders": {"expected": {"type": "String"}, "signedIn": {"type": "String"}}},
+  "@settings_accounts_differentAccount_nothingSynced": {"description": "Second paragraph of that dialog; signedIn is the other address", "placeholders": {"signedIn": {"type": "String"}}},
   "settings_accounts_usedHere": "Used on this device for {features}",
   "@settings_accounts_usedHere": {"placeholders": {"features": {"type": "String"}}},
   "settings_accounts_folders": "Folders",
@@ -23833,6 +23841,60 @@
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
   "diveLog_detail_sacSegmentsNoPressure": "Only start and end tank pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
   "diveLog_detail_sacSegmentsNoPressure_subtitle": "No tank pressure recorded during the dive",
+  "diveLog_detail_sacSegments_time": "Time",
+  "@diveLog_detail_sacSegments_time": {
+    "description": "Heading of the time chart and of the duration column in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_phase": "Phase",
+  "diveLog_detail_sacSegments_gas": "Gas",
+  "diveLog_detail_sacSegments_depth": "Depth",
+  "diveLog_detail_sacSegments_phaseDescent": "Descent",
+  "diveLog_detail_sacSegments_phaseBottom": "Bottom",
+  "diveLog_detail_sacSegments_phaseAscent": "Ascent",
+  "diveLog_detail_sacSegments_phaseSafetyStop": "Safety stop",
+  "diveLog_detail_sacSegments_phaseDeco": "Deco",
+  "diveLog_detail_sacSegments_timeRange": "{start}-{end} min",
+  "@diveLog_detail_sacSegments_timeRange": {
+    "description": "A stretch of the dive in minutes from its start, such as 10-15 min",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_axisMinutes": "{minutes} min",
+  "@diveLog_detail_sacSegments_axisMinutes": {
+    "description": "Last label on the time axis of the gas consumption by segment chart",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_peak": "Peak {rate} at {range}",
+  "@diveLog_detail_sacSegments_peak": {
+    "description": "Shown under the time chart when no segment is selected",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_average": "Average {rate}",
+  "@diveLog_detail_sacSegments_average": {
+    "description": "Collapsed subtitle of the gas consumption by segment card",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
   "@diveLog_detail_sacVolumeHint": {
     "placeholders": {

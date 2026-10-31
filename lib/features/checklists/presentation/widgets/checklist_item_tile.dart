@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A single checklist row: checkbox, title, optional due chip. Tap to edit;
@@ -27,7 +26,7 @@ class ChecklistItemTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final isOverdue = showOverdue && item.isOverdue(DateTime.now());
     final due = item.dueDate;
 

@@ -40,6 +40,24 @@ final class NoCopy extends BackupCopyTarget {
   const NoCopy();
 }
 
+/// The account [target] sends the copy to, or null when it goes nowhere.
+AccountGroup? backupCopyGroupOf(BackupCopyTarget? target) => switch (target) {
+  CopyFollowsSync(:final group) => group,
+  CopyToAccount(:final group) => group,
+  _ => null,
+};
+
+/// The sign-in state of the row the copy goes through. A group's own status
+/// is its worst row's, and a folder only a library uses must not read as the
+/// copy needing a sign-in.
+AccountStatus? backupCopyStatusOf(BackupCopyTarget? target) => switch (target) {
+  CopyFollowsSync(:final group?) =>
+    group.statusOf(group.syncRowHere?.id) ?? group.status,
+  CopyToAccount(:final group, :final row) =>
+    group.statusOf(row.id) ?? group.status,
+  _ => null,
+};
+
 /// The row the copy is pinned to while the copy is on; null while it
 /// follows sync or is off. A pin left from before the copy was turned off
 /// never counts.
@@ -76,6 +94,20 @@ final backupCopyTargetProvider = FutureProvider.autoDispose<BackupCopyTarget>((
   if (group == null || row == null) return CopyAccountGone(accountId);
   return CopyToAccount(group, row);
 }, retry: (_, _) => null);
+
+/// [backupCopyTargetProvider], read once by a caller that may be the only one
+/// asking. Held while read: an unwatched autoDispose provider is disposed
+/// partway through its build, and this one probes every account.
+Future<BackupCopyTarget> readBackupCopyTarget(
+  ProviderContainer container,
+) async {
+  final subscription = container.listen(backupCopyTargetProvider, (_, _) {});
+  try {
+    return await container.read(backupCopyTargetProvider.future);
+  } finally {
+    subscription.close();
+  }
+}
 
 /// Whether the roster still has the row [id]. Follows removals and syncs.
 final copyRowOnRosterProvider = FutureProvider.family<bool, String>((

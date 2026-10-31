@@ -10,7 +10,6 @@ import 'package:submersion/features/maps/domain/entities/cached_region.dart';
 import 'package:submersion/features/maps/presentation/pages/region_picker_page.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/offline_maps_section_header.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Offline Maps page's section for downloaded map tile regions.
@@ -512,7 +511,7 @@ class _OfflineMapTilesSectionState
     Set<String>? regionStoreIds,
   ) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final size = _sizeLabel(context, region, regionStoreIds);
 
     return Semantics(
@@ -643,7 +642,7 @@ class _OfflineMapTilesSectionState
   // Shown to the diver, so it follows Manage - Units rather than a fixed
   // ISO stamp (#1512).
   String _formatDate(DateTime date) =>
-      UnitFormatter(ref.watch(settingsProvider)).formatDate(date);
+      ref.watch(unitFormatterProvider).formatDate(date);
 
   Future<void> _confirmDeleteRegion(
     BuildContext context,

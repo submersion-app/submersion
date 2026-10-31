@@ -10,7 +10,11 @@ import 'package:http/http.dart' as http;
 abstract class GoogleDriveAuthenticator {
   /// Interactive sign-in. May show UI (account sheet or system browser).
   /// Throws CloudStorageException on failure or user cancellation.
-  Future<void> authenticate();
+  ///
+  /// With [expectedAccount], another account throws
+  /// [CloudAccountMismatchException] before anything of it is kept, leaving
+  /// any session already here as it was.
+  Future<void> authenticate({String? expectedAccount});
 
   /// Non-interactive re-auth from cached state (google_sign_in's
   /// authorization for the known account, lightweight sign-in on a cold
@@ -32,6 +36,11 @@ abstract class GoogleDriveAuthenticator {
   /// fresh process, which would make cold-launch silent auth impossible and
   /// leave sync reporting itself unauthenticated after every restart.
   Future<bool> attemptSilentAuth();
+
+  /// Whether the last [attemptSilentAuth] failed on an exception rather than
+  /// finding no grant. It says "could not tell": a dropped network looks like
+  /// this, and must not read as the account being refused.
+  bool get lastSilentAuthThrew;
 
   /// The authorized HTTP client, or null when not authenticated.
   http.Client? get authClient;

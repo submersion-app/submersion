@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/data/services/tide_constituent_resolver.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -22,8 +21,7 @@ class TideSourceBadge extends ConsumerWidget {
     if (source == null) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     final String label;
     final IconData icon;
