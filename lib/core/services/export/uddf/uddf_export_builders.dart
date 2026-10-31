@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart'
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
@@ -2005,9 +2006,10 @@ class UddfExportBuilders {
         attributes: {'id': 'tank_${tank.id}'},
         nest: () {
           // Link to gas mix
-          final mixId =
-              'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-          builder.element('link', attributes: {'ref': mixId});
+          builder.element(
+            'link',
+            attributes: {'ref': UddfGasMixWriters.mixId(tank.gasMix)},
+          );
           // Tank name
           if (includeIdentity && tank.name != null && tank.name!.isNotEmpty) {
             builder.element('tankname', nest: tank.name);
@@ -2082,9 +2084,7 @@ class UddfExportBuilders {
   /// logged (issue #1878).
   static String? startMixId(Dive dive) {
     final tank = dive.tanks.firstOrNull;
-    return tank == null
-        ? null
-        : 'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
+    return tank == null ? null : UddfGasMixWriters.mixId(tank.gasMix);
   }
 
   /// Find pressure at a given timestamp using binary search.

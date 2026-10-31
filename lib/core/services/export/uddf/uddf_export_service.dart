@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -260,44 +261,7 @@ class UddfExportService {
         }
 
         // Gas definitions
-        builder.element(
-          'gasdefinitions',
-          nest: () {
-            // Collect all unique gas mixes from dives
-            final gasMixes = <String, GasMix>{};
-            for (final dive in dives) {
-              for (final tank in dive.tanks) {
-                final key =
-                    'mix_${tank.gasMix.o2.toInt()}_${tank.gasMix.he.toInt()}';
-                gasMixes[key] = tank.gasMix;
-              }
-            }
-            // Add air as default
-            gasMixes['mix_21_0'] = const GasMix();
-
-            for (final entry in gasMixes.entries) {
-              builder.element(
-                'mix',
-                attributes: {'id': entry.key},
-                nest: () {
-                  builder.element('name', nest: entry.value.name);
-                  builder.element(
-                    'o2',
-                    nest: (entry.value.o2 / 100).toString(),
-                  );
-                  builder.element(
-                    'n2',
-                    nest: (entry.value.n2 / 100).toString(),
-                  );
-                  builder.element(
-                    'he',
-                    nest: (entry.value.he / 100).toString(),
-                  );
-                },
-              );
-            }
-          },
-        );
+        UddfGasMixWriters.writeGasDefinitions(builder, dives);
 
         // Profile data (repetition groups and dives)
         builder.element(
