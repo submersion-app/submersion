@@ -929,20 +929,42 @@ void main() {
     test(
       'replace records the upload nonce when an initializer is wired',
       () async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'd-replace'),
+        );
+        final initializer = SyncInitializer(
+          syncRepository: SyncRepository(),
+          prefs: await SharedPreferences.getInstance(),
+        );
         final service = SyncService(
           syncRepository: SyncRepository(),
           serializer: SyncDataSerializer(),
           cloudProvider: cloud,
-          syncInitializer: SyncInitializer(
-            syncRepository: SyncRepository(),
-            prefs: await SharedPreferences.getInstance(),
-          ),
+          syncInitializer: initializer,
           epochStore: epochStore,
         );
 
         final result = await service.executeLibraryReplace(marker);
 
         expect(result.isSuccess, isTrue);
+        final deviceId = await SyncRepository().getDeviceId();
+        final manifest = await ownManifest(cloud, deviceId);
+        // An empty ring reads nothing as foreign, which would prove nothing.
+        await initializer.recordUploadNonce(
+          'another-of-ours',
+          cloud.providerId,
+        );
+        expect(manifest!.uploadNonce, isNotNull);
+        expect(
+          initializer.isForeignUploadNonce(
+            manifest.uploadNonce,
+            cloud.providerId,
+          ),
+          isFalse,
+          reason:
+              'a replace is an upload like any other: the next sync must '
+              'read this manifest as our own',
+        );
       },
     );
   });

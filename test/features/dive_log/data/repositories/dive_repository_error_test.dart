@@ -56,6 +56,7 @@ void main() {
         repository.searchDiveSummaries('test'),
         throwsA(anything),
       );
+      await expectLater(repository.getDivePickerRows(), throwsA(anything));
       await expectLater(repository.getStatistics(), throwsA(anything));
       await expectLater(repository.getRecords(), throwsA(anything));
       await expectLater(

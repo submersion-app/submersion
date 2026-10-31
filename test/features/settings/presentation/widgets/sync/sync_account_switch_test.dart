@@ -2,6 +2,7 @@
 // "Switch sync backend?" explanation shows inside the sheet, and choosing the
 // account sync already uses changes nothing.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -421,6 +422,110 @@ void main() {
       );
 
       expect(connected, SetUpConnect.connected);
+    });
+
+    testWidgets('waits for the sync account write that a first selection '
+        'starts, rather than reading no account yet', (tester) async {
+      String? syncId;
+      final write = Completer<void>();
+      final (context, ref) = await pumpHost(
+        tester,
+        extra: [
+          connectedAccountsWithStatusProvider.overrideWith(
+            (ref) async => [(drive.rows.single, AccountStatus.signedIn)],
+          ),
+          connectedAccountUsageProvider.overrideWith(
+            (ref) async => AccountUsageSnapshot(syncAccountId: syncId),
+          ),
+          // The real provider persists the id only after its async derivation;
+          // selecting the provider starts that, and does not wait for it.
+          selectedSyncAccountProvider.overrideWith((ref) async {
+            if (ref.watch(selectedCloudProviderTypeProvider) == null) {
+              return null;
+            }
+            await write.future;
+            syncId = 'gd';
+            return drive.rows.single;
+          }),
+        ],
+      );
+      // cloudStorageProviderProvider, faked here, keeps this alive in the app.
+      ref.listenManual(selectedSyncAccountProvider, (_, _) {});
+      ref.listenManual(accountGroupsProvider, (_, _) {});
+      final before = await ref.read(accountGroupsProvider.future);
+
+      SetUpConnect? connected;
+      unawaited(
+        const SetUpSyncActions()
+            .connect(context, ref, before.single)
+            .then((c) => connected = c),
+      );
+      await tester.pump();
+
+      expect(connected, isNull, reason: 'the account id is not written yet');
+
+      write.complete();
+      await tester.pump();
+
+      expect(connected, SetUpConnect.connected);
+    });
+
+    group('when the sync account write failed', () {
+      /// Connects with Google Drive already selected, the state a failed
+      /// write leaves: selecting it again notifies nothing. Writes the id on
+      /// the derivation numbered [writesOn], or never.
+      Future<(SetUpConnect, int)> connectAfterFailedWrite(
+        WidgetTester tester, {
+        int? writesOn,
+      }) async {
+        String? syncId;
+        var derivations = 0;
+        final (context, ref) = await pumpHost(
+          tester,
+          extra: [
+            connectedAccountsWithStatusProvider.overrideWith(
+              (ref) async => [(drive.rows.single, AccountStatus.signedIn)],
+            ),
+            connectedAccountUsageProvider.overrideWith(
+              (ref) async => AccountUsageSnapshot(syncAccountId: syncId),
+            ),
+            selectedSyncAccountProvider.overrideWith((ref) async {
+              if (++derivations != writesOn) return null;
+              syncId = 'gd';
+              return drive.rows.single;
+            }),
+          ],
+        );
+        ref.read(selectedCloudProviderTypeProvider.notifier).state =
+            CloudProviderType.googledrive;
+        ref.listenManual(accountGroupsProvider, (_, _) {});
+        final before = await ref.read(accountGroupsProvider.future);
+
+        final connected = await const SetUpSyncActions().connect(
+          context,
+          ref,
+          before.single,
+        );
+        return (connected, derivations);
+      }
+
+      testWidgets('runs the write again, so Check again can recover', (
+        tester,
+      ) async {
+        final (connected, derivations) = await connectAfterFailedWrite(
+          tester,
+          writesOn: 2,
+        );
+
+        expect(connected, SetUpConnect.connected);
+        expect(derivations, 2);
+      });
+
+      testWidgets('reports not connected when it fails again', (tester) async {
+        final (connected, _) = await connectAfterFailedWrite(tester);
+
+        expect(connected, SetUpConnect.failed);
+      });
     });
 
     testWidgets('reports a device that has synced with that account as in '

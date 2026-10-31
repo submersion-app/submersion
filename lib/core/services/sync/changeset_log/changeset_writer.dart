@@ -91,6 +91,14 @@ class ChangesetWriter {
     /// changeset is a single small upload with nothing to show. See
     /// [BasePartFileSource.uploadAll] for why this exists (issue #1032).
     void Function(int uploaded, int total)? onBasePartUploaded,
+
+    /// Awaited with the nonce a manifest carries, before that manifest is
+    /// uploaded. Twin detection trusts a nonce only once it has heard of it,
+    /// and only this writer knows which one lands: [uploadNonce] is not it when
+    /// a resumed base keeps the nonce it was exported with. A publish with
+    /// nothing to say writes none, and a heartbeat reports none: it re-carries
+    /// a nonce it read back and never minted.
+    Future<void> Function(String nonce)? onManifestNonce,
   }) async {
     final providerId = provider.providerId;
     final ownManifest = await _readOwnManifest(provider, folderId, deviceId);
@@ -254,7 +262,13 @@ class ChangesetWriter {
           schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
-        await _writeManifest(provider, folderId, deviceId, manifest);
+        await _writeManifest(
+          provider,
+          folderId,
+          deviceId,
+          manifest,
+          onManifestNonce,
+        );
         await _publishState.upsert(
           LocalPublishStatesCompanion(
             provider: Value(providerId),
@@ -288,6 +302,8 @@ class ChangesetWriter {
         rethrow;
       }
     }
+
+    await _reclaimExports(providerId, deviceId, epochId);
 
     // Changeset: reuse the base fields from the (authoritative) own manifest;
     // only headSeq / publishedHlcHigh advance. In the adopted mode there is no
@@ -336,7 +352,7 @@ class ChangesetWriter {
           schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
-        await _writeManifest(provider, folderId, deviceId, beat);
+        await _writeManifest(provider, folderId, deviceId, beat, null);
         return ChangesetWriteResult(
           ChangesetWriteKind.heartbeat,
           ownManifest.headSeq,
@@ -376,7 +392,13 @@ class ChangesetWriter {
       schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
       writerSchemaVersion: AppDatabase.currentSchemaVersion,
     );
-    await _writeManifest(provider, folderId, deviceId, manifest);
+    await _writeManifest(
+      provider,
+      folderId,
+      deviceId,
+      manifest,
+      onManifestNonce,
+    );
     await _publishState.upsert(
       LocalPublishStatesCompanion(
         provider: Value(providerId),
@@ -414,18 +436,25 @@ class ChangesetWriter {
         deviceName: deviceName,
         appliedPeerHlc: appliedPeerHlc,
         onBasePartUploaded: onBasePartUploaded,
+        onManifestNonce: onManifestNonce,
       );
       return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq, now);
     }
     return ChangesetWriteResult(ChangesetWriteKind.changeset, newSeq, now);
   }
 
+  /// The commit point of every publish. The nonce is reported first so a
+  /// response lost on the way back, or an app killed while waiting for it,
+  /// still leaves this install knowing the manifest in the cloud is its own.
   Future<void> _writeManifest(
     CloudStorageProvider provider,
     String folderId,
     String deviceId,
     SyncManifest manifest,
+    Future<void> Function(String nonce)? onManifestNonce,
   ) async {
+    final nonce = manifest.uploadNonce;
+    if (nonce != null) await onManifestNonce?.call(nonce);
     await provider.uploadFile(
       manifest.toBytes(),
       ChangesetLogLayout.manifestName(deviceId),
@@ -491,6 +520,7 @@ class ChangesetWriter {
     String? uploadNonce,
     String? deviceName,
     void Function(int uploaded, int total)? onBasePartUploaded,
+    Future<void> Function(String nonce)? onManifestNonce,
   }) async {
     // The fresh base must carry the full deletion log: a peer that still holds
     // a since-deleted record and cold-starts from this base (its prior
@@ -544,7 +574,13 @@ class ChangesetWriter {
       schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
       writerSchemaVersion: AppDatabase.currentSchemaVersion,
     );
-    await _writeManifest(provider, folderId, deviceId, manifest);
+    await _writeManifest(
+      provider,
+      folderId,
+      deviceId,
+      manifest,
+      onManifestNonce,
+    );
     await _publishState.upsert(
       LocalPublishStatesCompanion(
         provider: Value(providerId),
@@ -559,6 +595,30 @@ class ChangesetWriter {
     );
     await _pruneSupersededBelow(provider, folderId, deviceId, compSeq);
     return compSeq;
+  }
+
+  /// Clear the exports a publish with no base of its own leaves unused. The
+  /// next base may be months away, so this cannot wait for one, and an export
+  /// of this device's still on disk has been outrun: its publish committed
+  /// before the app could discard it, or whatever forced the base has passed.
+  /// A later base resuming it would move the published log backwards.
+  ///
+  /// Best-effort: housekeeping must not fail a publish that needed no export.
+  Future<void> _reclaimExports(
+    String providerId,
+    String deviceId,
+    String? epochId,
+  ) async {
+    try {
+      final outrun = await _resumable.find(
+        providerId: providerId,
+        deviceId: deviceId,
+        epochId: epochId,
+      );
+      if (outrun != null) await _resumable.discard(outrun);
+    } catch (_) {
+      // The next publish sweeps again.
+    }
   }
 
   /// Best-effort: pruning is a post-commit optimization -- the fresh base and
