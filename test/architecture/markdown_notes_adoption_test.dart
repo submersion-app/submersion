@@ -80,7 +80,7 @@ void main() {
     'lib/features/certifications/presentation/pages/certification_detail_page.dart',
     'lib/features/courses/presentation/pages/course_detail_page.dart',
     'lib/features/dive_centers/presentation/pages/dive_center_detail_page.dart',
-    'lib/features/dive_log/presentation/pages/dive_detail_page.dart',
+    'lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart',
     'lib/features/dive_sites/presentation/pages/site_detail_page.dart',
     'lib/features/documents/presentation/widgets/document_details_panel.dart',
     'lib/features/equipment/presentation/pages/equipment_detail_page.dart',
