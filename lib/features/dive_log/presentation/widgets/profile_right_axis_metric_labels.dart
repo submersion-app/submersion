@@ -109,9 +109,7 @@ bool hasDataForMetric(
 
     case ProfileRightAxisMetric.pressure:
       if (!hasMultiTankPressure || config.tankPressures == null) return null;
-      final range = tankPressureRange(config.tankPressures!);
-      if (range == null) return null;
-      return (min: range.min - 10, max: range.max + 10);
+      return tankPressureScale(config.tankPressures!);
 
     case ProfileRightAxisMetric.heartRate:
       final hrs = config.profile

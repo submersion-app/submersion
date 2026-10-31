@@ -1,14 +1,18 @@
+/// The right axis has to label the scale a metric's lines are drawn on. These
+/// tests read the chart the way a diver does: find a drawn line, then read the
+/// value the right axis labels at that height.
+///
 /// Issue #3893: an overlaid computer pools its readings into the temperature
-/// scale the lines are drawn on, so the right axis has to label that same
-/// scale. These tests read the chart the way a diver does: find a drawn line,
-/// then read the value the right axis labels at that height.
+/// scale, and tank pressure kept separate scales for lines, axis and markers.
 library;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -40,6 +44,12 @@ ChartSourceOverlay _overlay(double temperature) => ChartSourceOverlay(
   points: _profile(temperature),
 );
 
+/// A tank whose every sample reads [pressure] (bar).
+List<TankPressurePoint> _tank(String id, double pressure) => [
+  for (var t = 0; t <= 1200; t += 60)
+    TankPressurePoint(tankId: id, timestamp: t, pressure: pressure),
+];
+
 /// Pumps a desktop-sized chart, tall enough for several right-axis ticks.
 ///
 /// [profile] stays one list instance for the chart's lifetime and [overlays]
@@ -50,6 +60,8 @@ Future<void> _pumpChart(
   required List<DiveProfilePoint> profile,
   required ValueNotifier<List<ChartSourceOverlay>?> overlays,
   AppSettings settings = const AppSettings(),
+  Map<String, List<TankPressurePoint>>? tankPressures,
+  List<ProfileMarker>? markers,
 }) async {
   tester.view.physicalSize = const Size(1800, 1000);
   tester.view.devicePixelRatio = 1;
@@ -68,8 +80,13 @@ Future<void> _pumpChart(
             height: 900,
             child: ValueListenableBuilder(
               valueListenable: overlays,
-              builder: (context, value, _) =>
-                  DiveProfileChart(profile: profile, overlays: value),
+              builder: (context, value, _) => DiveProfileChart(
+                profile: profile,
+                overlays: value,
+                tankPressures: tankPressures,
+                markers: markers,
+                showPressureThresholdMarkers: markers != null,
+              ),
             ),
           ),
         ),
@@ -79,26 +96,23 @@ Future<void> _pumpChart(
   await tester.pumpAndSettle();
 }
 
-/// The Y of the one flat line of the given style. The fixtures hold every
-/// temperature constant, so the only flat multi-point lines are temperature
-/// lines: the active source's is solid and an overlay's is dashed.
-double _flatLineY(WidgetTester tester, {required bool dashed}) {
-  final bars = tester
-      .widget<LineChart>(find.byType(LineChart).first)
-      .data
-      .lineBarsData;
-  return bars
-      .where(
-        (bar) =>
-            bar.spots.length > 1 &&
-            bar.spots.every((s) => s.y == bar.spots.first.y) &&
-            (bar.dashArray != null) == dashed,
-      )
-      .single
-      .spots
-      .first
-      .y;
-}
+List<LineChartBarData> _bars(WidgetTester tester) =>
+    tester.widget<LineChart>(find.byType(LineChart).first).data.lineBarsData;
+
+/// The multi-point lines that never change height. The fixtures hold every
+/// temperature and tank pressure constant, and nothing else is flat.
+List<LineChartBarData> _flatLines(WidgetTester tester) => [
+  for (final bar in _bars(tester))
+    if (bar.spots.length > 1 &&
+        bar.spots.every((s) => s.y == bar.spots.first.y))
+      bar,
+];
+
+/// The Y of the one temperature line of the given style: the active source's
+/// is solid and an overlay's is dashed.
+double _flatLineY(WidgetTester tester, {required bool dashed}) => _flatLines(
+  tester,
+).where((bar) => (bar.dashArray != null) == dashed).single.spots.first.y;
 
 /// The right-axis ticks fl_chart laid out, as (axis Y, labelled value). A
 /// tick's meta gives its pixel position down the axis, not its axis value.
@@ -198,5 +212,62 @@ void main() {
       _axisReadingAt(tester, _flatLineY(tester, dashed: true)),
       closeTo(30, 0.1),
     );
+  });
+
+  group('tank pressure', () {
+    final tankPressures = {'a': _tank('a', 200), 'b': _tank('b', 180)};
+    const settings = AppSettings(
+      defaultRightAxisMetric: ProfileRightAxisMetric.pressure,
+      defaultShowPressure: true,
+      showPressureThresholdMarkers: true,
+    );
+
+    /// The tank lines' heights, the higher pressure (nearer the surface) first.
+    List<double> tankLineYs(WidgetTester tester) =>
+        [for (final bar in _flatLines(tester)) bar.spots.first.y]..sort();
+
+    testWidgets('both tanks read true against the right axis', (tester) async {
+      await _pumpChart(
+        tester,
+        profile: _profile(null),
+        overlays: overlays,
+        settings: settings,
+        tankPressures: tankPressures,
+      );
+
+      final ys = tankLineYs(tester);
+      expect(ys, hasLength(2));
+      expect(_axisReadingAt(tester, ys.last), closeTo(200, 0.5));
+      expect(_axisReadingAt(tester, ys.first), closeTo(180, 0.5));
+    });
+
+    testWidgets('a threshold marker sits on the line at its own pressure', (
+      tester,
+    ) async {
+      await _pumpChart(
+        tester,
+        profile: _profile(null),
+        overlays: overlays,
+        settings: settings,
+        tankPressures: tankPressures,
+        markers: const [
+          ProfileMarker(
+            timestamp: 600,
+            depth: 10,
+            type: ProfileMarkerType.pressureHalf,
+            tankId: 'a',
+            value: 200,
+          ),
+        ],
+      );
+
+      final markerY = _bars(tester)
+          .where((bar) => bar.spots.length == 1 && bar.spots.first.x == 600)
+          .single
+          .spots
+          .first
+          .y;
+      expect(markerY, closeTo(tankLineYs(tester).last, 0.01));
+    });
   });
 }

@@ -3545,20 +3545,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? _getMetricRange(ProfileRightAxisMetric.temperature, units)
         : null;
 
-    // Pressure bounds from multi-tank pressure data
-    double? minPressure, maxPressure;
-    if (_hasMultiTankPressure && widget.tankPressures != null) {
-      for (final pressurePoints in widget.tankPressures!.values) {
-        for (final point in pressurePoints) {
-          if (minPressure == null || point.pressure < minPressure) {
-            minPressure = point.pressure - 10;
-          }
-          if (maxPressure == null || point.pressure > maxPressure) {
-            maxPressure = point.pressure + 10;
-          }
-        }
-      }
-    }
+    // Pressure bounds from multi-tank pressure data, the same scale the tank
+    // lines are drawn on so a threshold marker sits on its own line.
+    final pressureScale = _hasMultiTankPressure
+        ? tankPressureScale(widget.tankPressures!)
+        : null;
 
     // Heart rate bounds (if showing)
     double? minHR, maxHR;
@@ -3587,8 +3578,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       totalMaxDepth: _totalMaxDepth(units),
       minTemp: tempRange?.min,
       maxTemp: tempRange?.max,
-      minPressure: minPressure,
-      maxPressure: maxPressure,
+      minPressure: pressureScale?.min,
+      maxPressure: pressureScale?.max,
       minHR: minHR,
       maxHR: maxHR,
       minSac: minSac,
