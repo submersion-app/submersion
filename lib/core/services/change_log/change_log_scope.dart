@@ -251,7 +251,7 @@ abstract final class ChangeLogScope {
               label: Value(label),
               startedAt: now,
               endedAt: now,
-              lastEventId: Value(newest.data['id'] as int?),
+              lastEventId: Value(newest.data['id'] as int? ?? 0),
               summaryCount: Value(summaryCount ?? 0),
               closed: const Value(true),
             ),

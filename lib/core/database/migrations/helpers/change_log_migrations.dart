@@ -29,6 +29,10 @@ extension ChangeLogMigrations on AppDatabase {
       'ON change_log_operations (root_table, root_id, last_event_id)',
     );
     await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_change_log_operations_order '
+      'ON change_log_operations (last_event_id, id)',
+    );
+    await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_change_log_events_settled '
       'ON change_log_events (settled, id)',
     );
@@ -39,6 +43,10 @@ extension ChangeLogMigrations on AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_change_log_events_record '
       'ON change_log_events (table_name, record_id, id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_change_log_events_root '
+      'ON change_log_events (root_table, root_id)',
     );
 
     // Read first: this runs on every open from both isolates, and even a

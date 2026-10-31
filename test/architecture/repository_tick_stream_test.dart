@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
@@ -1277,4 +1278,26 @@ void main() {
       );
     });
   });
+
+  test(
+    'ChangeLogRepository.watchChanges fires on change_log_operations',
+    () async {
+      expect(
+        await fires(
+          ChangeLogRepository().watchChanges(),
+          () => db
+              .into(db.changeLogOperations)
+              .insert(
+                ChangeLogOperationsCompanion.insert(
+                  id: 'op',
+                  source: 'manual',
+                  startedAt: now,
+                  endedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    },
+  );
 }

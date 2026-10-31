@@ -13,7 +13,7 @@
 /// subscription broke `shareByDefaultProvider` at build time even though the
 /// read it guarded was fine.
 ///
-/// This test reads each of the 159 tick-subscribing providers once against a
+/// This test reads each of the 162 tick-subscribing providers once against a
 /// real in-memory database and asserts only that the build resolves without
 /// throwing. An empty database returning `null` or an empty list is a PASS --
 /// nothing here asserts on the returned data. Providers that genuinely cannot
@@ -32,6 +32,8 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_filter.dart';
+import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
@@ -972,6 +974,22 @@ void main() {
     (
       name: 'userCsvPresetsProvider',
       read: (c) => c.read(userCsvPresetsProvider.future),
+    ),
+  ]);
+
+  _tickGroup('change log', [
+    (
+      name: 'changeLogFeedProvider',
+      read: (c) =>
+          c.read(changeLogFeedProvider(const ChangeLogFilter()).future),
+    ),
+    (
+      name: 'changeLogOperationProvider',
+      read: (c) => c.read(changeLogOperationProvider(_id).future),
+    ),
+    (
+      name: 'changeLogEventsProvider',
+      read: (c) => c.read(changeLogEventsProvider(_id).future),
     ),
   ]);
 
