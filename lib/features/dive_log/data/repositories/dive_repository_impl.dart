@@ -42,8 +42,6 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
-import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
-    show ProfileSeries;
 import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
@@ -8386,7 +8384,7 @@ class DiveRepository {
   ///
   /// A lone row is skipped: it owns the whole of `Dive.profile`, so reading
   /// its samples a second time would buy nothing.
-  Future<Map<String, List<ProfileSeries>>> _liveSeriesOfMultiSourceDives(
+  Future<Map<String, List<SourceSeriesExport>>> _liveSeriesOfMultiSourceDives(
     List<DiveDataSourcesData> rows,
   ) async {
     final rowsByDive = <String, List<DiveDataSourcesData>>{};
@@ -8397,15 +8395,19 @@ class DiveRepository {
       for (final entry in rowsByDive.entries)
         if (entry.value.length >= 2) entry.key,
     ];
-    final byRow = <String, List<ProfileSeries>>{};
+    final byRow = <String, List<SourceSeriesExport>>{};
     for (final chunk in seriesIdChunks(diveIds)) {
-      final seriesByDive = await _profileSeries.getSeriesForDives(chunk);
-      for (final entry in seriesByDive.entries) {
-        final diveRows = rowsByDive[entry.key]!;
+      final seriesRowsByDive = <String, List<DiveProfileSeriesRow>>{};
+      for (final row in await _profileSeries.getRowsForDives(chunk)) {
+        (seriesRowsByDive[row.diveId] ??= []).add(row);
+      }
+      for (final MapEntry(key: diveId, value: seriesRows)
+          in seriesRowsByDive.entries) {
+        final diveRows = rowsByDive[diveId]!;
         final shownIdByRow = _shownIdByRow(diveRows);
-        byRow.addAll(
+        final live = await _reduceRows(
+          seriesRows,
           liveSeriesBySourceRow(
-            series: entry.value,
             shownSources: [
               for (final row in diveRows)
                 if (shownIdByRow[row.id] == row.id)
@@ -8413,7 +8415,20 @@ class DiveRepository {
             ],
             shownIdByRow: shownIdByRow,
           ),
+          offUiIsolate: false,
         );
+        final blobById = {for (final row in seriesRows) row.id: row.samples};
+        for (final MapEntry(key: rowId, value: series) in live.entries) {
+          byRow[rowId] = [
+            for (final s in series)
+              SourceSeriesExport(
+                blob: blobById[s.id]!,
+                isPrimary: s.isPrimary,
+                sourceId: s.sourceId,
+                computerId: s.computerId,
+              ),
+          ];
+        }
       }
     }
     return byRow;

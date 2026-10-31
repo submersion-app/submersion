@@ -2,9 +2,6 @@ import 'dart:convert';
 
 import 'package:xml/xml.dart';
 
-import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
-import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
-import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
@@ -158,35 +155,28 @@ class UddfSourceAttribution {
     XmlBuilder builder,
     List<List<DiveSourceExport>> sourcesPerDive,
   ) {
-    if (!sourcesPerDive
-        .expand((s) => s)
-        .any((s) => s.profileSeries.isNotEmpty)) {
-      return;
-    }
-    const codec = ProfileSeriesCodec();
+    final series = [
+      for (final sources in sourcesPerDive)
+        for (final source in sources)
+          for (final s in source.profileSeries) (sources, source.diveId, s),
+    ];
+    if (series.isEmpty) return;
     builder.element(
       'sourceprofiles',
       nest: () {
-        for (final sources in sourcesPerDive) {
-          for (final source in sources) {
-            for (final series in source.profileSeries) {
-              final computer = _computerOrdinal(
-                sources,
-                series.computerId,
-                source.id,
-              );
-              builder.element(
-                'series',
-                attributes: {
-                  'diveref': 'dive_${source.diveId}',
-                  'source': '${source.ordinal}',
-                  'computer': ?computer?.toString(),
-                  'primary': '${series.isPrimary}',
-                },
-                nest: base64Encode(codec.encode(series.samples).bytes),
-              );
-            }
-          }
+        for (final (sources, diveId, s) in series) {
+          final ordinal = _ordinalOf(sources, s.sourceId);
+          final computer = _computerOrdinal(sources, s.computerId, s.sourceId);
+          builder.element(
+            'series',
+            attributes: {
+              'diveref': 'dive_$diveId',
+              'source': ?ordinal?.toString(),
+              'computer': ?computer?.toString(),
+              'primary': '${s.isPrimary}',
+            },
+            nest: base64Encode(s.blob),
+          );
         }
       },
     );
@@ -311,41 +301,25 @@ class UddfSourceAttribution {
   /// `diveref`, in document order.
   ///
   /// Each entry holds `sourceOrdinal` and `computerOrdinal` (either null when
-  /// absent), `isPrimary` and `samples`.
-  ///
-  /// A dive with a series that cannot be read is left out entirely, not just
-  /// that series. Its `<samples>` still hold every source's readings, and
-  /// those only stand in for all of the series or none of them: alongside
-  /// the readable ones they would store those recordings twice.
+  /// absent), `isPrimary` and `blob`, the series' base64 text. Nothing decodes
+  /// it here: a dive not selected for import never needs its samples.
   static Map<String, List<Map<String, dynamic>>> parseProfiles(
     XmlElement uddfElement,
   ) {
-    const codec = ProfileSeriesCodec();
     final byDiveRef = <String, List<Map<String, dynamic>>>{};
-    final unreadable = <String>{};
     for (final (diveRef, series) in _diveRows(
       uddfElement,
       'sourceprofiles',
       'series',
     )) {
-      final List<ProfileSample> samples;
-      try {
-        samples = codec.decode(base64Decode(series.innerText.trim()));
-      } on FormatException {
-        unreadable.add(diveRef);
-        continue;
-      } on ProfileSeriesCodecException {
-        unreadable.add(diveRef);
-        continue;
-      }
       byDiveRef.putIfAbsent(diveRef, () => []).add({
         'sourceOrdinal': _int(series, 'source'),
         'computerOrdinal': _int(series, 'computer'),
         'isPrimary': series.getAttribute('primary') == 'true',
-        'samples': samples,
+        'blob': series.innerText.trim(),
       });
     }
-    return byDiveRef..removeWhere((ref, _) => unreadable.contains(ref));
+    return byDiveRef;
   }
 
   /// The [rowName] children of every [blockName] block, with their dive and

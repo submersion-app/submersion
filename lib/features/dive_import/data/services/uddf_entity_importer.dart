@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_import/data/services/import_weight_mapp
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -3285,7 +3286,22 @@ class UddfEntityImporter {
         );
       }
 
-      // Insert gas switches
+      // The computer each <source> restores with, which a gas switch needs
+      // before the source rows exist. They are registered by now.
+      final sourceComputers = _restoredSourceComputers(
+        entries: sourceEntries,
+        computerIdByKey: computerIdByKey,
+        fallbackComputerId: computerId,
+      );
+      final computerIdByOrdinal = <int, String?>{
+        for (var i = 0; i < sourceEntries.length; i++)
+          if (sourceEntries[i]['ordinal'] case final int ordinal)
+            ordinal: sourceComputers[i],
+      };
+
+      // Insert gas switches. Each goes under the computer that logged it
+      // (issue #3965): one with none applies to every computer, and another
+      // computer's switches in a source's schedule can blank its analysis.
       final gasSwitchesData =
           diveData['gasSwitches'] as List<Map<String, dynamic>>?;
       if (gasSwitchesData != null && gasSwitchesData.isNotEmpty) {
@@ -3318,21 +3334,6 @@ class UddfEntityImporter {
           }
         }
 
-        // Each switch under the computer that logged it (issue #3965): one
-        // with none applies to every computer, and another computer's
-        // switches in a source's schedule can blank its analysis. The source
-        // rows come later, but their computers are registered by now.
-        final sourceComputers = _restoredSourceComputers(
-          entries: sourceEntries,
-          computerIdByKey: computerIdByKey,
-          fallbackComputerId: computerId,
-        );
-        final switchComputerByOrdinal = <int, String?>{
-          for (var i = 0; i < sourceEntries.length; i++)
-            if (sourceEntries[i]['ordinal'] case final int ordinal)
-              ordinal: sourceComputers[i],
-        };
-
         final switches = gasSwitchesData
             .map((gs) {
               final timestamp = gs['timestamp'] as int?;
@@ -3364,7 +3365,7 @@ class UddfEntityImporter {
                 tankId: tankId,
                 depth: gs['depth'] as double?,
                 createdAt: now,
-                computerId: switchComputerByOrdinal[gs['computerOrdinal']],
+                computerId: computerIdByOrdinal[gs['computerOrdinal']],
               );
             })
             .whereType<GasSwitch>()
@@ -3513,11 +3514,6 @@ class UddfEntityImporter {
             if (sourceEntries[i]['ordinal'] case final int ordinal)
               ordinal: restored[i].id.value,
         };
-        final computerIdByOrdinal = <int, String?>{
-          for (var i = 0; i < sourceEntries.length; i++)
-            if (sourceEntries[i]['ordinal'] case final int ordinal)
-              ordinal: restored[i].computerId.value,
-        };
         if (perSourceSeries.isNotEmpty) {
           await repos.tankPressureRepository.insertTankSeries(diveId, [
             for (final s in perSourceSeries)
@@ -3531,15 +3527,38 @@ class UddfEntityImporter {
         }
         // Each depth series under its source, as the tank series above.
         if (perSourceProfiles.isNotEmpty) {
-          await repos.diveRepository.restoreSourceProfiles(diveId, [
-            for (final s in perSourceProfiles)
-              (
-                sourceId: sourceIdByOrdinal[s.sourceOrdinal],
-                computerId: computerIdByOrdinal[s.computerOrdinal],
-                isPrimary: s.isPrimary,
-                samples: s.samples,
-              ),
-          ]);
+          try {
+            await repos.diveRepository.restoreSourceProfiles(diveId, [
+              for (final s in perSourceProfiles)
+                (
+                  sourceId: sourceIdByOrdinal[s.sourceOrdinal],
+                  computerId: computerIdByOrdinal[s.computerOrdinal],
+                  isPrimary: s.isPrimary,
+                  samples: s.samples,
+                ),
+            ]);
+          } catch (e, stackTrace) {
+            // One transaction, so nothing was written, and createDive left
+            // the merged samples out. Without them the dive has no profile.
+            _log.error(
+              'Failed to restore the source profiles of dive $diveId; '
+              'it keeps its merged samples',
+              error: e,
+              stackTrace: stackTrace,
+            );
+            if (profile.isNotEmpty) {
+              await repos.diveRepository.restoreSourceProfiles(diveId, [
+                (
+                  sourceId: null,
+                  computerId: null,
+                  isPrimary: true,
+                  samples: [
+                    for (final point in profile) profileSampleFromPoint(point),
+                  ],
+                ),
+              ]);
+            }
+          }
         }
         // Each tank row under its own source and computer (#2716).
         final tankLinks = restoredTankAttribution(

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -88,7 +89,8 @@ void main() {
     return {
       for (final source in sources)
         source.id: [
-          for (final s in source.profileSeries) s.samples.first.timestamp,
+          for (final s in source.profileSeries)
+            const ProfileSeriesCodec().decode(s.blob).first.timestamp,
         ],
     };
   }
@@ -99,13 +101,14 @@ void main() {
     String? computerId,
     bool isPrimary = true,
     int? activatedAt,
+    double depth = 5,
   }) => ProfileSeriesRepository().insertSeries(
     diveId: 'dive-1',
     sourceId: sourceId,
     computerId: computerId,
     isPrimary: isPrimary,
     activatedAt: Value(activatedAt),
-    samples: [ProfileSample(timestamp: at, depth: 5)],
+    samples: [ProfileSample(timestamp: at, depth: depth)],
   );
 
   group('profileSeries (issue #3965)', () {
@@ -145,6 +148,10 @@ void main() {
         'src-1': [0],
         'src-2': [10],
       });
+      final sources = await repository.getSourcesForExport(['dive-1']);
+      // Held by a row, but a restore must not make that row its owner.
+      expect(sources[0].profileSeries.single.sourceId, isNull);
+      expect(sources[1].profileSeries.single.sourceId, isNull);
     });
 
     test('leaves out the originals a saved edit superseded', () async {
@@ -184,18 +191,20 @@ void main() {
         sourceId: 'src-2',
         isPrimary: false,
         activatedAt: 100,
+        depth: 7,
       );
       await insertSeries(
         at: 10,
         sourceId: 'src-2',
         isPrimary: false,
         activatedAt: 200,
+        depth: 9,
       );
 
       final sources = await repository.getSourcesForExport(['dive-1']);
 
-      expect(sources[1].profileSeries, hasLength(1));
-      expect(sources[1].profileSeries.single.activatedAt, 200);
+      final series = sources[1].profileSeries.single;
+      expect(const ProfileSeriesCodec().decode(series.blob).single.depth, 9);
     });
 
     test('a row that collapsed into a chip keeps its own series', () async {

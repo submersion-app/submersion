@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/uddf/uddf_full_export_service.da
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
@@ -315,6 +316,62 @@ void main() {
       {(20, first), (20, second), (25, null)},
     );
     expect(restored, hasLength(3));
+  });
+
+  test('a series naming no source restores naming none', () async {
+    await seedDive([(0, 0), (30, 10)]);
+    await repository.saveComputerReading(reading('src-a', primary: true));
+    await repository.saveAdditionalComputerReading(
+      reading: reading('src-b', primary: false, order: 1),
+      profile: points([(10, 0), (40, 20)]),
+    );
+    // A Combine's surface filler: no computer and no source.
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'dive-a',
+      samples: const [ProfileSample(timestamp: 100, depth: 0)],
+    );
+
+    await restoreUddfDives(await backup(), diverId: diverId);
+
+    final diveId = await restoredDiveId();
+    final series = await ProfileSeriesRepository().getSeriesForDive(diveId);
+    expect(series, hasLength(3));
+    expect(
+      series.singleWhere((s) => s.samples.first.timestamp == 100).sourceId,
+      isNull,
+    );
+  });
+
+  test('a series write that fails keeps the merged samples', () async {
+    final first = await registerComputer('111');
+    final second = await registerComputer('222');
+    await seedDive([(0, 0), (30, 10), (60, 0)]);
+    await repository.saveComputerReading(
+      reading('src-a', primary: true, computerId: first, serial: '111'),
+    );
+    await repository.saveAdditionalComputerReading(
+      reading: reading(
+        'src-b',
+        primary: false,
+        computerId: second,
+        serial: '222',
+        order: 1,
+      ),
+      profile: points([(10, 0), (40, 20), (70, 0)]),
+    );
+
+    final xml = await backup();
+    // Refuses a series with a source, which only the restored ones have.
+    await db.customStatement('''
+      CREATE TRIGGER refuse_owned_series
+      BEFORE INSERT ON dive_profile_series
+      WHEN NEW.source_id IS NOT NULL
+      BEGIN SELECT RAISE(ABORT, 'series write failed'); END
+    ''');
+    await restoreUddfDives(xml, diverId: diverId);
+
+    final merged = await repository.getMergedProfile(await restoredDiveId());
+    expect(merged.map((p) => p.timestamp), [0, 10, 30, 40, 60, 70]);
   });
 
   test('a single source restores as it always has', () async {
