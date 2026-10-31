@@ -262,6 +262,66 @@ void main() {
     expect((await getDive('dive-1')).runtime, 3000);
   });
 
+  group('a Combined dive, whose computers each hold one row per segment', () {
+    final secondEntry = entry.add(const Duration(minutes: 40));
+    final exitA1 = entry.add(const Duration(minutes: 30));
+    final exitB1 = entry.add(const Duration(minutes: 29));
+    final exitB2 = secondEntry.add(const Duration(minutes: 29));
+
+    Future<void> insertSegmentsOfB() async {
+      await insertSource(
+        'src-b1',
+        'dc-b',
+        isPrimary: false,
+        duration: 1740,
+        entryTime: entry,
+        exitTime: exitB1,
+      );
+      await insertSource(
+        'src-b2',
+        'dc-b',
+        isPrimary: false,
+        duration: 1740,
+        entryTime: secondEntry,
+        exitTime: exitB2,
+      );
+    }
+
+    test('Set as primary spans every segment of the computer', () async {
+      await insertSource(
+        'src-a1',
+        'dc-a',
+        isPrimary: true,
+        duration: 1800,
+        entryTime: entry,
+        exitTime: exitA1,
+      );
+      await insertSegmentsOfB();
+
+      await repository.setPrimaryDataSource(
+        diveId: 'dive-1',
+        computerReadingId: 'src-b1',
+      );
+
+      final row = await getDive('dive-1');
+      expect(row.entryTime, entry.millisecondsSinceEpoch);
+      expect(row.exitTime, exitB2.millisecondsSinceEpoch);
+      expect(row.runtime, exitB2.difference(entry).inSeconds);
+    });
+
+    test('promotion after a split spans every remaining segment', () async {
+      await insertSourceA();
+      await insertSegmentsOfB();
+
+      await splitter.split(diveId: 'dive-1', sourceId: 'src-a');
+
+      final row = await getDive('dive-1');
+      expect(row.entryTime, entry.millisecondsSinceEpoch);
+      expect(row.exitTime, exitB2.millisecondsSinceEpoch);
+      expect(row.runtime, exitB2.difference(entry).inSeconds);
+    });
+  });
+
   group('Split into separate dive', () {
     test('the new dive takes the runtime its source reports', () async {
       await insertSourceA();

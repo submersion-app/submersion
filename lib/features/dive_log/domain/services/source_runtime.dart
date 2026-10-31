@@ -19,7 +19,6 @@ int? sourceRuntimeSeconds({
 }) {
   if (durationSeconds != null && durationSeconds > 0) return durationSeconds;
   if (entryTimeMs == null || exitTimeMs == null) return null;
-  if (exitTimeMs <= entryTimeMs) return null;
   final seconds = (exitTimeMs - entryTimeMs) ~/ Duration.millisecondsPerSecond;
   return seconds > 0 ? seconds : null;
 }

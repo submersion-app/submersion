@@ -8932,6 +8932,13 @@ class DiveRepository {
     DiveDataSourcesData newPrimary, {
     required int now,
   }) async {
+    // Read first: the shown order puts the outgoing primary ahead until the
+    // flags below change.
+    final timing = dataSourceStrandTiming(
+      await _sourceRowsInShownOrder(diveId),
+      newPrimary,
+    );
+
     // Demote all readings for this dive to non-primary. Both writes
     // carry their own clock, beside the marks below (#2644).
     final primaryAt = await _syncRepository.issueRowClock();
@@ -8959,9 +8966,9 @@ class DiveRepository {
     // Dive.effectiveRuntime (issue #3899). A source with no timing at all
     // clears it, which leaves the live profile to speak for the dive.
     final runtime = sourceRuntimeSeconds(
-      durationSeconds: newPrimary.duration,
-      entryTimeMs: newPrimary.entryTime?.millisecondsSinceEpoch,
-      exitTimeMs: newPrimary.exitTime?.millisecondsSinceEpoch,
+      durationSeconds: timing.durationSeconds,
+      entryTimeMs: timing.entryMs,
+      exitTimeMs: timing.exitMs,
     );
 
     // Bottom time is derived from the new primary's own profile, never
@@ -8986,8 +8993,8 @@ class DiveRepository {
             : const Value.absent(),
         runtime: Value(runtime),
         waterTemp: Value(newPrimary.waterTemp),
-        entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
-        exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
+        entryTime: Value(timing.entryMs),
+        exitTime: Value(timing.exitMs),
         surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
         cnsEnd: Value(newPrimary.cns),
         otu: Value(newPrimary.otu),

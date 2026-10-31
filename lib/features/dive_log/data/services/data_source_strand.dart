@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
@@ -95,6 +97,44 @@ Map<String, String> dataSourceStrandKeysById(
     (looseByStrand[strand] ??= []).add(row);
   }
   return keys;
+}
+
+/// The timing a dive takes from [row], given every one of its [rows] in shown
+/// order.
+///
+/// A strand of one row reports that row's own figures. A Combine keeps one
+/// row per segment, so a longer strand covers the first entry to the last
+/// exit, the span Combine gave the dive, and no one row's duration speaks for
+/// it. That duration stands only when the strand has no span to report.
+({int? entryMs, int? exitMs, int? durationSeconds}) dataSourceStrandTiming(
+  List<DiveDataSourcesData> rows,
+  DiveDataSourcesData row,
+) {
+  final strandOf = dataSourceStrandKeysById(rows);
+  final strand = [
+    for (final r in rows)
+      if (strandOf[r.id] == strandOf[row.id]) r,
+  ];
+  if (strand.length < 2) {
+    return (
+      entryMs: row.entryTime?.millisecondsSinceEpoch,
+      exitMs: row.exitTime?.millisecondsSinceEpoch,
+      durationSeconds: row.duration,
+    );
+  }
+  final entries = [
+    for (final r in strand)
+      if (r.entryTime != null) r.entryTime!.millisecondsSinceEpoch,
+  ];
+  final exits = [
+    for (final r in strand)
+      if (r.exitTime != null) r.exitTime!.millisecondsSinceEpoch,
+  ];
+  return (
+    entryMs: entries.isEmpty ? null : entries.reduce(min),
+    exitMs: exits.isEmpty ? null : exits.reduce(max),
+    durationSeconds: entries.isEmpty || exits.isEmpty ? row.duration : null,
+  );
 }
 
 /// How far apart two parses of one recording may put its maximum depth:

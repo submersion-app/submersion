@@ -13,6 +13,7 @@ DiveDataSourcesData _row(
   String? model = 'Perdix 2',
   String? serial,
   DateTime? entryTime,
+  DateTime? exitTime,
   int? duration = 440,
   double? maxDepth = 6.2,
 }) => DiveDataSourcesData(
@@ -23,6 +24,7 @@ DiveDataSourcesData _row(
   computerModel: model,
   computerSerial: serial,
   entryTime: entryTime ?? DateTime.utc(2026, 7, 1, 9, 30, 12),
+  exitTime: exitTime,
   duration: duration,
   maxDepth: maxDepth,
   mergeSourceSlot: mergeSourceSlot,
@@ -42,6 +44,64 @@ void main() {
     ]..sort(compareDataSourcesInShownOrder);
 
     expect(rows.map((r) => r.id), ['primary', 'a-tie', 'b-tie', 'newer']);
+  });
+
+  group('dataSourceStrandTiming', () {
+    final start = DateTime.utc(2026, 7, 1, 9);
+    final firstExit = DateTime.utc(2026, 7, 1, 9, 30);
+    final secondStart = DateTime.utc(2026, 7, 1, 9, 40);
+    final secondExit = DateTime.utc(2026, 7, 1, 10, 10);
+
+    test('a lone row reports its own figures', () {
+      final row = _row(
+        'a',
+        computerId: 'dc-1',
+        entryTime: start,
+        exitTime: firstExit,
+        duration: 1790,
+      );
+
+      final timing = dataSourceStrandTiming([
+        row,
+        _row('b', computerId: 'dc-2', entryTime: secondStart),
+      ], row);
+
+      expect(timing.entryMs, start.millisecondsSinceEpoch);
+      expect(timing.exitMs, firstExit.millisecondsSinceEpoch);
+      expect(timing.durationSeconds, 1790);
+    });
+
+    test('a strand of segments covers first entry to last exit, whatever '
+        'order they arrive in, and no one duration speaks for it', () {
+      final first = _row(
+        'a',
+        computerId: 'dc-1',
+        entryTime: start,
+        exitTime: firstExit,
+      );
+      final second = _row(
+        'b',
+        computerId: 'dc-1',
+        entryTime: secondStart,
+        exitTime: secondExit,
+      );
+
+      final timing = dataSourceStrandTiming([second, first], second);
+
+      expect(timing.entryMs, start.millisecondsSinceEpoch);
+      expect(timing.exitMs, secondExit.millisecondsSinceEpoch);
+      expect(timing.durationSeconds, isNull);
+    });
+
+    test('a strand with no exit to span keeps the row duration', () {
+      final first = _row('a', computerId: 'dc-1', entryTime: start);
+      final second = _row('b', computerId: 'dc-1', entryTime: secondStart);
+
+      final timing = dataSourceStrandTiming([first, second], first);
+
+      expect(timing.exitMs, isNull);
+      expect(timing.durationSeconds, 440);
+    });
   });
 
   group('dataSourceStrandKeysById', () {
