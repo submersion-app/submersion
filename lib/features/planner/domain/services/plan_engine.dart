@@ -783,8 +783,10 @@ class PlanEngine {
       timeline.add((runtime, state as BuhlmannState));
 
       final deeperEnd = leg.deeperEnd;
-      // OC ppO2 keeps the legacy ambient x fraction convention; loop ppO2 is
-      // the inspired (setpoint/CMF) value.
+      final fO2 = segment.gasMix.o2 / 100.0;
+      // OC ppO2 is ambient x fraction in the plan's water, as the schedule
+      // shows it (issue #3913); loop ppO2 is the inspired (setpoint/CMF)
+      // value.
       final segmentMaxPpO2 = segmentIsLoop
           ? _breathingFor(
               plan,
@@ -792,18 +794,12 @@ class PlanEngine {
               deeperEnd,
               segment: segment,
             ).inspiredAt(environment.pressureAtDepth(deeperEnd)).pO2
-          : O2ToxicityCalculator.calculatePpO2(
-              deeperEnd,
-              segment.gasMix.o2 / 100.0,
-            );
+          : environment.pressureAtDepth(deeperEnd) * fO2;
       if (segmentMaxPpO2 > maxPpO2) maxPpO2 = segmentMaxPpO2;
 
       final avgPpO2 = segmentIsLoop
           ? breathing.inspiredAt(environment.pressureAtDepth(leg.avgDepth)).pO2
-          : O2ToxicityCalculator.calculatePpO2(
-              leg.avgDepth,
-              segment.gasMix.o2 / 100.0,
-            );
+          : environment.pressureAtDepth(leg.avgDepth) * fO2;
       cns += o2Calc.calculateCnsForSegment(avgPpO2, segment.durationSeconds);
       otu += o2Calc.calculateOtuForSegment(avgPpO2, segment.durationSeconds);
 
@@ -1601,9 +1597,7 @@ class PlanEngine {
       // under that setting, otherwise the flat ppO2Deco, same as before.
       // Only used for display here - the breach check itself goes through
       // decoCeilingBreachedFor, which compares depth directly for an
-      // explicit-depth gas instead of this (environment-aware) ppO2 against
-      // outcome.maxPpO2 (the flat-model one), a mismatch a Copilot review
-      // caught disagreeing in salt water/at altitude.
+      // explicit-depth gas instead of this ppO2.
       //
       // A loop segment's ppO2 follows the setpoint, not its diluent's O2
       // fraction, so those per-gas layers (OC deco gas limits) do not apply
@@ -1625,6 +1619,9 @@ class PlanEngine {
               actualPpO2: outcome.maxPpO2,
               environment: environment,
             );
+      final workingLimitExceeded = segmentIsLoop
+          ? outcome.maxPpO2 > config.ppO2Working
+          : ppO2OverLimit(outcome.maxPpO2, config.ppO2Working);
 
       if (decoCeilingBreached) {
         issues.add(
@@ -1640,7 +1637,7 @@ class PlanEngine {
             threshold: segmentDecoPpO2,
           ),
         );
-      } else if (outcome.maxPpO2 > config.ppO2Working) {
+      } else if (workingLimitExceeded) {
         issues.add(
           PlanIssue(
             type: PlanIssueType.ppO2High,
