@@ -110,7 +110,8 @@ no version bump and no sync change. It does need one new index; see Performance.
 
 Inputs per dive, gathered by correlated subqueries against `{r}`: dive mode,
 whether a primary profile exists, the primary data source's id and computer id,
-the tanks as JSON ordered by `tank_order`, and the gas switches as JSON.
+the tanks as JSON, and the gas switches as JSON. The function sorts the tanks by
+`tank_order` itself, so no SQL ordering is relied on.
 `_ownedByPrimary`, the "primary owns none keeps every cylinder" rule, and the
 unknown-name defaults (role reads as back gas, mode as open circuit) move out of
 the repository part file so both callers share them.
