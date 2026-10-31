@@ -36,36 +36,66 @@ File _backupFile(int length, int seed, {int patchAt = 0, int patch = 0}) {
   return file;
 }
 
-/// Watches fetch replies: once [threshold] bytes of one have arrived, looks
-/// for a pack file in [spool] holding most of them, to show the reply goes
-/// to disk as it streams rather than into memory first.
+/// What of a reply a healthy download has yet to spool: the side-band framing
+/// and the one packet the reader may be part way through.
+const int _unspooledSlack = 128 * 1024;
+
+/// Holds fetch replies back: after [threshold] bytes of one, nothing more
+/// arrives until a pack file in [spool] holds them, to show the reply goes to
+/// disk as it streams rather than into memory first.
+///
+/// The reply is cut into small pieces so it stops at [threshold] and not past
+/// it. A socket read can hand over many MB at once, so a look at the file as
+/// a chunk arrives sees the disk that far behind, however healthy the
+/// download.
 final class _SpoolWatchingClient extends http.BaseClient {
   _SpoolWatchingClient(this._inner, this._spool, this._threshold);
+
+  static const int _pieceBytes = 64 * 1024;
 
   final http.Client _inner;
   final Directory _spool;
   final int _threshold;
 
-  /// The most of a reply that was on disk while it was still arriving.
+  /// The most of a reply that was on disk while the rest was held back.
   int spooledWhileStreaming = 0;
+
+  int get _largestSpool => [
+    for (final f in _spool.listSync().whereType<File>()) f.lengthSync(),
+  ].fold(0, max);
+
+  /// Long enough for any disk, and short of the transport's idle timeout, so
+  /// a reply that never reaches the disk fails on the file and not the wait.
+  Future<void> _awaitSpool() async {
+    final deadline = DateTime.now().add(const Duration(seconds: 20));
+    while (_largestSpool < _threshold - _unspooledSlack &&
+        DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    spooledWhileStreaming = max(spooledWhileStreaming, _largestSpool);
+  }
+
+  Stream<List<int>> _heldBack(Stream<List<int>> reply) async* {
+    var delivered = 0;
+    var held = false;
+    await for (final chunk in reply) {
+      for (var at = 0; at < chunk.length; at += _pieceBytes) {
+        final piece = chunk.sublist(at, min(at + _pieceBytes, chunk.length));
+        yield piece;
+        delivered += piece.length;
+        if (!held && delivered >= _threshold) {
+          held = true;
+          await _awaitSpool();
+        }
+      }
+    }
+  }
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final response = await _inner.send(request);
-    var arrived = 0;
-    var looked = false;
-    final watched = response.stream.map((chunk) {
-      arrived += chunk.length;
-      if (!looked && arrived >= _threshold) {
-        looked = true;
-        for (final f in _spool.listSync().whereType<File>()) {
-          spooledWhileStreaming = max(spooledWhileStreaming, f.lengthSync());
-        }
-      }
-      return chunk;
-    });
     return http.StreamedResponse(
-      watched,
+      _heldBack(response.stream),
       response.statusCode,
       contentLength: response.contentLength,
       request: response.request,
@@ -139,7 +169,10 @@ void main() {
       expect(r.store.largestWriterChunk, lessThanOrEqualTo(_mb));
       expect(r.store.largestReaderChunk, lessThanOrEqualTo(_mb));
       // Two thirds of the reply was on disk before the last third arrived.
-      expect(r.client.spooledWhileStreaming, greaterThan(8 * _mb));
+      expect(
+        r.client.spooledWhileStreaming,
+        greaterThanOrEqualTo(16 * _mb - _unspooledSlack),
+      );
       expect(r.spool.listSync(), isEmpty);
       expect(File('${restored.path}.part').existsSync(), isFalse);
     },
@@ -186,7 +219,10 @@ void main() {
       // A 12 MB base was opened to rebuild the other from the delta.
       expect(openedByFetch, contains(12 * _mb));
       // The reply is about 12 MB, the second backup being a small delta.
-      expect(r.client.spooledWhileStreaming, greaterThan(4 * _mb));
+      expect(
+        r.client.spooledWhileStreaming,
+        greaterThanOrEqualTo(8 * _mb - _unspooledSlack),
+      );
       expect(
         r.store.largestWholeBody,
         lessThanOrEqualTo(kGitInMemoryObjectLimit),
