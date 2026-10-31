@@ -39358,6 +39358,54 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin presión del tanque registrada durante la inmersión';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'Tiempo';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gas';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Profundidad';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Descenso';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fondo';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Ascenso';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop =>
+      'Parada de seguridad';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Deco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Pico de $rate en $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Promedio $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
   }

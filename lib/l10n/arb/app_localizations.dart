@@ -62257,6 +62257,84 @@ abstract class AppLocalizations {
   /// **'No tank pressure recorded during the dive'**
   String get diveLog_detail_sacSegmentsNoPressure_subtitle;
 
+  /// Heading of the time chart and of the duration column in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get diveLog_detail_sacSegments_time;
+
+  /// No description provided for @diveLog_detail_sacSegments_phase.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase'**
+  String get diveLog_detail_sacSegments_phase;
+
+  /// No description provided for @diveLog_detail_sacSegments_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get diveLog_detail_sacSegments_gas;
+
+  /// No description provided for @diveLog_detail_sacSegments_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get diveLog_detail_sacSegments_depth;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Descent'**
+  String get diveLog_detail_sacSegments_phaseDescent;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get diveLog_detail_sacSegments_phaseBottom;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent'**
+  String get diveLog_detail_sacSegments_phaseAscent;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseSafetyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety stop'**
+  String get diveLog_detail_sacSegments_phaseSafetyStop;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get diveLog_detail_sacSegments_phaseDeco;
+
+  /// A stretch of the dive in minutes from its start, such as 10-15 min
+  ///
+  /// In en, this message translates to:
+  /// **'{start}-{end} min'**
+  String diveLog_detail_sacSegments_timeRange(String start, String end);
+
+  /// Last label on the time axis of the gas consumption by segment chart
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String diveLog_detail_sacSegments_axisMinutes(String minutes);
+
+  /// Shown under the time chart when no segment is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Peak {rate} at {range}'**
+  String diveLog_detail_sacSegments_peak(String rate, String range);
+
+  /// Collapsed subtitle of the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Average {rate}'**
+  String diveLog_detail_sacSegments_average(String rate);
+
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:

@@ -39063,6 +39063,53 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen flesdruk vastgelegd tijdens de duik';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'Tijd';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gas';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Diepte';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Afdaling';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Bodem';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Opstijging';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Veiligheidsstop';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Deco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Piek $rate bij $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Gemiddeld $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Voeg een flesvolume toe om de RMV in $unit te tonen';
   }

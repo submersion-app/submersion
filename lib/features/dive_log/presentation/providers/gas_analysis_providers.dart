@@ -3,10 +3,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Provider for the GasAnalysisService singleton.
@@ -83,45 +81,6 @@ final cylinderSacProvider = FutureProvider.family<List<CylinderSac>, String>((
     gasSwitches: gasSwitches.isEmpty ? null : gasSwitches,
     tankPressures: tankPressures.isEmpty ? null : tankPressures,
   );
-});
-
-/// Currently selected segmentation method for the SAC segments display
-final selectedSegmentationProvider = StateProvider<SacSegmentationType>(
-  (ref) => SacSegmentationType.depthPhase,
-);
-
-/// Provider that returns the active segments based on selected segmentation method
-///
-/// This aggregates segments from the appropriate provider based on user selection.
-/// Takes a Dive object directly since time-based segments come from ProfileAnalysis.
-final activeSegmentsForDiveProvider = Provider.family<List<SacSegment>?, Dive>((
-  ref,
-  dive,
-) {
-  final method = ref.watch(selectedSegmentationProvider);
-
-  switch (method) {
-    case SacSegmentationType.timeInterval:
-    case SacSegmentationType.depthBased:
-      // Time-based segments come from the existing profile analysis
-      final analysis = ref.watch(profileAnalysisProvider(dive.id)).valueOrNull;
-      return analysis?.sacSegments;
-
-    case SacSegmentationType.gasSwitch:
-      return ref.watch(gasSwitchSegmentsProvider(dive.id)).valueOrNull;
-
-    case SacSegmentationType.depthPhase:
-      return ref.watch(phaseSegmentsProvider(dive.id)).valueOrNull;
-  }
-});
-
-/// Provider to check if gas-switch segmentation is available for a dive
-final hasGasSwitchesProvider = FutureProvider.family<bool, String>((
-  ref,
-  diveId,
-) async {
-  final gasSwitches = await ref.watch(gasSwitchesProvider(diveId).future);
-  return gasSwitches.isNotEmpty;
 });
 
 /// Provider to check if the dive has multiple tanks

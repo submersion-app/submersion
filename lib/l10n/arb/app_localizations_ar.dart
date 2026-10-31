@@ -39782,6 +39782,53 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يُسجَّل ضغط الأسطوانة أثناء الغوصة';
 
   @override
+  String get diveLog_detail_sacSegments_time => 'الوقت';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'المرحلة';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'الغاز';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'العمق';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'النزول';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'القاع';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'الصعود';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'توقف الأمان';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'تخفيف ضغط';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end دقيقة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'الذروة $rate عند $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'المتوسط $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit';
   }

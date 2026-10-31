@@ -37022,6 +37022,53 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
 
   @override
+  String get diveLog_detail_sacSegments_time => '时间';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => '阶段';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => '气体';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => '深度';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => '下潜';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => '水底';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => '上升';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => '安全停留';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => '减压';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return '峰值 $rate（$range）';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return '平均 $rate';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return '添加气瓶容积以按 $unit 显示 RMV';
   }

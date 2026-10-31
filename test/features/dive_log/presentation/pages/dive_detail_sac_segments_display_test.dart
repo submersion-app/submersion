@@ -16,20 +16,17 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// Rendering behaviour of the "Gas consumption by segment" card that the
-/// existing suites never reach.
-///
-/// Every other SAC-segment test pins [selectedSegmentationProvider] to
-/// [SacSegmentationType.timeInterval] so the card is driven by the single
-/// controllable [profileAnalysisProvider]. That leaves the mode the app
-/// actually defaults to -- [SacSegmentationType.depthPhase] -- plus the
-/// selected-point highlight and the collapse toggle unexercised. This file
-/// covers those three.
+/// The "Gas consumption by segment" card as the page wires it: phase rows from
+/// their provider beside the time chart, the profile cursor reaching the
+/// highlight, and the collapse toggle. The card's own behaviour is covered by
+/// `sac_segments_view_test.dart`.
 void main() {
   const backGas = DiveTank(
     id: 'back-gas',
@@ -124,7 +121,7 @@ void main() {
   Future<void> pumpWith(
     WidgetTester tester, {
     required Dive dive,
-    SacSegmentationType method = SacSegmentationType.depthPhase,
+    bool hasPhases = true,
     int? trackingIndex,
   }) async {
     final base = await getBaseOverrides(
@@ -154,8 +151,7 @@ void main() {
           ).overrideWith((ref) async => analysisWithSegments()),
           phaseSegmentsProvider(
             dive.id,
-          ).overrideWith((ref) async => phaseSegments()),
-          selectedSegmentationProvider.overrideWith((ref) => method),
+          ).overrideWith((ref) async => hasPhases ? phaseSegments() : null),
           if (trackingIndex != null)
             profileTrackingIndexProvider(
               dive.id,
@@ -195,32 +191,28 @@ void main() {
   }
 
   /// Whether [phase]'s row is drawn selected.
-  ///
-  /// The row is the nearest Container above its label, and it carries a
-  /// decoration only while selected. Scoping to that Container matters: the
-  /// card holds other decorated boxes (chips, bars) that a card-wide count
-  /// would sweep up.
   bool rowIsHighlighted(WidgetTester tester, Finder card, DivePhase phase) {
-    final row = find
-        .ancestor(
-          of: find.descendant(of: card, matching: find.text(phase.displayName)),
-          matching: find.byType(Container),
-        )
-        .first;
-    return tester.widget<Container>(row).decoration != null;
+    final label = tester.widget<Text>(
+      find.descendant(of: card, matching: find.text(phase.displayName)),
+    );
+    return label.style?.fontWeight == FontWeight.bold;
   }
 
-  group('depth-phase segmentation', () {
-    testWidgets('labels each row with its phase and short glyph', (
+  group('phase breakdown', () {
+    testWidgets('labels each row with its phase beside the time chart', (
       tester,
     ) async {
       await pumpWith(tester, dive: diveWithProfile());
 
       final card = sacCard(tester);
-      for (final phase in [
-        DivePhase.descent,
-        DivePhase.bottom,
-        DivePhase.ascent,
+      expect(
+        find.descendant(of: card, matching: find.byType(SacTimeColumns)),
+        findsOneWidget,
+      );
+      for (final (phase, icon) in [
+        (DivePhase.descent, Icons.south),
+        (DivePhase.bottom, Icons.horizontal_rule),
+        (DivePhase.ascent, Icons.north),
       ]) {
         expect(
           find.descendant(of: card, matching: find.text(phase.displayName)),
@@ -228,26 +220,34 @@ void main() {
           reason: '${phase.name} row should be labelled',
         );
         expect(
-          find.descendant(of: card, matching: find.text(phase.shortLabel)),
+          find.descendant(of: card, matching: find.byIcon(icon)),
           findsOneWidget,
-          reason: '${phase.name} row should carry its glyph',
+          reason: '${phase.name} row should carry its icon',
         );
       }
     });
 
-    testWidgets('a time-interval dive shows no phase glyphs', (tester) async {
-      await pumpWith(
-        tester,
-        dive: diveWithProfile(),
-        method: SacSegmentationType.timeInterval,
+    testWidgets('names the unit once, for the lane in view', (tester) async {
+      await pumpWith(tester, dive: diveWithProfile());
+
+      expect(
+        find.descendant(of: sacCard(tester), matching: find.text('bar/min')),
+        findsOneWidget,
       );
+    });
+
+    testWidgets('leaves the phase table out until its segments load', (
+      tester,
+    ) async {
+      await pumpWith(tester, dive: diveWithProfile(), hasPhases: false);
 
       final card = sacCard(tester);
       expect(
-        find.descendant(
-          of: card,
-          matching: find.text(DivePhase.bottom.shortLabel),
-        ),
+        find.descendant(of: card, matching: find.byType(SacTimeColumns)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.byType(SacSegmentTable)),
         findsNothing,
       );
     });
@@ -309,6 +309,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(container.read(sacSegmentsSectionExpandedProvider), isFalse);
+      expect(
+        find.descendant(
+          of: sacCard(tester),
+          matching: find.textContaining(RegExp(r'^Average \d')),
+        ),
+        findsOneWidget,
+        reason: 'the collapsed card still gives the dive average',
+      );
     });
   });
 }
