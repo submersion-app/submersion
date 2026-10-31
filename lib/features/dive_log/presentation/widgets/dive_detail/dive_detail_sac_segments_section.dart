@@ -56,8 +56,7 @@ class DiveSacSegmentsSection extends ConsumerWidget {
     if (isUsable) retention.retainSacSegments(dive.id, current);
     final analysis = isUsable ? current : retention.sacSegmentsFor(dive.id);
 
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final display = ref.watch(gasConsumptionDisplayProvider);
     final lane = ref.watch(sacSegmentsLaneProvider);
 

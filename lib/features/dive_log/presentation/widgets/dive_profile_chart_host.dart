@@ -327,14 +327,19 @@ class DiveProfileChartHost extends ConsumerWidget {
     final safetyReview = ref.watch(
       safetyReviewProvider(diveId).select((a) => a.value),
     );
-    final safetyReviewEnabled = ref.watch(
-      settingsProvider.select((s) => s.safetyReviewEnabled),
+    final appSettings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          safetyReviewEnabled: s.safetyReviewEnabled,
+          safetyReviewDisabledRules: s.safetyReviewDisabledRules,
+        ),
+      ),
     );
-    final safetyReviewDisabledRules = ref.watch(
-      settingsProvider.select((s) => s.safetyReviewDisabledRules),
-    );
-    final laneFindings = safetyReviewEnabled
-        ? chartSafetyFindings(safetyReview, safetyReviewDisabledRules)
+    final laneFindings = appSettings.safetyReviewEnabled
+        ? chartSafetyFindings(
+            safetyReview,
+            appSettings.safetyReviewDisabledRules,
+          )
         : const <SafetyFinding>[];
     // Gate the highlight on lane membership: with safety review (or the
     // finding's rule) disabled neither the lane nor the section renders, so an
@@ -361,6 +366,8 @@ class DiveProfileChartHost extends ConsumerWidget {
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,
+        labelCeilingAsCalculated:
+            analysis?.computerStopsWithCalculatedCeiling ?? false,
         ascentRates: analysis?.ascentRates,
         events: analysis?.events,
         ndlCurve: analysis?.ndlCurve,

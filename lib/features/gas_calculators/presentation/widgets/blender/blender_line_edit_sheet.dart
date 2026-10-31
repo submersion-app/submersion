@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blend_billing.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
@@ -267,7 +268,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   double? _priceFor(BlenderGasRole role, List<double?> prices) =>
       role.index < prices.length ? prices[role.index] : null;
 
-  double? _cylinderLiters(AppSettings settings) {
+  double? _cylinderLiters(UnitFormatterSettings settings) {
     if (_pickedLiters != null) return _pickedLiters;
     // An untouched field still holds the saved fill's exact volume, which
     // its rounded text would lose in cubic feet.
@@ -280,7 +281,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
   /// The gas fill as currently entered, or null while it cannot be priced.
   ManualGasFillCost? _gasCost(
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
     List<double?> prices,
   ) {
@@ -389,8 +390,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   @override
   Widget build(BuildContext context) {
     final fill = widget.fill;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = units.settings;
     final isGas = _kindEditable && _kind == BlenderLineKind.gas;
     return Padding(
       padding: EdgeInsets.only(
@@ -500,7 +501,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
   List<Widget> _gasFields(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
   ) {
     final theme = Theme.of(context);
@@ -597,7 +598,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
   Widget _cylinderRow(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
   ) {
     return BlenderResponsiveHeaderRow(
@@ -624,7 +625,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   /// entry, still goes through the free-text field above.
   Future<void> _chooseCylinder(
     BuildContext context,
-    AppSettings settings,
+    UnitFormatterSettings settings,
     UnitFormatter units,
   ) async {
     final picked = await pickBlenderCylinderSpecs(

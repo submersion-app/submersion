@@ -10,7 +10,6 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The certifications a course earned, as removable chips (#2515). Tapping the
@@ -252,7 +251,7 @@ class _CertificationMultiPickerSheetState
     final catalog = context.certificationCatalog;
     final colorScheme = Theme.of(context).colorScheme;
     final selected = _working.contains(cert.id);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final title = certificationTitleL10n(cert, l10n, catalog: catalog);
     final credentials = certificationCredentialsLineL10n(
       cert,

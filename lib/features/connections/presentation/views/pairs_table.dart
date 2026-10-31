@@ -6,7 +6,6 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 import 'package:submersion/features/connections/presentation/views/table_rows.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every connection on the map as a sortable row; tapping one selects it.
@@ -45,7 +44,7 @@ class _PairsTableState extends ConsumerState<PairsTable> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final selected = widget.selection;
     final labels = {for (final n in widget.graph.nodes) n.ref: n.label};
     return LayoutBuilder(

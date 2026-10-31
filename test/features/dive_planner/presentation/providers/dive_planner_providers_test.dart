@@ -378,6 +378,68 @@ void main() {
         expect(state.segments.single.gasMix, dil.gasMix);
       });
 
+      group('a segment overridden off the loop keeps its cylinder (#3898)', () {
+        PlanSegment bailoutLeg() => hold(
+          'bo',
+          const GasMix(o2: 50),
+        ).copyWith(diveModeOverride: domain.PlanMode.oc);
+
+        test('when it is added', () {
+          final container = ccrContainer();
+          final notifier = container.read(divePlanNotifierProvider.notifier);
+          notifier.addTank(bailout('bo'));
+          notifier.addSegment(bailoutLeg());
+
+          final segment = container.read(divePlanNotifierProvider).segments;
+          expect(segment.single.tankId, 'bo');
+          expect(segment.single.gasMix, const GasMix(o2: 50));
+        });
+
+        test('when it is edited', () {
+          final container = ccrContainer();
+          final notifier = container.read(divePlanNotifierProvider.notifier);
+          notifier.addTank(bailout('bo'));
+          final leg = bailoutLeg();
+          notifier.addSegment(leg);
+          notifier.updateSegment(leg.id, leg.copyWith(durationSeconds: 300));
+
+          final segment = container.read(divePlanNotifierProvider).segments;
+          expect(segment.single.tankId, 'bo');
+          expect(segment.single.durationSeconds, 300);
+        });
+
+        test('when a plan is loaded, as an imported plan is', () {
+          final container = ccrContainer();
+          final notifier = container.read(divePlanNotifierProvider.notifier);
+          notifier.addTank(bailout('bo'));
+          final state = container.read(divePlanNotifierProvider);
+          notifier.loadPlan(state.copyWith(segments: [bailoutLeg()]));
+
+          expect(
+            container.read(divePlanNotifierProvider).segments.single.tankId,
+            'bo',
+          );
+        });
+
+        test('when the plan enters CCR', () {
+          final container = ProviderContainer(
+            overrides: [
+              settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            ],
+          );
+          addTearDown(container.dispose);
+          final notifier = container.read(divePlanNotifierProvider.notifier);
+          notifier.addTank(bailout('bo'));
+          notifier.addSegment(bailoutLeg());
+          notifier.updateMode(domain.PlanMode.ccr);
+
+          expect(
+            container.read(divePlanNotifierProvider).segments.single.tankId,
+            'bo',
+          );
+        });
+      });
+
       test('entering CCR on a plan whose only pure-O2 cylinder is already '
           'breathed by a segment (an ordinary OC/SCR O2 deco bottle) '
           'remaps that segment onto the diluent instead of leaving it on '

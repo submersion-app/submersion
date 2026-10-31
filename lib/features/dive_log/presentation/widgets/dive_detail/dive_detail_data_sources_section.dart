@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The Data sources section.
 class DiveDetailDataSourcesSection extends ConsumerWidget {
@@ -22,7 +21,7 @@ class DiveDetailDataSourcesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];

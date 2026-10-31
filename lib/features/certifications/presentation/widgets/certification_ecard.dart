@@ -6,7 +6,6 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_back.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_front.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
@@ -46,7 +45,7 @@ class CertificationEcard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     // Spoken, not printed: the screen reader label has no width budget, so it
     // carries the diver's full date rather than the card face's compact form.

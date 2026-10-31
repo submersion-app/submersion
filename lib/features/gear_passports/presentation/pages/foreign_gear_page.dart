@@ -13,7 +13,6 @@ import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payl
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
 import 'package:submersion/features/gear_passports/presentation/providers/gear_passport_providers.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A read-only snapshot built from a gear tag alone (gear tag spec 10): what
@@ -108,7 +107,7 @@ class _ForeignGearPageState extends ConsumerState<ForeignGearPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final tag = widget.tag;
     final theme = Theme.of(context);
     return Scaffold(

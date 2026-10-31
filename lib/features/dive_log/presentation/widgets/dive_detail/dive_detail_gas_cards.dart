@@ -15,11 +15,11 @@ class DiveDetailCylindersSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
     return CylindersCard(
       dive: dive,
-      units: UnitFormatter(settings),
-      settings: settings,
+      units: units,
+      settings: units.settings,
       display: ref.watch(gasConsumptionDisplayProvider),
     );
   }
@@ -36,7 +36,7 @@ class DiveDetailBuoyancySection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return BuoyancySection(
       diveId: dive.id,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
     );
   }
 }

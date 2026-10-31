@@ -10,7 +10,6 @@ import 'package:submersion/features/dive_log/domain/services/bottom_time_calcula
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -29,7 +28,7 @@ class DiveDetailHeroSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];

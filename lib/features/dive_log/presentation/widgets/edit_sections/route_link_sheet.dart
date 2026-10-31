@@ -13,7 +13,6 @@ import 'package:submersion/features/nav_track/presentation/nav_track_parse_error
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -157,7 +156,7 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final unlinked = ref.watch(unlinkedNavTracksProvider).value ?? const [];
     final candidates = _candidates(unlinked);
 

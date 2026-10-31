@@ -17,7 +17,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The parts of a dive the chart subtree draws from.
@@ -351,7 +350,7 @@ class _ProfileRangeStats extends ConsumerWidget {
         RangeStatsPanel(
           diveId: dive.id,
           profile: _watchChartProfile(ref, dive),
-          units: UnitFormatter(ref.watch(settingsProvider)),
+          units: ref.watch(unitFormatterProvider),
           tanks: dive.tanks,
           isRebreather: dive.isRebreather,
         ),

@@ -39,8 +39,10 @@ class DiveDetailsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final showBadgesSetting = ref.watch(
+      settingsProvider.select((s) => s.showDataSourceBadges),
+    );
     final viewedSourceId = ref.watch(activeDiveSourceProvider(dive.id));
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).valueOrNull ?? [];
@@ -49,8 +51,7 @@ class DiveDetailsSection extends ConsumerWidget {
       viewedSourceId: viewedSourceId,
       nameOf: (s) => resolveSourceName(s, sourceNameLabelsFor(context)),
     );
-    final showBadges =
-        settings.showDataSourceBadges && computedAttribution.isNotEmpty;
+    final showBadges = showBadgesSetting && computedAttribution.isNotEmpty;
     final attribution = showBadges ? computedAttribution : null;
     // The Dive Computer row follows the active source.
     final activeSource = viewedSourceId == null
@@ -128,7 +129,9 @@ class DiveDetailsSection extends ConsumerWidget {
                     meters: dive.visibilityMeters,
                     range: dive.visibilityRange,
                     legacy: dive.visibility,
-                    scale: settings.visibilityScale,
+                    scale: ref.watch(
+                      settingsProvider.select((s) => s.visibilityScale),
+                    ),
                     l10n: context.l10n,
                     units: units,
                   )

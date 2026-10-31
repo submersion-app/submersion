@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_ro
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_water_conditions.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/widgets/weather_description_builder.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
@@ -26,7 +25,7 @@ class DiveEnvironmentSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final hasWeather =
         dive.airTemp != null ||
         dive.surfacePressure != null ||

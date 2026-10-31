@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
@@ -119,7 +118,7 @@ class DiveTideSection extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
 
     // Get collapsed state from provider
     final isExpanded = ref.watch(tideSectionExpandedProvider);
@@ -148,7 +147,7 @@ class DiveTideSection extends ConsumerWidget {
 
     // Build collapsed subtitle with tide state and height
     final collapsedSubtitle =
-        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(1)}${settings.depthUnit.symbol}';
+        '${record.tideState.localizedName(context.l10n)} • ${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(1)}${units.settings.depthUnit.symbol}';
 
     // Compute cycle time range for the header
     final (cycleStart, cycleEnd) = _calculateCycleTimes(
@@ -158,14 +157,14 @@ class DiveTideSection extends ConsumerWidget {
     final dateRef = entryTime ?? record.highTideTime ?? record.lowTideTime;
     final dateStr = dateRef != null
         ? DateFormat(
-            UnitFormatter.weekdayMonthDayPattern(settings.dateFormat),
+            UnitFormatter.weekdayMonthDayPattern(units.settings.dateFormat),
           ).format(dateRef)
         : '';
     // The record's times arrive already mapped to the dive site's wall
     // clock (wall-clock-as-UTC), so format them verbatim.
     final timeRangeStr = cycleStart != null && cycleEnd != null
         ? () {
-            final timeFmt = DateFormat(settings.timeFormat.pattern);
+            final timeFmt = DateFormat(units.settings.timeFormat.pattern);
             final startStr = timeFmt.format(cycleStart);
             final endStr = timeFmt.format(cycleEnd);
             final spansNewDay =
@@ -174,7 +173,7 @@ class DiveTideSection extends ConsumerWidget {
                 cycleStart.day != cycleEnd.day;
             if (spansNewDay) {
               final endDateStr = DateFormat(
-                UnitFormatter.monthDayPattern(settings.dateFormat),
+                UnitFormatter.monthDayPattern(units.settings.dateFormat),
               ).format(cycleEnd);
               return '$startStr - $endStr ($endDateStr)';
             }
@@ -230,8 +229,8 @@ class DiveTideSection extends ConsumerWidget {
                 child: TideCycleGraph(
                   record: record,
                   referenceTime: entryTime,
-                  timeFormat: settings.timeFormat,
-                  depthUnit: settings.depthUnit,
+                  timeFormat: units.settings.timeFormat,
+                  depthUnit: units.settings.depthUnit,
                   height: 80,
                 ),
               ),
@@ -248,26 +247,24 @@ class DiveTideSection extends ConsumerWidget {
               DiveDetailRow(
                 label: context.l10n.diveLog_detail_label_height,
                 value:
-                    '${DepthUnit.meters.convert(record.heightMeters, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol}',
+                    '${DepthUnit.meters.convert(record.heightMeters, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol}',
               ),
               if (record.rateOfChange != null)
                 DiveDetailRow(
                   label: context.l10n.diveLog_detail_label_rateOfChange,
-                  value: UnitFormatter(
-                    settings,
-                  ).formatTideRate(record.rateOfChange),
+                  value: units.formatTideRate(record.rateOfChange),
                 ),
               if (record.highTideTime != null && record.highTideHeight != null)
                 DiveDetailRow(
                   label: context.l10n.diveLog_detail_label_highTide,
                   value:
-                      '${DepthUnit.meters.convert(record.highTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, settings.timeFormat)}',
+                      '${DepthUnit.meters.convert(record.highTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.highTideTime!, units.settings.timeFormat)}',
                 ),
               if (record.lowTideTime != null && record.lowTideHeight != null)
                 DiveDetailRow(
                   label: context.l10n.diveLog_detail_label_lowTide,
                   value:
-                      '${DepthUnit.meters.convert(record.lowTideHeight!, settings.depthUnit).toStringAsFixed(2)}${settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, settings.timeFormat)}',
+                      '${DepthUnit.meters.convert(record.lowTideHeight!, units.settings.depthUnit).toStringAsFixed(2)}${units.settings.depthUnit.symbol} at ${_formatTime(record.lowTideTime!, units.settings.timeFormat)}',
                 ),
             ],
           ),
