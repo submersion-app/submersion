@@ -604,29 +604,43 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                   ),
                                 ),
                               ),
-                              // Top centre: on a phone the corners hold the
-                              // readouts and the bottom edge holds the chips.
-                              // Below the scrub readout while it shows, which
-                              // reaches past the centre on a narrow chart.
+                              // The bailout status goes top centre: on a phone
+                              // the corners hold the readouts and the bottom
+                              // edge holds the chips. In one column with the
+                              // scrub readout, which reaches past the centre
+                              // on a narrow chart, so it clears the readout at
+                              // any text size.
                               Positioned(
-                                top: scrubTime == null ? 12 : 44,
+                                top: 12,
                                 left: 0,
                                 right: 0,
-                                child: const Center(
-                                  child: PlanChartBailoutStatus(),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 2,
+                                  children: [
+                                    if (scrubTime != null)
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left:
+                                                PlanChartGeometry.leftGutter +
+                                                4,
+                                          ),
+                                          child: _ScrubReadout(
+                                            runtimeSeconds: scrubTime,
+                                            depthMeters: series.depthAt(
+                                              scrubTime,
+                                            ),
+                                            units: units,
+                                            palette: palette,
+                                          ),
+                                        ),
+                                      ),
+                                    const PlanChartBailoutStatus(),
+                                  ],
                                 ),
                               ),
-                              if (scrubTime != null)
-                                Positioned(
-                                  top: 12,
-                                  left: PlanChartGeometry.leftGutter + 4,
-                                  child: _ScrubReadout(
-                                    runtimeSeconds: scrubTime,
-                                    depthMeters: series.depthAt(scrubTime),
-                                    units: units,
-                                    palette: palette,
-                                  ),
-                                ),
                             ],
                           );
                         },

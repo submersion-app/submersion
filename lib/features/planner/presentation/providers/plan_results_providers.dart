@@ -67,29 +67,23 @@ const _log = LoggerService('PlanResults');
 
 /// Everything a background result depends on, in one place: what the plan
 /// state gives the engine, and the diver's settings. The tissue seed is held
-/// by its raw fields, not as a seeded [TissueState], which has no value
-/// equality.
+/// by its raw compartments, not as a seeded [TissueState], which has no value
+/// equality; the plan carries the surface interval it off-gasses over.
 typedef _PlanResultInputs = ({
   domain.DivePlan plan,
   List<TissueCompartment>? seed,
-  Duration? surfaceInterval,
   PlanEngineConfig config,
 });
 
 /// Selected here once, rather than by each result, because the select rebuilds
 /// and compares the plan on every edit.
 final _planResultInputsProvider = Provider<_PlanResultInputs>((ref) {
-  final (plan, seed, surfaceInterval) = ref.watch(
+  final (plan, seed) = ref.watch(
     divePlanNotifierProvider.select(
-      (s) => (planForEngine(s), s.initialTissueState, s.surfaceInterval),
+      (s) => (planForEngine(s), s.initialTissueState),
     ),
   );
-  return (
-    plan: plan,
-    seed: seed,
-    surfaceInterval: surfaceInterval,
-    config: ref.watch(planEngineConfigProvider),
-  );
+  return (plan: plan, seed: seed, config: ref.watch(planEngineConfigProvider));
 });
 
 /// Completes once [delay] has passed with this computation still wanted. A
@@ -209,29 +203,17 @@ final planChartBailoutProvider =
         ref.watch(planBailoutProvider),
         ref.watch(divePlanNotifierProvider.select((s) => s.id)),
       );
-      final picture = view.value;
-      return switch (view.status) {
-        PlanResultStatus.current => (picture: picture, status: null),
-        PlanResultStatus.updating => (
-          picture: picture,
-          status: PlanResultStatus.updating,
-        ),
-        PlanResultStatus.calculating => (
-          picture: null,
-          status: PlanResultStatus.calculating,
-        ),
-        PlanResultStatus.failed => (
-          picture: null,
-          status: PlanResultStatus.failed,
-        ),
-      };
+      return (
+        picture: view.status == PlanResultStatus.failed ? null : view.value,
+        status: view.isMarked ? view.status : null,
+      );
     });
 
 /// What the chart draws: [planLiveCanvasSeriesProvider], or in
 /// [ChartDisplayMode.bailout] the worst-case bailout picture while there is
 /// one to draw.
 final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
-  final picture = ref.watch(planChartBailoutProvider).picture;
+  final picture = ref.watch(planChartBailoutProvider.select((c) => c.picture));
   if (picture != null) return buildBailoutCanvasSeries(picture);
   return ref.watch(planLiveCanvasSeriesProvider);
 });
@@ -251,6 +233,10 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 ///
 /// [container] rather than a `WidgetRef`, which ends if the diver leaves the
 /// canvas during the wait.
+///
+/// Null when another plan has taken this one's place by the time the results
+/// land: leaving a replan resets the planner, and these providers only ever
+/// answer for the plan that is open, so the slate asked for is out of reach.
 Future<
   ({
     DivePlanState state,
@@ -259,9 +245,10 @@ Future<
     List<LostGasOutcome> lostGas,
     RangeTable? rangeTable,
     BailoutOutcome? bailout,
-  })
+  })?
 >
 planSlateResults(ProviderContainer container) async {
+  final planId = container.read(divePlanNotifierProvider).id;
   final listeners = [
     container.listen(planDeviationsProvider, (_, _) {}),
     container.listen(planLostGasProvider, (_, _) {}),
@@ -281,6 +268,7 @@ planSlateResults(ProviderContainer container) async {
       final lostGas = await container.read(planLostGasProvider.future);
       final rangeTable = await container.read(planRangeTableProvider.future);
       final bailout = await container.read(planBailoutProvider.future);
+      if (container.read(divePlanNotifierProvider).id != planId) return null;
       if (inputs() != asked) continue;
       return (
         state: container.read(divePlanNotifierProvider),

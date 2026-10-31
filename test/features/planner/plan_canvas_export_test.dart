@@ -244,6 +244,52 @@ void main() {
     expect(sharePlatform.calls, hasLength(1));
   });
 
+  testWidgets('a plan replaced during the slate wait delivers nothing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final runner = HeldPlanResultRunner();
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          planResultsSettleDelayProvider.overrideWithValue(Duration.zero),
+          planResultRunnerProvider.overrideWithValue(runner),
+        ],
+        locale: const Locale('en'),
+        child: const PlanCanvasPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final notifier = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    ).read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+
+    await exportFromOverflow(tester, 'Export slate (PDF)');
+    expect(sharePlatform.calls, isEmpty);
+
+    notifier.newPlan();
+    await tester.pump();
+    for (var i = 0; i < 8; i++) {
+      for (final run in [...runner.held]) {
+        runner.held.remove(run);
+        run.finish();
+      }
+      await tester.pump();
+    }
+    await settleRealIo(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(sharePlatform.calls, isEmpty);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
   testWidgets('both exports ask Save to File or Share before delivering', (
     tester,
   ) async {

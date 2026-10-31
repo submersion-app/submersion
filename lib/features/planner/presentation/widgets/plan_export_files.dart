@@ -50,8 +50,9 @@ PlanSlateLabels planSlateLabels(AppLocalizations l10n) => PlanSlateLabels(
   maxPrefix: l10n.pdf_slateMax,
 );
 
-/// The open plan's slate PDF, rendered from the plan as it is now.
-Future<PlanExportFile> planSlateExport(
+/// The open plan's slate PDF, rendered from the plan as it is now. Null when
+/// another plan took its place while the results landed.
+Future<PlanExportFile?> planSlateExport(
   WidgetRef ref, {
   required PlanSlateLabels labels,
   required PdfLocalization localization,
@@ -59,6 +60,7 @@ Future<PlanExportFile> planSlateExport(
   // The diver can leave the canvas while the results land, which ends [ref].
   final container = ProviderScope.containerOf(ref.context, listen: false);
   final results = await planSlateResults(container);
+  if (results == null) return null;
   final state = results.state;
   // The plan's own values, else the diver's Settings defaults (#3552).
   final resolved = container.read(resolvedPlanEngineConfigProvider);

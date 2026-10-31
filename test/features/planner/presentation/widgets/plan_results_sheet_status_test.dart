@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -16,20 +15,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_result_sta
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/planner_results.dart';
 import '../../../../helpers/test_app.dart';
-
-class _TestSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
-
-  @override
-  Future<void> setMapStyle(MapStyle style) async =>
-      state = state.copyWith(mapStyle: style);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 const _calculating = 'Calculating';
 const _updating = 'Updating';
@@ -59,7 +47,7 @@ void main() {
       testApp(
         locale: const Locale('en'),
         overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           planResultsSettleDelayProvider.overrideWithValue(Duration.zero),
           planResultRunnerProvider.overrideWithValue(runner),
         ],

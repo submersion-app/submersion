@@ -84,7 +84,8 @@ Each one:
    selected value: select the state fields and derive the seed afterwards with
    `startStateForPlan`.
 2. Watches `planEngineConfigProvider`.
-3. Waits for a settle delay, 150 ms, and returns if `ref.mounted` is false.
+3. Waits for a settle delay, 150 ms, on a timer a newer edit cancels, so a
+   superseded computation goes no further.
 4. Runs the existing pure service through an injectable runner whose default is
    `Isolate.run`. The closure captures plain values only, never `ref`.
 5. Sets `retry: (_, _) => null`, as the mission provider does.
@@ -147,7 +148,8 @@ by a degenerate loop plan that never leaves the surface, and predicting that nee
 the walk itself. So the rule is one way: when the gate is false the solver returns
 null. When the gate is true and the finished result is null, the section header
 and the chip hide, as they do today for a null result. Only that degenerate plan
-can see this, and the hide happens once, after the first result.
+can see this. It has no figures to keep through an edit, so each edit shows the
+calculating state again until its result lands.
 
 ### Bailout view during an edit
 
@@ -168,7 +170,7 @@ view is selected and the gate is true, and the picture is not current:
 A failed result does not keep the old line, unlike the sheet's dimmed figures. A
 pending state clears in moments, but nothing replaces a failed result until the
 next edit, and a full bailout curve reads as current in a way dimmed text does
-not. The gate check sits in `planCanvasSeriesProvider`, so removing the last
+not. `planChartBailoutProvider` reads the gate first, so removing the last
 bailout tank drops the old line on that same frame.
 
 The waypoint handles follow the finger throughout, as they do now.
@@ -186,7 +188,9 @@ Contingencies section changed during the wait, so one slate never mixes revision
 The collapsed-contingencies behaviour is unchanged: the slate carries contingency
 tables only when the section is expanded. If a result fails, the export fails
 through its existing error path and never produces a slate with a section
-silently missing.
+silently missing. If another plan takes this one's place during the wait, which
+is what leaving a replan does, no file is delivered: the providers only answer
+for the open plan, so the slate that was asked for is out of reach.
 
 ### Convert to dive (bug fix in scope)
 
