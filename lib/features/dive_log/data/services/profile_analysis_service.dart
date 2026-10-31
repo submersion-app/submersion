@@ -927,11 +927,19 @@ class ProfileAnalysisService {
       sacCurve = _calculateSacCurve(depths, timestamps, pressures);
 
       if (sacCurve != null) {
+        final depthSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: depths,
+        );
+        final pressureSeries = PiecewiseLinearSeries(
+          times: timestamps,
+          values: pressures,
+        );
+
         // Calculate 5-minute segment SAC values first (needed for fallback)
         sacSegments = _calculateSacSegments(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           intervalSeconds: 300, // 5 minutes
         );
 
@@ -939,20 +947,21 @@ class ProfileAnalysisService {
         // This is more accurate than smoothing the noisy point-by-point SAC values
         // Use 60-second window for better accuracy with sparse pressure data
         smoothedSacCurve = _calculateRollingWindowSac(
-          depths: depths,
-          timestamps: timestamps,
-          pressures: pressures,
+          depthSeries: depthSeries,
+          pressureSeries: pressureSeries,
           windowSeconds: 60, // 60-second rolling window
         );
 
         // Check if rolling window produced mostly zeros (sparse/noisy data)
         // If so, fall back to interpolating from segment data
-        final nonZeroCount = smoothedSacCurve.where((s) => s > 0).length;
-        final totalCount = smoothedSacCurve.length;
-        if (totalCount > 0 &&
-            nonZeroCount < totalCount * 0.3 &&
+        final validShare = TimeWeightedMean();
+        for (var i = 0; i < smoothedSacCurve.length; i++) {
+          validShare.add(timestamps[i], smoothedSacCurve[i] > 0 ? 1 : 0);
+        }
+        if (smoothedSacCurve.isNotEmpty &&
+            validShare.value! < 0.3 &&
             sacSegments.isNotEmpty) {
-          // Less than 30% valid data - interpolate from segments instead
+          // Valid for less than 30% of the dive - interpolate from segments
           smoothedSacCurve = _interpolateSacFromSegments(
             timestamps: timestamps,
             segments: sacSegments,
@@ -1399,18 +1408,15 @@ class ProfileAnalysisService {
   /// smoothing noisy point-by-point SAC values because it uses the actual
   /// pressure delta over a meaningful time period (like segments do).
   ///
-  /// [windowSeconds] is the time window in seconds (default 60).
-  /// The function handles sparse data by expanding the window if needed to
-  /// ensure we have at least 2 data points with meaningful time span.
+  /// [windowSeconds] is the time window in seconds (default 60). Depth and
+  /// pressure are read at the window's edges, which stop at the ends of the
+  /// dive, so sparse samples fill the same window as dense ones.
   List<double> _calculateRollingWindowSac({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int windowSeconds = 60,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
+    final timestamps = depthSeries.times;
 
     // Need at least 2 points to calculate any SAC
     if (timestamps.length < 2) {
@@ -1421,60 +1427,33 @@ class ProfileAnalysisService {
     final halfWindow = windowSeconds ~/ 2;
 
     // Minimum time span required for valid SAC calculation (5 seconds)
-    // Lower threshold helps with sparse data
     const minDuration = 5;
+
+    var startIdx = 0;
+    var endIdx = 0;
 
     for (int i = 0; i < timestamps.length; i++) {
       final centerTime = timestamps[i];
 
-      // Find window bounds by time (not index)
-      final windowStart = centerTime - halfWindow;
-      final windowEnd = centerTime + halfWindow;
-
-      // Find indices that fall within the time window
-      var startIdx = i;
-      var endIdx = i;
-
-      // Expand backwards to find window start
-      while (startIdx > 0 && timestamps[startIdx - 1] >= windowStart) {
-        startIdx--;
-      }
-
-      // Expand forwards to find window end
-      while (endIdx < timestamps.length - 1 &&
-          timestamps[endIdx + 1] <= windowEnd) {
-        endIdx++;
-      }
-
-      // If window is too small, expand it to get more data points
-      // This helps with sparse pressure data (e.g., recordings every 30 sec)
-      int duration = timestamps[endIdx] - timestamps[startIdx];
-      while (duration < minDuration &&
-          (startIdx > 0 || endIdx < timestamps.length - 1)) {
-        // Expand in the direction that adds more time
-        if (startIdx > 0 &&
-            (endIdx >= timestamps.length - 1 ||
-                (timestamps[startIdx] - timestamps[startIdx - 1]) <=
-                    (timestamps[endIdx + 1] - timestamps[endIdx]))) {
-          startIdx--;
-        } else if (endIdx < timestamps.length - 1) {
-          endIdx++;
-        } else {
-          break;
-        }
-        duration = timestamps[endIdx] - timestamps[startIdx];
-      }
+      final windowStart = math.max(centerTime - halfWindow, timestamps.first);
+      final windowEnd = math.min(centerTime + halfWindow, timestamps.last);
+      startIdx = depthSeries.advanceTo(windowStart, startIdx);
+      endIdx = depthSeries.advanceTo(windowEnd, endIdx);
 
       // Calculate SAC for this window
-      final pressureDrop = pressures[startIdx] - pressures[endIdx];
+      final duration = windowEnd - windowStart;
+      final pressureDrop =
+          pressureSeries.valueAt(windowStart, startIdx) -
+          pressureSeries.valueAt(windowEnd, endIdx);
 
       if (duration >= minDuration && pressureDrop > 0) {
         // Calculate average depth over the window
-        final windowDepth = TimeWeightedMean();
-        for (int j = startIdx; j <= endIdx; j++) {
-          windowDepth.add(timestamps[j], depths[j]);
-        }
-        final avgDepth = windowDepth.value!;
+        final avgDepth = depthSeries.meanBetween(
+          windowStart,
+          startIdx,
+          windowEnd,
+          endIdx,
+        );
 
         // Calculate SAC
         final ambientPressure = 1.0 + (avgDepth / 10.0);
@@ -1558,76 +1537,65 @@ class ProfileAnalysisService {
   /// Calculate SAC over fixed time intervals.
   ///
   /// [intervalSeconds] is the segment duration (default 300 = 5 minutes).
+  /// Depth and pressure are read at each boundary, so segments meet with no
+  /// gas between them however the dive was sampled.
   List<SacSegment> _calculateSacSegments({
-    required List<double> depths,
-    required List<int> timestamps,
-    required List<double> pressures,
+    required PiecewiseLinearSeries depthSeries,
+    required PiecewiseLinearSeries pressureSeries,
     int intervalSeconds = 300,
   }) {
-    if (timestamps.isEmpty || pressures.length != depths.length) {
-      return [];
-    }
-
+    final timestamps = depthSeries.times;
+    final depths = depthSeries.values;
     final segments = <SacSegment>[];
-    final startTime = timestamps.first;
     final endTime = timestamps.last;
+    var startIdx = 0;
+    var endIdx = 0;
 
-    int segmentStart = startTime;
+    int segmentStart = timestamps.first;
 
     while (segmentStart < endTime) {
       final segmentEnd = math.min(segmentStart + intervalSeconds, endTime);
+      startIdx = depthSeries.advanceTo(segmentStart, startIdx);
+      endIdx = depthSeries.advanceTo(segmentEnd, endIdx);
 
-      // Find indices within this segment
-      final startIdx = timestamps.indexWhere((t) => t >= segmentStart);
-      final endIdx = timestamps.lastIndexWhere((t) => t <= segmentEnd);
-
-      if (startIdx < 0 || endIdx < 0 || endIdx <= startIdx) {
-        segmentStart = segmentEnd;
-        continue;
-      }
-
-      // Calculate segment metrics
-      final segmentDepth = TimeWeightedMean();
-      double minDepth = double.infinity;
-      double maxDepth = 0;
-      int count = 0;
-
-      for (int i = startIdx; i <= endIdx; i++) {
-        final depth = depths[i];
-        segmentDepth.add(timestamps[i], depth);
-        minDepth = math.min(minDepth, depth);
-        maxDepth = math.max(maxDepth, depth);
-        count++;
-      }
-
-      if (count == 0) {
-        segmentStart = segmentEnd;
-        continue;
-      }
-
-      final avgDepth = segmentDepth.value!;
-      final pressureStart = pressures[startIdx];
-      final pressureEnd = pressures[endIdx];
-      final pressureDrop = pressureStart - pressureEnd;
-      final segmentDuration = timestamps[endIdx] - timestamps[startIdx];
-
-      // Calculate SAC for segment
-      double sacRate = 0;
-      if (pressureDrop > 0 && segmentDuration > 0) {
-        final ambientPressure = 1.0 + (avgDepth / 10.0);
-        final consumptionRate = pressureDrop / (segmentDuration / 60.0);
-        sacRate = consumptionRate / ambientPressure;
-      }
+      final segmentDuration = segmentEnd - segmentStart;
 
       // Only add segment if we have valid data
       if (segmentDuration > 30) {
         // At least 30 seconds
+        final depthStart = depthSeries.valueAt(segmentStart, startIdx);
+        final depthEnd = depthSeries.valueAt(segmentEnd, endIdx);
+        var minDepth = math.min(depthStart, depthEnd);
+        var maxDepth = math.max(depthStart, depthEnd);
+        for (int i = startIdx + 1; i <= endIdx; i++) {
+          minDepth = math.min(minDepth, depths[i]);
+          maxDepth = math.max(maxDepth, depths[i]);
+        }
+
+        final avgDepth = depthSeries.meanBetween(
+          segmentStart,
+          startIdx,
+          segmentEnd,
+          endIdx,
+        );
+        final pressureDrop =
+            pressureSeries.valueAt(segmentStart, startIdx) -
+            pressureSeries.valueAt(segmentEnd, endIdx);
+
+        // Calculate SAC for segment
+        double sacRate = 0;
+        if (pressureDrop > 0) {
+          final ambientPressure = 1.0 + (avgDepth / 10.0);
+          final consumptionRate = pressureDrop / (segmentDuration / 60.0);
+          sacRate = consumptionRate / ambientPressure;
+        }
+
         segments.add(
           SacSegment(
-            startTimestamp: timestamps[startIdx],
-            endTimestamp: timestamps[endIdx],
+            startTimestamp: segmentStart,
+            endTimestamp: segmentEnd,
             avgDepth: avgDepth,
-            minDepth: minDepth == double.infinity ? 0 : minDepth,
+            minDepth: minDepth,
             maxDepth: maxDepth,
             sacRate: sacRate,
             gasConsumed: pressureDrop > 0 ? pressureDrop : 0,
