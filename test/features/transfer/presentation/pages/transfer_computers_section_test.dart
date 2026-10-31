@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
@@ -85,6 +86,14 @@ void main() {
       ProviderScope(
         overrides: [
           allDiveComputersProvider.overrideWith((ref) async => computers),
+          // Off by default here: none of these tests exercise auto-connect
+          // (that is its own group below), and leaving it on would start a
+          // real scan against no platform channel, whose "Searching..."
+          // indicator is an indeterminate spinner that `pumpAndSettle`
+          // never settles on.
+          autoConnectKnownComputersProvider.overrideWith(
+            (ref) => AutoConnectKnownComputersNotifier.unstored(false),
+          ),
         ],
         child: MaterialApp.router(
           locale: locale,
@@ -203,6 +212,18 @@ void main() {
   group('passive auto-connect scan, route-aware (issue #3361)', () {
     late _FakeHostApi hostApi;
 
+    /// A few bounded pumps, not `pumpAndSettle`: while this group's scan is
+    /// active, the "Searching..." indicator's `CircularProgressIndicator`
+    /// is an indeterminate animation `pumpAndSettle` never settles on.
+    Future<void> pumpBriefly(WidgetTester tester) async {
+      // Long enough to clear a route transition (~300ms default) and flush
+      // pending microtasks, short enough to never reach the indeterminate
+      // "Searching..." spinner's own animation loop.
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+    }
+
     /// Registers `computersRouteObserver` on this test's own `GoRouter`,
     /// unlike `pumpComputersSection` above: only this group exercises the
     /// push/pop pause-resume path, so only it pays for the extra route.
@@ -244,7 +265,7 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await pumpBriefly(tester);
       return router;
     }
 
@@ -264,12 +285,12 @@ void main() {
       expect(hostApi.startDiscoveryCalls, 1);
 
       router.push('/transfer/second');
-      await tester.pumpAndSettle();
+      await pumpBriefly(tester);
       expect(find.text('Second page'), findsOneWidget);
       expect(hostApi.stopDiscoveryCalls, 1);
 
       router.pop();
-      await tester.pumpAndSettle();
+      await pumpBriefly(tester);
       expect(hostApi.startDiscoveryCalls, 2);
     });
   });

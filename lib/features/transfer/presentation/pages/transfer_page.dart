@@ -648,16 +648,22 @@ class _ComputersSectionContent extends ConsumerStatefulWidget {
 class _ComputersSectionContentState
     extends ConsumerState<_ComputersSectionContent>
     with RouteAware {
+  // Cached, not read fresh via `ref` each time: `dispose()` runs after
+  // Riverpod has already marked this element's `ref` unsafe to use
+  // ("Using ref when a widget is about to or has been unmounted"), so the
+  // notifier reference itself - not just the `activate()`/`deactivate()`
+  // calls - has to be captured while `ref` is still valid.
+  late final AutoConnectController _autoConnectController;
+
   @override
   void initState() {
     super.initState();
+    _autoConnectController = ref.read(autoConnectControllerProvider.notifier);
     // Deferred: Riverpod forbids modifying a provider's state while the
     // widget tree is still building, which `activate()` does (it starts the
     // scan and writes `isActive`).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(autoConnectControllerProvider.notifier).activate();
-      }
+      if (mounted) _autoConnectController.activate();
     });
   }
 
@@ -673,18 +679,25 @@ class _ComputersSectionContentState
   @override
   void dispose() {
     computersRouteObserver.unsubscribe(this);
-    ref.read(autoConnectControllerProvider.notifier).deactivate();
+    _autoConnectController.deactivate();
     super.dispose();
   }
 
   @override
   void didPushNext() {
-    ref.read(autoConnectControllerProvider.notifier).deactivate();
+    // Deferred, like `initState`: `RouteObserver` dispatches this
+    // synchronously from inside `NavigatorState.didUpdateWidget`, itself
+    // part of the current build scope's element rebuild pass.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _autoConnectController.deactivate();
+    });
   }
 
   @override
   void didPopNext() {
-    ref.read(autoConnectControllerProvider.notifier).activate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _autoConnectController.activate();
+    });
   }
 
   @override
@@ -746,10 +759,13 @@ class _ComputersSectionContentState
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    context.l10n.transfer_computers_autoConnect_searching,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  Expanded(
+                    child: Text(
+                      context.l10n.transfer_computers_autoConnect_searching,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
