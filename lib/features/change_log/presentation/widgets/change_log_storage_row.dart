@@ -14,11 +14,25 @@ class ChangeLogStorageRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bytes = ref.watch(changeLogStorageBytesProvider).value;
-    return ListTile(
-      dense: true,
-      contentPadding: const EdgeInsets.only(left: 32, right: 16),
-      title: Text(context.l10n.changeLog_storage_label),
-      trailing: bytes == null ? null : Text(formatBytes(bytes)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 4, 16, 8),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              context.l10n.changeLog_storage_label,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          if (bytes != null) ...[
+            const SizedBox(width: 12),
+            Text(
+              formatBytes(bytes),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
