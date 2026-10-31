@@ -170,6 +170,17 @@ final diveCenterDiveCountProvider = FutureProvider.family<int, String>((
   ref,
   centerId,
 ) {
+  // Handed back directly once the counts are known: a rebuild that waited
+  // would pass through loading, which `when` and `valueOrNull` show as a
+  // missing count. Only one branch is watched, or the map arriving would
+  // rebuild this mid-wait and strand a read nothing is listening to.
+  if (ref.read(diveCenterDiveCountsProvider).hasValue) {
+    return ref.watch(
+      diveCenterDiveCountsProvider.select(
+        (counts) => counts.value?[centerId] ?? 0,
+      ),
+    );
+  }
   return ref.watch(
     diveCenterDiveCountsProvider.selectAsync((counts) => counts[centerId] ?? 0),
   );

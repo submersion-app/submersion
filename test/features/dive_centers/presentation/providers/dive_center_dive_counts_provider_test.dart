@@ -174,6 +174,28 @@ void main() {
       });
     });
 
+    test('a changed count never reads as unknown', () async {
+      final container = makeContainer();
+
+      await _withCountReads((_) async {
+        await seedCenters();
+        final seen = <int?>[];
+        final subscription = container.listen(
+          diveCenterDiveCountProvider(_idOf(5)),
+          (_, next) => seen.add(next.valueOrNull),
+        );
+        addTearDown(subscription.close);
+        await container.read(diveCenterDiveCountProvider(_idOf(5)).future);
+        seen.clear();
+
+        await writeDiveAt(_idOf(5));
+        await settleOn(container, _idOf(5), 1);
+
+        expect(seen, isNot(contains(null)));
+        expect(seen.last, 1);
+      });
+    });
+
     test('a center with no dives reads zero', () async {
       final container = makeContainer();
 
