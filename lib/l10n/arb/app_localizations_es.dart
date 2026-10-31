@@ -57613,6 +57613,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeLog_clear_confirm => 'Borrar';
 
   @override
+  String get changeLog_clear_failed =>
+      'No se pudo borrar el registro de cambios. No se eliminó nada.';
+
+  @override
   String get changeLog_day_today => 'Hoy';
 
   @override

@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "לנקות את יומן השינויים?",
   "changeLog_clear_body": "פעולה זו מסירה את הרשומות של הצוללן הפעיל מהמכשיר הזה. לא תוכלו להחזיר אותן לאחר מכן.",
   "changeLog_clear_confirm": "ניקוי",
+  "changeLog_clear_failed": "לא ניתן לנקות את יומן השינויים. שום דבר לא הוסר.",
   "changeLog_day_today": "היום",
   "changeLog_day_yesterday": "אתמול",
   "changeLog_storage_label": "יומן שינויים"

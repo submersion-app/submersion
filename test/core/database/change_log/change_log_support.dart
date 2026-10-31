@@ -31,6 +31,28 @@ Future<Map<String, (Object?, Object?)>> logFields(
   };
 }
 
+/// Records the scope's lease each time an event is written, which is the only
+/// way to see it from inside a transaction under test.
+Future<void> probeLease(AppDatabase db) async {
+  await db.customStatement('CREATE TABLE lease_probe (expires INTEGER)');
+  await db.customStatement(
+    'CREATE TRIGGER lease_probe_trg AFTER INSERT ON change_log_events BEGIN '
+    'INSERT INTO lease_probe SELECT scope_expires_at FROM change_log_context; '
+    'END',
+  );
+}
+
+/// The shortest time left on the lease that [probeLease] saw.
+Future<Duration> probedLease(AppDatabase db) async {
+  final row = await db
+      .customSelect('SELECT MIN(expires) AS expires FROM lease_probe')
+      .getSingle();
+  return Duration(
+    milliseconds:
+        row.read<int>('expires') - DateTime.now().millisecondsSinceEpoch,
+  );
+}
+
 Future<void> clearLog(AppDatabase db) async {
   await db.customStatement('DELETE FROM change_log_fields');
   await db.customStatement('DELETE FROM change_log_events');

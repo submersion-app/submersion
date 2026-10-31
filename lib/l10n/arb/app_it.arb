@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "Cancellare il registro modifiche?",
   "changeLog_clear_body": "Rimuove le voci del subacqueo attivo da questo dispositivo. Dopo non potrai ripristinarle.",
   "changeLog_clear_confirm": "Cancella",
+  "changeLog_clear_failed": "Impossibile cancellare il registro delle modifiche. Non è stato rimosso nulla.",
   "changeLog_day_today": "Oggi",
   "changeLog_day_yesterday": "Ieri",
   "changeLog_storage_label": "Registro modifiche"

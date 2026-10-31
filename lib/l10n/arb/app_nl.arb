@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "Wijzigingslogboek wissen?",
   "changeLog_clear_body": "Dit verwijdert de items van de actieve duiker van dit apparaat. Je kunt ze daarna niet meer terugzetten.",
   "changeLog_clear_confirm": "Wissen",
+  "changeLog_clear_failed": "Kan het wijzigingslogboek niet wissen. Er is niets verwijderd.",
   "changeLog_day_today": "Vandaag",
   "changeLog_day_yesterday": "Gisteren",
   "changeLog_storage_label": "Wijzigingslogboek"

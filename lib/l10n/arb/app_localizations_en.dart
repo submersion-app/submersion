@@ -56656,6 +56656,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_clear_confirm => 'Clear';
 
   @override
+  String get changeLog_clear_failed =>
+      'Couldn\'t clear the change log. Nothing was removed.';
+
+  @override
   String get changeLog_day_today => 'Today';
 
   @override

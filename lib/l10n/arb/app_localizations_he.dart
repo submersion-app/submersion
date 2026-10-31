@@ -56353,6 +56353,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_clear_confirm => 'ניקוי';
 
   @override
+  String get changeLog_clear_failed =>
+      'לא ניתן לנקות את יומן השינויים. שום דבר לא הוסר.';
+
+  @override
   String get changeLog_day_today => 'היום';
 
   @override

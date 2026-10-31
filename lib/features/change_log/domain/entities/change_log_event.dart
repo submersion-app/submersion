@@ -18,6 +18,9 @@ enum ChangeLogAction {
 /// The record a change belongs to in the feed.
 typedef ChangeLogRoot = ({String table, String id});
 
+/// Stands for "keep this value" in a copyWith whose values may be null.
+const Object _keep = Object();
+
 /// One changed column. A value keeps the type SQLite stored it with, so it
 /// can be text, a number, bytes or null.
 class ChangeLogFieldChange extends Equatable {
@@ -33,13 +36,16 @@ class ChangeLogFieldChange extends Equatable {
   final Object? oldValue;
   final Object? newValue;
 
-  ChangeLogFieldChange copyWith({Object? oldValue, Object? newValue}) =>
-      ChangeLogFieldChange(
-        table: table,
-        column: column,
-        oldValue: oldValue ?? this.oldValue,
-        newValue: newValue ?? this.newValue,
-      );
+  /// A logged null is a real value, so passing null sets one.
+  ChangeLogFieldChange copyWith({
+    Object? oldValue = _keep,
+    Object? newValue = _keep,
+  }) => ChangeLogFieldChange(
+    table: table,
+    column: column,
+    oldValue: identical(oldValue, _keep) ? this.oldValue : oldValue,
+    newValue: identical(newValue, _keep) ? this.newValue : newValue,
+  );
 
   @override
   List<Object?> get props => [table, column, oldValue, newValue];
@@ -156,9 +162,24 @@ class ChangeLogPreview extends Equatable {
   final int total;
   final ChangeLogAction? rootAction;
 
+  ChangeLogPreview copyWith({
+    List<ChangeLogFieldChange>? fields,
+    int? total,
+    Object? rootAction = _keep,
+  }) => ChangeLogPreview(
+    fields: fields ?? this.fields,
+    total: total ?? this.total,
+    rootAction: identical(rootAction, _keep)
+        ? this.rootAction
+        : rootAction as ChangeLogAction?,
+  );
+
   @override
   List<Object?> get props => [fields, total, rootAction];
 }
+
+/// How a record is told apart from every other, across tables.
+String changeLogRecordKey(String table, Object id) => '$table|$id';
 
 /// Where a resolved foreign key is kept, by sync entity and JSON key.
 String changeLogReferenceKey(String entity, String key, Object value) =>

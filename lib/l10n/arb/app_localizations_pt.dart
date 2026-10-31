@@ -57560,6 +57560,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get changeLog_clear_confirm => 'Limpar';
 
   @override
+  String get changeLog_clear_failed =>
+      'Não foi possível limpar o registo de alterações. Nada foi removido.';
+
+  @override
   String get changeLog_day_today => 'Hoje';
 
   @override

@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "¿Borrar el registro de cambios?",
   "changeLog_clear_body": "Esto elimina las entradas del buceador activo de este dispositivo. Después no podrás revertirlas.",
   "changeLog_clear_confirm": "Borrar",
+  "changeLog_clear_failed": "No se pudo borrar el registro de cambios. No se eliminó nada.",
   "changeLog_day_today": "Hoy",
   "changeLog_day_yesterday": "Ayer",
   "changeLog_storage_label": "Registro de cambios"

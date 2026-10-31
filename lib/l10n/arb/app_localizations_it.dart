@@ -57569,6 +57569,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeLog_clear_confirm => 'Cancella';
 
   @override
+  String get changeLog_clear_failed =>
+      'Impossibile cancellare il registro delle modifiche. Non è stato rimosso nulla.';
+
+  @override
   String get changeLog_day_today => 'Oggi';
 
   @override

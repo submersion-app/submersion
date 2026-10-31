@@ -2,12 +2,15 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
+/// Stands for "keep this value" in a copyWith whose values may be null.
+const Object _keep = Object();
+
 /// Why part of a revert cannot happen.
 enum ChangeLogBlock {
   /// The record the change was made to no longer exists.
   recordGone,
 
-  /// A later migration dropped the column.
+  /// A later migration dropped the column, or the whole table.
   columnGone,
 
   /// A later migration rewrote the column, so the old value means something
@@ -65,6 +68,22 @@ class ChangeLogRevertItem extends Equatable {
   bool get removesRecord =>
       column == null && event.action == ChangeLogAction.insert;
 
+  ChangeLogRevertItem copyWith({
+    Object? logged = _keep,
+    Object? target = _keep,
+    Object? current = _keep,
+    Object? block = _keep,
+    bool? changedSince,
+  }) => ChangeLogRevertItem(
+    event: event,
+    column: column,
+    logged: identical(logged, _keep) ? this.logged : logged,
+    target: identical(target, _keep) ? this.target : target,
+    current: identical(current, _keep) ? this.current : current,
+    block: identical(block, _keep) ? this.block : block as ChangeLogBlock?,
+    changedSince: changedSince ?? this.changedSince,
+  );
+
   @override
   List<Object?> get props => [
     event,
@@ -100,6 +119,15 @@ class ChangeLogRevertPlan extends Equatable {
       .toSet()
       .length;
 
+  ChangeLogRevertPlan copyWith({
+    List<ChangeLogRevertItem>? items,
+    bool? wholeOperation,
+  }) => ChangeLogRevertPlan(
+    operationId: operationId,
+    items: items ?? this.items,
+    wholeOperation: wholeOperation ?? this.wholeOperation,
+  );
+
   @override
   List<Object?> get props => [operationId, items, wholeOperation];
 }
@@ -121,6 +149,20 @@ class ChangeLogRevertResult extends Equatable {
 
   /// The revert's own entry, when it did anything.
   final String? operationId;
+
+  ChangeLogRevertResult copyWith({
+    int? reverted,
+    int? kept,
+    List<ChangeLogRevertItem>? keptItems,
+    Object? operationId = _keep,
+  }) => ChangeLogRevertResult(
+    reverted: reverted ?? this.reverted,
+    kept: kept ?? this.kept,
+    keptItems: keptItems ?? this.keptItems,
+    operationId: identical(operationId, _keep)
+        ? this.operationId
+        : operationId as String?,
+  );
 
   @override
   List<Object?> get props => [reverted, kept, keptItems, operationId];

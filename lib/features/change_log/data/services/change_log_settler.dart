@@ -6,6 +6,7 @@ import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
 /// Manual saves on one record this close together are one entry.
 const Duration kChangeLogManualGroupWindow = Duration(seconds: 5);
@@ -34,7 +35,13 @@ class ChangeLogSettler {
   }
 }
 
-typedef _Root = ({String table, String id});
+/// What an operation records about the one record it is about.
+typedef _RootFacts = ({String? table, String? id, String? label, int? ordinal});
+
+const _RootFacts _noRoot = (table: null, id: null, label: null, ordinal: null);
+
+/// What became of an insert that may be the second half of a replace.
+enum _Fold { notAReplace, changed, nothingChanged }
 
 class _Event {
   _Event(Map<String, Object?> row)
@@ -55,15 +62,12 @@ class _Event {
 
 /// An operation while it is being settled. Written back when the pass ends.
 class _Operation {
-  _Operation({
+  const _Operation({
     required this.id,
     required this.source,
     required this.label,
     required this.diverId,
-    required this.rootTable,
-    required this.rootId,
-    required this.rootLabel,
-    required this.rootOrdinal,
+    required this.root,
     required this.startedAt,
     required this.endedAt,
     required this.hasEvents,
@@ -75,10 +79,12 @@ class _Operation {
         source: row['source']! as String,
         label: row['label'] as String?,
         diverId: row['diver_id'] as String?,
-        rootTable: row['root_table'] as String?,
-        rootId: row['root_id'] as String?,
-        rootLabel: row['root_label'] as String?,
-        rootOrdinal: row['root_ordinal'] as int?,
+        root: (
+          table: row['root_table'] as String?,
+          id: row['root_id'] as String?,
+          label: row['root_label'] as String?,
+          ordinal: row['root_ordinal'] as int?,
+        ),
         startedAt: row['started_at']! as int,
         endedAt: row['ended_at']! as int,
         hasEvents: (row['event_count']! as int) > 0,
@@ -87,24 +93,39 @@ class _Operation {
   final String id;
   final String source;
   final String? label;
-  String? diverId;
-  String? rootTable;
-  String? rootId;
-  String? rootLabel;
-  int? rootOrdinal;
-  int startedAt;
-  int endedAt;
+  final String? diverId;
+  final _RootFacts root;
+  final int startedAt;
+  final int endedAt;
 
   /// False until the first event, which is what tells "no root yet" from
-  /// "touched several roots", both of which leave [rootId] null.
-  bool hasEvents;
+  /// "touched several roots", both of which leave [root] empty.
+  final bool hasEvents;
 
   /// A save with no scope. A labelled bulk action is manual too, but it is
   /// over when it ends, so the next save does not join it.
   bool get isPlainSave =>
       source == ChangeLogSource.manual.name && label == null;
 
-  bool hasRoot(_Root root) => rootTable == root.table && rootId == root.id;
+  bool hasRoot(ChangeLogRoot other) =>
+      root.table == other.table && root.id == other.id;
+
+  _Operation copyWith({
+    String? diverId,
+    _RootFacts? root,
+    int? startedAt,
+    int? endedAt,
+    bool? hasEvents,
+  }) => _Operation(
+    id: id,
+    source: source,
+    label: label,
+    diverId: diverId ?? this.diverId,
+    root: root ?? this.root,
+    startedAt: startedAt ?? this.startedAt,
+    endedAt: endedAt ?? this.endedAt,
+    hasEvents: hasEvents ?? this.hasEvents,
+  );
 }
 
 class _SettlePass {
@@ -114,7 +135,9 @@ class _SettlePass {
   final Map<String, ChangeLogTableSpec> _specs;
 
   final _operations = <String, _Operation>{};
-  final _latestManual = <_Root, _Operation>{};
+
+  /// The newest plain save of each root, by operation id.
+  final _latestManual = <ChangeLogRoot, String>{};
   final _columns = <String, Object?>{};
 
   Future<int> run(int batch) async {
@@ -148,54 +171,81 @@ class _SettlePass {
     final owner = await _ownerOf(root);
     final operation = await _operationFor(event, root, owner);
 
-    if (event.action == 'I' && await _foldReplace(event, operation)) {
-      await _note(operation, event, root, owner);
+    if (event.action == 'I') {
+      switch (await _foldReplace(event, operation)) {
+        case _Fold.notAReplace:
+          break;
+        case _Fold.changed:
+          await _note(operation.id, event, root, owner);
+          return;
+        case _Fold.nothingChanged:
+          await _forgetRootIfEmpty(operation.id);
+          return;
+      }
+    }
+    if (event.action == 'D' && await _cancelInsert(event, operation)) {
+      await _forgetRootIfEmpty(operation.id);
       return;
     }
-    if (event.action == 'D' && await _cancelInsert(event, operation)) return;
 
     await _db.customStatement(
       'UPDATE change_log_events SET operation_id = ?, settled = 1, '
       'root_table = ?, root_id = ? WHERE id = ?',
       [operation.id, root.table, root.id, event.id],
     );
-    await _note(operation, event, root, owner);
+    await _note(operation.id, event, root, owner);
   }
 
-  /// Adds [event] to the in-memory [operation].
+  /// Adds [event] to the in-memory operation [operationId].
   Future<void> _note(
-    _Operation operation,
+    String operationId,
     _Event event,
-    _Root root,
+    ChangeLogRoot root,
     String? owner,
   ) async {
-    operation.diverId ??= owner;
-    if (!operation.hasEvents) {
-      final label = await _labelOf(root);
-      operation
-        ..rootTable = root.table
-        ..rootId = root.id
-        ..rootLabel = label.label
-        ..rootOrdinal = label.ordinal
-        ..startedAt = event.changedAt
-        ..hasEvents = true;
-    } else if (!operation.hasRoot(root)) {
-      operation
-        ..rootTable = null
-        ..rootId = null
-        ..rootLabel = null
-        ..rootOrdinal = null;
-    }
-    if (event.changedAt > operation.endedAt || operation.isPlainSave) {
-      operation.endedAt = event.changedAt;
-    }
-    if (operation.isPlainSave) _latestManual[root] = operation;
+    final operation = _operations[operationId]!;
+    final first = !operation.hasEvents;
+    final label = first ? await _labelOf(root) : null;
+    final later = event.changedAt > operation.endedAt || operation.isPlainSave;
+    _operations[operationId] = operation.copyWith(
+      diverId: operation.diverId ?? owner,
+      root: first
+          ? (
+              table: root.table,
+              id: root.id,
+              label: label?.label,
+              ordinal: label?.ordinal,
+            )
+          : (operation.hasRoot(root) ? null : _noRoot),
+      startedAt: first ? event.changedAt : null,
+      endedAt: later ? event.changedAt : null,
+      hasEvents: true,
+    );
+    if (operation.isPlainSave) _latestManual[root] = operationId;
+  }
+
+  /// When the only record an operation had so far cancelled out, the next
+  /// one is its first. Unsettled events do not count: a scope's carry its id
+  /// from the trigger, and the next one is what this makes room for.
+  Future<void> _forgetRootIfEmpty(String operationId) async {
+    final remaining = await _db
+        .customSelect(
+          'SELECT 1 FROM change_log_events WHERE operation_id = ? '
+          'AND settled = 1 LIMIT 1',
+          variables: [Variable.withString(operationId)],
+        )
+        .getSingleOrNull();
+    if (remaining != null) return;
+    _operations[operationId] = _operations[operationId]!.copyWith(
+      root: _noRoot,
+      hasEvents: false,
+    );
   }
 
   /// The operation [event] belongs to, by its scope or by the manual window.
   Future<_Operation> _operationFor(
     _Event event,
-    _Root root,
+    ChangeLogRoot root,
     String? owner,
   ) async {
     final scopeId = event.operationId;
@@ -204,7 +254,10 @@ class _SettlePass {
       if (scope != null) return _forOwner(scope, owner);
     }
 
-    final latest = _latestManual[root] ?? await _loadLatestManual(root);
+    final latestId = _latestManual[root];
+    final latest = latestId == null
+        ? await _loadLatestManual(root)
+        : _operations[latestId];
     if (latest != null) {
       final gap = event.changedAt - latest.endedAt;
       if (gap >= 0 && gap <= kChangeLogManualGroupWindow.inMilliseconds) {
@@ -247,7 +300,7 @@ class _SettlePass {
     return _operations[id] = _Operation.fromRow(row.data);
   }
 
-  Future<_Operation?> _loadLatestManual(_Root root) async {
+  Future<_Operation?> _loadLatestManual(ChangeLogRoot root) async {
     final row = await _db
         .customSelect(
           'SELECT * FROM change_log_operations WHERE source = ? '
@@ -284,10 +337,10 @@ class _SettlePass {
   /// With recursive triggers on, `INSERT OR REPLACE` arrives as a delete and
   /// an insert. When [event] is that insert, turns the pair into one update
   /// of the columns that really differ, or into nothing. The insert's values
-  /// come from the live row, since an insert event carries none. Returns
-  /// false when this is a real insert, or the row has since gone, in which
+  /// come from the live row, since an insert event carries none. It is not a
+  /// replace when this is a real insert, or the row has since gone, in which
   /// case the later delete cancels it.
-  Future<bool> _foldReplace(_Event event, _Operation operation) async {
+  Future<_Fold> _foldReplace(_Event event, _Operation operation) async {
     final delete = await _db
         .customSelect(
           'SELECT id FROM change_log_events WHERE operation_id = ? '
@@ -301,11 +354,11 @@ class _SettlePass {
           ],
         )
         .getSingleOrNull();
-    if (delete == null) return false;
+    if (delete == null) return _Fold.notAReplace;
     final deleteId = delete.read<int>('id');
 
     final spec = _specs[event.table];
-    if (spec == null) return false;
+    if (spec == null) return _Fold.notAReplace;
     final match = changeLogKeyMatch(spec, event.recordId);
     final live = await _db
         .customSelect(
@@ -313,7 +366,7 @@ class _SettlePass {
           variables: match.variables,
         )
         .getSingleOrNull();
-    if (live == null) return false;
+    if (live == null) return _Fold.notAReplace;
 
     final copy = await _db
         .customSelect(
@@ -341,7 +394,7 @@ class _SettlePass {
     await _deleteEvents([deleteId]);
     if (changes.isEmpty) {
       await _deleteEvents([event.id]);
-      return true;
+      return _Fold.nothingChanged;
     }
     for (final (column, before, after) in changes) {
       await _db.customStatement(
@@ -356,7 +409,7 @@ class _SettlePass {
       'settled = 1, root_table = ?, root_id = ? WHERE id = ?',
       [operation.id, root.table, root.id, event.id],
     );
-    return true;
+    return _Fold.changed;
   }
 
   /// A record created and deleted in one operation never happened as far as
@@ -412,7 +465,7 @@ class _SettlePass {
 
   /// Walks [changeLogParents] from the event's record until a table has no
   /// parent, or a row has none.
-  Future<_Root> _rootOf(_Event event) async {
+  Future<ChangeLogRoot> _rootOf(_Event event) async {
     var table = event.table;
     var id = event.recordId;
     while (true) {
@@ -426,12 +479,12 @@ class _SettlePass {
     return (table: table, id: id);
   }
 
-  Future<String?> _ownerOf(_Root root) async {
+  Future<String?> _ownerOf(ChangeLogRoot root) async {
     if (root.table == 'divers') return root.id;
     return await _columnOf(root.table, root.id, 'diver_id') as String?;
   }
 
-  Future<({String? label, int? ordinal})> _labelOf(_Root root) async {
+  Future<({String? label, int? ordinal})> _labelOf(ChangeLogRoot root) async {
     if (root.table == 'dives') {
       final site = await _columnOf('dives', root.id, 'site_id');
       return (
@@ -464,7 +517,7 @@ class _SettlePass {
     return false;
   }
 
-  Future<bool> _exists(_Root root) async {
+  Future<bool> _exists(ChangeLogRoot root) async {
     final spec = _specs[root.table];
     if (spec == null) return false;
     final match = changeLogKeyMatch(spec, root.id);
@@ -524,10 +577,10 @@ class _SettlePass {
         [
           operation.id,
           operation.diverId,
-          operation.rootTable,
-          operation.rootId,
-          operation.rootLabel,
-          operation.rootOrdinal,
+          operation.root.table,
+          operation.root.id,
+          operation.root.label,
+          operation.root.ordinal,
           operation.startedAt,
           operation.endedAt,
         ],
@@ -544,7 +597,7 @@ class _SettlePass {
         const Duration(days: 1).inMilliseconds;
     await _db.customStatement(
       'DELETE FROM change_log_operations WHERE summary_count IS NULL '
-      'AND (closed = 1 OR ended_at < ?) '
+      'AND event_count = 0 AND (closed = 1 OR ended_at < ?) '
       'AND NOT EXISTS (SELECT 1 FROM change_log_events e '
       'WHERE e.operation_id = change_log_operations.id)',
       [abandoned],

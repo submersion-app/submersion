@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,10 +60,13 @@ class ChangeLogMaintenance {
     final months = _preferences.retentionMonths;
     if (months == 0) return 0;
     final now = _now();
+    // A plain day would run past the end of a shorter month into the next.
+    final month = DateTime(now.year, now.month - months);
+    final lastDay = DateTime(month.year, month.month + 1, 0).day;
     final cutoff = DateTime(
-      now.year,
-      now.month - months,
-      now.day,
+      month.year,
+      month.month,
+      min(now.day, lastDay),
     ).millisecondsSinceEpoch;
 
     var removed = 0;

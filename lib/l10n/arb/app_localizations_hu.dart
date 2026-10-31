@@ -57236,6 +57236,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_clear_confirm => 'Törlés';
 
   @override
+  String get changeLog_clear_failed =>
+      'A változásnapló nem törölhető. Semmi sem lett eltávolítva.';
+
+  @override
   String get changeLog_day_today => 'Ma';
 
   @override

@@ -18,7 +18,11 @@ import 'package:submersion/features/change_log/domain/change_log_entities.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 
 /// Puts logged changes back (issue #3922). A revert is a new edit, as an undo
@@ -31,15 +35,23 @@ class ChangeLogRevertService {
     SyncRepository? sync,
     Map<String, int> rewrittenColumns = changeLogRewrittenColumns,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
+    MediaDeletionCoordinator? mediaDeletionCoordinator,
   }) : _repository = repository ?? ChangeLogRepository(),
        _sync = sync ?? SyncRepository(),
        _rewrittenColumns = rewrittenColumns,
-       _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites;
+       _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites,
+       _media =
+           mediaDeletionCoordinator ??
+           MediaDeletionCoordinator(
+             mediaRepository: MediaRepository(),
+             queue: () => MediaTransferQueueRepository(),
+           );
 
   final ChangeLogRepository _repository;
   final SyncRepository _sync;
   final Map<String, int> _rewrittenColumns;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
+  final MediaDeletionCoordinator _media;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -66,20 +78,8 @@ class ChangeLogRevertService {
       items: items,
       wholeOperation:
           operation?.eventCount == events.length &&
+          events.every((other) => other.action == ChangeLogAction.update) &&
           netFieldChanges(events).length == 1,
-    );
-  }
-
-  Future<ChangeLogRevertPlan> planEvent(int eventId) async {
-    final event = await _repository.getEvent(eventId);
-    if (event == null) {
-      throw ArgumentError.value(eventId, 'eventId', 'No such change log event');
-    }
-    final operation = await _repository.getOperation(event.operationId);
-    return ChangeLogRevertPlan(
-      operationId: event.operationId,
-      items: await _plan([event]),
-      wholeOperation: operation?.eventCount == 1,
     );
   }
 
@@ -108,7 +108,8 @@ class ChangeLogRevertService {
     final restores = await planner.planRestores(events);
     final restoring = {
       for (final item in restores)
-        if (!item.isBlocked) '${item.event.table}|${item.event.recordId}',
+        if (!item.isBlocked)
+          changeLogRecordKey(item.event.table, item.event.recordId),
     };
     return [
       ...restores,
@@ -144,7 +145,9 @@ class ChangeLogRevertService {
       if (only != null && column != only) continue;
       final logged = field.newValue;
       final target = field.oldValue;
-      final returning = restoring.contains('${event.table}|${event.recordId}');
+      final returning = restoring.contains(
+        changeLogRecordKey(event.table, event.recordId),
+      );
       final block = await _editBlock(
         event,
         column,
@@ -167,7 +170,7 @@ class ChangeLogRevertService {
       }
       final current = returning
           ? logged
-          : await _liveValue(event.table, event.recordId, column);
+          : await _repository.liveValue(event.table, event.recordId, column);
       if (_same(current, target)) continue;
       items.add(
         ChangeLogRevertItem(
@@ -207,21 +210,6 @@ class ChangeLogRevertService {
     return missing.isEmpty ? null : ChangeLogBlock.parentGone;
   }
 
-  Future<Object?> _liveValue(
-    String table,
-    String recordId,
-    String column,
-  ) async {
-    final match = changeLogKeyMatch(_repository.specOf(table)!, recordId);
-    final row = await _db
-        .customSelect(
-          'SELECT "$column" AS v FROM "$table" WHERE ${match.where}',
-          variables: match.variables,
-        )
-        .getSingle();
-    return row.data['v'];
-  }
-
   bool _same(Object? a, Object? b) =>
       const DeepCollectionEquality().equals(a, b);
 
@@ -238,8 +226,8 @@ class ChangeLogRevertService {
 
     // Skipping a record can leave what it uses in use, and a plan can be
     // older than the data, so removals are checked again here.
-    final planner = _plannerWith(await ChangeLogDependencyIndex.load(_db));
-    final removals = await planner.settleRemovals([
+    final dependencies = await ChangeLogDependencyIndex.load(_db);
+    final removals = await _plannerWith(dependencies).settleRemovals([
       for (final item in plan.items)
         if (item.removesRecord && applies(item)) item,
     ]);
@@ -262,6 +250,7 @@ class ChangeLogRevertService {
       _db,
       source: ChangeLogSource.revert,
       revertOfId: plan.operationId,
+      lease: kChangeLogLongLease,
       body: () async {
         await _db.transaction(() async {
           // Records can arrive in any order; a parent that cannot return was
@@ -278,8 +267,9 @@ class ChangeLogRevertService {
           await _removeRecords([
             for (final item in applying)
               if (item.removesRecord) item.event,
-          ]);
+          ], dependencies);
         });
+        await _repairRestoredMedia(applying);
         return ChangeLogScope.currentOperationId;
       },
     );
@@ -322,10 +312,33 @@ class ChangeLogRevertService {
     );
   }
 
+  /// What the delete queued may already have taken the media's blobs, so
+  /// restored rows cannot go on claiming they are uploaded (issue #2718).
+  Future<void> _repairRestoredMedia(List<ChangeLogRevertItem> applied) async {
+    final ids = [
+      for (final item in applied)
+        if (item.restoresRecord && item.event.table == 'media')
+          item.event.recordId,
+    ];
+    if (ids.isEmpty) return;
+    final rows = [
+      for (final chunk in seriesIdChunks(ids))
+        ...await (_db.select(
+          _db.media,
+        )..where((media) => media.id.isIn(chunk))).get(),
+    ];
+    await _media.repairRestoredMedia(rows);
+  }
+
   /// Newest first, so a child goes before its parent. Dives go through
   /// [DiveRepository.bulkDeleteDives], which keeps media and route cascades
-  /// right, and take their children with them.
-  Future<void> _removeRecords(List<ChangeLogEvent> events) async {
+  /// right, and take their children with them. Any other record's cascade
+  /// writes no tombstones, so the rows it takes are logged here, as every
+  /// repository's own delete does.
+  Future<void> _removeRecords(
+    List<ChangeLogEvent> events,
+    ChangeLogDependencyIndex dependencies,
+  ) async {
     final dives = [
       for (final event in events)
         if (event.table == 'dives') event.recordId,
@@ -336,6 +349,10 @@ class ChangeLogRevertService {
       if (event.root.table == 'dives' && dives.contains(event.root.id)) {
         continue;
       }
+      final cascaded = await dependencies.cascadedRows(
+        event.table,
+        event.recordId,
+      );
       final match = changeLogKeyMatch(
         _repository.specOf(event.table)!,
         event.recordId,
@@ -350,6 +367,12 @@ class ChangeLogRevertService {
         entityType: changeLogEntityType(event.table),
         recordId: event.recordId,
       );
+      for (final row in cascaded) {
+        await _sync.logDeletion(
+          entityType: changeLogEntityType(row.table),
+          recordId: row.recordId,
+        );
+      }
     }
   }
 

@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "清除更改日志？",
   "changeLog_clear_body": "这会从此设备移除当前潜水员的条目。之后将无法还原它们。",
   "changeLog_clear_confirm": "清除",
+  "changeLog_clear_failed": "无法清除更改日志。未删除任何内容。",
   "changeLog_day_today": "今天",
   "changeLog_day_yesterday": "昨天",
   "changeLog_storage_label": "更改日志"

@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "Törli a változásnaplót?",
   "changeLog_clear_body": "Ez eltávolítja az aktív búvár bejegyzéseit erről az eszközről. Utána már nem állíthatók vissza.",
   "changeLog_clear_confirm": "Törlés",
+  "changeLog_clear_failed": "A változásnapló nem törölhető. Semmi sem lett eltávolítva.",
   "changeLog_day_today": "Ma",
   "changeLog_day_yesterday": "Tegnap",
   "changeLog_storage_label": "Változásnapló"

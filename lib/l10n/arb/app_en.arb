@@ -33776,6 +33776,7 @@
   "changeLog_clear_title": "Clear the change log?",
   "changeLog_clear_body": "This removes the active diver's entries from this device. You won't be able to revert them afterwards.",
   "changeLog_clear_confirm": "Clear",
+  "changeLog_clear_failed": "Couldn't clear the change log. Nothing was removed.",
   "changeLog_day_today": "Today",
   "changeLog_day_yesterday": "Yesterday",
   "changeLog_storage_label": "Change log"

@@ -234,11 +234,20 @@ void main() {
 
   test("the duplicate's change log entries follow the keeper", () async {
     await seedRow('change_log_operations', dup, 'op-1');
+    // A summary, because a settle removes an entry with nothing in it.
+    await db.customStatement(
+      "UPDATE change_log_operations SET summary_count = 1 WHERE id = 'op-1'",
+    );
 
     await repo.mergeDivers(keeperId: keeper, duplicateId: dup);
 
     expect(await countByDiver('change_log_operations', dup), 0);
-    expect(await countByDiver('change_log_operations', keeper), 1);
+    final moved = await db
+        .customSelect(
+          "SELECT diver_id FROM change_log_operations WHERE id = 'op-1'",
+        )
+        .getSingle();
+    expect(moved.read<String>('diver_id'), keeper);
   });
 
   test('the duplicate diver row is deleted and the keeper remains', () async {

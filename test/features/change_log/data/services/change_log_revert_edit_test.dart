@@ -44,6 +44,12 @@ void main() {
     return (await logEvents(db)).last['id']! as int;
   }
 
+  /// The plan for the whole entry [eventId] is in.
+  Future<ChangeLogRevertPlan> planWhole(int eventId) async {
+    final event = await repository.getEvent(eventId);
+    return service.planOperation(event!.operationId);
+  }
+
   Future<String?> notes() async {
     final row = await db
         .customSelect("SELECT notes FROM dives WHERE id = 'dive'")
@@ -157,7 +163,7 @@ void main() {
     final event = await lastEventId();
     await SyncRepository().clearPendingRecords();
 
-    await service.execute(await service.planEvent(event));
+    await service.execute(await planWhole(event));
 
     final row = await db
         .customSelect("SELECT start_pressure, hlc FROM dive_tanks")
@@ -210,7 +216,7 @@ void main() {
     );
     final event = await lastEventId();
 
-    await service.execute(await service.planEvent(event));
+    await service.execute(await planWhole(event));
 
     final row = await db
         .customSelect('SELECT via_equipment_id FROM dive_equipment')
@@ -229,7 +235,7 @@ void main() {
     await db.customStatement("UPDATE settings SET value = 'true'");
     final event = await lastEventId();
 
-    await service.execute(await service.planEvent(event));
+    await service.execute(await planWhole(event));
 
     final row = await db.customSelect('SELECT value FROM settings').getSingle();
     expect(row.data['value'], 'false');
@@ -299,7 +305,7 @@ void main() {
       [event],
     );
 
-    final plan = await service.planEvent(event);
+    final plan = await planWhole(event);
 
     await expectLater(service.execute(plan), throwsA(anything));
     expect(await notes(), 'Current');

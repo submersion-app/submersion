@@ -54023,6 +54023,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_clear_confirm => '清除';
 
   @override
+  String get changeLog_clear_failed => '无法清除更改日志。未删除任何内容。';
+
+  @override
   String get changeLog_day_today => '今天';
 
   @override

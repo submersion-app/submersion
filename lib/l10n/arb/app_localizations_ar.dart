@@ -58345,6 +58345,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_clear_confirm => 'مسح';
 
   @override
+  String get changeLog_clear_failed =>
+      'تعذر مسح سجل التغييرات. لم تتم إزالة أي شيء.';
+
+  @override
   String get changeLog_day_today => 'اليوم';
 
   @override

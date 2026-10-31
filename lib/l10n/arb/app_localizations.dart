@@ -90800,6 +90800,12 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get changeLog_clear_confirm;
 
+  /// No description provided for @changeLog_clear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t clear the change log. Nothing was removed.'**
+  String get changeLog_clear_failed;
+
   /// No description provided for @changeLog_day_today.
   ///
   /// In en, this message translates to:

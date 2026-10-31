@@ -74,6 +74,20 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  test('a cutoff at a month end stops at the shorter month', () async {
+    now = DateTime(2026, 5, 31, 12);
+    await prefs.setInt(ChangeLogPreferences.retentionKey, 3);
+    final inside = await editAged('Inside', 0);
+    await db.customStatement(
+      'UPDATE change_log_operations SET ended_at = ? WHERE id = ?',
+      [DateTime(2026, 3, 1).millisecondsSinceEpoch, inside],
+    );
+
+    await maintenance().prune();
+
+    expect(await operations(), contains(inside));
+  });
+
   test('twelve months is the default', () {
     expect(ChangeLogPreferences(prefs).retentionMonths, 12);
   });

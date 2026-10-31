@@ -57446,6 +57446,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get changeLog_clear_confirm => 'Leeren';
 
   @override
+  String get changeLog_clear_failed =>
+      'Das Änderungsprotokoll konnte nicht gelöscht werden. Es wurde nichts entfernt.';
+
+  @override
   String get changeLog_day_today => 'Heute';
 
   @override

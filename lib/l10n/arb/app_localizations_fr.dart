@@ -57696,6 +57696,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLog_clear_confirm => 'Effacer';
 
   @override
+  String get changeLog_clear_failed =>
+      'Impossible d\'effacer le journal des modifications. Rien n\'a été supprimé.';
+
+  @override
   String get changeLog_day_today => 'Aujourd\'hui';
 
   @override

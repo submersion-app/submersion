@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "Limpar o registo de alterações?",
   "changeLog_clear_body": "Isto remove as entradas do mergulhador ativo deste dispositivo. Depois não poderá revertê-las.",
   "changeLog_clear_confirm": "Limpar",
+  "changeLog_clear_failed": "Não foi possível limpar o registo de alterações. Nada foi removido.",
   "changeLog_day_today": "Hoje",
   "changeLog_day_yesterday": "Ontem",
   "changeLog_storage_label": "Registo de alterações"

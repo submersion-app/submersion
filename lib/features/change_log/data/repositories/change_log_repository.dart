@@ -182,10 +182,11 @@ class ChangeLogRepository {
         .customSelect(
           'SELECT * FROM change_log_events WHERE operation_id = ? '
           '${hidden.isEmpty ? '' : 'AND table_name NOT IN ($marks) '}'
-          'ORDER BY id ${limit == null ? '' : 'LIMIT $limit'}',
+          'ORDER BY id ${limit == null ? '' : 'LIMIT ?'}',
           variables: [
             Variable<String>(operationId),
             ...hidden.map(Variable<String>.new),
+            if (limit != null) Variable<int>(limit),
           ],
         )
         .get();
@@ -194,6 +195,7 @@ class ChangeLogRepository {
     final fields = await _fieldsByEvent(
       operationId,
       lastEventId: rows.last.read<int>('id'),
+      hidden: hidden,
     );
     return [
       for (final row in rows)
@@ -209,16 +211,20 @@ class ChangeLogRepository {
   Future<Map<int, List<ChangeLogFieldChange>>> _fieldsByEvent(
     String operationId, {
     required int lastEventId,
+    required List<String> hidden,
   }) async {
+    final marks = List.filled(hidden.length, '?').join(', ');
     final rows = await _db
         .customSelect(
           'SELECT f.*, e.table_name FROM change_log_fields f '
           'JOIN change_log_events e ON e.id = f.event_id '
           'WHERE e.operation_id = ? AND e.id <= ? '
+          '${hidden.isEmpty ? '' : 'AND e.table_name NOT IN ($marks) '}'
           'ORDER BY f.event_id, f.column_name',
           variables: [
             Variable<String>(operationId),
             Variable<int>(lastEventId),
+            ...hidden.map(Variable<String>.new),
           ],
         )
         .get();
@@ -371,6 +377,24 @@ class ChangeLogRepository {
         )
         .get();
     return {for (final row in rows) row.read<String>('name')};
+  }
+
+  /// What [column] of the record holds now, or null with no such record.
+  Future<Object?> liveValue(
+    String table,
+    String recordId,
+    String column,
+  ) async {
+    final spec = specOf(table);
+    if (spec == null) return null;
+    final match = changeLogKeyMatch(spec, recordId);
+    final row = await _db
+        .customSelect(
+          'SELECT "$column" AS v FROM "$table" WHERE ${match.where}',
+          variables: match.variables,
+        )
+        .getSingleOrNull();
+    return row?.data['v'];
   }
 
   /// Whether the record still exists, for offering a link to it.

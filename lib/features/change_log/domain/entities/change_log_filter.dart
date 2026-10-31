@@ -48,6 +48,12 @@ class ChangeLogPageCursor extends Equatable {
   final int lastEventId;
   final String id;
 
+  ChangeLogPageCursor copyWith({int? lastEventId, String? id}) =>
+      ChangeLogPageCursor(
+        lastEventId: lastEventId ?? this.lastEventId,
+        id: id ?? this.id,
+      );
+
   @override
   List<Object?> get props => [lastEventId, id];
 }

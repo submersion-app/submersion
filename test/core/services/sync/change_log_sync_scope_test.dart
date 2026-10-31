@@ -64,6 +64,14 @@ void main() {
     );
   }
 
+  test('a changeset holds the long lease through its transaction', () async {
+    await probeLease(db);
+
+    await service().debugApplyPayload(await peerPayload(notes: 'Rough'));
+
+    expect(await probedLease(db), greaterThan(kChangeLogLease));
+  });
+
   Future<String> baseFile(SyncPayload payload) async {
     final dir = await Directory.systemTemp.createTemp('change_log_sync');
     addTearDown(() => dir.delete(recursive: true));

@@ -17202,6 +17202,7 @@
   "changeLog_clear_title": "Änderungsprotokoll leeren?",
   "changeLog_clear_body": "Dies entfernt die Einträge des aktiven Tauchers von diesem Gerät. Sie können danach nicht mehr zurückgesetzt werden.",
   "changeLog_clear_confirm": "Leeren",
+  "changeLog_clear_failed": "Das Änderungsprotokoll konnte nicht gelöscht werden. Es wurde nichts entfernt.",
   "changeLog_day_today": "Heute",
   "changeLog_day_yesterday": "Gestern",
   "changeLog_storage_label": "Änderungsprotokoll"

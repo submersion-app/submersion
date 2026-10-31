@@ -983,9 +983,9 @@ void main() {
 
   _tickGroup('change log', [
     (
-      name: 'changeLogFeedProvider',
+      name: 'changeLogFeedNotifierProvider',
       read: (c) =>
-          c.read(changeLogFeedProvider(const ChangeLogFilter()).future),
+          c.read(changeLogFeedNotifierProvider(const ChangeLogFilter()).future),
     ),
     (
       name: 'changeLogEntryDetailProvider',

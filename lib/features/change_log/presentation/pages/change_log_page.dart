@@ -73,7 +73,7 @@ class _ChangeLogPageState extends ConsumerState<ChangeLogPage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final filter = _filter;
-    final feed = ref.watch(changeLogFeedProvider(filter));
+    final feed = ref.watch(changeLogFeedNotifierProvider(filter));
     return Scaffold(
       appBar: AppBar(
         title: Text(_title(l, feed.value)),
@@ -238,7 +238,7 @@ class _ChangeLogList extends ConsumerWidget {
     return NotificationListener<ScrollNotification>(
       onNotification: (scroll) {
         if (scroll.metrics.extentAfter < 400) {
-          ref.read(changeLogFeedProvider(filter).notifier).loadMore();
+          ref.read(changeLogFeedNotifierProvider(filter).notifier).loadMore();
         }
         return false;
       },

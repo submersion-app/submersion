@@ -1439,6 +1439,7 @@ class SyncService {
       DatabaseService.instance.databaseOrNull,
       source: ChangeLogSource.sync,
       deviceId: remotePayload.deviceId,
+      lease: kChangeLogLongLease,
       body: () => _serializer.applyInDeferredFkTransaction(() async {
         final result = await _applyRemotePayloadInner(
           remotePayload,

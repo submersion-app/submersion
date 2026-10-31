@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "Effacer le journal des modifications ?",
   "changeLog_clear_body": "Cela supprime les entrées du plongeur actif de cet appareil. Vous ne pourrez plus les rétablir ensuite.",
   "changeLog_clear_confirm": "Effacer",
+  "changeLog_clear_failed": "Impossible d'effacer le journal des modifications. Rien n'a été supprimé.",
   "changeLog_day_today": "Aujourd'hui",
   "changeLog_day_yesterday": "Hier",
   "changeLog_storage_label": "Journal des modifications"

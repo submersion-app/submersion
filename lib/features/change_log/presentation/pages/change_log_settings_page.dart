@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_preferences.dart';
 import 'package:submersion/features/change_log/presentation/providers/change_log_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+final _log = LoggerService.forClass(ChangeLogSettingsPage);
+
 /// Asks, then removes the active diver's entries from this device.
 Future<void> confirmClearChangeLog(BuildContext context, WidgetRef ref) async {
   final l = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -27,10 +31,19 @@ Future<void> confirmClearChangeLog(BuildContext context, WidgetRef ref) async {
       ],
     ),
   );
-  if (confirmed != true) return;
-  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId == null) return;
-  await ref.read(changeLogRepositoryProvider).clearForDiver(diverId);
+  if (confirmed != true || !context.mounted) return;
+  try {
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return;
+    await ref.read(changeLogRepositoryProvider).clearForDiver(diverId);
+  } catch (error, stackTrace) {
+    _log.error(
+      'Could not clear the change log',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(l.changeLog_clear_failed)));
+  }
 }
 
 /// How long this device keeps its change log, and Clear log.

@@ -534,6 +534,49 @@ void main() {
     expect(await seen.timeout(const Duration(seconds: 5)), hasLength(1));
   });
 
+  test('a record that cancels out leaves the entry to the next', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.bulkEdit,
+      body: () async {
+        await _insertSite(db, 'temp', 'Temp');
+        await db.customStatement("DELETE FROM dive_sites WHERE id = 'temp'");
+        await _editNotes(db, 'Rough');
+      },
+    );
+
+    await settler.settle();
+
+    final operation = (await _operations(db)).single;
+    expect(operation.rootTable, 'dives');
+    expect(operation.rootId, 'dive');
+  });
+
+  test('a replace that changed nothing leaves the entry to the next', () async {
+    await _insertSite(db, 'site', 'Reef');
+    await settler.settle();
+    await clearLog(db);
+    await db.customStatement('DELETE FROM change_log_operations');
+
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.bulkEdit,
+      body: () async {
+        await db.customStatement(
+          'INSERT OR REPLACE INTO dive_sites (id, name, created_at, '
+          "updated_at, diver_id) VALUES ('site', 'Reef', 0, 0, 'diver')",
+        );
+        await _editNotes(db, 'Rough');
+      },
+    );
+
+    await settler.settle();
+
+    final operation = (await _operations(db)).single;
+    expect(operation.rootTable, 'dives');
+    expect(operation.rootId, 'dive');
+  });
+
   test('a null operation pointer to a pruned row files as manual', () async {
     await db.customStatement('''
       INSERT INTO change_log_events

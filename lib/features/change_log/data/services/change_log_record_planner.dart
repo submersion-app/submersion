@@ -1,17 +1,17 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 import 'package:submersion/features/change_log/domain/entities/change_log_revert_plan.dart';
 
-String _recordKey(String table, String id) => '$table|$id';
-
-String _keyOf(ChangeLogEvent event) => _recordKey(event.table, event.recordId);
+String _keyOf(ChangeLogEvent event) =>
+    changeLogRecordKey(event.table, event.recordId);
 
 String _rootKeyOf(ChangeLogEvent event) =>
-    _recordKey(event.root.table, event.root.id);
+    changeLogRecordKey(event.root.table, event.root.id);
 
 /// Works out which deleted records can return and which created records can
 /// go, before anything is written.
@@ -75,6 +75,9 @@ class ChangeLogRecordPlanner {
   }
 
   Future<ChangeLogBlock?> _restoreBlock(ChangeLogEvent event) async {
+    if (_repository.specOf(event.table) == null) {
+      return ChangeLogBlock.columnGone;
+    }
     if (await _repository.recordExists(event.table, event.recordId)) {
       return ChangeLogBlock.alreadyRestored;
     }
@@ -126,23 +129,22 @@ class ChangeLogRecordPlanner {
   ) async {
     final removing = {for (final item in items) _keyOf(item.event)};
     final kept = <String>{};
+    final referencesOf = <String, List<ChangeLogReference>>{};
     var changed = true;
     while (changed) {
       changed = false;
       for (final item in items) {
         final key = _keyOf(item.event);
         if (!removing.contains(key)) continue;
-        final references = await _dependencies.referencesTo(
-          item.event.table,
-          item.event.recordId,
-        );
+        final references = referencesOf[key] ??= await _dependencies
+            .referencesTo(item.event.table, item.event.recordId);
         final inUse = references.any(
           (r) =>
               !r.isOwnedChild &&
-              !removing.contains(_recordKey(r.table, r.recordId)),
+              !removing.contains(changeLogRecordKey(r.table, r.recordId)),
         );
         // A record that stays keeps what belongs to it.
-        if (!inUse && !kept.contains(_rootKeyOf(item.event))) continue;
+        if (!inUse && !await _ownerKept(item.event, kept)) continue;
         removing.remove(key);
         kept.add(key);
         changed = true;
@@ -151,13 +153,26 @@ class ChangeLogRecordPlanner {
     return [
       for (final item in items)
         kept.contains(_keyOf(item.event))
-            ? ChangeLogRevertItem(
-                event: item.event,
-                block: ChangeLogBlock.inUse,
-                changedSince: item.changedSince,
-              )
+            ? item.copyWith(block: ChangeLogBlock.inUse)
             : item,
     ];
+  }
+
+  /// Whether the record [event]'s row belongs to is staying: its root, or the
+  /// row directly above it, which the repeat in [settleRemovals] carries down
+  /// any further levels.
+  Future<bool> _ownerKept(ChangeLogEvent event, Set<String> kept) async {
+    if (kept.isEmpty) return false;
+    if (kept.contains(_rootKeyOf(event))) return true;
+    final parent = changeLogParents[event.table];
+    if (parent == null) return false;
+    final owner = await _repository.liveValue(
+      event.table,
+      event.recordId,
+      parent.column,
+    );
+    return owner is String &&
+        kept.contains(changeLogRecordKey(parent.rootTable, owner));
   }
 
   /// Whether anything happened to the record, or to a row that belongs to

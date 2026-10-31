@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/change_log/domain/entities/change_log_event.dart';
 
 /// A row that points at another through a foreign key.
 class ChangeLogReference {
@@ -11,6 +12,7 @@ class ChangeLogReference {
     required this.column,
     required this.recordId,
     this.cascades = false,
+    this.deletes = false,
   });
 
   final String table;
@@ -19,6 +21,10 @@ class ChangeLogReference {
 
   /// Whether removing the record it points at also clears this row.
   final bool cascades;
+
+  /// Whether removing the record it points at deletes this row, rather than
+  /// only clearing the link.
+  final bool deletes;
 
   /// Whether this row belongs to the record it points at, as a dive's tank
   /// does: it goes when that record goes, so it is an edit to the record
@@ -75,7 +81,9 @@ class _ForeignKey {
   /// No constraint backs it, so nothing fails if the parent is missing.
   final bool soft;
 
-  bool get cascades => onDelete == 'CASCADE' || onDelete == 'SET NULL';
+  bool get deletes => onDelete == 'CASCADE';
+
+  bool get cascades => deletes || onDelete == 'SET NULL';
 }
 
 /// The foreign keys of this file, read from `PRAGMA foreign_key_list`, so a
@@ -149,11 +157,34 @@ class ChangeLogDependencyIndex {
             column: key.column,
             recordId: row.read<String>('record_id'),
             cascades: key.cascades,
+            deletes: key.deletes,
           ),
         );
       }
     }
     return references;
+  }
+
+  /// The tracked rows that a delete of the record takes with it, at any depth.
+  /// SQLite writes no deletion log for these, so whoever deletes the record
+  /// has to tombstone them.
+  Future<List<ChangeLogReference>> cascadedRows(
+    String table,
+    String recordId,
+  ) async {
+    final found = <String, ChangeLogReference>{};
+    Future<void> walk(String table, String recordId) async {
+      for (final row in await referencesTo(table, recordId)) {
+        if (!row.deletes) continue;
+        final key = changeLogRecordKey(row.table, row.recordId);
+        if (found.containsKey(key)) continue;
+        found[key] = row;
+        await walk(row.table, row.recordId);
+      }
+    }
+
+    await walk(table, recordId);
+    return found.values.toList();
   }
 
   /// The parents [row] needs that neither exist nor are in [restoring], each
@@ -168,7 +199,7 @@ class ChangeLogDependencyIndex {
       if (key.table != table || key.soft) continue;
       final value = row[key.column];
       if (value == null) continue;
-      final parent = '${key.parent}|$value';
+      final parent = changeLogRecordKey(key.parent, value);
       if (restoring.contains(parent)) continue;
       final found = await _db
           .customSelect(

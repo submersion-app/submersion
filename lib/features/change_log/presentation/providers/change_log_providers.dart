@@ -152,25 +152,29 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
       return;
     }
     state = AsyncData(current.copyWith(isLoadingMore: true));
+    // A rebuild replaces the list, and already shows as much as this page
+    // would add, so a page built on the old list is dropped.
+    bool isCurrent() =>
+        ref.mounted && identical(state.value?.operations, current.operations);
     try {
       final next = await _nextPage(
         ref.read(changeLogRepositoryProvider),
         diverId,
         current,
       );
-      if (ref.mounted && diverId == _diverId) state = AsyncData(next);
+      if (isCurrent()) state = AsyncData(next);
     } catch (error, stackTrace) {
       _log.warning(
         'Could not load more of the change log',
         error: error,
         stackTrace: stackTrace,
       );
-      if (ref.mounted && diverId == _diverId) state = AsyncData(current);
+      if (isCurrent()) state = AsyncData(current);
     }
   }
 }
 
-final changeLogFeedProvider = AsyncNotifierProvider.autoDispose
+final changeLogFeedNotifierProvider = AsyncNotifierProvider.autoDispose
     .family<ChangeLogFeedNotifier, ChangeLogFeedState, ChangeLogFilter>(
       ChangeLogFeedNotifier.new,
     );

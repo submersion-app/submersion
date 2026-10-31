@@ -17077,6 +17077,7 @@
   "changeLog_clear_title": "مسح سجل التغييرات؟",
   "changeLog_clear_body": "يؤدي هذا إلى إزالة إدخالات الغواص النشط من هذا الجهاز. لن تتمكن من إرجاعها بعد ذلك.",
   "changeLog_clear_confirm": "مسح",
+  "changeLog_clear_failed": "تعذر مسح سجل التغييرات. لم تتم إزالة أي شيء.",
   "changeLog_day_today": "اليوم",
   "changeLog_day_yesterday": "أمس",
   "changeLog_storage_label": "سجل التغييرات"

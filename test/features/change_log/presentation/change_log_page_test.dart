@@ -280,7 +280,7 @@ void main() {
       }
     });
     final container = await pump(tester);
-    final provider = changeLogFeedProvider(const ChangeLogFilter());
+    final provider = changeLogFeedNotifierProvider(const ChangeLogFilter());
     await tester.runAsync(() => container.read(provider.notifier).loadMore());
     await settle(tester);
     expect(container.read(provider).value!.operations.length, greaterThan(50));

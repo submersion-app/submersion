@@ -7,6 +7,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -143,11 +144,39 @@ class DiverMergeRepository {
   Future<DiverMergeSnapshot> mergeDivers({
     required String keeperId,
     required String duplicateId,
-  }) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.merge,
-    body: () => _mergeDiversInner(keeperId: keeperId, duplicateId: duplicateId),
-  );
+  }) async {
+    final snapshot = await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.merge,
+      body: () =>
+          _mergeDiversInner(keeperId: keeperId, duplicateId: duplicateId),
+    );
+    await _moveChangeLogToKeeper(keeperId, duplicateId);
+    return snapshot;
+  }
+
+  /// Hands the duplicate's entries to the keeper. Only once the merge has
+  /// settled, or the merge's own delete of the diver would file under the
+  /// diver it deleted, where no feed shows it. The merge is done by now, so a
+  /// failure here must not report it as failed.
+  Future<void> _moveChangeLogToKeeper(
+    String keeperId,
+    String duplicateId,
+  ) async {
+    try {
+      await ChangeLogRepository().settleAll();
+      await _db.customStatement(
+        'UPDATE change_log_operations SET diver_id = ? WHERE diver_id = ?',
+        [keeperId, duplicateId],
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not move the change log to diver $keeperId',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 
   Future<DiverMergeSnapshot> _mergeDiversInner({
     required String keeperId,
@@ -213,11 +242,6 @@ class DiverMergeRepository {
           ]);
         }
       }
-
-      await _db.customStatement(
-        'UPDATE change_log_operations SET diver_id = ? WHERE diver_id = ?',
-        [keeperId, duplicateId],
-      );
 
       for (final table in tables) {
         if (_shareSpecs.any((spec) => spec.table == table)) {
@@ -608,8 +632,8 @@ class DiverMergeRepository {
   }
 
   /// All tables (except `divers`) that have a `diver_id` column. The change
-  /// log is not library data: its entries follow the keeper in one statement,
-  /// unsynced, and an undo leaves them there.
+  /// log is not library data: its entries follow the keeper in one statement
+  /// once the merge has settled, unsynced, and an undo leaves them there.
   Future<List<String>> _tablesWithDiverId() async {
     final rows = await _db
         .customSelect(

@@ -57210,6 +57210,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_clear_confirm => 'Wissen';
 
   @override
+  String get changeLog_clear_failed =>
+      'Kan het wijzigingslogboek niet wissen. Er is niets verwijderd.';
+
+  @override
   String get changeLog_day_today => 'Vandaag';
 
   @override
