@@ -3160,6 +3160,7 @@
   "diveLog_numbering_title": "Duiknummering",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{duik} other{duiken}} zonder nummer",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "Een eerdere duik heeft geen zuurstofgegevens, dus deze waarde kan hoger zijn.",
   "diveLog_o2tox_cnsOxygenClock": "CNS-zuurstofklok",
   "diveLog_o2tox_deltaDive": "+{value}% deze duik",
   "diveLog_o2tox_details": "Details",

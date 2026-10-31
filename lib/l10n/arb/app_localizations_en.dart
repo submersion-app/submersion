@@ -9918,6 +9918,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'An earlier dive has no oxygen data, so this may be higher.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS Oxygen Clock';
 
   @override

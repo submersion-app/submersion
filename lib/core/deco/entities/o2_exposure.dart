@@ -15,6 +15,11 @@ class O2Exposure extends Equatable {
   /// CNS% at end of dive
   final double cnsEnd;
 
+  /// Whether [cnsStart], and so [cnsEnd], is a minimum rather than the whole
+  /// load: a dive inside the recovery window has no known oxygen exposure (no
+  /// profile, or a gauge dive), so the carried history leaves its dose out.
+  final bool cnsIsMinimum;
+
   /// OTU accumulated during this dive
   final double otu;
 
@@ -45,6 +50,7 @@ class O2Exposure extends Equatable {
   const O2Exposure({
     this.cnsStart = 0.0,
     this.cnsEnd = 0.0,
+    this.cnsIsMinimum = false,
     this.otu = 0.0,
     this.otuStart = 0.0,
     this.maxPpO2 = 0.0,
@@ -108,6 +114,7 @@ class O2Exposure extends Equatable {
   O2Exposure copyWith({
     double? cnsStart,
     double? cnsEnd,
+    bool? cnsIsMinimum,
     double? otu,
     double? otuStart,
     double? maxPpO2,
@@ -120,6 +127,7 @@ class O2Exposure extends Equatable {
     return O2Exposure(
       cnsStart: cnsStart ?? this.cnsStart,
       cnsEnd: cnsEnd ?? this.cnsEnd,
+      cnsIsMinimum: cnsIsMinimum ?? this.cnsIsMinimum,
       otu: otu ?? this.otu,
       otuStart: otuStart ?? this.otuStart,
       maxPpO2: maxPpO2 ?? this.maxPpO2,
@@ -135,6 +143,7 @@ class O2Exposure extends Equatable {
   List<Object?> get props => [
     cnsStart,
     cnsEnd,
+    cnsIsMinimum,
     otu,
     otuStart,
     maxPpO2,

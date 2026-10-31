@@ -273,6 +273,15 @@ class O2ToxicityCard extends StatelessWidget {
               ),
             ],
           ),
+          if (exposure.cnsIsMinimum) ...[
+            const SizedBox(height: 2),
+            Text(
+              context.l10n.diveLog_o2tox_cnsMinimumNote,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -679,6 +688,16 @@ class CompactO2ToxicityPanel extends StatelessWidget {
               ),
             ],
           ),
+          if (exposure.cnsIsMinimum) ...[
+            const SizedBox(height: 2),
+            Text(
+              context.l10n.diveLog_o2tox_cnsMinimumNote,
+              style: textTheme.labelSmall?.copyWith(
+                fontSize: 11,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ],
       ),
     );

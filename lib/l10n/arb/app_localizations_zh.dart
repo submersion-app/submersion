@@ -9562,6 +9562,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote => '之前的一次潜水没有氧气数据，因此该数值可能更高。';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => '中枢神经系统氧时钟';
 
   @override

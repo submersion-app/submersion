@@ -3059,6 +3059,7 @@
   "diveLog_numbering_title": "Numerazione immersioni",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{immersione} other{immersioni}} senza numero",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "Un'immersione precedente non ha dati sull'ossigeno, quindi questo valore potrebbe essere più alto.",
   "diveLog_o2tox_cnsOxygenClock": "Orologio ossigeno CNS",
   "diveLog_o2tox_deltaDive": "+{value}% questa immersione",
   "diveLog_o2tox_details": "Dettagli",

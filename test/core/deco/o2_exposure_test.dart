@@ -34,6 +34,24 @@ void main() {
     });
   });
 
+  group('O2Exposure CNS minimum mark', () {
+    test('a CNS history is complete by default', () {
+      expect(const O2Exposure().cnsIsMinimum, isFalse);
+    });
+
+    test('copyWith should preserve and replace cnsIsMinimum', () {
+      const marked = O2Exposure(cnsStart: 68.0, cnsIsMinimum: true);
+      expect(marked.copyWith(cnsEnd: 72.0).cnsIsMinimum, isTrue);
+      expect(marked.copyWith(cnsIsMinimum: false).cnsIsMinimum, isFalse);
+    });
+
+    test('cnsIsMinimum should be included in props for equality', () {
+      const complete = O2Exposure(cnsStart: 68.0);
+      const marked = O2Exposure(cnsStart: 68.0, cnsIsMinimum: true);
+      expect(complete, isNot(equals(marked)));
+    });
+  });
+
   group('O2Exposure ppO2 thresholds', () {
     test('defaults keep the 1.4 / 1.6 bar limits', () {
       const e = O2Exposure(maxPpO2: 1.5);

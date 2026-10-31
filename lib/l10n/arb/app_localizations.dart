@@ -15931,6 +15931,12 @@ abstract class AppLocalizations {
   /// **'CNS {value}'**
   String diveLog_o2tox_cnsBadgeLabel(Object value);
 
+  /// No description provided for @diveLog_o2tox_cnsMinimumNote.
+  ///
+  /// In en, this message translates to:
+  /// **'An earlier dive has no oxygen data, so this may be higher.'**
+  String get diveLog_o2tox_cnsMinimumNote;
+
   /// No description provided for @diveLog_o2tox_cnsOxygenClock.
   ///
   /// In en, this message translates to:

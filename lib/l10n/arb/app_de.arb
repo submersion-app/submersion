@@ -3186,6 +3186,7 @@
   "diveLog_numbering_title": "Tauchgangnummerierung",
   "diveLog_numbering_unnumberedDives": "{count} {count, plural, =1{Tauchgang} other{Tauchgänge}} ohne Nummer",
   "diveLog_o2tox_cnsBadgeLabel": "CNS {value}",
+  "diveLog_o2tox_cnsMinimumNote": "Für einen früheren Tauchgang liegen keine Sauerstoffdaten vor, der Wert kann daher höher sein.",
   "diveLog_o2tox_cnsOxygenClock": "CNS-Sauerstoffuhr",
   "diveLog_o2tox_deltaDive": "+{value}% bei diesem Tauchgang",
   "diveLog_o2tox_details": "Details",

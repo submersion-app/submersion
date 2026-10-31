@@ -10224,6 +10224,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'لا توجد بيانات أكسجين لغوصة سابقة، لذا قد تكون هذه القيمة أعلى.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'ساعة أكسجين CNS';
 
   @override

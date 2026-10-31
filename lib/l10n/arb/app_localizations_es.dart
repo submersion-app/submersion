@@ -10077,6 +10077,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Una inmersión anterior no tiene datos de oxígeno, por lo que este valor puede ser mayor.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'Reloj de oxígeno CNS';
 
   @override

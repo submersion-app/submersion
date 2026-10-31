@@ -10052,6 +10052,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_o2tox_cnsMinimumNote =>
+      'Egy korábbi merüléshez nincs oxigénadat, ezért ez az érték magasabb is lehet.';
+
+  @override
   String get diveLog_o2tox_cnsOxygenClock => 'CNS oxigén óra';
 
   @override

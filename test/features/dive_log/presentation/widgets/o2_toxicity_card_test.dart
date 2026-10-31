@@ -22,6 +22,38 @@ void main() {
         ),
       );
 
+  group('O2ToxicityCard CNS minimum note', () {
+    const note = 'An earlier dive has no oxygen data, so this may be higher.';
+
+    testWidgets('shows the note when the starting CNS is a minimum', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(
+          const O2Exposure(cnsStart: 68, cnsEnd: 72, cnsIsMinimum: true),
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(note), findsOneWidget);
+    });
+
+    testWidgets('omits the note when the CNS history is complete', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(
+          const O2Exposure(cnsStart: 68, cnsEnd: 72),
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(note), findsNothing);
+    });
+  });
+
   group('O2ToxicityCard "time above ppO2 limit" detail rows', () {
     testWidgets('shows both rows when the dive spent time above each ceiling', (
       tester,
