@@ -12568,7 +12568,7 @@
   "settings_mediaStorage_quality_noTranscoderHint": "Questo dispositivo non può comprimere i video. Da esso vengono caricati gli originali.",
   "reef_section_title": "Ecosistema",
   "reef_section_sourcesTooltip": "Fonti dei dati",
-  "reef_section_loadError": "Impossibile caricare i dati dell'ecosistema al momento",
+  "reef_section_checking": "Verifica in corso…",
   "reef_habitat_title": "Habitat della barriera",
   "reef_habitat_onReef": "Su una barriera corallina",
   "reef_habitat_onReefWithThreat": "Su una barriera corallina, livello di minaccia {threat}",

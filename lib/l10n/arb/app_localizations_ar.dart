@@ -41923,7 +41923,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'مصادر البيانات';
 
   @override
-  String get reef_section_loadError => 'تعذّر تحميل بيانات النظام البيئي الآن';
+  String get reef_section_checking => 'جارٍ التحقق…';
 
   @override
   String get reef_habitat_title => 'موئل الشعاب';

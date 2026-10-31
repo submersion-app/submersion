@@ -41178,8 +41178,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Adatforrások';
 
   @override
-  String get reef_section_loadError =>
-      'Az ökoszisztéma-adatok jelenleg nem tölthetők be';
+  String get reef_section_checking => 'Ellenőrzés…';
 
   @override
   String get reef_habitat_title => 'Zátony élőhely';
