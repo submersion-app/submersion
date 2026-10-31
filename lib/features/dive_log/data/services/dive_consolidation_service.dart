@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/courses/data/dive_course_links.dart';
@@ -65,6 +66,20 @@ class DiveConsolidationService {
   /// time. With a mode, a secondary that does not is placed by that mode
   /// (#552); see [DiveConsolidationBuilder.build].
   Future<DiveConsolidationOutcome> apply({
+    required String targetDiveId,
+    required List<String> secondaryDiveIds,
+    ConsolidationAlignment? alignment,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _applyInner(
+      targetDiveId: targetDiveId,
+      secondaryDiveIds: secondaryDiveIds,
+      alignment: alignment,
+    ),
+  );
+
+  Future<DiveConsolidationOutcome> _applyInner({
     required String targetDiveId,
     required List<String> secondaryDiveIds,
     ConsolidationAlignment? alignment,
@@ -863,7 +878,13 @@ class DiveConsolidationService {
   /// deleted -- it was modified in place, not created, so its original row
   /// is restored by the verbatim insertOrReplace re-inserts below rather
   /// than by re-creating it.
-  Future<void> undo(DiveMergeSnapshot snapshot) async {
+  Future<void> undo(DiveMergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoInner(snapshot),
+  );
+
+  Future<void> _undoInner(DiveMergeSnapshot snapshot) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     await _db.transaction(() async {

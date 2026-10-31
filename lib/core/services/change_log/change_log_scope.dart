@@ -24,25 +24,51 @@ enum ChangeLogSource {
 /// later saves.
 const Duration kChangeLogLease = Duration(minutes: 5);
 
+/// The lease for one transaction that can outlast [kChangeLogLease], such as
+/// applying a whole library. A renewal cannot run until the transaction
+/// ends, so a shorter lease would lapse part way through it.
+const Duration kChangeLogLongLease = Duration(hours: 1);
+
 const Duration _renewEvery = Duration(minutes: 1);
 
 final _log = LoggerService.forClass(ChangeLogScope);
 
+/// Labels stored on operations the app names itself, which the log page
+/// translates when it shows them. Any other label is shown as written, such
+/// as a dive computer's name.
+abstract final class ChangeLogLabels {
+  static const bulkEdit = 'bulk_edit';
+  static const bulkDelete = 'bulk_delete';
+  static const merge = 'merge';
+  static const undoMerge = 'undo_merge';
+  static const undoRule = 'undo_rule';
+  static const qualityRepair = 'quality_repair';
+  static const libraryAdopted = 'library_adopted';
+  static const libraryReplaced = 'library_replaced';
+  static const libraryRestored = 'library_restored';
+}
+
 /// Tells the change log triggers what is happening (issue #3922).
 ///
-/// Logging must never block work, so a failure here is logged and the body
-/// still runs. Call these outside any transaction the body opens, so a
-/// failed body cannot discard the operation row or the context reset.
+/// Logging must never block work, so a null database or a failure here costs
+/// only the log entry: the body still runs. Call these outside any
+/// transaction the body opens, so a failed body cannot discard the operation
+/// row or the context reset.
 abstract final class ChangeLogScope {
+  /// In a scope's zone, so a bulk action can tell it is part of one.
+  static final _scopeKey = Object();
+
   /// Runs [body] with its changes filed under one new operation.
   static Future<T> run<T>(
-    AppDatabase db, {
+    AppDatabase? db, {
     required ChangeLogSource source,
     String? label,
     String? deviceId,
     String? revertOfId,
+    Duration lease = kChangeLogLease,
     required Future<T> Function() body,
   }) async {
+    if (db == null) return body();
     final operationId = const Uuid().v4();
     final previous = await _open(
       db,
@@ -51,31 +77,49 @@ abstract final class ChangeLogScope {
       label: label,
       deviceId: deviceId,
       revertOfId: revertOfId,
+      lease: lease,
     );
     final renewal = previous == null
         ? null
-        : Timer.periodic(_renewEvery, (_) => _renewScope(db, operationId));
+        : Timer.periodic(
+            _renewEvery,
+            (_) => _renewScope(db, operationId, lease),
+          );
     try {
-      return await body();
+      return await runZoned(body, zoneValues: {_scopeKey: operationId});
     } finally {
       renewal?.cancel();
-      if (previous != null) await _close(db, operationId, previous.id);
+      if (previous != null) await _close(db, operationId, previous.id, lease);
     }
+  }
+
+  /// A diver's bulk action: one operation of its own, or part of the scope
+  /// already running, so that undoing an import through `bulkDeleteDives`
+  /// files under the undo.
+  static Future<T> bulk<T>(
+    AppDatabase? db, {
+    required String label,
+    required Future<T> Function() body,
+  }) {
+    if (Zone.current[_scopeKey] != null) return body();
+    return run(db, source: ChangeLogSource.manual, label: label, body: body);
   }
 
   /// Runs [body] with the triggers silenced, then records one summary
   /// operation. For a full library write on a device with none of its own,
   /// which would otherwise log the whole library.
   static Future<T> suppressed<T>(
-    AppDatabase db, {
+    AppDatabase? db, {
     required String label,
     required ChangeLogSource source,
-    int? summaryCount,
+    int? Function(T result)? summaryCount,
+    Duration lease = kChangeLogLease,
     required Future<T> Function() body,
   }) async {
-    final held = await _suppress(db);
+    if (db == null) return body();
+    final held = await _suppress(db, lease);
     final renewal = held
-        ? Timer.periodic(_renewEvery, (_) => _suppress(db))
+        ? Timer.periodic(_renewEvery, (_) => _suppress(db, lease))
         : null;
     final T result;
     try {
@@ -87,18 +131,18 @@ abstract final class ChangeLogScope {
     }
     renewal?.cancel();
     if (held) await _endSuppression(db);
-    await _writeSummary(
+    await summary(
       db,
       label: label,
       source: source,
-      summaryCount: summaryCount,
+      count: summaryCount?.call(result),
     );
     return result;
   }
 
   static int _now() => DateTime.now().millisecondsSinceEpoch;
 
-  static int _expiry() => _now() + kChangeLogLease.inMilliseconds;
+  static int _expiry(Duration lease) => _now() + lease.inMilliseconds;
 
   /// Files the operation and points the context at it. Returns the operation
   /// it replaced, or null when the context could not be written.
@@ -109,6 +153,7 @@ abstract final class ChangeLogScope {
     required String? label,
     required String? deviceId,
     required String? revertOfId,
+    required Duration lease,
   }) async {
     try {
       final now = _now();
@@ -133,7 +178,7 @@ abstract final class ChangeLogScope {
       await db.customStatement(
         'UPDATE change_log_context SET operation_id = ?, scope_expires_at = ? '
         'WHERE id = 1',
-        [operationId, _expiry()],
+        [operationId, _expiry(lease)],
       );
       return (id: context.data['operation_id'] as String?);
     } catch (error, stackTrace) {
@@ -146,12 +191,16 @@ abstract final class ChangeLogScope {
     }
   }
 
-  static Future<void> _renewScope(AppDatabase db, String operationId) async {
+  static Future<void> _renewScope(
+    AppDatabase db,
+    String operationId,
+    Duration lease,
+  ) async {
     try {
       await db.customStatement(
         'UPDATE change_log_context SET scope_expires_at = ? '
         'WHERE id = 1 AND operation_id = ?',
-        [_expiry(), operationId],
+        [_expiry(lease), operationId],
       );
     } catch (error, stackTrace) {
       _log.warning(
@@ -169,6 +218,7 @@ abstract final class ChangeLogScope {
     AppDatabase db,
     String operationId,
     String? previousId,
+    Duration lease,
   ) async {
     try {
       await (db.update(
@@ -186,7 +236,7 @@ abstract final class ChangeLogScope {
         'scope_expires_at = CASE WHEN EXISTS (SELECT 1 FROM '
         'change_log_operations WHERE id = ?1 AND closed = 0) THEN ?2 END '
         'WHERE id = 1 AND operation_id = ?3',
-        [previousId, _expiry(), operationId],
+        [previousId, _expiry(lease), operationId],
       );
     } catch (error, stackTrace) {
       _log.warning(
@@ -198,11 +248,11 @@ abstract final class ChangeLogScope {
   }
 
   /// Whether the suppression was written.
-  static Future<bool> _suppress(AppDatabase db) async {
+  static Future<bool> _suppress(AppDatabase db, Duration lease) async {
     try {
       await db.customStatement(
         'UPDATE change_log_context SET suppressed_until = ? WHERE id = 1',
-        [_expiry()],
+        [_expiry(lease)],
       );
       return true;
     } catch (error, stackTrace) {
@@ -229,13 +279,14 @@ abstract final class ChangeLogScope {
     }
   }
 
-  /// A summary has no events of its own, so it takes the highest event id to
-  /// sort where it happened, and always has a count, which is what marks it.
-  static Future<void> _writeSummary(
+  /// Records one entry for writes the log did not see. A summary has no
+  /// events of its own, so it takes the highest event id to sort where it
+  /// happened, and always has a count, which is what marks it.
+  static Future<void> summary(
     AppDatabase db, {
     required String label,
     required ChangeLogSource source,
-    required int? summaryCount,
+    int? count,
   }) async {
     try {
       final newest = await db
@@ -252,7 +303,7 @@ abstract final class ChangeLogScope {
               startedAt: now,
               endedAt: now,
               lastEventId: Value(newest.data['id'] as int? ?? 0),
-              summaryCount: Value(summaryCount ?? 0),
+              summaryCount: Value(count ?? 0),
               closed: const Value(true),
             ),
           );

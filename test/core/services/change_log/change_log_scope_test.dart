@@ -102,6 +102,59 @@ void main() {
     expect(byId[events.last['operation_id']], 'import');
   });
 
+  test('a bulk action outside a scope is its own manual operation', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.bulkEdit,
+      body: () => _edit(db, 'Bulk'),
+    );
+
+    final operation = (await _operations(db)).single;
+    expect(operation.source, 'manual');
+    expect(operation.label, ChangeLogLabels.bulkEdit);
+    expect((await logEvents(db)).single['operation_id'], operation.id);
+  });
+
+  test('a bulk action inside a scope joins it', () async {
+    await ChangeLogScope.run(
+      db,
+      source: ChangeLogSource.revert,
+      body: () => ChangeLogScope.bulk(
+        db,
+        label: ChangeLogLabels.bulkDelete,
+        body: () => _edit(db, 'Joined'),
+      ),
+    );
+
+    final operation = (await _operations(db)).single;
+    expect(operation.source, 'revert');
+    expect((await logEvents(db)).single['operation_id'], operation.id);
+  });
+
+  test('a null database runs the body with no log', () async {
+    expect(
+      await ChangeLogScope.run(
+        null,
+        source: ChangeLogSource.import,
+        body: () async => 'ran',
+      ),
+      'ran',
+    );
+    expect(await _operations(db), isEmpty);
+  });
+
+  test('a summary alone records one entry', () async {
+    await ChangeLogScope.summary(
+      db,
+      label: ChangeLogLabels.libraryRestored,
+      source: ChangeLogSource.system,
+    );
+
+    final operation = (await _operations(db)).single;
+    expect(operation.label, ChangeLogLabels.libraryRestored);
+    expect(operation.summaryCount, 0);
+  });
+
   test('an outer scope that already ended is not restored', () async {
     final outerDone = ChangeLogScope.run(
       db,
@@ -139,7 +192,7 @@ void main() {
       db,
       label: 'Library adopted',
       source: ChangeLogSource.system,
-      summaryCount: 412,
+      summaryCount: (_) => 412,
       body: () async {
         await _edit(db, 'Adopted');
         return 'done';

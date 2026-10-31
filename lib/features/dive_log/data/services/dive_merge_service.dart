@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -117,7 +118,13 @@ class DiveMergeService {
   /// is not a valid sequential combine (too few dives, mixed divers, or
   /// overlapping timelines) -- nothing is read from the DB via a snapshot
   /// and nothing is written in that case.
-  Future<DiveMergeOutcome> apply(List<String> diveIds) async {
+  Future<DiveMergeOutcome> apply(List<String> diveIds) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _applyInner(diveIds),
+  );
+
+  Future<DiveMergeOutcome> _applyInner(List<String> diveIds) async {
     // Every series this operation will carry across has to decode: it
     // re-bases the samples onto the merged timeline and then deletes the
     // dives that hold them, and reads answer an unreadable blob with null,
@@ -649,7 +656,13 @@ class DiveMergeService {
   }
 
   /// Restores the source dives exactly and removes the merged dive.
-  Future<void> undo(DiveMergeSnapshot snapshot) async {
+  Future<void> undo(DiveMergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoInner(snapshot),
+  );
+
+  Future<void> _undoInner(DiveMergeSnapshot snapshot) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     await _db.transaction(() async {

@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -142,6 +143,15 @@ class DiverMergeRepository {
   Future<DiverMergeSnapshot> mergeDivers({
     required String keeperId,
     required String duplicateId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _mergeDiversInner(keeperId: keeperId, duplicateId: duplicateId),
+  );
+
+  Future<DiverMergeSnapshot> _mergeDiversInner({
+    required String keeperId,
+    required String duplicateId,
   }) async {
     if (keeperId == duplicateId) {
       throw ArgumentError('keeperId and duplicateId must differ');
@@ -203,6 +213,11 @@ class DiverMergeRepository {
           ]);
         }
       }
+
+      await _db.customStatement(
+        'UPDATE change_log_operations SET diver_id = ? WHERE diver_id = ?',
+        [keeperId, duplicateId],
+      );
 
       for (final table in tables) {
         if (_shareSpecs.any((spec) => spec.table == table)) {
@@ -480,7 +495,13 @@ class DiverMergeRepository {
   /// than the pre-merge ones, so restoring those older clocks (and dropping
   /// the merge's pending marks, as this once did) left the undo with nothing
   /// to publish and nothing that could win on that device.
-  Future<void> undoMerge(DiverMergeSnapshot snapshot) async {
+  Future<void> undoMerge(DiverMergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoMergeInner(snapshot),
+  );
+
+  Future<void> _undoMergeInner(DiverMergeSnapshot snapshot) async {
     _log.info(
       'Undoing merge: restoring diver ${snapshot.duplicateId} '
       '(was merged into ${snapshot.keeperId})',
@@ -586,14 +607,16 @@ class DiverMergeRepository {
     );
   }
 
-  /// All tables (except `divers`) that have a `diver_id` column.
+  /// All tables (except `divers`) that have a `diver_id` column. The change
+  /// log is not library data: its entries follow the keeper in one statement,
+  /// unsynced, and an undo leaves them there.
   Future<List<String>> _tablesWithDiverId() async {
     final rows = await _db
         .customSelect(
           "SELECT m.name AS tbl FROM sqlite_master m "
           "JOIN pragma_table_info(m.name) p "
           "WHERE m.type = 'table' AND p.name = 'diver_id' "
-          "AND m.name != 'divers'",
+          "AND m.name != 'divers' AND m.name != 'change_log_operations'",
         )
         .get();
     return rows.map((r) => r.read<String>('tbl')).toList();

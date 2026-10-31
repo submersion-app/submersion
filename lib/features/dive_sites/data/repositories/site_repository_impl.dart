@@ -8,6 +8,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -830,6 +831,20 @@ class SiteRepository {
     List<String> ids, {
     bool cascadeMedia = true,
     String? actingDiverId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkDelete,
+    body: () => _bulkDeleteSitesInner(
+      ids,
+      cascadeMedia: cascadeMedia,
+      actingDiverId: actingDiverId,
+    ),
+  );
+
+  Future<SiteLinks> _bulkDeleteSitesInner(
+    List<String> ids, {
+    bool cascadeMedia = true,
+    String? actingDiverId,
   }) async {
     if (ids.isEmpty) return const SiteLinks();
     try {
@@ -877,6 +892,20 @@ class SiteRepository {
   /// Returns a [MergeSnapshot] that can be passed to [undoMerge] to reverse
   /// the operation, or `null` if the merge was a no-op.
   Future<MergeSnapshot?> mergeSites({
+    required domain.DiveSite mergedSite,
+    required List<String> siteIds,
+    String? actingDiverId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.merge,
+    body: () => _mergeSitesInner(
+      mergedSite: mergedSite,
+      siteIds: siteIds,
+      actingDiverId: actingDiverId,
+    ),
+  );
+
+  Future<MergeSnapshot?> _mergeSitesInner({
     required domain.DiveSite mergedSite,
     required List<String> siteIds,
     String? actingDiverId,
@@ -1104,7 +1133,13 @@ class SiteRepository {
   }
 
   /// Reverse a merge operation using a previously captured [MergeSnapshot].
-  Future<void> undoMerge(MergeSnapshot snapshot) async {
+  Future<void> undoMerge(MergeSnapshot snapshot) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.undoMerge,
+    body: () => _undoMergeInner(snapshot),
+  );
+
+  Future<void> _undoMergeInner(MergeSnapshot snapshot) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     try {
