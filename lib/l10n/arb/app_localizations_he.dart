@@ -28917,6 +28917,38 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'כל $count הצלילות היו $value ($baseline מתוך $coverage שבהן נתון זה נרשם)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count מתוך $total היו $value, לעומת $baseline מתוך $coverage שבהן נתון זה נרשם';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count מתוך $groupCoverage שבהן נתון זה נרשם היו $value, לעומת $baseline מתוך $coverage שבהן נתון זה נרשם';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,

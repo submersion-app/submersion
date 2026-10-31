@@ -48,13 +48,13 @@ export 'package:submersion/features/buddies/domain/entities/buddy_with_dive_coun
 class BuddyRepository {
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// {buddyId: number of the given dives that include the buddy}. There is
-  /// one dive_buddies row per (dive, buddy), so COUNT(diveId) equals the
-  /// distinct-dive count.
+  /// {buddyId: number of the given dives that include the buddy}. A buddy can
+  /// hold several dive_buddies rows on one dive (only the row id is unique),
+  /// so this counts distinct dives (issue #3895).
   Future<Map<String, int>> buddyCountsForDives(List<String> diveIds) async {
     if (diveIds.isEmpty) return {};
     final j = _db.diveBuddies;
-    final countExpr = j.diveId.count();
+    final countExpr = j.diveId.count(distinct: true);
     final rows =
         await (_db.selectOnly(j)
               ..addColumns([j.buddyId, countExpr])
@@ -408,7 +408,12 @@ class BuddyRepository {
     final roleSets =
         (await _roleLinks.buddyRoleIdsForDives([diveId]))[diveId] ?? const {};
 
-    final list = sortedByText(results, (r) => r.data['name'] as String).map((
+    // A buddy linked to the dive twice is still one person on it (#3895).
+    final seen = <String>{};
+    final people = results
+        .where((row) => seen.add(row.data['id'] as String))
+        .toList();
+    final list = sortedByText(people, (r) => r.data['name'] as String).map((
       row,
     ) {
       final buddy = _mapRowToBuddy(_db.buddies.map(row.data));
@@ -478,12 +483,15 @@ class BuddyRepository {
     final roleSets = await _roleLinks.buddyRoleIdsForDives(diveIds);
 
     final byDive = <String, List<domain.BuddyWithRole>>{};
+    final seen = <(String, String)>{};
     for (final jr in sortedByText(
       joinRows,
       (jr) => jr.readTable(_db.buddies).name,
     )) {
       final b = jr.readTable(_db.buddies);
       final link = jr.readTable(_db.diveBuddies);
+      // A buddy linked to a dive twice is still one person on it (#3895).
+      if (!seen.add((link.diveId, link.buddyId))) continue;
       final buddy = _mapRowToBuddy(b);
       final roleIds =
           roleSets[link.diveId]?[link.buddyId] ??
@@ -656,13 +664,12 @@ class BuddyRepository {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final existing =
-        await (_db.select(_db.diveBuddies)..where(
-              (t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId),
-            ))
-            .getSingleOrNull();
+    // A list, because a buddy can hold several links to a dive (#3895).
+    final existing = await (_db.select(
+      _db.diveBuddies,
+    )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).get();
 
-    if (existing == null) {
+    if (existing.isEmpty) {
       final id = _uuid.v4();
       await _db
           .into(_db.diveBuddies)
@@ -750,9 +757,9 @@ class BuddyRepository {
                   (t) =>
                       t.diveId.equals(diveId) & t.buddyId.equals(bwr.buddy.id),
                 ))
-                .getSingleOrNull();
-        if (existing != null && !overwriteRole) continue;
-        if (existing == null) await _insertLinks(diveId, [bwr], now);
+                .get();
+        if (existing.isNotEmpty && !overwriteRole) continue;
+        if (existing.isEmpty) await _insertLinks(diveId, [bwr], now);
         await _roleLinks.writeBuddyRoles(
           diveId,
           bwr.buddy.id,
@@ -889,7 +896,7 @@ class BuddyRepository {
         FROM buddies b
         LEFT JOIN (
           SELECT db.buddy_id,
-                 COUNT(*) AS dive_count,
+                 COUNT(DISTINCT db.dive_id) AS dive_count,
                  MAX(d.dive_date_time) AS last_dive
           FROM dive_buddies db
           INNER JOIN dives d ON d.id = db.dive_id
@@ -1024,7 +1031,7 @@ class BuddyRepository {
     final result = await _db
         .customSelect(
           '''
-      SELECT COUNT(*) as count
+      SELECT COUNT(DISTINCT db.dive_id) as count
       FROM dive_buddies db
       INNER JOIN dives d ON d.id = db.dive_id
       WHERE db.buddy_id = ?${DiveStatsScope.and(alias: 'd')}
@@ -1047,13 +1054,14 @@ class BuddyRepository {
   /// order instead of an arbitrary one: the caller truncates this list, so an
   /// unstable tail would change *which* dives the preview shows, not merely
   /// their order.
-  /// The join also drops links whose dive row no longer exists.
+  /// The join also drops links whose dive row no longer exists, and DISTINCT
+  /// lists a dive once when the buddy holds several links to it (#3895).
   // stats-scope-exempt: drives the buddy's displayed dive list, like the logbook
   Future<List<String>> getDiveIdsForBuddy(String buddyId) async {
     final results = await _db
         .customSelect(
           '''
-      SELECT db.dive_id
+      SELECT DISTINCT db.dive_id
       FROM dive_buddies db
       INNER JOIN dives d ON d.id = db.dive_id
       WHERE db.buddy_id = ?
@@ -1106,7 +1114,7 @@ class BuddyRepository {
     final favoriteSiteResult = await _db
         .customSelect(
           '''
-      SELECT ds.name, COUNT(*) as count
+      SELECT ds.name, COUNT(DISTINCT d.id) as count
       FROM dives d
       INNER JOIN dive_buddies db ON d.id = db.dive_id
       INNER JOIN dive_sites ds ON d.site_id = ds.id

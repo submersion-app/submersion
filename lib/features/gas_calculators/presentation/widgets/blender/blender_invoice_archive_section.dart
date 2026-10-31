@@ -9,7 +9,6 @@ import 'package:submersion/features/gas_calculators/domain/blending/invoice_arch
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_archive_totals_summary.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_archived_invoice_tile.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A collapsible read of [blenderArchivedInvoicesProvider], shown right below
@@ -83,8 +82,7 @@ class _BlenderInvoiceArchiveSectionState
             orElse: () => monthFilters.first,
           );
 
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final fallbackCurrency = ref.watch(blenderCurrencyProvider);
     final visible =
         invoices

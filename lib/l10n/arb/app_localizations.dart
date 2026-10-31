@@ -47602,6 +47602,41 @@ abstract class AppLocalizations {
     String baseline,
   );
 
+  /// No description provided for @insights_focus_standouts_categoryAllRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} were {value} ({baseline} of the {coverage} with this recorded)'**
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categorySomeRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categoryPartRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
   /// No description provided for @insights_focus_standouts_numeric.
   ///
   /// In en, this message translates to:

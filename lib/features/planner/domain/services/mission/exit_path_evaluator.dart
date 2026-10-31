@@ -216,8 +216,9 @@ class ExitPathEvaluator {
 
   /// True when any tank the diver breathes, with a known size and fill,
   /// would end below the plan reserve after [outbound] plus [exit] litres.
-  /// A cylinder never breathed, or a bailout cylinder, is not held to the
-  /// reserve, matching the plan engine's own reserve rule.
+  /// A cylinder never breathed is not held to the reserve, the plan engine's
+  /// own rule, and neither is a bailout cylinder: a mission runs open circuit
+  /// only (validatePlanForMission), so no exit here breathes one.
   bool _gasShort(
     domain.DivePlan plan,
     Map<String, double> outbound,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -239,7 +238,7 @@ class _DiveAssignmentDialogState extends ConsumerState<DiveAssignmentDialog> {
     TextTheme textTheme, {
     required bool showTripName,
   }) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return candidates.map((candidate) {
       final dive = candidate.dive;

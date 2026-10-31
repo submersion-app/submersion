@@ -9,7 +9,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_location_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/location_move_edit_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Where an item is now, a Move button, and its recent moves (the full log
@@ -31,7 +30,7 @@ class _EquipmentLocationCardState extends ConsumerState<EquipmentLocationCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final moves =
         ref.watch(equipmentLocationMovesProvider(widget.equipment.id)).value ??
         const <EquipmentLocationMove>[];

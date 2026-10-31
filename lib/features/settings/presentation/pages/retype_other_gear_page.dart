@@ -10,7 +10,6 @@ import 'package:submersion/features/equipment/presentation/providers/other_gear_
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data Tools > Retype gear marked Other (#1886): gives gear that
@@ -55,7 +54,7 @@ class _RetypeOtherGearPageState extends ConsumerState<RetypeOtherGearPage> {
 
   Widget _content(List<RetypeCandidate> candidates) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final selected = [
       for (final c in candidates)
         if (!_excluded.contains(c.item.id)) c,

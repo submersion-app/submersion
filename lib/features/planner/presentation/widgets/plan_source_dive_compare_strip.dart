@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/source_dive_deco_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Compact "vs. original dive" strip: shown in the results pane whenever the
@@ -25,7 +24,7 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     final actualTtsSeconds = ref.watch(sourceDiveTtsSecondsProvider).value;
     final actualDecoSeconds = ref.watch(sourceDiveDecoSecondsProvider).value;
     final actualCnsEnd = ref.watch(sourceDiveCnsEndProvider).value;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
     final rows = <_CompareRow>[

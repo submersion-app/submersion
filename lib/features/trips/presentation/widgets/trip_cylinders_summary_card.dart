@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
@@ -29,7 +28,7 @@ class TripCylindersSummaryCard extends ConsumerWidget {
     if (states == null || states.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final forecast = ref.watch(tripFillForecastProvider(trip.id)).value;
     final counts = tripCylinderCounts(states);
     final summary = l10n.trips_cylinders_summary(

@@ -14,7 +14,6 @@ import 'package:submersion/features/media/presentation/widgets/media_library_gri
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Sectioned presentation shared by the by-dive and timeline modes: one lazy
@@ -227,7 +226,7 @@ class _MediaLibraryGroupedListState
 
   @override
   Widget build(BuildContext context) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final headers = _headers(context, units);
     final groups = widget.groups;
     final target = widget.targetSize;

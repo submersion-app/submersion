@@ -15,8 +15,20 @@ class PlannerRatesDefaultsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
+    final settings = ref.watch(
+      settingsProvider.select(
+        (s) => (
+          plannerDescentRate: s.plannerDescentRate,
+          plannerAscentRate: s.plannerAscentRate,
+          plannerIntermediateAscentRate: s.plannerIntermediateAscentRate,
+          plannerShallowAscentRate: s.plannerShallowAscentRate,
+          plannerFinalAscentRate: s.plannerFinalAscentRate,
+          plannerAirBreakO2Seconds: s.plannerAirBreakO2Seconds,
+          plannerAirBreakBreakSeconds: s.plannerAirBreakBreakSeconds,
+        ),
+      ),
+    );
     final notifier = ref.read(settingsProvider.notifier);
     final suffix = units.depthRateSymbol;
 

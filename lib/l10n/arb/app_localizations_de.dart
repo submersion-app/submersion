@@ -29615,6 +29615,38 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Alle $count waren $value ($baseline der $coverage, bei denen dies erfasst ist)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count von $total waren $value, gegenüber $baseline der $coverage, bei denen dies erfasst ist';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count der $groupCoverage, bei denen dies erfasst ist, waren $value, gegenüber $baseline der $coverage, bei denen dies erfasst ist';
+  }
+
+  @override
   String insights_focus_standouts_numeric(
     String factor,
     String difference,

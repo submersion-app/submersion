@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The density at depth, its standing against the 5.2 / 6.2 g/L limits, and
@@ -26,7 +25,7 @@ class DensityResultCard extends ConsumerWidget {
     const digits = 2;
     final density = '${formatFixedForDisplay(result.densityGPerL, digits)} g/L';
     final level = gasDensityLevelForDisplay(result.densityGPerL, digits);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final eadd =
         '${l10n.gasCalculators_density_eaddLabel}: '
         '${units.formatDepth(result.eaddMeters, decimals: 0)}';
