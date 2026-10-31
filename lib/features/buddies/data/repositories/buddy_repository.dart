@@ -194,6 +194,7 @@ class BuddyRepository {
               photo: Value(buddy.photo),
               notes: Value(buddy.notes),
               isFavorite: Value(buddy.isFavorite),
+              excludedFromRankings: Value(buddy.excludedFromRankings),
               createdAt: Value(now.millisecondsSinceEpoch),
               updatedAt: Value(now.millisecondsSinceEpoch),
             ),
@@ -313,6 +314,7 @@ class BuddyRepository {
           photo: Value(buddy.photo),
           notes: Value(buddy.notes),
           isFavorite: Value(buddy.isFavorite),
+          excludedFromRankings: Value(buddy.excludedFromRankings),
           updatedAt: Value(now),
         ),
       );
@@ -1231,6 +1233,7 @@ class BuddyRepository {
       photo: row.photo,
       notes: row.notes,
       isFavorite: row.isFavorite,
+      excludedFromRankings: row.excludedFromRankings,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
       cardId: row.cardId,

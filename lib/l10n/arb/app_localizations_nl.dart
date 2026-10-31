@@ -3231,6 +3231,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_nameHint => 'Voer buddy naam in';
 
   @override
+  String get buddies_field_excludedFromRankings =>
+      'Uitsluiten van buddyranglijsten';
+
+  @override
+  String get buddies_field_excludedFromRankingsHint =>
+      'Samen gemaakte duiken tellen nog steeds als duiken met een buddy.';
+
+  @override
   String get buddies_field_nameRequired => 'Naam *';
 
   @override
@@ -3587,6 +3595,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_stat_divesTogether => 'Duiken samen';
+
+  @override
+  String get buddies_stat_excludedFromRankings =>
+      'Uitgesloten van buddyranglijsten';
 
   @override
   String get buddies_stat_favoriteSite => 'Favoriete locatie';
