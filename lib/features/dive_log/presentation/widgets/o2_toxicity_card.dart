@@ -60,6 +60,11 @@ class O2ToxicityCard extends StatelessWidget {
   /// the dive, the dive's own daily figure no longer describes today.
   final double? dailyOtu;
 
+  /// Whether to say so when [exposure]'s CNS is a minimum. The live readout
+  /// clears this once the unknown dive behind it is outside the recovery
+  /// window, however long its OTU keeps the card on screen.
+  final bool showCnsMinimumNote;
+
   /// Unit preferences, so the max-ppO2 depth renders in m or ft.
   ///
   /// Passed rather than read from a provider: this widget is a plain
@@ -77,6 +82,7 @@ class O2ToxicityCard extends StatelessWidget {
     this.weeklyOtu,
     this.liveCns,
     this.dailyOtu,
+    this.showCnsMinimumNote = true,
   });
 
   bool get _isLive => liveCns != null;
@@ -273,7 +279,7 @@ class O2ToxicityCard extends StatelessWidget {
               ),
             ],
           ),
-          if (exposure.cnsIsMinimum) ...[
+          if (exposure.cnsIsMinimum && showCnsMinimumNote) ...[
             const SizedBox(height: 2),
             Text(
               context.l10n.diveLog_o2tox_cnsMinimumNote,

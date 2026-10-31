@@ -165,7 +165,11 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        buildPanel(exp: exposure.copyWith(cnsIsMinimum: true)),
+        buildPanel(
+          exp: exposure.copyWith(
+            cnsUnknownDiveAge: const Duration(minutes: 20),
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 

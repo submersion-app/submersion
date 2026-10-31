@@ -1196,7 +1196,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
             o2Exposure: O2Exposure(
               cnsStart: residualCns.cns,
               cnsEnd: residualCns.cns,
-              cnsIsMinimum: true,
+              cnsUnknownDiveAge: Duration.zero,
             ),
           );
       final dbEvents = await ref.watch(
@@ -1312,7 +1312,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
 
     // Compute residual CNS (skip if this dive has computer CNS data)
     final residualCns = computerCns != null
-        ? (cns: computerCns.cnsStart, isMinimum: false)
+        ? (cns: computerCns.cnsStart, unknownDiveAge: null)
         : await _computeResidualCns(ref, diveId, inputs);
     final startCns = residualCns.cns;
 
@@ -1501,7 +1501,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       o2Exposure: overlaid.o2Exposure.copyWith(
         cnsStart: computerCns?.cnsStart,
         cnsEnd: computerCns?.cnsEnd,
-        cnsIsMinimum: residualCns.isMinimum,
+        cnsUnknownDiveAge: residualCns.unknownDiveAge,
       ),
     );
 
@@ -1608,15 +1608,17 @@ final sourceProfileAnalysisProvider =
 /// something about, adding up the surface time on the way.
 ///
 /// A dive it knows nothing about (null: no profile) says nothing about what
-/// the dives before it left behind, so the walk carries on past it
-/// rather than treat it as a full recovery. Only the time between dives counts:
-/// the unknown dive's own time is not surface time, and its dose is unknown, so
-/// the caller's result is a minimum whenever [passedUnknownDive] is true.
+/// the dives before it left behind, so the walk carries on past it rather than
+/// treat it as a full recovery. Only the time between dives counts: the
+/// unknown dive's own time is not surface time, and its dose is unknown, so
+/// the caller's result is a minimum whenever [unknownDiveAge] is set. That is
+/// the surface time since the nearest dive the walk passed.
 ///
 /// [known] is null when nothing is known inside [window] of surface time.
 /// Every step moves to a dive that started earlier, and the window usually
-/// ends the walk within a few dives.
-Future<({T? known, Duration surfaceTime, bool passedUnknownDive})>
+/// ends the walk within a few dives. Throws when a query fails, so a failure
+/// never reads as having no earlier dive.
+Future<({T? known, Duration surfaceTime, Duration? unknownDiveAge})>
 _lookBackPastUnknownDives<T extends Object>(
   Ref ref,
   String diveId, {
@@ -1626,31 +1628,28 @@ _lookBackPastUnknownDives<T extends Object>(
   final repository = ref.watch(diveRepositoryProvider);
   var cursor = diveId;
   var surfaceTime = Duration.zero;
-  var passedUnknownDive = false;
-  while (true) {
-    final interval = await repository.getSurfaceInterval(cursor);
-    if (interval == null) break;
-    surfaceTime += interval;
-    if (surfaceTime >= window) break;
-
+  Duration? unknownDiveAge;
+  T? known;
+  while (known == null) {
     final previousDive = await repository.getPreviousDiveTimes(cursor);
     if (previousDive == null) break;
 
-    final known = await readPrevious(previousDive.id);
-    if (known != null) {
-      return (
-        known: known,
-        surfaceTime: surfaceTime,
-        passedUnknownDive: passedUnknownDive,
-      );
+    // Null despite a previous dive means its query failed and was logged.
+    final interval = await repository.getSurfaceInterval(cursor);
+    if (interval == null) throw StateError('No surface interval: $cursor');
+    surfaceTime += interval;
+    if (surfaceTime >= window) break;
+
+    known = await readPrevious(previousDive.id);
+    if (known == null) {
+      unknownDiveAge ??= surfaceTime;
+      cursor = previousDive.id;
     }
-    passedUnknownDive = true;
-    cursor = previousDive.id;
   }
   return (
-    known: null,
+    known: known,
     surfaceTime: surfaceTime,
-    passedUnknownDive: passedUnknownDive,
+    unknownDiveAge: unknownDiveAge,
   );
 }
 
@@ -1660,9 +1659,12 @@ _lookBackPastUnknownDives<T extends Object>(
 /// (which itself recursively accounts for even earlier dives), then applies
 /// exponential decay based on the surface time since.
 ///
-/// [isMinimum] is true when a dive inside the window has no known oxygen
+/// [unknownDiveAge] is set when a dive inside the window has no known oxygen
 /// exposure, or the lookback failed: the real load may be higher than [cns].
-Future<({double cns, bool isMinimum})> _computeResidualCns(
+/// It carries down the chain with the load, so the mark expires with it: an
+/// unknown dive stops mattering once the recovery window has passed, however
+/// many dives have followed it.
+Future<({double cns, Duration? unknownDiveAge})> _computeResidualCns(
   Ref ref,
   String diveId,
   AnalysisSettings inputs,
@@ -1671,11 +1673,15 @@ Future<({double cns, bool isMinimum})> _computeResidualCns(
     final lookback = await _lookBackPastUnknownDives(
       ref,
       diveId,
-      window: const Duration(hours: 24),
+      window: CnsTable.cnsRecoveryWindow,
       readPrevious: (previousDiveId) =>
           _knownCnsEnd(ref, previousDiveId, inputs),
     );
     final known = lookback.known;
+    final carriedAge = known?.unknownDiveAge;
+    final unknownDiveAge =
+        lookback.unknownDiveAge ??
+        (carriedAge == null ? null : carriedAge + lookback.surfaceTime);
     return (
       cns: known == null
           ? 0.0
@@ -1683,7 +1689,10 @@ Future<({double cns, bool isMinimum})> _computeResidualCns(
               known.cnsEnd,
               lookback.surfaceTime.inMinutes,
             ),
-      isMinimum: lookback.passedUnknownDive || (known?.isMinimum ?? false),
+      unknownDiveAge:
+          unknownDiveAge != null && unknownDiveAge < CnsTable.cnsRecoveryWindow
+          ? unknownDiveAge
+          : null,
     );
   } catch (e, stackTrace) {
     _log.error(
@@ -1691,12 +1700,12 @@ Future<({double cns, bool isMinimum})> _computeResidualCns(
       error: e,
       stackTrace: stackTrace,
     );
-    return (cns: 0.0, isMinimum: true);
+    return (cns: 0.0, unknownDiveAge: Duration.zero);
   }
 }
 
 /// The CNS% [diveId] ended on, or null when its oxygen exposure is unknown.
-Future<({double cnsEnd, bool isMinimum})?> _knownCnsEnd(
+Future<({double cnsEnd, Duration? unknownDiveAge})?> _knownCnsEnd(
   Ref ref,
   String diveId,
   AnalysisSettings inputs,
@@ -1720,7 +1729,7 @@ Future<({double cnsEnd, bool isMinimum})?> _knownCnsEnd(
         ? await _highestSourceCnsEnd(ref, diveId)
         : extractComputerCns(series.points)?.cnsEnd;
     if (computerCnsEnd != null) {
-      return (cnsEnd: computerCnsEnd, isMinimum: false);
+      return (cnsEnd: computerCnsEnd, unknownDiveAge: null);
     }
   }
 
@@ -1735,7 +1744,7 @@ Future<({double cnsEnd, bool isMinimum})?> _knownCnsEnd(
   if (analysis == null) return null;
 
   final exposure = analysis.o2Exposure;
-  return (cnsEnd: exposure.cnsEnd, isMinimum: exposure.cnsIsMinimum);
+  return (cnsEnd: exposure.cnsEnd, unknownDiveAge: exposure.cnsUnknownDiveAge);
 }
 
 /// The highest last computer CNS reading among [diveId]'s data sources, each

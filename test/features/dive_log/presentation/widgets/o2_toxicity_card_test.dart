@@ -30,7 +30,11 @@ void main() {
     ) async {
       await tester.pumpWidget(
         buildCard(
-          const O2Exposure(cnsStart: 68, cnsEnd: 72, cnsIsMinimum: true),
+          const O2Exposure(
+            cnsStart: 68,
+            cnsEnd: 72,
+            cnsUnknownDiveAge: Duration(minutes: 20),
+          ),
           locale: const Locale('en'),
         ),
       );

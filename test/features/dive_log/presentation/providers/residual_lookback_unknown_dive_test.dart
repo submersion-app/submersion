@@ -258,6 +258,34 @@ void main() {
       expect(analysis.o2Exposure.cnsIsMinimum, isTrue);
     });
 
+    test('the mark expires once the unknown dive is outside the recovery '
+        'window, even though every gap between dives is inside it', () async {
+      await seedDive('manual', DateTime.utc(2026, 10, 29, 9), 10);
+      await seedDive(
+        'first-after',
+        DateTime.utc(2026, 10, 29, 22),
+        10,
+        samples: shallowAir,
+      );
+      await seedDive(
+        'second-after',
+        DateTime.utc(2026, 10, 30, 11),
+        10,
+        samples: shallowAir,
+      );
+
+      final container = containerFor();
+      final first = await container.read(
+        profileAnalysisProvider('first-after').future,
+      );
+      final second = await container.read(
+        profileAnalysisProvider('second-after').future,
+      );
+
+      expect(first!.o2Exposure.cnsIsMinimum, isTrue);
+      expect(second!.o2Exposure.cnsIsMinimum, isFalse);
+    });
+
     test('an unknown dive with nothing known before it starts at zero, '
         'marked as a minimum', () async {
       await seedDive('current', currentStart, 10, samples: shallowAir);

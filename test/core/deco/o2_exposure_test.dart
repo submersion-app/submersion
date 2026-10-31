@@ -35,20 +35,26 @@ void main() {
   });
 
   group('O2Exposure CNS minimum mark', () {
+    const marked = O2Exposure(
+      cnsStart: 68.0,
+      cnsUnknownDiveAge: Duration(minutes: 20),
+    );
+
     test('a CNS history is complete by default', () {
       expect(const O2Exposure().cnsIsMinimum, isFalse);
     });
 
-    test('copyWith should preserve and replace cnsIsMinimum', () {
-      const marked = O2Exposure(cnsStart: 68.0, cnsIsMinimum: true);
-      expect(marked.copyWith(cnsEnd: 72.0).cnsIsMinimum, isTrue);
-      expect(marked.copyWith(cnsIsMinimum: false).cnsIsMinimum, isFalse);
+    test('an unknown dive in the window makes it a minimum', () {
+      expect(marked.cnsIsMinimum, isTrue);
     });
 
-    test('cnsIsMinimum should be included in props for equality', () {
-      const complete = O2Exposure(cnsStart: 68.0);
-      const marked = O2Exposure(cnsStart: 68.0, cnsIsMinimum: true);
-      expect(complete, isNot(equals(marked)));
+    test('copyWith should preserve cnsUnknownDiveAge', () {
+      final copy = marked.copyWith(cnsEnd: 72.0);
+      expect(copy.cnsUnknownDiveAge, const Duration(minutes: 20));
+    });
+
+    test('cnsUnknownDiveAge should be included in props for equality', () {
+      expect(const O2Exposure(cnsStart: 68.0), isNot(equals(marked)));
     });
   });
 

@@ -15,10 +15,11 @@ class O2Exposure extends Equatable {
   /// CNS% at end of dive
   final double cnsEnd;
 
-  /// Whether [cnsStart], and so [cnsEnd], is a minimum rather than the whole
-  /// load: a dive inside the recovery window has no known oxygen exposure (no
-  /// profile, or a gauge dive), so the carried history leaves its dose out.
-  final bool cnsIsMinimum;
+  /// Surface time since the nearest earlier dive with no known oxygen exposure
+  /// (no profile, or a gauge dive), up to this dive's start, or null when no
+  /// such dive is inside [CnsTable.cnsRecoveryWindow]. The carried history
+  /// leaves that dive's dose out; see [cnsIsMinimum].
+  final Duration? cnsUnknownDiveAge;
 
   /// OTU accumulated during this dive
   final double otu;
@@ -50,7 +51,7 @@ class O2Exposure extends Equatable {
   const O2Exposure({
     this.cnsStart = 0.0,
     this.cnsEnd = 0.0,
-    this.cnsIsMinimum = false,
+    this.cnsUnknownDiveAge,
     this.otu = 0.0,
     this.otuStart = 0.0,
     this.maxPpO2 = 0.0,
@@ -63,6 +64,10 @@ class O2Exposure extends Equatable {
 
   /// CNS% accumulated during this dive
   double get cnsDelta => cnsEnd - cnsStart;
+
+  /// Whether [cnsStart], and so [cnsEnd], is a minimum rather than the whole
+  /// load, because of the unknown dive [cnsUnknownDiveAge] measures from.
+  bool get cnsIsMinimum => cnsUnknownDiveAge != null;
 
   /// CNS% at or above which the oxygen clock is in its warning zone.
   static const double cnsWarningPercent = 80.0;
@@ -114,7 +119,7 @@ class O2Exposure extends Equatable {
   O2Exposure copyWith({
     double? cnsStart,
     double? cnsEnd,
-    bool? cnsIsMinimum,
+    Duration? cnsUnknownDiveAge,
     double? otu,
     double? otuStart,
     double? maxPpO2,
@@ -127,7 +132,7 @@ class O2Exposure extends Equatable {
     return O2Exposure(
       cnsStart: cnsStart ?? this.cnsStart,
       cnsEnd: cnsEnd ?? this.cnsEnd,
-      cnsIsMinimum: cnsIsMinimum ?? this.cnsIsMinimum,
+      cnsUnknownDiveAge: cnsUnknownDiveAge ?? this.cnsUnknownDiveAge,
       otu: otu ?? this.otu,
       otuStart: otuStart ?? this.otuStart,
       maxPpO2: maxPpO2 ?? this.maxPpO2,
@@ -143,7 +148,7 @@ class O2Exposure extends Equatable {
   List<Object?> get props => [
     cnsStart,
     cnsEnd,
-    cnsIsMinimum,
+    cnsUnknownDiveAge,
     otu,
     otuStart,
     maxPpO2,
@@ -180,6 +185,9 @@ class CnsTable {
 
   /// Half-time for CNS recovery at surface (approximately 90 minutes)
   static const double cnsHalfTimeMinutes = 90.0;
+
+  /// Surface time after which a dive's CNS no longer carries into the next.
+  static const Duration cnsRecoveryWindow = Duration(hours: 24);
 
   /// Calculate remaining CNS% after surface interval
   static double cnsAfterSurfaceInterval(
