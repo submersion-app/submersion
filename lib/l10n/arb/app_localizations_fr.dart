@@ -8806,6 +8806,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Mélange gazeux (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration =>
+      'Configuration des blocs';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Extras de blocs';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Évaluation minimum';
 
   @override
@@ -48359,6 +48366,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count types d\'eau';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count configurations de blocs';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count extras de blocs';
   }
 
   @override

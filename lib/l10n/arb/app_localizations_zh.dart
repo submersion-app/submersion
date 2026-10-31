@@ -8327,6 +8327,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => '气体混合 (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => '气瓶配置';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => '气瓶附加项';
+
+  @override
   String get diveLog_filter_sectionMinRating => '最低评分';
 
   @override
@@ -45326,6 +45332,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count 种水体类型';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count 种气瓶配置';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count 种气瓶附加项';
   }
 
   @override

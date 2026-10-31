@@ -8904,6 +8904,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'خليط الغاز (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'تكوين الأسطوانات';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'إضافات الأسطوانات';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'الحد الأدنى للتقييم';
 
   @override
@@ -48814,6 +48820,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count أنواع مياه';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count تكوينات أسطوانات';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count إضافات أسطوانات';
   }
 
   @override

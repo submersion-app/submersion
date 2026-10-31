@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
+import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -60,6 +61,83 @@ void main() {
     expect(after.endDate, isNull);
     expect(after.favoritesOnly, isTrue);
     expect(container.read(diveFilterProvider).hasActiveFilters, isFalse);
+  });
+
+  group('tank configuration (#3804)', () {
+    Future<StateProvider<DiveFilterState>> pumpChips(
+      WidgetTester tester,
+      DiveFilterState filter,
+    ) async {
+      final overrides = await getBaseOverrides();
+      final provider = StateProvider<DiveFilterState>((ref) => filter);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) => Wrap(
+                  children: activeDiveFilterChips(context, ref, provider),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return provider;
+    }
+
+    testWidgets('one value shows its label', (tester) async {
+      await pumpChips(
+        tester,
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.singleBackmount],
+          tankExtras: [TankConfigurationExtra.decoGas],
+        ),
+      );
+      expect(find.text('Single backmount'), findsOneWidget);
+      expect(find.text('Deco gas'), findsOneWidget);
+    });
+
+    testWidgets('several values show a count', (tester) async {
+      await pumpChips(
+        tester,
+        const DiveFilterState(
+          tankConfigurations: [
+            TankBaseConfiguration.sidemount,
+            TankBaseConfiguration.rebreather,
+          ],
+          tankExtras: [
+            TankConfigurationExtra.stages,
+            TankConfigurationExtra.multiGas,
+          ],
+        ),
+      );
+      expect(find.text('2 tank configurations'), findsOneWidget);
+      expect(find.text('2 tank extras'), findsOneWidget);
+    });
+
+    testWidgets('removing a chip clears only its axis', (tester) async {
+      final provider = await pumpChips(
+        tester,
+        const DiveFilterState(
+          tankConfigurations: [TankBaseConfiguration.sidemount],
+          tankExtras: [TankConfigurationExtra.stages],
+        ),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(Scaffold)),
+      );
+      await tester.tap(find.byIcon(Icons.close).first);
+      await tester.pump();
+      final after = container.read(provider);
+      expect(after.tankConfigurations, isEmpty);
+      expect(after.tankExtras, [TankConfigurationExtra.stages]);
+    });
   });
 
   testWidgets('a closed date range reads start first, with its years', (

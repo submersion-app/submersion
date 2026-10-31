@@ -1,6 +1,7 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -102,6 +103,28 @@ List<ActiveFilterChip> activeFilterChipLabels(
             ? l10n.diveLog_filterChip_noWaterType
             : f.waterTypes.single.localizedName(l10n),
         (x) => x.copyWith(clearWaterTypes: true, clearNoWaterType: true),
+      ),
+    );
+  }
+  if (f.tankConfigurations.isNotEmpty) {
+    chips.add(
+      ActiveFilterChip(
+        f.tankConfigurations.length > 1
+            ? l10n.diveLog_filterChip_tankConfigCount(
+                f.tankConfigurations.length,
+              )
+            : tankBaseConfigurationLabel(l10n, f.tankConfigurations.single),
+        (x) => x.copyWith(clearTankConfigurations: true),
+      ),
+    );
+  }
+  if (f.tankExtras.isNotEmpty) {
+    chips.add(
+      ActiveFilterChip(
+        f.tankExtras.length > 1
+            ? l10n.diveLog_filterChip_tankExtrasCount(f.tankExtras.length)
+            : tankConfigurationExtraLabel(l10n, f.tankExtras.single),
+        (x) => x.copyWith(clearTankExtras: true),
       ),
     );
   }

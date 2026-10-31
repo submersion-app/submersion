@@ -8757,6 +8757,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gázkeverék (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Palackkonfiguráció';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Palack extrák';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Minimum értékelés';
 
   @override
@@ -47981,6 +47987,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count víztípus';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count palackkonfiguráció';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count palack extra';
   }
 
   @override

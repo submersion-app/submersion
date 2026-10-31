@@ -8726,6 +8726,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gasmix (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'Flesconfiguratie';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'Flesextra\'s';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'Minimale beoordeling';
 
   @override
@@ -47940,6 +47946,16 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count watertypen';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count flesconfiguraties';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count flesextra\'s';
   }
 
   @override

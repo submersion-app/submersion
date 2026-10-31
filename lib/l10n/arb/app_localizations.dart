@@ -13843,6 +13843,18 @@ abstract class AppLocalizations {
   /// **'Gas Mix (O₂%)'**
   String get diveLog_filter_sectionGasMix;
 
+  /// No description provided for @diveLog_filter_sectionTankConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank configuration'**
+  String get diveLog_filter_sectionTankConfiguration;
+
+  /// No description provided for @diveLog_filter_sectionTankExtras.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank extras'**
+  String get diveLog_filter_sectionTankExtras;
+
   /// No description provided for @diveLog_filter_sectionMinRating.
   ///
   /// In en, this message translates to:
@@ -76836,6 +76848,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} water types'**
   String diveLog_filterChip_waterTypeCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_tankConfigCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank configurations'**
+  String diveLog_filterChip_tankConfigCount(Object count);
+
+  /// No description provided for @diveLog_filterChip_tankExtrasCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tank extras'**
+  String diveLog_filterChip_tankExtrasCount(Object count);
 
   /// No description provided for @diveLog_filter_sectionSpecies.
   ///

@@ -8585,6 +8585,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'תערובת גזים (O₂%)';
 
   @override
+  String get diveLog_filter_sectionTankConfiguration => 'תצורת בלונים';
+
+  @override
+  String get diveLog_filter_sectionTankExtras => 'תוספות בלונים';
+
+  @override
   String get diveLog_filter_sectionMinRating => 'דירוג מינימלי';
 
   @override
@@ -47201,6 +47207,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_filterChip_waterTypeCount(Object count) {
     return '$count סוגי מים';
+  }
+
+  @override
+  String diveLog_filterChip_tankConfigCount(Object count) {
+    return '$count תצורות בלונים';
+  }
+
+  @override
+  String diveLog_filterChip_tankExtrasCount(Object count) {
+    return '$count תוספות בלונים';
   }
 
   @override
