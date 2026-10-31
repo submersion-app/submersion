@@ -12,6 +12,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_lin
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_row_stats.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_shape_thumbnail.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_stat_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -62,12 +63,19 @@ class NavTrackListRow extends ConsumerWidget {
     required this.onTap,
     this.onDelete,
     this.selected = false,
+    this.isHighlighted = false,
     this.kindBadge,
   });
 
   final NavTrack route;
   final UnitFormatter units;
   final bool selected;
+
+  /// The row last opened (issue #4024): stays marked after returning from
+  /// the track's detail page, independent of [selected] (the split
+  /// layout's live map-pane pick, reset by navigation elsewhere).
+  final bool isHighlighted;
+
   final VoidCallback onTap;
 
   /// No delete button when null.
@@ -114,41 +122,45 @@ class NavTrackListRow extends ConsumerWidget {
     // gives the title column whatever is left, so a text-bearing label
     // there starves the file name down to one fragment per line on a phone
     // or in the map view's list pane (issue #2692, same hazard as #935).
-    return ListTile(
-      selected: selected,
-      isThreeLine: true,
-      leading: anchored
-          ? const Icon(Icons.route)
-          : NavTrackShapeThumbnail(points: hydratedPoints),
-      title: Text(titleText),
-      subtitle: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showSiteAsTitle) Text(ownName),
-          Text(navTrackMetaLine(units, route)),
-          TrackStatRow(stats: navTrackStats(l10n, units, route)),
-          // Same gap the dive list uses between its stat row and its own
-          // tag chips (`dive_list_page.dart`, where this chip style came
-          // from) -- without it the link label crowded the stats above it.
-          const SizedBox(height: 4),
-          TrackBadgeLine(
-            badge: kindBadge,
-            child: NavTrackLinkLabel(
-              label: _linkLabel(l10n, dive),
-              diveId: diveId,
-            ),
-          ),
-        ],
-      ),
-      trailing: onDelete == null
-          ? null
-          : IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: l10n.navTrack_common_delete,
-              onPressed: onDelete,
-            ),
+    final highlighted = selected || isHighlighted;
+    return TrackRowCard(
       onTap: onTap,
+      highlighted: highlighted,
+      child: ListTile(
+        selected: highlighted,
+        isThreeLine: true,
+        leading: anchored
+            ? const Icon(Icons.route)
+            : NavTrackShapeThumbnail(points: hydratedPoints),
+        title: Text(titleText),
+        subtitle: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showSiteAsTitle) Text(ownName),
+            Text(navTrackMetaLine(units, route)),
+            TrackStatRow(stats: navTrackStats(l10n, units, route)),
+            // Same gap the dive list uses between its stat row and its own
+            // tag chips (`dive_list_page.dart`, where this chip style came
+            // from) -- without it the link label crowded the stats above it.
+            const SizedBox(height: 4),
+            TrackBadgeLine(
+              badge: kindBadge,
+              child: NavTrackLinkLabel(
+                label: _linkLabel(l10n, dive),
+                diveId: diveId,
+              ),
+            ),
+          ],
+        ),
+        trailing: onDelete == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.navTrack_common_delete,
+                onPressed: onDelete,
+              ),
+      ),
     );
   }
 }

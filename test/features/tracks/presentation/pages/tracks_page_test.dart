@@ -33,6 +33,8 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_pol
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tracks/domain/track_kind.dart';
 import 'package:submersion/features/tracks/presentation/pages/tracks_page.dart';
+import 'package:submersion/features/tracks/presentation/providers/tracks_providers.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_overview_map.dart';
 import 'package:submersion/features/tracks/presentation/widgets/tracks_summary_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -788,6 +790,78 @@ void main() {
     await tester.tap(kindSegment('GPS'));
     await tester.pumpAndSettle();
     expect(find.text('1 underwater track needs your choice'), findsNothing);
+  });
+
+  group('card rows and the last-opened highlight (#4024)', () {
+    testWidgets('each track row sits in its own card', (tester) async {
+      final gpsId = await seedGps();
+      await tester.pumpWidget(await app(underwater: [_uw()]));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: row('underwater:r1'),
+          matching: find.byType(TrackRowCard),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: row('gps:$gpsId'),
+          matching: find.byType(TrackRowCard),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'a row stays highlighted after returning from its detail page',
+      (tester) async {
+        await tester.pumpWidget(await app(underwater: [_uw()]));
+        await tester.pumpAndSettle();
+
+        Color? cardColorOf(String key) => tester
+            .widget<Card>(
+              find.descendant(of: row(key), matching: find.byType(Card)),
+            )
+            .color;
+
+        expect(cardColorOf('underwater:r1'), isNull);
+
+        await tester.tap(find.text('Wreck dive'));
+        await tester.pumpAndSettle();
+        expect(find.text('UNDERWATER-DETAIL r1'), findsOneWidget);
+
+        GoRouter.of(tester.element(find.text('UNDERWATER-DETAIL r1'))).pop();
+        await tester.pumpAndSettle();
+
+        expect(cardColorOf('underwater:r1'), isNotNull);
+      },
+    );
+
+    testWidgets('deleting the previously opened track clears its highlight', (
+      tester,
+    ) async {
+      await tester.pumpWidget(await app(underwater: [_uw()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Wreck dive'));
+      await tester.pumpAndSettle();
+      GoRouter.of(tester.element(find.text('UNDERWATER-DETAIL r1'))).pop();
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TracksPage)),
+      );
+      expect(container.read(highlightedTrackKeyProvider), 'underwater:r1');
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(highlightedTrackKeyProvider), isNull);
+    });
   });
 
   testWidgets('a failed delete says so and keeps the track', (tester) async {

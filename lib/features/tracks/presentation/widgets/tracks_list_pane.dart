@@ -38,6 +38,7 @@ class TracksListPane extends ConsumerWidget {
     final items = itemsAsync.value ?? const <TrackListItem>[];
     final units = ref.watch(unitFormatterProvider);
     final delete = onDelete;
+    final highlightedKey = ref.watch(highlightedTrackKeyProvider);
     final header = TracksListHeader(
       showControls: showControls,
       // Only once loaded: a cold open must not flash the empty state.
@@ -72,11 +73,13 @@ class TracksListPane extends ConsumerWidget {
         final selected = item.selectionKey == selectedKey;
         // Keyed by selection key: a recycled unkeyed GPS row keeps the
         // previous track's thumbnail camera.
+        final isHighlighted = item.selectionKey == highlightedKey;
         return switch (item) {
           GpsTrackItem(:final track) => GpsTrackListTile(
             key: ValueKey(item.selectionKey),
             track: track,
             selected: selected,
+            isHighlighted: isHighlighted,
             onTap: () => onTap(item),
             onDelete: delete == null ? null : () => delete(item),
             kindBadge: TrackKindBadge(TrackKind.gps),
@@ -86,6 +89,7 @@ class TracksListPane extends ConsumerWidget {
             route: track,
             units: units,
             selected: selected,
+            isHighlighted: isHighlighted,
             onTap: () => onTap(item),
             onDelete: delete == null ? null : () => delete(item),
             kindBadge: TrackKindBadge(TrackKind.underwater),
