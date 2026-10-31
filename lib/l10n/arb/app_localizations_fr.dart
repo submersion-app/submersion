@@ -57352,4 +57352,413 @@ class AppLocalizationsFr extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Journal des modifications';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Voyez ce qui a changé et rétablissez-le';
+
+  @override
+  String get changeLog_empty_title => 'Aucune modification pour l\'instant';
+
+  @override
+  String get changeLog_empty_body =>
+      'Les modifications de vos plongées, sites, équipements et réglages apparaissent ici.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'Aucune modification ne correspond à ce filtre.';
+
+  @override
+  String get changeLog_filter_all => 'Tout';
+
+  @override
+  String get changeLog_filter_dives => 'Plongées';
+
+  @override
+  String get changeLog_filter_sites => 'Sites';
+
+  @override
+  String get changeLog_filter_gear => 'Équipement';
+
+  @override
+  String get changeLog_filter_settings => 'Réglages';
+
+  @override
+  String get changeLog_filter_source => 'Source';
+
+  @override
+  String get changeLog_filter_anySource => 'Toutes les sources';
+
+  @override
+  String get changeLog_source_manual => 'Modification manuelle';
+
+  @override
+  String get changeLog_source_import => 'Importation';
+
+  @override
+  String get changeLog_source_download => 'Ordinateur de plongée';
+
+  @override
+  String get changeLog_source_rule => 'Règle';
+
+  @override
+  String get changeLog_source_sync => 'Synchronisation';
+
+  @override
+  String get changeLog_source_automatic => 'Automatique';
+
+  @override
+  String get changeLog_source_revert => 'Rétablir';
+
+  @override
+  String get changeLog_source_system => 'Système';
+
+  @override
+  String get changeLog_thisDevice => 'Cet appareil';
+
+  @override
+  String get changeLog_anotherDevice => 'un autre appareil';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Synchronisé depuis $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count de plus';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Voir $count enregistrements',
+      one: 'Voir $count enregistrement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'Plongée $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'Plongée $number';
+  }
+
+  @override
+  String get changeLog_dive => 'Plongée';
+
+  @override
+  String get changeLog_action_added => 'Ajouté';
+
+  @override
+  String get changeLog_action_deleted => 'Supprimé';
+
+  @override
+  String get changeLog_action_edited => 'Modifié';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Importé depuis $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Téléchargé depuis $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Modifications synchronisées';
+
+  @override
+  String get changeLog_title_rule => 'Exécution d\'une règle';
+
+  @override
+  String get changeLog_title_revert => 'Modification rétablie';
+
+  @override
+  String get changeLog_title_changes => 'Modifications';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Modification groupée';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Suppression groupée';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Enregistrement supprimé';
+
+  @override
+  String get changeLog_label_merge => 'Enregistrements fusionnés';
+
+  @override
+  String get changeLog_label_undoMerge => 'Fusion annulée';
+
+  @override
+  String get changeLog_label_undoRule => 'Exécution de règle annulée';
+
+  @override
+  String get changeLog_label_qualityRepair =>
+      'Réparation de la qualité des données';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Bibliothèque ajoutée à cet appareil';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Bibliothèque remplacée';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Bibliothèque restaurée depuis une sauvegarde';
+
+  @override
+  String get changeLog_label_reparse => 'Plongées réanalysées';
+
+  @override
+  String get changeLog_label_splitDive => 'Plongée scindée';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Équipement transféré';
+
+  @override
+  String get changeLog_label_mediaRepair => 'Liens multimédias réparés';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'Fichiers d\'équipement déplacés vers Documents';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Photos liées aux copies dans le cloud';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'Fichiers inutilisés nettoyés';
+
+  @override
+  String get changeLog_label_accountMigration => 'Liens de compte mis à jour';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrements',
+      one: '$count enregistrement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size de données';
+  }
+
+  @override
+  String get changeLog_table_settings => 'Réglages de l\'app';
+
+  @override
+  String get changeLog_table_diverSettings => 'Réglages du plongeur';
+
+  @override
+  String get changeLog_history => 'Historique';
+
+  @override
+  String get changeLog_detail_title => 'Détails de la modification';
+
+  @override
+  String get changeLog_detail_open => 'Ouvrir l\'enregistrement';
+
+  @override
+  String get changeLog_detail_history => 'Historique de cet enregistrement';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Et $count autres enregistrements',
+      one: 'Et $count autre enregistrement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Rétablir';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Tout rétablir ($count)';
+  }
+
+  @override
+  String get changeLog_restore => 'Restaurer';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Rétablir $field ?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince =>
+      'Ce champ a changé depuis cette entrée.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Défini dans cette entrée : $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Maintenant : $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Après rétablissement : $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'Les autres appareils le recevront comme une nouvelle modification. Elle apparaît dans le journal et peut aussi être rétablie.';
+
+  @override
+  String get changeLog_revert_anyway => 'Rétablir quand même';
+
+  @override
+  String get changeLog_undoImport => 'Annuler cette importation';
+
+  @override
+  String get changeLog_undoEntry => 'Annuler cette modification';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Supprime ce qui a été ajouté et annule les autres modifications. Demande d\'abord et liste ce que vous avez modifié depuis.';
+
+  @override
+  String get changeLog_bulk_title => 'Annuler cette entrée ?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrements ont changé depuis cette entrée.',
+      one: '$count enregistrement a changé depuis cette entrée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'Rétablir le reste';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Tout rétablir';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modifications rétablies',
+      one: '$count modification rétablie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count enregistrements ont été conservés',
+      one: '$count enregistrement a été conservé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Cet enregistrement n\'existe plus.';
+
+  @override
+  String get changeLog_block_columnGone => 'Ce champ n\'existe plus.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Une mise à jour a changé le stockage de cette valeur : elle ne peut pas être rétablie.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'L\'enregistrement auquel il appartient n\'existe plus.';
+
+  @override
+  String get changeLog_block_alreadyRestored =>
+      'Cet enregistrement est déjà revenu.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Des données ultérieures utilisent encore cet enregistrement.';
+
+  @override
+  String get changeLog_reverted => 'Rétabli';
+
+  @override
+  String get changeLog_revert_failed =>
+      'Impossible de rétablir cette modification. Rien n\'a été changé.';
+
+  @override
+  String get changeLog_menu_settings => 'Réglages du journal';
+
+  @override
+  String get changeLog_settings_title =>
+      'Réglages du journal des modifications';
+
+  @override
+  String get changeLog_retention_title => 'Conserver les entrées pendant';
+
+  @override
+  String get changeLog_retention_note =>
+      'Chaque appareil tient son propre journal. Les anciennes entrées sont supprimées automatiquement.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count mois';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Toujours';
+
+  @override
+  String get changeLog_clear => 'Effacer le journal';
+
+  @override
+  String get changeLog_clear_title => 'Effacer le journal des modifications ?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Cela supprime les entrées du plongeur actif de cet appareil. Vous ne pourrez plus les rétablir ensuite.';
+
+  @override
+  String get changeLog_clear_confirm => 'Effacer';
+
+  @override
+  String get changeLog_clear_failed =>
+      'Impossible d\'effacer le journal des modifications. Rien n\'a été supprimé.';
+
+  @override
+  String get changeLog_day_today => 'Aujourd\'hui';
+
+  @override
+  String get changeLog_day_yesterday => 'Hier';
+
+  @override
+  String get changeLog_storage_label => 'Journal des modifications';
 }

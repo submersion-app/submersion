@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_computer/presentation/navigation/dive_computer_location.dart';
@@ -1326,6 +1327,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 }
               },
               itemBuilder: (context) => [
+                changeLogHistoryMenuItem(
+                  context,
+                  rootTable: 'dives',
+                  rootId: diveId,
+                ),
                 displayOptionsMenuItem(context, 'displayOptions'),
                 if (compactActions)
                   PopupMenuItem(
@@ -1596,6 +1602,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     }
                   },
                   itemBuilder: (context) => [
+                    changeLogHistoryMenuItem(
+                      context,
+                      rootTable: 'dives',
+                      rootId: diveId,
+                    ),
                     PopupMenuItem(
                       value: 'open',
                       child: ListTile(

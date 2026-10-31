@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -845,7 +846,14 @@ class DiveRepository {
   /// null) and gets the site's snap from its own current values. Marks each
   /// dive pending. Does NOT open a transaction or notify sync;
   /// BulkDiveEditService owns those.
-  Future<void> bulkSetSite(List<String> diveIds, String? siteId) async {
+  Future<void> bulkSetSite(List<String> diveIds, String? siteId) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkSetSiteInner(diveIds, siteId),
+      );
+
+  Future<void> _bulkSetSiteInner(List<String> diveIds, String? siteId) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final siteRow = await _siteRowOrNull(siteId);
@@ -2604,6 +2612,15 @@ class DiveRepository {
   /// Bulk delete multiple dives
   /// Returns the list of deleted dive IDs for potential undo
   Future<List<String>> bulkDeleteDives(
+    List<String> ids, {
+    bool cascadeMedia = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkDelete,
+    body: () => _bulkDeleteDivesInner(ids, cascadeMedia: cascadeMedia),
+  );
+
+  Future<List<String>> _bulkDeleteDivesInner(
     List<String> ids, {
     bool cascadeMedia = true,
   }) async {
@@ -6602,7 +6619,18 @@ class DiveRepository {
   /// Dive numbers are a per-diver lifetime counter, so callers editing a
   /// single diver's numbering must pass their ID or the other diver's
   /// sequence will be overwritten.
-  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) async {
+  Future<void> renumberAllDives({int startFrom = 1, String? diverId}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () =>
+            _renumberAllDivesInner(startFrom: startFrom, diverId: diverId),
+      );
+
+  Future<void> _renumberAllDivesInner({
+    int startFrom = 1,
+    String? diverId,
+  }) async {
     try {
       _log.info(
         'Renumbering dives starting from $startFrom'
@@ -6701,7 +6729,14 @@ class DiveRepository {
   /// Absent columns are left untouched (Drift writes only present columns).
   /// Forces `updatedAt = now` and marks each dive pending. Does NOT open a
   /// transaction or notify sync — BulkDiveEditService owns those.
-  Future<void> bulkUpdateFields(
+  Future<void> bulkUpdateFields(List<String> diveIds, DivesCompanion partial) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkUpdateFieldsInner(diveIds, partial),
+      );
+
+  Future<void> _bulkUpdateFieldsInner(
     List<String> diveIds,
     DivesCompanion partial,
   ) async {
@@ -6737,7 +6772,14 @@ class DiveRepository {
   /// Markdown paragraph: a blank line after existing notes, so it never
   /// joins their last paragraph or list item (#3683). Empty existing notes
   /// receive just the text. No transaction/notify.
-  Future<void> bulkAppendNotes(
+  Future<void> bulkAppendNotes(List<String> diveIds, String textToAppend) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkAppendNotesInner(diveIds, textToAppend),
+      );
+
+  Future<void> _bulkAppendNotesInner(
     List<String> diveIds,
     String textToAppend,
   ) async {
@@ -6811,7 +6853,17 @@ class DiveRepository {
   /// Shifts dive_date_time always, entry_time/exit_time only when non-null.
   /// Forces `updated_at = now` and marks each dive pending. Does NOT open a
   /// transaction or notify sync -- the repair executor owns those.
-  Future<void> bulkShiftDiveTimes(List<String> diveIds, Duration offset) async {
+  Future<void> bulkShiftDiveTimes(List<String> diveIds, Duration offset) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkShiftDiveTimesInner(diveIds, offset),
+      );
+
+  Future<void> _bulkShiftDiveTimesInner(
+    List<String> diveIds,
+    Duration offset,
+  ) async {
     if (diveIds.isEmpty || offset == Duration.zero) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     final ms = offset.inMilliseconds;
@@ -8083,7 +8135,17 @@ class DiveRepository {
   }
 
   /// Bulk update trip for multiple dives
-  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) async {
+  Future<void> bulkUpdateTrip(List<String> diveIds, String? tripId) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.bulkEdit,
+        body: () => _bulkUpdateTripInner(diveIds, tripId),
+      );
+
+  Future<void> _bulkUpdateTripInner(
+    List<String> diveIds,
+    String? tripId,
+  ) async {
     if (diveIds.isEmpty) return;
 
     try {
@@ -8127,6 +8189,16 @@ class DiveRepository {
   /// [notify] false leaves the sync notification to the caller (a rules
   /// run notifies once; its rolled-back preview must not notify at all).
   Future<void> bulkAddTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _bulkAddTagsInner(diveIds, tagIds, notify: notify),
+  );
+
+  Future<void> _bulkAddTagsInner(
     List<String> diveIds,
     List<String> tagIds, {
     bool notify = true,
@@ -8190,6 +8262,16 @@ class DiveRepository {
   /// Bulk remove tags from multiple dives
   /// [notify] as for [bulkAddTags].
   Future<void> bulkRemoveTags(
+    List<String> diveIds,
+    List<String> tagIds, {
+    bool notify = true,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _bulkRemoveTagsInner(diveIds, tagIds, notify: notify),
+  );
+
+  Future<void> _bulkRemoveTagsInner(
     List<String> diveIds,
     List<String> tagIds, {
     bool notify = true,

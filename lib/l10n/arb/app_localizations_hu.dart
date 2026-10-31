@@ -56902,4 +56902,402 @@ class AppLocalizationsHu extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Változásnapló';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Nézze meg, mi változott, és állítsa vissza';
+
+  @override
+  String get changeLog_empty_title => 'Még nincsenek változások';
+
+  @override
+  String get changeLog_empty_body =>
+      'A merülések, helyszínek, felszerelés és beállítások változásai itt jelennek meg.';
+
+  @override
+  String get changeLog_empty_filtered => 'Nincs a szűrőnek megfelelő változás.';
+
+  @override
+  String get changeLog_filter_all => 'Mind';
+
+  @override
+  String get changeLog_filter_dives => 'Merülések';
+
+  @override
+  String get changeLog_filter_sites => 'Helyszínek';
+
+  @override
+  String get changeLog_filter_gear => 'Felszerelés';
+
+  @override
+  String get changeLog_filter_settings => 'Beállítások';
+
+  @override
+  String get changeLog_filter_source => 'Forrás';
+
+  @override
+  String get changeLog_filter_anySource => 'Bármely forrás';
+
+  @override
+  String get changeLog_source_manual => 'Kézi szerkesztés';
+
+  @override
+  String get changeLog_source_import => 'Importálás';
+
+  @override
+  String get changeLog_source_download => 'Búvárkomputer';
+
+  @override
+  String get changeLog_source_rule => 'Szabály';
+
+  @override
+  String get changeLog_source_sync => 'Szinkronizálás';
+
+  @override
+  String get changeLog_source_automatic => 'Automatikus';
+
+  @override
+  String get changeLog_source_revert => 'Visszaállítás';
+
+  @override
+  String get changeLog_source_system => 'Rendszer';
+
+  @override
+  String get changeLog_thisDevice => 'Ez az eszköz';
+
+  @override
+  String get changeLog_anotherDevice => 'másik eszköz';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Szinkronizálva innen: $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count további';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megtekintése',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return '$number. merülés, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get changeLog_dive => 'Merülés';
+
+  @override
+  String get changeLog_action_added => 'Hozzáadva';
+
+  @override
+  String get changeLog_action_deleted => 'Törölve';
+
+  @override
+  String get changeLog_action_edited => 'Szerkesztve';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Importálva innen: $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Letöltve innen: $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Szinkronizált változások';
+
+  @override
+  String get changeLog_title_rule => 'Szabály futtatása';
+
+  @override
+  String get changeLog_title_revert => 'Változás visszaállítva';
+
+  @override
+  String get changeLog_title_changes => 'Változások';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Tömeges szerkesztés';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Tömeges törlés';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Rekord törölve';
+
+  @override
+  String get changeLog_label_merge => 'Rekordok egyesítve';
+
+  @override
+  String get changeLog_label_undoMerge => 'Egyesítés visszavonva';
+
+  @override
+  String get changeLog_label_undoRule => 'Szabályfuttatás visszavonva';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Adatminőség-javítás';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Könyvtár hozzáadva ehhez az eszközhöz';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Könyvtár lecserélve';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Könyvtár visszaállítva biztonsági mentésből';
+
+  @override
+  String get changeLog_label_reparse => 'Merülések újraelemezve';
+
+  @override
+  String get changeLog_label_splitDive => 'Merülés szétválasztva';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Felszerelés átadva';
+
+  @override
+  String get changeLog_label_mediaRepair => 'Médiahivatkozások javítva';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'Felszerelésfájlok áthelyezve a Dokumentumokba';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Fotók összekapcsolva a felhőbeli másolatokkal';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'Nem használt fájlok törölve';
+
+  @override
+  String get changeLog_label_accountMigration => 'Fiókhivatkozások frissítve';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size adat';
+  }
+
+  @override
+  String get changeLog_table_settings => 'Alkalmazásbeállítások';
+
+  @override
+  String get changeLog_table_diverSettings => 'Búvárbeállítások';
+
+  @override
+  String get changeLog_history => 'Előzmények';
+
+  @override
+  String get changeLog_detail_title => 'Változás részletei';
+
+  @override
+  String get changeLog_detail_open => 'Rekord megnyitása';
+
+  @override
+  String get changeLog_detail_history => 'A rekord előzményei';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'És még $count rekord',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Visszaállítás';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Mind a(z) $count visszaállítása';
+  }
+
+  @override
+  String get changeLog_restore => 'Visszaállítás';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Visszaállítja: $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince => 'Ez a mező azóta megváltozott.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Ebben a bejegyzésben: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Most: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Visszaállítás után: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'A többi eszköz ezt új szerkesztésként kapja meg. Megjelenik a naplóban, és ez is visszaállítható.';
+
+  @override
+  String get changeLog_revert_anyway => 'Visszaállítás mindenképp';
+
+  @override
+  String get changeLog_undoImport => 'Importálás visszavonása';
+
+  @override
+  String get changeLog_undoEntry => 'Változás visszavonása';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Eltávolítja a hozzáadott elemeket, és visszavonja a többi változást. Előbb rákérdez, és felsorolja, amit azóta szerkesztett.';
+
+  @override
+  String get changeLog_bulk_title => 'Visszavonja ezt a bejegyzést?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megváltozott azóta.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'A többi visszaállítása';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Összes visszaállítása';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count változás visszaállítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rekord megmaradt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Ez a rekord már nem létezik.';
+
+  @override
+  String get changeLog_block_columnGone => 'Ez a mező már nem létezik.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Egy frissítés megváltoztatta az érték tárolását, ezért nem állítható vissza.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'A rekord, amelyhez tartozik, már nem létezik.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'Ez a rekord már visszakerült.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Későbbi adatok még használják ezt a rekordot.';
+
+  @override
+  String get changeLog_reverted => 'Visszaállítva';
+
+  @override
+  String get changeLog_revert_failed =>
+      'A változás nem állítható vissza. Semmi sem módosult.';
+
+  @override
+  String get changeLog_menu_settings => 'Napló beállításai';
+
+  @override
+  String get changeLog_settings_title => 'Változásnapló beállításai';
+
+  @override
+  String get changeLog_retention_title => 'Bejegyzések megőrzése';
+
+  @override
+  String get changeLog_retention_note =>
+      'Minden eszköz saját naplót vezet. A régebbi bejegyzések automatikusan törlődnek.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count hónap';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Örökre';
+
+  @override
+  String get changeLog_clear => 'Napló törlése';
+
+  @override
+  String get changeLog_clear_title => 'Törli a változásnaplót?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Ez eltávolítja az aktív búvár bejegyzéseit erről az eszközről. Utána már nem állíthatók vissza.';
+
+  @override
+  String get changeLog_clear_confirm => 'Törlés';
+
+  @override
+  String get changeLog_clear_failed =>
+      'A változásnapló nem törölhető. Semmi sem lett eltávolítva.';
+
+  @override
+  String get changeLog_day_today => 'Ma';
+
+  @override
+  String get changeLog_day_yesterday => 'Tegnap';
+
+  @override
+  String get changeLog_storage_label => 'Változásnapló';
 }

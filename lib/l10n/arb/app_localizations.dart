@@ -90277,6 +90277,636 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}'**
   String common_byteSize(String value, String unit);
+
+  /// No description provided for @changeLog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log'**
+  String get changeLog_title;
+
+  /// No description provided for @changeLog_settings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See what changed, and put it back'**
+  String get changeLog_settings_subtitle;
+
+  /// No description provided for @changeLog_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes yet'**
+  String get changeLog_empty_title;
+
+  /// No description provided for @changeLog_empty_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes to your dives, sites, gear and settings appear here.'**
+  String get changeLog_empty_body;
+
+  /// No description provided for @changeLog_empty_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes match this filter.'**
+  String get changeLog_empty_filtered;
+
+  /// No description provided for @changeLog_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get changeLog_filter_all;
+
+  /// No description provided for @changeLog_filter_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get changeLog_filter_dives;
+
+  /// No description provided for @changeLog_filter_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get changeLog_filter_sites;
+
+  /// No description provided for @changeLog_filter_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get changeLog_filter_gear;
+
+  /// No description provided for @changeLog_filter_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get changeLog_filter_settings;
+
+  /// No description provided for @changeLog_filter_source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get changeLog_filter_source;
+
+  /// No description provided for @changeLog_filter_anySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Any source'**
+  String get changeLog_filter_anySource;
+
+  /// No description provided for @changeLog_source_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual edit'**
+  String get changeLog_source_manual;
+
+  /// No description provided for @changeLog_source_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get changeLog_source_import;
+
+  /// No description provided for @changeLog_source_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get changeLog_source_download;
+
+  /// No description provided for @changeLog_source_rule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule'**
+  String get changeLog_source_rule;
+
+  /// No description provided for @changeLog_source_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get changeLog_source_sync;
+
+  /// No description provided for @changeLog_source_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get changeLog_source_automatic;
+
+  /// No description provided for @changeLog_source_revert.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert'**
+  String get changeLog_source_revert;
+
+  /// No description provided for @changeLog_source_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get changeLog_source_system;
+
+  /// No description provided for @changeLog_thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get changeLog_thisDevice;
+
+  /// No description provided for @changeLog_anotherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'another device'**
+  String get changeLog_anotherDevice;
+
+  /// No description provided for @changeLog_syncedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced from {device}'**
+  String changeLog_syncedFrom(String device);
+
+  /// No description provided for @changeLog_moreFields.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String changeLog_moreFields(int count);
+
+  /// No description provided for @changeLog_viewRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{View {count} record} other{View {count} records}}'**
+  String changeLog_viewRecords(int count);
+
+  /// No description provided for @changeLog_dive_numberSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}, {site}'**
+  String changeLog_dive_numberSite(String number, String site);
+
+  /// No description provided for @changeLog_dive_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String changeLog_dive_number(String number);
+
+  /// No description provided for @changeLog_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get changeLog_dive;
+
+  /// No description provided for @changeLog_action_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get changeLog_action_added;
+
+  /// No description provided for @changeLog_action_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get changeLog_action_deleted;
+
+  /// No description provided for @changeLog_action_edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get changeLog_action_edited;
+
+  /// No description provided for @changeLog_title_import.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported from {source}'**
+  String changeLog_title_import(String source);
+
+  /// No description provided for @changeLog_title_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded from {source}'**
+  String changeLog_title_download(String source);
+
+  /// No description provided for @changeLog_title_sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced changes'**
+  String get changeLog_title_sync;
+
+  /// No description provided for @changeLog_title_rule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule run'**
+  String get changeLog_title_rule;
+
+  /// No description provided for @changeLog_title_revert.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverted a change'**
+  String get changeLog_title_revert;
+
+  /// No description provided for @changeLog_title_changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes'**
+  String get changeLog_title_changes;
+
+  /// No description provided for @changeLog_label_bulkEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk edit'**
+  String get changeLog_label_bulkEdit;
+
+  /// No description provided for @changeLog_label_bulkDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk delete'**
+  String get changeLog_label_bulkDelete;
+
+  /// No description provided for @changeLog_label_deletedRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted a record'**
+  String get changeLog_label_deletedRecord;
+
+  /// No description provided for @changeLog_label_merge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged records'**
+  String get changeLog_label_merge;
+
+  /// No description provided for @changeLog_label_undoMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Undid a merge'**
+  String get changeLog_label_undoMerge;
+
+  /// No description provided for @changeLog_label_undoRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Undid a rule run'**
+  String get changeLog_label_undoRule;
+
+  /// No description provided for @changeLog_label_qualityRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Data quality repair'**
+  String get changeLog_label_qualityRepair;
+
+  /// No description provided for @changeLog_label_libraryAdopted.
+  ///
+  /// In en, this message translates to:
+  /// **'Library added to this device'**
+  String get changeLog_label_libraryAdopted;
+
+  /// No description provided for @changeLog_label_libraryReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Library replaced'**
+  String get changeLog_label_libraryReplaced;
+
+  /// No description provided for @changeLog_label_libraryRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Library restored from a backup'**
+  String get changeLog_label_libraryRestored;
+
+  /// No description provided for @changeLog_label_reparse.
+  ///
+  /// In en, this message translates to:
+  /// **'Reparsed dives'**
+  String get changeLog_label_reparse;
+
+  /// No description provided for @changeLog_label_splitDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Split a dive'**
+  String get changeLog_label_splitDive;
+
+  /// No description provided for @changeLog_label_gearTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred gear'**
+  String get changeLog_label_gearTransfer;
+
+  /// No description provided for @changeLog_label_mediaRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Repaired media links'**
+  String get changeLog_label_mediaRepair;
+
+  /// No description provided for @changeLog_label_gearFileConversion.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved gear files to Documents'**
+  String get changeLog_label_gearFileConversion;
+
+  /// No description provided for @changeLog_label_galleryBackfill.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked photos to cloud copies'**
+  String get changeLog_label_galleryBackfill;
+
+  /// No description provided for @changeLog_label_mediaCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaned up unused files'**
+  String get changeLog_label_mediaCleanup;
+
+  /// No description provided for @changeLog_label_accountMigration.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated account links'**
+  String get changeLog_label_accountMigration;
+
+  /// No description provided for @changeLog_summaryRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} record} other{{count} records}}'**
+  String changeLog_summaryRecords(int count);
+
+  /// No description provided for @changeLog_value_data.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} of data'**
+  String changeLog_value_data(String size);
+
+  /// No description provided for @changeLog_table_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'App settings'**
+  String get changeLog_table_settings;
+
+  /// No description provided for @changeLog_table_diverSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver settings'**
+  String get changeLog_table_diverSettings;
+
+  /// No description provided for @changeLog_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get changeLog_history;
+
+  /// No description provided for @changeLog_detail_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Change details'**
+  String get changeLog_detail_title;
+
+  /// No description provided for @changeLog_detail_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open record'**
+  String get changeLog_detail_open;
+
+  /// No description provided for @changeLog_detail_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History of this record'**
+  String get changeLog_detail_history;
+
+  /// No description provided for @changeLog_detail_moreRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{And {count} more record} other{And {count} more records}}'**
+  String changeLog_detail_moreRecords(int count);
+
+  /// No description provided for @changeLog_revert.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert'**
+  String get changeLog_revert;
+
+  /// No description provided for @changeLog_revertAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert all {count}'**
+  String changeLog_revertAll(int count);
+
+  /// No description provided for @changeLog_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get changeLog_restore;
+
+  /// No description provided for @changeLog_revert_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert {field}?'**
+  String changeLog_revert_title(String field);
+
+  /// No description provided for @changeLog_revert_changedSince.
+  ///
+  /// In en, this message translates to:
+  /// **'This field has changed since this entry.'**
+  String get changeLog_revert_changedSince;
+
+  /// No description provided for @changeLog_revert_setInEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Set in this entry: {value}'**
+  String changeLog_revert_setInEntry(String value);
+
+  /// No description provided for @changeLog_revert_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Now: {value}'**
+  String changeLog_revert_now(String value);
+
+  /// No description provided for @changeLog_revert_after.
+  ///
+  /// In en, this message translates to:
+  /// **'After revert: {value}'**
+  String changeLog_revert_after(String value);
+
+  /// No description provided for @changeLog_revert_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices will receive this as a new edit. It appears in the log and can be reverted too.'**
+  String get changeLog_revert_note;
+
+  /// No description provided for @changeLog_revert_anyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert anyway'**
+  String get changeLog_revert_anyway;
+
+  /// No description provided for @changeLog_undoImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo this import'**
+  String get changeLog_undoImport;
+
+  /// No description provided for @changeLog_undoEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo this change'**
+  String get changeLog_undoEntry;
+
+  /// No description provided for @changeLog_undo_explain.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes what this added and reverses its other changes. Asks first, and lists anything you have edited since.'**
+  String get changeLog_undo_explain;
+
+  /// No description provided for @changeLog_bulk_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo this entry?'**
+  String get changeLog_bulk_title;
+
+  /// No description provided for @changeLog_bulk_changedSince.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} record has changed since this entry.} other{{count} records have changed since this entry.}}'**
+  String changeLog_bulk_changedSince(int count);
+
+  /// No description provided for @changeLog_bulk_revertRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert the rest'**
+  String get changeLog_bulk_revertRest;
+
+  /// No description provided for @changeLog_bulk_revertAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert all'**
+  String get changeLog_bulk_revertAll;
+
+  /// No description provided for @changeLog_result_reverted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Reverted {count} change} other{Reverted {count} changes}}'**
+  String changeLog_result_reverted(int count);
+
+  /// No description provided for @changeLog_result_kept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} record was kept} other{{count} records were kept}}'**
+  String changeLog_result_kept(int count);
+
+  /// No description provided for @changeLog_block_recordGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This record no longer exists.'**
+  String get changeLog_block_recordGone;
+
+  /// No description provided for @changeLog_block_columnGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This field no longer exists.'**
+  String get changeLog_block_columnGone;
+
+  /// No description provided for @changeLog_block_rewritten.
+  ///
+  /// In en, this message translates to:
+  /// **'An app update changed how this value is stored, so it can\'t be put back.'**
+  String get changeLog_block_rewritten;
+
+  /// No description provided for @changeLog_block_parentGone.
+  ///
+  /// In en, this message translates to:
+  /// **'The record this belongs to no longer exists.'**
+  String get changeLog_block_parentGone;
+
+  /// No description provided for @changeLog_block_alreadyRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'This record is already back.'**
+  String get changeLog_block_alreadyRestored;
+
+  /// No description provided for @changeLog_block_inUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Later data still uses this record.'**
+  String get changeLog_block_inUse;
+
+  /// No description provided for @changeLog_reverted.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverted'**
+  String get changeLog_reverted;
+
+  /// No description provided for @changeLog_revert_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revert this change. Nothing was changed.'**
+  String get changeLog_revert_failed;
+
+  /// No description provided for @changeLog_menu_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Log settings'**
+  String get changeLog_menu_settings;
+
+  /// No description provided for @changeLog_settings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log settings'**
+  String get changeLog_settings_title;
+
+  /// No description provided for @changeLog_retention_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep entries for'**
+  String get changeLog_retention_title;
+
+  /// No description provided for @changeLog_retention_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Each device keeps its own log. Older entries are removed automatically.'**
+  String get changeLog_retention_note;
+
+  /// No description provided for @changeLog_retention_months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String changeLog_retention_months(int count);
+
+  /// No description provided for @changeLog_retention_forever.
+  ///
+  /// In en, this message translates to:
+  /// **'Forever'**
+  String get changeLog_retention_forever;
+
+  /// No description provided for @changeLog_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear log'**
+  String get changeLog_clear;
+
+  /// No description provided for @changeLog_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the change log?'**
+  String get changeLog_clear_title;
+
+  /// No description provided for @changeLog_clear_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the active diver\'s entries from this device. You won\'t be able to revert them afterwards.'**
+  String get changeLog_clear_body;
+
+  /// No description provided for @changeLog_clear_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get changeLog_clear_confirm;
+
+  /// No description provided for @changeLog_clear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t clear the change log. Nothing was removed.'**
+  String get changeLog_clear_failed;
+
+  /// No description provided for @changeLog_day_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get changeLog_day_today;
+
+  /// No description provided for @changeLog_day_yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get changeLog_day_yesterday;
+
+  /// No description provided for @changeLog_storage_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log'**
+  String get changeLog_storage_label;
 }
 
 class _AppLocalizationsDelegate

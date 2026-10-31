@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
 
@@ -73,6 +75,15 @@ class DiveTimeMigrationService {
   /// old window back over the fix (#3655). Every moved row is marked
   /// pending so the fix reaches the diver's other devices.
   Future<void> applyOffset({
+    required List<String> diveIds,
+    required int hours,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.bulkEdit,
+    body: () => _applyOffsetInner(diveIds: diveIds, hours: hours),
+  );
+
+  Future<void> _applyOffsetInner({
     required List<String> diveIds,
     required int hours,
   }) async {

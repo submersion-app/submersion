@@ -57226,4 +57226,412 @@ class AppLocalizationsIt extends AppLocalizations {
     });
     return '$value $_temp0';
   }
+
+  @override
+  String get changeLog_title => 'Registro modifiche';
+
+  @override
+  String get changeLog_settings_subtitle =>
+      'Scopri cosa è cambiato e ripristinalo';
+
+  @override
+  String get changeLog_empty_title => 'Ancora nessuna modifica';
+
+  @override
+  String get changeLog_empty_body =>
+      'Qui compaiono le modifiche a immersioni, siti, attrezzatura e impostazioni.';
+
+  @override
+  String get changeLog_empty_filtered =>
+      'Nessuna modifica corrisponde a questo filtro.';
+
+  @override
+  String get changeLog_filter_all => 'Tutto';
+
+  @override
+  String get changeLog_filter_dives => 'Immersioni';
+
+  @override
+  String get changeLog_filter_sites => 'Siti';
+
+  @override
+  String get changeLog_filter_gear => 'Attrezzatura';
+
+  @override
+  String get changeLog_filter_settings => 'Impostazioni';
+
+  @override
+  String get changeLog_filter_source => 'Origine';
+
+  @override
+  String get changeLog_filter_anySource => 'Qualsiasi origine';
+
+  @override
+  String get changeLog_source_manual => 'Modifica manuale';
+
+  @override
+  String get changeLog_source_import => 'Importazione';
+
+  @override
+  String get changeLog_source_download => 'Computer subacqueo';
+
+  @override
+  String get changeLog_source_rule => 'Regola';
+
+  @override
+  String get changeLog_source_sync => 'Sincronizzazione';
+
+  @override
+  String get changeLog_source_automatic => 'Automatico';
+
+  @override
+  String get changeLog_source_revert => 'Ripristino';
+
+  @override
+  String get changeLog_source_system => 'Sistema';
+
+  @override
+  String get changeLog_thisDevice => 'Questo dispositivo';
+
+  @override
+  String get changeLog_anotherDevice => 'un altro dispositivo';
+
+  @override
+  String changeLog_syncedFrom(String device) {
+    return 'Sincronizzato da $device';
+  }
+
+  @override
+  String changeLog_moreFields(int count) {
+    return '+$count altri';
+  }
+
+  @override
+  String changeLog_viewRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vedi $count record',
+      one: 'Vedi $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_dive_numberSite(String number, String site) {
+    return 'Immersione $number, $site';
+  }
+
+  @override
+  String changeLog_dive_number(String number) {
+    return 'Immersione $number';
+  }
+
+  @override
+  String get changeLog_dive => 'Immersione';
+
+  @override
+  String get changeLog_action_added => 'Aggiunto';
+
+  @override
+  String get changeLog_action_deleted => 'Eliminato';
+
+  @override
+  String get changeLog_action_edited => 'Modificato';
+
+  @override
+  String changeLog_title_import(String source) {
+    return 'Importato da $source';
+  }
+
+  @override
+  String changeLog_title_download(String source) {
+    return 'Scaricato da $source';
+  }
+
+  @override
+  String get changeLog_title_sync => 'Modifiche sincronizzate';
+
+  @override
+  String get changeLog_title_rule => 'Esecuzione regola';
+
+  @override
+  String get changeLog_title_revert => 'Modifica ripristinata';
+
+  @override
+  String get changeLog_title_changes => 'Modifiche';
+
+  @override
+  String get changeLog_label_bulkEdit => 'Modifica in blocco';
+
+  @override
+  String get changeLog_label_bulkDelete => 'Eliminazione in blocco';
+
+  @override
+  String get changeLog_label_deletedRecord => 'Record eliminato';
+
+  @override
+  String get changeLog_label_merge => 'Record uniti';
+
+  @override
+  String get changeLog_label_undoMerge => 'Unione annullata';
+
+  @override
+  String get changeLog_label_undoRule => 'Esecuzione regola annullata';
+
+  @override
+  String get changeLog_label_qualityRepair => 'Riparazione qualità dati';
+
+  @override
+  String get changeLog_label_libraryAdopted =>
+      'Libreria aggiunta a questo dispositivo';
+
+  @override
+  String get changeLog_label_libraryReplaced => 'Libreria sostituita';
+
+  @override
+  String get changeLog_label_libraryRestored =>
+      'Libreria ripristinata da un backup';
+
+  @override
+  String get changeLog_label_reparse => 'Immersioni rianalizzate';
+
+  @override
+  String get changeLog_label_splitDive => 'Immersione divisa';
+
+  @override
+  String get changeLog_label_gearTransfer => 'Attrezzatura trasferita';
+
+  @override
+  String get changeLog_label_mediaRepair =>
+      'Collegamenti multimediali riparati';
+
+  @override
+  String get changeLog_label_gearFileConversion =>
+      'File attrezzatura spostati in Documenti';
+
+  @override
+  String get changeLog_label_galleryBackfill =>
+      'Foto collegate alle copie cloud';
+
+  @override
+  String get changeLog_label_mediaCleanup => 'File inutilizzati rimossi';
+
+  @override
+  String get changeLog_label_accountMigration =>
+      'Collegamenti account aggiornati';
+
+  @override
+  String changeLog_summaryRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record',
+      one: '$count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_value_data(String size) {
+    return '$size di dati';
+  }
+
+  @override
+  String get changeLog_table_settings => 'Impostazioni app';
+
+  @override
+  String get changeLog_table_diverSettings => 'Impostazioni subacqueo';
+
+  @override
+  String get changeLog_history => 'Cronologia';
+
+  @override
+  String get changeLog_detail_title => 'Dettagli modifica';
+
+  @override
+  String get changeLog_detail_open => 'Apri record';
+
+  @override
+  String get changeLog_detail_history => 'Cronologia di questo record';
+
+  @override
+  String changeLog_detail_moreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'E altri $count record',
+      one: 'E altri $count record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_revert => 'Ripristina';
+
+  @override
+  String changeLog_revertAll(int count) {
+    return 'Ripristina tutti ($count)';
+  }
+
+  @override
+  String get changeLog_restore => 'Ripristina';
+
+  @override
+  String changeLog_revert_title(String field) {
+    return 'Ripristinare $field?';
+  }
+
+  @override
+  String get changeLog_revert_changedSince =>
+      'Questo campo è cambiato dopo questa voce.';
+
+  @override
+  String changeLog_revert_setInEntry(String value) {
+    return 'Impostato in questa voce: $value';
+  }
+
+  @override
+  String changeLog_revert_now(String value) {
+    return 'Ora: $value';
+  }
+
+  @override
+  String changeLog_revert_after(String value) {
+    return 'Dopo il ripristino: $value';
+  }
+
+  @override
+  String get changeLog_revert_note =>
+      'Gli altri dispositivi la riceveranno come nuova modifica. Compare nel registro e può essere ripristinata a sua volta.';
+
+  @override
+  String get changeLog_revert_anyway => 'Ripristina comunque';
+
+  @override
+  String get changeLog_undoImport => 'Annulla questa importazione';
+
+  @override
+  String get changeLog_undoEntry => 'Annulla questa modifica';
+
+  @override
+  String get changeLog_undo_explain =>
+      'Rimuove ciò che è stato aggiunto e annulla le altre modifiche. Chiede prima ed elenca ciò che hai modificato nel frattempo.';
+
+  @override
+  String get changeLog_bulk_title => 'Annullare questa voce?';
+
+  @override
+  String changeLog_bulk_changedSince(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record sono cambiati dopo questa voce.',
+      one: '$count record è cambiato dopo questa voce.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_bulk_revertRest => 'Ripristina il resto';
+
+  @override
+  String get changeLog_bulk_revertAll => 'Ripristina tutto';
+
+  @override
+  String changeLog_result_reverted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modifiche ripristinate',
+      one: '$count modifica ripristinata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String changeLog_result_kept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count record sono stati mantenuti',
+      one: '$count record è stato mantenuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get changeLog_block_recordGone => 'Questo record non esiste più.';
+
+  @override
+  String get changeLog_block_columnGone => 'Questo campo non esiste più.';
+
+  @override
+  String get changeLog_block_rewritten =>
+      'Un aggiornamento ha cambiato il modo in cui è salvato questo valore, quindi non può essere ripristinato.';
+
+  @override
+  String get changeLog_block_parentGone =>
+      'Il record a cui appartiene non esiste più.';
+
+  @override
+  String get changeLog_block_alreadyRestored => 'Questo record è già tornato.';
+
+  @override
+  String get changeLog_block_inUse =>
+      'Dati successivi usano ancora questo record.';
+
+  @override
+  String get changeLog_reverted => 'Ripristinato';
+
+  @override
+  String get changeLog_revert_failed =>
+      'Impossibile ripristinare questa modifica. Non è stato cambiato nulla.';
+
+  @override
+  String get changeLog_menu_settings => 'Impostazioni registro';
+
+  @override
+  String get changeLog_settings_title => 'Impostazioni registro modifiche';
+
+  @override
+  String get changeLog_retention_title => 'Conserva le voci per';
+
+  @override
+  String get changeLog_retention_note =>
+      'Ogni dispositivo ha il proprio registro. Le voci più vecchie vengono rimosse automaticamente.';
+
+  @override
+  String changeLog_retention_months(int count) {
+    return '$count mesi';
+  }
+
+  @override
+  String get changeLog_retention_forever => 'Per sempre';
+
+  @override
+  String get changeLog_clear => 'Cancella registro';
+
+  @override
+  String get changeLog_clear_title => 'Cancellare il registro modifiche?';
+
+  @override
+  String get changeLog_clear_body =>
+      'Rimuove le voci del subacqueo attivo da questo dispositivo. Dopo non potrai ripristinarle.';
+
+  @override
+  String get changeLog_clear_confirm => 'Cancella';
+
+  @override
+  String get changeLog_clear_failed =>
+      'Impossibile cancellare il registro delle modifiche. Non è stato rimosso nulla.';
+
+  @override
+  String get changeLog_day_today => 'Oggi';
+
+  @override
+  String get changeLog_day_yesterday => 'Ieri';
+
+  @override
+  String get changeLog_storage_label => 'Registro modifiche';
 }
