@@ -71,6 +71,86 @@ void main() {
     expect(ranking.map((r) => '${r.id}:${r.count}'), ['al80:2', 'reg:1']);
   });
 
+  test('reports hours in value, each dive once', () async {
+    await equipment('reg', 'regulator');
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: 1000,
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(runtime: const Value(5400)),
+        );
+    await link('d1', 'reg');
+    await tank('k1', 'd1', 'reg');
+
+    final ranking = await repository.getMostUsedGear();
+    expect(ranking.single.count, 1);
+    expect(ranking.single.value, 1.5);
+  });
+
+  test('hands back the brand and the stored type apart', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'reg',
+            name: 'reg',
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(brand: const Value('Apeks')),
+        );
+    await dive('d1', 1);
+    await link('d1', 'reg');
+
+    final item = (await repository.getMostUsedGear()).single;
+    expect(item.subtitle, 'Apeks');
+    expect(item.kind, 'regulator');
+  });
+
+  test('a null limit returns every item, the default stops at ten', () async {
+    for (var i = 0; i < 12; i++) {
+      await equipment('e$i', 'other');
+      await dive('d$i', i + 1);
+      await link('d$i', 'e$i');
+    }
+
+    expect(await repository.getMostUsedGear(limit: null), hasLength(12));
+    expect(await repository.getMostUsedGear(), hasLength(10));
+  });
+
+  test('a registered transmitter serial counts', () async {
+    await equipment('tx', 'transmitter');
+    await dive('d1', 1);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'k1',
+            diveId: 'd1',
+          ).copyWith(transmitterSerial: const Value('A1')),
+        );
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 't1',
+            label: 't1',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+            transmitterSerial: const Value('A1'),
+            transmitterEquipmentId: const Value('tx'),
+          ),
+        );
+
+    final ranking = await repository.getMostUsedGear();
+    expect(ranking.single.id, 'tx');
+  });
+
   test('tank regulators count, first and extra (#3375)', () async {
     await equipment('r1', 'regulator');
     await equipment('r2', 'regulator');
