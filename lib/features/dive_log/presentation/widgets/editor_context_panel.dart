@@ -73,6 +73,18 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
     );
   }
 
+  Widget _buildRangeHint(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        context.l10n.diveLog_profileEditor_selectRangeHint,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
   Widget _buildSelectPanel(BuildContext context) {
     final hasRange = widget.selectedRange != null;
 
@@ -84,16 +96,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           context.l10n.diveLog_profileEditor_rangeOperations,
           style: Theme.of(context).textTheme.titleSmall,
         ),
-        if (!hasRange)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              context.l10n.diveLog_profileEditor_selectRangeHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
+        if (!hasRange) _buildRangeHint(context),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -154,6 +157,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           context.l10n.diveLog_profileEditor_smoothing,
           style: Theme.of(context).textTheme.titleSmall,
         ),
+        if (widget.selectedRange == null) _buildRangeHint(context),
         const SizedBox(height: 12),
         SegmentedButton<int>(
           segments: [

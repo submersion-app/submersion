@@ -119,11 +119,15 @@ void main() {
   testWidgets('a drag in Smooth mode enables Apply to selection', (
     tester,
   ) async {
+    const hint =
+        'Drag across the chart to select a range and enable operations';
     await pumpEditor(tester, EditorMode.smooth);
+    expect(find.text(hint), findsOneWidget);
     expect(enabled(tester, 'Apply to Selection'), isFalse);
 
     await dragAcrossChart(tester);
 
+    expect(find.text(hint), findsNothing);
     expect(enabled(tester, 'Apply to Selection'), isTrue);
   });
 
