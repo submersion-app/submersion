@@ -89,6 +89,18 @@ void main() {
       expect(spans, [(fromDepth: 6.0, toDepth: 0.0, seconds: 40)]);
     });
 
+    test('a split leg always adds back up to its whole duration', () {
+      final spans = splitAscentLeg(
+        airAndEan50,
+        fromDepth: 30,
+        toDepth: 0,
+        seconds: 7,
+      );
+
+      expect(spans.map((span) => span.fromDepth), [30.0, 21.0]);
+      expect(spans.fold<int>(0, (sum, span) => sum + span.seconds), 7);
+    });
+
     test('a plan that ends at the surface has no travel', () {
       final spans = ascentTravelSpans(
         const SchedulePolicy(),

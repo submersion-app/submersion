@@ -26,6 +26,8 @@ class AscentGas {
   const AscentGas({required this.fN2, required this.fHe});
   final double fN2;
   final double fHe;
+
+  double get fO2 => 1.0 - fN2 - fHe;
 }
 
 /// Strategy answering "what do I breathe at this ascent depth?" so the
