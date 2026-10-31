@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/dive_to_plan_converter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Present the "What if..." sheet as a modal bottom sheet.
@@ -45,7 +44,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final profileAsync = ref.watch(diveProfileProvider(widget.dive.id));
     // The preview must be drawn from the same converter input "Open in
     // planner" uses: switches are mandatory waypoints, so a preview without

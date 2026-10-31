@@ -13,15 +13,15 @@ import 'package:submersion/features/equipment/presentation/widgets/condition_evi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Whether [findings] has anything [settings] would show once the master
-/// toggle and the disabled-rule filter are applied. Rules always compute;
-/// hiding happens here, so a toggle flip is instant and reversible.
+/// Whether [findings] has anything to show once the master toggle ([enabled])
+/// and the [disabled] rules are applied. Rules always compute; hiding happens
+/// here, so a toggle flip is instant and reversible.
 bool hasVisibleConditionFindings(
-  AppSettings settings,
-  List<EquipmentFinding>? findings,
-) {
-  if (!settings.conditionEngineEnabled || findings == null) return false;
-  final disabled = settings.conditionDisabledRules;
+  List<EquipmentFinding>? findings, {
+  required bool enabled,
+  required Set<String> disabled,
+}) {
+  if (!enabled || findings == null) return false;
   return findings.any((f) => !disabled.contains(f.ruleId.dbValue));
 }
 
@@ -46,14 +46,20 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final enabled = ref.watch(conditionEngineEnabledProvider);
+    final disabled = ref.watch(
+      settingsProvider.select((s) => s.conditionDisabledRules),
+    );
     // The card hides while the engine's first read is in flight: a rule
     // engine never earns a spinner on a gear page.
     final findings = ref.watch(equipmentConditionProvider(_id)).value;
-    if (!hasVisibleConditionFindings(settings, findings)) {
+    if (!hasVisibleConditionFindings(
+      findings,
+      enabled: enabled,
+      disabled: disabled,
+    )) {
       return const SizedBox.shrink();
     }
-    final disabled = settings.conditionDisabledRules;
     final visible = findings!
         .where((f) => !disabled.contains(f.ruleId.dbValue))
         .toList();
@@ -62,7 +68,7 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final thresholds = ref.watch(exposureThresholdsProvider);
     final selected = ref.watch(selectedConditionFindingProvider(_id));
     // The chart shades the selected finding's window, so the selection has

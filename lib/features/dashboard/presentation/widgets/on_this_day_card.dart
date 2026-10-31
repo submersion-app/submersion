@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dives from this date in prior years.
@@ -19,8 +18,7 @@ class OnThisDayCard extends ConsumerWidget {
     if (dives.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
-    final fmt = UnitFormatter(settings);
+    final fmt = ref.watch(unitFormatterProvider);
 
     return Card(
       margin: EdgeInsets.zero,

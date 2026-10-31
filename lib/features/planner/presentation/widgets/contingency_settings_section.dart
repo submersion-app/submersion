@@ -43,7 +43,7 @@ class _ContingencySettingsSectionState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(divePlanNotifierProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final l10n = context.l10n;
 

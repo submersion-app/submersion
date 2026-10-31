@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/color/color_correction_policy.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/color_correction_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A small pill saying what colour correction [item] is drawn with (issue
@@ -36,9 +35,7 @@ class ColorCorrectionLabel extends ConsumerWidget {
       text = depth == null
           ? l10n.media_color_auto
           : l10n.media_color_labelAutoDepth(
-              UnitFormatter(
-                ref.watch(settingsProvider),
-              ).formatDepth(depth, decimals: 0),
+              ref.watch(unitFormatterProvider).formatDepth(depth, decimals: 0),
             );
     } else {
       text = null;

@@ -538,6 +538,21 @@ void main() {
       expect(result!.avgDepth, 20.0);
     });
 
+    test('averages depth over time, not over samples (#3891)', () async {
+      final bytes = buildTestDiveFitFile(
+        startTime: DateTime(2024, 1, 1, 10, 0, 0),
+        durationSeconds: 600,
+        depthSamples: [10.0, 10.0, 30.0],
+      );
+
+      final result = await service.parseFitFile(bytes);
+
+      // Two equal intervals averaging 10 m and 20 m. A sample average would
+      // say 16.67 m.
+      expect(result, isNotNull);
+      expect(result!.avgDepth, closeTo(15.0, 1e-9));
+    });
+
     test('extracts temperature range from records', () async {
       final bytes = buildTestDiveFitFile(
         startTime: DateTime(2024, 1, 1, 10, 0, 0),

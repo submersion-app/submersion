@@ -6,7 +6,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card listing the newest dives shared with a buddy, capped at five, with a
@@ -26,7 +25,7 @@ class BuddySharedDivesSection extends ConsumerWidget {
     final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddyId));
     final divesAsync = ref.watch(divesForBuddyProvider(buddyId));
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Card(
       child: Padding(

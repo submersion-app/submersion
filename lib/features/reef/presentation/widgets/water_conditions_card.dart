@@ -7,7 +7,6 @@ import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Satellite water conditions: temperature, anomaly, and — on reefs — the
@@ -63,7 +62,7 @@ class WaterConditionsCard extends ConsumerWidget {
 
     final lines = buildWaterConditionsLines(
       l10n: context.l10n,
-      units: UnitFormatter(ref.watch(settingsProvider)),
+      units: ref.watch(unitFormatterProvider),
       health: health.value!,
       reefPossible: reefPossibleFor(habitat),
     ).all;

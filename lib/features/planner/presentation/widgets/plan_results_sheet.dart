@@ -23,7 +23,6 @@ import 'package:submersion/features/planner/presentation/providers/plan_results_
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -151,8 +150,7 @@ class PlanResultsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
     final state = ref.watch(divePlanNotifierProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
     final theme = Theme.of(context);
 
     String tankLabel(String? tankId) {
@@ -172,16 +170,19 @@ class PlanResultsSheet extends ConsumerWidget {
     final resolvedRoles = const TankRoleResolver().rolesFor(
       divePlanFromState(state),
     );
-    // On a loop plan this list is what the loop consumes: the diluent(s)
-    // and the oxygen supply, the plan's two mandatory slots (#3220). The
-    // bailout cylinders carry no loop consumption and live in the bailout
-    // section's own picture instead (#3137 follow-up). Open circuit has no
-    // such distinction, so every tank it resolves to still shows.
+    // On a loop plan this list is what the plan consumes: the diluent(s) and
+    // the oxygen supply, the plan's two mandatory slots (#3220), plus any
+    // bailout cylinder an authored off-loop segment actually breathes
+    // (#3898). The bailout cylinders otherwise carry no consumption and live
+    // in the bailout section's own picture instead (#3137 follow-up). Open
+    // circuit has no such distinction, so every tank it resolves to still
+    // shows.
     final loopTankUsages = outcome.tankUsages.where((u) {
       final role = resolvedRoles[u.tankId];
       return state.mode == PlanMode.oc ||
           role == TankRole.diluent ||
-          role == TankRole.oxygenSupply;
+          role == TankRole.oxygenSupply ||
+          u.litersUsed > 0;
     });
 
     return ListView(

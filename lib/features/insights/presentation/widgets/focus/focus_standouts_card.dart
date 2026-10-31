@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_factor_labels.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -24,7 +23,7 @@ class FocusStandoutsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),

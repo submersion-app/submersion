@@ -12,7 +12,6 @@ import 'package:submersion/features/planner/presentation/mission/mission_issue_t
 import 'package:submersion/features/planner/presentation/mission/mission_leg_editor.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_units.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The route of a DPV mission, in place of the segment list while a mission
@@ -29,7 +28,7 @@ class MissionLegList extends ConsumerWidget {
     );
     if (mission == null) return const SizedBox.shrink();
     final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final units = MissionUnits(UnitFormatter(ref.watch(settingsProvider)));
+    final units = MissionUnits(ref.watch(unitFormatterProvider));
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final openWater = mission.environment == MissionEnvironment.openWater;

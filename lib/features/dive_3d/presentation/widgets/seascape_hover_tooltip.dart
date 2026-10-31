@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Compact readout for a hovered seascape terrain vertex: coordinates in the
 /// diver's notation, plus the seafloor depth in the diver's units.
@@ -29,7 +28,7 @@ class SeascapeHoverTooltip extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final info = seascapeCellInfo(grid, pick);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final depth = info.depthMeters;
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme.labelSmall;

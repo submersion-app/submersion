@@ -15,7 +15,6 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/list_scrubber/list_scrubber.dart';
@@ -244,7 +243,7 @@ class _DiveListScrubberState extends ConsumerState<DiveListScrubber> {
         ? index.entries
         : const <DiveScrubberEntry>[];
     final field = sort.field;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
     final locale = Localizations.localeOf(context).toString();
     _refreshCache(

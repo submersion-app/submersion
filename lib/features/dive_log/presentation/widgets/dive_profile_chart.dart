@@ -2833,12 +2833,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     _metricRanges.clear();
     _metricHasData.clear();
-    final settings = ref.watch(settingsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final profileMetricColors = ref.watch(
+      settingsProvider.select((s) => s.profileMetricColors),
+    );
     _palette = ProfileMetricPalette(
-      overrides: settings.profileMetricColors,
+      overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
     );
-    final units = UnitFormatter(settings);
     // Temperature data from the active source or any overlaid source should
     // surface the temperature toggle.
     final overlaySources = widget.overlays ?? const <ChartSourceOverlay>[];
@@ -3731,6 +3733,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Apply zoom and pan to calculate visible bounds (see ChartViewport).
     final visibleRangeX = totalMaxTime * _viewport.visibleWidth;
     final visibleRangeY = totalMaxDepth * _viewport.visibleHeight;
+    final depthInterval = _calculateDepthInterval(visibleRangeY);
 
     final visibleMinX = _viewport.offsetX * totalMaxTime;
     final visibleMaxX = visibleMinX + visibleRangeX;
@@ -3784,6 +3787,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
     _rightAxisSelectorActive = effectiveRightAxisMetric != null;
+    // Mean depth is plotted at its real depth, not stretched across
+    // [metricBand], so its axis repeats the depth axis instead of unmapping
+    // the band (issue #3892).
+    final rightAxisIsDepthScale =
+        effectiveRightAxisMetric == ProfileRightAxisMetric.meanDepth;
+    // Axis values are negated display-unit depths (surface at 0).
+    String depthTickLabel(double axisValue) => '${(-axisValue).toInt()}';
 
     final combinedSig = _sigOf([
       _baseSig,
@@ -4142,7 +4152,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: true,
-              horizontalInterval: _calculateDepthInterval(visibleRangeY),
+              horizontalInterval: depthInterval,
               verticalInterval: _calculateTimeInterval(visibleRangeX),
               getDrawingHorizontalLine: (value) => FlLine(
                 color: colorScheme.outlineVariant.withValues(alpha: 0.3),
@@ -4164,20 +4174,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: DiveProfileChart.leftAxisSize(availableWidth),
-                  interval: _calculateDepthInterval(visibleRangeY),
+                  interval: depthInterval,
                   getTitlesWidget: (value, meta) {
                     // Suppress interval ticks too close to the min boundary
                     // (min is the most-negative value = deepest depth).
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Show positive depth values (negate the negative axis values)
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        '${(-value).toInt()}',
+                        depthTickLabel(value),
                         style: Theme.of(context).textTheme.labelSmall,
                         maxLines: 1,
                       ),
@@ -4252,49 +4260,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
+                  interval: rightAxisIsDepthScale ? depthInterval : null,
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
                       return const SizedBox();
                     }
                     // Suppress interval ticks too close to the min boundary
-                    final interval = _calculateDepthInterval(visibleRangeY);
                     final distToMin = (value - meta.min).abs();
-                    if (distToMin > 0 && distToMin < interval * 0.4) {
+                    if (distToMin > 0 && distToMin < depthInterval * 0.4) {
                       return const SizedBox.shrink();
                     }
-                    // Map from inverted depth axis to the metric value
-                    final metricValue = metricBand.unmap(
-                      -value,
-                      rightAxisRange.min,
-                      rightAxisRange.max,
-                    );
-                    if (metricValue < rightAxisRange.min ||
-                        metricValue > rightAxisRange.max) {
-                      return const SizedBox();
+                    final String label;
+                    if (rightAxisIsDepthScale) {
+                      label = depthTickLabel(value);
+                    } else {
+                      // Map from inverted depth axis to the metric value
+                      final metricValue = metricBand.unmap(
+                        -value,
+                        rightAxisRange.min,
+                        rightAxisRange.max,
+                      );
+                      if (metricValue < rightAxisRange.min ||
+                          metricValue > rightAxisRange.max) {
+                        return const SizedBox();
+                      }
+                      // Metric distance to the neighbouring tick, so the
+                      // label carries enough decimals to differ from it.
+                      final tickStep =
+                          metricBand.unmap(
+                            -(value + meta.appliedInterval),
+                            rightAxisRange.min,
+                            rightAxisRange.max,
+                          ) -
+                          metricValue;
+                      label = formatRightAxisTick(
+                        effectiveRightAxisMetric,
+                        metricValue,
+                        units,
+                        tickStep: tickStep,
+                      );
                     }
                     final metricColor = _palette.rightAxisColor(
                       effectiveRightAxisMetric,
                       singleTank: _isSingleTankDive,
                     );
-                    // Metric distance to the neighbouring tick, so the
-                    // label carries enough decimals to differ from it.
-                    final tickStep =
-                        metricBand.unmap(
-                          -(value + meta.appliedInterval),
-                          rightAxisRange.min,
-                          rightAxisRange.max,
-                        ) -
-                        metricValue;
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        formatRightAxisTick(
-                          effectiveRightAxisMetric,
-                          metricValue,
-                          units,
-                          tickStep: tickStep,
-                        ),
+                        label,
                         style: Theme.of(
                           context,
                         ).textTheme.labelSmall?.copyWith(color: metricColor),

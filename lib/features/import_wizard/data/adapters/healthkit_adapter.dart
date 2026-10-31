@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -48,7 +49,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     required DiveRepository diveRepository,
     required String diverId,
     WidgetRef? ref,
-    AppSettings settings = const AppSettings(),
+    UnitFormatterSettings settings = const AppSettings(),
     String displayName = 'HealthKit Import',
     ChecklistDiveLinker? checklistLinker,
   }) : _healthService = healthService,
@@ -67,7 +68,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
   final DiveRepository _diveRepository;
   final String _diverId;
   final WidgetRef? _ref;
-  final AppSettings _settings;
+  final UnitFormatterSettings _settings;
   final String _displayName;
   final ChecklistDiveLinker? _checklistLinker;
 

@@ -9,7 +9,6 @@ import 'package:submersion/features/trips/domain/services/side_trips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Summary widget shown when no trip is selected.
 class TripSummaryWidget extends ConsumerWidget {
@@ -226,7 +225,7 @@ class TripSummaryWidget extends ConsumerWidget {
     final sortedTrips = List.from(trips)
       ..sort((a, b) => b.trip.startDate.compareTo(a.trip.startDate));
     final previewTrips = sortedTrips.take(3).toList();
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,7 +274,7 @@ class TripSummaryWidget extends ConsumerWidget {
     WidgetRef ref,
     List upcomingTrips,
   ) {
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final nextTrip = upcomingTrips.first;
     // Whole calendar days to the start date. Subtracting the current instant
     // instead would floor away the rest of today (a trip four calendar days

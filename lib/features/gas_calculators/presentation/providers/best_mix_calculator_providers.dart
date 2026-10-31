@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:submersion/core/constants/enums.dart' show WaterType;
+import 'package:submersion/core/constants/enums.dart'
+    show PlannerWaterType, WaterType;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -227,8 +228,8 @@ final bestMixCalculatorNotifierProvider =
 /// MOD calculator uses.
 WaterType bestMixCalculatorWaterType(
   BestMixCalculatorPreferences prefs,
-  AppSettings settings,
-) => resolveWaterType(prefs.waterType, settings.defaultPlannerWaterType);
+  PlannerWaterType plannerDefault,
+) => resolveWaterType(prefs.waterType, plannerDefault);
 
 /// The ppO2 limits in effect for the active diver, and which of them differ
 /// from their profile. `workingPpO2` (OC-Tec), `decoPpO2` (CCR-Tec Bailout)
@@ -238,10 +239,9 @@ WaterType bestMixCalculatorWaterType(
 final bestMixCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
   final prefs = ref.watch(bestMixCalculatorNotifierProvider);
   final diverId = ref.watch(currentDiverIdProvider);
-  final settings = ref.watch(settingsProvider);
   return resolveModLimits(
     prefs.overridesFor(diverId),
-    modProfileLimits(settings),
+    ref.watch(settingsProvider.select(modProfileLimits)),
   );
 });
 
@@ -249,7 +249,15 @@ final bestMixCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
 /// diver's profile.
 final bestMixCalculatorInputsProvider = Provider<BestMixInputs>((ref) {
   final prefs = ref.watch(bestMixCalculatorNotifierProvider);
-  final settings = ref.watch(settingsProvider);
+  final settings = ref.watch(
+    settingsProvider.select(
+      (s) => (
+        endLimit: s.endLimit,
+        o2Narcotic: s.o2Narcotic,
+        defaultPlannerWaterType: s.defaultPlannerWaterType,
+      ),
+    ),
+  );
   final limits = ref.watch(bestMixCalculatorLimitsProvider);
   final mode = prefs.inputsFor(prefs.mode);
   return BestMixInputs(
@@ -273,7 +281,10 @@ final bestMixCalculatorInputsProvider = Provider<BestMixInputs>((ref) {
     mode: prefs.mode,
     ccrSource: prefs.ccrSource,
     flushPpO2: limits.flushPpO2,
-    waterType: bestMixCalculatorWaterType(prefs, settings),
+    waterType: bestMixCalculatorWaterType(
+      prefs,
+      settings.defaultPlannerWaterType,
+    ),
     densityAware: mode.densityAware,
     temperature: prefs.temperature,
   );
