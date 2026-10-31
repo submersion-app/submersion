@@ -316,6 +316,114 @@ void main() {
       expect((await switchesOf('d1')).single.computerId, isNull);
     });
 
+    group('a regulator deleted since the edit', () {
+      Future<DiveTank> withRegulators(String first, String extra) async {
+        final original = await seedRecordedDive('d1');
+        for (final id in [first, extra]) {
+          await db
+              .into(db.equipment)
+              .insert(
+                EquipmentCompanion.insert(
+                  id: id,
+                  name: id,
+                  type: 'regulator',
+                  createdAt: 1,
+                  updatedAt: 1,
+                ),
+              );
+        }
+        await (db.update(
+          db.diveTanks,
+        )..where((t) => t.id.equals(original.id))).write(
+          DiveTanksCompanion(
+            regulatorEquipmentId: Value(first),
+            extraRegulatorIds: Value('["$extra"]'),
+          ),
+        );
+        return original;
+      }
+
+      Future<void> deleteGear(String id) =>
+          (db.delete(db.equipment)..where((t) => t.id.equals(id))).go();
+
+      test('moves the first extra up when it was the primary', () async {
+        await withRegulators('reg1', 'reg2');
+        final snap = await applyTanks(['d1'], BulkCollectionMode.replace);
+        await deleteGear('reg1');
+
+        await service.undo(snap);
+
+        final tank = (await tanksOf('d1')).single;
+        expect(tank.regulatorEquipmentId, 'reg2');
+        expect(tank.extraRegulatorIds, isNull);
+      });
+
+      test('leaves the extras when it was one of them', () async {
+        await withRegulators('reg1', 'reg2');
+        final snap = await applyTanks(['d1'], BulkCollectionMode.replace);
+        await deleteGear('reg2');
+
+        await service.undo(snap);
+
+        final tank = (await tanksOf('d1')).single;
+        expect(tank.regulatorEquipmentId, 'reg1');
+        expect(tank.extraRegulatorIds, isNull);
+      });
+    });
+
+    group('a data source', () {
+      Future<BulkEditSnapshot> replaceAttributed() async {
+        final original = await seedRecordedDive('d1');
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion.insert(
+                id: 'src',
+                diveId: 'd1',
+                importedAt: DateTime.utc(2026),
+                createdAt: DateTime.utc(2026),
+              ),
+            );
+        await (db.update(db.diveTanks)..where((t) => t.id.equals(original.id)))
+            .write(const DiveTanksCompanion(sourceId: Value('src')));
+        await (db.update(db.tankPressureSeries)
+              ..where((t) => t.diveId.equals('d1')))
+            .write(const TankPressureSeriesCompanion(sourceId: Value('src')));
+        return applyTanks(['d1'], BulkCollectionMode.replace);
+      }
+
+      test('comes back with the tank and its series', () async {
+        await service.undo(await replaceAttributed());
+
+        expect((await tanksOf('d1')).single.sourceId, 'src');
+        expect((await seriesOf('d1')).single.sourceId, 'src');
+      });
+
+      test('is dropped when it was deleted since the edit', () async {
+        final snap = await replaceAttributed();
+        await (db.delete(
+          db.diveDataSources,
+        )..where((t) => t.id.equals('src'))).go();
+
+        await service.undo(snap);
+
+        expect((await tanksOf('d1')).single.sourceId, isNull);
+        expect((await seriesOf('d1')).single.sourceId, isNull);
+      });
+
+      test('is dropped when it moved to another dive', () async {
+        final snap = await replaceAttributed();
+        await seedDive('other');
+        await (db.update(db.diveDataSources)..where((t) => t.id.equals('src')))
+            .write(const DiveDataSourcesCompanion(diveId: Value('other')));
+
+        await service.undo(snap);
+
+        expect((await tanksOf('d1')).single.sourceId, isNull);
+        expect((await seriesOf('d1')).single.sourceId, isNull);
+      });
+    });
+
     group('a trip cylinder slot', () {
       Future<void> linkTank(DiveTank tank) async {
         final now = DateTime(2026, 1, 1);

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 
 /// Captures and reverses the tank half of a bulk edit (#3929).
 ///
@@ -39,6 +40,27 @@ class BulkTankUndoWriter {
     );
   }
 
+  /// The tanks of [diveIds] that are not among [priorTankIds]: what the edit
+  /// created, read back so several tank ops in one request need no merging.
+  Future<List<String>> tanksCreatedSince(
+    List<String> diveIds,
+    Set<String> priorTankIds,
+  ) async {
+    final tanks = _db.diveTanks;
+    final created = <String>[];
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final query = _db.selectOnly(tanks)
+        ..addColumns([tanks.id])
+        ..where(tanks.diveId.isIn(chunk));
+      created.addAll(
+        (await query.get())
+            .map((r) => r.read(tanks.id)!)
+            .where((id) => !priorTankIds.contains(id)),
+      );
+    }
+    return created;
+  }
+
   /// Reverses a tank edit. The caller owns the transaction and has already
   /// restored the dive rows, which bumps each dive and gives a restored slot
   /// link its trip to be checked against.
@@ -46,20 +68,32 @@ class BulkTankUndoWriter {
     await _removeCreated(undo.createdTankIds);
     final now = DateTime.now().millisecondsSinceEpoch;
     final links = await _LiveLinks.read(_db, undo);
+    final slotsByDive = <String, Set<String>>{};
     // Tanks first: the series and switches are foreign keys into them.
     for (final row in undo.replacedTanks) {
+      // Normalised like every other write: a deleted first regulator must
+      // not leave extras with no first.
+      final regulators = normalizeTankRegulators(
+        links.gear(row.regulatorEquipmentId),
+        decodeExtraRegulatorIds(row.extraRegulatorIds).where(links.hasGear),
+      );
+      final slot = row.tripCylinderId;
+      final slots = slot == null
+          ? const <String>{}
+          : slotsByDive[row.diveId] ??= await _slotsOf(row.diveId);
       await _db
           .into(_db.diveTanks)
           .insertOnConflictUpdate(
             row
                 .copyWith(
                   equipmentId: Value(links.gear(row.equipmentId)),
-                  regulatorEquipmentId: Value(
-                    links.gear(row.regulatorEquipmentId),
+                  regulatorEquipmentId: Value(regulators.first),
+                  extraRegulatorIds: Value(
+                    encodeExtraRegulatorIds(regulators.extras),
                   ),
                   computerId: Value(links.computer(row.computerId)),
                   sourceId: Value(links.source(row.sourceId)),
-                  tripCylinderId: Value(await _liveSlot(row)),
+                  tripCylinderId: Value(validTripCylinderLink(slot, slots)),
                 )
                 .toCompanion(false),
           );
@@ -79,6 +113,8 @@ class BulkTankUndoWriter {
           sourceId: Value(links.source(row.sourceId)),
         ),
         now: now,
+        // The caller notifies once, after its transaction.
+        notify: false,
       );
     }
     for (final row in undo.replacedGasSwitches) {
@@ -101,20 +137,15 @@ class BulkTankUndoWriter {
     for (final chunk in seriesIdChunks(tankIds)) {
       await (_db.delete(_db.diveTanks)..where((t) => t.id.isIn(chunk))).go();
     }
-    for (final id in tankIds) {
-      await _sync.logDeletion(entityType: 'diveTanks', recordId: id);
-    }
+    await _sync.logDeletions(entityType: 'diveTanks', recordIds: tankIds);
   }
 
-  /// [row]'s trip cylinder slot, if the dive's restored trip still offers it.
-  Future<String?> _liveSlot(DiveTank row) async {
-    final slot = row.tripCylinderId;
-    if (slot == null) return null;
+  /// The slots [diveId]'s trip offers, which the restored dive row now names.
+  Future<Set<String>> _slotsOf(String diveId) async {
     final dive = await (_db.select(
       _db.dives,
-    )..where((d) => d.id.equals(row.diveId))).getSingleOrNull();
-    final slots = await tripCylinderIdsForTrip(_db, dive?.tripId);
-    return validTripCylinderLink(slot, slots);
+    )..where((d) => d.id.equals(diveId))).getSingleOrNull();
+    return tripCylinderIdsForTrip(_db, dive?.tripId);
   }
 }
 
@@ -128,6 +159,7 @@ class _LiveLinks {
   final Set<String> _computers;
   final Set<String> _sources;
 
+  bool hasGear(String id) => _gear.contains(id);
   String? gear(String? id) => _gear.contains(id) ? id : null;
   String? computer(String? id) => _computers.contains(id) ? id : null;
   String? source(String? id) => _sources.contains(id) ? id : null;
@@ -136,32 +168,49 @@ class _LiveLinks {
     final tanks = undo.replacedTanks;
     final series = undo.replacedPressureSeries;
     return _LiveLinks(
-      await _existing(db, db.equipment, db.equipment.id, [
-        for (final t in tanks) ...[t.equipmentId, t.regulatorEquipmentId],
+      await _ids(db, db.equipment, db.equipment.id, db.equipment.id, [
+        for (final t in tanks) ...[
+          t.equipmentId,
+          t.regulatorEquipmentId,
+          ...decodeExtraRegulatorIds(t.extraRegulatorIds),
+        ],
       ]),
-      await _existing(db, db.diveComputers, db.diveComputers.id, [
-        for (final t in tanks) t.computerId,
-        for (final s in series) s.computerId,
-        for (final g in undo.replacedGasSwitches) g.computerId,
-      ]),
-      await _existing(db, db.diveDataSources, db.diveDataSources.id, [
-        for (final t in tanks) t.sourceId,
-        for (final s in series) s.sourceId,
-      ]),
+      await _ids(
+        db,
+        db.diveComputers,
+        db.diveComputers.id,
+        db.diveComputers.id,
+        [
+          for (final t in tanks) t.computerId,
+          for (final s in series) s.computerId,
+          for (final g in undo.replacedGasSwitches) g.computerId,
+        ],
+      ),
+      // The sources these dives still have, so one moved to another dive
+      // stays there.
+      await _ids(
+        db,
+        db.diveDataSources,
+        db.diveDataSources.id,
+        db.diveDataSources.diveId,
+        [for (final t in tanks) t.diveId],
+      ),
     );
   }
 
-  static Future<Set<String>> _existing(
+  /// The [idColumn] of [table]'s rows whose [matching] is one of [values].
+  static Future<Set<String>> _ids(
     AppDatabase db,
     ResultSetImplementation<HasResultSet, dynamic> table,
     GeneratedColumn<String> idColumn,
-    List<String?> ids,
+    GeneratedColumn<String> matching,
+    List<String?> values,
   ) async {
     final found = <String>{};
-    for (final chunk in seriesIdChunks(ids.nonNulls.toSet().toList())) {
+    for (final chunk in seriesIdChunks(values.nonNulls.toSet().toList())) {
       final query = db.selectOnly(table)
         ..addColumns([idColumn])
-        ..where(idColumn.isIn(chunk));
+        ..where(matching.isIn(chunk));
       found.addAll((await query.get()).map((r) => r.read(idColumn)!));
     }
     return found;

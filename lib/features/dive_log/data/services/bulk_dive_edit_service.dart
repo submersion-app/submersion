@@ -159,18 +159,10 @@ class BulkDiveEditService {
       for (final op in req.ops) {
         await _applyOp(ids, op);
       }
-      // Read back rather than returned by the writes, so several tank ops
-      // in one request need no merging.
       final before = priorTankIds;
       if (before != null) {
-        final rows = await (_db.select(
-          _db.diveTanks,
-        )..where((t) => t.diveId.isIn(ids))).get();
         tankUndo = (tankUndo ?? const BulkTankUndo()).copyWith(
-          createdTankIds: [
-            for (final r in rows)
-              if (!before.contains(r.id)) r.id,
-          ],
+          createdTankIds: await _tankUndo.tanksCreatedSince(ids, before),
         );
       }
     });

@@ -3,12 +3,13 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     show BuddyWithRole;
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 
-/// Captured prior state for undoing one bulk edit. All collections are keyed by
-/// diveId. A null map means that collection was not touched and must not be
-/// restored.
+/// Captured prior state for undoing one bulk edit. The maps are keyed by
+/// diveId; the tank fields are not, because a tank's undo matches on row id. A
+/// null field means that collection was not touched and must not be restored.
 ///
-/// Note: `Dive`, `DiveTank`, `DiveWeight`, `Sighting` here are the Drift row
-/// classes (from database.dart), not the identically-named domain entities.
+/// Note: `Dive`, `DiveTank`, `DiveWeight`, `Sighting`, `GasSwitche` and
+/// `TankPressureSeriesRow` here are the Drift row classes (from database.dart),
+/// not the identically-named domain entities.
 class BulkEditSnapshot {
   final List<Dive> priorDiveRows; // scalar + notes undo via row.toCompanion
   final Map<String, List<String>>? priorTagIds;
@@ -77,10 +78,16 @@ class BulkTankUndo {
     this.replacedGasSwitches = const [],
   });
 
-  BulkTankUndo copyWith({List<String>? createdTankIds}) => BulkTankUndo(
+  BulkTankUndo copyWith({
+    List<String>? createdTankIds,
+    List<DiveTank>? replacedTanks,
+    List<TankPressureSeriesRow>? replacedPressureSeries,
+    List<GasSwitche>? replacedGasSwitches,
+  }) => BulkTankUndo(
     createdTankIds: createdTankIds ?? this.createdTankIds,
-    replacedTanks: replacedTanks,
-    replacedPressureSeries: replacedPressureSeries,
-    replacedGasSwitches: replacedGasSwitches,
+    replacedTanks: replacedTanks ?? this.replacedTanks,
+    replacedPressureSeries:
+        replacedPressureSeries ?? this.replacedPressureSeries,
+    replacedGasSwitches: replacedGasSwitches ?? this.replacedGasSwitches,
   );
 }
