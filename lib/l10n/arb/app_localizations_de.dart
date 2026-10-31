@@ -20532,6 +20532,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'CCR-Dekompressionsplan führt kein Bailout-Gas mit';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Kein Bailout-Gas reicht bis $depth: Die tiefste mitgeführte MOD beträgt $deepestMod. Führe ein Gas mit, das in dieser Tiefe nutzbar ist; mehr vom selben Gas hilft nicht.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'Dekompression erforderlich, aber kein Deko-Gas mitgeführt';
 

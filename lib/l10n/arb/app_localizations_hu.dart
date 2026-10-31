@@ -20482,6 +20482,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A CCR dekompressziós terv nem tartalmaz bailout gázt';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'Egyetlen bailout gáz sem éri el a(z) $depth mélységet: a legmélyebb vitt MOD $deepestMod. Vigyél ezen a mélységen használható gázt; ugyanabból a gázból több nem segít.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'Dekompresszió szükséges, de nincs dekó gáz';
 

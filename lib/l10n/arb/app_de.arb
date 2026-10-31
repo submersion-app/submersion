@@ -6026,6 +6026,7 @@
   "plannerCanvas_issue_diluentModExceeded": "Diluent überschreitet seine Dil-MOD-Grenze bei {depth} (ppO₂ {value} bar)",
   "plannerCanvas_issue_ceilingViolated": "Das Profil geht über das Deko-Ceiling von {ceiling}, erforderliche Stopps werden ausgelassen",
   "plannerCanvas_issue_noBailout": "CCR-Dekompressionsplan führt kein Bailout-Gas mit",
+  "plannerCanvas_issue_noEligibleBailoutGas": "Kein Bailout-Gas reicht bis {depth}: Die tiefste mitgeführte MOD beträgt {deepestMod}. Führe ein Gas mit, das in dieser Tiefe nutzbar ist; mehr vom selben Gas hilft nicht.",
   "plannerCanvas_issue_noDecoGas": "Dekompression erforderlich, aber kein Deko-Gas mitgeführt",
   "plannerCanvas_range_base": "Basis",
   "plannerCanvas_range_legend": "Zellen zeigen die Zeit bis zur Oberfläche; rot = nicht wie geplant tauchbar",

@@ -20843,6 +20843,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'خطة تخفيف الضغط CCR لا تتضمن غاز إنقاذ (bailout)';
 
   @override
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  ) {
+    return 'لا يصل أي غاز إنقاذ (bailout) إلى $depth: أعمق MOD محمول هو $deepestMod. احمل غازًا صالحًا للاستخدام عند هذا العمق؛ فالمزيد من الغاز نفسه لن يفيد.';
+  }
+
+  @override
   String get plannerCanvas_issue_noDecoGas =>
       'يلزم تخفيف الضغط ولكن لا يوجد غاز تخفيف';
 

@@ -32694,6 +32694,15 @@ abstract class AppLocalizations {
   /// **'CCR decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
 
+  /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
+  ///
+  /// In en, this message translates to:
+  /// **'No bailout gas reaches {depth}: the deepest MOD carried is {deepestMod}. Carry a gas usable at that depth; more of the same gas will not help.'**
+  String plannerCanvas_issue_noEligibleBailoutGas(
+    String depth,
+    String deepestMod,
+  );
+
   /// No description provided for @plannerCanvas_issue_noDecoGas.
   ///
   /// In en, this message translates to:
