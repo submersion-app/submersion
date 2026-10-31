@@ -96,6 +96,17 @@ void main() {
     expect(joins, hasLength(3));
   });
 
+  test('getBuddiesForDives shares one record per person', () async {
+    final byDive = await repository.getBuddiesForDives(const ['d1', 'd5']);
+
+    // The record carries the photo bytes, which a long-lived snapshot would
+    // otherwise hold once per dive.
+    expect(
+      identical(byDive['d1']!.single.buddy, byDive['d5']!.single.buddy),
+      isTrue,
+    );
+  });
+
   test('getBuddiesForDivesInChunks reads nothing for no dives', () async {
     expect(await repository.getBuddiesForDivesInChunks(const []), isEmpty);
   });

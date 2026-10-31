@@ -455,10 +455,11 @@ class BuddyRepository {
   /// Returns a map keyed by dive id (dives with no buddies are simply absent).
   /// Unlike [getBuddiesForDive] this skips the primary-certification hydration
   /// ([_withPrimaryCerts]) because list/table views only render names and
-  /// roles -- keeping it to two queries total (the junction join plus
-  /// dive_roles) regardless of how many dives are passed. Uses the same
-  /// `isIn(diveIds)` batching as the other related-data loads in
-  /// [DiveRepository.getAllDives].
+  /// roles, keeping it to four queries total (the junction join, dive_roles
+  /// and the two role-set reads) regardless of how many dives are passed.
+  /// Uses the same `isIn(diveIds)` batching as the other related-data loads in
+  /// [DiveRepository.getAllDives]. A person on several dives is one record,
+  /// so their photo bytes are held once however long the result is kept.
   Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDives(
     List<String> diveIds,
   ) async {
@@ -490,6 +491,7 @@ class BuddyRepository {
     final roleSets = await _roleLinks.buddyRoleIdsForDives(diveIds);
 
     final byDive = <String, List<domain.BuddyWithRole>>{};
+    final people = <String, domain.Buddy>{};
     final seen = <(String, String)>{};
     for (final jr in sortedByText(
       joinRows,
@@ -499,7 +501,7 @@ class BuddyRepository {
       final link = jr.readTable(_db.diveBuddies);
       // A buddy linked to a dive twice is still one person on it (#3895).
       if (!seen.add((link.diveId, link.buddyId))) continue;
-      final buddy = _mapRowToBuddy(b);
+      final buddy = people.putIfAbsent(b.id, () => _mapRowToBuddy(b));
       final roleIds =
           roleSets[link.diveId]?[link.buddyId] ??
           DiveRoleSet.resolveBuddy(scalar: link.role, junction: const []);

@@ -66,9 +66,12 @@ class BulkDiveEditService {
     Map<String, List<DiveWeight>>? priorWeights;
     Map<String, List<Sighting>>? priorSightings;
 
+    // Nothing is written until this loop ends, so a second op of a kind (the
+    // form sends an add and a remove) would read the same rows again.
     for (final op in req.ops) {
       switch (op) {
         case TagsOp():
+          if (priorTagIds != null) continue;
           final rows = await (_db.select(
             _db.diveTags,
           )..where((t) => t.diveId.isIn(ids))).get();
@@ -90,6 +93,7 @@ class BulkDiveEditService {
             for (final id in ids) id: current[id] ?? const <String>[],
           };
         case EquipmentOp():
+          if (priorGear != null) continue;
           final rows = await (_db.select(
             _db.diveEquipment,
           )..where((t) => t.diveId.isIn(ids))).get();
@@ -103,9 +107,8 @@ class BulkDiveEditService {
               ),
             );
           }
-        // Once per request: the form can send four of these, and nothing has
-        // been written yet, so each would read the same links. Undo needs only
-        // who was on each dive and their roles, so the lean reader is enough.
+        // Undo needs only who was on each dive and their roles, so the lean
+        // reader is enough.
         case BuddiesOp():
           priorBuddies ??= await _buddyRepo.getBuddiesForDivesInChunks(ids);
         case DiverRolesOp():

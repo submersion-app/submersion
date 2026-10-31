@@ -189,6 +189,31 @@ void main() {
     expect(statements.where((line) => line.contains('certification')), isEmpty);
   });
 
+  test('an add and a remove of tags or gear read each snapshot once', () async {
+    await seedDive('d1');
+
+    final statements = await statementsBeforeWrites(
+      const BulkEditRequest(
+        diveIds: ['d1'],
+        ops: [
+          TagsOp(mode: BulkCollectionMode.add, tagIds: ['t1']),
+          TagsOp(mode: BulkCollectionMode.remove, tagIds: ['t2']),
+          EquipmentOp(mode: BulkCollectionMode.add, equipmentIds: ['e1']),
+          EquipmentOp(mode: BulkCollectionMode.remove, equipmentIds: ['e2']),
+        ],
+      ),
+    );
+
+    expect(
+      statements.where((l) => l.contains('FROM "dive_tags"')),
+      hasLength(1),
+    );
+    expect(
+      statements.where((l) => l.contains('FROM "dive_equipment"')),
+      hasLength(1),
+    );
+  });
+
   test('every selected dive gets an entry, empty or not', () async {
     await seedPeople();
     await seedDive('linked');
