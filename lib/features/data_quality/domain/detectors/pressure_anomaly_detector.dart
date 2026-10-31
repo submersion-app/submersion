@@ -2,6 +2,7 @@ import 'package:submersion/core/profile/surfacing_pressure.dart'
     show lastTimeBelowSurfaceThreshold;
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/profile/tank_pressure_mixing.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
@@ -413,22 +414,19 @@ class PressureAnomalyDetector extends QualityDetector {
             sw.timestamp <= endT + QualityThresholds.switchProximitySeconds,
       );
 
-  /// Mean depth of the samples inside the consumption window [fromT]..[toT],
+  /// Mean depth over the consumption window [fromT]..[toT],
   /// so the ambient pressure a rate is normalized by covers the same stretch
   /// as its drop and duration: surface samples in the post-surfacing tail
   /// would otherwise make the dive read shallower and the rate higher
-  /// (#2224). Falls back to every sample when none land in the window.
+  /// (#2224). Falls back to every sample when they do not reach the window.
   double? _meanDepth(List<QualitySample> allSamples, int fromT, int toT) {
-    final inWindow = [
-      for (final s in allSamples)
-        if (s.t >= fromT && s.t <= toT) s,
-    ];
-    final samples = inWindow.isEmpty ? allSamples : inWindow;
-    if (samples.isEmpty) return null;
-    var sum = 0.0;
-    for (final p in samples) {
-      sum += p.depth;
-    }
-    return sum / samples.length;
+    return timeWeightedMeanBetween(
+          allSamples,
+          start: fromT,
+          end: toT,
+          time: (s) => s.t,
+          value: (s) => s.depth,
+        ) ??
+        timeWeightedMean(allSamples, time: (s) => s.t, value: (s) => s.depth);
   }
 }

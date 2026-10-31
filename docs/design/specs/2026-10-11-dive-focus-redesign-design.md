@@ -97,6 +97,13 @@ Directly under the summary line, titled "What stands out".
     dives)".
   - Categorical, part of the group: "8 of 10 were boat entries, against 64% of
     all your dives".
+  - Categorical shares count only the dives that recorded the factor. When
+    some baseline dives did not, the sentence names that denominator instead
+    of "all your dives": "All 3 were boat entries (60% of the 5 of 10 dives
+    with this recorded)", and the same for part of the group. When the group
+    has gaps too, its count names them: "2 of the 2 of 5 dives with this
+    recorded were boat entries, against 60% of the 5 of 10 dives with this
+    recorded" (issue #3915).
   - Numeric: "Average depth 2.1 m shallower (11.3 m vs 13.4 m)". Direction
     words per numeric factor: deeper / shallower (depths), longer / shorter
     (duration), warmer / colder (water temp), larger / smaller (tank size),
@@ -118,7 +125,8 @@ dive in the current filter that has RMV" (the current metric's name).
   standouts sort first, then the remaining rows in their current order. A
   standout carries a small accent marker beside its name; the chip under the
   name is removed. Coverage ("9 of 12 dives") stays as muted text under the
-  name.
+  name. A categorical row with gaps in the baseline also shows the baseline's
+  coverage ("5 of 10 dives") under its All dives percentages (issue #3915).
 - **Folded rows.** A row is quiet when it is not a standout and either has no
   data ("Not recorded"), or its numeric difference rounds to zero in the
   diver's display units, or its categorical top value's share gap is under 5

@@ -8394,6 +8394,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_ceiling => '上升限制';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => '上升限制（计算）';
+
+  @override
   String get diveLog_legend_label_decoStops => '减压停留';
 
   @override
@@ -21896,6 +21899,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_status_syncError => '同步错误';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => '需要登录';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account 需要您重新登录。';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => '同步中...';
 
   @override
@@ -27966,6 +27977,38 @@ class AppLocalizationsZh extends AppLocalizations {
     String baseline,
   ) {
     return '$total 次中有 $count 次为$value，而全部潜水中为 $baseline';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '全部 $count 次均为$value（在已记录此项的 $coverage中占 $baseline）';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$total 次中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '在已记录此项的 $groupCoverage中有 $count 次为$value，而在已记录此项的 $coverage中为 $baseline';
   }
 
   @override
@@ -35939,6 +35982,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_accounts_signInAgain => '重新登录';
 
   @override
+  String get settings_accounts_differentAccount_title => '这是另一个账户';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion 使用的是 $expected，但您登录的是 $signedIn。';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return '未同步任何内容，也未连接 $signedIn。';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return '在此设备上用于$features';
   }
@@ -37081,6 +37140,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle => '潜水过程中未记录气瓶压力';
+
+  @override
+  String get diveLog_detail_sacSegments_time => '时间';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => '阶段';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => '气体';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => '深度';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => '下潜';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => '水底';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => '上升';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => '安全停留';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => '减压';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return '峰值 $rate（$range）';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

@@ -44,7 +44,7 @@ class _FocusResultsState extends ConsumerState<FocusResults> {
       if (_showAll) setState(() => _showAll = false);
     });
     final selection = ref.watch(focusSelectionProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final metricUnits = FocusMetricUnits(selection.metric, units);
 
     // A new selection is a reload: keep the previous group on screen until

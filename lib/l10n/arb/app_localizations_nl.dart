@@ -8799,6 +8799,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafond (ber.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Decostops';
 
   @override
@@ -22935,6 +22938,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Synchronisatiefout';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'Aanmelden vereist';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account vraagt je om je opnieuw aan te melden.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Synchroniseren...';
 
   @override
@@ -29470,6 +29481,38 @@ class AppLocalizationsNl extends AppLocalizations {
     String baseline,
   ) {
     return '$count van $total waren $value, tegenover $baseline van al je duiken';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Alle $count waren $value ($baseline van de $coverage waarbij dit is vastgelegd)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van $total waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count van de $groupCoverage waarbij dit is vastgelegd waren $value, tegenover $baseline van de $coverage waarbij dit is vastgelegd';
   }
 
   @override
@@ -37946,6 +37989,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_accounts_signInAgain => 'Opnieuw aanmelden';
 
   @override
+  String get settings_accounts_differentAccount_title =>
+      'Dat is een ander account';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion gebruikt $expected, maar je hebt je aangemeld als $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Er is niets gesynchroniseerd en $signedIn is niet gekoppeld.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'Op dit apparaat gebruikt voor $features';
   }
@@ -39126,6 +39186,53 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'Geen flesdruk vastgelegd tijdens de duik';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'Tijd';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Fase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gas';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Diepte';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Afdaling';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Bodem';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Opstijging';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Veiligheidsstop';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Deco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Piek $rate bij $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Gemiddeld $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

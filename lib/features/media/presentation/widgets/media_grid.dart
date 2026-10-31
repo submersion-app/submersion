@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Shared building blocks for media grids (dive and site sections).
 ///
@@ -65,7 +65,7 @@ class MediaEmptyState extends StatelessWidget {
 /// and a row nothing can serve still ends in the missing-file placeholder.
 class MediaThumbnailTile extends StatelessWidget {
   final MediaItem item;
-  final AppSettings settings;
+  final UnitFormatterSettings settings;
   final bool isSelectionMode;
   final bool isSelected;
   final String semanticsLabel;

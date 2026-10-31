@@ -4,7 +4,6 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
@@ -35,8 +34,7 @@ class DiveSummaryWidget extends ConsumerWidget {
     // stay set but only the typed query applies, so with nothing typed the
     // list shows every dive and the summary must not read as filtered.
     final isFiltered = ref.watch(diveFilterProvider).effective.hasActiveFilters;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
+    final units = ref.watch(unitFormatterProvider);
 
     return Scaffold(
       body: SingleChildScrollView(

@@ -8881,6 +8881,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override
+  String get diveLog_legend_label_ceilingCalculated => 'Plafond (calc.)';
+
+  @override
   String get diveLog_legend_label_decoStops => 'Paliers de décompression';
 
   @override
@@ -23140,6 +23143,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_cloudSync_status_syncError => 'Erreur de synchronisation';
 
   @override
+  String get settings_cloudSync_status_signInNeeded => 'Connexion requise';
+
+  @override
+  String settings_cloudSync_signInNeeded_message(String account) {
+    return '$account vous demande de vous reconnecter.';
+  }
+
+  @override
   String get settings_cloudSync_status_syncing => 'Synchronisation...';
 
   @override
@@ -29763,6 +29774,38 @@ class AppLocalizationsFr extends AppLocalizations {
     String baseline,
   ) {
     return '$count sur $total étaient $value, contre $baseline de toutes vos plongées';
+  }
+
+  @override
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return 'Les $count étaient $value ($baseline des $coverage où cette donnée est renseignée)';
+  }
+
+  @override
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count sur $total étaient $value, contre $baseline des $coverage où cette donnée est renseignée';
+  }
+
+  @override
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
+  ) {
+    return '$count des $groupCoverage où cette donnée est renseignée étaient $value, contre $baseline des $coverage où cette donnée est renseignée';
   }
 
   @override
@@ -38313,6 +38356,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_accounts_signInAgain => 'Se reconnecter';
 
   @override
+  String get settings_accounts_differentAccount_title =>
+      'C\'est un autre compte';
+
+  @override
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  ) {
+    return 'Submersion utilise $expected, mais vous vous êtes connecté avec $signedIn.';
+  }
+
+  @override
+  String settings_accounts_differentAccount_nothingSynced(String signedIn) {
+    return 'Rien n\'a été synchronisé et $signedIn n\'a pas été associé.';
+  }
+
+  @override
   String settings_accounts_usedHere(String features) {
     return 'Utilisé sur cet appareil pour $features';
   }
@@ -39502,6 +39562,53 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
       'Aucune pression du bloc enregistrée pendant la plongée';
+
+  @override
+  String get diveLog_detail_sacSegments_time => 'Temps';
+
+  @override
+  String get diveLog_detail_sacSegments_phase => 'Phase';
+
+  @override
+  String get diveLog_detail_sacSegments_gas => 'Gaz';
+
+  @override
+  String get diveLog_detail_sacSegments_depth => 'Profondeur';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDescent => 'Descente';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseBottom => 'Fond';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseAscent => 'Remontée';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseSafetyStop => 'Palier de sécurité';
+
+  @override
+  String get diveLog_detail_sacSegments_phaseDeco => 'Déco';
+
+  @override
+  String diveLog_detail_sacSegments_timeRange(String start, String end) {
+    return '$start-$end min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_axisMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_peak(String rate, String range) {
+    return 'Pic de $rate à $range';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_average(String rate) {
+    return 'Moyenne $rate';
+  }
 
   @override
   String diveLog_detail_sacVolumeHint(String unit) {

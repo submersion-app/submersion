@@ -87,6 +87,33 @@ void main() {
     );
   });
 
+  test('a refusal outranks what it stops', () {
+    final refused = failure(kind: SyncFailureKind.auth);
+
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(hours: 5),
+          awaitingAdoption: true,
+          lastFailure: refused,
+        ),
+      ),
+      HealthLevel.failing,
+      HealthReason.syncSignedOut,
+    );
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(hours: 5),
+          needsPassphrase: true,
+          lastFailure: refused,
+        ),
+      ),
+      HealthLevel.failing,
+      HealthReason.syncSignedOut,
+    );
+  });
+
   test('signed out is failing', () {
     expectHealth(
       eval(inputs(authenticated: false)),
@@ -117,6 +144,35 @@ void main() {
           lastFailure: failure(
             provider: 'dropbox',
             ago: const Duration(minutes: 1),
+          ),
+        ),
+      ),
+      HealthLevel.healthy,
+      HealthReason.ok,
+    );
+  });
+
+  test('a sign-in failure reads as signed out, failing', () {
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(hours: 5),
+          lastFailure: failure(kind: SyncFailureKind.auth),
+        ),
+      ),
+      HealthLevel.failing,
+      HealthReason.syncSignedOut,
+    );
+  });
+
+  test('a later good sync clears a sign-in failure', () {
+    expectHealth(
+      eval(
+        inputs(
+          syncedAgo: const Duration(minutes: 5),
+          lastFailure: failure(
+            kind: SyncFailureKind.auth,
+            ago: const Duration(hours: 1),
           ),
         ),
       ),

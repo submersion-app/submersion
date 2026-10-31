@@ -23,14 +23,26 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   bool exposeClient = false;
 
   @override
+  bool lastSilentAuthThrew = false;
+
+  Object? silentAuthError;
+
+  @override
   http.Client? get authClient => exposeClient ? client : null;
 
   @override
-  Future<void> authenticate() async => authenticateCalls++;
+  Future<void> authenticate({String? expectedAccount}) async {
+    authenticateCalls++;
+    this.expectedAccount = expectedAccount;
+  }
+
+  String? expectedAccount;
 
   @override
   Future<bool> attemptSilentAuth() async {
     silentAuthCalls++;
+    final error = silentAuthError;
+    if (error != null) throw error;
     return silentAuthResult;
   }
 
@@ -72,6 +84,34 @@ void main() {
 
       expect(loopback.authenticateCalls, 1);
       expect(googleSignIn.authenticateCalls, 0);
+    });
+
+    test('a silent sign-in that could not run reports that it threw', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+      loopback.silentAuthError = Exception('could not resolve');
+
+      expect(await gate.attemptSilentAuth(), isFalse);
+      expect(gate.lastSilentAuthThrew, isTrue);
+
+      loopback.silentAuthError = null;
+      await gate.attemptSilentAuth();
+      expect(gate.lastSilentAuthThrew, isFalse);
+    });
+
+    test('reports whether the flow it picked threw', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+      loopback.lastSilentAuthThrew = true;
+      await gate.attemptSilentAuth();
+
+      expect(gate.lastSilentAuthThrew, isTrue);
+    });
+
+    test('hands the expected account to whichever flow it picked', () async {
+      final gate = gateOver(FallbackSecureStorage(NoEntitlementKeychain()));
+
+      await gate.authenticate(expectedAccount: 'diver@example.com');
+
+      expect(loopback.expectedAccount, 'diver@example.com');
     });
 
     test('uses google_sign_in when the data-protection keychain works '

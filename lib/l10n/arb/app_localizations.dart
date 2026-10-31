@@ -13969,6 +13969,12 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_legend_label_ceiling;
 
+  /// No description provided for @diveLog_legend_label_ceilingCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling (calc)'**
+  String get diveLog_legend_label_ceilingCalculated;
+
   /// No description provided for @diveLog_legend_label_decoStops.
   ///
   /// In en, this message translates to:
@@ -36667,6 +36673,18 @@ abstract class AppLocalizations {
   /// **'Sync error'**
   String get settings_cloudSync_status_syncError;
 
+  /// No description provided for @settings_cloudSync_status_signInNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in needed'**
+  String get settings_cloudSync_status_signInNeeded;
+
+  /// Cloud Sync status card while the account needs signing in again; account is its name
+  ///
+  /// In en, this message translates to:
+  /// **'{account} needs you to sign in again.'**
+  String settings_cloudSync_signInNeeded_message(String account);
+
   /// No description provided for @settings_cloudSync_status_syncing.
   ///
   /// In en, this message translates to:
@@ -47600,6 +47618,41 @@ abstract class AppLocalizations {
     int total,
     String value,
     String baseline,
+  );
+
+  /// No description provided for @insights_focus_standouts_categoryAllRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} were {value} ({baseline} of the {coverage} with this recorded)'**
+  String insights_focus_standouts_categoryAllRecorded(
+    int count,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categorySomeRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categorySomeRecorded(
+    int count,
+    int total,
+    String value,
+    String baseline,
+    String coverage,
+  );
+
+  /// No description provided for @insights_focus_standouts_categoryPartRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of the {groupCoverage} with this recorded were {value}, against {baseline} of the {coverage} with this recorded'**
+  String insights_focus_standouts_categoryPartRecorded(
+    int count,
+    String groupCoverage,
+    String value,
+    String baseline,
+    String coverage,
   );
 
   /// No description provided for @insights_focus_standouts_numeric.
@@ -60193,6 +60246,27 @@ abstract class AppLocalizations {
   /// **'Sign in again'**
   String get settings_accounts_signInAgain;
 
+  /// No description provided for @settings_accounts_differentAccount_title.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a different account'**
+  String get settings_accounts_differentAccount_title;
+
+  /// Dialog after signing in to a different account than the one in use; both are addresses
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion uses {expected}, but you signed in as {signedIn}.'**
+  String settings_accounts_differentAccount_body(
+    String expected,
+    String signedIn,
+  );
+
+  /// Second paragraph of that dialog; signedIn is the other address
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was synced, and {signedIn} was not connected.'**
+  String settings_accounts_differentAccount_nothingSynced(String signedIn);
+
   /// No description provided for @settings_accounts_usedHere.
   ///
   /// In en, this message translates to:
@@ -62370,6 +62444,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No tank pressure recorded during the dive'**
   String get diveLog_detail_sacSegmentsNoPressure_subtitle;
+
+  /// Heading of the time chart and of the duration column in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get diveLog_detail_sacSegments_time;
+
+  /// No description provided for @diveLog_detail_sacSegments_phase.
+  ///
+  /// In en, this message translates to:
+  /// **'Phase'**
+  String get diveLog_detail_sacSegments_phase;
+
+  /// No description provided for @diveLog_detail_sacSegments_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get diveLog_detail_sacSegments_gas;
+
+  /// No description provided for @diveLog_detail_sacSegments_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get diveLog_detail_sacSegments_depth;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Descent'**
+  String get diveLog_detail_sacSegments_phaseDescent;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get diveLog_detail_sacSegments_phaseBottom;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent'**
+  String get diveLog_detail_sacSegments_phaseAscent;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseSafetyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety stop'**
+  String get diveLog_detail_sacSegments_phaseSafetyStop;
+
+  /// No description provided for @diveLog_detail_sacSegments_phaseDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get diveLog_detail_sacSegments_phaseDeco;
+
+  /// A stretch of the dive in minutes from its start, such as 10-15 min
+  ///
+  /// In en, this message translates to:
+  /// **'{start}-{end} min'**
+  String diveLog_detail_sacSegments_timeRange(String start, String end);
+
+  /// Last label on the time axis of the gas consumption by segment chart
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String diveLog_detail_sacSegments_axisMinutes(String minutes);
+
+  /// Shown under the time chart when no segment is selected
+  ///
+  /// In en, this message translates to:
+  /// **'Peak {rate} at {range}'**
+  String diveLog_detail_sacSegments_peak(String rate, String range);
+
+  /// Collapsed subtitle of the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Average {rate}'**
+  String diveLog_detail_sacSegments_average(String rate);
 
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///

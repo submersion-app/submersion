@@ -8,7 +8,6 @@ import 'package:submersion/features/equipment/domain/services/move_time.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/location_confirm_dialogs.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -156,7 +155,7 @@ class _LocationMoveEditDialogState
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final units = ref.watch(unitFormatterProvider);
     final places =
         ref.watch(allEquipmentLocationsByIdProvider).value ??
         const <String, EquipmentLocation>{};

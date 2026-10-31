@@ -612,7 +612,7 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
           DiveCenterFillHoursSection(
             opensAt: _fillOpensAt,
             closesAt: _fillClosesAt,
-            units: UnitFormatter(ref.watch(settingsProvider)),
+            units: ref.watch(unitFormatterProvider),
             errorText: _fillHoursChecked ? _fillHoursErrorText(context) : null,
             onChanged: (opens, closes) => setState(() {
               _fillOpensAt = opens;
