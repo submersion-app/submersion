@@ -327,6 +327,26 @@ void main() {
       expect(opened, 1);
     });
 
+    testWidgets('the chevron does not cost a legend label its room', (
+      tester,
+    ) async {
+      Future<double> labelWidth(Future<void> Function(int)? open) async {
+        await pump(
+          tester,
+          SizedBox(
+            width: 324,
+            child: DistributionPieChart(data: segments, onOpenSegment: open),
+          ),
+        );
+        return tester.getSize(find.text('Salt')).width;
+      }
+
+      final plain = await labelWidth(null);
+      final linked = await labelWidth((_) async {});
+
+      expect(linked, greaterThanOrEqualTo(plain));
+    });
+
     testWidgets('a legend row with no dives opens nothing', (tester) async {
       int? opened;
       await pump(

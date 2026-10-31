@@ -115,7 +115,13 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
         child: Row(
           children: [
             Expanded(
-              flex: showLegend ? 2 : 1,
+              // A legend with chevrons takes a little from the pie, so its
+              // labels keep their room.
+              flex: !showLegend
+                  ? 1
+                  : onOpenSegment == null
+                  ? 2
+                  : 3,
               child: PieChart(
                 PieChartData(
                   pieTouchData: onOpenSegment == null
@@ -137,7 +143,7 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
                           ? '${segment.percentage.toStringAsFixed(0)}%'
                           : '${segment.count}',
                       color: isDimmed ? color.withValues(alpha: 0.35) : color,
-                      radius: marked == index ? 66 : 60,
+                      radius: marked == index ? 64 : 60,
                       // White on a dark slice, near-black on a light one:
                       // white alone is unreadable on a pale colour.
                       titleStyle: TextStyle(
@@ -157,6 +163,7 @@ class _DistributionPieChartState extends State<DistributionPieChart> {
             if (showLegend) ...[
               const SizedBox(width: 16),
               Expanded(
+                flex: onOpenSegment == null ? 1 : 2,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
