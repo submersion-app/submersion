@@ -47,8 +47,9 @@ class BailoutOutcome {
   final List<BailoutPoint> points;
   final BailoutPoint worstCase;
 
-  /// Surface liters actually carried in bailout-role tanks
-  /// (compressibility-corrected).
+  /// Surface liters left in bailout-role tanks at the worst-case instant
+  /// (compressibility-corrected): what they carried, less what an authored
+  /// off-loop segment had already breathed from them by then (#3898).
   final double availableLiters;
 
   /// The worst-case point's OC schedule, as printable table lines: every
@@ -67,14 +68,16 @@ class BailoutOutcome {
   final List<PlanScheduleRow> ccrRows;
 
   /// The bailout-role cylinders [availableLiters] was summed from -- shown
-  /// here rather than in the main per-tank gas list, since they carry no
-  /// normal-loop consumption to chart there.
+  /// here rather than in the main per-tank gas list, which only lists one an
+  /// authored off-loop segment breathes: they carry no normal-loop
+  /// consumption to chart there.
   final List<DiveTank> bailoutTanks;
 
   /// Per-cylinder consumption for the worst-case bailout schedule, read the
   /// same way the main per-tank gas list reads: used/end liters and
   /// pressure, one row per [bailoutTanks] entry. Sums to the same total as
-  /// [BailoutPoint.litersRequired] for [worstCase].
+  /// [BailoutPoint.litersRequired] for [worstCase], plus whatever an authored
+  /// off-loop segment had already breathed from them by then.
   final List<PlanTankUsage> bailoutTankUsages;
 
   /// The worst-case point's own ceiling, sampled the same way
@@ -127,7 +130,8 @@ class BailoutOutcome {
 /// Answers "what if the loop dies HERE": walks the CCR plan's bottom phase,
 /// and at bounded sample intervals computes the full open-circuit bailout
 /// (schedule on the bailout gases, stressed SAC) from that instant. The
-/// worst case sizes the bailout cylinders.
+/// worst case, the instant the cylinders fall shortest once gas an authored
+/// off-loop segment already spent counts, sizes the bailout cylinders.
 class BailoutSolver {
   final PlanEngineConfig config;
 
@@ -232,7 +236,7 @@ class BailoutSolver {
       ),
     );
 
-    final availableLiters = bailoutTanks.fold<double>(
+    final carriedLiters = bailoutTanks.fold<double>(
       0,
       (sum, tank) =>
           sum +
@@ -271,9 +275,21 @@ class BailoutSolver {
     // case's own ceiling trace can continue from exactly where its bottom
     // phase left off instead of re-simulating it a second time.
     final states = <TissueState>[];
+    // Gas authored off-loop segments have breathed from each bailout cylinder
+    // so far, and its snapshot at each point, same index. It is gone by the
+    // time the loop dies at that point, charged as PlanEngine charges those
+    // segments in the main plan (#3898).
+    final spent = <String, double>{};
+    final spentAtPoints = <Map<String, double>>[];
+    double totalSpentAt(int index) =>
+        spentAtPoints[index].values.fold(0.0, (sum, liters) => sum + liters);
+    final bailoutTankIds = {for (final tank in bailoutTanks) tank.id};
 
     for (final leg in legs) {
       final segment = leg.segment;
+      final offLoop =
+          modeFor(plan, segment) != plan.mode &&
+          bailoutTankIds.contains(leg.tankId);
       var covered = 0;
       while (covered < segment.durationSeconds) {
         final chunk = (segment.durationSeconds - covered) < sampleInterval
@@ -309,6 +325,13 @@ class BailoutSolver {
         );
         covered += chunk;
         elapsed += chunk;
+        if (offLoop) {
+          spent[leg.tankId] =
+              (spent[leg.tankId] ?? 0) +
+              config.sacForPhase(leg.phase) *
+                  (chunk / 60.0) *
+                  environment.pressureAtDepth(chunkAvg);
+        }
 
         if (chunkEndDepth > 0) {
           final schedule = model.schedule(
@@ -334,6 +357,7 @@ class BailoutSolver {
             ),
           );
           states.add(state);
+          spentAtPoints.add(Map.of(spent));
         }
       }
     }
@@ -341,11 +365,13 @@ class BailoutSolver {
     if (points.isEmpty) return null;
     var worstIndex = 0;
     for (var i = 1; i < points.length; i++) {
-      if (points[i].litersRequired > points[worstIndex].litersRequired) {
+      if (points[i].litersRequired + totalSpentAt(i) >
+          points[worstIndex].litersRequired + totalSpentAt(worstIndex)) {
         worstIndex = i;
       }
     }
     final worst = points[worstIndex];
+    final spentAtWorst = spentAtPoints[worstIndex];
     final ccrRows = _legRowsUpTo(worst, legs, plan, environment);
     final ocSchedule = _scheduleRowsFor(
       worst,
@@ -360,7 +386,7 @@ class BailoutSolver {
     return BailoutOutcome(
       points: points,
       worstCase: worst,
-      availableLiters: availableLiters,
+      availableLiters: math.max(0.0, carriedLiters - totalSpentAt(worstIndex)),
       ccrRows: ccrRows,
       worstCaseRows: [...ccrRows, ...ocSchedule.rows],
       ocStops: unfoldedOcStops(
@@ -383,7 +409,9 @@ class BailoutSolver {
       bailoutTankUsages: orderUsagesByFirstUse([
         for (final tank in bailoutTanks)
           () {
-            final used = ocSchedule.litersByTank[tank.id] ?? 0.0;
+            final used =
+                (ocSchedule.litersByTank[tank.id] ?? 0.0) +
+                (spentAtWorst[tank.id] ?? 0.0);
             final start = tank.startPressure;
             final total = start != null
                 ? gasVolume(

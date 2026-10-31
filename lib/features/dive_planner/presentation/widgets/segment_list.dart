@@ -164,11 +164,18 @@ class SegmentList extends ConsumerWidget {
 
   /// The tanks a segment may breathe: on a CCR plan the diluents only --
   /// bailout is never planned on, and the oxygen slot is never breathed as
-  /// such -- every tank otherwise (#3220). Falls back to the whole list
-  /// should a CCR plan somehow hold no diluent, so the editor always has
-  /// something to open on.
-  static List<DiveTank> _breathableTanks(DivePlanState planState) {
-    if (planState.mode != PlanMode.ccr) return planState.tanks;
+  /// such -- every tank otherwise (#3220). A [segment] already overridden off
+  /// the loop is the exception: it breathes a cylinder directly, so the
+  /// editor offers them all rather than moving it onto a diluent on save
+  /// (#3898). Falls back to the whole list should a CCR plan somehow hold no
+  /// diluent, so the editor always has something to open on.
+  static List<DiveTank> _breathableTanks(
+    DivePlanState planState, {
+    PlanSegment? segment,
+  }) {
+    if (planState.mode != PlanMode.ccr || (segment?.leavesCcrLoop ?? false)) {
+      return planState.tanks;
+    }
     final diluents = planState.tanks
         .where((t) => t.role == TankRole.diluent)
         .toList();
@@ -192,7 +199,7 @@ class SegmentList extends ConsumerWidget {
         ? planState.segments[index - 1].targetDepth
         : 0.0;
 
-    final tanks = _breathableTanks(planState);
+    final tanks = _breathableTanks(planState, segment: segment);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(

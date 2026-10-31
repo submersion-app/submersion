@@ -161,16 +161,19 @@ class PlanResultsSheet extends ConsumerWidget {
     final resolvedRoles = const TankRoleResolver().rolesFor(
       divePlanFromState(state),
     );
-    // On a loop plan this list is what the loop consumes: the diluent(s)
-    // and the oxygen supply, the plan's two mandatory slots (#3220). The
-    // bailout cylinders carry no loop consumption and live in the bailout
-    // section's own picture instead (#3137 follow-up). Open circuit has no
-    // such distinction, so every tank it resolves to still shows.
+    // On a loop plan this list is what the plan consumes: the diluent(s) and
+    // the oxygen supply, the plan's two mandatory slots (#3220), plus any
+    // bailout cylinder an authored off-loop segment actually breathes
+    // (#3898). The bailout cylinders otherwise carry no consumption and live
+    // in the bailout section's own picture instead (#3137 follow-up). Open
+    // circuit has no such distinction, so every tank it resolves to still
+    // shows.
     final loopTankUsages = outcome.tankUsages.where((u) {
       final role = resolvedRoles[u.tankId];
       return state.mode == PlanMode.oc ||
           role == TankRole.diluent ||
-          role == TankRole.oxygenSupply;
+          role == TankRole.oxygenSupply ||
+          u.litersUsed > 0;
     });
 
     return ListView(

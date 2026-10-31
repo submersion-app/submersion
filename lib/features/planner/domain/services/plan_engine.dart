@@ -474,6 +474,14 @@ class PlanEngineConfig extends Equatable {
   double setpointLowFor(domain.DivePlan plan) =>
       plan.setpointLow ?? ccrSetpointLow;
 
+  /// The rate an open-circuit leg of [phase] is breathed at: bottom SAC while
+  /// the dive is still working (descending, or level at depth), deco SAC once
+  /// it is heading up (ascent legs and stops).
+  double sacForPhase(SegmentPhase phase) => switch (phase) {
+    SegmentPhase.descent || SegmentPhase.level => sacBottom,
+    SegmentPhase.ascent || SegmentPhase.stop => sacDeco,
+  };
+
   /// [plan]'s stressed (bailout/rock-bottom) SAC: its own [sacStressed]
   /// override when set, else [sacBottom] (already resolved against this
   /// plan - call this on a [resolvedFor] config) times the diver's
@@ -1151,10 +1159,12 @@ class PlanEngine {
   /// [ceilingSampleSeconds] so the chart samples land where they always did.
   static const _ceilingBreachSampleSeconds = 10;
 
-  /// CCR consumption: metabolic O2 over the whole runtime charged to the
+  /// CCR consumption: metabolic O2 for the time on the loop charged to the
   /// oxygen-supply tank, descent loop-fill diluent charged leg by leg to
-  /// whichever diluent that leg actually breathes. Bailout tanks consume
-  /// nothing in the main plan — they are sized by the bailout solver.
+  /// whichever diluent that leg actually breathes. A leg a per-segment
+  /// override takes off the loop breathes its own cylinder instead, at the
+  /// SAC rates the open-circuit walk charges (#3898). A bailout tank no such
+  /// leg breathes consumes nothing here: it is sized by the bailout solver.
   List<PlanTankUsage> _computeCcrTankUsages(
     domain.DivePlan plan, {
     required List<ResolvedLeg> legs,
@@ -1163,6 +1173,10 @@ class PlanEngine {
   }) {
     if (plan.tanks.isEmpty) return const [];
     final liters = <String, double>{for (final t in plan.tanks) t.id: 0.0};
+    final offLoopLegs = [
+      for (final leg in legs)
+        if (modeFor(plan, leg.segment) != domain.PlanMode.ccr) leg,
+    ];
 
     String? tankIdByRole(TankRole role) {
       for (final tank in plan.tanks) {
@@ -1173,8 +1187,13 @@ class PlanEngine {
 
     final o2TankId = tankIdByRole(TankRole.oxygenSupply);
     if (o2TankId != null) {
+      final offLoopSeconds = offLoopLegs.fold<int>(
+        0,
+        (sum, leg) => sum + leg.durationSeconds,
+      );
       liters[o2TankId] =
-          config.o2MetabolicRateLpm * (totalRuntimeSeconds / 60.0);
+          config.o2MetabolicRateLpm *
+          ((totalRuntimeSeconds - offLoopSeconds) / 60.0);
     }
 
     // Loop-fill gas: as the diver goes deeper, the counterlung needs more
@@ -1200,6 +1219,27 @@ class PlanEngine {
                 (environment.pressureAtDepth(leg.endDepth) -
                     environment.pressureAtDepth(leg.startDepth));
       }
+    }
+
+    // Off the loop the diver breathes the cylinder itself. Like the
+    // open-circuit walk, a leg naming a cylinder no longer on the plan falls
+    // back to the first one: dropping it would report that gas as free.
+    void charge(String tankId, double amount) {
+      final id = liters.containsKey(tankId) ? tankId : plan.tanks.first.id;
+      liters[id] = (liters[id] ?? 0) + amount;
+    }
+
+    for (final leg in offLoopLegs) {
+      charge(leg.tankId, _openCircuitLiters(leg, environment));
+    }
+
+    // Only when the diver is off the loop at the bottom: a problem solved on
+    // the loop draws nothing the plan charges by the minute.
+    final bottomTankId = _bottomTankId(plan, offLoopLegs);
+    if (bottomTankId != null &&
+        config.problemSolvingMinutes > 0 &&
+        plan.maxDepth > 0) {
+      charge(bottomTankId, _problemSolvingLiters(plan, environment));
     }
 
     return [
@@ -1247,7 +1287,6 @@ class PlanEngine {
                 ? (start - (remaining ?? 0)) / start * 100.0
                 : 0.0,
             reserveViolation:
-                tank.role != TankRole.bailout &&
                 remaining != null &&
                 used > 0 &&
                 remaining < config.reservePressure,
@@ -1255,6 +1294,36 @@ class PlanEngine {
         }(),
     ];
   }
+
+  /// Surface liters [leg] costs breathed straight from a cylinder.
+  double _openCircuitLiters(ResolvedLeg leg, DiveEnvironment environment) =>
+      config.sacForPhase(leg.phase) *
+      (leg.durationSeconds / 60.0) *
+      environment.pressureAtDepth(leg.avgDepth);
+
+  /// The cylinder the last of [legs] at the plan's max depth breathes, or
+  /// null when none of them reaches it.
+  String? _bottomTankId(domain.DivePlan plan, Iterable<ResolvedLeg> legs) {
+    String? bottomTankId;
+    for (final leg in legs) {
+      if (leg.endDepth >= plan.maxDepth - 0.1 ||
+          leg.startDepth >= plan.maxDepth - 0.1) {
+        bottomTankId = leg.tankId;
+      }
+    }
+    return bottomTankId;
+  }
+
+  /// Surface liters of the plan's problem-solving time at max depth, shared
+  /// with a buddy.
+  double _problemSolvingLiters(
+    domain.DivePlan plan,
+    DiveEnvironment environment,
+  ) =>
+      config.sacBottom *
+      config.buddyFactor *
+      config.problemSolvingMinutes *
+      environment.pressureAtDepth(plan.maxDepth);
 
   /// SAC-based consumption: bottom SAC while the dive is still working
   /// (descending, or level at depth), deco SAC once it is heading up (ascent
@@ -1285,35 +1354,16 @@ class PlanEngine {
     // Settings default. sacFactor has no absolute global value of its own -
     // it always resolves through config.buddyFactor (see resolvedFor).
     for (final leg in legs) {
-      final sac = switch (leg.phase) {
-        SegmentPhase.descent || SegmentPhase.level => config.sacBottom,
-        SegmentPhase.ascent || SegmentPhase.stop => config.sacDeco,
-      };
-      charge(
-        leg.tankId,
-        sac *
-            (leg.durationSeconds / 60.0) *
-            environment.pressureAtDepth(leg.avgDepth),
-      );
+      charge(leg.tankId, _openCircuitLiters(leg, environment));
     }
 
     // Problem-solving time: extra N minutes at max depth on the working
     // gas, at bottom SAC x SAC factor, so the used/end figures include the
     // same bottom-hold term the gas-options row describes.
     if (config.problemSolvingMinutes > 0 && plan.maxDepth > 0) {
-      String? bottomTankId;
-      for (final leg in legs) {
-        if (leg.endDepth >= plan.maxDepth - 0.1 ||
-            leg.startDepth >= plan.maxDepth - 0.1) {
-          bottomTankId = leg.tankId;
-        }
-      }
       charge(
-        bottomTankId,
-        config.sacBottom *
-            config.buddyFactor *
-            config.problemSolvingMinutes *
-            environment.pressureAtDepth(plan.maxDepth),
+        _bottomTankId(plan, legs),
+        _problemSolvingLiters(plan, environment),
       );
     }
 
