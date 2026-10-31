@@ -250,6 +250,51 @@ void main() {
       expect(tank.endPressureBar, closeTo(engineRemaining(container)!, 1e-9));
     });
 
+    test(
+      'the profile runs through the computed stops to the surface',
+      () async {
+        final (container, notifier) = await planContainer(
+          segments: [seg(30, 120), seg(30, 1500)],
+        );
+        notifier.setPlannedWeight(6.0, null);
+        final outcome = container.read(planOutcomeProvider);
+
+        final twin = container.read(planBuoyancyTwinProvider)!;
+        final profile = twin.result.input.profile;
+
+        expect(outcome.stops, isNotEmpty);
+        expect(profile.last.depthM, 0);
+        expect(profile.last.timestamp, outcome.runtimeSeconds);
+        for (var i = 1; i < profile.length; i++) {
+          expect(profile[i].timestamp, greaterThan(profile[i - 1].timestamp));
+        }
+        expect(twin.outputs.verdict.anchor.kind, TwinAnchorKind.detectedStop);
+        expect(
+          twin.outputs.verdict.anchor.depthM,
+          closeTo(outcome.stops.last.depthMeters, 0.5),
+        );
+      },
+    );
+
+    test('a no-stop ascent is sampled on the way up', () async {
+      final (container, notifier) = await planContainer(
+        segments: [seg(18, 60), seg(18, 300)],
+      );
+      notifier.setPlannedWeight(6.0, null);
+      expect(container.read(planOutcomeProvider).stops, isEmpty);
+
+      final profile = container
+          .read(planBuoyancyTwinProvider)!
+          .result
+          .input
+          .profile;
+
+      final inWater = profile.where(
+        (s) => s.depthM > TwinAnalyzer.kSurfaceDepthM,
+      );
+      expect(inWater.last.depthM, lessThan(6));
+    });
+
     test('a shortfall reads as an empty tank, not negative gas', () async {
       final (container, notifier) = await planContainer(
         segments: [seg(40, 120), seg(40, 7200)],

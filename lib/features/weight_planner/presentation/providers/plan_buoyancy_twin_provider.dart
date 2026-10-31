@@ -27,7 +27,16 @@ const _log = LoggerService('PlanBuoyancyTwinProvider');
 /// Builds a square-ish profile from plan segments: one sample per boundary
 /// plus an interior sample every [_kInteriorSampleSeconds] on constant-depth
 /// segments (bottom, stops). Timestamps are cumulative and monotonic.
-List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
+///
+/// [computedAscent] continues the profile from the last authored depth as
+/// `(depth, seconds)` waypoints, so it covers the same dive as the engine's end
+/// pressures. They are sampled at that spacing throughout: the ascent then
+/// reads as the diver getting shallower, and a computed stop as a run the
+/// anchor detector can find.
+List<TwinProfileSample> synthesizePlanProfile(
+  List<PlanSegment> segments, {
+  List<(double, int)> computedAscent = const [],
+}) {
   final samples = <TwinProfileSample>[];
   if (segments.isEmpty) return samples;
   final legs = const SegmentChain().resolve(segments);
@@ -52,10 +61,44 @@ List<TwinProfileSample> synthesizePlanProfile(List<PlanSegment> segments) {
     }
     samples.add(TwinProfileSample(timestamp: t, depthM: leg.endDepth));
   }
+  var depth = legs.last.endDepth;
+  for (final (toDepth, seconds) in computedAscent) {
+    if (seconds <= 0) continue;
+    for (
+      var s = _kInteriorSampleSeconds;
+      s < seconds;
+      s += _kInteriorSampleSeconds
+    ) {
+      samples.add(
+        TwinProfileSample(
+          timestamp: t + s,
+          depthM: depth + (toDepth - depth) * s / seconds,
+        ),
+      );
+    }
+    t += seconds;
+    depth = toDepth;
+    samples.add(TwinProfileSample(timestamp: t, depthM: depth));
+  }
   return samples;
 }
 
-/// What is left in a cylinder as a mass the twin can weigh. The engine prices a
+/// [outcome]'s computed ascent as `(depth, seconds)` waypoints, timed off its
+/// stop arrivals: a stop's schedule line leaves out the travel into it.
+List<(double, int)> _computedAscent(PlanOutcome outcome) {
+  if (outcome.segmentOutcomes.isEmpty) return const [];
+  final waypoints = <(double, int)>[];
+  var end = outcome.segmentOutcomes.last.endRuntime;
+  for (final stop in outcome.stops) {
+    waypoints.add((stop.depthMeters, stop.arrivalRuntimeSeconds - end));
+    waypoints.add((stop.depthMeters, stop.durationSeconds));
+    end = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+  }
+  waypoints.add((0, outcome.runtimeSeconds - end));
+  return waypoints;
+}
+
+/// The pressure left in a cylinder, for the twin to weigh. The engine prices a
 /// shortfall as a negative pressure (#3190), but an empty cylinder holds no gas
 /// rather than less than none.
 double? _endPressureBar(PlanTankUsage? usage) {
@@ -158,7 +201,10 @@ BuoyancyTwinOutcome? _planBuoyancyTwin(Ref ref) {
       : BuoyancyTwinAssembler.droppableLeadFromPlacement(placement);
 
   final input = TwinInput(
-    profile: synthesizePlanProfile(state.segments),
+    profile: synthesizePlanProfile(
+      state.segments,
+      computedAscent: _computedAscent(planOutcome),
+    ),
     tanks: tanks,
     suit: rig.suit,
     staticTerms: rig.staticTerms,
