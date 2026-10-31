@@ -198,9 +198,9 @@ class EquipmentSets extends Table {
       boolean().withDefault(const Constant(false))();
 
   /// Whether the set page draws this set's gear on the diver figure
-  /// (issue #2326, v229). Opt-in per set and off by default, including for
-  /// every set that existed before the column.
-  BoolColumn get showFigure => boolean().withDefault(const Constant(false))();
+  /// (issue #2326, v229). On by default, and turned on once for every set
+  /// already stored (issue #3889, v329); a diver can hide it per set.
+  BoolColumn get showFigure => boolean().withDefault(const Constant(true))();
 
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
