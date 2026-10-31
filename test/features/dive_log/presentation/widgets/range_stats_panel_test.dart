@@ -189,6 +189,31 @@ void main() {
       expect(find.text('60.0 L/min'), findsOneWidget);
     });
 
+    testWidgets('averages depth over time, for SAC and RMV too (#3891)', (
+      tester,
+    ) async {
+      // The default range, 150 s to 450 s: 60 s at 10 m, a 60 s ramp to
+      // 30 m, 180 s at 30 m. A sample average would say 20 m.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: const [
+          DiveProfilePoint(timestamp: 150, depth: 10),
+          DiveProfilePoint(timestamp: 210, depth: 10),
+          DiveProfilePoint(timestamp: 270, depth: 30),
+          DiveProfilePoint(timestamp: 450, depth: 30),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      // (60 * 10 + 60 * 20 + 180 * 30) / 300 is 24 m, so 3.4 bar ambient:
+      // 50 bar over 5 min is 2.9 bar/min, 35.3 L/min of 12 L.
+      expect(find.text('24.0m'), findsOneWidget);
+      expect(find.text('2.9 bar/min'), findsOneWidget);
+      expect(find.text('35.3 L/min'), findsOneWidget);
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 

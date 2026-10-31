@@ -3,6 +3,8 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
+    show SacSegment;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 
@@ -41,6 +43,122 @@ void main() {
     }
     return points;
   }
+
+  group('average depth over uneven samples (#3891)', () {
+    // 60 s at 10 m, a 60 s ramp to 30 m, then 480 s at 30 m: 27 m over time
+    // and 20 m over samples. A gas switch segment leaves out the sample at
+    // its end, so the last one here only closes the segment at 610 s.
+    const uneven = [
+      DiveProfilePoint(timestamp: 0, depth: 10),
+      DiveProfilePoint(timestamp: 60, depth: 10),
+      DiveProfilePoint(timestamp: 120, depth: 30),
+      DiveProfilePoint(timestamp: 600, depth: 30),
+      DiveProfilePoint(timestamp: 610, depth: 30),
+    ];
+    const tank = DiveTank(
+      id: 't1',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      gasMix: GasMix(o2: 21, he: 0),
+    );
+
+    test('a gas switch segment normalizes by its time-weighted depth', () {
+      final switches = [
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'gs1',
+            diveId: 'dive-1',
+            timestamp: 0,
+            tankId: 't1',
+            createdAt: DateTime(2026),
+          ),
+          tankName: 't1',
+          gasMix: 'air',
+          o2Fraction: 0.21,
+        ),
+      ];
+
+      SacSegment segmentOf(List<DiveProfilePoint> profile) => service
+          .calculateGasSwitchSegments(
+            profile: profile,
+            tanks: const [tank],
+            gasSwitches: switches,
+            tankPressures: {'t1': linearPressure('t1', 200, 100, 610)},
+          )!
+          .single;
+
+      final segment = segmentOf(uneven);
+      expect(segment.avgDepth, closeTo(27, 1e-9));
+      // The same breathing as a flat dive at that depth.
+      final flat = segmentOf([
+        for (final point in uneven)
+          DiveProfilePoint(timestamp: point.timestamp, depth: 27),
+      ]);
+      expect(segment.sacRate, closeTo(flat.sacRate, 1e-9));
+    });
+
+    test('a phase segment is unchanged by a sample on a flat stretch', () {
+      // A bottom phase on two levels, both within 15% of the maximum: a sample
+      // average moves with each sample added at 30 m, the mean over time does
+      // not.
+      const sparse = [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 120, depth: 30),
+        DiveProfilePoint(timestamp: 240, depth: 30),
+        DiveProfilePoint(timestamp: 360, depth: 30),
+        DiveProfilePoint(timestamp: 600, depth: 30),
+        DiveProfilePoint(timestamp: 660, depth: 27),
+        DiveProfilePoint(timestamp: 900, depth: 27),
+        DiveProfilePoint(timestamp: 1100, depth: 27),
+        DiveProfilePoint(timestamp: 1200, depth: 27),
+        DiveProfilePoint(timestamp: 1300, depth: 5),
+        DiveProfilePoint(timestamp: 1480, depth: 5),
+        DiveProfilePoint(timestamp: 1540, depth: 0),
+      ];
+      final dense = [
+        ...sparse.take(2),
+        const DiveProfilePoint(timestamp: 180, depth: 30),
+        ...sparse.skip(2).take(1),
+        const DiveProfilePoint(timestamp: 300, depth: 30),
+        ...sparse.skip(3),
+      ];
+
+      List<double> depthsOf(List<DiveProfilePoint> profile) => service
+          .calculatePhaseSegments(
+            profile: profile,
+            tanks: const [tank],
+            tankPressures: {'t1': linearPressure('t1', 200, 50, 1540)},
+          )!
+          .map((s) => s.avgDepth)
+          .toList();
+
+      final sparseDepths = depthsOf(sparse);
+      final denseDepths = depthsOf(dense);
+      expect(sparseDepths, isNotEmpty);
+      expect(denseDepths, hasLength(sparseDepths.length));
+      for (var i = 0; i < sparseDepths.length; i++) {
+        expect(denseDepths[i], closeTo(sparseDepths[i], 1e-9));
+      }
+    });
+
+    test('a cylinder reports its time-weighted depth during use', () {
+      final profile = uneven.take(4).toList();
+
+      final results = service.calculateCylinderSac(
+        dive: Dive(
+          id: 'dive-1',
+          dateTime: DateTime(2026),
+          profile: profile,
+          tanks: const [tank],
+        ),
+        profile: profile,
+        tankPressures: {'t1': linearPressure('t1', 200, 100, 600)},
+      );
+
+      expect(results.single.avgDepthDuringUse, closeTo(27, 1e-9));
+    });
+  });
 
   group('calculateGasSwitchSegments', () {
     test('a stage tank prorates over its own stint, not the whole dive '

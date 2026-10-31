@@ -752,6 +752,34 @@ void main() {
       expect(sac.params['surfaceLpm'] as double, greaterThan(100.0));
     });
 
+    test('the mean sample depth is weighted by elapsed time (#3891)', () {
+      // (60 * 10 + 60 * 20 + 180 * 30) / 300 is 24 m, where a sample average
+      // says 20 m. 150 bar of 12 L over 5 minutes at 3.4 atm.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(end: 50)]),
+        samples: const [
+          QualitySample(t: 0, depth: 10),
+          QualitySample(t: 60, depth: 10),
+          QualitySample(t: 120, depth: 30),
+          QualitySample(t: 300, depth: 30),
+        ],
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 300, bar: 50),
+          ],
+        },
+      );
+
+      final sac = det
+          .detect(ctx)
+          .singleWhere((f) => f.params.containsKey('surfaceLpm'));
+      expect(
+        sac.params['surfaceLpm'] as double,
+        closeTo(150 * 12 / 5 / 3.4, 1e-9),
+      );
+    });
+
     // Shared depth shape for the consumption tests below: 10 m (2 atm) until
     // the diver surfaces at t=420, then two more minutes of recording at the
     // surface.

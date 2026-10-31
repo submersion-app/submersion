@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/range_gas_consumption.dart';
@@ -425,7 +426,11 @@ class RangeStatsPanel extends ConsumerWidget {
     final depths = rangePoints.map((p) => p.depth).toList();
     final minDepth = depths.reduce(math.min);
     final maxDepth = depths.reduce(math.max);
-    final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+    final avgDepth = timeWeightedMean(
+      rangePoints,
+      time: (p) => p.timestamp,
+      value: (p) => p.depth,
+    )!;
 
     // Depth delta (signed: positive = deeper)
     final depthDelta = rangePoints.last.depth - rangePoints.first.depth;

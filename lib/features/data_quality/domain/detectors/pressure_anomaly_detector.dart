@@ -2,6 +2,7 @@ import 'package:submersion/core/profile/surfacing_pressure.dart'
     show lastTimeBelowSurfaceThreshold;
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/profile/tank_pressure_mixing.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
@@ -423,12 +424,10 @@ class PressureAnomalyDetector extends QualityDetector {
       for (final s in allSamples)
         if (s.t >= fromT && s.t <= toT) s,
     ];
-    final samples = inWindow.isEmpty ? allSamples : inWindow;
-    if (samples.isEmpty) return null;
-    var sum = 0.0;
-    for (final p in samples) {
-      sum += p.depth;
-    }
-    return sum / samples.length;
+    return timeWeightedMean(
+      inWindow.isEmpty ? allSamples : inWindow,
+      time: (s) => s.t,
+      value: (s) => s.depth,
+    );
   }
 }

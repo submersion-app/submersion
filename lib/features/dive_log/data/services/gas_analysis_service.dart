@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
+import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -81,7 +82,7 @@ class GasAnalysisService {
 
       // Calculate depth statistics
       final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+      final avgDepth = _meanDepthOf(segmentProfile);
       final minDepth = depths.reduce(math.min);
       final maxDepth = depths.reduce(math.max);
 
@@ -214,7 +215,7 @@ class GasAnalysisService {
 
       // Calculate depth statistics
       final depths = segmentProfile.map((p) => p.depth).toList();
-      final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+      final avgDepth = _meanDepthOf(segmentProfile);
       final minD = depths.reduce(math.min);
       final maxD = depths.reduce(math.max);
 
@@ -335,12 +336,9 @@ class GasAnalysisService {
           .toList();
 
       // Calculate average depth during usage
-      double? avgDepthDuringUse;
-      if (usageProfile.isNotEmpty) {
-        avgDepthDuringUse =
-            usageProfile.map((p) => p.depth).reduce((a, b) => a + b) /
-            usageProfile.length;
-      }
+      final avgDepthDuringUse = usageProfile.isEmpty
+          ? null
+          : _meanDepthOf(usageProfile);
 
       // Check if we have time-series pressure data for this tank (matched by
       // id, or adopted from a re-keyed/orphaned series).
@@ -426,6 +424,14 @@ class GasAnalysisService {
   // ─────────────────────────────────────────────────────────────────────────
   // Private Helper Methods
   // ─────────────────────────────────────────────────────────────────────────
+
+  /// Time-weighted mean depth of a non-empty [profile].
+  static double _meanDepthOf(List<DiveProfilePoint> profile) =>
+      timeWeightedMean(
+        profile,
+        time: (p) => p.timestamp,
+        value: (p) => p.depth,
+      )!;
 
   /// Compute SAC rate under [model], using its gas volumes.
   ///
@@ -576,8 +582,7 @@ class GasAnalysisService {
     if (durationSec < minSegmentDuration) return null;
 
     // Calculate average depth
-    final depths = profile.map((p) => p.depth).toList();
-    final avgDepth = depths.reduce((a, b) => a + b) / depths.length;
+    final avgDepth = _meanDepthOf(profile);
     if (avgDepth <= 0) return null;
 
     double? pressureUsed;
