@@ -57,34 +57,52 @@ List<Dive> loggedDiveChain(
 }
 
 /// The surface interval a plan starts with when it follows a dive that ended
-/// at [end]: the time since, when the dive was recent, so the plan is for
-/// now; else [defaultSeriesSurfaceInterval]. Under ten minutes reads as a
-/// clock mismatch rather than a real interval, as it always has. [end] and
-/// [now] are true instants; see [diveEndInstant].
+/// at [end]: [defaultSeriesSurfaceInterval] when it ended less than that long
+/// ago, so the plan starts that long after the dive; else the time since,
+/// rounded up to the minute, so by default the plan starts now and never in
+/// the past, however old the dive. The diver can still type a shorter one.
+/// [end] and [now] are true instants; see [diveEndInstant].
 Duration followSurfaceInterval(DateTime end, {required DateTime now}) {
   final elapsed = now.difference(end);
-  if (elapsed < const Duration(minutes: 10) || elapsed >= followLookback) {
+  if (elapsed < defaultSeriesSurfaceInterval) {
     return defaultSeriesSurfaceInterval;
   }
-  return Duration(minutes: elapsed.inMinutes);
+  return Duration(minutes: (elapsed.inSeconds + 59) ~/ 60);
 }
+
+/// Whether [a] and [b] are the same tank for carrying a pressure from one to
+/// the other: the same size and gas.
+bool sameCylinder(DiveTank a, DiveTank b) =>
+    a.volume == b.volume &&
+    a.workingPressure == b.workingPressure &&
+    a.gasMix == b.gasMix;
 
 /// [tanks] with what [follow] carries into the first planned dive: each tank
 /// not in [pinned] that [sources] links to a logged tank (by id) starts at
-/// that tank's end pressure, clamped at 0. Any other tank, or one whose
-/// logged tank has no end pressure, keeps its own start pressure.
+/// that tank's end pressure, clamped at 0, while it is still that tank, the
+/// same size and gas. One the diver has changed starts full, at its rated
+/// pressure. Any other tank, or one whose logged tank has no end pressure,
+/// keeps its own start pressure.
 List<DiveTank> followedTankPressures(
   List<DiveTank> tanks,
   SeriesFollow follow, {
   Map<String, String> sources = const {},
   Set<String> pinned = const {},
 }) {
-  final ends = {for (final tank in follow.endTanks) tank.id: ?tank.endPressure};
+  final logged = {for (final tank in follow.endTanks) tank.id: tank};
   return [
     for (final tank in tanks)
       if (pinned.contains(tank.id))
         tank
-      else if (ends[sources[tank.id]] case final end?)
+      else if (logged[sources[tank.id]] case final from?
+          when !sameCylinder(from, tank))
+        tank.copyWith(
+          startPressure:
+              tank.workingPressure ??
+              follow.ownStartPressures[tank.id] ??
+              tank.startPressure,
+        )
+      else if (logged[sources[tank.id]]?.endPressure case final end?)
         tank.copyWith(startPressure: end < 0 ? 0.0 : end)
       else if (follow.ownStartPressures[tank.id] case final own?)
         tank.copyWith(startPressure: own)

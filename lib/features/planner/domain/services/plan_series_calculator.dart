@@ -1,4 +1,5 @@
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
@@ -92,13 +93,16 @@ DivePlanState carriedState(
       if (usage.remainingPressure case final pressure?)
         usage.tankId: pressure < 0 ? 0.0 : pressure,
   };
+  final before = {for (final tank in previous.state.tanks) tank.id: tank};
   final tanks = [
     for (final tank in dive.state.tanks)
-      if (!dive.pinnedTankIds.contains(tank.id) &&
-          remaining[dive.sourceTankIds[tank.id]] != null)
-        tank.copyWith(startPressure: remaining[dive.sourceTankIds[tank.id]])
-      else
+      _carriedTank(
         tank,
+        pinned: dive.pinnedTankIds.contains(tank.id),
+        source: dive.sourceTankIds[tank.id],
+        before: before,
+        remaining: remaining,
+      ),
   ];
 
   return timed.copyWith(
@@ -106,6 +110,28 @@ DivePlanState carriedState(
     initialCns: previous.outcome.cnsEnd,
     initialOtu: otu,
     tanks: tanks,
+  );
+}
+
+/// [tank] as a later dive starts it. It carries what was left in its source
+/// tank only while that is the same tank, the same size and gas. A linked
+/// tank that is no longer the same one starts full, at its rated pressure. A
+/// pinned tank, or one with no link, keeps the pressure it was given.
+DiveTank _carriedTank(
+  DiveTank tank, {
+  required bool pinned,
+  required String? source,
+  required Map<String, DiveTank> before,
+  required Map<String, double> remaining,
+}) {
+  if (pinned || source == null) return tank;
+  final from = before[source];
+  if (from != null && sameCylinder(from, tank)) {
+    final left = remaining[source];
+    return left == null ? tank : tank.copyWith(startPressure: left);
+  }
+  return tank.copyWith(
+    startPressure: tank.workingPressure ?? tank.startPressure,
   );
 }
 

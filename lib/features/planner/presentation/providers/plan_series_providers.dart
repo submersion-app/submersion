@@ -12,6 +12,8 @@ import 'package:submersion/features/planner/domain/services/plan_series_edits.da
     as edits;
 import 'package:submersion/features/planner/domain/services/plan_series_settings.dart'
     as settings;
+import 'package:submersion/features/planner/domain/services/plan_series_tanks.dart'
+    as series_tanks;
 import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
@@ -73,7 +75,12 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     state = edits.updateDiveState(state, index, next);
     // A setting changed on the first dive is the series'; on a later dive,
     // that dive's own.
-    state = settings.shareSettingEdits(state, index, before: before);
+    state = settings.shareSettingEdits(
+      state,
+      index,
+      before: before,
+      newId: _newId,
+    );
     // The name is the whole plan's, so every dive takes a new one.
     if (previous?.name != next.name) {
       state = edits.setPlanName(state, next.name);
@@ -157,13 +164,23 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   /// Puts the selected dive back on the series' settings of [group].
   void resetGroupToSeries(PlanSettingGroup group) {
-    state = settings.resetGroupToSeries(state, state.selectedIndex, group);
+    state = settings.resetGroupToSeries(
+      state,
+      state.selectedIndex,
+      group,
+      newId: _newId,
+    );
     _loadSelected();
   }
 
   /// Makes the selected dive's settings of [group] the series'.
   void applyGroupToAll(PlanSettingGroup group) {
-    state = settings.applyGroupToAll(state, state.selectedIndex, group);
+    state = settings.applyGroupToAll(
+      state,
+      state.selectedIndex,
+      group,
+      newId: _newId,
+    );
     _loadSelected();
   }
 
@@ -178,6 +195,8 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       surfaceInterval: surfaceInterval,
       newId: _newId,
     );
+    // The first dive took the followed dive's tanks, and it is the series'.
+    state = series_tanks.followSeriesTanks(state, newId: _newId);
     _loadSelected();
   }
 

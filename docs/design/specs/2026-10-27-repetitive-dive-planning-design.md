@@ -132,9 +132,12 @@ the plan. Removing dives back to one re-enables both.
   which keep their pressures. Stop following keeps the tanks, back at their
   fills. Removing Dive A leaves Dive B following, its tanks carrying from
   the logged tanks Dive A's did, after its own interval.
-- **Interval.** Following a dive that ended less than 48 hours ago (and more
-  than 10 minutes ago) starts Dive A after the time since, so the plan is for
-  now; an older dive gets the usual 1:00.
+- **Interval.** Following a dive that ended less than an hour ago gives Dive A
+  the usual 1:00, and its start follows from that. A dive that ended an hour
+  or more ago starts Dive A after the time since, rounded up to the minute, so
+  by default a plan starts now and never in the past, however old the dive.
+  These are defaults only: the diver can type a shorter interval or an earlier
+  start.
 - **Ways to follow.**
   - Follow a dive (planner menu) lists every logged dive.
   - A one-tap prompt under the bar offers the most recent logged dive when
@@ -182,6 +185,31 @@ Phases 2, 3 and 5 are built together; the plan is
 - **The site** is the plan's existing `siteId`, now editable here with the
   dive log's site picker. The planner doesn't use it; a dive logged from the
   plan takes it. A new dive copies the previous dive's site.
+
+## Shared settings and tanks
+
+- **The first dive's settings are the series'.** Each Setup section
+  (Decompression, Rates, Gas, Environment, Contingencies) and the Tanks card
+  is a group. Changing a group on the first dive reaches every later dive
+  that has not set its own. Changing it on a later dive makes it that dive's
+  own at once, without asking. The section then reads "This dive only" and
+  offers **Reset to series** and **Apply to all dives**. On a single dive
+  nothing shows.
+- **Tanks** follow the same rule for what a tank is: its size, rated
+  pressure, gas, role and name. Adding, removing or changing a tank on the
+  first dive does the same on the later dives that share the series' tanks,
+  and their profiles move off a removed tank. A dive on another circuit keeps
+  its own.
+- **Start pressures are not shared.** A tank carries what was left in its
+  tank on the previous planned dive only while it is the same tank, the same
+  size and gas. A tank that is no longer the same one starts full at its
+  rated pressure, and a tank the previous dive does not have starts at the
+  series' fill. A pressure the diver filled or typed stays, and doesn't make
+  the tanks the dive's own.
+- **The same goes for a followed dive.** Dive A takes the logged dive's tanks,
+  and so do the later dives that share the series' tanks. Each carries the
+  logged end pressure only while it is that tank: changed to another size or
+  gas, it starts full. Nothing here changes the logged dive.
 
 ## Design
 

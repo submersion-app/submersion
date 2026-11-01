@@ -23,7 +23,9 @@ import 'package:submersion/features/planner/domain/services/tank_mod.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/widgets/tank_mod_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_setting_scope.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -77,6 +79,9 @@ class PlanTankList extends ConsumerWidget {
                 ),
               ],
             ),
+            // In a series, whose tanks these are (issue #3565).
+            const PlanSettingScopeLabel(PlanSettingGroup.tanks),
+            const PlanSettingScopeActions(PlanSettingGroup.tanks),
             // A later dive of a repetitive series starts its tanks where
             // the dive before left them (issue #3565). On its own line: the
             // header has no room for it in the editor pane.
