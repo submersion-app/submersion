@@ -275,6 +275,17 @@ void main() {
     expect(repository.updated!.diveCenterId, isNull);
   });
 
+  testWidgets('a link to a center missing here does not read None', (
+    tester,
+  ) async {
+    await pumpDialog(tester, existing: linked(centerId: 'gone'));
+
+    expect(find.text('None'), findsNothing);
+    await tester.tap(clearButton);
+    await tester.pumpAndSettle();
+    expect(find.text('None'), findsOneWidget);
+  });
+
   testWidgets('a link to a center missing here is kept on save', (
     tester,
   ) async {
@@ -401,6 +412,23 @@ void main() {
       final repository = await pumpDialog(tester, existing: person());
       expect(find.text('Anna Lindqvist'), findsOneWidget);
 
+      await tester.tap(clearBuddy);
+      await tester.pumpAndSettle();
+      expect(find.text('None'), findsOneWidget);
+      await save(tester);
+
+      expect(repository.updated!.buddyId, isNull);
+    });
+
+    testWidgets('a link to a buddy missing here does not read None', (
+      tester,
+    ) async {
+      final repository = await pumpDialog(
+        tester,
+        existing: person(buddyId: 'gone'),
+      );
+
+      expect(find.text('None'), findsNothing);
       await tester.tap(clearBuddy);
       await tester.pumpAndSettle();
       expect(find.text('None'), findsOneWidget);

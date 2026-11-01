@@ -138,7 +138,13 @@ class _EquipmentLocationEditDialogState
                   onPressed: () => setState(() => _centerId = null),
                 ),
         ),
-        child: Text(center?.name ?? l10n.equipment_locations_savedCenterNone),
+        // As for a buddy: a link to a center not on this device yet is not
+        // None.
+        child: Text(
+          id == null
+              ? l10n.equipment_locations_savedCenterNone
+              : center?.name ?? '',
+        ),
       ),
     );
   }
@@ -173,7 +179,11 @@ class _EquipmentLocationEditDialogState
                   onPressed: () => setState(() => _buddyId = null),
                 ),
         ),
-        child: Text(buddy?.name ?? l10n.equipment_locations_buddyNone),
+        // None means no link. A link to a buddy not on this device yet is
+        // still a link, so it reads blank and can still be cleared.
+        child: Text(
+          id == null ? l10n.equipment_locations_buddyNone : buddy?.name ?? '',
+        ),
       ),
     );
   }
