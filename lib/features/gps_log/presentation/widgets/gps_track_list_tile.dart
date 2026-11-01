@@ -6,7 +6,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
-import 'package:submersion/features/tracks/presentation/widgets/track_row_card.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One row in a list of recorded tracks: thumbnail, title, figures.
@@ -49,11 +49,10 @@ class GpsTrackListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    return TrackRowCard(
-      highlighted: selected || isHighlighted,
-      child: ListTile(
-        onTap: onTap,
-        selected: selected,
+    return TrackListCard(
+      selected: selected || isHighlighted,
+      onTap: onTap,
+      builder: (context, colors) => ListTile(
         contentPadding: contentPadding,
         minLeadingWidth: kTrackThumbnailWidth,
         leading: GpsTrackThumbnail(trackId: track.id),

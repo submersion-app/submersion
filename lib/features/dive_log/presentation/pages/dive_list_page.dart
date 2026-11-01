@@ -58,6 +58,7 @@ import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
+import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
@@ -647,13 +648,6 @@ class DiveListTile extends ConsumerWidget {
     );
   }
 
-  /// Determine if text should be light or dark based on background color
-  bool _shouldUseLightText(Color backgroundColor) {
-    // Use luminance to determine if background is dark
-    // Luminance < 0.5 means dark background, needs light text
-    return backgroundColor.computeLuminance() < 0.5;
-  }
-
   /// Check if map background should be shown
   bool get _hasLocation => siteLatitude != null && siteLongitude != null;
 
@@ -697,21 +691,18 @@ class DiveListTile extends ConsumerWidget {
         ? _getAttributeBackgroundColor()
         : null;
     final cardColor = showsSelectionFill
-        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+        ? recordCardSelectionFill(colorScheme)
         : attributeColor;
 
-    // Determine text colors based on background luminance
-    // When map is shown, use light text since the gradient overlay makes the background dark
-    final effectiveBackground = shouldShowMap
-        ? const Color(0xFF1A1A2E) // Dark background for map overlay
-        : (cardColor ?? colorScheme.surfaceContainerHighest);
-    final useLightText = _shouldUseLightText(effectiveBackground);
-    final primaryTextColor = useLightText ? Colors.white : Colors.black87;
-    final secondaryTextColor = useLightText ? Colors.white70 : Colors.black54;
-    // Use contrasting accent colors: light cyan on dark backgrounds, dark teal on light backgrounds
-    final accentColor = useLightText
-        ? Colors.cyan.shade200
-        : Colors.teal.shade800;
+    // Text colours follow the background the text sits on; under a map that
+    // is the dark gradient overlay, not the card.
+    final textColors = RecordCardColors.forFill(
+      colorScheme,
+      shouldShowMap ? const Color(0xFF1A1A2E) : cardColor,
+    );
+    final primaryTextColor = textColors.primaryText;
+    final secondaryTextColor = textColors.secondaryText;
+    final accentColor = textColors.accent;
 
     // Detailed card config: slots + extra fields
     final detailedConfig = ref.watch(detailedCardConfigProvider);
@@ -1121,49 +1112,31 @@ class DiveListTile extends ConsumerWidget {
       );
     }
 
-    // One widget spine for every look the card takes (issue #3474). A tap
-    // highlights the dive in the same frame its ink splash starts, and the
-    // highlight drops the map for the selection fill. The splash lives in the
-    // InkWell's state, so everything from the root down to the InkWell keeps
-    // its type and key across that change; anything that differs between the
-    // looks sits below it. The highlight is the fill above, not an edge
-    // stripe; the key only marks the row for tests. It stays below the
-    // InkWell because a changed key rebuilds its whole subtree.
-    return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        margin: EdgeInsets.zero,
-        color: cardColor,
-        clipBehavior: shouldShowMap ? Clip.antiAlias : null,
-        child: Semantics(
-          button: true,
-          label: isPlannedDive
-              ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
-                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
-                )
-              : context.l10n.diveLog_listPage_semanticsDiveAtSite(
-                  diveNumber,
-                  siteName ?? context.l10n.diveLog_listPage_unknownSite,
-                ),
-          child: InkWell(
-            onTap: onTap,
-            onDoubleTap: onDoubleTap,
-            // The card's own shape, in both layouts: a splash keeps the shape
-            // it started with, and a tap on a map card switches it to the
-            // plain layout, whose Card no longer clips, before the splash has
-            // finished. Card corners vary by theme, so the shape is the
-            // theme's, falling back to Material's default card corners.
-            customBorder:
-                Theme.of(context).cardTheme.shape ??
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Container(
-              key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
-              child: shouldShowMap
-                  ? withMapBackground(buildContent())
-                  : buildContent(),
+    // A tap highlights the dive in the same frame its ink splash starts, and
+    // the highlight drops the map for the selection fill. RecordListCard
+    // keeps everything down to its InkWell unchanged across that (issue
+    // #3474); what differs between the looks sits in the child. The
+    // highlight is the fill, not an edge stripe; the key only marks the row
+    // for tests.
+    return RecordListCard(
+      margin: margin,
+      color: cardColor,
+      clipBehavior: shouldShowMap ? Clip.antiAlias : null,
+      semanticsLabel: isPlannedDive
+          ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
+              siteName ?? context.l10n.diveLog_listPage_unknownSite,
+            )
+          : context.l10n.diveLog_listPage_semanticsDiveAtSite(
+              diveNumber,
+              siteName ?? context.l10n.diveLog_listPage_unknownSite,
             ),
-          ),
-        ),
+      onTap: onTap,
+      onDoubleTap: onDoubleTap,
+      child: Container(
+        key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
+        child: shouldShowMap
+            ? withMapBackground(buildContent())
+            : buildContent(),
       ),
     );
   }
