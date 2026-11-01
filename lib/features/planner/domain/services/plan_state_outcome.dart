@@ -1,4 +1,3 @@
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -43,11 +42,6 @@ TissueState? startStateForPlan(
   );
 }
 
-/// The environment [state] is computed in. Matches the engine: altitude <= 0
-/// is unset (legacy 1.0 bar).
+/// The environment the engine computes [state] in.
 DiveEnvironment environmentForPlan(DivePlanState state) =>
-    DiveEnvironment.forConditions(
-      altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
-      waterType: state.waterType ?? WaterType.salt,
-      salinityPpt: state.salinityPpt,
-    );
+    PlanEngine.environmentFor(divePlanFromState(state));

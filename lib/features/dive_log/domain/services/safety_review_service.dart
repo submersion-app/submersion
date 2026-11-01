@@ -37,8 +37,8 @@ class SafetyReviewService {
   /// which changes the oxygen findings of an altitude or fresh water dive
   /// (#3958).
   /// v9: tissues carried between dives off-gas at the dives' own surface, not
-  /// at sea level, which changes the ceilings graded on a repetitive altitude
-  /// dive (#3925).
+  /// at 1.0 bar, which changes the ceilings graded on a repetitive dive with a
+  /// known surface pressure, at altitude above all (#3925).
   static const int engineVersion = 9;
 
   const SafetyReviewService();

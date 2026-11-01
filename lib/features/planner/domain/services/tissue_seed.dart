@@ -30,8 +30,6 @@ TissueState? seededTissueState({
   if (compartments == null || compartments.isEmpty) return null;
 
   final atSurface = BuhlmannAlgorithm(
-    gfLow: gfLow,
-    gfHigh: gfHigh,
     environment: followedEnvironment == null
         ? environment
         : DiveEnvironment.surfaceIntervalBetween(
@@ -39,11 +37,6 @@ TissueState? seededTissueState({
             environment,
           ),
   );
-  // restoreState, not setCompartments: loading the prior dive's compartments
-  // must not derive the anchor yet, or the anchor would record that dive's
-  // deepest ceiling and -- being a running maximum -- survive the surface
-  // interval untouched, leaving every repetitive plan less conservative than
-  // an identical fresh one.
   atSurface.restoreState(compartments);
 
   final intervalSeconds = surfaceInterval?.inSeconds ?? 0;
@@ -57,6 +50,9 @@ TissueState? seededTissueState({
   }
 
   // Anchor the plan to the loading it actually starts from, post-interval.
+  // restoreState, not setCompartments, so only that loading sets the anchor:
+  // the prior dive's deepest ceiling, a running maximum, would leave every
+  // repetitive plan less conservative than an identical fresh one.
   final algorithm = BuhlmannAlgorithm(
     gfLow: gfLow,
     gfHigh: gfHigh,

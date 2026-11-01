@@ -1766,19 +1766,14 @@ Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
   return highest;
 }
 
-/// A dive's end-of-dive tissues and the conditions it ended them in.
-typedef _EndOfDiveTissues = ({
-  List<TissueCompartment> compartments,
-  DiveEnvironment environment,
-});
-
 /// Computes residual tissue compartment state from previous dives.
 ///
 /// Mirrors the recursive CNS lookback pattern: fetches the full analysis of
 /// the nearest dive with tissue data (which recursively accounts for even
 /// earlier dives), extracts end-of-dive compartments, then applies Schreiner
 /// off-gassing for the surface time since, at the surface
-/// [DiveEnvironment.surfaceIntervalBetween] picks for the two dives.
+/// [DiveEnvironment.surfaceIntervalBetween] picks across every dive in that
+/// time: [dive], the known dive, and any walked past to reach it.
 ///
 /// Returns null if no earlier dive has tissue data within 48 hours of surface
 /// time (tissues are effectively surface-saturated).
@@ -1788,41 +1783,39 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
   AnalysisSettings inputs,
 ) async {
   try {
-    final lookback = await _lookBackPastUnknownDives<_EndOfDiveTissues>(
+    var surface = dive.environment;
+    final lookback = await _lookBackPastUnknownDives<List<TissueCompartment>>(
       ref,
       dive.id,
       window: const Duration(hours: 48),
       readPrevious: (previousDiveId) async {
         // One-shot awaits (not watch), as in [_knownCnsEnd].
-        final previousAnalysis = await ref.container.awaitFuture(
-          profileAnalysisProvider(previousDiveId).future,
-        );
         final previousDive = await ref.container.awaitFuture(
           analysisDiveProvider(previousDiveId).future,
         );
-        // Extract end-of-dive compartment state
-        final compartments =
-            previousAnalysis?.decoStatuses.lastOrNull?.compartments;
-        if (previousDive == null || compartments == null) return null;
-        return (
-          compartments: compartments,
-          environment: previousDive.environment,
+        if (previousDive != null) {
+          surface = DiveEnvironment.surfaceIntervalBetween(
+            previousDive.environment,
+            surface,
+          );
+        }
+        final previousAnalysis = await ref.container.awaitFuture(
+          profileAnalysisProvider(previousDiveId).future,
         );
+        // Extract end-of-dive compartment state
+        return previousAnalysis?.decoStatuses.lastOrNull?.compartments;
       },
     );
-    final known = lookback.known;
-    if (known == null) return null;
+    final endOfDiveCompartments = lookback.known;
+    if (endOfDiveCompartments == null) return null;
 
     // Apply Schreiner off-gassing for the surface time
     final algorithm = BuhlmannAlgorithm(
       gfLow: inputs.gfLowFraction,
       gfHigh: inputs.gfHighFraction,
-      environment: DiveEnvironment.surfaceIntervalBetween(
-        known.environment,
-        dive.environment,
-      ),
+      environment: surface,
     );
-    algorithm.setCompartments(List.from(known.compartments));
+    algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
       depthMeters: 0,
       durationSeconds: lookback.surfaceTime.inSeconds,

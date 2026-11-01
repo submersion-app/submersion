@@ -578,13 +578,20 @@ void main() {
 
       test('reads through a dive with no profile to the known dive', () async {
         await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
-        await seedDive('manual', middleStart, 10, surfacePressure: 1.0);
+        await seedDive('manual', middleStart, 10, surfacePressure: 0.7);
 
         await expectTissuesOffGassedFor(
           50,
           containerFor(),
           surface: highSurface,
         );
+      });
+
+      test('a dive walked past counts: the diver was at its surface', () async {
+        await seedKnownAndCurrentAt(knownSurface: 0.7, currentSurface: 0.7);
+        await seedDive('manual', middleStart, 10, surfacePressure: 1.0);
+
+        await expectTissuesOffGassedFor(50, containerFor());
       });
     });
   });

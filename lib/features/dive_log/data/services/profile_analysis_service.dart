@@ -44,8 +44,8 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 /// the midpoint of its neighbours, so an unevenly sampled dive replays
 /// different depths (#3910).
 /// v4: tissues carried between dives off-gas at the dives' own surface, not at
-/// sea level, so a repetitive altitude dive starts from different tissues
-/// (#3925).
+/// 1.0 bar, so a repetitive dive with a known surface pressure, at altitude
+/// above all, starts from different tissues (#3925).
 const int analysisEngineVersion = 4;
 
 /// Represents SAC calculated over a segment of the dive.
