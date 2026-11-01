@@ -311,6 +311,21 @@ void main() {
       );
     });
 
+    test('a capped row keeps its file row after a dropped row', () async {
+      final result = await parser.parse(
+        csvBytes(
+          'Dive Number,Date,Time,Max Depth (m),O2 %,He %\n'
+          '1,not a date,09:05,20,21,35\n'
+          '2,2025-03-16,09:05,20,11,90\n',
+        ),
+      );
+      final warning = result.warnings.singleWhere(
+        (w) => w.code == ImportWarningCode.gasMixesCapped,
+      );
+      expect(warning.sourceRow, 3);
+      expect(warning.message, startsWith('Row 3 has'));
+    });
+
     test('a total of exactly 100 is left alone', () async {
       final result = await parser.parse(
         csvBytes(
