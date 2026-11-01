@@ -103,8 +103,9 @@ with.
 
 ## Updating the log
 
-**Update planned dives** replaces Convert to Dive in the planner's menu, for a
-single plan or a series. The log only changes through this action, never on save.
+**Create planned dives** replaces Convert to Dive in the planner's menu, for a
+single plan or a series. It reads **Update planned dives** once any dive has an
+entry in the log. The log only changes through this action, never on save.
 
 - A dive with no entry gets a planned one, with its time, site, computed profile
   and tanks, linked by the plan's `linkedDiveId`.

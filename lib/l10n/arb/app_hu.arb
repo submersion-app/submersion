@@ -5875,6 +5875,8 @@
   "plannerSeries_unsaved_discard": "Elvetés",
   "plannerSeries_cannotUpdate": "{dive} kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek",
   "plannerSeries_updatePlannedDives": "Tervezett merülések frissítése",
+  "plannerSeries_createPlannedDives": "Tervezett merülések létrehozása",
+  "plannerSeries_created": "{count} tervezett merülés hozzáadva a naplóhoz",
   "plannerSeries_updated": "{count} tervezett merülés frissítve a naplóban",
   "plannerSeries_orphans_title": "Törli a tervezett merüléseket a naplóból?",
   "plannerSeries_orphans_body": "{count} tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.",

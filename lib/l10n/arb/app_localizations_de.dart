@@ -20801,6 +20801,15 @@ class AppLocalizationsDe extends AppLocalizations {
       'Geplante Tauchgänge aktualisieren';
 
   @override
+  String get plannerSeries_createPlannedDives =>
+      'Geplante Tauchgänge erstellen';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count geplante Tauchgänge zum Logbuch hinzugefügt';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count geplante Tauchgänge im Logbuch aktualisiert';
   }

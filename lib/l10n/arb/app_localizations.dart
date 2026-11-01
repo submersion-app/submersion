@@ -33144,6 +33144,18 @@ abstract class AppLocalizations {
   /// **'Update planned dives'**
   String get plannerSeries_updatePlannedDives;
 
+  /// No description provided for @plannerSeries_createPlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Create planned dives'**
+  String get plannerSeries_createPlannedDives;
+
+  /// No description provided for @plannerSeries_created.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} planned dives added to the log'**
+  String plannerSeries_created(int count);
+
   /// No description provided for @plannerSeries_updated.
   ///
   /// In en, this message translates to:

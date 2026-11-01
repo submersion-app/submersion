@@ -235,13 +235,13 @@ void main() {
         expect(save().tooltip, 'Save Plan');
       });
 
-      testWidgets('Update planned dives is offered for a series', (
+      testWidgets('Create planned dives is offered for a series', (
         tester,
       ) async {
         await pumpPlan(tester, size);
         await addDive(tester);
         await openMenu(tester);
-        expect(menuItem(tester, 'Update planned dives').enabled, isTrue);
+        expect(menuItem(tester, 'Create planned dives').enabled, isTrue);
       });
 
       testWidgets('Follow a dive is offered on every dive of a series', (

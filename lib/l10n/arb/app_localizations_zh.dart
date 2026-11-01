@@ -19810,6 +19810,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_updatePlannedDives => '更新计划潜水';
 
   @override
+  String get plannerSeries_createPlannedDives => '创建计划潜水';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '已将 $count 次计划潜水添加到日志';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '已在日志中更新 $count 次计划潜水';
   }

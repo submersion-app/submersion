@@ -20828,6 +20828,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Atualizar mergulhos planeados';
 
   @override
+  String get plannerSeries_createPlannedDives => 'Criar mergulhos planeados';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count mergulhos planeados adicionados ao registo';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count mergulhos planeados atualizados no registo';
   }

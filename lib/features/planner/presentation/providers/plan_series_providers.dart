@@ -417,6 +417,16 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
+/// Whether any dive of the plan has an entry in the log yet, which decides
+/// whether the menu offers to create the planned dives or update them.
+final plannedDivesExistProvider = Provider<bool>(
+  (ref) => ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => s.dives.any((dive) => dive.state.linkedDiveId != null),
+    ),
+  ),
+);
+
 /// Whether the plan saves as a series rather than an ordinary plan.
 final planSeriesSavesAsSeriesProvider = Provider<bool>(
   (ref) => ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),

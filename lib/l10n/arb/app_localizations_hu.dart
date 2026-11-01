@@ -20750,6 +20750,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tervezett merülések frissítése';
 
   @override
+  String get plannerSeries_createPlannedDives =>
+      'Tervezett merülések létrehozása';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count tervezett merülés hozzáadva a naplóhoz';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count tervezett merülés frissítve a naplóban';
   }

@@ -5976,6 +5976,8 @@
   "plannerSeries_unsaved_discard": "Descartar",
   "plannerSeries_cannotUpdate": "{dive} tiene una advertencia crítica, por lo que las inmersiones planificadas no se actualizaron",
   "plannerSeries_updatePlannedDives": "Actualizar inmersiones planificadas",
+  "plannerSeries_createPlannedDives": "Crear inmersiones planificadas",
+  "plannerSeries_created": "{count} inmersiones planificadas añadidas al registro",
   "plannerSeries_updated": "{count} inmersiones planificadas actualizadas en el registro",
   "plannerSeries_orphans_title": "¿Eliminar inmersiones planificadas del registro?",
   "plannerSeries_orphans_body": "{count} inmersiones planificadas que ya no están en esta serie siguen en el registro.",

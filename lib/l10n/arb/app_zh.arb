@@ -6127,6 +6127,8 @@
   "plannerSeries_unsaved_discard": "放弃",
   "plannerSeries_cannotUpdate": "{dive} 有严重警告，因此未更新计划潜水",
   "plannerSeries_updatePlannedDives": "更新计划潜水",
+  "plannerSeries_createPlannedDives": "创建计划潜水",
+  "plannerSeries_created": "已将 {count} 次计划潜水添加到日志",
   "plannerSeries_updated": "已在日志中更新 {count} 次计划潜水",
   "plannerSeries_orphans_title": "从日志中删除计划潜水？",
   "plannerSeries_orphans_body": "有 {count} 次不再属于此系列的计划潜水仍在日志中。",

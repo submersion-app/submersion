@@ -5875,6 +5875,8 @@
   "plannerSeries_unsaved_discard": "Scarta",
   "plannerSeries_cannotUpdate": "{dive} ha un avviso critico, quindi le immersioni pianificate non sono state aggiornate",
   "plannerSeries_updatePlannedDives": "Aggiorna immersioni pianificate",
+  "plannerSeries_createPlannedDives": "Crea immersioni pianificate",
+  "plannerSeries_created": "{count} immersioni pianificate aggiunte al registro",
   "plannerSeries_updated": "{count} immersioni pianificate aggiornate nel registro",
   "plannerSeries_orphans_title": "Eliminare le immersioni pianificate dal registro?",
   "plannerSeries_orphans_body": "{count} immersioni pianificate non più in questa serie sono ancora nel registro.",

@@ -20363,6 +20363,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_updatePlannedDives => 'עדכון צלילות מתוכננות';
 
   @override
+  String get plannerSeries_createPlannedDives => 'יצירת צלילות מתוכננות';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count צלילות מתוכננות נוספו ליומן';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count צלילות מתוכננות עודכנו ביומן';
   }

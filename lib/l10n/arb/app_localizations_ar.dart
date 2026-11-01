@@ -21121,6 +21121,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
 
   @override
+  String get plannerSeries_createPlannedDives => 'إنشاء الغطسات المخططة';
+
+  @override
+  String plannerSeries_created(int count) {
+    return 'تمت إضافة $count غطسات مخططة إلى السجل';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return 'تم تحديث $count غطسات مخططة في السجل';
   }

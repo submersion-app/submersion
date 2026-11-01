@@ -5976,6 +5976,8 @@
   "plannerSeries_unsaved_discard": "تجاهل",
   "plannerSeries_cannotUpdate": "يوجد تحذير حرج في {dive}، لذا لم يتم تحديث الغطسات المخططة",
   "plannerSeries_updatePlannedDives": "تحديث الغطسات المخططة",
+  "plannerSeries_createPlannedDives": "إنشاء الغطسات المخططة",
+  "plannerSeries_created": "تمت إضافة {count} غطسات مخططة إلى السجل",
   "plannerSeries_updated": "تم تحديث {count} غطسات مخططة في السجل",
   "plannerSeries_orphans_title": "هل تريد حذف الغطسات المخططة من السجل؟",
   "plannerSeries_orphans_body": "لا تزال {count} غطسات مخططة لم تعد في هذه السلسلة في السجل.",

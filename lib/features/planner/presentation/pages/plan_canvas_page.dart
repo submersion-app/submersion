@@ -128,6 +128,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
     final savesAsSeries = ref.watch(planSeriesSavesAsSeriesProvider);
+    final plannedDivesExist = ref.watch(plannedDivesExistProvider);
     final savedSeriesId = ref.watch(
       planSeriesNotifierProvider.select((s) => s.id),
     );
@@ -265,7 +266,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 _menuItem(
                   'convert',
                   Icons.scuba_diving,
-                  context.l10n.plannerSeries_updatePlannedDives,
+                  plannedDivesExist
+                      ? context.l10n.plannerSeries_updatePlannedDives
+                      : context.l10n.plannerSeries_createPlannedDives,
                 ),
                 _menuItem(
                   'slate',
@@ -846,7 +849,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          l10n.plannerSeries_updated(result.created + result.updated),
+          result.updated == 0
+              ? l10n.plannerSeries_created(result.created)
+              : l10n.plannerSeries_updated(result.created + result.updated),
         ),
         persist: false,
         action: diveId == null

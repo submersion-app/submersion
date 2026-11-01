@@ -20516,6 +20516,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_updatePlannedDives => 'Update planned dives';
 
   @override
+  String get plannerSeries_createPlannedDives => 'Create planned dives';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count planned dives added to the log';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count planned dives updated in the log';
   }

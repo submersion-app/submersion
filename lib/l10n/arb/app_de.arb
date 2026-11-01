@@ -6103,6 +6103,8 @@
   "plannerSeries_unsaved_discard": "Verwerfen",
   "plannerSeries_cannotUpdate": "{dive} hat eine kritische Warnung, daher wurden die geplanten Tauchgänge nicht aktualisiert",
   "plannerSeries_updatePlannedDives": "Geplante Tauchgänge aktualisieren",
+  "plannerSeries_createPlannedDives": "Geplante Tauchgänge erstellen",
+  "plannerSeries_created": "{count} geplante Tauchgänge zum Logbuch hinzugefügt",
   "plannerSeries_updated": "{count} geplante Tauchgänge im Logbuch aktualisiert",
   "plannerSeries_orphans_title": "Geplante Tauchgänge aus dem Logbuch löschen?",
   "plannerSeries_orphans_body": "{count} geplante Tauchgänge, die nicht mehr zu dieser Serie gehören, sind noch im Logbuch.",

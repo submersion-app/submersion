@@ -5976,6 +5976,8 @@
   "plannerSeries_unsaved_discard": "Descartar",
   "plannerSeries_cannotUpdate": "{dive} tem um aviso crítico, por isso os mergulhos planeados não foram atualizados",
   "plannerSeries_updatePlannedDives": "Atualizar mergulhos planeados",
+  "plannerSeries_createPlannedDives": "Criar mergulhos planeados",
+  "plannerSeries_created": "{count} mergulhos planeados adicionados ao registo",
   "plannerSeries_updated": "{count} mergulhos planeados atualizados no registo",
   "plannerSeries_orphans_title": "Eliminar mergulhos planeados do registo?",
   "plannerSeries_orphans_body": "{count} mergulhos planeados que já não estão nesta série continuam no registo.",

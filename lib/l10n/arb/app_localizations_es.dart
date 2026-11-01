@@ -20818,6 +20818,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Actualizar inmersiones planificadas';
 
   @override
+  String get plannerSeries_createPlannedDives =>
+      'Crear inmersiones planificadas';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count inmersiones planificadas añadidas al registro';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count inmersiones planificadas actualizadas en el registro';
   }

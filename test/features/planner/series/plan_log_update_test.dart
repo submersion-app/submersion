@@ -94,6 +94,15 @@ void main() {
     },
   );
 
+  test('the menu offers to create them, then to update them', () async {
+    twoDives();
+    expect(c.read(plannedDivesExistProvider), isFalse);
+
+    await updatePlannedDives(c);
+
+    expect(c.read(plannedDivesExistProvider), isTrue);
+  });
+
   test('it saves the series with its links', () async {
     twoDives();
     await updatePlannedDives(c);

@@ -20886,6 +20886,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mettre à jour les plongées planifiées';
 
   @override
+  String get plannerSeries_createPlannedDives =>
+      'Créer les plongées planifiées';
+
+  @override
+  String plannerSeries_created(int count) {
+    return '$count plongées planifiées ajoutées au carnet';
+  }
+
+  @override
   String plannerSeries_updated(int count) {
     return '$count plongées planifiées mises à jour dans le carnet';
   }

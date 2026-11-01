@@ -12971,6 +12971,15 @@
     }
   },
   "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_createPlannedDives": "Create planned dives",
+  "plannerSeries_created": "{count} planned dives added to the log",
+  "@plannerSeries_created": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_updated": "{count} planned dives updated in the log",
   "@plannerSeries_updated": {
     "placeholders": {
