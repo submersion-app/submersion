@@ -81,6 +81,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   Timer? _terrainDebounce;
 
   bool _initialized = false;
+  bool _framed = false;
   NavTrackCorrection _correction = const NavTrackCorrection();
   _Placing _placing = _Placing.none;
   NavTrackTerrainCheckResult? _terrainResult;
@@ -217,6 +218,26 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     await _persistCorrection(route);
     if (!mounted) return;
     context.push(underwaterTrackSeascapeLocation(route.id));
+  }
+
+  /// Fits the map to the track, once, when the page opens: close enough on a
+  /// small track to keep the scale handle clear of the start marker.
+  ///
+  /// Driven from `onMapReady` rather than `initialCameraFit`, which reapplies
+  /// on a size change. This map resizes whenever the panel below it changes
+  /// height, and that must not undo the diver's own pan and zoom.
+  void _frameTrack(NavTrack route) {
+    if (_framed) return;
+    _framed = true;
+    final track = route.withCorrection(_correction);
+    if (track.anchor == null) return;
+    navTrackCamera(
+      track,
+      padding: const EdgeInsets.all(48),
+      // As on the detail map: a tiny track must not fit past what a map style
+      // has tiles for.
+      maxZoom: 17,
+    ).applyTo(_mapController);
   }
 
   void _startPlacing(_Placing target) => setState(() => _placing = target);
@@ -388,6 +409,7 @@ class _AlignPageBody extends ConsumerWidget {
                         // other map has (#3664).
                         minZoom: 2.0,
                         maxZoom: 18.0,
+                        onMapReady: () => state._frameTrack(route),
                         interactionOptions: rotatableMapInteraction,
                         cameraConstraint: worldMapCameraConstraint,
                       ),

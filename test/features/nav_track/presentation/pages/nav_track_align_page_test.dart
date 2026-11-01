@@ -1573,6 +1573,88 @@ void main() {
     });
   });
 
+  group('opening framing (#3823)', () {
+    MapController controllerOf(WidgetTester tester) =>
+        tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!;
+
+    // Due north, [metres] long.
+    List<NavTrackPoint> run(double metres) => [
+      for (var i = 0; i < 20; i++)
+        NavTrackPoint(
+          timestamp: 1755856800 + i * 10,
+          north: i * metres / 19,
+          east: 0,
+          depth: 5,
+        ),
+    ];
+
+    NavTrack anchoredRun(double metres, {double scale = 1}) =>
+        _route().copyWith(
+          anchorLatitude: 10,
+          anchorLongitude: 20,
+          points: run(metres),
+          scaleFactor: scale,
+        );
+
+    bool shows(WidgetTester tester, double north) =>
+        controllerOf(tester).camera.visibleBounds.contains(
+          LatLng(
+            offsetToGeoPoint(
+              const GeoPoint(10, 20),
+              east: 0,
+              north: north,
+            ).latitude,
+            20,
+          ),
+        );
+
+    testWidgets('opens with the whole of a long track in view', (tester) async {
+      await _pump(tester, route: anchoredRun(5000));
+      expect(shows(tester, 0), isTrue);
+      expect(shows(tester, 5000), isTrue);
+    });
+
+    testWidgets('opens fitted to the track as scaled', (tester) async {
+      await _pump(tester, route: anchoredRun(1000, scale: 4));
+      expect(shows(tester, 4000), isTrue);
+    });
+
+    testWidgets('opens close enough that a small track keeps its handle clear '
+        'of the start marker', (tester) async {
+      await _pump(tester, route: anchoredRun(100));
+      final handle = tester.getCenter(
+        find.byKey(const ValueKey('nav-track-align-scale-handle')),
+      );
+      final start = tester.getCenter(
+        find.byKey(const ValueKey('nav-track-align-start-marker')),
+      );
+      expect((handle - start).distance, greaterThan(36));
+    });
+
+    testWidgets('a track with no start point opens on the world view', (
+      tester,
+    ) async {
+      await _pump(tester, route: _route());
+      expect(controllerOf(tester).camera.zoom, 3);
+    });
+
+    testWidgets('resizing the map does not undo the diver\'s own framing', (
+      tester,
+    ) async {
+      await _pump(tester, route: anchoredRun(1000));
+      final controller = controllerOf(tester);
+      controller.move(const LatLng(10.5, 20.5), 12);
+      await tester.pump();
+      // Pinning the end adds the hint, which takes height from the map.
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pumpAndSettle();
+      expect(controller.camera.center.latitude, closeTo(10.5, 0.01));
+      expect(controller.camera.zoom, 12);
+    });
+  });
+
   group('dragging a start or end marker', () {
     const startMarker = ValueKey('nav-track-align-start-marker');
     const endMarker = ValueKey('nav-track-align-end-marker');

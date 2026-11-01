@@ -181,6 +181,14 @@ it, Cancel discards it, and Reset returns it to 1.0.
 `NavTrack.withCorrection` must carry it, or the live map will not move. The detail page's
 `_RouteMap._framingOf` must include it, or a saved scale will not reframe the map.
 
+### Opening framing
+
+The maintainer chose this after review found that, at the old fixed opening zoom, a small track's handle could sit under the start marker, so a press could move the start instead.
+
+An anchored track opens fitted to its drawn points as currently corrected, up to zoom 17, the detail map's limit. A track with no start point opens on the world view as before.
+
+The fit runs once, from `onMapReady`, not through `initialCameraFit`. That option reapplies on a size change, and this map resizes whenever the panel below it changes height, which must not undo the diver's own pan and zoom.
+
 ### Detail page
 
 When the scale is not 100%, the correction section shows a line such as

@@ -470,29 +470,8 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
   final _controller = MapController();
   late TrackCamera _camera = _cameraFor(widget.route);
 
-  /// Fits the whole drawn route rather than a fixed zoom on the anchor
-  /// alone: centering on only the start point left most of a long route
-  /// off-screen. TrackCamera (shared with the Tracks overview map) falls
-  /// back to a centre and zoom for a route crossing the antimeridian, which
-  /// a raw LatLngBounds.fromPoints cannot express at all (flutter_map
-  /// asserts east <= 180). The anchor at a fixed zoom covers the rare route
-  /// with fewer than two drawable points.
-  static TrackCamera _cameraFor(NavTrack route) {
-    final drawn = navTrackDrawnPoints(route);
-    final fitted = drawn.length >= 2
-        ? TrackCamera.forLatLngs(
-            drawn,
-            padding: const EdgeInsets.all(32),
-            maxZoom: 17,
-          )
-        : null;
-    final anchor = route.anchor!;
-    return fitted ??
-        TrackCamera(
-          center: LatLng(anchor.latitude, anchor.longitude),
-          zoom: 15,
-        );
-  }
+  static TrackCamera _cameraFor(NavTrack route) =>
+      navTrackCamera(route, padding: const EdgeInsets.all(32), maxZoom: 17);
 
   /// What the drawn route's extent depends on. Everything else (a rename,
   /// a dive link) leaves the diver's own pan and zoom alone.
