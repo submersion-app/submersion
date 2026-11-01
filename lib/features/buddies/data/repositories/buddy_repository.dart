@@ -523,7 +523,8 @@ class BuddyRepository {
   /// [getBuddiesForDives] for a selection of any size, with an entry for
   /// every dive: one with no buddies maps to an empty list rather than being
   /// absent. The ids are bound in runs of [chunkSize], since a selection has
-  /// no upper bound and each id is one SQL variable.
+  /// no upper bound and each id is one SQL variable. A person stays one record
+  /// across the runs, as within [getBuddiesForDives].
   Future<Map<String, List<domain.BuddyWithRole>>> getBuddiesForDivesInChunks(
     List<String> diveIds, {
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,
@@ -532,8 +533,18 @@ class BuddyRepository {
     final byDive = <String, List<domain.BuddyWithRole>>{
       for (final id in ids) id: const [],
     };
+    final people = <String, domain.Buddy>{};
     for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
-      byDive.addAll(await getBuddiesForDives(chunk));
+      final loaded = await getBuddiesForDives(chunk);
+      for (final entry in loaded.entries) {
+        byDive[entry.key] = [
+          for (final row in entry.value)
+            domain.BuddyWithRole(
+              buddy: people.putIfAbsent(row.buddy.id, () => row.buddy),
+              roles: row.roles,
+            ),
+        ];
+      }
     }
     return byDive;
   }

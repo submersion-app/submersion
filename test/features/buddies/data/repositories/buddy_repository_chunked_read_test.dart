@@ -107,6 +107,21 @@ void main() {
     );
   });
 
+  test('getBuddiesForDivesInChunks shares a person across chunks', () async {
+    final byDive = await repository.getBuddiesForDivesInChunks(const [
+      'd1',
+      'd2',
+      'd3',
+      'd4',
+      'd5',
+    ], chunkSize: 2);
+
+    expect(
+      identical(byDive['d1']!.single.buddy, byDive['d5']!.single.buddy),
+      isTrue,
+    );
+  });
+
   test('getBuddiesForDivesInChunks is empty for no dives', () async {
     expect(await repository.getBuddiesForDivesInChunks(const []), isEmpty);
   });
