@@ -7968,6 +7968,53 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Wanneer je van fles wisselde. Deco, weefselbelasting en SAC per fles volgen deze wissels.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Begint op $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Wissel toevoegen';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Tijd';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Wissel naar';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Diepte';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Wissel verwijderen';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Gebruik minuten:seconden';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Moet binnen de duik liggen';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Er is al een wissel op dit tijdstip';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gaswissels verwijderd met hun fles',
+      one: '$count gaswissel verwijderd met zijn fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Locatie ophalen...';
 
   @override
@@ -8101,6 +8148,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Voeg notities toe over deze duik...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gaswissels';
 
   @override
   String get diveLog_edit_overline_tanks => 'Flessen';
@@ -11578,8 +11628,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Opzoeken op coördinaten';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Voeg coördinaten toe bij Locatie om dit te gebruiken.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Geen locatiegegevens gevonden voor deze coördinaten';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'De locatiegegevens komen al overeen met deze coördinaten';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24370,6 +24428,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_evidenceFingerprint =>
       'Vingerafdruk van het bewijs';
+
+  @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gaswissels handmatig bewerkt';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>

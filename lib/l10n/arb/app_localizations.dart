@@ -12595,6 +12595,72 @@ abstract class AppLocalizations {
   /// **'Error loading dive types: {error}'**
   String diveLog_edit_errorLoadingDiveTypes(Object error);
 
+  /// No description provided for @diveLog_edit_gasSwitches_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.'**
+  String get diveLog_edit_gasSwitches_caption;
+
+  /// Gas switch editor: the cylinder the dive starts on
+  ///
+  /// In en, this message translates to:
+  /// **'Starts on {tank}'**
+  String diveLog_edit_gasSwitches_startsOn(String tank);
+
+  /// No description provided for @diveLog_edit_gasSwitches_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Switch'**
+  String get diveLog_edit_gasSwitches_add;
+
+  /// No description provided for @diveLog_edit_gasSwitches_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get diveLog_edit_gasSwitches_time;
+
+  /// No description provided for @diveLog_edit_gasSwitches_switchTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to'**
+  String get diveLog_edit_gasSwitches_switchTo;
+
+  /// No description provided for @diveLog_edit_gasSwitches_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get diveLog_edit_gasSwitches_depth;
+
+  /// No description provided for @diveLog_edit_gasSwitches_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove switch'**
+  String get diveLog_edit_gasSwitches_remove;
+
+  /// No description provided for @diveLog_edit_gasSwitches_timeFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Use minutes:seconds'**
+  String get diveLog_edit_gasSwitches_timeFormatError;
+
+  /// No description provided for @diveLog_edit_gasSwitches_timeRangeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be within the dive'**
+  String get diveLog_edit_gasSwitches_timeRangeError;
+
+  /// No description provided for @diveLog_edit_gasSwitches_duplicateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Another switch is at this time'**
+  String get diveLog_edit_gasSwitches_duplicateError;
+
+  /// Gas switch editor: switches dropped because their cylinder was removed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
+  String diveLog_edit_gasSwitches_removedWithTank(int count);
+
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
   /// In en, this message translates to:
@@ -12852,6 +12918,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add notes about this dive...'**
   String get diveLog_edit_notesHint;
+
+  /// No description provided for @diveLog_edit_overline_gasSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switches'**
+  String get diveLog_edit_overline_gasSwitches;
 
   /// Sub-header overline above the tank rows in the Gas & Gear edit section
   ///
@@ -18632,11 +18704,23 @@ abstract class AppLocalizations {
   /// **'Look up from coordinates'**
   String get diveSites_edit_gps_lookupFromCoordinates;
 
+  /// No description provided for @diveSites_edit_gps_lookupNeedsCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Add coordinates in Location to use this.'**
+  String get diveSites_edit_gps_lookupNeedsCoordinates;
+
   /// No description provided for @diveSites_edit_snackbar_lookupNothingFound.
   ///
   /// In en, this message translates to:
   /// **'No location details found for these coordinates'**
   String get diveSites_edit_snackbar_lookupNothingFound;
+
+  /// No description provided for @diveSites_edit_snackbar_lookupNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Location details already match these coordinates'**
+  String get diveSites_edit_snackbar_lookupNoChanges;
 
   /// No description provided for @diveSites_edit_snackbar_lookupFailed.
   ///
@@ -38963,6 +39047,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Evidence fingerprint'**
   String get settings_conflict_field_evidenceFingerprint;
+
+  /// No description provided for @settings_conflict_field_gasSwitchesEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switches edited by hand'**
+  String get settings_conflict_field_gasSwitchesEdited;
 
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///

@@ -7891,6 +7891,52 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Starts on $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Add Switch';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Time';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Switch to';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Depth';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Remove switch';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'Use minutes:seconds';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'Must be within the dive';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Another switch is at this time';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gas switches removed with their tank',
+      one: '$count gas switch removed with its tank',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Getting location...';
 
   @override
@@ -8021,6 +8067,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'Add notes about this dive...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gas switches';
 
   @override
   String get diveLog_edit_overline_tanks => 'Tanks';
@@ -11476,8 +11525,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Look up from coordinates';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Add coordinates in Location to use this.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'No location details found for these coordinates';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'Location details already match these coordinates';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
@@ -24133,6 +24190,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_evidenceFingerprint =>
       'Evidence fingerprint';
+
+  @override
+  String get settings_conflict_field_gasSwitchesEdited =>
+      'Gas switches edited by hand';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>

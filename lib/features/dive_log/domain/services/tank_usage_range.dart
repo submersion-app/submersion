@@ -78,11 +78,29 @@ DiveTank _startingTank(
   List<DiveTank> tanks,
   List<GasSwitchWithTank> sortedSwitches,
   int diveStart,
-) {
-  final first = sortedSwitches.firstOrNull;
+) => startingTankOf(
+  tanks: tanks,
+  switches: sortedSwitches.map((s) => s.gasSwitch),
+  diveStart: diveStart,
+)!;
+
+/// The cylinder the dive starts on, by the [_startingTank] rule, from bare
+/// switches in any order: one naming a cylinder not in [tanks] is ignored.
+/// Null when there are no cylinders.
+DiveTank? startingTankOf({
+  required List<DiveTank> tanks,
+  required Iterable<GasSwitch> switches,
+  required int diveStart,
+}) {
+  if (tanks.isEmpty) return null;
+  final tankIds = {for (final t in tanks) t.id};
+  final first = switches
+      .where((s) => tankIds.contains(s.tankId))
+      .sorted((a, b) => a.timestamp.compareTo(b.timestamp))
+      .firstOrNull;
   if (first != null &&
-      first.gasSwitch.timestamp <= diveStart + startingSwitchGraceSeconds) {
-    return tanks.firstWhere((t) => t.id == first.gasSwitch.tankId);
+      first.timestamp <= diveStart + startingSwitchGraceSeconds) {
+    return tanks.firstWhere((t) => t.id == first.tankId);
   }
   return sacReferenceTankOf(tanks)!;
 }
