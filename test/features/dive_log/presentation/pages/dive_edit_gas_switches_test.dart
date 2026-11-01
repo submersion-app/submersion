@@ -7,7 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
-    show DiveComputersCompanion, GasSwitche, GasSwitchesCompanion;
+    show
+        DiveComputersCompanion,
+        DivesCompanion,
+        GasSwitche,
+        GasSwitchesCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
@@ -425,6 +429,23 @@ void main() {
     expect(await flagged(), isFalse);
   });
 
+  testWidgets('saving another field keeps the list the diver\'s', (
+    tester,
+  ) async {
+    final dive = await seedDive();
+    final db = DatabaseService.instance.database;
+    await (db.update(db.dives)..where((t) => t.id.equals(dive.id))).write(
+      const DivesCompanion(gasSwitchesEdited: Value(true)),
+    );
+    String? savedId;
+    await pumpEditor(tester, dive.id, onSaved: (id) => savedId = id);
+
+    await save(tester);
+
+    expect(savedId, isNotNull, reason: 'save should complete');
+    expect(await flagged(), isTrue);
+  });
+
   group('suggested times', () {
     /// The deco bottle held until 12:00, then breathed.
     Map<String, List<TankPressurePoint>> decoBreathedAt720() => {
@@ -508,6 +529,30 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.widget<TextField>(depthField).controller!.text, '12');
+    });
+
+    testWidgets('a pressure reload keeps the chips on screen', (tester) async {
+      final dive = await seedDive();
+      final results = [
+        Future.value(decoBreathedAt720()),
+        Completer<Map<String, List<TankPressurePoint>>>().future,
+      ];
+      await pumpEditor(
+        tester,
+        dive.id,
+        pressures: () =>
+            results.length > 1 ? results.removeAt(0) : results.first,
+      );
+      await addSwitch(tester);
+      expect(find.byType(ActionChip), findsOneWidget);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveEditPage)),
+      ).invalidate(tankPressuresProvider(dive.id));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(ActionChip), findsOneWidget);
     });
 
     testWidgets('a cylinder with no series shows no chip', (tester) async {

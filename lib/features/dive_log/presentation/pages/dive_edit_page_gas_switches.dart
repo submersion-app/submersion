@@ -60,6 +60,8 @@ extension _GasSwitchEditing on _DiveEditPageState {
     if (!_gasSwitchesVisible) return null;
     final diveId = widget.diveId;
     final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
+    // .value keeps the last result through a reload, so the chips stay put
+    // while a pressure write is read back.
     return GasSwitchesEditor(
       switches: _gasSwitches,
       tanks: _tanks,
@@ -73,8 +75,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
       onTimeSettled: _onGasSwitchTimeSettled,
       breathStarts: diveId == null
           ? const {}
-          : ref.watch(cylinderBreathStartsProvider(diveId)).valueOrNull ??
-                const {},
+          : ref.watch(cylinderBreathStartsProvider(diveId)).value ?? const {},
       onPickTime: canPickOnProfile(profile)
           ? (sw) => _pickGasSwitchTime(sw, profile, units)
           : null,
@@ -91,7 +92,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
     final diveId = widget.diveId;
     final starts = diveId == null
         ? null
-        : ref.read(cylinderBreathStartsProvider(diveId)).valueOrNull;
+        : ref.read(cylinderBreathStartsProvider(diveId)).value;
     final tank = _tanks.where((t) => t.id == sw.tankId).firstOrNull;
     final seconds = await showGasSwitchTimeSheet(
       context,
