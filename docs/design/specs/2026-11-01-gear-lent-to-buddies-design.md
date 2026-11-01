@@ -84,17 +84,16 @@ Tapping it opens a single-select list of the diver's buddies, the same list
 Buddy button (`/buddies/new`). This is how a student who is not a buddy yet gets
 one *(call)*.
 
-Picking a buddy resolves to a place, then the picker closes with that place as
-its pick. The Move sheet continues as today: date, note, the parts prompt, the
-status prompt. The resolve rule, shared with the buddy page:
+Picking a buddy closes the picker with that buddy as its pick. The Move sheet
+shows their name and continues as today: date, note, the parts prompt, the status
+prompt. The buddy resolves to a place when the Move sheet is confirmed, so
+cancelling at any point leaves nothing behind. The resolve rule, shared with the
+buddy page:
 
 1. The diver's non-archived Person place linked to this buddy. If several, the
    most recently updated.
 2. Otherwise a new place: kind Person, name copied from the buddy, linked to the
    buddy. An archived linked place is left alone *(call)*.
-
-The place is created at the moment of the pick, as New place does today, so
-cancelling the Move sheet afterwards leaves a place with no gear *(call)*.
 
 ### Lending from the buddy page
 
@@ -105,9 +104,8 @@ nothing. It also appears in the header of the gear section when that shows
 
 It opens `EquipmentPickerSheet` in multi-select mode, leaving out Retired, Sold
 and Wanted gear and gear already at a place linked to this buddy. On confirm it
-resolves the buddy's place, then runs the same Move flow with the place already
-chosen: date and note, the parts prompt, the status prompt. If the diver cancels
-at the date and note step, no place is created.
+opens the same Move sheet with the buddy already chosen: date and note, then the
+parts prompt and the status prompt.
 
 ### The Loaned Out prompt
 
@@ -155,8 +153,8 @@ unlinked, or when the buddy is not available on this device.
 ### Buddy page
 
 `buddy_detail_page.dart` gains a section titled **Gear with {name}**, between the
-stats section and Notes *(call)*. It is not built at all when the list is empty,
-divider included, matching `GearHereSection`.
+stats section and Notes *(call)*, in a Card like the page's other sections. It is
+not built at all when the list is empty, its surrounding spacing included.
 
 - It lists gear whose current place links to this buddy, from `itemsAtPlaces`
   and `currentEquipmentLocationsProvider`, sorted by name. Archived places count:
@@ -196,7 +194,8 @@ mixed loan dates.
 
 Parts are not asked about separately when they are in the list. For a single
 **Returned** on an item whose parts are at the same buddy, the parts prompt
-appears as usual, and parts go to the parent's destination.
+appears as usual, and each part goes back to its own previous place, which is
+normally the parent's because they moved together.
 
 After the moves, items that are Loaned Out are offered Active, once, whichever
 place they went to. This differs from `offeredStatusAfterMove`, which offers In
@@ -221,8 +220,8 @@ restores each place's original link.
 `equipment_locations.buddy_id`: text, nullable, foreign key to `buddies(id)`,
 `ON DELETE SET NULL`.
 
-- Schema v333 at time of writing. Renumber if another PR ships that version
-  first. Rung in `migrations/ladder/rungs_v231_onward.dart`, an idempotent column
+- Schema v334 at time of writing: open PRs #4080 and #4028 already claim v333.
+  Renumber if another PR ships that version first. Rung in `migrations/ladder/rungs_v231_onward.dart`, an idempotent column
   assert in `migrations/helpers/equipment_location_migrations.dart`, re-asserted
   from `before_open_child_columns.dart`. Never in `database.dart`.
 - No backfill, and no existing place changes.
@@ -269,9 +268,8 @@ linked to a duplicate, stamped and marked pending, inside its transaction, and
 `BuddyMergeSnapshot` records each place's original buddy. `_undoMergeInner`
 restores them the same way.
 
-Diver merge needs a check by the builder: it dedupes buddies around lines 355 to
-385 of `diver_merge_repository.dart`. If a buddy can be dropped there, its places
-need repointing to the buddy that stays.
+Diver merge moves buddies and places together by `diver_id` and drops no buddy,
+so it needs no change.
 
 ## Localization
 
@@ -293,7 +291,8 @@ gear by answering No to the Loaned Out prompt.
   both apply paths; a buddy missing on arrival clears the link.
 - Unlink: each path keeps the place and marks it pending.
 - Merge: links move to the survivor, marked pending; undo restores them.
-- The resolve rule: reuses a linked place, skips archived, creates otherwise.
+- The resolve rule: reuses a linked place, skips archived, creates otherwise, and
+  creates nothing when the Move sheet is cancelled.
 - The previous-place rule: skips this buddy's places, null, archived and no prior
   move all give No location.
 - `offeredStatusAfterMove`: Loaned Out to No location or Other offers Active,
@@ -318,6 +317,4 @@ gear by answering No to the Loaned Out prompt.
   and the 800 line limit in mind.
 - Provider shape for "gear with this buddy" and for each item's current move
   date, which `currentEquipmentLocationsProvider` does not carry.
-- How the Move flow is entered with a place already chosen.
-- Whether the return flow extends `EquipmentMoveFlow` or sits beside it.
 - Wording of the strings, within the labels above.
