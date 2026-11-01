@@ -136,6 +136,14 @@ void main() {
     expect(opened, ['sc']);
   });
 
+  testWidgets('with no columns yet it draws nothing', (tester) async {
+    await pump(tester, const []);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Max depth'), findsNothing);
+    expect(tester.getSize(find.byType(CompareTable)).height, 0);
+  });
+
   testWidgets('rows grow with the text scale', (tester) async {
     double rowGap() =>
         tester.getCenter(_cell('planned', CompareRow.bottomTime)).dy -

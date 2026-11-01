@@ -2,11 +2,14 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
 import '../../helpers/test_database.dart';
+import '../../helpers/wait_until.dart';
 
 /// A plan links to one dive and a dive to one plan (issue #4003). The link is
 /// `dive_plans.linked_dive_id`, the column Convert to dive already writes; the
@@ -141,6 +144,55 @@ void main() {
     await repository.unlinkPlan('plan-new');
 
     expect(await repository.getPlanByLinkedDiveId('dive-1'), isNull);
+  });
+
+  test(
+    'unlinking clears a sync duplicate, so no older plan comes back',
+    () async {
+      await seedDive('dive-1');
+      await seedPlan('plan-old', linkedDiveId: 'dive-1');
+      await seedPlan('plan-new', linkedDiveId: 'dive-1');
+      await clearPending();
+
+      final cleared = await repository.unlinkPlan('plan-new');
+
+      expect(cleared, unorderedEquals(['plan-old', 'plan-new']));
+      expect(await repository.getPlanByLinkedDiveId('dive-1'), isNull);
+      expect(await isPending('plan-old'), isTrue);
+      expect(await isPending('plan-new'), isTrue);
+    },
+  );
+
+  test('unlinking a plan with no link changes nothing', () async {
+    await seedPlan('plan-1');
+    await clearPending();
+
+    expect(await repository.unlinkPlan('plan-1'), isEmpty);
+    expect(await isPending('plan-1'), isFalse);
+  });
+
+  test('the saved plans list follows the linked dive', () async {
+    // A download filling a planned dive changes only the dive, so the badge
+    // has to hear about writes to dives as well as plans.
+    await seedDive('dive-1', isPlanned: true);
+    await seedPlan('plan-1', linkedDiveId: 'dive-1');
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final sub = container.listen(divePlanSummariesProvider, (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(divePlanSummariesProvider.future);
+    expect(before.single.linkedDiveIsPlanned, isTrue);
+
+    await (db.update(db.dives)..where((t) => t.id.equals('dive-1'))).write(
+      const DivesCompanion(isPlanned: Value(false), diveNumber: Value(42)),
+    );
+
+    await waitUntil(() async {
+      final now = await container.read(divePlanSummariesProvider.future);
+      return now.single.linkedDiveNumber == 42;
+    }, timeout: const Duration(seconds: 3));
+    final after = await container.read(divePlanSummariesProvider.future);
+    expect(after.single.linkedDiveIsPlanned, isFalse);
   });
 
   test('relinking the same plan to its dive displaces nothing', () async {

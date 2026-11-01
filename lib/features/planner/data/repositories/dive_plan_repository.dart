@@ -67,6 +67,12 @@ class DivePlanRepository {
     ]),
   );
 
+  /// Fires on any change the saved plans list shows: the plan tables, and the
+  /// dives a plan's link badge describes, which a fill changes on its own.
+  Stream<void> watchPlanSummaryChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([_db.divePlans, _db.dives]),
+  );
+
   /// Upserts the plan and its children; children removed since the last save
   /// are deleted WITH per-row tombstones (parent-surviving child deletes
   /// must tombstone individually or other devices resurrect them).
@@ -577,26 +583,41 @@ class DivePlanRepository {
     }
   }
 
-  /// Clears [planId]'s link. Neither the plan nor the dive goes anywhere.
-  Future<void> unlinkPlan(String planId) async {
+  /// Clears [planId]'s link, and any other plan's link to the same dive, so a
+  /// duplicate two devices made while apart does not come back to the dive as
+  /// its plan. Returns the plans that changed. Neither a plan nor the dive
+  /// goes anywhere.
+  Future<List<String>> unlinkPlan(String planId) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final updated =
-          await (_db.update(
-            _db.divePlans,
-          )..where((t) => t.id.equals(planId))).write(
-            db.DivePlansCompanion(
-              linkedDiveId: const Value(null),
-              updatedAt: Value(now),
-            ),
-          );
-      if (updated == 0) return;
-      await _syncRepository.markRecordPending(
-        entityType: 'divePlans',
-        recordId: planId,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
+      final cleared = await _db.transaction(() async {
+        final plan = await (_db.select(
+          _db.divePlans,
+        )..where((t) => t.id.equals(planId))).getSingleOrNull();
+        final diveId = plan?.linkedDiveId;
+        if (diveId == null) return const <String>[];
+        final holders = await (_db.select(
+          _db.divePlans,
+        )..where((t) => t.linkedDiveId.equals(diveId))).get();
+        await (_db.update(
+          _db.divePlans,
+        )..where((t) => t.linkedDiveId.equals(diveId))).write(
+          db.DivePlansCompanion(
+            linkedDiveId: const Value(null),
+            updatedAt: Value(now),
+          ),
+        );
+        return [for (final holder in holders) holder.id];
+      });
+      for (final id in cleared) {
+        await _syncRepository.markRecordPending(
+          entityType: 'divePlans',
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+      if (cleared.isNotEmpty) SyncEventBus.notifyLocalChange();
+      return cleared;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to unlink plan $planId',

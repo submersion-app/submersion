@@ -83,7 +83,9 @@ class LinkDiveSheet extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
 
     // Render stale data during a reload rather than flashing a spinner.
-    final loaded = divesAsync.valueOrNull;
+    // value, not valueOrNull: a change of diver reloads the list, and
+    // valueOrNull is null until that lands.
+    final loaded = divesAsync.value;
     final dives = loaded == null ? null : _ordered(loaded);
 
     return SafeArea(

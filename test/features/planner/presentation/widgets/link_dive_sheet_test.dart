@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/link_dive_sheet.dart';
@@ -108,6 +109,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.getSize(find.byType(LinkDiveSheet)).height, lessThan(500));
+  });
+
+  testWidgets('the list stays up while a change of diver reloads it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final diver = StateProvider<int>((_) => 0);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divesProvider.overrideWith((ref) async {
+            if (ref.watch(diver) > 0) {
+              await Future<void>.delayed(const Duration(seconds: 1));
+            }
+            return [dive('a', 1, DateTime.utc(2026))];
+          }),
+        ],
+        locale: const Locale('en'),
+        child: const LinkDiveSheet(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('#1'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(LinkDiveSheet)),
+    ).read(diver.notifier).state++;
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('#1'), findsOneWidget);
+    expect(find.text('No logged dives yet'), findsNothing);
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('says so when there is nothing to link', (tester) async {

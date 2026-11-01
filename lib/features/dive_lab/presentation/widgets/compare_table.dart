@@ -33,6 +33,9 @@ class CompareTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A column can still be loading; row labels alone would read as a dive
+    // with nothing to show.
+    if (columns.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final rowHeight = MediaQuery.textScalerOf(context).scale(_rowHeight);

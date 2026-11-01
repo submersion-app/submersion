@@ -42,7 +42,8 @@ class LinkPlanSheet extends ConsumerWidget {
     final l10n = context.l10n;
 
     // Render stale data during a reload rather than flashing a spinner.
-    final loaded = summaries.valueOrNull;
+    // value, not valueOrNull: valueOrNull is null until a reload lands.
+    final loaded = summaries.value;
     final plans = loaded == null
         ? null
         : [...loaded.where((p) => !_elsewhere(p)), ...loaded.where(_elsewhere)];

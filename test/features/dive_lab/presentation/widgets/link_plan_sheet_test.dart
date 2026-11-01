@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -89,6 +89,38 @@ void main() {
     final title = tester.widget<Text>(find.text('Plan b'));
     final tile = Theme.of(tester.element(find.byType(ListTile)));
     expect(title.style?.color, tile.colorScheme.outline);
+  });
+
+  testWidgets('the list stays up while it reloads', (tester) async {
+    tester.view.physicalSize = const Size(420, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final source = StateProvider<int>((_) => 0);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divePlanSummariesProvider.overrideWith((ref) async {
+            if (ref.watch(source) > 0) {
+              await Future<void>.delayed(const Duration(seconds: 1));
+            }
+            return [summary('a', DateTime(2026))];
+          }),
+        ],
+        locale: const Locale('en'),
+        child: const LinkPlanSheet(diveId: 'dive-1'),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('Plan a'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(LinkPlanSheet)),
+    ).read(source.notifier).state++;
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Plan a'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('a short list keeps the sheet short', (tester) async {

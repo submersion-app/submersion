@@ -82,8 +82,9 @@ Future<bool> unlinkPlanWithConfirm(
     action: l10n.diveLab_link_unlinkConfirm,
   );
   if (!confirmed) return false;
-  await repository.unlinkPlan(planId);
-  planner.adoptLink(planId, null);
+  for (final id in await repository.unlinkPlan(planId)) {
+    planner.adoptLink(id, null);
+  }
   return true;
 }
 

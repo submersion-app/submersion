@@ -326,7 +326,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ];
     }
-    final summaries = ref.read(divePlanSummariesProvider).valueOrNull;
+    final summaries = ref.read(divePlanSummariesProvider).value;
     final summary = summaries?.where((s) => s.id == plan.id).firstOrNull;
     return [
       _menuItem(
