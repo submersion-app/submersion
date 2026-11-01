@@ -201,10 +201,22 @@ class NavTrackDetailPage extends ConsumerWidget {
       dives: [?linkedOutsideNearest, ...nearest],
       selectedDiveId: selectedDiveId,
     );
-    if (chosen == null) return;
-    await ref
-        .read(navTrackRepositoryProvider)
-        .link(route.id, chosen.id, linkMode: NavTrackLinkMode.manual);
+    if (chosen == null || chosen.id == linkedId) return;
+    final repository = ref.read(navTrackRepositoryProvider);
+    if (linkedId == null) {
+      await repository.link(
+        route.id,
+        chosen.id,
+        linkMode: NavTrackLinkMode.manual,
+      );
+    } else {
+      await repository.relink(
+        route.id,
+        fromDiveId: linkedId,
+        toDiveId: chosen.id,
+        linkMode: NavTrackLinkMode.manual,
+      );
+    }
   }
 
   /// Opens the same site picker the import review page uses and, on a
@@ -643,7 +655,7 @@ class _LinkCard extends ConsumerWidget {
   final NavTrack route;
 
   /// Picks the dive, or a different one once one is linked (#4023):
-  /// [NavTrackDetailPage._chooseDive] re-links on top of an existing link.
+  /// [NavTrackDetailPage._chooseDive] moves an existing link.
   final VoidCallback onChooseDive;
 
   @override

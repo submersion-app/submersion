@@ -630,6 +630,64 @@ void main() {
       },
     );
 
+    test(
+      'relink moves a linked route, which link alone refuses to do',
+      () async {
+        await _insertMinimalDive(db, 'd1');
+        await _insertMinimalDive(db, 'd2');
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+          diveId: 'd1',
+        );
+
+        expect(
+          await repo.link(id, 'd2', linkMode: NavTrackLinkMode.manual),
+          isFalse,
+        );
+        expect((await repo.getById(id))!.diveId, 'd1');
+
+        final moved = await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        expect(moved, isTrue);
+        final route = await repo.getById(id);
+        expect(route!.diveId, 'd2');
+        expect(route.linkMode, NavTrackLinkMode.manual);
+        expect(route.isPrimary, isTrue);
+      },
+    );
+
+    test(
+      'relink leaves alone a route no longer on the dive it was read on',
+      () async {
+        await _insertMinimalDive(db, 'd1');
+        await _insertMinimalDive(db, 'd2');
+        await _insertMinimalDive(db, 'd3');
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+          diveId: 'd3',
+        );
+
+        final moved = await repo.relink(
+          id,
+          fromDiveId: 'd1',
+          toDiveId: 'd2',
+          linkMode: NavTrackLinkMode.manual,
+        );
+
+        expect(moved, isFalse);
+        expect((await repo.getById(id))!.diveId, 'd3');
+      },
+    );
+
     test('setPrimary demotes the other route on the same dive', () async {
       await _insertMinimalDive(db, 'd1');
       final firstId = await repo.insertImportedRoute(

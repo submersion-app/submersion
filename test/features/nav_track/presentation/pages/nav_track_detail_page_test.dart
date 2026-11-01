@@ -42,6 +42,7 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   String? deletedId;
   String? linkedRouteId;
   String? linkedDiveId;
+  String? relinkedFromDiveId;
   NavTrackLinkMode? linkMode;
   String? setSiteRouteId;
   String? setSiteId;
@@ -89,6 +90,20 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   }) async {
     linkedRouteId = routeId;
     linkedDiveId = diveId;
+    this.linkMode = linkMode;
+    return true;
+  }
+
+  @override
+  Future<bool> relink(
+    String routeId, {
+    required String fromDiveId,
+    required String toDiveId,
+    required NavTrackLinkMode linkMode,
+  }) async {
+    relinkedFromDiveId = fromDiveId;
+    linkedRouteId = routeId;
+    linkedDiveId = toDiveId;
     this.linkMode = linkMode;
     return true;
   }
@@ -1691,9 +1706,39 @@ void main() {
         await tester.tap(find.textContaining('#9'));
         await tester.pumpAndSettle();
 
+        // relink, not link: the real link never overwrites an existing link,
+        // so a plain link here would change nothing.
+        expect(repository.relinkedFromDiveId, 'dive-1');
         expect(repository.linkedRouteId, 'r1');
         expect(repository.linkedDiveId, 'dive-9');
+        expect(repository.linkMode, NavTrackLinkMode.manual);
       },
     );
+
+    testWidgets('"Change dive" writes nothing when the same dive is picked', (
+      tester,
+    ) async {
+      final linkedDive = Dive(
+        id: 'dive-1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 8, 22, 10, 8),
+      );
+      final repository = await _pump(
+        tester,
+        route: _route(diveId: 'dive-1'),
+        linkedDive: linkedDive,
+        allDives: [linkedDive],
+      );
+
+      await tester.tap(find.byKey(const ValueKey('nav-track-change-dive')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-dive-choice-dive-1')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(repository.relinkedFromDiveId, isNull);
+      expect(repository.linkedRouteId, isNull);
+    });
   });
 }
