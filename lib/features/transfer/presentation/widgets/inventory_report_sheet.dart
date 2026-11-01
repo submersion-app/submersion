@@ -24,6 +24,7 @@ class InventoryReportSheet extends ConsumerStatefulWidget {
       showModalBottomSheet<InventoryReportOptions>(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
         backgroundColor: Colors.transparent,
         builder: (context) => const InventoryReportSheet(),
       );

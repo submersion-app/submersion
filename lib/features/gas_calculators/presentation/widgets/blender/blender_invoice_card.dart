@@ -850,6 +850,7 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     final edited = await showModalBottomSheet<BlenderLineEdit>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => BlenderLineEditSheet(fill: fill),
     );
     if (edited == null) return;

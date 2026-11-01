@@ -748,6 +748,7 @@ class _DiveSiteCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) {
         return DraggableScrollableSheet(
           initialChildSize: 0.6,

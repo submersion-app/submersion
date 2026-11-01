@@ -18,6 +18,7 @@ Future<void> showBuoyancyWhatIfSheet(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     showDragHandle: true,
     builder: (_) => _BuoyancyWhatIfSheet(baseInput: baseInput, units: units),
   );

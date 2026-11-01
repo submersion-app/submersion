@@ -46,6 +46,7 @@ Future<BulkActionOutcome> showBulkTagSheet(
   final delta = await showModalBottomSheet<MembershipDelta>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.5,

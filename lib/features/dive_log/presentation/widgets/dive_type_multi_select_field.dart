@@ -126,6 +126,7 @@ class DiveTypeMultiSelectField extends ConsumerWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
       builder: (context) => _DiveTypePickerSheet(
         title: title,

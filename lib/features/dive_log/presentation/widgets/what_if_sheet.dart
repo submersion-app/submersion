@@ -25,6 +25,7 @@ Future<void> showWhatIfSheet(BuildContext context, Dive dive) {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => WhatIfSheet(dive: dive),
   );
 }

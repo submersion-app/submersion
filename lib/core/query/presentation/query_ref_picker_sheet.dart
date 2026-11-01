@@ -26,6 +26,7 @@ Future<RefValue?> showQueryRefPicker(
 }) => showModalBottomSheet<RefValue>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   builder: (_) => _RefPickerSheet(
     entries: _entriesOf(editor, kind),
     title: title,
@@ -53,6 +54,7 @@ Future<ConditionNode?> showQueryConditionPicker(
   final picked = await showModalBottomSheet<Object>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => _RefPickerSheet(
       entries: _entriesOf(editor, relation.target),
       title: title,

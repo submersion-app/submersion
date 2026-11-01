@@ -727,6 +727,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     final merged = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => TagMergeSheet(selectedStats: selectedStats),
     );
 

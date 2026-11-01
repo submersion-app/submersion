@@ -41,6 +41,7 @@ class ServiceReportSheet extends ConsumerStatefulWidget {
       showModalBottomSheet<ServiceReportOptions>(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
         backgroundColor: Colors.transparent,
         builder: (context) => const ServiceReportSheet(),
       );

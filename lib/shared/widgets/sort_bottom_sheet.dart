@@ -160,6 +160,7 @@ Future<void> showSortBottomSheet<T extends Enum>({
     // Lets the sheet grow past the default 9/16-height cap, so a footer is
     // not pushed off a phone screen; short sheets still hug their content.
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (context) => SortBottomSheet<T>(
       title: title,
       currentField: currentField,

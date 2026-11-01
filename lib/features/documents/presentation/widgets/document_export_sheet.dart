@@ -13,6 +13,7 @@ Future<String?> showDocumentExportSheet(
 }) => showModalBottomSheet<String>(
   context: context,
   isScrollControlled: true,
+  useSafeArea: true,
   showDragHandle: true,
   builder: (_) =>
       DocumentExportSheet(documentCount: documentCount, fileCount: fileCount),

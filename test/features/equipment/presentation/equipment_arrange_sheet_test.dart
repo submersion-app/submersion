@@ -77,6 +77,28 @@ void main() {
     expect(find.byType(RadioListTile<EquipmentItemSortField>), findsNothing);
   });
 
+  testWidgets('stays below the status bar on a short phone', (tester) async {
+    // Issue #4081: the sheet is scroll controlled, so on a phone whose
+    // screen is shorter than its content it rises to the top edge. Without
+    // the route's safe area the header sat under the clock and signal icons.
+    tester.view.physicalSize = const Size(390, 600);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.padding = const FakeViewPadding(top: 47);
+    addTearDown(tester.view.reset);
+
+    final fake = _FakeSettingsRepository();
+    await pumpSheet(tester, fake);
+
+    expect(
+      tester.getTopLeft(find.byType(BottomSheet)).dy,
+      greaterThanOrEqualTo(47),
+    );
+    expect(
+      tester.getTopLeft(find.text('Sort Equipment')).dy,
+      greaterThanOrEqualTo(47),
+    );
+  });
+
   testWidgets('the close button dismisses the sheet', (tester) async {
     final fake = _FakeSettingsRepository();
     await pumpSheet(tester, fake);
