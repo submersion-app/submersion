@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overlay_providers.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/auto_connect_settings_provider.dart';
@@ -12,7 +14,10 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 
 /// State for [AutoConnectController] (issue #3361).
 class AutoConnectState {
-  /// True while this controller owns an active passive scan.
+  /// Whether the section shows the passive scan as running. A page covering
+  /// the section releases the scan without changing this, since nothing of
+  /// the section shows then; the next [AutoConnectController.activate]
+  /// brings it back in line.
   final bool isActive;
 
   /// Ids of computers whose download page was opened during this visit, so
@@ -108,14 +113,13 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     // No computer to auto-download, no scan: a diver with none is never
     // asked for Bluetooth access here, and the scan starts or stops as
     // computers are added, removed or opted out while the section is open.
+    // Deferred like the match, for the same reason (see [_scheduleMatch]).
     _computersSubscription ??= _ref.listen(allDiveComputersProvider, (_, next) {
-      final computers = next.valueOrNull;
-      if (computers == null) return;
-      if (!_hasEligibleComputer(computers)) {
-        _pause();
-      } else if (!_ref.read(rootOverlayActiveProvider)) {
-        _resume();
-      }
+      scheduleMicrotask(() {
+        if (mounted && _computersSubscription != null) {
+          _onComputersChanged(next);
+        }
+      });
     });
 
     if (!_ref.read(rootOverlayActiveProvider)) _resume();
@@ -142,6 +146,36 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _stopOwnScan();
   }
 
+  void _onComputersChanged(AsyncValue<List<DiveComputer>> next) {
+    if (next.hasError) {
+      _log.error(
+        'Auto-connect could not read the known computers',
+        category: LogCategory.bluetooth,
+        error: next.error,
+        stackTrace: next.stackTrace,
+      );
+      return;
+    }
+    final computers = next.valueOrNull;
+    if (computers == null) return;
+    if (!_hasEligibleComputer(computers)) {
+      _pause();
+    } else if (_active) {
+      // A computer added or opted back in may be one whose device the scan
+      // already found, which produces no new scan event of its own.
+      _tryTriggerNextMatch();
+    } else if (!_ref.read(rootOverlayActiveProvider)) {
+      _resume();
+    }
+  }
+
+  /// Runs the match on a microtask. The listeners that call this can fire
+  /// while a widget's build reads one of the providers they watch, and the
+  /// match changes this controller's state, which Riverpod rejects there.
+  void _scheduleMatch() => scheduleMicrotask(() {
+    if (mounted) _tryTriggerNextMatch();
+  });
+
   void _resume() {
     if (_active) return;
     if (!_ref.read(autoConnectKnownComputersProvider)) return;
@@ -155,25 +189,25 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
 
     _devicesSubscription = _ref.listen(
       discoveredDevicesProvider,
-      (_, _) => _tryTriggerNextMatch(),
+      (_, _) => _scheduleMatch(),
     );
     _downloadingSubscription = _ref.listen(isDownloadingProvider, (
       wasDownloading,
       isDownloading,
     ) {
       if (wasDownloading == true && isDownloading == false) {
-        _tryTriggerNextMatch();
+        _scheduleMatch();
       }
     });
 
     state = state.copyWith(isActive: true);
-    _tryTriggerNextMatch();
+    _scheduleMatch();
   }
 
   void _pause() {
     _closeScanListeners();
     _stopOwnScan();
-    state = state.copyWith(isActive: false);
+    if (state.isActive) state = state.copyWith(isActive: false);
   }
 
   void _closeScanListeners() {
@@ -209,8 +243,8 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
   /// `isDownloadingProvider` `true -> false` edge as well covers a download
   /// that was still running elsewhere when a computer was already in range.
   ///
-  /// Synchronous on purpose: with no await between the checks and the
-  /// request, a pause or another pass cannot slip in between them.
+  /// No await between the checks and the request, so a pause or another
+  /// pass cannot slip in between them.
   void _tryTriggerNextMatch() {
     if (!_active || _ref.read(isDownloadingProvider)) return;
 
@@ -273,6 +307,10 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     }
     return sameModelFallbackDevice(computer: computer, discovered: discovered);
   }
+
+  static final LoggerService _log = LoggerService.forClass(
+    AutoConnectController,
+  );
 }
 
 /// `autoDispose` so leaving the Transfer tab entirely tears this down even
