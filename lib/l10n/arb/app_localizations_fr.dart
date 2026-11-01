@@ -27001,6 +27001,86 @@ class AppLocalizationsFr extends AppLocalizations {
       'Corriger les heures de plongée, lier les binômes, reclasser l\'équipement, qualité des données';
 
   @override
+  String get settings_agentAccess_title => 'Accès des agents';
+
+  @override
+  String get settings_agentAccess_subtitle =>
+      'Autoriser un agent IA sur cet ordinateur à lire et modifier votre carnet de plongée';
+
+  @override
+  String get settings_agentAccess_enable => 'Activer l\'accès des agents';
+
+  @override
+  String get settings_agentAccess_statusListening => 'En écoute';
+
+  @override
+  String get settings_agentAccess_statusStopped => 'Arrêté';
+
+  @override
+  String settings_agentAccess_lastRequest(String time) {
+    return 'Dernière requête $time';
+  }
+
+  @override
+  String settings_agentAccess_portInUse(int port) {
+    return 'Le port $port est déjà utilisé';
+  }
+
+  @override
+  String get settings_agentAccess_port => 'Port';
+
+  @override
+  String get settings_agentAccess_token => 'Jeton d\'accès';
+
+  @override
+  String get settings_agentAccess_reveal => 'Afficher';
+
+  @override
+  String get settings_agentAccess_hide => 'Masquer';
+
+  @override
+  String get settings_agentAccess_copy => 'Copier';
+
+  @override
+  String get settings_agentAccess_regenerate => 'Régénérer';
+
+  @override
+  String get settings_agentAccess_regenerateConfirm =>
+      'Chaque agent connecté devra utiliser le nouveau jeton. Continuer ?';
+
+  @override
+  String get settings_agentAccess_confirmWrites =>
+      'Demander avant d\'appliquer des modifications';
+
+  @override
+  String get settings_agentAccess_confirmWritesSubtitle =>
+      'Afficher une confirmation dans Submersion avant qu\'un agent ne modifie des enregistrements';
+
+  @override
+  String get settings_agentAccess_snippets => 'Connecter un client';
+
+  @override
+  String get settings_agentAccess_claudeCode => 'Claude Code';
+
+  @override
+  String get settings_agentAccess_claudeDesktop =>
+      'Claude Desktop (via mcp-remote)';
+
+  @override
+  String get settings_agentAccess_generic => 'Autres clients';
+
+  @override
+  String get settings_agentAccess_copied => 'Copié';
+
+  @override
+  String get settings_agentAccess_scopeNote =>
+      'Les agents voient tous les profils de plongeur de cet ordinateur.';
+
+  @override
+  String get settings_agentAccess_portInvalid =>
+      'Saisissez un port entre 1024 et 65535';
+
+  @override
   String get settings_sync_title => 'Synchronisation entre appareils';
 
   @override
