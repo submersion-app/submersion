@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
 
@@ -102,6 +103,23 @@ class PdfPageRenderer {
     ),
   );
 
+  /// Renders all of [page] with its longest side at [maxDimension].
+  ///
+  /// `fullWidth` and `fullHeight` set the resolution. `render`'s `width` and
+  /// `height` are only a crop window onto a page drawn at that resolution,
+  /// its 72 dpi size by default, so a target passed there left a smaller page
+  /// in the corner of a blank bitmap and cut a larger one down to its top-left
+  /// corner (issue #3996).
+  @visibleForTesting
+  static Future<PdfImage?> renderWholePage(PdfPage page, int maxDimension) {
+    final longest = page.width > page.height ? page.width : page.height;
+    final scale = maxDimension / longest;
+    return page.render(
+      fullWidth: (page.width * scale).roundToDouble(),
+      fullHeight: (page.height * scale).roundToDouble(),
+    );
+  }
+
   /// Page 1 as JPEG with its longest side at [maxDimension], plus the page
   /// count; null on every failure path.
   static Future<PdfPagePreview?> renderFirstPagePreview({
@@ -121,24 +139,7 @@ class PdfPageRenderer {
           ? await PdfDocument.openFile(file.path)
           : await PdfDocument.openData(bytes!);
       if (document.pages.isEmpty) return null;
-      final page = document.pages[0];
-      final longest = page.width > page.height ? page.width : page.height;
-      final scale = maxDimension / longest;
-      // fullWidth/fullHeight is the page rendered at that resolution; the
-      // render()-only width/height pdfrx otherwise defaults to is a pixel
-      // sub-area cropped from a page rendered at its native 72dpi size, so
-      // passing the scaled-up target there left a page shorter than the
-      // crop window (issue #3996 -- the real cause: the page rendered
-      // correctly but small, in the corner of an oversized blank canvas).
-      // coverage:ignore-start
-      // Needs a real pdfium build (PDFIUM_PATH), which CI does not provide;
-      // exercised by the PDFIUM_PATH-gated tests in pdf_page_renderer_test.dart
-      // and by manual desktop smoke tests.
-      final pageImage = await page.render(
-        fullWidth: page.width * scale,
-        fullHeight: page.height * scale,
-      );
-      // coverage:ignore-end
+      final pageImage = await renderWholePage(document.pages[0], maxDimension);
       if (pageImage == null) return null;
       // Own copy of the pixels, so they outlive the native buffer that
       // dispose frees.

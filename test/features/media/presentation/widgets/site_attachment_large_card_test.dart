@@ -149,46 +149,88 @@ void main() {
     expect(view.width / view.height, closeTo(4 / 3, 0.01));
   });
 
-  testWidgets('a PDF shows its first page and page count', (tester) async {
-    await pump(
-      tester,
-      testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
-      preview: PdfPagePreview(jpeg: onePixelPng(), pageCount: 4),
-    );
-    expect(find.text('4 pages'), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget);
-  });
+  /// The nearest Stack above the decoded page, which is the page's own box.
+  final pageBox = find
+      .ancestor(of: find.byType(RawImage), matching: find.byType(Stack))
+      .first;
 
-  testWidgets('issue #3996: a landscape PDF preview keeps its own aspect '
-      'ratio, not the portrait 70% height cap', (tester) async {
+  /// Waits, in real time, for [settled] after a pump. Image.memory's decode
+  /// runs on the engine's threads and hands back through fake-async
+  /// microtasks, so it needs both.
+  Future<void> pumpUntil(WidgetTester tester, bool Function() settled) async {
+    for (var i = 0; i < 500 && !settled(); i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    expect(settled(), isTrue, reason: 'the image never finished decoding');
+  }
+
+  /// Pumps a PDF preview of [jpeg] in a 400x900 window, past its real decode,
+  /// and returns where the page landed.
+  Future<Rect> pumpDecodedPage(
+    WidgetTester tester,
+    Uint8List jpeg, {
+    int pageCount = 1,
+  }) async {
     tester.view.physicalSize = const Size(400, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await pump(
       tester,
       testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
-      preview: PdfPagePreview(jpeg: solidJpeg(2000, 1000), pageCount: 1),
+      preview: PdfPagePreview(jpeg: jpeg, pageCount: pageCount),
     );
-    // Image.memory's real decode (cacheWidth routes it through the engine's
-    // resize codec) never completes inside pumpAndSettle's fake-async zone;
-    // a real delay outside it lets the decode finish before the layout the
-    // assertions below depend on is measured.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pumpAndSettle();
+    await pumpUntil(tester, () => find.byType(RawImage).evaluate().isNotEmpty);
+    return tester.getRect(pageBox);
+  }
+
+  testWidgets('a PDF shows its first page and page count', (tester) async {
+    await pumpDecodedPage(tester, onePixelPng(), pageCount: 4);
+    expect(find.text('4 pages'), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('issue #3996: a landscape PDF preview keeps its own aspect '
+      'ratio, not the portrait 70% height cap', (tester) async {
+    final page = await pumpDecodedPage(tester, solidJpeg(2000, 1000));
+
     // The surrounding box, not just the Image: the bug left the Image
     // correctly sized but centered in a container stretched to the 70%
     // height cap (630 px here), leaving empty space above and below.
-    final box = tester.getSize(
-      find.ancestor(of: find.byType(Image), matching: find.byType(Stack)).first,
-    );
-    expect(box.width / box.height, closeTo(2, 0.05));
-    expect(box.height, lessThan(300));
+    expect(page.width / page.height, closeTo(2, 0.05));
+    expect(page.height, lessThan(300));
   });
 
   testWidgets('issue #3996: an extreme portrait PDF that hits the height '
-      'cap narrows instead of leaving empty space on the sides', (
+      'cap narrows and stays centered in the card', (tester) async {
+    // 1:3, tall enough that the width-first clamp alone would still exceed
+    // the 630 px height cap (70% of 900), forcing a second clamp that narrows
+    // the page below the card's own width.
+    final page = await pumpDecodedPage(tester, solidJpeg(600, 1800));
+
+    final card = tester.getRect(find.byType(SiteAttachmentLargeCard));
+    expect(page.height, closeTo(630, 1));
+    expect(page.width, lessThan(card.width - 50));
+    expect(page.width / page.height, closeTo(1 / 3, 0.05));
+    expect(page.center.dx, closeTo(card.center.dx, 1));
+  });
+
+  testWidgets('the page-count chip is not clipped to a strip-shaped page', (
+    tester,
+  ) async {
+    final page = await pumpDecodedPage(
+      tester,
+      solidJpeg(60, 1800),
+      pageCount: 12,
+    );
+
+    expect(tester.getSize(find.byType(Chip)).width, greaterThan(page.width));
+    expect(tester.widget<Stack>(pageBox).clipBehavior, Clip.none);
+  });
+
+  testWidgets('the card holds its loading height until the page decodes', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(400, 900);
@@ -197,26 +239,30 @@ void main() {
     await pump(
       tester,
       testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
-      // 1:3, tall enough that the width-first clamp alone would still
-      // exceed the 630 px height cap (70% of 900), forcing a second clamp
-      // that narrows the page below the card's own width.
-      preview: PdfPagePreview(jpeg: solidJpeg(600, 1800), pageCount: 1),
+      preview: PdfPagePreview(jpeg: solidJpeg(2000, 1000), pageCount: 1),
     );
-    // See the previous test: lets Image.memory's real decode finish before
-    // the layout below is measured.
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+
+    // No real time has passed, so the decode has not finished.
+    expect(find.byType(RawImage), findsNothing);
+    expect(find.byType(Chip), findsNothing);
+    final body = tester.getSize(find.byType(Image));
+    expect(body.height, closeTo(body.width * 0.6, 1));
+  });
+
+  testWidgets('a page that cannot decode leaves only the document row', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      testMediaItem(mediaType: MediaType.document, originalFilename: 'map.pdf'),
+      preview: PdfPagePreview(jpeg: Uint8List(8), pageCount: 1),
     );
-    await tester.pumpAndSettle();
-    final cardWidth = tester
-        .getSize(find.byType(SiteAttachmentLargeCard))
-        .width;
-    final box = tester.getSize(
-      find.ancestor(of: find.byType(Image), matching: find.byType(Stack)).first,
+
+    await pumpUntil(
+      tester,
+      () => tester.getSize(find.byType(Image)).height == 0,
     );
-    expect(box.height, closeTo(630, 1));
-    expect(box.width, lessThan(cardWidth - 50));
-    expect(box.width / box.height, closeTo(1 / 3, 0.05));
+    expect(find.byType(Chip), findsNothing);
   });
 
   testWidgets('the PDF page decodes at the card width, not the bucket', (

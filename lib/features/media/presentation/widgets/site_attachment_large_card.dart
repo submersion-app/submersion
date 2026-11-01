@@ -81,6 +81,7 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
             MediaQuery.devicePixelRatioOf(context),
           ),
         );
+        final loadingHeight = width * 0.6;
         // No preview (unreadable PDF, pdfium unavailable) leaves only the
         // header, which is the document row: never an empty box.
         return ref
@@ -88,24 +89,16 @@ class SiteAttachmentLargeCard extends ConsumerWidget {
             .when(
               data: (preview) => preview == null
                   ? const SizedBox.shrink()
-                  // Center loosens the width the stretched Column otherwise
-                  // forces on every child: once maxHeight binds, the page's
-                  // width is clamped a second time to stay in ratio and
-                  // comes out narrower than the card (issue #3996 follow-up
-                  // -- the first fix only stopped the height from being
-                  // forced). Without Center that narrower page would sit in
-                  // a card-width Stack, leaving empty space on the sides.
-                  : Center(
-                      child: _PdfPage(
-                        preview: preview,
-                        maxHeight: maxHeight,
-                        cacheWidth:
-                            (width * MediaQuery.devicePixelRatioOf(context))
-                                .round(),
-                      ),
+                  : _PdfPage(
+                      preview: preview,
+                      maxHeight: maxHeight,
+                      decodingHeight: loadingHeight,
+                      cacheWidth:
+                          (width * MediaQuery.devicePixelRatioOf(context))
+                              .round(),
                     ),
               loading: () => SizedBox(
-                height: width * 0.6,
+                height: loadingHeight,
                 child: const Center(
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
@@ -156,11 +149,17 @@ class _PdfPage extends StatelessWidget {
   const _PdfPage({
     required this.preview,
     required this.maxHeight,
+    required this.decodingHeight,
     required this.cacheWidth,
   });
 
   final PdfPagePreview preview;
   final double maxHeight;
+
+  /// Height kept until the page decodes. The image has no size before that,
+  /// so without this the card would collapse between its loading state and
+  /// the page, moving everything below it twice.
+  final double decodingHeight;
 
   /// Decode width: the card's physical width. The render comes from a size
   /// bucket up to twice that, and decoding the full bucket would hold a
@@ -170,32 +169,44 @@ class _PdfPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pages = preview.pageCount;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Stack(
-        // Stack sizes itself to its one non-positioned child (the image,
-        // already laid out at its own aspect ratio); Center would instead
-        // fill the whole maxHeight regardless of that aspect ratio, which is
-        // what stretched a landscape page's container tall and left it
-        // floating in empty space (issue #3996). The outer Center in _body
-        // handles centering a page narrower than the card.
-        children: [
-          Image.memory(
-            preview.jpeg,
-            fit: BoxFit.contain,
-            cacheWidth: cacheWidth,
-            gaplessPlayback: true,
-          ),
-          if (pages != null)
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: Chip(
-                visualDensity: VisualDensity.compact,
-                label: Text(context.l10n.media_siteAttachment_pageCount(pages)),
-              ),
-            ),
-        ],
+    // Center frees the page from the width the card's stretched Column forces
+    // on its children: a page that hits maxHeight has to narrow to stay in
+    // ratio (issue #3996), and it should do that in the middle of the card.
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Image.memory(
+          preview.jpeg,
+          fit: BoxFit.contain,
+          cacheWidth: cacheWidth,
+          gaplessPlayback: true,
+          // As with no preview at all: never an empty box.
+          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          frameBuilder: (context, page, frame, _) {
+            if (frame == null) {
+              return SizedBox(width: double.infinity, height: decodingHeight);
+            }
+            if (pages == null) return page;
+            return Stack(
+              // The Stack is exactly the size of the page, so a strip-shaped
+              // page would otherwise clip the chip sitting on it.
+              clipBehavior: Clip.none,
+              children: [
+                page,
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: Chip(
+                    visualDensity: VisualDensity.compact,
+                    label: Text(
+                      context.l10n.media_siteAttachment_pageCount(pages),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
