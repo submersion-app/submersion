@@ -131,6 +131,16 @@ void main() {
     expect(reports.last, 4);
   });
 
+  testWidgets('tapping outside commits what was typed', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(_field));
+    await tester.pump();
+    await tester.enterText(find.byKey(_field), '150');
+    await tester.tapAt(const Offset(700, 500));
+    await tester.pump();
+    expect(reports.single, 1.5);
+  });
+
   testWidgets('unreadable text restores the field', (tester) async {
     await pump(tester, initial: 1.5);
     await type(tester, 'not a number');
