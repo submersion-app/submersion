@@ -287,10 +287,7 @@ class ExcelExportService {
     for (var row = 0; row < dives.length; row++) {
       final dive = dives[row];
       final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
-      final gas = tank == null
-          ? null
-          : gasPercentCells(tank.gasMix.o2, tank.gasMix.he);
-
+      final gas = gasMixCells(tank?.gasMix);
       final rowData = <dynamic>[
         dive.diveNumber ?? '',
         formatDateForExport(dive.dateTime, dateFormat),

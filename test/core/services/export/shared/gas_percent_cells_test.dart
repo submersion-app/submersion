@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/shared/gas_percent_cells.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
   test('a whole mix keeps its whole numbers', () {
@@ -29,6 +30,17 @@ void main() {
       final total = double.parse(cells.o2) + double.parse(cells.he);
       expect(total, lessThanOrEqualTo(100), reason: '$cells');
     }
+  });
+
+  test('a value that is not a number writes a cell, not a crash', () {
+    expect(gasPercentCells(double.nan, 0), (o2: 'NaN', he: 'NaN'));
+    expect(gasPercentCells(21, double.infinity), (o2: '21', he: '79'));
+    expect(gasPercentCells(double.infinity, 5), (o2: 'Infinity', he: '0'));
+  });
+
+  test('no mix means no cells', () {
+    expect(gasMixCells(null), isNull);
+    expect(gasMixCells(const GasMix(o2: 18, he: 45)), (o2: '18', he: '45'));
   });
 
   test('a mix already over 100 cannot leave the file that way', () {

@@ -105,9 +105,7 @@ class CsvDivesWriter {
 
     for (final dive in dives) {
       final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
-      final gas = tank == null
-          ? null
-          : gasPercentCells(tank.gasMix.o2, tank.gasMix.he);
+      final gas = gasMixCells(tank?.gasMix);
       rows.add([
         dive.diveNumber ?? '',
         sanitizeCsvField(dive.effectiveName?.replaceAll('\n', ' ')),

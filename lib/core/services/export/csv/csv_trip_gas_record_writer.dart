@@ -5,8 +5,6 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/gas_percent_cells.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    show GasMix;
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart';
 
 /// The trip gas record as a CSV: one line per dive tank breathed from a
@@ -43,8 +41,8 @@ class CsvTripGasRecordWriter {
       ],
     ];
     for (final r in record.rows) {
-      final ordered = _cells(r.orderedMix);
-      final analyzed = _cells(r.analyzedMix);
+      final ordered = gasMixCells(r.orderedMix);
+      final analyzed = gasMixCells(r.analyzedMix);
       rows.add([
         units.date(r.tank.entryTime),
         units.time(r.tank.entryTime),
@@ -65,9 +63,6 @@ class CsvTripGasRecordWriter {
     }
     return const ListToCsvConverter().convert(rows);
   }
-
-  static ({String o2, String he})? _cells(GasMix? mix) =>
-      mix == null ? null : gasPercentCells(mix.o2, mix.he);
 }
 
 /// `gas_record_<trip>_<yyyy-MM-dd>.csv`, the trip name as a
