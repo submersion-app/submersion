@@ -28,13 +28,14 @@ class _TankArrivesDuringCapture extends BuddyRepository {
   final DiveRepository _diveRepo;
 
   @override
-  Future<List<domain_buddy.BuddyWithRole>> getBuddiesForDive(
-    String diveId,
+  Future<Map<String, List<domain_buddy.BuddyWithRole>>> getBuddiesForDives(
+    List<String> diveIds,
   ) async {
-    await _diveRepo.bulkAddTank([
-      diveId,
-    ], const domain.DiveTank(id: '', name: 'Synced'));
-    return super.getBuddiesForDive(diveId);
+    await _diveRepo.bulkAddTank(
+      diveIds,
+      const domain.DiveTank(id: '', name: 'Synced'),
+    );
+    return super.getBuddiesForDives(diveIds);
   }
 }
 
