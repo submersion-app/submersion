@@ -127,7 +127,7 @@ ProviderContainer makeContainer({
       if (currencyFails) ...[
         // The real attention provider over inputs that throw: the gauges
         // must still resolve, with the currency chip empty.
-        allCertificationsProvider.overrideWith((ref) async => const []),
+        certificationMetadataProvider.overrideWith((ref) async => const []),
         currencyRulesProvider.overrideWith(
           (ref) async => throw StateError('corrupt catalog'),
         ),

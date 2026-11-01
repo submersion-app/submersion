@@ -16,17 +16,25 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
+/// Every `certifications` column a [domain.Certification] carries except the
+/// legacy photo BLOBs, which can still hold scans on a row v294 left alone
+/// (issue #3848).
+const _metadataColumns =
+    'id, diver_id, buddy_id, name, agency, level, additional_credentials, '
+    'card_number, issue_date, expiry_date, instructor_name, '
+    'instructor_number, instructor_id, course_id, card_id, notes, '
+    'created_at, updated_at';
+
 class CertificationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(CertificationRepository);
 
-  /// Emits whenever the `certifications` table changes so list providers can
-  /// refresh after a sync or any other write.
-  ///
-  /// Card images are read from the card document (issue #2613), so a
-  /// document or page change ticks too.
+  /// Emits whenever a certification or its card changes, for what reads card
+  /// images. They are read from the card document (issue #2613), so a document
+  /// or page change ticks too. Anything else subscribes to
+  /// [watchCertificationRowChanges].
   Stream<void> watchCertificationsChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.certifications),
@@ -34,6 +42,11 @@ class CertificationRepository {
       TableUpdateQuery.onTable(_db.documentPages),
     ]),
   );
+
+  /// Emits when a `certifications` row changes: the tick for what reads only
+  /// the rows, which a document or page write leaves untouched (issue #3848).
+  Stream<void> watchCertificationRowChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.certifications));
 
   /// Get all certifications ordered by issue date (newest first)
   Future<List<domain.Certification>> getAllCertifications({
@@ -62,6 +75,28 @@ class CertificationRepository {
     }
   }
 
+  /// [getAllCertifications] without the card images, for whatever does not
+  /// draw a card (issue #3848). A scan can run to megabytes, so these reads
+  /// keep a screen's cost and memory independent of them.
+  Future<List<domain.Certification>> getCertificationMetadata({
+    String? diverId,
+  }) async {
+    try {
+      return await _selectMetadata(
+        '${diverId == null ? '' : 'WHERE diver_id = ? '}'
+        'ORDER BY issue_date DESC, name ASC',
+        [if (diverId != null) Variable.withString(diverId)],
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get certification metadata',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get certification by ID
   Future<domain.Certification?> getCertificationById(String id) async {
     try {
@@ -81,7 +116,8 @@ class CertificationRepository {
     }
   }
 
-  /// Search certifications by name or agency
+  /// Search certifications by name or agency. Without their card images:
+  /// the results are rows, and opening one reads it in full.
   Future<List<domain.Certification>> searchCertifications(
     String query, {
     String? diverId,
@@ -96,16 +132,13 @@ class CertificationRepository {
       if (diverId != null) Variable.withString(diverId),
     ];
 
-    final results = await _db.customSelect('''
-      SELECT * FROM certifications
+    return _selectMetadata('''
       WHERE (unicode_lower(name) LIKE ?
          OR unicode_lower(agency) LIKE ?
          OR unicode_lower(card_number) LIKE ?)
       $diverFilter
       ORDER BY issue_date DESC, name ASC
-    ''', variables: variables).get();
-
-    return _withCardImages(results.map(_mapQueryRowToCertification).toList());
+    ''', variables);
   }
 
   /// All certifications owned by a buddy (newest issue date first). Issue #553.
@@ -122,18 +155,25 @@ class CertificationRepository {
     return _withCardImages(rows.map(_mapRowToCertification).toList());
   }
 
+  /// [getCertificationsByBuddy] without the card images (issue #3848).
+  Future<List<domain.Certification>> getCertificationMetadataByBuddy(
+    String buddyId,
+  ) => _selectMetadata(
+    'WHERE buddy_id = ? ORDER BY issue_date DESC, name ASC',
+    [Variable.withString(buddyId)],
+  );
+
   /// Certifications for many buddies at once, grouped by buddyId. Single query
-  /// (no N+1) so buddy-list hydration stays O(1). Issue #553.
+  /// (no N+1) so buddy-list hydration stays O(1). Issue #553. Without their
+  /// card images: every buddy on the list passes through here (issue #3848).
   Future<Map<String, List<domain.Certification>>> getCertificationsForBuddies(
     List<String> buddyIds,
   ) async {
     if (buddyIds.isEmpty) return {};
-    final query = _db.select(_db.certifications)
-      ..where((t) => t.buddyId.isIn(buddyIds));
-    final rows = await query.get();
-    final certs = await _withCardImages(
-      rows.map(_mapRowToCertification).toList(),
-    );
+    final placeholders = List.filled(buddyIds.length, '?').join(', ');
+    final certs = await _selectMetadata('WHERE buddy_id IN ($placeholders)', [
+      for (final id in buddyIds) Variable.withString(id),
+    ]);
     final out = <String, List<domain.Certification>>{};
     for (final cert in certs) {
       (out[cert.buddyId!] ??= []).add(cert);
@@ -462,6 +502,23 @@ class CertificationRepository {
     return _withCardImages(rows.map(_mapRowToCertification).toList());
   }
 
+  /// The rows [clause] picks, as certifications without their card images.
+  Future<List<domain.Certification>> _selectMetadata(
+    String clause,
+    List<Variable<Object>> variables,
+  ) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT $_metadataColumns FROM certifications $clause',
+          variables: variables,
+        )
+        .get();
+    return [
+      for (final row in rows)
+        _mapQueryRowToCertification(row).copyWith(cardImagesLoaded: false),
+    ];
+  }
+
   /// Maps a raw certifications row (from a customSelect query) to a domain
   /// entity. Kept in step with [_mapRowToCertification] -- notably it hydrates
   /// buddyId (issue #553), which the per-query hand-mapping used to drop.
@@ -496,12 +553,19 @@ class CertificationRepository {
 
   /// Writes [cert]'s card images to its card document (issue #2613). With
   /// no images it only clears a card left from before, which needs no
-  /// diver; a card with images is filed under the cert's diver.
+  /// diver; a card with images is filed under the cert's diver. A
+  /// certification read without its images has nothing to say about the
+  /// card, so its null photos clear nothing (issue #3848).
   Future<void> _saveCardImages(
     domain.Certification cert, {
     required bool notify,
   }) async {
     final hasImages = cert.photoFront != null || cert.photoBack != null;
+    assert(
+      cert.cardImagesLoaded || !hasImages,
+      'Set card images on a full read: this one would be dropped',
+    );
+    if (!cert.cardImagesLoaded) return;
     final diverId = cert.diverId ?? await _diverIdForCardOf(cert);
     if (hasImages && diverId == null) {
       _log.warning('No diver to file the card of ${cert.id} under');

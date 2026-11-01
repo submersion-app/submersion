@@ -65,7 +65,7 @@ Future<UnifiedImportResult> importThroughWizard(
         allDiveCentersProvider.overrideWith(
           (ref) => DiveCenterRepository().getAllDiveCenters(diverId: diver.id),
         ),
-        allCertificationsProvider.overrideWith((ref) async => []),
+        certificationMetadataProvider.overrideWith((ref) async => []),
         diveTypesProvider.overrideWith((ref) async => []),
       ],
       child: MaterialApp(
