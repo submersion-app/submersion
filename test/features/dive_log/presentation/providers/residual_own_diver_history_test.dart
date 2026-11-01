@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -261,6 +262,78 @@ void main() {
 
       expect(result.cnsStart, 0);
       expect(result.cnsIsMinimum, isFalse);
+    });
+  });
+
+  // Both are keep-alive and Compare reads them beside residualCnsProvider,
+  // which refreshes through the analysis: all three must move together.
+  group('after an earlier dive is added', () {
+    Future<void> settle() => Future<void>.delayed(
+      DiveRepository.changeTickDebounce + const Duration(milliseconds: 150),
+    );
+
+    test('residual OTU counts it', () async {
+      await seedDive(
+        'alice-current',
+        'alice',
+        DateTime.utc(2026, 10, 30, 12),
+        10,
+      );
+      final container = containerFor([
+        exposure('alice-earlier', const O2Exposure(otu: 10)),
+      ]);
+      container.listen(residualOtuProvider('alice-current'), (_, _) {});
+      expect(
+        await container.read(residualOtuProvider('alice-current').future),
+        0,
+      );
+
+      await seedDive(
+        'alice-earlier',
+        'alice',
+        DateTime.utc(2026, 10, 30, 9),
+        60,
+      );
+      await settle();
+
+      expect(
+        await container.read(residualOtuProvider('alice-current').future),
+        10,
+      );
+    });
+
+    test('residual tissue state starts from it', () async {
+      await seedDive(
+        'alice-current',
+        'alice',
+        aliceCurrentStart,
+        10,
+        samples: shallowAir,
+      );
+      final container = containerFor();
+      container.listen(residualTissueStateProvider('alice-current'), (_, _) {});
+      expect(
+        await container.read(
+          residualTissueStateProvider('alice-current').future,
+        ),
+        isNull,
+      );
+
+      await seedDive(
+        'alice-earlier',
+        'alice',
+        aliceKnownStart,
+        30,
+        samples: deepAir,
+      );
+      await settle();
+
+      expect(
+        await container.read(
+          residualTissueStateProvider('alice-current').future,
+        ),
+        isNotNull,
+      );
     });
   });
 

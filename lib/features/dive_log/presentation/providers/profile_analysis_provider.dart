@@ -1908,6 +1908,12 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
+      // Reads earlier dives' analyses once, so it goes stale when any of them
+      // changes. The tick its neighbour residualCnsProvider inherits from
+      // profileAnalysisProvider keeps the three in step for Compare.
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+      );
       await awaitCurrentDiverSettings(ref);
       return _computeResidualTissueState(
         ref,
@@ -1924,6 +1930,10 @@ final residualOtuProvider = FutureProvider.family<double, String>((
   ref,
   diveId,
 ) async {
+  // As in [residualTissueStateProvider].
+  ref.invalidateSelfWhen(
+    ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
+  );
   return _computeResidualOtu(ref, diveId);
 });
 
