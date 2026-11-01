@@ -2976,7 +2976,7 @@ class DiveRepository {
   /// as [getDiveSummaries] but without pagination and selecting only the id.
   ///
   /// Used to compute previous/next navigation from the detail page. Distinct
-  /// from [getPreviousDive], which is the chronological surface-interval query.
+  /// from [getPreviousDiveTimes], the chronological surface-interval query.
   // stats-scope-exempt: drives detail-page next/prev over the displayed list
   Future<List<String>> getOrderedDiveIds({
     String? diverId,
@@ -5910,53 +5910,6 @@ class DiveRepository {
     }
   }
 
-  /// Get the previous dive (by entry time) for surface interval calculation
-  /// Returns null if this is the first dive
-  ///
-  /// A plan that has not been dived is the previous dive of another plan only:
-  /// a logged dive looks past it (issue #3924).
-  Future<domain.Dive?> getPreviousDive(String diveId) async {
-    try {
-      // First get the current dive's entry time
-      final currentDive = await getDiveById(diveId);
-      if (currentDive == null) return null;
-
-      final entryTime = currentDive.entryTime ?? currentDive.dateTime;
-
-      // Find the most recent dive that ended before this one started
-      final query = _db.select(_db.dives)
-        ..where((t) => t.id.isNotValue(diveId))
-        ..where(
-          (t) =>
-              t.entryTime.isSmallerThanValue(entryTime.millisecondsSinceEpoch) |
-              (t.entryTime.isNull() &
-                  t.diveDateTime.isSmallerThanValue(
-                    entryTime.millisecondsSinceEpoch,
-                  )),
-        )
-        ..orderBy([
-          (t) => OrderingTerm.desc(t.entryTime),
-          (t) => OrderingTerm.desc(t.diveDateTime),
-        ])
-        ..limit(1);
-      if (!currentDive.isPlanned) {
-        query.where((t) => t.isPlanned.equals(false));
-      }
-
-      final rows = await query.get();
-      if (rows.isEmpty) return null;
-
-      return await _mapRowToDive(rows.first);
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get previous dive for: $diveId',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  }
-
   /// Calculate surface interval between this dive and the previous dive
   /// Returns null if there is no previous dive
   ///
@@ -6084,9 +6037,9 @@ class DiveRepository {
   /// gear or checklist tied to them yet and must never steal a checklist
   /// link meant for the real dive) whose effective start (entryTime,
   /// falling back to the legacy diveDateTime) is at or after [notBefore].
-  /// Mirrors [getPreviousDive]'s predicate and ordering in reverse, with an
-  /// explicit diver filter -- unlike [getPreviousDive], which is used for
-  /// the surface-interval lookback and does not need one.
+  /// Mirrors [getPreviousDiveTimes]'s predicate and ordering in reverse, with
+  /// an explicit diver filter -- unlike [getPreviousDiveTimes], which is used
+  /// for the surface-interval lookback and does not need one.
   ///
   /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
   /// [ChecklistDiveLinker], only compares identity, and that linker runs
@@ -6127,8 +6080,12 @@ class DiveRepository {
     }
   }
 
-  /// Times-only equivalent of [getPreviousDive] (identical predicate and
-  /// ordering), for lookback chains that need only id and timestamps.
+  /// The dive before [diveId] by entry time, for surface intervals and
+  /// lookback chains, which need only id and timestamps. Null for the first
+  /// dive.
+  ///
+  /// A plan that has not been dived is the previous dive of another plan only:
+  /// a logged dive looks past it (issue #3924).
   Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;

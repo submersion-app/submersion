@@ -31,12 +31,6 @@ class DiveTimes {
     this.isPlanned = false,
   });
 
-  /// Whether this dive's exposure is part of the history of [later]. A plan
-  /// that has not been dived left nothing behind, so it counts only toward
-  /// another plan, which models a day of diving that has not happened yet
-  /// (issue #3924).
-  bool isHistoryOf(DiveTimes later) => !isPlanned || later.isPlanned;
-
   /// Same resolution order as `Dive.effectiveRuntime`:
   /// runtime, then exit - entry, then profile span, then bottom time.
   Duration? get effectiveRuntime {

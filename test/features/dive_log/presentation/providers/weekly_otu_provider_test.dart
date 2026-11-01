@@ -173,6 +173,23 @@ void main() {
       expect(weekly, realOtu);
     });
 
+    test('a logged dive overtakes it for a later plan', () async {
+      await createPlan();
+      await createReal();
+      await createSecondPlan();
+      final container = planContainer();
+
+      final residual = await container.read(
+        residualOtuProvider('second-plan').future,
+      );
+      final weekly = await container.read(
+        weeklyOtuProvider('second-plan').future,
+      );
+
+      expect(residual, realOtu);
+      expect(weekly, realOtu + planOtu);
+    });
+
     test('still counts toward a later plan the same day', () async {
       await createPlan();
       await createSecondPlan();

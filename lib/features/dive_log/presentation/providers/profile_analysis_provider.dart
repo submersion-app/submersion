@@ -1853,10 +1853,9 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
 
     // Only dives that began BEFORE this one count toward its residual.
     return await sumOtuInWindow(
-      dives: nearbyDives.where(
+      dives: withoutUndivedPlans(currentDive, nearbyDives).where(
         (dive) =>
             dive.id != diveId &&
-            dive.isHistoryOf(currentDive) &&
             (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
       ),
       from: startOfDay,
@@ -1922,7 +1921,8 @@ final residualOtuProvider = FutureProvider.family<double, String>((
 /// of the current dive plus any dive that occurred at or before it. Dives
 /// logged LATER than the current dive (e.g. later the same day) are excluded
 /// so the displayed "Prior" never borrows OTU from the future (issue #407).
-/// A plan counts only when the current dive is a plan too (issue #3924).
+/// A plan a logged dive never followed is excluded too (issue #3924, see
+/// [withoutUndivedPlans]).
 /// Used by O2ToxicityCard for REPEX compliance display.
 final weeklyOtuProvider = FutureProvider.family<double, String>((
   ref,
@@ -1961,11 +1961,10 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
     // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
     // ordering discipline in [_computeResidualOtu].
-    final counted = weekDives.where(
+    final counted = withoutUndivedPlans(currentDive, weekDives).where(
       (dive) =>
           dive.id == diveId ||
-          (dive.isHistoryOf(currentDive) &&
-              !(dive.entryTime ?? dive.dateTime).isAfter(diveDate)),
+          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
     );
 
     // The window closes at the end of the dive's day, or at the dive's own

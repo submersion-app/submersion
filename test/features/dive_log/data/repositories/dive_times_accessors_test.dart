@@ -55,7 +55,7 @@ void main() {
     expect(times.effectiveRuntime, isNull);
   });
 
-  test('getPreviousDiveTimes matches getPreviousDive', () async {
+  test('getPreviousDiveTimes walks back by effective start', () async {
     await repository.createDive(
       domain.Dive(id: 'p1', dateTime: DateTime.utc(2026, 5, 1, 9)),
     );
@@ -70,11 +70,8 @@ void main() {
       domain.Dive(id: 'p3', dateTime: DateTime.utc(2026, 5, 1, 14)),
     );
 
-    for (final id in ['p2', 'p3']) {
-      final legacy = await repository.getPreviousDive(id);
-      final slim = await repository.getPreviousDiveTimes(id);
-      expect(slim?.id, legacy?.id, reason: 'previous of $id');
-    }
+    expect((await repository.getPreviousDiveTimes('p3'))?.id, 'p2');
+    expect((await repository.getPreviousDiveTimes('p2'))?.id, 'p1');
     expect(await repository.getPreviousDiveTimes('p1'), isNull);
   });
 
@@ -113,7 +110,6 @@ void main() {
       await repository.createDive(plan);
       await repository.createDive(laterReal);
 
-      expect((await repository.getPreviousDive('later-real'))?.id, 'real');
       expect((await repository.getPreviousDiveTimes('later-real'))?.id, 'real');
     });
 
@@ -143,7 +139,6 @@ void main() {
       await repository.createDive(plan);
       await repository.createDive(laterPlan);
 
-      expect((await repository.getPreviousDive('later-plan'))?.id, 'plan');
       expect((await repository.getPreviousDiveTimes('later-plan'))?.id, 'plan');
       expect(
         await repository.getSurfaceInterval('later-plan'),

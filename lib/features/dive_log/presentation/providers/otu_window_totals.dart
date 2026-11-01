@@ -12,6 +12,28 @@ typedef ProfileAnalysisLookup =
 /// evening before a window opens (and crossed midnight into it) is found.
 const otuWindowLookback = Duration(days: 1);
 
+/// [dives] without the plans that are not part of [current]'s history.
+///
+/// A plan that has not been dived left nothing behind, so a logged dive counts
+/// none. A plan models a day of diving that has not happened yet, so it counts
+/// the plans back to the last logged dive before it, which is as far as the
+/// residual lookback reads plans (issue #3924).
+Iterable<DiveTimes> withoutUndivedPlans(
+  DiveTimes current,
+  Iterable<DiveTimes> dives,
+) {
+  if (!current.isPlanned) return dives.where((d) => !d.isPlanned);
+
+  DateTime startOf(DiveTimes d) => d.entryTime ?? d.dateTime;
+  final start = startOf(current);
+  final logged = dives
+      .where((d) => !d.isPlanned && startOf(d).isBefore(start))
+      .map(startOf);
+  if (logged.isEmpty) return dives;
+  final lastLogged = logged.reduce((a, b) => a.isAfter(b) ? a : b);
+  return dives.where((d) => !d.isPlanned || !startOf(d).isBefore(lastLogged));
+}
+
 /// Total OTU that [dives] accrued inside `[from, to)`.
 ///
 /// The one place daily and weekly OTU totals are summed: the dive detail's

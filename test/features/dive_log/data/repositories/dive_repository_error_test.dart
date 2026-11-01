@@ -205,7 +205,6 @@ void main() {
         expect(await repository.getBatchProfileSummaries(['test-id']), isEmpty);
 
         // Methods that return null
-        expect(await repository.getPreviousDive('test-id'), isNull);
         expect(await repository.getSurfaceInterval('test-id'), isNull);
       },
     );
