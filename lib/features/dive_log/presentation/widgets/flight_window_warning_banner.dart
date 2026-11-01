@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -35,7 +36,10 @@ class FlightWindowWarningBanner extends ConsumerWidget {
     }
 
     final scheme = Theme.of(context).colorScheme;
-    final time = DateFormat.E().add_jm().format(status.deadline.toLocal());
+    final time = formatNoFlyWhen(
+      status.deadline,
+      ref.watch(unitFormatterProvider),
+    );
     return Container(
       width: double.infinity,
       color: scheme.errorContainer,

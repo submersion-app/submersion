@@ -1,7 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -21,15 +20,7 @@ class FlightWindowCard extends ConsumerWidget {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final now = clock.now().toUtc();
-    // The status holds true instants, so they read back on the device clock.
-    // The weekday has no ordering to respect, so it stays locale-derived; the
-    // clock half goes through the diver's 12h/24h preference.
     final units = ref.watch(unitFormatterProvider);
-    final weekdayFormat = DateFormat.E();
-    String formatWhen(DateTime instant) {
-      final local = instant.toLocal();
-      return '${weekdayFormat.format(local)} ${units.formatTime(local)}';
-    }
 
     final (
       IconData icon,
@@ -43,19 +34,19 @@ class FlightWindowCard extends ConsumerWidget {
         l10n.flightWindow_openTitle(
           formatNoFlyRemaining(status.remaining(now)),
         ),
-        l10n.flightWindow_surfaceBy(formatWhen(status.deadline)),
+        l10n.flightWindow_surfaceBy(formatNoFlyWhen(status.deadline, units)),
       ),
       FlightWindowState.closed => (
         Icons.airplanemode_inactive,
         scheme.tertiary,
         l10n.flightWindow_closed,
-        l10n.flightWindow_departs(formatWhen(status.flightAt)),
+        l10n.flightWindow_departs(formatNoFlyWhen(status.flightAt, units)),
       ),
       FlightWindowState.conflict => (
         Icons.warning_amber,
         scheme.error,
         l10n.flightWindow_conflict,
-        l10n.flightWindow_departs(formatWhen(status.flightAt)),
+        l10n.flightWindow_departs(formatNoFlyWhen(status.flightAt, units)),
       ),
     };
 

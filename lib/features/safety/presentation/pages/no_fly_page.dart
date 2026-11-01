@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -126,12 +125,7 @@ class NoFlyStatusCard extends ConsumerWidget {
     }
 
     final remaining = status!.remaining(now);
-    final untilLocal = status!.until.toLocal();
-    // The weekday has no ordering to respect, so it stays locale-derived; the
-    // clock half goes through the diver's 12h/24h preference.
     final units = ref.watch(unitFormatterProvider);
-    final untilText =
-        '${DateFormat.E().format(untilLocal)} ${units.formatTime(untilLocal)}';
 
     return Card(
       child: Padding(
@@ -160,7 +154,7 @@ class NoFlyStatusCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.safetyHub_noFly_until(untilText),
+              l10n.safetyHub_noFly_until(formatNoFlyWhen(status!.until, units)),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 4),

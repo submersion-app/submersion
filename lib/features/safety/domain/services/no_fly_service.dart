@@ -97,6 +97,8 @@ class FlightWindowStatus {
     required this.interval,
   });
 
+  /// Time left before [deadline]. [now] must be in the same frame: a true UTC
+  /// instant for a status from `tripFlightWindowProvider`.
   Duration remaining(DateTime now) =>
       deadline.isAfter(now) ? deadline.difference(now) : Duration.zero;
 }

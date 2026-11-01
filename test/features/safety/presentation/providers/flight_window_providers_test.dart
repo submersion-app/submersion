@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,12 +32,13 @@ class _StubTripRepository extends Fake implements TripRepository {
 }
 
 class _StubDiveRepository extends Fake implements DiveRepository {
-  final List<NoFlyDiveInput> inputs;
+  List<NoFlyDiveInput> inputs;
+  final Stream<void> changes;
 
-  _StubDiveRepository(this.inputs);
+  _StubDiveRepository(this.inputs, {this.changes = const Stream.empty()});
 
   @override
-  Stream<void> watchDivesChanges() => const Stream.empty();
+  Stream<void> watchDivesChanges() => changes;
 
   @override
   Stream<void> watchDiveListChanges() => const Stream.empty();
@@ -66,13 +69,16 @@ ProviderContainer _container({
   required domain.Trip? trip,
   required List<NoFlyDiveInput> dives,
   String? diverId,
+  _StubDiveRepository? diveRepository,
 }) {
   final diverNotifier = MockCurrentDiverIdNotifier();
   if (diverId != null) diverNotifier.setCurrentDiver(diverId);
   final container = ProviderContainer(
     overrides: [
       tripRepositoryProvider.overrideWithValue(_StubTripRepository(trip)),
-      diveRepositoryProvider.overrideWithValue(_StubDiveRepository(dives)),
+      diveRepositoryProvider.overrideWithValue(
+        diveRepository ?? _StubDiveRepository(dives),
+      ),
       currentDiverIdProvider.overrideWith((ref) => diverNotifier),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     ],
@@ -156,6 +162,40 @@ void main() {
     final status = await container.read(tripFlightWindowProvider('t1').future);
 
     expect(status!.state, FlightWindowState.conflict);
+  });
+
+  test('a dive written later still reaches the window', () async {
+    final now = NoFlyService.wallClockNowUtc();
+    final changes = StreamController<void>.broadcast();
+    addTearDown(changes.close);
+    final repository = _StubDiveRepository(const [], changes: changes.stream);
+    final container = _container(
+      trip: _trip(returnFlightAt: now.add(const Duration(hours: 30))),
+      dives: const [],
+      diverId: 'diver-1',
+      diveRepository: repository,
+    );
+    final provider = tripFlightWindowProvider('t1');
+    final subscription = container.listen(provider, (_, _) {});
+    addTearDown(subscription.close);
+    expect(
+      (await container.read(provider.future))!.category,
+      NoFlyCategory.repetitive,
+    );
+
+    repository.inputs = [
+      NoFlyDiveInput(
+        endTime: now.subtract(const Duration(hours: 2)),
+        hadDecoObligation: true,
+      ),
+    ];
+    changes.add(null);
+    await pumpEventQueue();
+
+    expect(
+      (await container.read(provider.future))!.category,
+      NoFlyCategory.deco,
+    );
   });
 
   // Issue #3926: the flight and any dives are stored as clock digits, so an

@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   // The times shown go through DateFormat, which reads Intl.defaultLocale: a
@@ -34,10 +38,14 @@ void main() {
     WidgetTester tester, {
     required String? tripId,
     required DateTime? diveEndTime,
+    TimeFormat timeFormat = TimeFormat.twelveHour,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith(
+            (ref) => MockSettingsNotifier(AppSettings(timeFormat: timeFormat)),
+          ),
           tripFlightWindowProvider(
             't1',
           ).overrideWith((ref) async => openStatus),
@@ -76,7 +84,17 @@ void main() {
 
   testWidgets('shows the deadline on the device clock', (tester) async {
     await pump(tester, tripId: 't1', diveEndTime: DateTime.utc(2126, 8, 9, 16));
-    expect(find.textContaining('3:00'), findsOneWidget);
+    expect(find.textContaining('3:00 PM'), findsOneWidget);
+  });
+
+  testWidgets('shows the deadline in the diver\'s time format', (tester) async {
+    await pump(
+      tester,
+      tripId: 't1',
+      diveEndTime: DateTime.utc(2126, 8, 9, 16),
+      timeFormat: TimeFormat.twentyFourHour,
+    );
+    expect(find.textContaining('15:00'), findsOneWidget);
   });
 
   testWidgets('silent without a trip', (tester) async {
