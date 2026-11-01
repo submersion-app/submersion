@@ -16378,7 +16378,7 @@
   "navTrack_detail_maxSpeed": "Vitesse max. : {value}",
   "navTrack_detail_avgSpeed": "Vitesse moy. : {value}",
   "navTrack_detail_duration": "Durée : {hours} h {minutes} min",
-  "navTrack_detail_battery": "Batterie : {start} V -> {end} V",
+  "navTrack_detail_battery": "Batterie : {start} V → {end} V ({change} V)",
   "navTrack_detail_noDiveLinked": "Aucune plongée liée",
   "navTrack_detail_chooseDive": "Choisir une plongée",
   "navTrack_detail_noSite": "Aucun site",

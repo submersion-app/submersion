@@ -32412,14 +32412,19 @@
       }
     }
   },
-  "navTrack_detail_battery": "Battery: {start} V -> {end} V",
+  "navTrack_detail_battery": "Battery: {start} V → {end} V ({change} V)",
   "@navTrack_detail_battery": {
+    "description": "The recording console's battery over the track: first reading, last reading, and the signed change between them.",
     "placeholders": {
       "start": {
         "type": "String"
       },
       "end": {
         "type": "String"
+      },
+      "change": {
+        "type": "String",
+        "example": "-0.12"
       }
     }
   },

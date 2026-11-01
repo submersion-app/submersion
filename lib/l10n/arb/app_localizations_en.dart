@@ -54080,8 +54080,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Battery: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Battery: $start V → $end V ($change V)';
   }
 
   @override

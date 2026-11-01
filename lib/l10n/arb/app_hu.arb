@@ -16378,7 +16378,7 @@
   "navTrack_detail_maxSpeed": "Max. sebesség: {value}",
   "navTrack_detail_avgSpeed": "Átl. sebesség: {value}",
   "navTrack_detail_duration": "Időtartam: {hours} ó {minutes} p",
-  "navTrack_detail_battery": "Akkumulátor: {start} V -> {end} V",
+  "navTrack_detail_battery": "Akkumulátor: {start} V → {end} V ({change} V)",
   "navTrack_detail_noDiveLinked": "Nincs társított merülés",
   "navTrack_detail_chooseDive": "Merülés választása",
   "navTrack_detail_noSite": "Nincs merülőhely",

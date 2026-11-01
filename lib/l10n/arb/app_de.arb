@@ -16532,7 +16532,7 @@
   "navTrack_detail_maxSpeed": "Max. Geschwindigkeit: {value}",
   "navTrack_detail_avgSpeed": "Ø-Geschwindigkeit: {value}",
   "navTrack_detail_duration": "Dauer: {hours} Std. {minutes} Min.",
-  "navTrack_detail_battery": "Akku: {start} V -> {end} V",
+  "navTrack_detail_battery": "Akku: {start} V → {end} V ({change} V)",
   "navTrack_detail_noDiveLinked": "Kein Tauchgang verknüpft",
   "navTrack_detail_chooseDive": "Tauchgang wählen",
   "navTrack_detail_noSite": "Kein Tauchplatz",
