@@ -107,7 +107,7 @@ void main() {
     );
   });
 
-  test('getBuddiesForDivesInChunks reads nothing for no dives', () async {
+  test('getBuddiesForDivesInChunks is empty for no dives', () async {
     expect(await repository.getBuddiesForDivesInChunks(const []), isEmpty);
   });
 }

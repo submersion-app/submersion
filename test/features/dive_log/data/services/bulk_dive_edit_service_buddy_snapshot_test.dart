@@ -117,6 +117,12 @@ void main() {
         .toList();
   }
 
+  /// Proves the snapshot fell inside what [statementsBeforeWrites] captured:
+  /// without it, an early BEGIN would leave nothing to count and every
+  /// comparison here would pass.
+  Iterable<String> roleSetReads(List<String> statements) =>
+      statements.where((line) => line.contains('FROM "dive_buddy_roles"'));
+
   Future<Map<String, Map<String, List<String>>>> membership(
     List<String> ids,
   ) async {
@@ -161,6 +167,7 @@ void main() {
     );
 
     expect(repeated, hasLength(single.length));
+    expect(roleSetReads(repeated), hasLength(1));
   });
 
   test('snapshot reads do not grow with the selection', () async {
@@ -176,6 +183,7 @@ void main() {
     );
 
     expect(manyDives, hasLength(fewDives.length));
+    expect(roleSetReads(manyDives), hasLength(1));
   });
 
   test('the snapshot reads no certification data', () async {
@@ -187,6 +195,7 @@ void main() {
     );
 
     expect(statements.where((line) => line.contains('certification')), isEmpty);
+    expect(roleSetReads(statements), hasLength(1));
   });
 
   test('an add and a remove of tags or gear read each snapshot once', () async {
