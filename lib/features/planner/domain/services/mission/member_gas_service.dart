@@ -8,7 +8,8 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 ///
 /// The plan engine charges gas at the plan's single SAC; a mission has one
 /// SAC per member, so consumption is re-derived from the engine's schedule
-/// rows (depth and duration) instead of running the engine once per member.
+/// rows (depth, duration and folded travel) instead of running the engine once
+/// per member.
 class MemberGasService {
   const MemberGasService();
 

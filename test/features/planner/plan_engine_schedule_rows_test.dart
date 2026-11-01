@@ -6,10 +6,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
-/// The plan table reads like a slate: every travel leg is a line and every
-/// stop is a line, the authored legs first and then the computed ascent down
-/// to the leg that surfaces. A diver follows it against a watch, so stops end
-/// on whole minutes and the last line's runtime is the plan's runtime.
+/// The plan table reads like a slate: the authored legs first, then the leg
+/// to the first stop, every stop, and the leg that surfaces, with travel
+/// between stops folded into the stop it leads to. A diver follows it against
+/// a watch, so stops end on whole minutes and the last line's runtime is the
+/// plan's runtime.
 const _air = GasMix(o2: 21);
 const _airTank = DiveTank(
   id: 'back',
@@ -367,6 +368,32 @@ void main() {
       expect(legs.map((leg) => leg.tankId), ['back', 'deco']);
       expect(legs.first.toDepthMeters, 10);
       expect(legs.last.fromDepthMeters, 10);
+    });
+
+    test('a gas over its limit is placed where the folded leg reaches it', () {
+      final outcome = _engine.compute(
+        _plan(
+          bottomDepth: 50,
+          bottomMinutes: 30,
+          tanks: const [
+            _airTank,
+            DiveTank(
+              id: 'o2',
+              volume: 7.0,
+              startPressure: 200.0,
+              gasMix: GasMix(o2: 100),
+              decoSwitchDepth: 10,
+            ),
+          ],
+        ),
+      );
+      final row = outcome.schedule.firstWhere((r) => r.foldedTravel.length > 1);
+      final onO2 = row.foldedTravel.last;
+      expect(onO2.tankId, 'o2');
+
+      final issue = outcome.issues.firstWhere((i) => i.atDepth == 10);
+
+      expect(issue.atRuntime, row.startRuntimeSeconds - onO2.seconds);
     });
 
     test('the leg to the first stop keeps its own line', () {

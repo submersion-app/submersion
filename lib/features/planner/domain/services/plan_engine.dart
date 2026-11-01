@@ -2666,10 +2666,7 @@ class PlanEngine {
               'ppO2 ${check.ppO2.toStringAsFixed(2)} bar at the MOD set on '
               '${tank.name ?? tank.gasMix.name} exceeds its limit',
           // Where the diver first breathes it (#3738).
-          atRuntime: schedule
-              .where((row) => row.tankId == tank.id)
-              .firstOrNull
-              ?.startRuntimeSeconds,
+          atRuntime: _firstBreathedRuntime(schedule, tank.id),
           atDepth: tank.decoSwitchDepth,
           value: check.ppO2,
           threshold: check.limitPpO2,
@@ -2677,6 +2674,22 @@ class PlanEngine {
       );
     }
     return issues;
+  }
+
+  /// When [tankId] is first breathed, which can be partway up a leg folded
+  /// into a line rather than at the start of a line of its own.
+  int? _firstBreathedRuntime(List<PlanScheduleRow> schedule, String tankId) {
+    for (final row in schedule) {
+      var runtime =
+          row.startRuntimeSeconds -
+          row.foldedTravel.fold<int>(0, (sum, leg) => sum + leg.seconds);
+      for (final leg in row.foldedTravel) {
+        if (leg.tankId == tankId && leg.seconds > 0) return runtime;
+        runtime += leg.seconds;
+      }
+      if (row.tankId == tankId) return row.startRuntimeSeconds;
+    }
+    return null;
   }
 
   List<PlanStop> _mapStops(
@@ -2743,7 +2756,8 @@ class PlanEngine {
   static const double _gasFractionEpsilon = 0.0005;
 
   /// The dive as table lines: the authored legs, then the computed ascent as
-  /// alternating travel legs and stops, ending with the leg to the surface.
+  /// the leg to the first stop, every stop, and the leg to the surface. Travel
+  /// between two stops has no line: it folds into the stop it leads to.
   ///
   /// Travel durations are read off the stops' arrival times rather than
   /// recomputed, so a line can never disagree with the stop it leads to. A
@@ -2876,6 +2890,18 @@ class PlanEngine {
       );
     }
 
+    // The cylinder a stretch of ascent on [gas] draws from. A loop stays on
+    // its supply the whole way up, whatever [gas] normalizes to.
+    String? travelTankId(AscentGas gas) => ascentPlan is LoopAscentGas
+        ? loopSupplyTankId ??
+              _tankForGas(
+                plan.tanks,
+                ascentPlan.supplyFO2,
+                ascentPlan.supplyFHe,
+                isCcr: isCcr,
+              )
+        : _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
+
     void addTravel(double from, double to, int duration, int arrival) {
       if (ascentPlan is LoopAscentGas) {
         // The loop's displayed gas never changes mid-ascent (it stays on
@@ -2888,14 +2914,7 @@ class PlanEngine {
           runtime: arrival,
           fO2: ascentPlan.supplyFO2,
           fHe: ascentPlan.supplyFHe,
-          tankId:
-              loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                ascentPlan.supplyFO2,
-                ascentPlan.supplyFHe,
-                isCcr: isCcr,
-              ),
+          tankId: travelTankId(ascentPlan.gasForDepth(from)),
           physicsDepth: from,
           ppO2Override: loopPpO2At(from),
         );
@@ -2923,39 +2942,28 @@ class PlanEngine {
           runtime: legArrival,
           fO2: gas.fO2,
           fHe: gas.fHe,
-          tankId: _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr),
+          tankId: travelTankId(gas),
           physicsDepth: span.fromDepth,
         );
       }
     }
 
     // The same split and the same cylinders as addTravel, for a leg with no
-    // line of its own. _computeTankUsages charges these spans too.
-    List<PlanFoldedTravel> foldedTravel(double from, double to, int duration) {
-      String? tankFor(AscentGas gas) => ascentPlan is LoopAscentGas
-          ? loopSupplyTankId ??
-                _tankForGas(
-                  plan.tanks,
-                  ascentPlan.supplyFO2,
-                  ascentPlan.supplyFHe,
-                  isCcr: isCcr,
-                )
-          : _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
-      return [
-        for (final span in splitAscentLeg(
-          ascentPlan,
-          fromDepth: from,
-          toDepth: to,
-          seconds: duration,
-        ))
-          PlanFoldedTravel(
-            fromDepthMeters: span.fromDepth,
-            toDepthMeters: span.toDepth,
-            seconds: span.seconds,
-            tankId: tankFor(ascentPlan.gasForDepth(span.fromDepth)),
-          ),
-      ];
-    }
+    // line of its own.
+    List<PlanFoldedTravel> foldTravel(double from, double to, int duration) => [
+      for (final span in splitAscentLeg(
+        ascentPlan,
+        fromDepth: from,
+        toDepth: to,
+        seconds: duration,
+      ))
+        PlanFoldedTravel(
+          fromDepthMeters: span.fromDepth,
+          toDepthMeters: span.toDepth,
+          seconds: span.seconds,
+          tankId: travelTankId(ascentPlan.gasForDepth(span.fromDepth)),
+        ),
+    ];
 
     var depth = lastDepth;
     var end = segmentsRuntime;
@@ -2990,7 +2998,7 @@ class PlanEngine {
         airBreakSeconds: stop.airBreakSeconds,
         ppO2Override: loopPpO2At(stop.depthMeters),
         foldedTravel: i > 0 && travel > 0
-            ? foldedTravel(depth, stop.depthMeters, travel)
+            ? foldTravel(depth, stop.depthMeters, travel)
             : const [],
       );
       depth = stop.depthMeters;

@@ -271,8 +271,9 @@ enum PlanScheduleRowKind {
   /// Holding depth while the dive is still working: the bottom.
   level,
 
-  /// Going shallower: an authored ascent, a computed travel leg between
-  /// stops, or the final leg to the surface.
+  /// Going shallower: an authored ascent, the computed leg to the first stop,
+  /// or the final leg to the surface. Travel between two computed stops has
+  /// no line of its own (see [PlanScheduleRow.foldedTravel]).
   ascent,
 
   /// Holding depth on the way up: an authored or computed stop.
@@ -302,10 +303,14 @@ class PlanFoldedTravel extends Equatable {
   List<Object?> get props => [fromDepthMeters, toDepthMeters, seconds, tankId];
 }
 
-/// One line of the dive plan table, the way a slate reads it: every travel
-/// leg is a line and every stop is a line, so a diver can follow the plan
-/// against a watch - leave the bottom, reach 21 m by minute 38, hold until
-/// 39, and so on. Authored legs come first, then the computed ascent.
+/// One line of the dive plan table, the way a slate reads it, so a diver can
+/// follow the plan against a watch - leave the bottom, reach 21 m by minute
+/// 38, hold until 39, and so on. Authored legs come first, then the computed
+/// ascent: the leg to the first stop, every stop, and the leg to the surface.
+///
+/// The lines are what a diver reads, not the whole dive: travel between stops
+/// folds into the stop it leads to, so anything measuring the dive from them
+/// has to read [foldedTravel] too (#3927).
 class PlanScheduleRow extends Equatable {
   final PlanScheduleRowKind kind;
 
@@ -341,6 +346,10 @@ class PlanScheduleRow extends Equatable {
   /// and split wherever the gas changes. The table folds it into this line's
   /// runtime rather than printing it (#3138), so [durationSeconds] leaves it
   /// out: [durationSeconds] alone does not add up to the dive's runtime.
+  ///
+  /// Filled on the plan engine's schedule. A bailout table folds its travel
+  /// the same way but charges it as it builds the table, so its rows leave
+  /// this empty.
   final List<PlanFoldedTravel> foldedTravel;
 
   const PlanScheduleRow({

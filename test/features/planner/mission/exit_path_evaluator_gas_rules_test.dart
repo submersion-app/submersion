@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/exit_leg.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -158,6 +159,68 @@ void main() {
     expect(
       result.exitLitersByMember['stressed']!,
       greaterThan(result.exitLitersByMember['calm']!),
+    );
+  });
+
+  test('travel between stops is breathed at the deco SAC when stressed', () {
+    final plan = _plan().copyWith(sacDeco: 15, sacStressed: 30);
+    final deep = [
+      PlanSegment.travel(
+        id: 'down',
+        fromDepth: 0,
+        targetDepth: 45,
+        tankId: 'back',
+        gasMix: _air,
+        ratePerMinute: 18,
+      ),
+      const PlanSegment(
+        id: 'hold',
+        targetDepth: 45,
+        durationSeconds: 1500,
+        tankId: 'back',
+        gasMix: _air,
+        order: 1,
+      ),
+    ];
+    const failure = 1650;
+    final rows = const PlanEngine()
+        .compute(plan.copyWith(segments: deep))
+        .schedule;
+    expect(rows.expand((r) => r.foldedTravel), isNotEmpty);
+
+    final result = const ExitPathEvaluator().evaluate(
+      plan: plan,
+      outboundSegments: deep,
+      failureRuntimeSeconds: failure,
+      exitLegs: const [],
+      exitSpeedMps: 0.2,
+      divers: const [
+        ExitDiver(id: 'calm', sacBottom: 15),
+        ExitDiver(id: 'stressed', sacBottom: 15, stressed: true),
+      ],
+    );
+
+    // Double the rate up to the first stop and the same rate from there on,
+    // so being stressed costs exactly what that first stretch costs calm.
+    final firstStop = rows.firstWhere(
+      (r) => r.kind == PlanScheduleRowKind.stop,
+    );
+    final toFirstStop = const MemberGasService().litersByTank(
+      rows: rows
+          .where(
+            (r) =>
+                r.runtimeSeconds > failure &&
+                r.runtimeSeconds <= firstStop.startRuntimeSeconds,
+          )
+          .toList(),
+      environment: PlanEngine.environmentFor(plan),
+      startDepth: 45,
+      sacFor: (_) => 15,
+    );
+    final byMember = result.exitLitersByMember;
+    expect(
+      byMember['stressed']! - byMember['calm']!,
+      closeTo(toFirstStop['back']!, 1e-6),
     );
   });
 
