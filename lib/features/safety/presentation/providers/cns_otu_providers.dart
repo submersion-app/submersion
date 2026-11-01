@@ -87,7 +87,8 @@ Future<({double daily, double weekly})> _currentOtuTotals(
   final startOfDay = endOfDay.subtract(const Duration(days: 1));
   final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
-  // Planner rows are excluded: a saved plan has not been dived.
+  // Plans nobody has dived are excluded; a dive mirrored from a logged dive
+  // is not one of them.
   final weekDives = await repository.getExecutedDiveTimesInRange(
     sevenDaysAgo.subtract(otuWindowLookback),
     endOfDay,
@@ -98,7 +99,7 @@ Future<({double daily, double weekly})> _currentOtuTotals(
   // later than now (logged ahead of time); its OTU has not been accrued yet.
   // The now-anchored form of weeklyOtuProvider's later-dive guard (#407).
   final accrued = weekDives
-      .where((dive) => !(dive.entryTime ?? dive.dateTime).isAfter(now))
+      .where((dive) => !dive.effectiveEntryTime.isAfter(now))
       .toList();
 
   // Await (not watch) to avoid cascading Riverpod invalidations, matching
