@@ -175,6 +175,31 @@ void main() {
       expect(adapter.countOf(TestField.entityCount), sorts);
     });
 
+    testWidgets('a saved column width keeps the sort', (tester) async {
+      final adapter = _CountingAdapter();
+      Widget table(double width) => buildTestTable(
+        entities: _rows,
+        adapter: adapter,
+        config: EntityTableViewConfig<TestField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: TestField.entityName,
+              width: width,
+              isPinned: true,
+            ),
+          ],
+          sortField: TestField.entityCount,
+        ),
+      );
+      await tester.pumpWidget(table(150));
+      final sorts = adapter.countOf(TestField.entityCount);
+
+      await tester.pumpWidget(table(200));
+
+      expect(tester.getSize(find.byType(EntityTableHeaderCell)).width, 200);
+      expect(adapter.countOf(TestField.entityCount), sorts);
+    });
+
     testWidgets('revealing a highlighted row reuses the sort', (tester) async {
       final adapter = _CountingAdapter();
       Widget table(String? highlightedId) => buildTestTable(

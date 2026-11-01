@@ -287,9 +287,9 @@ class _EntityTableViewState<T, F extends EntityField>
 
   List<T> _sortedEntities() {
     final config = widget.config;
-    if (config.sortField == null) return widget.entities;
+    final field = config.sortField;
+    if (field == null) return widget.entities;
 
-    final field = config.sortField!;
     final ascending = config.sortAscending;
 
     final inputs = (
@@ -330,7 +330,8 @@ class _EntityTableViewState<T, F extends EntityField>
     });
 
     _sortInputs = inputs;
-    return _sorted = [for (final row in rows) row.$1];
+    _sorted = [for (final row in rows) row.$1];
+    return _sorted;
   }
 
   // ---------------------------------------------------------------------------
