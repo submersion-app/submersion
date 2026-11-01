@@ -98,6 +98,10 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     // Collect assets from all albums (primarily "Recent" or "All Photos")
     final List<AssetInfo> results = [];
 
+    // An asset is listed once per album it is in, and each one below costs
+    // platform calls. Not _assetCache: a concurrent query fills that too.
+    final seen = <String>{};
+
     for (final album in albums) {
       // Get asset count for this album
       final count = await album.assetCountAsync;
@@ -113,6 +117,7 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
         if (createTime.isBefore(start) || createTime.isAfter(end)) {
           continue;
         }
+        if (!seen.add(asset.id)) continue;
 
         // Cache asset for later file retrieval
         _assetCache[asset.id] = asset;
@@ -142,17 +147,9 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
       }
     }
 
-    // Remove duplicates (same asset may appear in multiple albums)
-    final uniqueResults = <String, AssetInfo>{};
-    for (final asset in results) {
-      uniqueResults[asset.id] = asset;
-    }
-
     // Sort by creation date (newest first)
-    final sorted = uniqueResults.values.toList()
+    return results
       ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-
-    return sorted;
   }
 
   @override
