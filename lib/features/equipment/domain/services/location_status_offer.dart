@@ -40,6 +40,8 @@ EquipmentStatus? offeredStatusAfterMove(
       return away.contains(current) ? EquipmentStatus.active : null;
     case EquipmentLocationKind.other:
     case null:
-      return null;
+      // Off a person and nowhere in particular: loaned gear has come back
+      // (#3790). Anything else keeps its status.
+      return current == EquipmentStatus.loaned ? EquipmentStatus.active : null;
   }
 }
