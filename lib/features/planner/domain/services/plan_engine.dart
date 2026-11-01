@@ -1254,6 +1254,24 @@ class PlanEngine {
     BreathingConfig ascentBreathingAt(double depth) =>
         breathing(ascentPlan.gasForDepth(depth));
 
+    // A travel leg cut wherever the ascent changes gas, as the scheduler
+    // loaded it, so no sample breathes one gas across the switch.
+    void sampleTravel(double fromDepth, double toDepth, int seconds) {
+      for (final span in straightAscentSpans(
+        ascentPlan,
+        fromDepth: fromDepth,
+        toDepth: toDepth,
+        seconds: seconds,
+      )) {
+        sampleLeg(
+          span.fromDepth,
+          span.toDepth,
+          span.seconds,
+          ascentBreathingAt,
+        );
+      }
+    }
+
     for (final leg in legs) {
       final segment = leg.segment;
       final authoredSegmentId = leg.endDepth > leg.startDepth
@@ -1281,7 +1299,7 @@ class PlanEngine {
         toDepth: stop.depthMeters,
         phase: phase,
       );
-      sampleLeg(depth, stop.depthMeters, legSeconds, ascentBreathingAt);
+      sampleTravel(depth, stop.depthMeters, legSeconds);
       // A stop with air breaks is breathed in the scheduler's own runs, so
       // the tissues come out as they did when it timed the stop.
       final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
@@ -1313,7 +1331,7 @@ class PlanEngine {
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),
       );
-      sampleLeg(depth, 0, legSeconds, ascentBreathingAt);
+      sampleTravel(depth, 0, legSeconds);
     }
 
     return (

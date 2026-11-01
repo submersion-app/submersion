@@ -352,19 +352,14 @@ class BailoutSolver {
             leg.startDepth +
             (leg.endDepth - leg.startDepth) *
                 (secondsIntoSegment / segment.durationSeconds);
-        final chunkStartDepth = depthAt(covered);
         final chunkEndDepth = depthAt(covered + chunk);
-        final chunkAvg = (chunkStartDepth + chunkEndDepth) / 2.0;
+        final stretch = DecoSegment(
+          startDepth: depthAt(covered),
+          endDepth: chunkEndDepth,
+          durationSeconds: chunk,
+        );
 
-        for (final piece in splitAtSetpointSwitch(
-          plan,
-          segment,
-          DecoSegment(
-            startDepth: chunkStartDepth,
-            endDepth: chunkEndDepth,
-            durationSeconds: chunk,
-          ),
-        )) {
+        for (final piece in splitAtSetpointSwitch(plan, segment, stretch)) {
           state = model.applySegment(
             state,
             piece,
@@ -391,7 +386,7 @@ class BailoutSolver {
                 modeFor(plan, segment),
                 sac: config.sacForPhase(leg.phase),
                 minutes: chunk / 60.0,
-                ambientBar: environment.pressureAtDepth(chunkAvg),
+                ambientBar: environment.pressureAtDepth(stretch.avgDepth),
               );
         }
 

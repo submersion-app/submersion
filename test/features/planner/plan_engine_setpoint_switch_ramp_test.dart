@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
+import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -197,6 +199,31 @@ void main() {
       );
     });
 
+    test('a configured-rate descent switches on its travel half', () {
+      // Travel at the 18 m/min default reaches 20 m in 67 s and holds the rest
+      // of the 1200 s, crossing 10 m at 33.5 s, which lands on 34 s.
+      final travel = _engine.compute(
+        _plan([
+          _leg('down', 20, 1200, 0).copyWith(splitAtConfiguredRate: true),
+        ]),
+      );
+
+      expect(
+        travel.segmentOutcomes.last.cns,
+        closeTo(cnsAt(_setpointLow, 34) + cnsAt(_setpointHigh, 1166), 1e-9),
+      );
+      _expectSameDive(
+        travel,
+        _engine.compute(
+          _plan([
+            _leg('low', 10, 34, 0),
+            _leg('high', 20, 33, 1),
+            _leg('hold', 20, 1133, 2),
+          ]),
+        ),
+      );
+    });
+
     test('a ramp stays one authored leg in the outcome and the table', () {
       final outcome = _engine.compute(_plan([_leg('ramp', 20, 1200, 0)]));
 
@@ -231,6 +258,38 @@ void main() {
       expect(
         authored.cns,
         closeTo(cnsAt(_setpointLow, 33) + cnsAt(_setpointHigh, 67), 1e-9),
+      );
+    });
+  });
+
+  group('the chart replay of the computed ascent', () {
+    test('samples the switch itself, wherever it falls', () {
+      final plan = _plan([_leg('down', 20, 120, 0), _leg('hold', 20, 300, 1)]);
+      final outcome = _engine.compute(plan);
+      expect(outcome.stops, isEmpty);
+
+      final toSwitch = ascentTravelSpans(
+        _engine.schedulePolicyFor(plan),
+        CcrLoopAscentGas(
+          environment: PlanEngine.environmentFor(plan),
+          setpointLow: _setpointLow,
+          setpointHigh: _setpointHigh,
+          switchDepth: 10,
+          diluentFO2: 0.21,
+        ),
+        fromDepth: 20,
+        stopDepths: const [],
+      ).first;
+      expect(toSwitch.toDepth, 10);
+      expect(
+        toSwitch.seconds % PlanEngine.ceilingSampleSeconds,
+        isNot(0),
+        reason: 'a crossing on the sample grid would pass without the cut',
+      );
+
+      expect(
+        outcome.ceilingTrace.map((point) => point.$1),
+        contains(420 + toSwitch.seconds),
       );
     });
   });
