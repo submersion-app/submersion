@@ -44,8 +44,8 @@ void main() {
     const paste = PastePlan<TestField>(
       matching: PasteMatching.byNumber,
       hadHeader: true,
-      cells: const [],
-      skipped: const [PasteSkip(PasteSkipReason.hiddenRow, detail: '9')],
+      cells: [],
+      skipped: [PasteSkip(PasteSkipReason.hiddenRow, detail: '9')],
     );
 
     final s = SaveSummary.from(
