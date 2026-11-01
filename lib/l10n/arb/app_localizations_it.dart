@@ -24648,6 +24648,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Correzione di rotta in gradi';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Fattore di scala della traccia';
+
+  @override
   String get settings_conflict_field_height => 'Altezza in pixel';
 
   @override

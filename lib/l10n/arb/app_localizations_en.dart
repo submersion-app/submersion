@@ -24247,6 +24247,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Track scale factor';
+
+  @override
   String get settings_conflict_field_height => 'Height in pixels';
 
   @override

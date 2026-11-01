@@ -24043,6 +24043,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'מקדם קנה המידה של המסלול';
+
+  @override
   String get settings_conflict_field_height => 'גובה בפיקסלים';
 
   @override

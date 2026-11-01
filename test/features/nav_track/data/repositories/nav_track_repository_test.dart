@@ -832,6 +832,7 @@ void main() {
             endMode: NavTrackEndMode.sameAsStart,
             trustFraction: 0.5,
             headingOffsetDeg: 12,
+            scaleFactor: 1.38,
           ),
         );
         var route = await repo.getById(id);
@@ -839,6 +840,7 @@ void main() {
         expect(route.endMode, NavTrackEndMode.sameAsStart);
         expect(route.trustFraction, 0.5);
         expect(route.headingOffsetDeg, 12);
+        expect(route.scaleFactor, 1.38);
 
         // Resetting the correction must actually clear the anchor, not
         // leave the previous value in place.
@@ -848,6 +850,7 @@ void main() {
         expect(route.endMode, NavTrackEndMode.none);
         expect(route.trustFraction, 0);
         expect(route.headingOffsetDeg, 0);
+        expect(route.scaleFactor, 1);
       },
     );
 

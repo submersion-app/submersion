@@ -7291,6 +7291,7 @@
   "settings_conflict_field_hePercent": "Helio",
   "settings_conflict_field_headingDeg": "Rumbo en grados",
   "settings_conflict_field_headingOffsetDeg": "Corrección de rumbo en grados",
+  "settings_conflict_field_scaleFactor": "Factor de escala del track",
   "settings_conflict_field_height": "Alto en píxeles",
   "settings_conflict_field_heightCm": "Estatura",
   "settings_conflict_field_heightMeters": "Altura de la marea",

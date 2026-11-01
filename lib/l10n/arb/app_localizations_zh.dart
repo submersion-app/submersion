@@ -23295,6 +23295,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
+  String get settings_conflict_field_scaleFactor => '轨迹缩放系数';
+
+  @override
   String get settings_conflict_field_height => '高度（像素）';
 
   @override

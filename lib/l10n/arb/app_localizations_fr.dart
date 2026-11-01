@@ -24711,6 +24711,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Correction de cap en degrés';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Facteur d\'échelle de la trace';
+
+  @override
   String get settings_conflict_field_height => 'Hauteur en pixels';
 
   @override

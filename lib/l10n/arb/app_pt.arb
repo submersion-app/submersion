@@ -7291,6 +7291,7 @@
   "settings_conflict_field_hePercent": "Hélio",
   "settings_conflict_field_headingDeg": "Rumo em graus",
   "settings_conflict_field_headingOffsetDeg": "Correção de rumo em graus",
+  "settings_conflict_field_scaleFactor": "Fator de escala da trilha",
   "settings_conflict_field_height": "Altura em pixels",
   "settings_conflict_field_heightCm": "Altura",
   "settings_conflict_field_heightMeters": "Altura da maré",

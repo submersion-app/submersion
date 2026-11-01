@@ -39174,6 +39174,12 @@ abstract class AppLocalizations {
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
 
+  /// No description provided for @settings_conflict_field_scaleFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale factor'**
+  String get settings_conflict_field_scaleFactor;
+
   /// No description provided for @settings_conflict_field_height.
   ///
   /// In en, this message translates to:

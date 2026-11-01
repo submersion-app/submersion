@@ -24598,6 +24598,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kurskorrektur in Grad';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Track-Skalierungsfaktor';
+
+  @override
   String get settings_conflict_field_height => 'Höhe in Pixeln';
 
   @override

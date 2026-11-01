@@ -7190,6 +7190,7 @@
   "settings_conflict_field_hePercent": "Hélium",
   "settings_conflict_field_headingDeg": "Irány fokban",
   "settings_conflict_field_headingOffsetDeg": "Iránykorrekció fokban",
+  "settings_conflict_field_scaleFactor": "A nyomvonal méretezési tényezője",
   "settings_conflict_field_height": "Magasság pixelben",
   "settings_conflict_field_heightCm": "Testmagasság",
   "settings_conflict_field_heightMeters": "Árapály magassága",

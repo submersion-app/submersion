@@ -7291,6 +7291,7 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Koers in graden",
   "settings_conflict_field_headingOffsetDeg": "Koerscorrectie in graden",
+  "settings_conflict_field_scaleFactor": "Schaalfactor van de track",
   "settings_conflict_field_height": "Hoogte in pixels",
   "settings_conflict_field_heightCm": "Lengte",
   "settings_conflict_field_heightMeters": "Getijhoogte",

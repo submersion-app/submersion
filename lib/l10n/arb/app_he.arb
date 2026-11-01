@@ -7295,6 +7295,7 @@
   "settings_conflict_field_hePercent": "הליום",
   "settings_conflict_field_headingDeg": "כיוון במעלות",
   "settings_conflict_field_headingOffsetDeg": "תיקון כיוון במעלות",
+  "settings_conflict_field_scaleFactor": "מקדם קנה המידה של המסלול",
   "settings_conflict_field_height": "גובה בפיקסלים",
   "settings_conflict_field_heightCm": "גובה",
   "settings_conflict_field_heightMeters": "גובה הגאות",

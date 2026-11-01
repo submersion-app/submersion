@@ -7190,6 +7190,7 @@
   "settings_conflict_field_hePercent": "Hélium",
   "settings_conflict_field_headingDeg": "Cap en degrés",
   "settings_conflict_field_headingOffsetDeg": "Correction de cap en degrés",
+  "settings_conflict_field_scaleFactor": "Facteur d'échelle de la trace",
   "settings_conflict_field_height": "Hauteur en pixels",
   "settings_conflict_field_heightCm": "Taille",
   "settings_conflict_field_heightMeters": "Hauteur de marée",

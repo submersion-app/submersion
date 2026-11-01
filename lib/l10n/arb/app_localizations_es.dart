@@ -24647,6 +24647,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Factor de escala del track';
+
+  @override
   String get settings_conflict_field_height => 'Alto en píxeles';
 
   @override

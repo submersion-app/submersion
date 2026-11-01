@@ -181,6 +181,10 @@ class NavTracks extends Table {
   /// misalignment).
   RealColumn get headingOffsetDeg => real().withDefault(const Constant(0))();
 
+  /// Multiplier on the route's horizontal size about the dive's first active
+  /// sample (v334, issue #3823). 1 means the size as recorded.
+  RealColumn get scaleFactor => real().withDefault(const Constant(1))();
+
   IntColumn get codecVersion => integer().withDefault(const Constant(1))();
 
   /// Source-specific fields kept exactly as the export carried them, as a

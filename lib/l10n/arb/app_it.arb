@@ -7190,6 +7190,7 @@
   "settings_conflict_field_hePercent": "Elio",
   "settings_conflict_field_headingDeg": "Rotta in gradi",
   "settings_conflict_field_headingOffsetDeg": "Correzione di rotta in gradi",
+  "settings_conflict_field_scaleFactor": "Fattore di scala della traccia",
   "settings_conflict_field_height": "Altezza in pixel",
   "settings_conflict_field_heightCm": "Altezza",
   "settings_conflict_field_heightMeters": "Altezza della marea",

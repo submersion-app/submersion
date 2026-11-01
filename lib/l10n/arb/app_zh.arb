@@ -7443,6 +7443,7 @@
   "settings_conflict_field_hePercent": "氦气",
   "settings_conflict_field_headingDeg": "航向（度）",
   "settings_conflict_field_headingOffsetDeg": "航向修正（度）",
+  "settings_conflict_field_scaleFactor": "轨迹缩放系数",
   "settings_conflict_field_height": "高度（像素）",
   "settings_conflict_field_heightCm": "身高",
   "settings_conflict_field_heightMeters": "潮高",

@@ -24634,6 +24634,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Correção de rumo em graus';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Fator de escala da trilha';
+
+  @override
   String get settings_conflict_field_height => 'Altura em pixels';
 
   @override

@@ -14691,6 +14691,7 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Heading in degrees",
   "settings_conflict_field_headingOffsetDeg": "Heading correction in degrees",
+  "settings_conflict_field_scaleFactor": "Track scale factor",
   "settings_conflict_field_height": "Height in pixels",
   "settings_conflict_field_heightCm": "Height",
   "settings_conflict_field_heightMeters": "Tide height",

@@ -7291,6 +7291,7 @@
   "settings_conflict_field_hePercent": "الهيليوم",
   "settings_conflict_field_headingDeg": "الاتجاه بالدرجات",
   "settings_conflict_field_headingOffsetDeg": "تصحيح الاتجاه بالدرجات",
+  "settings_conflict_field_scaleFactor": "معامل مقياس المسار",
   "settings_conflict_field_height": "الارتفاع بالبكسل",
   "settings_conflict_field_heightCm": "الطول",
   "settings_conflict_field_heightMeters": "ارتفاع المد",

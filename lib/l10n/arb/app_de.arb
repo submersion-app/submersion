@@ -7424,6 +7424,7 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Kurs in Grad",
   "settings_conflict_field_headingOffsetDeg": "Kurskorrektur in Grad",
+  "settings_conflict_field_scaleFactor": "Track-Skalierungsfaktor",
   "settings_conflict_field_height": "Höhe in Pixeln",
   "settings_conflict_field_heightCm": "Körpergröße",
   "settings_conflict_field_heightMeters": "Tidenhöhe",

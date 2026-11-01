@@ -24903,6 +24903,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تصحيح الاتجاه بالدرجات';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'معامل مقياس المسار';
+
+  @override
   String get settings_conflict_field_height => 'الارتفاع بالبكسل';
 
   @override

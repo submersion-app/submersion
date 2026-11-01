@@ -24489,6 +24489,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koerscorrectie in graden';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Schaalfactor van de track';
+
+  @override
   String get settings_conflict_field_height => 'Hoogte in pixels';
 
   @override

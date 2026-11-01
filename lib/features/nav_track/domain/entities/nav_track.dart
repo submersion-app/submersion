@@ -142,6 +142,10 @@ class NavTrack extends Equatable {
   /// Clockwise rotation in degrees.
   final double headingOffsetDeg;
 
+  /// Multiplier on the horizontal size. Recorded distance and speed do not
+  /// follow it.
+  final double scaleFactor;
+
   /// Fields the source exported about the recording that nothing reads
   /// yet, kept as-is under the export's own names (`nav_tracks.
   /// source_metadata`, issue #3047): a Suunto route's `DiveRouteQuality`
@@ -182,6 +186,7 @@ class NavTrack extends Equatable {
     this.endLongitude,
     this.trustFraction = 0,
     this.headingOffsetDeg = 0,
+    this.scaleFactor = 1,
     this.sourceMetadata,
     this.points = const [],
     required this.createdAt,
@@ -204,13 +209,15 @@ class NavTrack extends Equatable {
       : GeoPoint(endLatitude!, endLongitude!);
 
   /// The correction [NavTrackCorrector.apply] reads: this row's anchor, end
-  /// target, trust fraction and rotation, assembled from the columns above.
+  /// target, trust fraction, rotation and scale, assembled from the columns
+  /// above.
   NavTrackCorrection get correction => NavTrackCorrection(
     anchor: anchor,
     endMode: endMode,
     endPoint: endPoint,
     trustFraction: trustFraction,
     headingOffsetDeg: headingOffsetDeg,
+    scaleFactor: scaleFactor,
   );
 
   NavTrack copyWith({
@@ -241,6 +248,7 @@ class NavTrack extends Equatable {
     double? endLongitude,
     double? trustFraction,
     double? headingOffsetDeg,
+    double? scaleFactor,
     Map<String, Object?>? sourceMetadata,
     List<NavTrackPoint>? points,
     DateTime? createdAt,
@@ -274,6 +282,7 @@ class NavTrack extends Equatable {
       endLongitude: endLongitude ?? this.endLongitude,
       trustFraction: trustFraction ?? this.trustFraction,
       headingOffsetDeg: headingOffsetDeg ?? this.headingOffsetDeg,
+      scaleFactor: scaleFactor ?? this.scaleFactor,
       sourceMetadata: sourceMetadata ?? this.sourceMetadata,
       points: points ?? this.points,
       createdAt: createdAt ?? this.createdAt,
@@ -310,6 +319,7 @@ class NavTrack extends Equatable {
     endLongitude,
     trustFraction,
     headingOffsetDeg,
+    scaleFactor,
     sourceMetadata,
     points,
     createdAt,

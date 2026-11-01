@@ -24541,6 +24541,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Iránykorrekció fokban';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'A nyomvonal méretezési tényezője';
+
+  @override
   String get settings_conflict_field_height => 'Magasság pixelben';
 
   @override
