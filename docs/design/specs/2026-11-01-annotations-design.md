@@ -196,8 +196,9 @@ every save of the dive, so the two cannot drift for more than one save.
 - **Plain text, narrowed.** The shared `markdownToPlainText` is a pure
   function of the string with many callers that never load events, so it
   renders an annotation link as its bare words everywhere. Only the PDF
-  (its own renderer, which has the dive's events) and the dive share text
-  append ` (mm:ss)`. Search still finds the words. (Builder's call,
+  (its own renderer, fed the dive's annotation times by the export
+  service) appends ` (mm:ss)`. There is no share-as-text feature for a
+  dive, so nothing else renders the time. Search still finds the words. (Builder's call,
   narrowing the rule below.)
 - **Move does not re-stamp the dive.** Add and Remove rewrite Notes and so
   bump the dive row; Move and a typed time change only the event row,
@@ -231,8 +232,7 @@ every save of the dive, so the two cannot drift for more than one save.
   `updated_at` once. The detail page's chart and Notes card refresh from
   the normal dive watch.
 - **Plain text and exports.** The plain-text rendering of Notes renders
-  an annotation link as its bare words; the PDF and the dive share text
-  render `words (mm:ss)` from the annotation's current time (see "Plain
+  an annotation link as its bare words; the PDF renders `words (mm:ss)` from the annotation's current time (see "Plain
   text, narrowed" above). Web and mail links keep their existing
   `text (address)` form. The address `annotation:<id>` is never shown to
   a user.
