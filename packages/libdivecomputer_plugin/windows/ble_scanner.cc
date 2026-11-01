@@ -76,6 +76,8 @@ std::optional<BleScanner::StartFailure> BleScanner::Start() {
     {
         std::lock_guard<std::mutex> lock(seen_mutex_);
         seen_addresses_.clear();
+        logged_unmatched_.clear();
+        resolve_attempted_.clear();
     }
 
     try {
@@ -84,6 +86,13 @@ std::optional<BleScanner::StartFailure> BleScanner::Start() {
         watcher_.ScanningMode(
             winrt::Windows::Devices::Bluetooth::Advertisement::
                 BluetoothLEScanningMode::Active);
+        // Off by default: a watcher left this way silently drops every
+        // packet a Bluetooth 5 peripheral sends as extended advertising
+        // (some dive computers among them), even though Windows' own
+        // Bluetooth settings -- which do not go through this watcher --
+        // find the same device reliably. Windows 10 1803+ (contract 6+),
+        // long satisfied by this app's minimum target.
+        watcher_.AllowExtendedAdvertisements(true);
 
         received_token_ = watcher_.Received(
             {this, &BleScanner::OnAdvertisementReceived});
@@ -123,6 +132,74 @@ void BleScanner::Stop() {
     watcher_ = nullptr;
 }
 
+std::optional<libdc_descriptor_info_t> BleScanner::MatchDescriptorName(
+    const std::string& name) {
+    if (name.empty()) return std::nullopt;
+
+    libdc_descriptor_info_t info = {};
+    uint32_t model_code = ParsePelagicModelCode(name);
+    if (model_code != 0 &&
+        libdc_descriptor_lookup_model(LIBDC_TRANSPORT_BLE, model_code,
+                                       &info)) {
+        return info;
+    }
+    if (libdc_descriptor_match(name.c_str(), LIBDC_TRANSPORT_BLE, &info)) {
+        return info;
+    }
+    return std::nullopt;
+}
+
+std::optional<std::pair<libdc_descriptor_info_t, std::string>>
+BleScanner::MatchName(uint64_t address, const std::string& primary_name) {
+    if (auto info = MatchDescriptorName(primary_name)) {
+        return std::make_pair(*info, primary_name);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(seen_mutex_);
+        if (!resolve_attempted_.insert(address).second) return std::nullopt;
+    }
+
+    // Windows' own Bluetooth settings resolve and cache a name for an
+    // address from its broader, longer-running scan even when the specific
+    // packets this watcher sees carry none (or one the matcher does not
+    // recognize) -- FromBluetoothAddressAsync reads that same cache rather
+    // than opening a GATT connection, the same object ble_io_stream.cc
+    // later reuses for the real connect.
+    char addr_str[18] = {};
+    snprintf(addr_str, sizeof(addr_str), "%012llX",
+             static_cast<unsigned long long>(address));
+
+    std::string resolved_name;
+    try {
+        auto device =
+            winrt::Windows::Devices::Bluetooth::BluetoothLEDevice::
+                FromBluetoothAddressAsync(address)
+                    .get();
+        if (device) resolved_name = winrt::to_string(device.Name());
+        // Temporary triage logging: shows whether the OS-resolution
+        // fallback reaches a device object at all, and what name (if any)
+        // it carries, for a Perdix 2 Windows' own Bluetooth settings list
+        // but this scanner cannot otherwise identify.
+        NativeLogger::Debug(
+            kBleCategory,
+            "OS name resolution for " + std::string(addr_str) + ": " +
+                (device ? ("resolved, name=\"" + resolved_name + "\"")
+                        : std::string("no device object")));
+    } catch (const winrt::hresult_error& e) {
+        NativeLogger::Debug(kBleCategory,
+                            "OS name resolution for " +
+                                std::string(addr_str) + " failed: " +
+                                winrt::to_string(e.message()));
+        return std::nullopt;
+    }
+
+    if (auto info = MatchDescriptorName(resolved_name)) {
+        return std::make_pair(*info, resolved_name);
+    }
+    return std::nullopt;
+}
+
 void BleScanner::OnAdvertisementReceived(
     winrt::Windows::Devices::Bluetooth::Advertisement::
         BluetoothLEAdvertisementWatcher const&,
@@ -137,26 +214,17 @@ void BleScanner::OnAdvertisementReceived(
 
     auto advertisement = args.Advertisement();
     auto local_name = advertisement.LocalName();
-    if (local_name.empty()) return;
+    std::string primary_name =
+        local_name.empty() ? std::string() : winrt::to_string(local_name);
 
-    std::string name = winrt::to_string(local_name);
-
-    libdc_descriptor_info_t info = {};
-    int matched = 0;
-
-    // Try Pelagic model-code match first.
-    uint32_t model_code = ParsePelagicModelCode(name);
-    if (model_code != 0) {
-        matched = libdc_descriptor_lookup_model(
-            LIBDC_TRANSPORT_BLE, model_code, &info);
+    auto match = MatchName(address, primary_name);
+    if (!match.has_value()) {
+        LogUnmatchedOnce(address,
+                         primary_name.empty() ? "(no local name)" : primary_name);
+        return;
     }
-
-    if (!matched) {
-        matched = libdc_descriptor_match(
-            name.c_str(), LIBDC_TRANSPORT_BLE, &info);
-    }
-
-    if (!matched) return;
+    libdc_descriptor_info_t info = match->first;
+    std::string name = match->second;
 
     {
         std::lock_guard<std::mutex> lock(seen_mutex_);
@@ -176,6 +244,20 @@ void BleScanner::OnAdvertisementReceived(
     if (on_device_discovered_) {
         on_device_discovered_(std::move(device));
     }
+}
+
+void BleScanner::LogUnmatchedOnce(uint64_t address, const std::string& name) {
+    {
+        std::lock_guard<std::mutex> lock(seen_mutex_);
+        if (!logged_unmatched_.insert(address).second) return;
+    }
+    char addr_str[18] = {};
+    snprintf(addr_str, sizeof(addr_str), "%012llX",
+             static_cast<unsigned long long>(address));
+    NativeLogger::Debug(
+        kBleCategory,
+        "BLE advertisement not recognized: " + std::string(addr_str) +
+            " name=\"" + name + "\"");
 }
 
 void BleScanner::OnWatcherStopped(
