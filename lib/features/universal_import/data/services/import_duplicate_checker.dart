@@ -6,7 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_start_time_index.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';

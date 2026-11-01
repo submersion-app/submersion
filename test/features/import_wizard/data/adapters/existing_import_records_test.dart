@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';

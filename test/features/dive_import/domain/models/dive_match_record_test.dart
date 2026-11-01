@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 
 void main() {
   final entry = DateTime.utc(2024, 6, 1, 9);

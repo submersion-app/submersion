@@ -1,4 +1,4 @@
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// What duplicate matching would read of [dive] from the database.

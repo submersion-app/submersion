@@ -108,7 +108,7 @@ import 'universal_adapter_test.mocks.dart';
 import '../../../../helpers/fake_hosts.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 
 typedef Override = riverpod.Override;
 

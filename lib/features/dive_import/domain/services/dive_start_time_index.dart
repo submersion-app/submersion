@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 
 /// Finds the dives of a list that start near a given time (issue #3855).
 ///
-/// [DiveMatcher] gates a pair on time, so a stored dive scored against an
+/// `DiveMatcher` gates a pair on time, so scoring a stored dive against an
 /// incoming one is wasted work unless the two start within
 /// `DiveMatcher.candidateWindow`. Sorting once and searching keeps a large
 /// import against a large logbook from scoring every pair.

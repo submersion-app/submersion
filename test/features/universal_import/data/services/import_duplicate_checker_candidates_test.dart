@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_import/domain/entities/dive_match_record.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
@@ -105,6 +105,41 @@ DiveMatchResult? bestByScoringEveryDive(
     }
   }
   return best;
+}
+
+/// The batch pass as it was before the index: every earlier dive in turn,
+/// the first possible duplicate winning. Dive index to earlier index.
+Map<int, int> pairsByComparingEveryEarlierDive(
+  List<Map<String, dynamic>> dives,
+) {
+  const matcher = DiveMatcher();
+  double depthOf(Map<String, dynamic> dive) => dive['maxDepth'] as double? ?? 0;
+  int secondsOf(Map<String, dynamic> dive) =>
+      (dive['runtime'] as Duration?)?.inSeconds ?? 0;
+
+  final pairs = <int, int>{};
+  for (var i = 1; i < dives.length; i++) {
+    final at = dives[i]['dateTime'] as DateTime?;
+    if (at == null) continue;
+    for (var j = 0; j < i; j++) {
+      if (pairs.containsKey(j)) continue;
+      final otherAt = dives[j]['dateTime'] as DateTime?;
+      if (otherAt == null) continue;
+      final score = matcher.calculateMatchScore(
+        wearableStartTime: at,
+        wearableMaxDepth: depthOf(dives[i]),
+        wearableDurationSeconds: secondsOf(dives[i]),
+        existingStartTime: otherAt,
+        existingMaxDepth: depthOf(dives[j]),
+        existingDurationSeconds: secondsOf(dives[j]),
+      );
+      if (matcher.isPossibleDuplicate(score)) {
+        pairs[i] = j;
+        break;
+      }
+    }
+  }
+  return pairs;
 }
 
 void main() {
@@ -317,6 +352,44 @@ void main() {
         expect(matches.containsKey(2), isFalse);
       },
     );
+
+    test('agrees with comparing every earlier dive across a mixed batch', () {
+      final random = Random(1893);
+      final start = DateTime.utc(2020);
+      final depths = <double?>[null, 0, 18, 20, 22, 30];
+      final runtimes = <Duration?>[
+        null,
+        const Duration(minutes: 45),
+        const Duration(minutes: 50),
+        const Duration(minutes: 58),
+      ];
+      T pick<T>(List<T> from) => from[random.nextInt(from.length)];
+
+      final batch = [
+        for (var i = 0; i < 500; i++)
+          {
+            'dateTime': i % 50 == 0
+                ? null
+                : start.add(
+                    Duration(
+                      hours: 6 * random.nextInt(60),
+                      minutes: random.nextInt(40),
+                    ),
+                  ),
+            'maxDepth': pick(depths),
+            'runtime': pick(runtimes),
+          },
+      ];
+
+      final matches = matchesFor(batch, const [], checkIntraBatch: true);
+
+      final expected = pairsByComparingEveryEarlierDive(batch);
+      expect(expected.length, greaterThan(20), reason: 'needs some pairs');
+      expect({
+        for (final MapEntry(:key, :value) in matches.entries)
+          key: value.inBatchIndex,
+      }, expected);
+    });
 
     test('agrees with scoring every dive across a mixed logbook', () {
       final random = Random(3855);

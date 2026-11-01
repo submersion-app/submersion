@@ -11,8 +11,9 @@ class DiveMatcher {
   /// Minutes apart at which the time score, and so the whole score, is zero.
   static const _timeZeroMinutes = 15;
 
-  /// How far apart two dives' starts can be and still score above zero, so
-  /// the widest gap worth scoring at all (see [MatchScorer.gateOnZeroTime]).
+  /// The gap between two dives' starts at which the score reaches zero, so a
+  /// pair this far apart or more is not worth scoring at all (see
+  /// [MatchScorer.gateOnZeroTime]).
   static const candidateWindow = Duration(minutes: _timeZeroMinutes);
 
   /// Weighted scorer for file imports: time 50%, depth 30%, duration 20%.
