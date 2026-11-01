@@ -180,7 +180,7 @@ void main() {
 
     test('the shared-gear pair window seeks a time range', () async {
       expect(
-        await plan(db, qualitySharedGearWindowSql(), params: 1),
+        await plan(db, qualitySharedGearWindowSql, params: 1),
         contains(_timeSeek),
       );
     });
@@ -207,12 +207,19 @@ void main() {
   group('neighbor window with statistics', () {
     setUp(() async {
       await db.customStatement(
+        'INSERT INTO divers (id, name, created_at, updated_at) '
+        "VALUES ('bill', 'bill', 1, 1), ('anna', 'anna', 1, 1)",
+      );
+      // Two profiles and unassigned dives: the shared-gear query only runs
+      // on a multi-profile library, so its statistics have to look like one.
+      await db.customStatement(
         'WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n '
         'WHERE i < 2000) '
-        'INSERT INTO dives (id, dive_date_time, entry_time, created_at, '
-        'updated_at) '
-        "SELECT 'd' || i, i * 86400000, "
-        'CASE WHEN i % 2 = 0 THEN i * 86400000 END, 1, 1 FROM n',
+        'INSERT INTO dives (id, diver_id, dive_date_time, entry_time, '
+        'created_at, updated_at) '
+        "SELECT 'd' || i, "
+        "CASE i % 3 WHEN 0 THEN 'bill' WHEN 1 THEN 'anna' END, "
+        'i * 86400000, CASE WHEN i % 2 = 0 THEN i * 86400000 END, 1, 1 FROM n',
       );
       await db.customStatement('ANALYZE');
     });

@@ -41,7 +41,7 @@ String qualityExpandNeighborsSql(int idCount, int windowMs) {
 /// is bound as ?1 (issue #2853). Dive pairs first, then shared gear per pair,
 /// so each gear branch filters through its dive_id index instead of joining
 /// every gear row in the library with every other.
-String qualitySharedGearWindowSql() =>
+final String qualitySharedGearWindowSql =
     'SELECT DISTINCT da.id AS id FROM dives da '
     'JOIN dives db ON db.id != da.id '
     'AND da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL '

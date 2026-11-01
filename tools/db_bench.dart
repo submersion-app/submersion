@@ -107,8 +107,8 @@ const _searchSql = '''
 const _qualityWindowMs = 12 * 60 * 60 * 1000;
 
 /// The same-diver pair prefilter, verbatim shape from qualityPairWindowSql
-/// (issue #3863). Must stay under a second on a 10k-dive library: a full scan
-/// shows no progress and cannot be cancelled until it returns.
+/// (issue #3863). A full scan shows no progress and cannot be cancelled until
+/// it returns.
 const _qualityPairWindowSql =
     'SELECT DISTINCT a.id AS id FROM dives a JOIN dives b ON a.id != b.id '
     'AND a.diver_id IS b.diver_id '
@@ -184,13 +184,14 @@ List<({String label, String sql, List<Object?> params})> _queries(
   final page = db.select(_summariesSql, [t.diverId]);
   final pageIds = page.map((r) => r['id'] as String).toList();
   final inList = List.filled(pageIds.length, '?').join(',');
-  final densestStart =
-      db.select(
-            'SELECT COALESCE(entry_time, dive_date_time) AS start FROM dives '
-            'WHERE id = ?',
-            [t.denseDiveId],
-          ).first['start']
-          as int;
+  // A dive of the benchmarked diver, so the lookup reads that diver's window.
+  // t.diverId came from dives, so one exists.
+  final neighborTarget = db.select(
+    'SELECT id, COALESCE(entry_time, dive_date_time) AS start FROM dives '
+    'WHERE diver_id = ? LIMIT 1',
+    [t.diverId],
+  ).first;
+  final neighborStart = neighborTarget['start'] as int;
   return [
     (
       label: 'profile_fetch_densest (${t.denseSamples} samples)',
@@ -244,10 +245,10 @@ List<({String label, String sql, List<Object?> params})> _queries(
       label: 'quality_neighbors_one_dive',
       sql: _qualityNeighborsSql,
       params: [
-        t.denseDiveId,
+        neighborTarget['id'],
         t.diverId,
-        densestStart - _qualityWindowMs,
-        densestStart + _qualityWindowMs,
+        neighborStart - _qualityWindowMs,
+        neighborStart + _qualityWindowMs,
       ],
     ),
   ];

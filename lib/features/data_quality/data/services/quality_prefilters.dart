@@ -65,7 +65,7 @@ class QualityPrefilters {
             .read<int>('n');
     final sharedGear = profileCount < 2
         ? const <String>{}
-        : await ids(qualitySharedGearWindowSql(), [
+        : await ids(qualitySharedGearWindowSql, [
             Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds),
           ]);
     final timeOutliers = await ids(

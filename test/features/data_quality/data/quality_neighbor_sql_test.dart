@@ -147,11 +147,11 @@ void main() {
 
     test('reads entry_time first and falls back to dive_date_time', () async {
       // entry_time wins, so the dive date being a year away is irrelevant.
-      await seed('entry', at: base + 365 * 24 * windowMs, entry: base);
+      await seed('entry', at: base + 730 * windowMs, entry: base);
       // No entry_time: the dive date is the start.
       await seed('fallback', at: base + windowMs);
       // Its date is in range, but its entry_time is not.
-      await seed('far', at: base, entry: base + 365 * 24 * windowMs);
+      await seed('far', at: base, entry: base + 730 * windowMs);
       expect(await pairCandidates(), {'entry', 'fallback'});
     });
 

@@ -1459,6 +1459,7 @@ void main() {
       'quality_last_full_scan_at': 1,
       'quality_detector_versions': '{}',
     });
+    addTearDown(() => SharedPreferences.setMockInitialValues({}));
     final prefs = await SharedPreferences.getInstance();
     final gate = Completer<void>();
     await tester.pumpWidget(
