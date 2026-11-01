@@ -78,6 +78,9 @@ class DiveQualityContext {
     this.sharedGearOverlaps = const [],
   });
 
+  /// The dive, with its [domain.Dive.profile] empty on nearly every context:
+  /// read [primarySamples] instead, which also keeps to the primary recording
+  /// where the profile would merge every source (issue #3864).
   final domain.Dive dive;
   final DateTime now;
   final List<DiveDataSource> sources;

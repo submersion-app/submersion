@@ -59,6 +59,11 @@ class QualityScanService {
 
   /// Targeted scan: the given dives plus their chronological neighbors (so
   /// cross-dive pair findings can be retired from either side).
+  ///
+  /// Contexts are built [batchSize] dives at a time, since an import can send
+  /// a whole logbook here, but the findings are written once for the whole
+  /// scope. A pair can be reported from one member alone, and a later batch
+  /// holding only the other member would delete what an earlier one wrote.
   Future<QualityScanSummary> scanDives(
     Set<String> diveIds, {
     Set<String>? enabledDetectorIds,
@@ -72,12 +77,23 @@ class QualityScanService {
       );
     }
     final enabled = _enabled(enabledDetectorIds);
-    final expanded = await _expandNeighbors(diveIds);
-    return _scanBatch(
-      expanded.toList(),
+    final expanded = (await _expandNeighbors(diveIds)).toList();
+    final produced = <QualityFinding>[];
+    var errors = 0;
+    for (var i = 0; i < expanded.length; i += batchSize) {
+      final detected = await _detect(
+        expanded.sublist(i, math.min(i + batchSize, expanded.length)),
+        detectorsFor: (_) => enabled,
+        now: now,
+      );
+      produced.addAll(detected.produced);
+      errors += detected.errors;
+    }
+    return _apply(
+      expanded,
       enabled: enabled,
-      detectorsFor: (_) => enabled,
-      now: now,
+      produced: produced,
+      errors: errors,
     );
   }
 
@@ -134,6 +150,24 @@ class QualityScanService {
     required List<QualityDetector> Function(String diveId) detectorsFor,
     DateTime? now,
   }) async {
+    final detected = await _detect(
+      diveIds,
+      detectorsFor: detectorsFor,
+      now: now,
+    );
+    return _apply(
+      diveIds,
+      enabled: enabled,
+      produced: detected.produced,
+      errors: detected.errors,
+    );
+  }
+
+  Future<({List<QualityFinding> produced, int errors})> _detect(
+    List<String> diveIds, {
+    required List<QualityDetector> Function(String diveId) detectorsFor,
+    DateTime? now,
+  }) async {
     final toBuild = [
       for (final id in diveIds)
         if (detectorsFor(id).isNotEmpty) id,
@@ -155,6 +189,15 @@ class QualityScanService {
         }
       }
     }
+    return (produced: produced, errors: errors);
+  }
+
+  Future<QualityScanSummary> _apply(
+    List<String> diveIds, {
+    required List<QualityDetector> enabled,
+    required List<QualityFinding> produced,
+    required int errors,
+  }) async {
     await _findings.applyScanResults(
       scopeDiveIds: diveIds.toSet(),
       ranDetectorIds: {for (final d in enabled) d.id},
