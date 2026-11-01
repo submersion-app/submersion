@@ -23,6 +23,10 @@ const _neutralLabels = SourceNameLabels(
 /// The fewest points a profile needs to be drawn at all.
 const int _minProfilePoints = 2;
 
+/// What a walk returns once the diver has left or a change has replaced it.
+/// Riverpod drops that result, so this never reaches the screen.
+const _abandonedComparison = DiveComparison(profiles: [], comparableCount: 0);
+
 /// The dive-computer sources of a single dive, as comparison profiles. The
 /// primary source is placed first so it is the reference (index 0). Sources
 /// without usable depth samples are skipped. The full comparable set is
@@ -115,6 +119,7 @@ final diveComparisonProfilesProvider = FutureProvider.autoDispose
       final sampleCounts = await repository.getPrimarySourceSampleCounts(
         key.ids,
       );
+      if (!ref.mounted) return _abandonedComparison;
       final candidates = [
         for (final diveId in key.ids)
           if ((sampleCounts[diveId] ?? 0) >= _minProfilePoints) diveId,
@@ -130,11 +135,7 @@ final diveComparisonProfilesProvider = FutureProvider.autoDispose
         final profilesBySource = await repository.getProfilesByDataSource(
           diveId,
         );
-        // Nothing reads the result of a walk the diver has left or a change
-        // has replaced: Riverpod drops it, so the empty value never shows.
-        if (!ref.mounted) {
-          return const DiveComparison(profiles: [], comparableCount: 0);
-        }
+        if (!ref.mounted) return _abandonedComparison;
         final sp = profilesBySource.values.firstOrNull; // primary is first
         if (sp == null || sp.points.length < _minProfilePoints) {
           unusable++;

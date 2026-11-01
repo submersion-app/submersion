@@ -44,6 +44,7 @@ class _ComparisonRepository extends Fake implements DiveRepository {
     Map<String, int>? sampleCounts,
     this.summaries = const [],
     this.firstLoadGate,
+    this.countGate,
   }) : sampleCounts =
            sampleCounts ??
            {
@@ -55,6 +56,7 @@ class _ComparisonRepository extends Fake implements DiveRepository {
   final Map<String, int> sampleCounts;
   List<DiveSummary> summaries;
   final Completer<void>? firstLoadGate;
+  final Completer<void>? countGate;
 
   final StreamController<void> ticks = StreamController<void>.broadcast();
   final List<String> hydrated = [];
@@ -66,10 +68,13 @@ class _ComparisonRepository extends Fake implements DiveRepository {
   @override
   Future<Map<String, int>> getPrimarySourceSampleCounts(
     List<String> diveIds,
-  ) async => {
-    for (final id in diveIds)
-      if (sampleCounts.containsKey(id)) id: sampleCounts[id]!,
-  };
+  ) async {
+    await countGate?.future;
+    return {
+      for (final id in diveIds)
+        if (sampleCounts.containsKey(id)) id: sampleCounts[id]!,
+    };
+  }
 
   @override
   Future<Map<String, SourceProfile>> getProfilesByDataSource(
@@ -356,6 +361,28 @@ void main() {
       await pumpEventQueue();
 
       expect(repository.hydrated, ['d0']);
+      expect(repository.summaryReads, 0);
+    });
+
+    test('hydrates nothing when left during the count read', () async {
+      final gate = Completer<void>();
+      final repository = _ComparisonRepository({
+        'a': usable('s1'),
+        'b': usable('s2'),
+      }, countGate: gate);
+      final container = containerFor(repository);
+      final subscription = container.listen(
+        diveComparisonProfilesProvider(DiveIdSet(['a', 'b'])),
+        (_, _) {},
+      );
+      await pumpEventQueue();
+
+      subscription.close();
+      await pumpEventQueue();
+      gate.complete();
+      await pumpEventQueue();
+
+      expect(repository.hydrated, isEmpty);
       expect(repository.summaryReads, 0);
     });
 
