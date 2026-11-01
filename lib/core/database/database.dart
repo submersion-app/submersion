@@ -239,6 +239,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
+    // Saved repetitive dive series (v333, issue #3565)
+    DivePlanSeries,
     // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
     DivePlanMissionLegs,
@@ -309,7 +311,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 332;
+  static const int currentSchemaVersion = 333;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1515,6 +1517,11 @@ class AppDatabase extends _$AppDatabase {
     // v332: the per-device change log tables (issue #3922). Local only and
     // never synced, so the floor does not move.
     332,
+    // v333: dive_plan_series, a saved repetitive dive series, and the
+    // dive_plans / dive_plan_tanks columns that place a plan in one (issue
+    // #3565). A new synced table plus nullable or defaulted columns an older
+    // peer omits, with no backfill, so the floor does not move.
+    333,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

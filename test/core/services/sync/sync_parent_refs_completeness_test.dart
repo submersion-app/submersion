@@ -136,6 +136,7 @@ void main() {
     'equipment_location_moves': 'equipmentLocationMoves',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',
+    'dive_plan_series': 'divePlanSeries',
     'dive_plans': 'divePlans',
     'dive_plan_tanks': 'divePlanTanks',
     'dive_plan_segments': 'divePlanSegments',
@@ -184,6 +185,7 @@ void main() {
     'checklist_templates': 'checklistTemplates',
     'media': 'media',
     'rule_runs': 'ruleRuns',
+    'dive_plan_series': 'divePlanSeries',
     // Checklist sections (issue #3360): a section is deletable (its items
     // fall back to no section, ON DELETE SET NULL), so this FK direction
     // needs checking too. Deliberately not also adding

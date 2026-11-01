@@ -33120,6 +33120,66 @@ abstract class AppLocalizations {
   /// **'Clear the site'**
   String get plannerSeries_site_clear;
 
+  /// No description provided for @plannerSeries_scope_series.
+  ///
+  /// In en, this message translates to:
+  /// **'Series'**
+  String get plannerSeries_scope_series;
+
+  /// No description provided for @plannerSeries_scope_seriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives after this one take these settings unless they set their own'**
+  String get plannerSeries_scope_seriesHint;
+
+  /// No description provided for @plannerSeries_scope_fromSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'From the series'**
+  String get plannerSeries_scope_fromSeries;
+
+  /// No description provided for @plannerSeries_scope_thisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive only'**
+  String get plannerSeries_scope_thisDive;
+
+  /// No description provided for @plannerSeries_scope_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to series'**
+  String get plannerSeries_scope_reset;
+
+  /// No description provided for @plannerSeries_scope_applyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to all dives'**
+  String get plannerSeries_scope_applyAll;
+
+  /// No description provided for @accessibility_shortcut_previousPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous planned dive'**
+  String get accessibility_shortcut_previousPlannedDive;
+
+  /// No description provided for @accessibility_shortcut_nextPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dive'**
+  String get accessibility_shortcut_nextPlannedDive;
+
+  /// No description provided for @accessibility_shortcut_addPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a planned dive'**
+  String get accessibility_shortcut_addPlannedDive;
+
+  /// No description provided for @accessibility_shortcutCategory_planner.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner'**
+  String get accessibility_shortcutCategory_planner;
+
   /// The tank's name or gas, such as EAN32
   ///
   /// In en, this message translates to:
@@ -37812,6 +37872,12 @@ abstract class AppLocalizations {
   /// **'First used'**
   String get settings_conflict_field_firstUsedAt;
 
+  /// No description provided for @settings_conflict_field_fixedStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed start time'**
+  String get settings_conflict_field_fixedStart;
+
   /// No description provided for @settings_conflict_field_lastUsedAt.
   ///
   /// In en, this message translates to:
@@ -38675,6 +38741,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Breathing mode for this segment'**
   String get settings_conflict_field_diveModeOverride;
+
+  /// No description provided for @settings_conflict_field_diveName.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive name'**
+  String get settings_conflict_field_diveName;
 
   /// No description provided for @settings_conflict_field_diveOperator.
   ///
@@ -40410,6 +40482,12 @@ abstract class AppLocalizations {
   /// **'Section'**
   String get settings_conflict_field_section;
 
+  /// No description provided for @settings_conflict_field_seriesIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Position in series'**
+  String get settings_conflict_field_seriesIndex;
+
   /// No description provided for @settings_conflict_field_serviceCategory.
   ///
   /// In en, this message translates to:
@@ -40439,6 +40517,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setpoint switch depth'**
   String get settings_conflict_field_setpointSwitchDepth;
+
+  /// No description provided for @settings_conflict_field_settingOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings for this dive only'**
+  String get settings_conflict_field_settingOverrides;
 
   /// No description provided for @settings_conflict_field_settings_key.
   ///
@@ -40734,6 +40818,12 @@ abstract class AppLocalizations {
   /// **'Source file or device'**
   String get settings_conflict_field_sourceRef;
 
+  /// No description provided for @settings_conflict_field_sourceTankId.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried over from tank'**
+  String get settings_conflict_field_sourceTankId;
+
   /// No description provided for @settings_conflict_field_sourceTankIndex.
   ///
   /// In en, this message translates to:
@@ -40787,6 +40877,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start depth'**
   String get settings_conflict_field_startDepth;
+
+  /// No description provided for @settings_conflict_field_startPressurePinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure set by hand'**
+  String get settings_conflict_field_startPressurePinned;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///
@@ -42270,6 +42366,12 @@ abstract class AppLocalizations {
   /// **'Dive plan'**
   String get settings_conflict_ref_divePlan;
 
+  /// No description provided for @settings_conflict_ref_divePlanSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive series'**
+  String get settings_conflict_ref_divePlanSeries;
+
   /// No description provided for @settings_conflict_ref_diveRole.
   ///
   /// In en, this message translates to:
@@ -42317,6 +42419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finding'**
   String get settings_conflict_ref_finding;
+
+  /// No description provided for @settings_conflict_ref_followedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed dive'**
+  String get settings_conflict_ref_followedDive;
 
   /// No description provided for @settings_conflict_ref_importedFile.
   ///

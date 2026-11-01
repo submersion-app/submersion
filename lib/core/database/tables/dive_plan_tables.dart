@@ -35,6 +35,26 @@ class DivePlans extends Table {
 
   /// Executed dive this plan is linked to (plan-vs-actual, Phase 6).
   TextColumn get linkedDiveId => text().nullable().references(Dives, #id)();
+
+  /// The repetitive series this plan is one dive of (issue #3565, v333).
+  /// Null = a one-dive series of its own.
+  TextColumn get seriesId =>
+      text().nullable().references(DivePlanSeries, #id)();
+
+  /// This dive's 0-based position in its series; null when [seriesId] is.
+  IntColumn get seriesIndex => integer().nullable()();
+
+  /// The dive's own name within its series ("Dive 2", "Night dive"); null =
+  /// derived from its position.
+  TextColumn get diveName => text().nullable()();
+
+  /// True = [startDateTime] is fixed by the diver; false = it follows the
+  /// previous dive in the series plus the surface interval.
+  BoolColumn get fixedStart => boolean().withDefault(const Constant(false))();
+
+  /// JSON of the settings this dive overrides from its series' shared
+  /// settings; null = none.
+  TextColumn get settingOverrides => text().nullable()();
   RealColumn get altitude => real().nullable()();
 
   /// WaterType enum name; null = unspecified (EN13319 density).
@@ -181,6 +201,31 @@ class DivePlans extends Table {
   // coverage:ignore-end
 }
 
+/// A saved repetitive dive series (issue #3565, v333): the dives of one
+/// diving day planned together. Its dives are the [DivePlans] rows whose
+/// `seriesId` names it, ordered by `seriesIndex`.
+@DataClassName('DivePlanSeriesRow')
+class DivePlanSeries extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get name => text()();
+
+  /// The logged dive the series follows on from, whose tissues and tanks
+  /// seed its first plan; null = the series starts clean.
+  TextColumn get followedDiveId => text().nullable().references(Dives, #id)();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 /// Tanks carried on a saved dive plan
 class DivePlanTanks extends Table {
   // coverage:ignore-start
@@ -208,6 +253,16 @@ class DivePlanTanks extends Table {
   /// Whether this cylinder also doubles as travel gas, breathed on the
   /// descent before switching to its primary role's gas (v156).
   BoolColumn get isTravelGas => boolean().withDefault(const Constant(false))();
+
+  /// The tank this one carries over from (issue #3565, v333): a logged dive's
+  /// tank or an earlier plan's tank in the series. Deliberately no foreign
+  /// key, since it can name a row of either table.
+  TextColumn get sourceTankId => text().nullable()();
+
+  /// True = [startPressure] was set by hand and is not recomputed from
+  /// [sourceTankId]'s end pressure.
+  BoolColumn get startPressurePinned =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

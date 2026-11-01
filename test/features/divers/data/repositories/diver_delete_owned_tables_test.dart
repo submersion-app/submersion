@@ -360,6 +360,36 @@ void main() {
         ('custom_certification_levels', 'customCertificationLevels', 'level-a'),
       ];
     },
+    'a saved dive series and its plan': () async {
+      await db
+          .into(db.divePlanSeries)
+          .insert(
+            DivePlanSeriesCompanion.insert(
+              id: 'series-a',
+              name: 'Saturday',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlans)
+          .insert(
+            DivePlansCompanion.insert(
+              id: 'plan-s',
+              name: 'Saturday',
+              diverId: const Value('diver-a'),
+              seriesId: const Value('series-a'),
+              seriesIndex: const Value(0),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('dive_plan_series', 'divePlanSeries', 'series-a'),
+        ('dive_plans', 'divePlans', 'plan-s'),
+      ];
+    },
     'a dive plan with its tanks and segments': () async {
       await db
           .into(db.divePlans)
@@ -859,6 +889,84 @@ void main() {
     expect(await pendingCountFor('divePlans', 'plan-x'), 1);
   });
 
+  test("a surviving plan in the diver's series and a surviving series "
+      "following the diver's dive are freed, stamped and marked", () async {
+    // dive_plans.series_id and dive_plan_series.followed_dive_id have no
+    // ON DELETE action (issue #3565), so either would fail the delete of
+    // the diver's series or dives.
+    await insertDiver('diver-a');
+    await insertDiver('diver-b', isDefault: true);
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive-a',
+            diverId: const Value('diver-a'),
+            diveDateTime: stale,
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.divePlanSeries)
+        .insert(
+          DivePlanSeriesCompanion.insert(
+            id: 'series-a',
+            name: 'Alice day',
+            diverId: const Value('diver-a'),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.divePlanSeries)
+        .insert(
+          DivePlanSeriesCompanion.insert(
+            id: 'series-b',
+            name: 'Bob day',
+            diverId: const Value('diver-b'),
+            followedDiveId: const Value('dive-a'),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+    await db
+        .into(db.divePlans)
+        .insert(
+          DivePlansCompanion.insert(
+            id: 'plan-x',
+            name: 'Ownerless',
+            seriesId: const Value('series-a'),
+            seriesIndex: const Value(1),
+            createdAt: stale,
+            updatedAt: stale,
+          ),
+        );
+
+    await repository.deleteDiverWithReassignment('diver-a');
+
+    expect(await diverExists('diver-a'), isFalse);
+    expect(await countOf('dive_plan_series', 'series-a'), 0);
+    expect(await tombstonesFor('divePlanSeries', 'series-a'), 1);
+    final plan = await db
+        .customSelect(
+          "SELECT series_id, updated_at FROM dive_plans WHERE id = 'plan-x'",
+        )
+        .getSingle();
+    expect(plan.readNullable<String>('series_id'), isNull);
+    expect(plan.read<int>('updated_at'), greaterThan(stale));
+    expect(await pendingCountFor('divePlans', 'plan-x'), 1);
+    final series = await db
+        .customSelect(
+          'SELECT followed_dive_id, updated_at FROM dive_plan_series '
+          "WHERE id = 'series-b'",
+        )
+        .getSingle();
+    expect(series.readNullable<String>('followed_dive_id'), isNull);
+    expect(series.read<int>('updated_at'), greaterThan(stale));
+    expect(await pendingCountFor('divePlanSeries', 'series-b'), 1);
+  });
+
   test("another diver's dive at the diver's dive center is cleared, stamped "
       'and marked', () async {
     // dives.dive_center_id references dive_centers with no ON DELETE
@@ -961,11 +1069,13 @@ void main() {
       'checklist_template_items.template_id',
       'checklist_template_sections.template_id',
       'dive_plan_mission_legs.plan_id',
+      'dive_plan_series.followed_dive_id',
       'dive_plan_mission_members.plan_id',
       'dive_plan_missions.plan_id',
       'dive_plan_segments.plan_id',
       'dive_plan_tanks.plan_id',
       'dive_plans.linked_dive_id',
+      'dive_plans.series_id',
       'dive_plans.site_id',
       'dive_plans.source_dive_id',
       'dives.computer_id',
@@ -1005,6 +1115,7 @@ const _clearedByDelete = {
   'cylinder_configs',
   'dive_centers',
   'dive_computers',
+  'dive_plan_series',
   'dive_plans',
   'dive_roles',
   'dive_sites',

@@ -20870,6 +20870,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_site_clear => 'Effacer le site';
 
   @override
+  String get plannerSeries_scope_series => 'Série';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Les plongées suivantes prennent ces réglages sauf si elles ont les leurs';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'De la série';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Cette plongée uniquement';
+
+  @override
+  String get plannerSeries_scope_reset => 'Rétablir la série';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Appliquer à toutes les plongées';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Plongée planifiée précédente';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Plongée planifiée suivante';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive =>
+      'Ajouter une plongée planifiée';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'Planificateur';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Remplir $tank';
   }
@@ -23909,6 +23943,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'Première utilisation';
 
   @override
+  String get settings_conflict_field_fixedStart => 'Heure de début fixe';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'Dernière utilisation';
 
   @override
@@ -24423,6 +24460,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'Mode respiratoire pour ce segment';
+
+  @override
+  String get settings_conflict_field_diveName => 'Nom de la plongée';
 
   @override
   String get settings_conflict_field_diveOperator => 'Opérateur de plongée';
@@ -25386,6 +25426,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_section => 'Section';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position dans la série';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Type d\'entretien';
 
   @override
@@ -25401,6 +25444,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Profondeur de changement de consigne';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Réglages pour cette plongée uniquement';
 
   @override
   String get settings_conflict_field_settings_key => 'Réglage';
@@ -25582,6 +25629,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Fichier ou appareil source';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Reprise du bloc';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Numéro du bloc dans le carnet source';
 
@@ -25609,6 +25659,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profondeur de départ';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Pression de départ saisie manuellement';
 
   @override
   String get settings_conflict_field_startTime => 'Heure de début';
@@ -26485,6 +26539,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plan de plongée';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Série de plongées';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Rôle de plongée';
 
   @override
@@ -26508,6 +26565,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Anomalie';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Plongée précédente';
 
   @override
   String get settings_conflict_ref_importedFile => 'Fichier importé';

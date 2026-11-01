@@ -737,5 +737,15 @@ extension RungsFromV231 on AppDatabase {
     // no backfill; the log starts empty. Re-asserted in beforeOpen.
     if (from < 332) await _assertChangeLogSchema();
     if (from < 332) await reportProgress();
+
+    // v333: dive_plan_series, a saved repetitive dive series, and the
+    // dive_plans / dive_plan_tanks columns that place a plan in one (issue
+    // #3565). Table and columns only, no backfill: a plan with no series is
+    // a one-dive series. Re-asserted in beforeOpen.
+    if (from < 333) {
+      await _assertDivePlanSeriesTable();
+      await _assertDivePlanSeriesColumns();
+    }
+    if (from < 333) await reportProgress();
   }
 }

@@ -26,6 +26,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_linkedDive;
     case 'sourceDiveId':
       return l10n.settings_conflict_ref_sourceDive;
+    case 'followedDiveId':
+      return l10n.settings_conflict_ref_followedDive;
     case 'instructorId':
       return l10n.settings_conflict_ref_instructor;
     case 'signerId':
@@ -85,6 +87,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_plannedTank;
     case 'divePlans':
       return l10n.settings_conflict_ref_divePlan;
+    case 'divePlanSeries':
+      return l10n.settings_conflict_ref_divePlanSeries;
     case 'trips':
       return l10n.settings_conflict_ref_trip;
     case 'tripCylinders':

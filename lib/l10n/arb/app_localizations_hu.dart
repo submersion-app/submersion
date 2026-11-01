@@ -20734,6 +20734,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_site_clear => 'Merülőhely törlése';
 
   @override
+  String get plannerSeries_scope_series => 'Sorozat';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'A későbbi merülések ezeket a beállításokat használják, hacsak nincs sajátjuk';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'A sorozatból';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Csak ez a merülés';
+
+  @override
+  String get plannerSeries_scope_reset => 'Vissza a sorozathoz';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Alkalmazás minden merülésre';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Előző tervezett merülés';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Következő tervezett merülés';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive =>
+      'Tervezett merülés hozzáadása';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'Tervező';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank töltése';
   }
@@ -23761,6 +23795,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'Első használat';
 
   @override
+  String get settings_conflict_field_fixedStart => 'Rögzített kezdési idő';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'Utolsó használat';
 
   @override
@@ -24266,6 +24303,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'Légzési mód ebben a szakaszban';
+
+  @override
+  String get settings_conflict_field_diveName => 'Merülés neve';
 
   @override
   String get settings_conflict_field_diveOperator => 'Merülésszervező';
@@ -25195,6 +25235,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_section => 'Szakasz';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Hely a sorozatban';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Szerviz típusa';
 
   @override
@@ -25210,6 +25253,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Setpoint-váltás mélysége';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Csak erre a merülésre vonatkozó beállítások';
 
   @override
   String get settings_conflict_field_settings_key => 'Beállítás';
@@ -25387,6 +25434,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Forrásfájl vagy -eszköz';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Átvéve a palackból';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Palack száma a forrásnaplóban';
 
@@ -25414,6 +25464,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Kezdő mélység';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Kezdőnyomás kézzel megadva';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';
@@ -26282,6 +26336,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Merülési terv';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Merülési sorozat';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Merülési szerep';
 
   @override
@@ -26304,6 +26361,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Észrevétel';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Előző merülés';
 
   @override
   String get settings_conflict_ref_importedFile => 'Importált fájl';

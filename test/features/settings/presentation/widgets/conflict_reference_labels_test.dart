@@ -57,6 +57,7 @@ void main() {
       'diveTanks': 'Tank',
       'divePlanTanks': 'Planned tank',
       'divePlans': 'Dive plan',
+      'divePlanSeries': 'Dive series',
       'trips': 'Trip',
       'tripCylinders': 'Trip cylinder',
       'diveCenters': 'Dive center',
@@ -115,6 +116,10 @@ void main() {
       expect(
         conflictReferenceLabel(l10n, ref(field: 'sourceDiveId')),
         'Source dive',
+      );
+      expect(
+        conflictReferenceLabel(l10n, ref(field: 'followedDiveId')),
+        'Followed dive',
       );
       expect(
         conflictReferenceLabel(

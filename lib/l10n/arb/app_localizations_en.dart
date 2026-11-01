@@ -20501,6 +20501,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_site_clear => 'Clear the site';
 
   @override
+  String get plannerSeries_scope_series => 'Series';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Dives after this one take these settings unless they set their own';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'From the series';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'This dive only';
+
+  @override
+  String get plannerSeries_scope_reset => 'Reset to series';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Apply to all dives';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Previous planned dive';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'Next planned dive';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive => 'Add a planned dive';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'Planner';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Fill $tank';
   }
@@ -23482,6 +23514,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'First used';
 
   @override
+  String get settings_conflict_field_fixedStart => 'Fixed start time';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'Last used';
 
   @override
@@ -23972,6 +24007,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'Breathing mode for this segment';
+
+  @override
+  String get settings_conflict_field_diveName => 'Dive name';
 
   @override
   String get settings_conflict_field_diveOperator => 'Dive operator';
@@ -24890,6 +24928,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_section => 'Section';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in series';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Service type';
 
   @override
@@ -24905,6 +24946,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Setpoint switch depth';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Settings for this dive only';
 
   @override
   String get settings_conflict_field_settings_key => 'Setting';
@@ -25079,6 +25124,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Source file or device';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Carried over from tank';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Tank number in the source log';
 
@@ -25106,6 +25154,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Start depth';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Start pressure set by hand';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';
@@ -25965,6 +26017,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Dive plan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Dive series';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Dive role';
 
   @override
@@ -25987,6 +26042,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Finding';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Followed dive';
 
   @override
   String get settings_conflict_ref_importedFile => 'Imported file';

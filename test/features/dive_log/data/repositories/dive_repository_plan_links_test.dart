@@ -174,6 +174,7 @@ void main() {
     // gets an ON DELETE action, or a step in the dive delete and a place
     // here.
     const clearedByDelete = [
+      'dive_plan_series.followed_dive_id',
       'dive_plans.linked_dive_id',
       'dive_plans.source_dive_id',
     ];

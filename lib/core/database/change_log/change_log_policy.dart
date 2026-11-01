@@ -59,6 +59,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'dive_plan_mission_members': ChangeLogClass.tracked,
   'dive_plan_missions': ChangeLogClass.tracked,
   'dive_plan_segments': ChangeLogClass.tracked,
+  'dive_plan_series': ChangeLogClass.tracked,
   'dive_plan_tanks': ChangeLogClass.tracked,
   'dive_plans': ChangeLogClass.tracked,
   'dive_profile_events': ChangeLogClass.tracked,

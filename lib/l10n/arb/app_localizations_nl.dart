@@ -20678,6 +20678,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_site_clear => 'Duikstek wissen';
 
   @override
+  String get plannerSeries_scope_series => 'Reeks';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Latere duiken nemen deze instellingen over, tenzij ze eigen instellingen hebben';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Uit de reeks';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Alleen deze duik';
+
+  @override
+  String get plannerSeries_scope_reset => 'Terugzetten naar reeks';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Op alle duiken toepassen';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Vorige geplande duik';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'Volgende geplande duik';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive => 'Geplande duik toevoegen';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'Planner';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank vullen';
   }
@@ -23696,6 +23728,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'Eerst gebruikt';
 
   @override
+  String get settings_conflict_field_fixedStart => 'Vaste starttijd';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'Laatst gebruikt';
 
   @override
@@ -24201,6 +24236,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'Ademmodus voor dit segment';
+
+  @override
+  String get settings_conflict_field_diveName => 'Naam van de duik';
 
   @override
   String get settings_conflict_field_diveOperator => 'Duikorganisatie';
@@ -25151,6 +25189,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_section => 'Sectie';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Positie in de reeks';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Soort onderhoud';
 
   @override
@@ -25166,6 +25207,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Diepte voor setpointwissel';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Instellingen alleen voor deze duik';
 
   @override
   String get settings_conflict_field_settings_key => 'Instelling';
@@ -25345,6 +25390,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Overgenomen van fles';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Flesnummer in het bronlogboek';
 
@@ -25372,6 +25420,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Begindiepte';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Begindruk handmatig ingesteld';
 
   @override
   String get settings_conflict_field_startTime => 'Starttijd';
@@ -26241,6 +26293,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Duikplan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Duikreeks';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Rol tijdens de duik';
 
   @override
@@ -26263,6 +26318,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Bevinding';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Voorafgaande duik';
 
   @override
   String get settings_conflict_ref_importedFile => 'Geïmporteerd bestand';

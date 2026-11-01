@@ -21106,6 +21106,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_site_clear => 'مسح الموقع';
 
   @override
+  String get plannerSeries_scope_series => 'السلسلة';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'تستخدم الغطسات التالية هذه الإعدادات ما لم تكن لها إعداداتها الخاصة';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'من السلسلة';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'هذه الغطسة فقط';
+
+  @override
+  String get plannerSeries_scope_reset => 'إعادة إلى السلسلة';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'تطبيق على كل الغطسات';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'الغطسة المخططة السابقة';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'الغطسة المخططة التالية';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive => 'إضافة غطسة مخططة';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'المخطط';
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'ملء $tank';
   }
@@ -24147,6 +24179,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'أول استخدام';
 
   @override
+  String get settings_conflict_field_fixedStart => 'وقت بدء ثابت';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'آخر استخدام';
 
   @override
@@ -24630,6 +24665,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'وضع التنفس لهذا المقطع';
+
+  @override
+  String get settings_conflict_field_diveName => 'اسم الغطسة';
 
   @override
   String get settings_conflict_field_diveOperator => 'مشغل الغوص';
@@ -25548,6 +25586,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_section => 'القسم';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'الموضع في السلسلة';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'نوع الصيانة';
 
   @override
@@ -25563,6 +25604,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'عمق تبديل نقطة الضبط';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'إعدادات لهذه الغطسة فقط';
 
   @override
   String get settings_conflict_field_settings_key => 'الإعداد';
@@ -25734,6 +25779,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'منقولة من الأسطوانة';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'رقم الأسطوانة في السجل المصدر';
 
@@ -25761,6 +25809,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'عمق البداية';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'ضغط البداية محدد يدويًا';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';
@@ -26640,6 +26692,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'خطة الغوص';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'سلسلة الغطسات';
+
+  @override
   String get settings_conflict_ref_diveRole => 'الدور في الغوص';
 
   @override
@@ -26662,6 +26717,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'الملاحظة';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'الغطسة السابقة';
 
   @override
   String get settings_conflict_ref_importedFile => 'ملف مستورد';

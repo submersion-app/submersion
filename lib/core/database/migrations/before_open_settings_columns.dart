@@ -31,5 +31,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
 
     // v323 backstop: diver_settings list arrangement columns and clock.
     await _assertListArrangementColumns();
+
+    // v333 backstop: dive_plans series placement columns and the
+    // dive_plan_tanks carry-over columns (issue #3565).
+    await _assertDivePlanSeriesColumns();
   }
 }

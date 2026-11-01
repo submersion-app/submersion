@@ -90,6 +90,7 @@ class SyncRepository {
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
     'navTracks': (table: 'nav_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
+    'divePlanSeries': (table: 'dive_plan_series', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'diveScenarios': (table: 'dive_scenarios', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),

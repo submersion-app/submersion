@@ -129,5 +129,8 @@ extension TableBackstopsFromV217 on AppDatabase {
 
     // v326 backstop: the media_people table and its indexes (idempotent).
     await _assertMediaPeopleSchema();
+
+    // v333 backstop: the dive_plan_series table (issue #3565; idempotent).
+    await _assertDivePlanSeriesTable();
   }
 }

@@ -20785,6 +20785,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_site_clear => 'Tauchplatz löschen';
 
   @override
+  String get plannerSeries_scope_series => 'Serie';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Spätere Tauchgänge übernehmen diese Einstellungen, sofern sie keine eigenen haben';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Aus der Serie';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Nur dieser Tauchgang';
+
+  @override
+  String get plannerSeries_scope_reset => 'Auf Serie zurücksetzen';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Auf alle Tauchgänge anwenden';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Vorheriger geplanter Tauchgang';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Nächster geplanter Tauchgang';
+
+  @override
+  String get accessibility_shortcut_addPlannedDive =>
+      'Geplanten Tauchgang hinzufügen';
+
+  @override
+  String get accessibility_shortcutCategory_planner => 'Planer';
+
+  @override
   String plannerSeries_fill(String tank) {
     return '$tank füllen';
   }
@@ -23811,6 +23845,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_firstUsedAt => 'Zuerst verwendet';
 
   @override
+  String get settings_conflict_field_fixedStart => 'Feste Startzeit';
+
+  @override
   String get settings_conflict_field_lastUsedAt => 'Zuletzt verwendet';
 
   @override
@@ -24310,6 +24347,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_diveModeOverride =>
       'Atemmodus für diesen Abschnitt';
+
+  @override
+  String get settings_conflict_field_diveName => 'Name des Tauchgangs';
 
   @override
   String get settings_conflict_field_diveOperator => 'Tauchanbieter';
@@ -25264,6 +25304,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_section => 'Abschnitt';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Position in der Serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Wartungsart';
 
   @override
@@ -25279,6 +25322,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Tiefe des Setpoint-Wechsels';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Einstellungen nur für diesen Tauchgang';
 
   @override
   String get settings_conflict_field_settings_key => 'Einstellung';
@@ -25459,6 +25506,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Quelldatei oder Gerät';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Übernommen von Flasche';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Flaschennummer im Quell-Logbuch';
 
@@ -25486,6 +25536,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Anfangstiefe';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Startdruck manuell festgelegt';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';
@@ -26358,6 +26412,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Tauchplan';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Tauchgangsserie';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Tauchrolle';
 
   @override
@@ -26380,6 +26437,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_finding => 'Befund';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Vorangehender Tauchgang';
 
   @override
   String get settings_conflict_ref_importedFile => 'Importierte Datei';
