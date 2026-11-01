@@ -1,7 +1,7 @@
-import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
+import 'package:submersion/features/equipment/domain/services/gear_at_dive_center.dart';
 
 /// One item with a buddy, and the place that says so.
 typedef GearWithBuddy = ({EquipmentItem item, EquipmentLocation place});
@@ -12,15 +12,11 @@ List<GearWithBuddy> gearWithBuddy(
   String buddyId,
   List<EquipmentItem> items,
   Map<String, EquipmentLocation> currentPlaces,
-) {
-  final rows = <GearWithBuddy>[
-    for (final item in items)
-      if (currentPlaces[item.id] case final place?
-          when place.buddyId == buddyId)
-        (item: item, place: place),
-  ];
-  return sortedByText(rows, (row) => row.item.name);
-}
+) => gearAtPlacesWhere(
+  items,
+  currentPlaces,
+  (place) => place.buddyId == buddyId,
+);
 
 /// Where an item was before it went to [buddyId]: the place of the newest of
 /// [movesNewestFirst] that is not at one of that buddy's [places]. Null when

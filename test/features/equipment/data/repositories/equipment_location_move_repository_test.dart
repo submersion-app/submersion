@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 
@@ -272,5 +273,48 @@ void main() {
     await item('wantedCell', parent: 'reg', status: 'wanted');
     await item('cell', parent: 'reg');
     expect((await moves.partsOf(['reg'])).keys.toSet(), {'cell'});
+  });
+
+  group('inTransaction (issue #3790)', () {
+    setUp(() async {
+      await item('a');
+      await place('p');
+    });
+
+    test('a failure takes back every move made inside it', () async {
+      await expectLater(
+        moves.inTransaction(() async {
+          await moves.recordMoves(
+            equipmentIds: ['a'],
+            locationId: 'p',
+            movedAt: DateTime(2026),
+          );
+          throw StateError('no');
+        }),
+        throwsStateError,
+      );
+
+      expect(await moves.getMovesFor('a'), isEmpty);
+    });
+
+    test('tells sync after the commit, not only during the body', () async {
+      var events = 0;
+      final subscription = SyncEventBus.changes.listen((_) => events++);
+      addTearDown(subscription.cancel);
+      var duringBody = -1;
+
+      await moves.inTransaction(() async {
+        await moves.recordMoves(
+          equipmentIds: ['a'],
+          locationId: 'p',
+          movedAt: DateTime(2026),
+        );
+        await pumpEventQueue();
+        duringBody = events;
+      });
+      await pumpEventQueue();
+
+      expect(events, greaterThan(duringBody));
+    });
   });
 }

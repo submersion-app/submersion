@@ -58,9 +58,13 @@ class EquipmentLocationMoveRepository {
   }
 
   /// Runs [body] as one transaction, for a caller whose moves stand or fall
-  /// together.
-  Future<T> inTransaction<T>(Future<T> Function() body) =>
-      _db.transaction(body);
+  /// together. Sync hears about it after the commit: a notify from inside
+  /// [body] can wake a sync that reads the database too early.
+  Future<T> inTransaction<T>(Future<T> Function() body) async {
+    final result = await _db.transaction(body);
+    SyncEventBus.notifyLocalChange();
+    return result;
+  }
 
   /// One move per distinct item in [equipmentIds], all to [locationId]
   /// (null clears the location) at [movedAt]. Returns the moves written.
