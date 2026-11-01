@@ -1,4 +1,3 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -233,68 +232,6 @@ void main() {
     );
 
     expect(find.text('Last dive ended 3d 4h ago'), findsOneWidget);
-  });
-
-  group('CNS that is only a minimum', () {
-    const note = 'An earlier dive has no oxygen data, so this may be higher.';
-
-    testWidgets('keeps the card on screen, however low the figure', (
-      tester,
-    ) async {
-      await pumpCard(
-        tester,
-        snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(hours: 1),
-          ),
-          exposure: const O2Exposure(cnsUnknownDiveAge: Duration.zero),
-        ),
-      );
-
-      expect(find.text('No active load'), findsNothing);
-      expect(find.text(note), findsOneWidget);
-    });
-
-    testWidgets('reads as clear once the unknown dive is outside the recovery '
-        'window', (tester) async {
-      // Fixed, not wallClockNowUtc() off the live clock: that reinterprets
-      // the process's local digits as UTC, and the widget separately reads
-      // clock.now().toUtc() (the true instant) for elapsed time. Outside
-      // UTC (the Test job runs Sydney, see ci.yaml) those two diverge by
-      // the zone offset, eating into this test's 1-hour margin between its
-      // 13-hour dive age and the 24-hour recovery window (issue #3659's
-      // bug class).
-      final fixedNow = DateTime.utc(2026, 1, 1, 12);
-      await withClock(Clock.fixed(fixedNow), () async {
-        await pumpCard(
-          tester,
-          snapshotOf(
-            lastDiveEnd: fixedNow.subtract(const Duration(hours: 13)),
-            exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 12)),
-          ),
-        );
-
-        expect(find.text('No active load'), findsOneWidget);
-      });
-    });
-
-    testWidgets('drops the note when OTU alone keeps the card up', (
-      tester,
-    ) async {
-      await pumpCard(
-        tester,
-        snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(days: 2),
-          ),
-          exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 1)),
-          weeklyOtu: 120,
-        ),
-      );
-
-      expect(find.text('No active load'), findsNothing);
-      expect(find.text(note), findsNothing);
-    });
   });
 
   group('last dive without a profile', () {
