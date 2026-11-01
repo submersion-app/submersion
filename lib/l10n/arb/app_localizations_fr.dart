@@ -7165,6 +7165,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Plongées restaurées';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Plongées restaurées, mais certaines données enregistrées n\'ont pas pu être récupérées';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20745,11 +20749,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Suit $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty =>
       'Aucune plongée enregistrée pour l\'instant';
 
@@ -20792,6 +20791,41 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Plongée enregistrée $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Ouvrir dans le carnet';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Ne plus suivre';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Reporté sur $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS en fin de plongée';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive s’est terminée il y a $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Plongée #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Suivre';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Intervalle de surface';
 
   @override
@@ -20830,8 +20864,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une série de plongées ne peut pas être planifiée comme mission DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Seule la première plongée d\'une série peut suivre une plongée enregistrée';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Une replanification ne peut pas suivre une autre plongée';
 
   @override
   String get plannerCanvas_follow_title => 'Suivre une plongée';
@@ -55153,6 +55187,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Comparer…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Planifier une plongée successive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs plongée d\'origine';

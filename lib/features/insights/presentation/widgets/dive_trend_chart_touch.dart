@@ -52,7 +52,7 @@ extension _DiveTrendChartTouch on _DiveTrendChartState {
               barIndex == 0 ||
               (_secondaryBarStart >= 0 &&
                   barIndex >= _secondaryBarStart &&
-                  barIndex - _secondaryBarStart < _drawnSecondary.length),
+                  barIndex - _secondaryBarStart < _drawnSecondaryCount),
         );
         if (spot == null) return;
         final diveId = _diveIdForSpot(spot.barIndex, spot.spotIndex);

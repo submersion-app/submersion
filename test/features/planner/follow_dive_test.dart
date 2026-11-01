@@ -1,17 +1,20 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/follow_dive_sheet.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../helpers/dst_transition.dart';
 import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -40,36 +43,6 @@ void main() {
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     diveProvider.overrideWith((ref, id) async => stubDive),
   ];
-
-  testWidgets('FollowingChip appears when following and clears on tap', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      testApp(overrides: overrides(), child: const FollowingChip()),
-    );
-    // Hidden with no followed dive.
-    expect(find.byType(PlanChip), findsNothing);
-
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(FollowingChip)),
-    );
-    container
-        .read(divePlanNotifierProvider.notifier)
-        .setFollowedDive(
-          diveId: 'dive-9',
-          compartments: null,
-          surfaceInterval: const Duration(hours: 1),
-        );
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Reef drift'), findsOneWidget);
-
-    await tester.tap(find.byType(PlanChip));
-    await tester.pumpAndSettle();
-
-    expect(container.read(divePlanNotifierProvider).sourceDiveId, isNull);
-    expect(find.byType(PlanChip), findsNothing);
-  });
 
   testWidgets('logged-average SAC button fills the plan SAC rate', (
     tester,
@@ -113,6 +86,7 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           divesProvider.overrideWith((ref) async => [stubDive]),
+          diveProvider.overrideWith((ref, id) async => stubDive),
           // No profile analysis -> follows with a surface interval but no
           // tissue seed (the null-compartments branch).
           profileAnalysisProvider.overrideWith((ref, id) async => null),
@@ -137,12 +111,118 @@ void main() {
     await tester.tap(find.text('Reef drift'));
     await tester.pumpAndSettle();
 
+    // The series follows the dive; the plan's own source dive is left for
+    // replans. The dive is months old, so the interval is the default hour.
+    final follow = container.read(planSeriesNotifierProvider).follow;
+    expect(follow?.followed.id, 'dive-9');
     final state = container.read(divePlanNotifierProvider);
-    expect(state.sourceDiveId, 'dive-9');
-    expect(state.surfaceInterval, isNotNull);
+    expect(state.sourceDiveId, isNull);
+    expect(state.surfaceInterval, const Duration(hours: 1));
     // The sheet closed after following.
     expect(find.byType(FollowDiveSheet), findsNothing);
   });
+
+  // Stored dive times are clock digits in a UTC DateTime, so reading one
+  // directly as an instant puts it a UTC offset away from the real moment:
+  // hours too long west of UTC, and negative east of it, where the sheet's
+  // too-short fallback then replaces the real interval.
+  Future<Duration?> followAt(
+    WidgetTester tester,
+    DateTime now,
+    Dive dive,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          divesProvider.overrideWith((ref) async => [dive]),
+          profileAnalysisProvider.overrideWith((ref, id) async => null),
+        ],
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showFollowDiveSheet(context),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open')),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await withClock(Clock.fixed(now), () async {
+      await tester.tap(find.text('Reef drift'));
+      await tester.pumpAndSettle();
+    });
+    return container.read(divePlanNotifierProvider).surfaceInterval;
+  }
+
+  testWidgets('FollowDiveSheet seeds the real time since the stored dive', (
+    tester,
+  ) async {
+    final interval = await followAt(
+      tester,
+      DateTime(2026, 7, 1, 12),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: DateTime.utc(2026, 7, 1, 9),
+        entryTime: DateTime.utc(2026, 7, 1, 9),
+        runtime: const Duration(minutes: 45),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 2, minutes: 15));
+  });
+
+  testWidgets('FollowDiveSheet measures from a stored exit time', (
+    tester,
+  ) async {
+    final interval = await followAt(
+      tester,
+      DateTime(2026, 7, 1, 12),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: DateTime.utc(2026, 7, 1, 9),
+        exitTime: DateTime.utc(2026, 7, 1, 10),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 2));
+  });
+
+  testWidgets('FollowDiveSheet counts real hours across a clock change', (
+    tester,
+  ) async {
+    // Surfaced an hour before the clocks went forward and followed two hours
+    // after: three hours passed, though the clock digits say four.
+    final change = dstTransition(forward: true)!;
+    final interval = await followAt(
+      tester,
+      change.add(const Duration(hours: 2)).toLocal(),
+      Dive(
+        id: 'dive-9',
+        diveNumber: 42,
+        name: 'Reef drift',
+        dateTime: asWallClockUtc(
+          change.subtract(const Duration(hours: 2)).toLocal(),
+        ),
+        exitTime: asWallClockUtc(
+          change.subtract(const Duration(hours: 1)).toLocal(),
+        ),
+        maxDepth: 30.0,
+      ),
+    );
+
+    expect(interval, const Duration(hours: 3));
+  }, skip: zoneHasNoDst);
 
   testWidgets('FollowDiveSheet shows an empty state with no logged dives', (
     tester,

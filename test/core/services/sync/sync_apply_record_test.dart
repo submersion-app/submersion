@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -34,8 +35,8 @@ void main() {
           lastSyncTimestamp: null,
           deletions: await repo.getAllDeletions(),
         );
-        final received = serializer.deserializePayload(
-          serializer.serializePayload(payload),
+        final received = SyncPayload.fromJson(
+          jsonDecode(jsonEncode(payload.toJson())) as Map<String, dynamic>,
         );
         final diveMap = received.data.dives.firstWhere(
           (d) => d['id'] == 'dive-up-1',

@@ -296,10 +296,10 @@ extension SyncServiceReplaceJoin on SyncService {
 
   /// Whether a live device of [epochId] has published a base the collector
   /// could not assemble (no cursor for it), or changesets past the first
-  /// gap it found (a cursor short of the manifest's head). Pull waits out
-  /// both; a replace must not apply a library they leave short. A device
-  /// with no base yet publishes changesets only, which pull applies on its
-  /// own, so it does not count. [manifests] were read before the collect,
+  /// gap or damaged one it found (a cursor short of the manifest's head). Pull
+  /// waits out both; a replace must not apply a library they leave short. A
+  /// device with no base yet publishes changesets only, which pull applies on
+  /// its own, so it does not count. [manifests] were read before the collect,
   /// so a device that published more since is measured against what it
   /// had then, which the collector's copy covers.
   bool _libraryIncomplete(

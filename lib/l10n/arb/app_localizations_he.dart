@@ -6996,6 +6996,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'הצלילות שוחזרו';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'הצלילות שוחזרו, אך לא ניתן היה לשחזר חלק מהנתונים המוקלטים';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20226,11 +20230,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'עוקב אחרי $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
@@ -20272,6 +20271,41 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'צלילה מתועדת $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_stopFollowing => 'הפסקת מעקב';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'מועבר אל $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS בסוף';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive הסתיימה לפני $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'מעקב';
+
+  @override
   String get plannerSeries_surfaceInterval => 'מרווח שטח';
 
   @override
@@ -20309,8 +20343,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לתכנן סדרת צלילות כמשימת DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'רק הצלילה הראשונה בסדרה יכולה לעקוב אחרי צלילה מתועדת';
+  String get plannerSeries_followUnavailableInReplan =>
+      'תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
@@ -53842,6 +53876,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'השוואה…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'תכנון צלילה חוזרת';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

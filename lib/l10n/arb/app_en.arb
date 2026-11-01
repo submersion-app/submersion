@@ -4381,6 +4381,7 @@
   "diveComputer_title": "Dive Computer",
   "diveLog_bulkDelete_confirm": "Are you sure you want to delete {count} {count, plural, =1{dive} other{dives}}? This action cannot be undone.",
   "diveLog_bulkDelete_restored": "Dives restored",
+  "diveLog_bulkDelete_restoredIncomplete": "Dives restored, but some recorded data could not be recovered",
   "diveLog_bulkDelete_snackbar": "Deleted {count} {count, plural, =1{dive} other{dives}}",
   "diveLog_bulkDelete_title": "Delete Dives",
   "diveLog_bulkDelete_undo": "Undo",
@@ -12841,14 +12842,7 @@
       }
     }
   },
-  "plannerCanvas_follow_chip": "Following {name}",
-  "@plannerCanvas_follow_chip": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
+
   "plannerCanvas_follow_empty": "No logged dives yet",
   "plannerCanvas_follow_noTissues": "No profile data on that dive — surface interval set without tissue seeding",
   "plannerSeries_dive": "Dive {letter}",
@@ -12899,6 +12893,51 @@
       }
     }
   },
+  "plannerSeries_loggedDive": "Logged dive {label}",
+  "@plannerSeries_loggedDive": {
+    "description": "A logged dive shown in the planner series bar, by its dive number, name or date",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_stopFollowing": "Stop following",
+  "plannerSeries_carriedInto": "Carried into {dive}",
+  "@plannerSeries_carriedInto": {
+    "description": "Heading over what a logged dive passes on to the dive after it",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_endCns": "CNS at the end",
+  "plannerSeries_otu": "OTU",
+  "plannerSeries_followPrompt": "{dive} ended {time} ago.",
+  "@plannerSeries_followPrompt": {
+    "description": "Offer to follow the most recent logged dive: its name or number, then h:mm since it ended",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "plannerSeries_loggedDiveNumber": "Dive #{number}",
+  "@plannerSeries_loggedDiveNumber": {
+    "description": "A logged dive by its number in the log",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_follow": "Follow",
   "plannerSeries_surfaceInterval": "Surface interval",
   "plannerSeries_surfaceIntervalValue": "Surface interval {time}",
   "@plannerSeries_surfaceIntervalValue": {
@@ -12926,7 +12965,7 @@
   "plannerSeries_saveUnavailable": "A series of dives can't be saved yet",
   "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
-  "plannerSeries_followFirstDiveOnly": "Only the first dive of a series can follow a logged dive",
+  "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {
@@ -32509,6 +32548,7 @@
     }
   },
   "diveLog_detail_menu_whatIf": "Compare…",
+  "diveLog_detail_menu_planRepetitive": "Plan repetitive dive",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

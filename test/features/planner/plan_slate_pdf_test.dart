@@ -138,6 +138,17 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
   });
 
+  test('a bailout gas gap renders through the slate (#3961)', () async {
+    final plan = _plan(
+      mode: domain.PlanMode.ccr,
+    ).copyWith(tanks: const [_airTank, _decoTank]);
+    expect(const BailoutSolver().solve(plan)!.gasGap, isNotNull);
+
+    final bytes = await _build(plan);
+
+    expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+  });
+
   // The header used to hand-assemble an ISO date, ignoring the diver's
   // DateFormatPreference like the rest of the PDF exports did (#964). Asserted
   // on the header string rather than on the saved PDF because the slate embeds

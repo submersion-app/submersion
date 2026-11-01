@@ -11225,6 +11225,12 @@ abstract class AppLocalizations {
   /// **'Dives restored'**
   String get diveLog_bulkDelete_restored;
 
+  /// No description provided for @diveLog_bulkDelete_restoredIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives restored, but some recorded data could not be recovered'**
+  String get diveLog_bulkDelete_restoredIncomplete;
+
   /// No description provided for @diveLog_bulkDelete_snackbar.
   ///
   /// In en, this message translates to:
@@ -32922,12 +32928,6 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String plannerCanvas_export_failed(String error);
 
-  /// No description provided for @plannerCanvas_follow_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Following {name}'**
-  String plannerCanvas_follow_chip(String name);
-
   /// No description provided for @plannerCanvas_follow_empty.
   ///
   /// In en, this message translates to:
@@ -32987,6 +32987,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {letter}: {name}'**
   String plannerSeries_diveNamed(String letter, String name);
+
+  /// A logged dive shown in the planner series bar, by its dive number, name or date
+  ///
+  /// In en, this message translates to:
+  /// **'Logged dive {label}'**
+  String plannerSeries_loggedDive(String label);
+
+  /// No description provided for @plannerSeries_openInLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive log'**
+  String get plannerSeries_openInLog;
+
+  /// No description provided for @plannerSeries_stopFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following'**
+  String get plannerSeries_stopFollowing;
+
+  /// Heading over what a logged dive passes on to the dive after it
+  ///
+  /// In en, this message translates to:
+  /// **'Carried into {dive}'**
+  String plannerSeries_carriedInto(String dive);
+
+  /// No description provided for @plannerSeries_endCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at the end'**
+  String get plannerSeries_endCns;
+
+  /// No description provided for @plannerSeries_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get plannerSeries_otu;
+
+  /// Offer to follow the most recent logged dive: its name or number, then h:mm since it ended
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} ended {time} ago.'**
+  String plannerSeries_followPrompt(String dive, String time);
+
+  /// A logged dive by its number in the log
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String plannerSeries_loggedDiveNumber(int number);
+
+  /// No description provided for @plannerSeries_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get plannerSeries_follow;
 
   /// No description provided for @plannerSeries_surfaceInterval.
   ///
@@ -33048,11 +33102,11 @@ abstract class AppLocalizations {
   /// **'A series of dives can\'t be planned as a DPV mission'**
   String get plannerSeries_missionUnavailable;
 
-  /// No description provided for @plannerSeries_followFirstDiveOnly.
+  /// No description provided for @plannerSeries_followUnavailableInReplan.
   ///
   /// In en, this message translates to:
-  /// **'Only the first dive of a series can follow a logged dive'**
-  String get plannerSeries_followFirstDiveOnly;
+  /// **'A replan can\'t follow another dive'**
+  String get plannerSeries_followUnavailableInReplan;
 
   /// No description provided for @plannerCanvas_follow_title.
   ///
@@ -86958,6 +87012,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compare…'**
   String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_planRepetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan repetitive dive'**
+  String get diveLog_detail_menu_planRepetitive;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.
   ///

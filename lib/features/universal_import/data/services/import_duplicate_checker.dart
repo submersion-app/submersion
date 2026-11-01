@@ -17,6 +17,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/within_file_dive_duplicates.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
@@ -409,9 +410,9 @@ class ImportDuplicateChecker {
     List<DiveSite> existingSites,
     UnitFormatter units,
   ) {
-    final existingByNameLower = <String, DiveSite>{};
+    final existingByNameLower = <String, List<DiveSite>>{};
     for (final site in existingSites) {
-      existingByNameLower[site.name.toLowerCase()] = site;
+      (existingByNameLower[site.name.toLowerCase()] ??= []).add(site);
     }
 
     final indices = <int>{};
@@ -422,8 +423,12 @@ class ImportDuplicateChecker {
 
       // Check name match first.
       if (name != null) {
-        final existing = existingByNameLower[name.toLowerCase()];
-        if (existing != null) {
+        final namesakes = existingByNameLower[name.toLowerCase()];
+        if (namesakes != null) {
+          final existing = ImportSiteLocation.namesakeOf(
+            importedSites[i],
+            namesakes,
+          );
           indices.add(i);
           matches[i] = _buildSiteMatch(importedSites[i], existing, units);
           continue;

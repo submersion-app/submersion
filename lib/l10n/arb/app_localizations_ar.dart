@@ -7259,6 +7259,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'تمت استعادة الغوصات';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'تمت استعادة الغوصات، لكن تعذّر استرجاع بعض البيانات المسجّلة';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20983,11 +20987,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'يتبع $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'لا توجد غطسات مسجلة بعد';
 
   @override
@@ -21029,6 +21028,41 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'غطسة مسجلة $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'ينتقل إلى $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS في النهاية';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return 'انتهت $dive منذ $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'الغطسة #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'متابعة';
+
+  @override
   String get plannerSeries_surfaceInterval => 'الفاصل السطحي';
 
   @override
@@ -21065,8 +21099,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن تخطيط سلسلة غطسات كمهمة DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'يمكن للغطسة الأولى فقط في السلسلة اتباع غطسة مسجلة';
+  String get plannerSeries_followUnavailableInReplan =>
+      'لا يمكن لإعادة التخطيط اتباع غطسة أخرى';
 
   @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
@@ -55694,6 +55728,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'مقارنة…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'تخطيط غطسة متكررة';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'مقابل الغطسة الأصلية';
