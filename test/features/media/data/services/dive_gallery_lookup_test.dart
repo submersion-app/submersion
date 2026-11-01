@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/data/services/dive_gallery_lookup.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -34,11 +37,19 @@ class _Library implements PhotoPickerService {
   _Library({
     this.assets = const [],
     this.exif = const {},
+    this.files = const {},
+    this.unreadable = const {},
     this.supportsGalleryBrowsing = true,
   });
 
   final List<AssetInfo> assets;
   final Map<String, MediaSourceMetadata> exif;
+
+  /// Copies of assets on disk, for a platform with no native reader.
+  final Map<String, String> files;
+
+  /// Assets whose metadata read fails, like an iCloud download that errors.
+  final Set<String> unreadable;
 
   @override
   final bool supportsGalleryBrowsing;
@@ -65,13 +76,16 @@ class _Library implements PhotoPickerService {
   @override
   Future<MediaSourceMetadata?> getAssetMetadata(String assetId) async {
     metadataReads.add(assetId);
+    if (unreadable.contains(assetId)) {
+      throw StateError('download failed');
+    }
     return exif[assetId];
   }
 
   @override
   Future<String?> getFilePath(String assetId) async {
     fileFetches.add(assetId);
-    return null;
+    return files[assetId];
   }
 
   @override
@@ -228,6 +242,39 @@ void main() {
       await find(library);
 
       expect(library.fileFetches, isEmpty);
+    });
+
+    test('reads the capture time from a copy of the file on a platform with '
+        'no native reader', () async {
+      final tempDir = await Directory.systemTemp.createTemp('gallery_lookup');
+      addTearDown(() => tempDir.delete(recursive: true));
+      final image = img.Image(width: 8, height: 8);
+      image.exif.exifIfd['DateTimeOriginal'] = '2026:03:10 10:20:00';
+      final path = p.join(tempDir.path, 'palau.jpg');
+      await File(path).writeAsBytes(img.encodeJpg(image));
+      final library = _Library(
+        assets: [_asset('palau', DateTime(2026, 3, 9, 19, 20))],
+        files: {'palau': path},
+      );
+
+      final found = await find(library);
+
+      expect(found.single.createDateTime, DateTime(2026, 3, 10, 10, 20));
+    });
+
+    test('carries on past a photo that cannot be read', () async {
+      final library = _Library(
+        assets: [
+          _asset('broken', DateTime(2026, 3, 10, 10)),
+          _asset('palau', DateTime(2026, 3, 9, 19, 20)),
+        ],
+        exif: {'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20))},
+        unreadable: {'broken'},
+      );
+
+      final found = await find(library);
+
+      expect(found.map((a) => a.id), containsAll(['broken', 'palau']));
     });
 
     test('keeps a photo with no EXIF when its digits on this device fall '

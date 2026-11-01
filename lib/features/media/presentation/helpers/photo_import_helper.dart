@@ -59,9 +59,6 @@ class PhotoImportHelper {
     // would arise from applying buffers in local time after the conversion.
     // We pass buffer: Duration.zero to disable showPhotoPicker's internal
     // buffer-in-local logic.
-    final windowStart = diveStart.subtract(DivePhotoMatcher.preBuffer);
-    final windowEnd = diveEnd.add(DivePhotoMatcher.postBuffer);
-    final photoPickerService = ref.read(photoPickerServiceProvider);
     // coverage:ignore-start
     // showPhotoPicker drives a full-screen page tied to photo_manager + the
     // platform photo library. Not unit-testable from flutter_test without
@@ -69,6 +66,9 @@ class PhotoImportHelper {
     // covered by trip_media_scanner_test; the search by
     // dive_gallery_lookup_test; the buffer constants by
     // dive_photo_matcher_test.
+    final windowStart = diveStart.subtract(DivePhotoMatcher.preBuffer);
+    final windowEnd = diveEnd.add(DivePhotoMatcher.postBuffer);
+    final photoPickerService = ref.read(photoPickerServiceProvider);
     final selectedAssets = await showPhotoPicker(
       context: context,
       diveStartTime: TripMediaScanner.wallClockUtcToLocal(windowStart),
