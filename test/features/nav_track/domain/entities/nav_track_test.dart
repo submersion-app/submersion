@@ -231,6 +231,22 @@ void main() {
       expect(original.copyWith(), original);
     });
 
+    test('withCorrection can clear the anchor and end point', () {
+      final track = _track(
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.2,
+        endMode: NavTrackEndMode.point,
+        endLatitude: 46.5,
+        endLongitude: 7.5,
+        scaleFactor: 1.38,
+      ).copyWith(name: 'Kept');
+      final cleared = track.withCorrection(const NavTrackCorrection());
+      expect(cleared.anchor, isNull);
+      expect(cleared.endPoint, isNull);
+      expect(cleared.scaleFactor, 1);
+      expect(cleared.name, 'Kept');
+    });
+
     test('two tracks differing only in scale are not equal', () {
       expect(_track(scaleFactor: 1.5), isNot(_track()));
     });

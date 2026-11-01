@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
@@ -238,6 +237,12 @@ class NavTrackDetailPage extends ConsumerWidget {
         );
   }
 
+  /// To 0.1%, with no decimal on a whole percentage.
+  String _scalePercent(double scaleFactor) {
+    final percent = (scaleFactor * 1000).round() / 10;
+    return formatFixedForDisplay(percent, percent % 1 == 0 ? 0 : 1);
+  }
+
   String _correctionStatus(AppLocalizations l10n, NavTrack route) {
     return switch (route.endMode) {
       NavTrackEndMode.none => l10n.navTrack_detail_correctionStatus_none,
@@ -371,9 +376,7 @@ class NavTrackDetailPage extends ConsumerWidget {
                               Text(
                                 key: const ValueKey('nav-track-detail-scale'),
                                 l10n.navTrack_detail_scaleStatus(
-                                  NumberFormat(
-                                    '0.#',
-                                  ).format(route.scaleFactor * 100),
+                                  _scalePercent(route.scaleFactor),
                                 ),
                               ),
                           ],

@@ -95,6 +95,12 @@ void main() {
     expect(reports.single, closeTo(1.035, 1e-9));
   });
 
+  testWidgets('a typed value rounds to 0.1%', (tester) async {
+    await pump(tester);
+    await type(tester, '103.57');
+    expect(reports.single, 1.036);
+  });
+
   testWidgets('reads 112,5 under a German locale', (tester) async {
     final previous = Intl.defaultLocale;
     addTearDown(() => Intl.defaultLocale = previous);

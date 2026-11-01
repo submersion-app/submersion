@@ -1824,7 +1824,7 @@ void main() {
         expect(fieldPercent(tester), greaterThan(100));
       });
 
-      testWidgets('a drag moves the terrain summary with it', (tester) async {
+      testWidgets('Save persists a dragged scale', (tester) async {
         final repository = await _pump(tester, route: longTrack());
         await dragHandle(tester, const Offset(10, -60));
         await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));

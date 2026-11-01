@@ -30,6 +30,8 @@ class _HostState extends State<_Host> {
   final controller = MapController();
   double scale = 1;
 
+  void setScale(double value) => setState(() => scale = value);
+
   @override
   Widget build(BuildContext context) => SizedBox(
     key: mapKey,
@@ -173,6 +175,36 @@ void main() {
     final center = globalOf(host, tester, _pivot);
     final gesture = await dragTo(tester, center);
     expect(host.scale, 0.25);
+    await gesture.up();
+  });
+
+  testWidgets('a second finger on the handle is ignored', (tester) async {
+    final host = await pump(tester);
+    final from = tester.getCenter(find.byKey(_handle));
+    final first = await tester.startGesture(from, pointer: 1);
+    await tester.pump();
+    final second = await tester.startGesture(from, pointer: 2);
+    await tester.pump();
+    await second.moveBy(const Offset(0, -60));
+    await tester.pump();
+    expect(host.scale, 1);
+    await second.up();
+    await first.up();
+  });
+
+  testWidgets('a scale committed by the press is what the drag works from', (
+    tester,
+  ) async {
+    final host = await pump(tester);
+    final from = tester.getCenter(find.byKey(_handle));
+    final gesture = await tester.startGesture(from);
+    await tester.pump();
+    // Pressing outside the field commits what was typed there.
+    host.setScale(1.5);
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -2));
+    await tester.pump();
+    expect(host.scale, closeTo(1.5, 0.05));
     await gesture.up();
   });
 

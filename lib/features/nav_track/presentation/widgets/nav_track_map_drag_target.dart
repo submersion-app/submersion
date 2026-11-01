@@ -20,7 +20,7 @@ LatLng groundUnderPointer(GlobalKey mapKey, MapCamera camera, Offset global) {
 /// recognizer claims the pointer on press and the `Listener` reads it.
 ///
 /// [onStart] and [onMove] take the pointer's global position.
-class NavTrackMapDragTarget extends StatelessWidget {
+class NavTrackMapDragTarget extends StatefulWidget {
   const NavTrackMapDragTarget({
     super.key,
     required this.onStart,
@@ -33,6 +33,18 @@ class NavTrackMapDragTarget extends StatelessWidget {
   final Widget child;
 
   @override
+  State<NavTrackMapDragTarget> createState() => _NavTrackMapDragTargetState();
+}
+
+class _NavTrackMapDragTargetState extends State<NavTrackMapDragTarget> {
+  /// The pointer doing the drag. A second finger on the target is ignored.
+  int? _pointer;
+
+  void _release(PointerEvent event) {
+    if (event.pointer == _pointer) _pointer = null;
+  }
+
+  @override
   Widget build(BuildContext context) => RawGestureDetector(
     gestures: {
       EagerGestureRecognizer:
@@ -43,9 +55,17 @@ class NavTrackMapDragTarget extends StatelessWidget {
     },
     child: Listener(
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (event) => onStart(event.position),
-      onPointerMove: (event) => onMove(event.position),
-      child: child,
+      onPointerDown: (event) {
+        if (_pointer != null) return;
+        _pointer = event.pointer;
+        widget.onStart(event.position);
+      },
+      onPointerMove: (event) {
+        if (event.pointer == _pointer) widget.onMove(event.position);
+      },
+      onPointerUp: _release,
+      onPointerCancel: _release,
+      child: widget.child,
     ),
   );
 }

@@ -30,6 +30,6 @@ class NavTrackScaleControl extends StatelessWidget {
     downKey: 'nav-track-align-scale-down',
     fieldKey: 'nav-track-align-scale-field',
     upKey: 'nav-track-align-scale-up',
-    onChanged: (percent) => onChanged(percent / 100),
+    onChanged: (percent) => onChanged((percent * 10).round() / 1000),
   );
 }

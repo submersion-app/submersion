@@ -233,11 +233,19 @@ class NavTrackCorrector {
       for (final p in points) _rotate(p, correction.headingOffsetDeg),
     ];
 
-    final scaled = correction.scaleFactor == 1
-        ? rotated
-        : _scale(rotated, activeRange(points), correction.scaleFactor);
+    final hasScale = correction.scaleFactor != 1;
+    if (!hasScale && correction.endMode == NavTrackEndMode.none) return rotated;
 
-    final stretch = _stretchOf(points, scaled, correction);
+    final segmentation = NavTrackSegmenter.classify(points);
+    final scaled = hasScale
+        ? _scale(
+            rotated,
+            _activeRange(segmentation, points.length),
+            correction.scaleFactor,
+          )
+        : rotated;
+
+    final stretch = _stretchOf(points, scaled, correction, segmentation);
     if (stretch == null) return scaled;
     final target = stretch.target;
     final cumulative = stretch.cumulative;
@@ -275,11 +283,18 @@ class NavTrackCorrector {
     NavTrackCorrection correction,
   ) {
     if (points.isEmpty) return false;
-    if (correction.endMode == NavTrackEndMode.sameAsStart) return false;
-    final rotated = [
-      for (final p in points) _rotate(p, correction.headingOffsetDeg),
-    ];
-    return _stretchOf(points, rotated, correction) != null;
+    if (correction.endMode == NavTrackEndMode.none ||
+        correction.endMode == NavTrackEndMode.sameAsStart) {
+      return false;
+    }
+    // Only sameAsStart reads the samples themselves, so none are needed here.
+    return _stretchOf(
+          points,
+          const [],
+          correction,
+          NavTrackSegmenter.classify(points),
+        ) !=
+        null;
   }
 
   /// The proportional correction [correction] asks of [samples], or null when
@@ -296,8 +311,9 @@ class NavTrackCorrector {
     List<NavTrackPoint> points,
     List<CorrectedNavTrackPoint> samples,
     NavTrackCorrection correction,
+    NavTrackSegmentation segmentation,
   ) {
-    final target = _resolveTarget(points, samples, correction);
+    final target = _resolveTarget(points, samples, correction, segmentation);
     if (target == null) return null;
 
     final cumulative = cumulativeDistances(
@@ -339,11 +355,11 @@ class NavTrackCorrector {
     List<NavTrackPoint> points,
     List<CorrectedNavTrackPoint> samples,
     NavTrackCorrection correction,
+    NavTrackSegmentation segmentation,
   ) {
     if (correction.endMode == NavTrackEndMode.none) return null;
 
-    final segmentation = NavTrackSegmenter.classify(points);
-    final range = _activeRange(segmentation, samples.length);
+    final range = _activeRange(segmentation, points.length);
 
     switch (correction.endMode) {
       case NavTrackEndMode.none:

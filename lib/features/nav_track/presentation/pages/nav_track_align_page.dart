@@ -43,49 +43,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// What the crosshair-and-pan flow is currently placing, or nothing.
 enum _Placing { none, start, end }
 
-/// The corrected points of the ACTIVE dead-reckoned range only -- up to
-/// [NavTrackCorrector.activeRangeEndIndex] -- for the terrain check and its
-/// conflict-dot overlay. A GPS-fixed/out-of-water tail (a device sitting on
-/// a car dashboard, say) is not part of the diver's swim path and must not
-/// be checked against the seafloor at all: including it would inflate the
-/// "N points on land / below the seafloor" readout with samples that have
-/// nothing to do with where the route actually sits, the same "whole raw
-/// recording" mistake the 3D ribbon, the 2D layer and the summary
-/// statistics elsewhere in this module already avoid.
-List<CorrectedNavTrackPoint> _activeCorrectedPoints(
-  List<NavTrackPoint> points,
-  NavTrackCorrection correction,
-) {
-  final range = NavTrackCorrector.activeRange(points);
-  final corrected = NavTrackCorrector.apply(points, correction);
-  return corrected.sublist(
-    range.start.clamp(0, corrected.length),
-    (range.end + 1).clamp(0, corrected.length),
-  );
-}
-
-/// A degree tolerance for [_geoPointsMatch]: well under a millimetre at any
-/// latitude, loose enough to absorb floating-point rounding differences
-/// between two independently computed values that are meant to be the same
-/// point, tight enough that two genuinely different suggestions never read
-/// as a match.
-const double _geoPointMatchToleranceDeg = 1e-9;
-
-/// Whether [a] and [b] are the same point, within [_geoPointMatchToleranceDeg].
-///
-/// Used instead of [GeoPoint]'s own `==` to mark a start suggestion chip
-/// selected: a suggestion like [NavTrackCorrector]'s pre-dive-fix back-solve
-/// re-derives its [GeoPoint] from scratch on every build (the same
-/// floating-point arithmetic over the same inputs, not a cached value), so
-/// exact equality would only be as robust as that recomputation happening
-/// to land on the exact same bits as it did for the selection stored in
-/// [NavTrackCorrection.anchor].
-bool _geoPointsMatch(GeoPoint? a, GeoPoint? b) {
-  if (a == null || b == null) return false;
-  return (a.latitude - b.latitude).abs() < _geoPointMatchToleranceDeg &&
-      (a.longitude - b.longitude).abs() < _geoPointMatchToleranceDeg;
-}
-
 /// The alignment page (spec 2026-09-10-underwater-nav-track-design.md, "The
 /// alignment page"): start point, end point, trust slider, rotation, scale and
 /// the terrain check, all against a transient in-memory [NavTrackCorrection]
@@ -209,7 +166,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       }
       return;
     }
-    final corrected = _activeCorrectedPoints(route.points, _correction);
+    final corrected = activeCorrectedPoints(route.points, _correction);
     final grid = await ref.read(
       bathymetryGridProvider(BathymetryRepository.quantize(anchor)).future,
     );
@@ -227,42 +184,6 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       () => _terrainResult = NavTrackTerrainCheck.run(corrected, anchor, grid),
     );
   }
-
-  /// A transient [NavTrack] carrying [_correction] instead of the persisted
-  /// one, for the map layers that read a [NavTrack] directly.
-  NavTrack _transientRoute(NavTrack base) => NavTrack(
-    id: base.id,
-    diveId: base.diveId,
-    linkMode: base.linkMode,
-    isPrimary: base.isPrimary,
-    siteId: base.siteId,
-    source: base.source,
-    sourceRef: base.sourceRef,
-    deviceName: base.deviceName,
-    name: base.name,
-    equipmentId: base.equipmentId,
-    startTime: base.startTime,
-    endTime: base.endTime,
-    tzOffsetMinutes: base.tzOffsetMinutes,
-    timeOffsetSeconds: base.timeOffsetSeconds,
-    pointCount: base.pointCount,
-    totalDistance: base.totalDistance,
-    maxDepth: base.maxDepth,
-    maxSpeed: base.maxSpeed,
-    avgSpeed: base.avgSpeed,
-    durationSeconds: base.durationSeconds,
-    anchorLatitude: _correction.anchor?.latitude,
-    anchorLongitude: _correction.anchor?.longitude,
-    endMode: _correction.endMode,
-    endLatitude: _correction.endPoint?.latitude,
-    endLongitude: _correction.endPoint?.longitude,
-    trustFraction: _correction.trustFraction,
-    headingOffsetDeg: _correction.headingOffsetDeg,
-    scaleFactor: _correction.scaleFactor,
-    points: base.points,
-    createdAt: base.createdAt,
-    updatedAt: base.updatedAt,
-  );
 
   Future<void> _persistCorrection(NavTrack route) => ref
       .read(navTrackRepositoryProvider)
@@ -365,7 +286,7 @@ class _AlignPageBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final correction = state._correction;
     final anchor = correction.anchor;
-    final transientRoute = state._transientRoute(route);
+    final transientRoute = route.withCorrection(correction);
     final fixEvents = NavTrackSegmenter.classify(route.points).fixEvents;
     final hasFix = fixEvents.isNotEmpty;
     // Gates the "GPS position at surfacing" end chip specifically: `hasFix`
@@ -396,11 +317,9 @@ class _AlignPageBody extends ConsumerWidget {
     );
 
     final endPinned = NavTrackCorrector.endIsPinned(route.points, correction);
-    final scaleHandle = scaleHandleIndex(
-      route.points,
-      start: activeStart,
-      end: activeEnd,
-    );
+    final scaleHandle = anchor == null || endPinned
+        ? null
+        : scaleHandleIndex(route.points, start: activeStart, end: activeEnd);
 
     final initialCenter = anchor != null
         ? LatLng(anchor.latitude, anchor.longitude)
@@ -472,8 +391,7 @@ class _AlignPageBody extends ConsumerWidget {
                         ),
                       if (anchor != null &&
                           scaleHandle != null &&
-                          state._placing == _Placing.none &&
-                          !endPinned)
+                          state._placing == _Placing.none)
                         NavTrackScaleHandleLayer(
                           mapKey: state._mapKey,
                           point: offsetToGeoPoint(
@@ -680,7 +598,7 @@ class _ControlsPanel extends ConsumerWidget {
         NavTrackPositionOption(
           key: 'nav-track-align-from-dive-entry',
           label: l10n.navTrack_align_fromDiveEntry,
-          selected: _geoPointsMatch(anchor, diveEntry),
+          selected: geoPointsMatch(anchor, diveEntry),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: diveEntry), route),
         ),
@@ -688,7 +606,7 @@ class _ControlsPanel extends ConsumerWidget {
         NavTrackPositionOption(
           key: 'nav-track-align-from-site',
           label: l10n.navTrack_align_fromSite,
-          selected: _geoPointsMatch(anchor, site),
+          selected: geoPointsMatch(anchor, site),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: site), route),
         ),
@@ -702,7 +620,7 @@ class _ControlsPanel extends ConsumerWidget {
           // derivation ever lands a floating-point ULP off the value stored
           // on a prior selection, instead of silently un-selecting a choice
           // the diver did not actually change (code review).
-          selected: _geoPointsMatch(anchor, preDiveFix),
+          selected: geoPointsMatch(anchor, preDiveFix),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: preDiveFix), route),
         ),

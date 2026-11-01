@@ -15,21 +15,12 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_map_drag_target.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// A correction-target marker that reports pixel-delta drags. Fine
-/// adjustment uses screen-pixel deltas converted to degrees via the local
-/// Web Mercator metres-per-pixel formula rather than any flutter_map
-/// internal API, so it stays independent of the package's camera
-/// implementation.
+/// A correction-target marker the diver drags. It reports the ground position
+/// under the pointer, offset by where it was grabbed, so it stays under the
+/// pointer whatever the camera's zoom or rotation.
 ///
-/// Uses a raw [Listener] rather than [GestureDetector]'s `onPanUpdate`: a
-/// marker sits on top of `FlutterMap`'s own pan-to-move-the-map gesture, and
-/// a plain [GestureDetector] loses the gesture arena to it almost every
-/// time, so the marker looked draggable but silently never moved (the drag
-/// panned the map underneath it instead) -- easy to miss by eye since a
-/// marker pinned to a lat/lon does not visibly detach from the map while
-/// the whole view pans with it. [Listener] receives every routed pointer
-/// event directly, independent of which [GestureRecognizer] wins the arena
-/// for the same pointer, so the marker now actually moves every time.
+/// [NavTrackMapDragTarget] explains why neither a [GestureDetector] nor a plain
+/// [Listener] can do this on a map.
 class NavTrackDraggableMarker extends StatefulWidget {
   const NavTrackDraggableMarker({
     super.key,

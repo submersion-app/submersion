@@ -11,7 +11,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The handle a diver drags to resize a track against the map: away from
 /// [pivot] grows it, toward [pivot] shrinks it, and only the distance counts,
 /// so a sideways move cannot rotate anything.
-///
 class NavTrackScaleHandleLayer extends StatefulWidget {
   const NavTrackScaleHandleLayer({
     super.key,
@@ -39,7 +38,10 @@ class NavTrackScaleHandleLayer extends StatefulWidget {
 }
 
 class _NavTrackScaleHandleLayerState extends State<NavTrackScaleHandleLayer> {
-  double _pressScale = 1;
+  /// The scale the drag works from, read at its first move rather than at the
+  /// press: pressing here is what commits a value still being typed in the
+  /// scale field, and that commit lands after the press.
+  double? _pressScale;
   double _pressDistance = 0;
 
   /// How far on the ground [global] is from the pivot.
@@ -69,12 +71,12 @@ class _NavTrackScaleHandleLayerState extends State<NavTrackScaleHandleLayer> {
               child: NavTrackMapDragTarget(
                 key: const ValueKey('nav-track-align-scale-handle'),
                 onStart: (global) {
-                  _pressScale = widget.scaleFactor;
+                  _pressScale = null;
                   _pressDistance = _distanceFromPivot(camera, global);
                 },
                 onMove: (global) => widget.onChanged(
                   scaleFromDrag(
-                    pressScale: _pressScale,
+                    pressScale: _pressScale ??= widget.scaleFactor,
                     pressDistance: _pressDistance,
                     currentDistance: _distanceFromPivot(camera, global),
                   ),
