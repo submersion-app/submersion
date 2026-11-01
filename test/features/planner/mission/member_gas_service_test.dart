@@ -78,6 +78,68 @@ void main() {
     expect(liters, isEmpty);
   });
 
+  test('travel folded into a row is charged span by span (#3927)', () {
+    final liters = service.litersByTank(
+      rows: [
+        _row(PlanScheduleRowKind.stop, 9, 300, 300),
+        const PlanScheduleRow(
+          kind: PlanScheduleRowKind.stop,
+          depthMeters: 6,
+          durationSeconds: 300,
+          runtimeSeconds: 630,
+          gasFO2: 0.5,
+          gasFHe: 0,
+          tankId: 'deco',
+          foldedTravel: [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 8,
+              seconds: 20,
+              tankId: 'back',
+            ),
+            PlanFoldedTravel(
+              fromDepthMeters: 8,
+              toDepthMeters: 6,
+              seconds: 10,
+              tankId: 'deco',
+            ),
+          ],
+        ),
+      ],
+      environment: env,
+      sacFor: (row) => row.tankId == 'deco' ? 12 : 15,
+    );
+    expect(liters['back'], closeTo(142.5 + 7.4, 1e-6));
+    expect(liters['deco'], closeTo(96 + 3.4, 1e-6));
+  });
+
+  test('folded travel on no cylinder is ignored', () {
+    final liters = service.litersByTank(
+      rows: [
+        const PlanScheduleRow(
+          kind: PlanScheduleRowKind.stop,
+          depthMeters: 6,
+          durationSeconds: 60,
+          runtimeSeconds: 90,
+          gasFO2: 0.21,
+          gasFHe: 0,
+          tankId: 'back',
+          foldedTravel: [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 6,
+              seconds: 30,
+              tankId: null,
+            ),
+          ],
+        ),
+      ],
+      environment: env,
+      sacFor: (_) => 10,
+    );
+    expect(liters, {'back': closeTo(16, 1e-6)});
+  });
+
   test('remainingBar inverts the ideal gas volume', () {
     const tank = DiveTank(
       id: 'back',

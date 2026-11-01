@@ -2756,10 +2756,7 @@ class PlanEngine {
               'ppO2 ${check.ppO2.toStringAsFixed(2)} bar at the MOD set on '
               '${tank.name ?? tank.gasMix.name} exceeds its limit',
           // Where the diver first breathes it (#3738).
-          atRuntime: schedule
-              .where((row) => row.tankId == tank.id)
-              .firstOrNull
-              ?.startRuntimeSeconds,
+          atRuntime: _firstBreathedRuntime(schedule, tank.id),
           atDepth: tank.decoSwitchDepth,
           value: check.ppO2,
           threshold: check.limitPpO2,
@@ -2767,6 +2764,21 @@ class PlanEngine {
       );
     }
     return issues;
+  }
+
+  /// When [tankId] is first breathed, which can be partway up a leg folded
+  /// into a line rather than at the start of a line of its own.
+  int? _firstBreathedRuntime(List<PlanScheduleRow> schedule, String tankId) {
+    var runtime = 0;
+    for (final row in schedule) {
+      for (final leg in row.foldedTravel) {
+        if (leg.tankId == tankId && leg.seconds > 0) return runtime;
+        runtime += leg.seconds;
+      }
+      if (row.tankId == tankId) return row.startRuntimeSeconds;
+      runtime = row.runtimeSeconds;
+    }
+    return null;
   }
 
   List<PlanStop> _mapStops(
@@ -2836,7 +2848,8 @@ class PlanEngine {
   static const double _gasFractionEpsilon = 0.0005;
 
   /// The dive as table lines: the authored legs, then the computed ascent as
-  /// alternating travel legs and stops, ending with the leg to the surface.
+  /// the leg to the first stop, every stop, and the leg to the surface. Travel
+  /// between two stops has no line: it folds into the stop it leads to.
   ///
   /// Travel durations are read off the stops' arrival times rather than
   /// recomputed, so a line can never disagree with the stop it leads to. A
@@ -2903,6 +2916,7 @@ class PlanEngine {
       // line for. The bailout table (BailoutSolver._scheduleRowsFor) follows
       // the same convention so the two tables read alike.
       double? physicsDepth,
+      List<PlanFoldedTravel> foldedTravel = const [],
     }) {
       final lastFO2 = previousFO2;
       final lastFHe = previousFHe;
@@ -2936,6 +2950,7 @@ class PlanEngine {
               he: fHe * 100,
             ).end(pDepth, o2Narcotic: config.o2Narcotic),
           ),
+          foldedTravel: foldedTravel,
         ),
       );
       previousFO2 = fO2;
@@ -2969,6 +2984,22 @@ class PlanEngine {
       );
     }
 
+    // The cylinder a stretch of ascent leaving [depth] draws from. A loop
+    // stays on its supply the whole way up.
+    String? travelTankId(double depth) {
+      if (ascentPlan is LoopAscentGas) {
+        return loopSupplyTankId ??
+            _tankForGas(
+              plan.tanks,
+              ascentPlan.supplyFO2,
+              ascentPlan.supplyFHe,
+              isCcr: isCcr,
+            );
+      }
+      final gas = ascentPlan.gasForDepth(depth);
+      return _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
+    }
+
     void addTravel(double from, double to, int duration, int arrival) {
       if (ascentPlan is LoopAscentGas) {
         // The loop's displayed gas never changes mid-ascent (it stays on
@@ -2981,14 +3012,7 @@ class PlanEngine {
           runtime: arrival,
           fO2: ascentPlan.supplyFO2,
           fHe: ascentPlan.supplyFHe,
-          tankId:
-              loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                ascentPlan.supplyFO2,
-                ascentPlan.supplyFHe,
-                isCcr: isCcr,
-              ),
+          tankId: travelTankId(from),
           physicsDepth: from,
           ppO2Override: loopPpO2At(from),
         );
@@ -3016,11 +3040,28 @@ class PlanEngine {
           runtime: legArrival,
           fO2: gas.fO2,
           fHe: gas.fHe,
-          tankId: _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr),
+          tankId: travelTankId(span.fromDepth),
           physicsDepth: span.fromDepth,
         );
       }
     }
+
+    // The same split and the same cylinders as addTravel, for a leg with no
+    // line of its own.
+    List<PlanFoldedTravel> foldTravel(double from, double to, int duration) => [
+      for (final span in splitAscentLeg(
+        ascentPlan,
+        fromDepth: from,
+        toDepth: to,
+        seconds: duration,
+      ))
+        PlanFoldedTravel(
+          fromDepthMeters: span.fromDepth,
+          toDepthMeters: span.toDepth,
+          seconds: span.seconds,
+          tankId: travelTankId(span.fromDepth),
+        ),
+    ];
 
     var depth = lastDepth;
     var end = segmentsRuntime;
@@ -3030,15 +3071,15 @@ class PlanEngine {
       final travel = stop.arrivalRuntimeSeconds - end;
       // The first travel leg (bottom phase to the first stop) stays its own
       // row, an informative transition. From the second stop on, a gas
-      // switch at its MOD lands exactly at the stop it leads into
-      // (AscentGasPlan's design: a switch-at-MOD never falls strictly
-      // between two 3 m-spaced stops), so a travel-between-stops row would
-      // nearly always repeat the previous line's gas, which is clutter, not
-      // information. A switch depth the diver set can fall inside the leg:
-      // the line stays folded, and _computeTankUsages and the exposure
-      // spans still split it. Dropping it loses nothing: scheduleLines()
+      // switch at its MOD lands at or just deeper than the stop it leads
+      // into, so a travel-between-stops row would nearly always repeat the
+      // previous line's gas, which is clutter, not information. A switch
+      // depth the diver set can fall further up the leg. Either way the line
+      // stays folded, and _computeTankUsages and the exposure spans still
+      // split it. Dropping it loses nothing: scheduleLines()
       // already derives each printed duration from consecutive runtimeSeconds, so
-      // the travel time folds straight into the stop it leads to (#3138).
+      // the travel time folds straight into the stop it leads to (#3138). The
+      // stop's row keeps the leg for whatever charges gas from the rows (#3927).
       if (i == 0 && travel > 0) {
         addTravel(depth, stop.depthMeters, travel, stop.arrivalRuntimeSeconds);
       }
@@ -3054,6 +3095,9 @@ class PlanEngine {
         airBreakSeconds: stop.airBreakSeconds,
         airBreakTankId: stop.airBreakTankId,
         ppO2Override: loopPpO2At(stop.depthMeters),
+        foldedTravel: i > 0 && travel > 0
+            ? foldTravel(depth, stop.depthMeters, travel)
+            : const [],
       );
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
