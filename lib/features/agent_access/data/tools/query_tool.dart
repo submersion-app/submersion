@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_summary_document.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
+import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -89,8 +90,14 @@ class QueryTool implements AgentTool {
   ) async {
     final root = _rootFor(args['root']);
     final text = (args['query'] as String?) ?? '';
-    final limit = _intArg(args, 'limit', kQueryDefaultLimit, 1, kQueryMaxLimit);
-    final offset = _intArg(args, 'offset', 0, 0, null);
+    final limit = intArg(
+      args,
+      'limit',
+      fallback: kQueryDefaultLimit,
+      min: 1,
+      max: kQueryMaxLimit,
+    );
+    final offset = intArg(args, 'offset', fallback: 0, min: 0);
     final includeSummaries = args['include_summaries'] == true;
 
     final ctx = await _loader.load(diverId: args['diver_id'] as String?);
@@ -162,25 +169,6 @@ class QueryTool implements AgentTool {
       );
     }
     return appQueryRegistry.entityFor(subject);
-  }
-
-  int _intArg(
-    Map<String, Object?> args,
-    String key,
-    int fallback,
-    int min,
-    int? max,
-  ) {
-    final raw = args[key];
-    if (raw == null) return fallback;
-    if (raw is! int || raw < min || (max != null && raw > max)) {
-      throw AgentToolException(
-        AgentToolErrorCode.invalidArgument,
-        '$key must be an integer from $min${max == null ? '' : ' to $max'}.',
-        details: {key: raw},
-      );
-    }
-    return raw;
   }
 
   AgentToolException _parseError(QueryError error) => AgentToolException(

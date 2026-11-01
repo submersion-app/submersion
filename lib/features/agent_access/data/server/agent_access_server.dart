@@ -120,6 +120,7 @@ class AgentAccessServer {
     try {
       await server.start();
     } on SocketException catch (e) {
+      unawaited(server.stop().catchError((_) {}));
       _publish(
         AgentAccessStatus(
           listening: false,
@@ -129,6 +130,11 @@ class AgentAccessServer {
         ),
       );
       return;
+    } catch (_) {
+      // Anything else is reported by the caller; release what was bound so
+      // the next start on this port does not collide with a ghost listener.
+      unawaited(server.stop().catchError((_) {}));
+      rethrow;
     }
     _server = server;
     _publish(AgentAccessStatus(listening: true, port: server.boundPort));
@@ -156,7 +162,21 @@ class AgentAccessServer {
     AgentAccessStatus(listening: false, port: _status.port, error: message),
   );
 
-  void _touch() => _publish(_status.copyWith(lastRequestAt: DateTime.now()));
+  /// Records an accepted request. The settings page watches the stream, so
+  /// a busy agent must not rebuild it on every call: the time is always
+  /// updated, but listeners hear about it at most once a second.
+  void _touch() {
+    final now = DateTime.now();
+    final previous = _status.lastRequestAt;
+    final next = _status.copyWith(lastRequestAt: now);
+    if (previous != null && now.difference(previous) < _touchInterval) {
+      _status = next;
+      return;
+    }
+    _publish(next);
+  }
+
+  static const _touchInterval = Duration(seconds: 1);
 
   void _publish(AgentAccessStatus next) {
     _status = next;

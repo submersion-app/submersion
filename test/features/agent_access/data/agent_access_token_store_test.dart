@@ -33,6 +33,15 @@ void main() {
       expect(await store.read(), isNull);
     });
 
+    test('an empty stored token is replaced on ensure', () async {
+      final keychain = InMemoryKeychain()
+        ..values[AgentAccessTokenStore.key] = '';
+      final store = AgentAccessTokenStore(storage: keychain);
+      final token = await store.ensure();
+      expect(token, hasLength(43));
+      expect(keychain.values[AgentAccessTokenStore.key], token);
+    });
+
     test('the token is stored under the agent_access_token key', () async {
       final keychain = InMemoryKeychain();
       final store = AgentAccessTokenStore(storage: keychain);

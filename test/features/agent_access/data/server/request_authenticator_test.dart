@@ -23,6 +23,12 @@ void main() {
       },
     );
 
+    test('an empty expected token never matches, not even an empty header', () {
+      final none = RequestAuthenticator(() => '');
+      expect(none.accepts('Bearer '), isFalse);
+      expect(none.accepts('Bearer x'), isFalse);
+    });
+
     test('reads the expected token on every call so a rotation applies', () {
       var current = 'one';
       final rotating = RequestAuthenticator(() => current);

@@ -22,6 +22,8 @@ class RequestAuthenticator {
       authorizationHeader.substring(_scheme.length),
     );
     final expected = utf8.encode(_expectedToken());
+    // No token configured means nothing is accepted, whatever was presented.
+    if (expected.isEmpty) return false;
     return _constantTimeEquals(presented, expected);
   }
 

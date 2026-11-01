@@ -26,7 +26,7 @@ class AgentAccessTokenStore {
   /// Returns the stored token, generating and storing one if none exists.
   Future<String> ensure() async {
     final existing = await read();
-    if (existing != null) return existing;
+    if (existing != null && existing.isNotEmpty) return existing;
     return regenerate();
   }
 

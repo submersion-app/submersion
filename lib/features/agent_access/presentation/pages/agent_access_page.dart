@@ -103,14 +103,15 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
             onChanged: notifier.setConfirmWrites,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Text(
               l10n.settings_agentAccess_scopeNote,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
+          const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
             child: buildSettingsSectionHeader(
               context,
               l10n.settings_agentAccess_snippets,

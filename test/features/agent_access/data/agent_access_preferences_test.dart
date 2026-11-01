@@ -39,6 +39,11 @@ void main() {
       expect(privileged.read().port, kAgentAccessDefaultPort);
     });
 
+    test('a stored port of the wrong type falls back to the default', () async {
+      final prefs = await prefsWith({AgentAccessPreferences.portKey: '47831'});
+      expect(prefs.read().port, kAgentAccessDefaultPort);
+    });
+
     test('copyWith changes only the named field', () {
       const base = AgentAccessSettings();
       final enabled = base.copyWith(enabled: true);

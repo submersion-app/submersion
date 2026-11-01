@@ -18,7 +18,8 @@ class AgentAccessPreferences {
 
   AgentAccessSettings read() {
     const defaults = AgentAccessSettings();
-    final storedPort = _prefs.getInt(portKey);
+    final stored = _prefs.get(portKey);
+    final storedPort = stored is int ? stored : null;
     final port =
         storedPort != null &&
             storedPort >= kAgentAccessMinPort &&

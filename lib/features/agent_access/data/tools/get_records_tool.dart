@@ -1,9 +1,11 @@
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/documents/dive_document.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
+import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -95,13 +97,13 @@ class GetRecordsTool implements AgentTool {
     }
     final ids = _ids(args['ids']);
     final include = _include(args['include']);
-    final profileOffset = _intArg(args, 'profile_offset', 0, 0, null);
-    final profileLimit = _intArg(
+    final profileOffset = intArg(args, 'profile_offset', fallback: 0, min: 0);
+    final profileLimit = intArg(
       args,
       'profile_limit',
-      kProfileDefaultLimit,
-      1,
-      kProfileMaxLimit,
+      fallback: kProfileDefaultLimit,
+      min: 1,
+      max: kProfileMaxLimit,
     );
     final diverId = await _loader.resolveDiverId(args['diver_id'] as String?);
 
@@ -112,10 +114,23 @@ class GetRecordsTool implements AgentTool {
           }
         : const <String, String>{};
 
+    // The profile is the one expensive part of a dive; decode it only when
+    // the caller asked for that block, and load the rest in one batch.
+    final byId = <String, Dive>{};
+    if (include.contains('profile')) {
+      for (final id in ids) {
+        final dive = await _dives.getDiveById(id);
+        if (dive != null) byId[id] = dive;
+      }
+    } else {
+      for (final dive in await _dives.getDivesByIdsWithoutSamples(ids)) {
+        byId[dive.id] = dive;
+      }
+    }
     final records = <Map<String, Object?>>[];
     final missing = <String>[];
     for (final id in ids) {
-      final dive = await _dives.getDiveById(id);
+      final dive = byId[id];
       if (dive == null || dive.diverId != diverId) {
         missing.add(id);
         continue;
@@ -169,24 +184,5 @@ class GetRecordsTool implements AgentTool {
       );
     }
     return raw.cast<String>().toSet();
-  }
-
-  int _intArg(
-    Map<String, Object?> args,
-    String key,
-    int fallback,
-    int min,
-    int? max,
-  ) {
-    final raw = args[key];
-    if (raw == null) return fallback;
-    if (raw is! int || raw < min || (max != null && raw > max)) {
-      throw AgentToolException(
-        AgentToolErrorCode.invalidArgument,
-        '$key must be an integer from $min${max == null ? '' : ' to $max'}.',
-        details: {key: raw},
-      );
-    }
-    return raw;
   }
 }

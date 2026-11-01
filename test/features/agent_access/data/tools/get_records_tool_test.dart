@@ -182,6 +182,25 @@ void main() {
       );
     });
 
+    test('profile block is loaded only when asked', () async {
+      final without = await tool().call({
+        'entity': 'dives',
+        'ids': ['a1'],
+      }, ctx());
+      final record = (without['records'] as List).cast<Map>().single;
+      expect(record.containsKey('profile'), isFalse);
+      final withProfile = await tool().call({
+        'entity': 'dives',
+        'ids': ['a1'],
+        'include': ['profile'],
+      }, ctx());
+      final profile =
+          ((withProfile['records'] as List).cast<Map>().single['profile']
+              as Map);
+      expect(profile['total'], 0);
+      expect(profile['samples'], isEmpty);
+    });
+
     test('buddies and sightings come from their repositories', () async {
       final out = await tool().call({
         'entity': 'dives',
