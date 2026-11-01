@@ -89,7 +89,8 @@ class _PlanSurfaceIntervalFieldState
   }
 
   void _stepBy(Duration delta) {
-    final next = _interval + delta;
+    // From what the field shows: the diver may have typed without leaving it.
+    final next = (parseHoursMinutes(_controller.text) ?? _interval) + delta;
     _set(next.isNegative ? Duration.zero : next);
   }
 

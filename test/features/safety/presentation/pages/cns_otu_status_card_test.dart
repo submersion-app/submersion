@@ -238,9 +238,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(hours: 1),
-          ),
+          lastDiveEnd: endedAgo(const Duration(hours: 1)),
           exposure: const O2Exposure(cnsUnknownDiveAge: Duration.zero),
         ),
       );
@@ -254,9 +252,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(hours: 13),
-          ),
+          lastDiveEnd: endedAgo(const Duration(hours: 13)),
           exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 12)),
         ),
       );
@@ -270,9 +266,7 @@ void main() {
       await pumpCard(
         tester,
         snapshotOf(
-          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
-            const Duration(days: 2),
-          ),
+          lastDiveEnd: endedAgo(const Duration(days: 2)),
           exposure: const O2Exposure(cnsUnknownDiveAge: Duration(hours: 1)),
           weeklyOtu: 120,
         ),
