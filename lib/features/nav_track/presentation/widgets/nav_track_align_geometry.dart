@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
@@ -39,4 +40,47 @@ int trustCutoffIndex(List<double> cumulative, double trustedDistance) {
     if (cumulative[i] >= trustedDistance) return i;
   }
   return cumulative.isEmpty ? 0 : cumulative.length - 1;
+}
+
+/// The corrected points of the ACTIVE dead-reckoned range only -- up to
+/// [NavTrackCorrector.activeRangeEndIndex] -- for the terrain check and its
+/// conflict-dot overlay. A GPS-fixed/out-of-water tail (a device sitting on
+/// a car dashboard, say) is not part of the diver's swim path and must not
+/// be checked against the seafloor at all: including it would inflate the
+/// "N points on land / below the seafloor" readout with samples that have
+/// nothing to do with where the route actually sits, the same "whole raw
+/// recording" mistake the 3D ribbon, the 2D layer and the summary
+/// statistics elsewhere in this module already avoid.
+List<CorrectedNavTrackPoint> activeCorrectedPoints(
+  List<NavTrackPoint> points,
+  NavTrackCorrection correction,
+) {
+  final range = NavTrackCorrector.activeRange(points);
+  final corrected = NavTrackCorrector.apply(points, correction);
+  return corrected.sublist(
+    range.start.clamp(0, corrected.length),
+    (range.end + 1).clamp(0, corrected.length),
+  );
+}
+
+/// A degree tolerance for [geoPointsMatch]: well under a millimetre at any
+/// latitude, loose enough to absorb floating-point rounding differences
+/// between two independently computed values that are meant to be the same
+/// point, tight enough that two genuinely different suggestions never read
+/// as a match.
+const double _geoPointMatchToleranceDeg = 1e-9;
+
+/// Whether [a] and [b] are the same point, within [_geoPointMatchToleranceDeg].
+///
+/// Used instead of [GeoPoint]'s own `==` to mark a start suggestion chip
+/// selected: a suggestion like [NavTrackCorrector]'s pre-dive-fix back-solve
+/// re-derives its [GeoPoint] from scratch on every build (the same
+/// floating-point arithmetic over the same inputs, not a cached value), so
+/// exact equality would only be as robust as that recomputation happening
+/// to land on the exact same bits as it did for the selection stored in
+/// [NavTrackCorrection.anchor].
+bool geoPointsMatch(GeoPoint? a, GeoPoint? b) {
+  if (a == null || b == null) return false;
+  return (a.latitude - b.latitude).abs() < _geoPointMatchToleranceDeg &&
+      (a.longitude - b.longitude).abs() < _geoPointMatchToleranceDeg;
 }

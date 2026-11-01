@@ -25,6 +25,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -1569,6 +1570,439 @@ void main() {
     testWidgets('a missing track says the track was not found', (tester) async {
       await pumpAlign(tester, () async => null);
       expect(find.text('Track not found.'), findsOneWidget);
+    });
+  });
+
+  group('opening framing (#3823)', () {
+    MapController controllerOf(WidgetTester tester) =>
+        tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!;
+
+    // Due north, [metres] long.
+    List<NavTrackPoint> run(double metres) => [
+      for (var i = 0; i < 20; i++)
+        NavTrackPoint(
+          timestamp: 1755856800 + i * 10,
+          north: i * metres / 19,
+          east: 0,
+          depth: 5,
+        ),
+    ];
+
+    NavTrack anchoredRun(double metres, {double scale = 1}) =>
+        _route().copyWith(
+          anchorLatitude: 10,
+          anchorLongitude: 20,
+          points: run(metres),
+          scaleFactor: scale,
+        );
+
+    bool shows(WidgetTester tester, double north) =>
+        controllerOf(tester).camera.visibleBounds.contains(
+          LatLng(
+            offsetToGeoPoint(
+              const GeoPoint(10, 20),
+              east: 0,
+              north: north,
+            ).latitude,
+            20,
+          ),
+        );
+
+    testWidgets('opens with the whole of a long track in view', (tester) async {
+      await _pump(tester, route: anchoredRun(5000));
+      expect(shows(tester, 0), isTrue);
+      expect(shows(tester, 5000), isTrue);
+    });
+
+    testWidgets('opens fitted to the track as scaled', (tester) async {
+      await _pump(tester, route: anchoredRun(1000, scale: 4));
+      expect(shows(tester, 4000), isTrue);
+    });
+
+    testWidgets('opens close enough that a small track keeps its handle clear '
+        'of the start marker', (tester) async {
+      await _pump(tester, route: anchoredRun(100));
+      final handle = tester.getCenter(
+        find.byKey(const ValueKey('nav-track-align-scale-handle')),
+      );
+      final start = tester.getCenter(
+        find.byKey(const ValueKey('nav-track-align-start-marker')),
+      );
+      expect((handle - start).distance, greaterThan(36));
+    });
+
+    testWidgets('a track with no start point opens on the world view', (
+      tester,
+    ) async {
+      await _pump(tester, route: _route());
+      expect(controllerOf(tester).camera.zoom, 3);
+    });
+
+    testWidgets('resizing the map does not undo the diver\'s own framing', (
+      tester,
+    ) async {
+      await _pump(tester, route: anchoredRun(1000));
+      final controller = controllerOf(tester);
+      controller.move(const LatLng(10.5, 20.5), 12);
+      await tester.pump();
+      // Pinning the end adds the hint, which takes height from the map.
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-place-end')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
+      await tester.pumpAndSettle();
+      expect(controller.camera.center.latitude, closeTo(10.5, 0.01));
+      expect(controller.camera.zoom, 12);
+    });
+  });
+
+  group('dragging a start or end marker', () {
+    const startMarker = ValueKey('nav-track-align-start-marker');
+    const endMarker = ValueKey('nav-track-align-end-marker');
+
+    NavTrack anchored() => _route().copyWith(
+      anchorLatitude: 10,
+      anchorLongitude: 20,
+      endMode: NavTrackEndMode.point,
+      endLatitude: 10.002,
+      endLongitude: 20.002,
+    );
+
+    MapController controllerOf(WidgetTester tester) =>
+        tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!;
+
+    Future<void> drag(WidgetTester tester, Key key, Offset by) async {
+      final from = tester.getCenter(find.byKey(key));
+      final gesture = await tester.startGesture(from);
+      await tester.pump();
+      for (var i = 1; i <= 8; i++) {
+        await gesture.moveTo(from + by * (i / 8));
+        await tester.pump();
+      }
+      await gesture.up();
+      await tester.pump();
+    }
+
+    testWidgets('does not pan the map', (tester) async {
+      await _pump(tester, route: anchored());
+      final before = controllerOf(tester).camera.center;
+      await drag(tester, startMarker, const Offset(50, 30));
+      expect(controllerOf(tester).camera.center, before);
+    });
+
+    testWidgets('keeps the start marker under the pointer', (tester) async {
+      await _pump(tester, route: anchored());
+      final from = tester.getCenter(find.byKey(startMarker));
+      const by = Offset(50, 30);
+      await drag(tester, startMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(startMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+
+    testWidgets('keeps the end marker under the pointer', (tester) async {
+      await _pump(tester, route: anchored());
+      final from = tester.getCenter(find.byKey(endMarker));
+      const by = Offset(-40, 25);
+      await drag(tester, endMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(endMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+
+    testWidgets('tracks the pointer on a rotated map', (tester) async {
+      await _pump(tester, route: anchored());
+      controllerOf(tester).rotate(90);
+      await tester.pumpAndSettle();
+      final from = tester.getCenter(find.byKey(startMarker));
+      const by = Offset(50, 30);
+      await drag(tester, startMarker, by);
+      expect(
+        (tester.getCenter(find.byKey(startMarker)) - (from + by)).distance,
+        lessThan(1),
+      );
+    });
+  });
+
+  group('track scale (#3823)', () {
+    const scaleUp = ValueKey('nav-track-align-scale-up');
+    const hint = ValueKey('nav-track-align-scale-pinned-hint');
+
+    NavTrack anchored({
+      NavTrackEndMode endMode = NavTrackEndMode.none,
+      double? endLatitude,
+      double? endLongitude,
+    }) => _route().copyWith(
+      anchorLatitude: 10,
+      anchorLongitude: 20,
+      endMode: endMode,
+      endLatitude: endLatitude,
+      endLongitude: endLongitude,
+    );
+
+    double fieldPercent(WidgetTester tester) => double.parse(
+      tester
+          .widget<TextField>(
+            find.byKey(const ValueKey('nav-track-align-scale-field')),
+          )
+          .controller!
+          .text,
+    );
+
+    testWidgets('Save persists the scale', (tester) async {
+      final repository = await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.pumpAndSettle();
+      expect(repository.lastCorrection?.scaleFactor, closeTo(1.01, 1e-9));
+    });
+
+    testWidgets('Cancel does not persist the scale', (tester) async {
+      final repository = await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-cancel')));
+      await tester.pumpAndSettle();
+      expect(repository.lastCorrection, isNull);
+    });
+
+    testWidgets('Reset returns the scale to 100%', (tester) async {
+      await _pump(tester, route: _route());
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      expect(fieldPercent(tester), 101);
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-reset')));
+      await tester.pump();
+      expect(fieldPercent(tester), 100);
+    });
+
+    testWidgets('a saved scale opens in the field', (tester) async {
+      await _pump(tester, route: _route().copyWith(scaleFactor: 1.38));
+      expect(fieldPercent(tester), 138);
+    });
+
+    testWidgets('a scale change moves the drawn track', (tester) async {
+      await _pump(tester, route: anchored());
+      NavTrack drawn() => tester
+          .widget<NavTrackPolylineLayer>(find.byType(NavTrackPolylineLayer))
+          .route;
+      expect(drawn().scaleFactor, 1);
+      await tester.tap(find.byKey(scaleUp));
+      await tester.pump();
+      expect(drawn().scaleFactor, closeTo(1.01, 1e-9));
+    });
+
+    testWidgets('the hint shows while an end point pins the end', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ),
+      );
+      expect(find.byKey(hint), findsOneWidget);
+    });
+
+    testWidgets('no hint for Same as start', (tester) async {
+      await _pump(
+        tester,
+        route: anchored(endMode: NavTrackEndMode.sameAsStart),
+      );
+      expect(find.byKey(hint), findsNothing);
+    });
+
+    testWidgets('no hint with no end', (tester) async {
+      await _pump(tester, route: anchored());
+      expect(find.byKey(hint), findsNothing);
+    });
+
+    testWidgets('fits a phone with the widest value and the hint showing', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ).copyWith(scaleFactor: 4, headingOffsetDeg: -180),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(fieldPercent(tester), 400);
+      expect(find.byKey(hint), findsOneWidget);
+      // Too wide for one row at this width, so Scale drops below Rotation.
+      expect(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('nav-track-align-scale-field')),
+            )
+            .dy,
+        greaterThan(
+          tester
+              .getTopLeft(
+                find.byKey(const ValueKey('nav-track-align-rotation-field')),
+              )
+              .dy,
+        ),
+      );
+      for (final key in [
+        'nav-track-align-scale-down',
+        'nav-track-align-scale-up',
+        'nav-track-align-rotate-up',
+      ]) {
+        expect(
+          tester.getBottomRight(find.byKey(ValueKey(key))).dx,
+          lessThanOrEqualTo(390),
+        );
+      }
+    });
+
+    group('the handle', () {
+      const handle = ValueKey('nav-track-align-scale-handle');
+
+      // An out-and-back about 230 m long, so at the page's opening zoom the
+      // handle clears the start marker and stays inside the test's small map.
+      NavTrack longTrack({
+        NavTrackEndMode endMode = NavTrackEndMode.none,
+        double trustFraction = 0,
+      }) => _route().copyWith(
+        anchorLatitude: 10,
+        anchorLongitude: 20,
+        endMode: endMode,
+        trustFraction: trustFraction,
+        points: [
+          for (var i = 0; i < 20; i++)
+            NavTrackPoint(
+              timestamp: 1755856800 + i * 10,
+              north: i < 10 ? i * 25.0 : (19 - i) * 25.0,
+              east: i < 10 ? i * 5.0 : 100.0 - i * 5.0,
+              depth: 5,
+            ),
+        ],
+      );
+
+      Future<void> dragHandle(WidgetTester tester, Offset by) async {
+        final from = tester.getCenter(find.byKey(handle));
+        final gesture = await tester.startGesture(from);
+        await tester.pump();
+        for (var i = 1; i <= 8; i++) {
+          await gesture.moveTo(from + by * (i / 8));
+          await tester.pump();
+        }
+        await gesture.up();
+        await tester.pump();
+      }
+
+      testWidgets('shows once the track is on the map', (tester) async {
+        await _pump(tester, route: longTrack());
+        expect(find.byKey(handle), findsOneWidget);
+      });
+
+      testWidgets('is hidden with no start point', (tester) async {
+        await _pump(tester, route: _route());
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden on a track under 10 m', (tester) async {
+        await _pump(
+          tester,
+          route: anchored().copyWith(
+            points: const [
+              NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 5),
+              NavTrackPoint(timestamp: 1755856810, north: 4, east: 3, depth: 5),
+            ],
+          ),
+        );
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden while placing a point', (tester) async {
+        await _pump(tester, route: longTrack());
+        await tester.tap(
+          find.byKey(const ValueKey('nav-track-align-place-start')),
+        );
+        await tester.pump();
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden while the end is pinned', (tester) async {
+        await _pump(
+          tester,
+          route: longTrack(
+            endMode: NavTrackEndMode.point,
+          ).copyWith(endLatitude: 10.001, endLongitude: 20.001),
+        );
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('a drag updates the scale field live', (tester) async {
+        await _pump(tester, route: longTrack());
+        await dragHandle(tester, const Offset(10, -60));
+        expect(fieldPercent(tester), greaterThan(100));
+      });
+
+      testWidgets('Save persists a dragged scale', (tester) async {
+        final repository = await _pump(tester, route: longTrack());
+        await dragHandle(tester, const Offset(10, -60));
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastCorrection!.scaleFactor, greaterThan(1));
+      });
+
+      testWidgets('stays under the pointer with Same as start and trust set', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          route: longTrack(
+            endMode: NavTrackEndMode.sameAsStart,
+            trustFraction: 0.3,
+          ),
+        );
+        final from = tester.getCenter(find.byKey(handle));
+        final start = tester.getCenter(
+          find.byKey(const ValueKey('nav-track-align-start-marker')),
+        );
+        // Out along the line from the start: the handle reads distance only.
+        final by = (from - start) * 0.4;
+        final gesture = await tester.startGesture(from);
+        await tester.pump();
+        for (var i = 1; i <= 8; i++) {
+          await gesture.moveTo(from + by * (i / 8));
+          await tester.pump();
+        }
+        expect(
+          (tester.getCenter(find.byKey(handle)) - (from + by)).distance,
+          lessThan(2),
+        );
+        await gesture.up();
+      });
+    });
+
+    testWidgets('picking Same as start clears the hint', (tester) async {
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-align-end-same-as-start')),
+      );
+      await tester.pump();
+      expect(find.byKey(hint), findsNothing);
     });
   });
 

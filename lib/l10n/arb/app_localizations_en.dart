@@ -24343,6 +24343,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Track scale factor';
+
+  @override
   String get settings_conflict_field_height => 'Height in pixels';
 
   @override
@@ -35051,6 +35054,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device\'s Bluetooth settings, then try again.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device\'s Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Your device will not talk to this dive computer until they are paired. Turn on the dive computer\'s Bluetooth mode, pair it in your device\'s Bluetooth settings, then try again.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54089,6 +54104,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Scale:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'Drag to resize the track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54140,6 +54165,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'No correction applied yet.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Track scale: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

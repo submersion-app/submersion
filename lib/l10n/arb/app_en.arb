@@ -14743,6 +14743,7 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Heading in degrees",
   "settings_conflict_field_headingOffsetDeg": "Heading correction in degrees",
+  "settings_conflict_field_scaleFactor": "Track scale factor",
   "settings_conflict_field_height": "Height in pixels",
   "settings_conflict_field_heightCm": "Height",
   "settings_conflict_field_heightMeters": "Tide height",
@@ -21170,6 +21171,9 @@
   },
   "diveComputer_download_stalePairing": "This dive computer's Bluetooth pairing is out of date. Forget the dive computer in your device's Bluetooth settings, then pair it again from the dive computer's Bluetooth menu.",
   "diveComputer_download_discoveryStalled": "Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleDeviceNotFound": "Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device's Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.",
+  "diveComputer_download_blePairingRequired": "Your device will not talk to this dive computer until they are paired. Turn on the dive computer's Bluetooth mode, pair it in your device's Bluetooth settings, then try again.",
+  "diveComputer_download_bleUnreachable": "The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.",
   "diveComputer_download_serialConnectFailedWithDetails": "Could not connect to dive computer.\n\nDiagnostic details (share with developers):\n{details}",
   "@diveComputer_download_serialConnectFailedWithDetails": {
     "placeholders": {
@@ -32377,6 +32381,9 @@
     }
   },
   "navTrack_align_rotationLabel": "Rotation:",
+  "navTrack_align_scaleLabel": "Scale:",
+  "navTrack_align_scalePinnedHint": "The end is pinned, so it sets the track's size. Scale only reshapes the path between.",
+  "navTrack_align_scaleHandleLabel": "Drag to resize the track",
   "navTrack_terrain_summary": "{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}",
   "@navTrack_terrain_summary": {
     "placeholders": {
@@ -32419,6 +32426,14 @@
   "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
   "navTrack_detail_correctionStatus_none": "No correction applied yet.",
+  "navTrack_detail_scaleStatus": "Track scale: {percent}%",
+  "@navTrack_detail_scaleStatus": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
   "navTrack_detail_correctionStatus_point": "End point set on the map.",
   "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",

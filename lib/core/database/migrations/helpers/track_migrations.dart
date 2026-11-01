@@ -21,6 +21,7 @@ extension TrackMigrations on AppDatabase {
     // the column to a pre-v252 table, whichever backstop runs first.
     await _assertNavTrackDiverIdColumn();
     await _assertNavTrackSourceMetadataColumn();
+    await _assertNavTrackScaleFactorColumn();
   }
 
   /// v252: nav_tracks.diver_id, the route's owner, and its index.
@@ -44,6 +45,18 @@ extension TrackMigrations on AppDatabase {
   Future<void> _assertNavTrackSourceMetadataColumn() async {
     if (!await _tableExists('nav_tracks')) return;
     await _addColumnIfMissing('nav_tracks', 'source_metadata', 'TEXT');
+  }
+
+  /// v335: nav_tracks.scale_factor (issue #3823). Idempotent; called from the
+  /// v335 onUpgrade step and from [_assertNavTracksSchema], which the
+  /// beforeOpen backstop runs on every open.
+  Future<void> _assertNavTrackScaleFactorColumn() async {
+    if (!await _tableExists('nav_tracks')) return;
+    await _addColumnIfMissing(
+      'nav_tracks',
+      'scale_factor',
+      'REAL NOT NULL DEFAULT 1.0',
+    );
   }
 
   /// v252 backfill: a linked route takes its dive's diver. An unlinked

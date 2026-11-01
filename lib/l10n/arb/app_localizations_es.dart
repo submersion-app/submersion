@@ -24745,6 +24745,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Factor de escala del track';
+
+  @override
   String get settings_conflict_field_height => 'Alto en píxeles';
 
   @override
@@ -35678,6 +35682,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Se conectó al ordenador de buceo, pero dejó de responder antes de que comenzara la descarga. Normalmente esto significa que el emparejamiento Bluetooth está obsoleto: olvida el ordenador de buceo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'No se encontró este ordenador de buceo por Bluetooth LE. Activa su modo Bluetooth y vuelve a buscar. Si aparece en los ajustes de Bluetooth de tu dispositivo, elimínalo primero de ahí: puede que solo figure como dispositivo Bluetooth clásico.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Tu dispositivo no se comunicará con este ordenador de buceo hasta que estén emparejados. Activa el modo Bluetooth del ordenador de buceo, emparéjalo en los ajustes de Bluetooth de tu dispositivo y vuelve a intentarlo.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'El ordenador de buceo no respondió por Bluetooth. Comprueba que su modo Bluetooth sigue activo y que está cerca de tu dispositivo, y vuelve a intentarlo.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -55013,6 +55029,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotación:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Escala:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del track entre ambos puntos.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arrastra para cambiar el tamaño del track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55064,6 +55091,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Aún no se ha aplicado ninguna corrección.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Escala del track: $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

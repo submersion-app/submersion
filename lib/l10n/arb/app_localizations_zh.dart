@@ -23385,6 +23385,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
+  String get settings_conflict_field_scaleFactor => '轨迹缩放系数';
+
+  @override
   String get settings_conflict_field_height => '高度（像素）';
 
   @override
@@ -33537,6 +33540,18 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       '已连接到潜水电脑，但在下载开始前它停止响应。这通常表示蓝牙配对已失效：请在设备的蓝牙设置中忽略该潜水电脑，然后重试。';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      '无法通过低功耗蓝牙 (Bluetooth LE) 找到此潜水电脑。请打开它的蓝牙模式后重新扫描。如果它出现在设备的蓝牙设置中，请先在那里将其移除：系统可能只把它识别为经典蓝牙设备。';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      '在完成配对之前，您的设备无法与此潜水电脑通信。请打开潜水电脑的蓝牙模式，在设备的蓝牙设置中进行配对，然后重试。';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      '潜水电脑未通过蓝牙响应。请确认它的蓝牙模式仍处于开启状态，并且靠近您的设备，然后重试。';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -51527,6 +51542,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_align_rotationLabel => '旋转：';
 
   @override
+  String get navTrack_align_scaleLabel => '缩放：';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      '终点已固定，因此它决定了轨迹的大小。缩放只会改变中间轨迹的形状。';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => '拖动以调整轨迹大小';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -51575,6 +51600,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_detail_correctionStatus_none => '尚未应用校正。';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return '轨迹缩放：$percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart => '终点已设置为与起点相同。';

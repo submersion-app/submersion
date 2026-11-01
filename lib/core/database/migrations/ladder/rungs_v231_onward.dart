@@ -743,6 +743,12 @@ extension RungsFromV231 on AppDatabase {
     if (from < 333) await _assertDiveGasSwitchesEditedColumn();
     if (from < 333) await reportProgress();
 
+    // v335: nav_tracks.scale_factor (issue #3823). Column only; the default
+    // gives every existing track 100%. Re-asserted in beforeOpen through
+    // _assertNavTracksSchema.
+    if (from < 335) await _assertNavTrackScaleFactorColumn();
+    if (from < 335) await reportProgress();
+
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356). Backfills a default checklist
     // for every trip with existing sections/items; re-asserted in

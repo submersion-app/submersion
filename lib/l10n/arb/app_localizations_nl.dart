@@ -24586,6 +24586,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koerscorrectie in graden';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Schaalfactor van de track';
+
+  @override
   String get settings_conflict_field_height => 'Hoogte in pixels';
 
   @override
@@ -35410,6 +35413,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Verbonden met de duikcomputer, maar hij reageerde niet meer voordat de download kon beginnen. Meestal betekent dit dat de Bluetooth-koppeling verouderd is: vergeet de duikcomputer in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Deze duikcomputer is niet gevonden via Bluetooth LE. Zet de Bluetooth-modus aan en zoek opnieuw. Staat hij in de Bluetooth-instellingen van je apparaat, verwijder hem daar dan eerst: mogelijk is hij daar alleen bekend als klassiek Bluetooth-apparaat.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Je apparaat communiceert pas met deze duikcomputer als ze gekoppeld zijn. Zet de Bluetooth-modus van de duikcomputer aan, koppel hem in de Bluetooth-instellingen van je apparaat en probeer het opnieuw.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'De duikcomputer reageerde niet via Bluetooth. Controleer of de Bluetooth-modus nog aan staat en of hij dicht bij je apparaat is, en probeer het opnieuw.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54609,6 +54624,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotatie:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Schaal:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'Het einde ligt vast en bepaalt dus de grootte van de track. De schaal verandert alleen de vorm van het pad ertussen.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Sleep om de track te vergroten of verkleinen';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54661,6 +54687,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Nog geen correctie toegepast.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Schaal van de track: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

@@ -1531,6 +1531,9 @@ class AppDatabase extends _$AppDatabase {
     // v333: dives.gas_switches_edited (issue #32). A defaulted column an
     // older peer omits, so the compatibility floor does not move.
     333,
+    // v335: nav_tracks.scale_factor, a track's size against the map
+    // (issue #3823). A new defaulted column, so the floor does not move.
+    335,
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356).
     336,

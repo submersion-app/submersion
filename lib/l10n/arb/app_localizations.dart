@@ -39351,6 +39351,12 @@ abstract class AppLocalizations {
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
 
+  /// No description provided for @settings_conflict_field_scaleFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale factor'**
+  String get settings_conflict_field_scaleFactor;
+
   /// No description provided for @settings_conflict_field_height.
   ///
   /// In en, this message translates to:
@@ -56208,6 +56214,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connected to the dive computer, but it stopped responding before the download could start. This usually means the Bluetooth pairing is out of date: forget the dive computer in your device\'s Bluetooth settings, then try again.'**
   String get diveComputer_download_discoveryStalled;
+
+  /// No description provided for @diveComputer_download_bleDeviceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find this dive computer over Bluetooth LE. Turn on its Bluetooth mode and scan again. If it appears in your device\'s Bluetooth settings, remove it there first: it may be known there only as a classic Bluetooth device.'**
+  String get diveComputer_download_bleDeviceNotFound;
+
+  /// No description provided for @diveComputer_download_blePairingRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device will not talk to this dive computer until they are paired. Turn on the dive computer\'s Bluetooth mode, pair it in your device\'s Bluetooth settings, then try again.'**
+  String get diveComputer_download_blePairingRequired;
+
+  /// No description provided for @diveComputer_download_bleUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive computer did not answer over Bluetooth. Check that its Bluetooth mode is still on and that it is close to your device, then try again.'**
+  String get diveComputer_download_bleUnreachable;
 
   /// No description provided for @diveComputer_download_serialConnectFailedWithDetails.
   ///
@@ -86921,6 +86945,24 @@ abstract class AppLocalizations {
   /// **'Rotation:'**
   String get navTrack_align_rotationLabel;
 
+  /// No description provided for @navTrack_align_scaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale:'**
+  String get navTrack_align_scaleLabel;
+
+  /// No description provided for @navTrack_align_scalePinnedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.'**
+  String get navTrack_align_scalePinnedHint;
+
+  /// No description provided for @navTrack_align_scaleHandleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to resize the track'**
+  String get navTrack_align_scaleHandleLabel;
+
   /// No description provided for @navTrack_terrain_summary.
   ///
   /// In en, this message translates to:
@@ -87005,6 +87047,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No correction applied yet.'**
   String get navTrack_detail_correctionStatus_none;
+
+  /// No description provided for @navTrack_detail_scaleStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale: {percent}%'**
+  String navTrack_detail_scaleStatus(String percent);
 
   /// No description provided for @navTrack_detail_correctionStatus_sameAsStart.
   ///

@@ -142,6 +142,10 @@ class NavTrack extends Equatable {
   /// Clockwise rotation in degrees.
   final double headingOffsetDeg;
 
+  /// Multiplier on the horizontal size. Recorded distance and speed do not
+  /// follow it.
+  final double scaleFactor;
+
   /// Fields the source exported about the recording that nothing reads
   /// yet, kept as-is under the export's own names (`nav_tracks.
   /// source_metadata`, issue #3047): a Suunto route's `DiveRouteQuality`
@@ -182,6 +186,7 @@ class NavTrack extends Equatable {
     this.endLongitude,
     this.trustFraction = 0,
     this.headingOffsetDeg = 0,
+    this.scaleFactor = 1,
     this.sourceMetadata,
     this.points = const [],
     required this.createdAt,
@@ -204,13 +209,53 @@ class NavTrack extends Equatable {
       : GeoPoint(endLatitude!, endLongitude!);
 
   /// The correction [NavTrackCorrector.apply] reads: this row's anchor, end
-  /// target, trust fraction and rotation, assembled from the columns above.
+  /// target, trust fraction, rotation and scale, assembled from the columns
+  /// above.
   NavTrackCorrection get correction => NavTrackCorrection(
     anchor: anchor,
     endMode: endMode,
     endPoint: endPoint,
     trustFraction: trustFraction,
     headingOffsetDeg: headingOffsetDeg,
+    scaleFactor: scaleFactor,
+  );
+
+  /// This track carrying [correction] in place of its own, for showing an
+  /// in-progress correction before it is saved. Unlike [copyWith] it can clear
+  /// the anchor and end point.
+  NavTrack withCorrection(NavTrackCorrection correction) => NavTrack(
+    id: id,
+    diveId: diveId,
+    linkMode: linkMode,
+    isPrimary: isPrimary,
+    siteId: siteId,
+    source: source,
+    sourceRef: sourceRef,
+    deviceName: deviceName,
+    name: name,
+    equipmentId: equipmentId,
+    startTime: startTime,
+    endTime: endTime,
+    tzOffsetMinutes: tzOffsetMinutes,
+    timeOffsetSeconds: timeOffsetSeconds,
+    pointCount: pointCount,
+    totalDistance: totalDistance,
+    maxDepth: maxDepth,
+    maxSpeed: maxSpeed,
+    avgSpeed: avgSpeed,
+    durationSeconds: durationSeconds,
+    anchorLatitude: correction.anchor?.latitude,
+    anchorLongitude: correction.anchor?.longitude,
+    endMode: correction.endMode,
+    endLatitude: correction.endPoint?.latitude,
+    endLongitude: correction.endPoint?.longitude,
+    trustFraction: correction.trustFraction,
+    headingOffsetDeg: correction.headingOffsetDeg,
+    scaleFactor: correction.scaleFactor,
+    sourceMetadata: sourceMetadata,
+    points: points,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
   );
 
   NavTrack copyWith({
@@ -241,6 +286,7 @@ class NavTrack extends Equatable {
     double? endLongitude,
     double? trustFraction,
     double? headingOffsetDeg,
+    double? scaleFactor,
     Map<String, Object?>? sourceMetadata,
     List<NavTrackPoint>? points,
     DateTime? createdAt,
@@ -274,6 +320,7 @@ class NavTrack extends Equatable {
       endLongitude: endLongitude ?? this.endLongitude,
       trustFraction: trustFraction ?? this.trustFraction,
       headingOffsetDeg: headingOffsetDeg ?? this.headingOffsetDeg,
+      scaleFactor: scaleFactor ?? this.scaleFactor,
       sourceMetadata: sourceMetadata ?? this.sourceMetadata,
       points: points ?? this.points,
       createdAt: createdAt ?? this.createdAt,
@@ -310,6 +357,7 @@ class NavTrack extends Equatable {
     endLongitude,
     trustFraction,
     headingOffsetDeg,
+    scaleFactor,
     sourceMetadata,
     points,
     createdAt,

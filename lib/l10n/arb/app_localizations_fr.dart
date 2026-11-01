@@ -24810,6 +24810,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Correction de cap en degrés';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Facteur d\'échelle de la trace';
+
+  @override
   String get settings_conflict_field_height => 'Hauteur en pixels';
 
   @override
@@ -35755,6 +35759,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'Connexion établie avec l\'ordinateur de plongée, mais il a cessé de répondre avant le début du téléchargement. Cela signifie généralement que l\'appairage Bluetooth n\'est plus valide : oubliez l\'ordinateur de plongée dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Cet ordinateur de plongée est introuvable en Bluetooth LE. Activez son mode Bluetooth et relancez la recherche. S\'il apparaît dans les réglages Bluetooth de votre appareil, supprimez-le d\'abord : il n\'y est peut-être connu que comme appareil Bluetooth classique.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Votre appareil ne communiquera avec cet ordinateur de plongée qu\'une fois les deux appairés. Activez le mode Bluetooth de l\'ordinateur de plongée, appairez-le dans les réglages Bluetooth de votre appareil, puis réessayez.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'L\'ordinateur de plongée n\'a pas répondu en Bluetooth. Vérifiez que son mode Bluetooth est toujours activé et qu\'il est proche de votre appareil, puis réessayez.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -55083,6 +55099,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation :';
 
   @override
+  String get navTrack_align_scaleLabel => 'Échelle :';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme de la trace entre les deux.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Faites glisser pour redimensionner la trace';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55134,6 +55161,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Aucune correction appliquée pour l\'instant.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Échelle de la trace : $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

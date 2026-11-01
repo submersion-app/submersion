@@ -24639,6 +24639,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Iránykorrekció fokban';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'A nyomvonal méretezési tényezője';
+
+  @override
   String get settings_conflict_field_height => 'Magasság pixelben';
 
   @override
@@ -35458,6 +35462,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveComputer_download_discoveryStalled =>
       'A merülőkomputer csatlakozott, de a letöltés megkezdése előtt nem válaszolt tovább. Ez általában azt jelenti, hogy a Bluetooth-párosítás elavult: felejtesd el a merülőkomputert az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
+
+  @override
+  String get diveComputer_download_bleDeviceNotFound =>
+      'Ez a merülőkomputer nem található Bluetooth LE-n. Kapcsold be a Bluetooth módját, és keress újra. Ha szerepel az eszközöd Bluetooth-beállításaiban, előbb távolítsd el onnan: lehet, hogy ott csak klasszikus Bluetooth-eszközként ismert.';
+
+  @override
+  String get diveComputer_download_blePairingRequired =>
+      'Az eszközöd addig nem kommunikál ezzel a merülőkomputerrel, amíg nincsenek párosítva. Kapcsold be a merülőkomputer Bluetooth módját, párosítsd az eszközöd Bluetooth-beállításaiban, majd próbáld újra.';
+
+  @override
+  String get diveComputer_download_bleUnreachable =>
+      'A merülőkomputer nem válaszolt Bluetooth-on. Ellenőrizd, hogy a Bluetooth módja még be van-e kapcsolva, és hogy közel van-e az eszközödhöz, majd próbáld újra.';
 
   @override
   String diveComputer_download_serialConnectFailedWithDetails(Object details) {
@@ -54659,6 +54675,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Forgatás:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Méretezés:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'A vég rögzítve van, ezért ez határozza meg a nyomvonal méretét. A méretezés csak a köztes szakasz alakját változtatja meg.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Húzza a nyomvonal átméretezéséhez';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54710,6 +54737,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Még nincs alkalmazott korrekció.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Nyomvonal méretezése: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
