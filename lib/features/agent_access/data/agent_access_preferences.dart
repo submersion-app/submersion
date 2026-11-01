@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../domain/agent_access_settings.dart';
+import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
 
 /// Reads and writes [AgentAccessSettings] in SharedPreferences.
 ///

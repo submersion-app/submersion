@@ -125,7 +125,7 @@ void main() {
     await client.connect(
       StreamableHttpClientTransport(
         Uri.parse(status.url),
-        opts: StreamableHttpClientTransportOptions(
+        opts: const StreamableHttpClientTransportOptions(
           requestInit: {
             'headers': {'Authorization': 'Bearer $_token'},
           },

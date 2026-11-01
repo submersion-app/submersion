@@ -83,9 +83,13 @@ class AgentAccessServer {
       host: host,
       port: effectivePort,
       path: path,
-      authenticationHandler: (HttpRequest request) {
+      // Typed dynamic because the package's non-IO stub declares it so; on
+      // desktop it is always a dart:io HttpRequest.
+      authenticationHandler: (dynamic request) {
         _touch();
-        final header = request.headers.value(HttpHeaders.authorizationHeader);
+        final header = (request as HttpRequest).headers.value(
+          HttpHeaders.authorizationHeader,
+        );
         return authenticator.accepts(header)
             ? const StreamableMcpAuthenticationResult.allow()
             : const StreamableMcpAuthenticationResult.unauthorized(
