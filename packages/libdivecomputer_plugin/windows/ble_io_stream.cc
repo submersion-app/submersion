@@ -293,10 +293,12 @@ bool BleIoStream::DiscoverCharacteristics() {
     // them can carry a serial session (issue #957).
     std::vector<std::string> discovered_service_uuids;
     // Services listed, and how many refused their characteristics with
-    // AccessDenied: every one refusing is the shape an unpaired machine
-    // gives, which is advice the diver can act on (issue #4094).
+    // AccessDenied or Unreachable: every one refusing with the same status
+    // is an unpaired machine or a dropped link, advice the diver can act on
+    // (issue #4094).
     size_t services_listed = 0;
     size_t services_access_denied = 0;
+    size_t services_unreachable = 0;
 
     struct Candidate {
         int score = -1;
@@ -324,6 +326,9 @@ bool BleIoStream::DiscoverCharacteristics() {
             if (chars_result.Status() ==
                 GattCommunicationStatus::AccessDenied) {
                 services_access_denied++;
+            } else if (chars_result.Status() ==
+                       GattCommunicationStatus::Unreachable) {
+                services_unreachable++;
             }
             NativeLogger::Warn(kBleCategory,
                                "Service " + DescribeUuid(service.Uuid()) +
@@ -486,34 +491,32 @@ bool BleIoStream::DiscoverCharacteristics() {
     }
 
     if (best.score < 0) {
-        const BleConnectFailure failure =
-            ClassifyDiscoveryAccess(services_listed, services_access_denied);
-        if (failure == BleConnectFailure::kPairingRequired) {
-            // Before this branch an unpaired machine fell through to the
-            // "no services at all" line below, which was false: it had
-            // listed services and been refused every one of them.
-            return Fail(failure,
-                        "Every one of the " + std::to_string(services_listed) +
-                            " service(s) refused to list its "
-                            "characteristics: " +
-                            DescribeGattStatus(
-                                GattCommunicationStatus::AccessDenied));
-        }
+        const BleConnectFailure failure = ClassifyDiscoveryAccess(
+            services_listed, services_access_denied, services_unreachable);
         if (services_listed == 0) {
             return Fail(failure,
                         "Service discovery succeeded but the computer "
                         "reported no services at all");
         }
         if (discovered_service_uuids.empty()) {
-            // Listed, but none would enumerate its characteristics and not
-            // all with AccessDenied, so the WARN lines above hold the
-            // statuses; saying "no services at all" here would contradict
-            // them.
+            // Listed, but none would enumerate its characteristics. Before
+            // this branch an unpaired machine fell through to the "no
+            // services at all" line above, which was false: it had listed
+            // services and been refused every one of them.
+            std::string statuses;
+            if (failure == BleConnectFailure::kPairingRequired) {
+                statuses = DescribeGattStatus(
+                    GattCommunicationStatus::AccessDenied);
+            } else if (failure == BleConnectFailure::kUnreachable) {
+                statuses = DescribeGattStatus(
+                    GattCommunicationStatus::Unreachable);
+            } else {
+                statuses = "see the warnings above for each status";
+            }
             return Fail(failure,
                         "Every one of the " + std::to_string(services_listed) +
                             " service(s) refused to list its "
-                            "characteristics; see the warnings above for "
-                            "each status");
+                            "characteristics: " + statuses);
         }
         std::ostringstream seen;
         for (size_t i = 0; i < discovered_service_uuids.size(); i++) {

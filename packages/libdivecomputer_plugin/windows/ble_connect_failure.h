@@ -49,10 +49,13 @@ BleConnectFailure ClassifyHresult(int32_t hresult);
 
 // Classifies a discovery that found no usable service, from how many
 // services it listed and how many of those refused to list their
-// characteristics with AccessDenied. Every service refusing is the shape an
-// unpaired machine gives; a partial refusal is not the reason.
+// characteristics with AccessDenied or with Unreachable. Every service
+// refusing with AccessDenied is the shape an unpaired machine gives, and
+// every one refusing with Unreachable is a link that dropped mid-discovery;
+// a partial refusal is not the reason.
 BleConnectFailure ClassifyDiscoveryAccess(size_t services_listed,
-                                          size_t services_access_denied);
+                                          size_t services_access_denied,
+                                          size_t services_unreachable);
 
 // The DiveComputerError code the Dart layer switches on
 // (DownloadStepWidget._localizedError).

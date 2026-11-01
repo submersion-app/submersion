@@ -51,9 +51,14 @@ BleConnectFailure ClassifyHresult(int32_t hresult) {
 }
 
 BleConnectFailure ClassifyDiscoveryAccess(size_t services_listed,
-                                          size_t services_access_denied) {
-    if (services_listed > 0 && services_access_denied == services_listed) {
+                                          size_t services_access_denied,
+                                          size_t services_unreachable) {
+    if (services_listed == 0) return BleConnectFailure::kOther;
+    if (services_access_denied == services_listed) {
         return BleConnectFailure::kPairingRequired;
+    }
+    if (services_unreachable == services_listed) {
+        return BleConnectFailure::kUnreachable;
     }
     return BleConnectFailure::kOther;
 }

@@ -1084,9 +1084,7 @@ void main() {
           initialState: const DownloadState(
             phase: DownloadPhase.error,
             errorCode: 'connect_failed',
-            errorMessage:
-                'Failed to connect to device: Service discovery failed: '
-                'protocol error',
+            errorMessage: 'Service discovery failed: protocol error',
           ),
         ),
       );

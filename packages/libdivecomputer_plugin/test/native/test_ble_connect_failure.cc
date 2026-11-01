@@ -75,13 +75,19 @@ static void test_hresult_classification(void) {
 
 static void test_discovery_access_classification(void) {
     // An unpaired machine: every service refuses its characteristics.
-    assert(ClassifyDiscoveryAccess(3, 3) ==
+    assert(ClassifyDiscoveryAccess(3, 3, 0) ==
            BleConnectFailure::kPairingRequired);
+    // The link dropped mid-discovery: every service is unreachable.
+    assert(ClassifyDiscoveryAccess(3, 0, 3) ==
+           BleConnectFailure::kUnreachable);
     // Some services listed fine, so the refusals are not the reason.
-    assert(ClassifyDiscoveryAccess(3, 1) == BleConnectFailure::kOther);
-    assert(ClassifyDiscoveryAccess(3, 0) == BleConnectFailure::kOther);
-    // No services at all is not a pairing problem either.
-    assert(ClassifyDiscoveryAccess(0, 0) == BleConnectFailure::kOther);
+    assert(ClassifyDiscoveryAccess(3, 1, 0) == BleConnectFailure::kOther);
+    assert(ClassifyDiscoveryAccess(3, 0, 1) == BleConnectFailure::kOther);
+    assert(ClassifyDiscoveryAccess(3, 0, 0) == BleConnectFailure::kOther);
+    // A mix of refusals names no single cause.
+    assert(ClassifyDiscoveryAccess(3, 2, 1) == BleConnectFailure::kOther);
+    // No services at all is neither a pairing nor a link problem.
+    assert(ClassifyDiscoveryAccess(0, 0, 0) == BleConnectFailure::kOther);
     printf("PASS: test_discovery_access_classification\n");
 }
 
