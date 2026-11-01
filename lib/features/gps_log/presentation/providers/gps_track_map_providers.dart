@@ -80,6 +80,8 @@ final gpsTrackGeometryProvider =
       // the pre-trim points and cached them; and every gps_tracks write
       // reaches it, which restarted simplifications already running.
       final track = await tracks.getTrack(trackId, includePoints: true);
+      // Nothing watches for the row to appear, so whatever brings a track back
+      // has to evict it (a sync arrival, a Change Log undo).
       if (track == null) return const [];
 
       // Read through effectivePoints so trim bounds are honoured before
