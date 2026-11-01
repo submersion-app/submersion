@@ -167,6 +167,12 @@ void main() {
     expect(rows.map((s) => s.tankId), ['tank-1', 'tank-0']);
     expect(await tombstones(), 0);
     expect(await staged(), 0);
+    // The cylinders were still carried over as before.
+    final tanks = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('dive-1'))).get();
+    expect(tanks.map((t) => t.id).toSet(), {'tank-0', 'tank-1'});
+    expect(tanks.firstWhere((t) => t.id == 'tank-1').o2Percent, 50.0);
   });
 
   test('a computer cylinder a switch names survives a parse that no longer '

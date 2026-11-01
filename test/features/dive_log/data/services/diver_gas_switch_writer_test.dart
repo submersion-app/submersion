@@ -5,6 +5,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
@@ -281,6 +283,42 @@ void main() {
       );
 
       await tick.timeout(const Duration(seconds: 5));
+    },
+  );
+
+  test(
+    'a switch saved against cylinders createDive just wrote lands',
+    () async {
+      // The new-dive path: the editor's tank ids reach the row store through
+      // createDive, and the switch names one of them in the same save.
+      final created = await DiveRepository().createDive(
+        domain.Dive(
+          id: 'dive-new',
+          dateTime: DateTime.utc(2026, 6, 1, 9),
+          tanks: const [
+            domain.DiveTank(id: 'new-back', volume: 12),
+            domain.DiveTank(id: 'new-deco', volume: 7, order: 1),
+          ],
+        ),
+      );
+
+      final changed = await writer.save(
+        diveId: created.id,
+        switches: [
+          GasSwitch(
+            id: 'gs-new-dive',
+            diveId: created.id,
+            timestamp: 600,
+            tankId: 'new-deco',
+            createdAt: now,
+          ),
+        ],
+        loadedIds: const {},
+        now: now,
+      );
+
+      expect(changed, isTrue);
+      expect((await row('gs-new-dive'))?.tankId, 'new-deco');
     },
   );
 

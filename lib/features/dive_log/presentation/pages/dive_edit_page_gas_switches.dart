@@ -156,6 +156,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
 
   /// After the dive and its cylinders are written. A list the diver never
   /// touched writes nothing, so the dive keeps today's re-parse behaviour.
+  /// Dirty alone, not visibility: a cylinder removed from a planned dive
+  /// takes its switches with it and marks the plan edited too, which is
+  /// harmless since the planned-dive fill does not read the flag.
   Future<void> _saveGasSwitches(String? savedDiveId) async {
     if (savedDiveId == null || !_gasSwitchesDirty) return;
     await DiverGasSwitchWriter().save(
@@ -163,5 +166,8 @@ extension _GasSwitchEditing on _DiveEditPageState {
       switches: [for (final s in _gasSwitches) s.copyWith(diveId: savedDiveId)],
       loadedIds: _loadedGasSwitchIds,
     );
+    // What is stored now is what a further save on this page diffs against.
+    _loadedGasSwitchIds = {for (final s in _gasSwitches) s.id};
+    _gasSwitchesDirty = false;
   }
 }
