@@ -2355,7 +2355,8 @@ class PlanEngine {
       );
     } else {
       // One or the other: a plan told it carries no bailout gas has no use
-      // for the MOD of the loop's own supply, which still resolves to bailout.
+      // for a verdict on the loop's own supply, which still resolves to
+      // bailout.
       issues.addAll(
         _bailoutGasIssues(plan, legs, segmentOutcomes, environment),
       );
@@ -2386,9 +2387,10 @@ class PlanEngine {
   /// [legs]' deepest point answers for every other failure depth.
   ///
   /// That only says a gas may be breathed from there, not that it stays
-  /// breathable up to the surface (#4008). A plan on the loop never breathes
-  /// its bailout gas, so a hypoxic one is an alert, not a critical
-  /// [PlanIssueType.hypoxicGas]: it does not stop the plan being diveable.
+  /// breathable up to the surface (#4008). This ascent is a contingency, not
+  /// part of the plan, so a hypoxic one is an alert and not a critical
+  /// [PlanIssueType.hypoxicGas]: it does not stop the plan being diveable. A
+  /// leg the plan does breathe that gas on gets the legs' own check.
   Iterable<PlanIssue> _bailoutGasIssues(
     domain.DivePlan plan,
     List<ResolvedLeg> legs,

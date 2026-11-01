@@ -146,7 +146,7 @@ void main() {
       expect(_warnings(outcome), isEmpty);
     });
 
-    test('a plan with no bailout gas says so instead', () {
+    test('a plan with no bailout gas has nothing to judge', () {
       final outcome = engine.compute(_plan(bailouts: const []));
 
       expect(_warnings(outcome), isEmpty);
