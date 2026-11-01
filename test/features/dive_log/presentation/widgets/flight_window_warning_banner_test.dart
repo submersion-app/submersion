@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/flight_window_warning_banner.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -7,6 +9,19 @@ import 'package:submersion/features/safety/presentation/providers/flight_window_
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
+  // The times shown go through DateFormat, which reads Intl.defaultLocale: a
+  // process global that a test sharing this isolate may leave set.
+  late String? previousLocale;
+
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   final openStatus = FlightWindowStatus(
     state: FlightWindowState.open,
     flightAt: DateTime(2126, 8, 10, 9).toUtc(),

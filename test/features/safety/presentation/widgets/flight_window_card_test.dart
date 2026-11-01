@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/widgets/flight_window_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -9,6 +11,19 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
+  // The times shown go through DateFormat, which reads Intl.defaultLocale: a
+  // process global that a test sharing this isolate may leave set.
+  late String? previousLocale;
+
+  setUpAll(() => initializeDateFormatting('en'));
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   Future<void> pumpCard(WidgetTester tester, FlightWindowStatus status) {
     return tester.pumpWidget(
       ProviderScope(
