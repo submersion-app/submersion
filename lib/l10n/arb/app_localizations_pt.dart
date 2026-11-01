@@ -7146,6 +7146,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Mergulhos restaurados';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Mergulhos restaurados, mas não foi possível recuperar alguns dados registados';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20688,11 +20692,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Seguindo $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Ainda não há mergulhos registrados';
 
   @override
@@ -20734,6 +20733,41 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Mergulho registado $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Abrir no registo';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Deixar de seguir';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Transportado para $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS no final';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive terminou há $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Mergulho #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Seguir';
+
+  @override
   String get plannerSeries_surfaceInterval => 'Intervalo de superfície';
 
   @override
@@ -20772,8 +20806,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não é possível planear uma série de mergulhos como missão DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Só o primeiro mergulho de uma série pode seguir um mergulho registado';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Um replanejamento não pode seguir outro mergulho';
 
   @override
   String get plannerCanvas_follow_title => 'Seguir um mergulho';
@@ -55040,6 +55074,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Comparar…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Planear mergulho sucessivo';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. mergulho original';

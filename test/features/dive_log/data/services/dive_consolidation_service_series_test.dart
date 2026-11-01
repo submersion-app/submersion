@@ -201,6 +201,33 @@ void main() {
     expect(row.computerId, 'comp-t');
   });
 
+  test('undo restores the secondary\'s profile revision lineage', () async {
+    final root = await profileSeries.insertSeries(
+      diveId: 's',
+      computerId: 'comp-s',
+      sourceId: 'src-s',
+      samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
+      now: 1000,
+    );
+    await profileSeries.insertSeries(
+      diveId: 's',
+      parentSeriesId: root,
+      revisionKind: 'Edit: profile_editor',
+      samples: const [ProfileSample(timestamp: 0, depth: 3.0)],
+      now: 2000,
+    );
+    final before = await profileSeries.getRevisionsForDive('s');
+    expect(before.where((r) => r.parentSeriesId == root), hasLength(1));
+
+    final outcome = await service.apply(
+      targetDiveId: 't',
+      secondaryDiveIds: ['s'],
+    );
+    await service.undo(outcome.snapshot);
+
+    expect(await profileSeries.getRevisionsForDive('s'), before);
+  });
+
   test('undo tombstones the copied series, keeps the originals and restores '
       'the secondary rows', () async {
     await profileSeries.insertSeries(
