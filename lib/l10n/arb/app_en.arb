@@ -32344,6 +32344,14 @@
   "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
   "navTrack_detail_correctionStatus_none": "No correction applied yet.",
+  "navTrack_detail_scaleStatus": "Track scale: {percent}%",
+  "@navTrack_detail_scaleStatus": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
   "navTrack_detail_correctionStatus_point": "End point set on the map.",
   "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",

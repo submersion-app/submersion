@@ -16350,6 +16350,7 @@
   "navTrack_detail_menuChangeDevice": "更改设备",
   "navTrack_detail_noMapYet": "设置起点以在地图上查看。",
   "navTrack_detail_correctionStatus_none": "尚未应用校正。",
+  "navTrack_detail_scaleStatus": "轨迹缩放：{percent}%",
   "navTrack_detail_correctionStatus_sameAsStart": "终点已设置为与起点相同。",
   "navTrack_detail_correctionStatus_point": "终点已在地图上设置。",
   "navTrack_detail_correctionStatus_gpsFix": "终点已根据记录的 GPS 定位设置。",

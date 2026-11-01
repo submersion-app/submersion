@@ -54966,6 +54966,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune correction appliquée pour l\'instant.';
 
   @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Échelle de la trace : $percent %';
+  }
+
+  @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
       'Fin définie comme identique au départ.';
 

@@ -16350,6 +16350,7 @@
   "navTrack_detail_menuChangeDevice": "Eszköz módosítása",
   "navTrack_detail_noMapYet": "Állítsd be a kezdőpontot, hogy ezt térképen lásd.",
   "navTrack_detail_correctionStatus_none": "Még nincs alkalmazott korrekció.",
+  "navTrack_detail_scaleStatus": "Nyomvonal méretezése: {percent}%",
   "navTrack_detail_correctionStatus_sameAsStart": "A vég a kezdőponttal azonosra állítva.",
   "navTrack_detail_correctionStatus_point": "A végpont a térképen beállítva.",
   "navTrack_detail_correctionStatus_gpsFix": "A vég a felvétel GPS-fixéből beállítva.",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
@@ -359,7 +360,25 @@ class NavTrackDetailPage extends ConsumerWidget {
                     children: [
                       const Icon(Icons.tune, size: 20),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_correctionStatus(l10n, route))),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_correctionStatus(l10n, route)),
+                            // The drawn track no longer matches the recorded
+                            // distance above, so the page says why.
+                            if (route.scaleFactor != 1)
+                              Text(
+                                key: const ValueKey('nav-track-detail-scale'),
+                                l10n.navTrack_detail_scaleStatus(
+                                  NumberFormat(
+                                    '0.#',
+                                  ).format(route.scaleFactor * 100),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -434,6 +453,7 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
     route.endPoint,
     route.trustFraction,
     route.headingOffsetDeg,
+    route.scaleFactor,
     route.points.length,
   );
 

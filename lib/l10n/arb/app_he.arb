@@ -16350,6 +16350,7 @@
   "navTrack_detail_menuChangeDevice": "שינוי מכשיר",
   "navTrack_detail_noMapYet": "קבע את נקודת ההתחלה כדי לראות זאת על מפה.",
   "navTrack_detail_correctionStatus_none": "טרם הוחל תיקון.",
+  "navTrack_detail_scaleStatus": "קנה מידה של המסלול: {percent}%",
   "navTrack_detail_correctionStatus_sameAsStart": "הסיום נקבע כזהה להתחלה.",
   "navTrack_detail_correctionStatus_point": "נקודת הסיום נקבעה על המפה.",
   "navTrack_detail_correctionStatus_gpsFix": "הסיום נקבע מתיקון ה-GPS של ההקלטה.",

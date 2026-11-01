@@ -86703,6 +86703,12 @@ abstract class AppLocalizations {
   /// **'No correction applied yet.'**
   String get navTrack_detail_correctionStatus_none;
 
+  /// No description provided for @navTrack_detail_scaleStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale: {percent}%'**
+  String navTrack_detail_scaleStatus(String percent);
+
   /// No description provided for @navTrack_detail_correctionStatus_sameAsStart.
   ///
   /// In en, this message translates to:

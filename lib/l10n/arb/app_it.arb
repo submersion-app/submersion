@@ -16350,6 +16350,7 @@
   "navTrack_detail_menuChangeDevice": "Cambia dispositivo",
   "navTrack_detail_noMapYet": "Imposta il punto di inizio per vederlo su una mappa.",
   "navTrack_detail_correctionStatus_none": "Nessuna correzione applicata ancora.",
+  "navTrack_detail_scaleStatus": "Scala della traccia: {percent}%",
   "navTrack_detail_correctionStatus_sameAsStart": "Fine impostata uguale all'inizio.",
   "navTrack_detail_correctionStatus_point": "Punto finale impostato sulla mappa.",
   "navTrack_detail_correctionStatus_gpsFix": "Fine impostata dal fix GPS della registrazione.",

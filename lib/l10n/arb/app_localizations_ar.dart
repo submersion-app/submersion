@@ -55498,6 +55498,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يُطبَّق أي تصحيح بعد.';
 
   @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'مقياس المسار: $percent%';
+  }
+
+  @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
       'تم تعيين النهاية لتكون مثل البداية.';
 

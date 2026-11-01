@@ -16350,6 +16350,7 @@
   "navTrack_detail_menuChangeDevice": "Apparaat wijzigen",
   "navTrack_detail_noMapYet": "Stel het startpunt in om dit op een kaart te zien.",
   "navTrack_detail_correctionStatus_none": "Nog geen correctie toegepast.",
+  "navTrack_detail_scaleStatus": "Schaal van de track: {percent}%",
   "navTrack_detail_correctionStatus_sameAsStart": "Einde ingesteld als zelfde als start.",
   "navTrack_detail_correctionStatus_point": "Eindpunt op de kaart ingesteld.",
   "navTrack_detail_correctionStatus_gpsFix": "Einde ingesteld vanaf de GPS-fix van de opname.",

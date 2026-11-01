@@ -53657,6 +53657,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_detail_correctionStatus_none => 'טרם הוחל תיקון.';
 
   @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'קנה מידה של המסלול: $percent%';
+  }
+
+  @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
       'הסיום נקבע כזהה להתחלה.';
 

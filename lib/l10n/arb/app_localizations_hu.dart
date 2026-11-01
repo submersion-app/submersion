@@ -54543,6 +54543,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincs alkalmazott korrekció.';
 
   @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Nyomvonal méretezése: $percent%';
+  }
+
+  @override
   String get navTrack_detail_correctionStatus_sameAsStart =>
       'A vég a kezdőponttal azonosra állítva.';
 

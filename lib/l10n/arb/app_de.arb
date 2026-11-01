@@ -16504,6 +16504,7 @@
   "navTrack_detail_menuChangeDevice": "Gerät ändern",
   "navTrack_detail_noMapYet": "Startpunkt setzen, um dies auf einer Karte zu sehen.",
   "navTrack_detail_correctionStatus_none": "Noch keine Korrektur angewendet.",
+  "navTrack_detail_scaleStatus": "Track-Skalierung: {percent} %",
   "navTrack_detail_correctionStatus_sameAsStart": "Ende auf gleich wie Start gesetzt.",
   "navTrack_detail_correctionStatus_point": "Endpunkt auf der Karte gesetzt.",
   "navTrack_detail_correctionStatus_gpsFix": "Ende aus dem GPS-Fix der Aufzeichnung gesetzt.",

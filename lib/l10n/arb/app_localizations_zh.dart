@@ -51419,6 +51419,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_detail_correctionStatus_none => '尚未应用校正。';
 
   @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return '轨迹缩放：$percent%';
+  }
+
+  @override
   String get navTrack_detail_correctionStatus_sameAsStart => '终点已设置为与起点相同。';
 
   @override
