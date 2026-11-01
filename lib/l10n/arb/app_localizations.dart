@@ -83294,6 +83294,18 @@ abstract class AppLocalizations {
   /// **'Unlink plan'**
   String get diveLab_compare_unlinkPlan;
 
+  /// No description provided for @diveLab_compare_planTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan against dive'**
+  String get diveLab_compare_planTable;
+
+  /// No description provided for @diveLab_compare_plannedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned schedule'**
+  String get diveLab_compare_plannedSchedule;
+
   /// No description provided for @diveLab_compare_waiting.
   ///
   /// In en, this message translates to:

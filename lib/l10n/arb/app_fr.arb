@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "Poser un et si",
   "diveLab_compare_linkPlan": "Lier un plan",
   "diveLab_compare_unlinkPlan": "Dissocier le plan",
+  "diveLab_compare_planTable": "Plan et plongée",
+  "diveLab_compare_plannedSchedule": "Programme prévu",
   "diveLab_compare_waiting": "En attente de la plongée",
   "diveLab_link_unlinkTitle": "Dissocier ce plan ?",
   "diveLab_link_unlinkBody": "Le plan et la plongée sont conservés. Ils ne sont simplement plus comparés.",

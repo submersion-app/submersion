@@ -30959,6 +30959,8 @@
   "diveLab_compare_askWhatIf": "Ask a what-if",
   "diveLab_compare_linkPlan": "Link a plan",
   "diveLab_compare_unlinkPlan": "Unlink plan",
+  "diveLab_compare_planTable": "Plan against dive",
+  "diveLab_compare_plannedSchedule": "Planned schedule",
   "diveLab_compare_waiting": "Waiting for the dive",
   "diveLab_link_unlinkTitle": "Unlink this plan?",
   "diveLab_link_unlinkBody": "The plan and the dive both stay. They just stop being compared.",

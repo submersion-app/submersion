@@ -52693,6 +52693,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'Dissocier le plan';
 
   @override
+  String get diveLab_compare_planTable => 'Plan et plongée';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programme prévu';
+
+  @override
   String get diveLab_compare_waiting => 'En attente de la plongée';
 
   @override

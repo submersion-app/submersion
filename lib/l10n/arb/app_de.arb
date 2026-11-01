@@ -15934,6 +15934,8 @@
   "diveLab_compare_askWhatIf": "Was-wäre-wenn fragen",
   "diveLab_compare_linkPlan": "Plan verknüpfen",
   "diveLab_compare_unlinkPlan": "Plan trennen",
+  "diveLab_compare_planTable": "Plan und Tauchgang",
+  "diveLab_compare_plannedSchedule": "Geplanter Ablauf",
   "diveLab_compare_waiting": "Wartet auf den Tauchgang",
   "diveLab_link_unlinkTitle": "Diesen Plan trennen?",
   "diveLab_link_unlinkBody": "Plan und Tauchgang bleiben beide erhalten. Sie werden nur nicht mehr verglichen.",

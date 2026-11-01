@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "Mi lenne, ha kérdés",
   "diveLab_compare_linkPlan": "Terv kapcsolása",
   "diveLab_compare_unlinkPlan": "Terv leválasztása",
+  "diveLab_compare_planTable": "Terv és merülés",
+  "diveLab_compare_plannedSchedule": "Tervezett menetrend",
   "diveLab_compare_waiting": "Várakozás a merülésre",
   "diveLab_link_unlinkTitle": "Leválasztod ezt a tervet?",
   "diveLab_link_unlinkBody": "A terv és a merülés is megmarad, csak már nem hasonlítjuk össze őket.",

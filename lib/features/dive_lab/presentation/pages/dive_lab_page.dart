@@ -3,29 +3,39 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
+import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/services/compare_columns.dart';
 import 'package:submersion/features/dive_lab/domain/services/scenario_plan_handoff.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_share.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/scenario_outcome_provider.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/compare_chips.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/compare_plan_only_body.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_branch_controls.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_panel.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_intervention_chips.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_mode_toggle.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/plan_link_actions.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -322,43 +332,84 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     }
 
     final inputs = inputsAsync.valueOrNull;
+    final comparison = ref.watch(linkedPlanComparisonProvider(diveId)).value;
+    // The inputs carry the dive when the dive can branch; a dive that cannot
+    // has none, and is read here only to tell a planned one apart.
+    final isPlanned =
+        (inputs?.dive ?? ref.watch(diveProvider(diveId)).value)?.isPlanned ??
+        false;
+    final loaded = inputsAsync.hasValue;
+    // What-if controls need a dive to branch from, and a sketch is not one.
+    final canBranch = inputs != null && !isPlanned;
+    final linkEntries = <PopupMenuEntry<String>>[
+      PopupMenuItem(
+        value: 'linkPlan',
+        child: Text(l10n.diveLab_compare_linkPlan),
+      ),
+      if (comparison != null)
+        PopupMenuItem(
+          value: 'unlinkPlan',
+          child: Text(l10n.diveLab_compare_unlinkPlan),
+        ),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.diveLab_title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save_outlined),
-            tooltip: l10n.diveLab_action_save,
-            onPressed: inputs == null || !draft.isSeeded
-                ? null
-                : () => _save(inputs),
-          ),
-          IconButton(
-            icon: const Icon(Icons.folder_open_outlined),
-            tooltip: l10n.diveLab_action_saved,
-            onPressed: inputs == null
-                ? null
-                : () => showLabSavedScenariosSheet(context, diveId: diveId),
-          ),
+          if (!loaded || canBranch) ...[
+            IconButton(
+              icon: const Icon(Icons.save_outlined),
+              tooltip: l10n.diveLab_action_save,
+              onPressed: inputs == null || !draft.isSeeded
+                  ? null
+                  : () => _save(inputs),
+            ),
+            IconButton(
+              icon: const Icon(Icons.folder_open_outlined),
+              tooltip: l10n.diveLab_action_saved,
+              onPressed: inputs == null
+                  ? null
+                  : () => showLabSavedScenariosSheet(context, diveId: diveId),
+            ),
+          ],
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             tooltip: l10n.diveLab_menu_title,
-            enabled: inputs != null,
+            enabled: loaded,
             onSelected: (value) {
-              if (inputs == null) return;
               switch (value) {
+                case 'linkPlan':
+                  logFailure(
+                    pickPlanAndLink(context, ref, diveId: diveId),
+                    DiveLabPage,
+                    'link plan to dive',
+                  );
+                case 'unlinkPlan':
+                  if (comparison == null) return;
+                  logFailure(
+                    unlinkPlanWithConfirm(
+                      context,
+                      ref,
+                      planId: comparison.plan.id,
+                    ),
+                    DiveLabPage,
+                    'unlink plan',
+                  );
                 case 'pdf' || 'file' || 'image':
-                  _share(value, inputs);
+                  if (inputs != null) _share(value, inputs);
                 case 'planner':
-                  _openInPlanner(inputs);
+                  if (inputs != null) _openInPlanner(inputs);
                 case 'rebuild':
-                  _rebuildInPlanner(inputs);
+                  if (inputs != null) _rebuildInPlanner(inputs);
               }
             },
             itemBuilder: (context) {
+              if (!canBranch) return linkEntries;
               final canShare = draft.isSeeded;
-              final isOc = inputs?.diveMode == DiveMode.oc;
+              final isOc = inputs.diveMode == DiveMode.oc;
               return [
+                ...linkEntries,
+                const PopupMenuDivider(),
                 PopupMenuItem(
                   value: 'pdf',
                   enabled: canShare,
@@ -419,7 +470,20 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
           ),
         ),
         data: (inputs) {
+          if (isPlanned) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  l10n.diveLab_compare_waiting,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
+            );
+          }
           if (inputs == null) {
+            if (comparison != null) return ComparePlanOnlyBody(diveId: diveId);
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -451,8 +515,13 @@ class _LabBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final outcome = ref.watch(scenarioOutcomeProvider(diveId));
     final draft = ref.watch(labDraftProvider(diveId));
+    final comparison = ref.watch(linkedPlanComparisonProvider(diveId)).value;
+    final planOn =
+        comparison != null &&
+        compareLineOn(ref.watch(compareLinesProvider(diveId)), 'planned');
     final chart = LabChart(
       diveId: diveId,
       inputs: inputs,
@@ -461,10 +530,31 @@ class _LabBody extends ConsumerWidget {
       outcome: outcome.value,
       branchSeconds: draft.branchSeconds,
       exportKey: chartKey,
+      planOverlay: planOn ? comparison.overlay : null,
     );
     final controls = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (comparison != null) ...[
+          CompareChips(
+            chips: [
+              CompareChipData(
+                id: 'planned',
+                label: l10n.diveLab_compare_line_planned,
+                color: comparison.overlay.color,
+                selected: planOn,
+                onToggle: (value) {
+                  final lines = compareLinesProvider(diveId);
+                  ref.read(lines.notifier).state = {
+                    ...ref.read(lines),
+                    'planned': value,
+                  };
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
         LabBranchControls(diveId: diveId, inputs: inputs),
         const SizedBox(height: 12),
         LabModeToggle(diveId: diveId),
@@ -474,6 +564,8 @@ class _LabBody extends ConsumerWidget {
     );
     // value, not valueOrNull, for the same reason as the outcome below.
     final buoyancy = ref.watch(labBuoyancyProvider(diveId)).value;
+    final planned = planOn ? ref.watch(plannedColumnProvider(diveId)) : null;
+    final shown = outcome.value;
     final panel = LabDeltaPanel(
       inputs: inputs,
       // value, not valueOrNull: a draft edit reloads the provider, and
@@ -482,6 +574,24 @@ class _LabBody extends ConsumerWidget {
       recomputing: outcome.isLoading,
       buoyancy: buoyancy,
       error: outcome.hasError ? outcome.error : null,
+      planColumns: planned == null || shown == null
+          ? const <CompareColumn>[]
+          : [
+              planned,
+              divedColumn(
+                dive: inputs.dive,
+                profile: inputs.profile,
+                analysis: shown.actual,
+              ),
+              whatIfColumn(
+                // An unsaved draft's placeholder name is not a heading.
+                scenario: draft
+                    .toScenario(diveId)
+                    .copyWith(name: draft.name ?? ''),
+                outcome: shown,
+              ),
+            ],
+      plannedOutcome: planOn ? comparison.outcome : null,
     );
 
     return LayoutBuilder(

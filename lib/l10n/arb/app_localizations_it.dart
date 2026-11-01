@@ -52577,6 +52577,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'Scollega piano';
 
   @override
+  String get diveLab_compare_planTable => 'Piano e immersione';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programma pianificato';
+
+  @override
   String get diveLab_compare_waiting => 'In attesa dell\'immersione';
 
   @override

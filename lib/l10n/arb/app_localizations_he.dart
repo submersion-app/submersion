@@ -51444,6 +51444,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'ביטול קישור התוכנית';
 
   @override
+  String get diveLab_compare_planTable => 'תוכנית מול צלילה';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'לוח זמנים מתוכנן';
+
+  @override
   String get diveLab_compare_waiting => 'ממתין לצלילה';
 
   @override

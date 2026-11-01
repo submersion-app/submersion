@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "Plantear un qué pasaría si",
   "diveLab_compare_linkPlan": "Vincular un plan",
   "diveLab_compare_unlinkPlan": "Desvincular plan",
+  "diveLab_compare_planTable": "Plan e inmersión",
+  "diveLab_compare_plannedSchedule": "Programa planificado",
   "diveLab_compare_waiting": "A la espera de la inmersión",
   "diveLab_link_unlinkTitle": "¿Desvincular este plan?",
   "diveLab_link_unlinkBody": "El plan y la inmersión se conservan. Solo dejan de compararse.",

@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "Chiedi un e se",
   "diveLab_compare_linkPlan": "Collega un piano",
   "diveLab_compare_unlinkPlan": "Scollega piano",
+  "diveLab_compare_planTable": "Piano e immersione",
+  "diveLab_compare_plannedSchedule": "Programma pianificato",
   "diveLab_compare_waiting": "In attesa dell'immersione",
   "diveLab_link_unlinkTitle": "Scollegare questo piano?",
   "diveLab_link_unlinkBody": "Il piano e l'immersione restano entrambi. Semplicemente non vengono più confrontati.",

@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "Stel een wat-als",
   "diveLab_compare_linkPlan": "Een plan koppelen",
   "diveLab_compare_unlinkPlan": "Plan ontkoppelen",
+  "diveLab_compare_planTable": "Plan en duik",
+  "diveLab_compare_plannedSchedule": "Gepland schema",
   "diveLab_compare_waiting": "Wacht op de duik",
   "diveLab_link_unlinkTitle": "Dit plan ontkoppelen?",
   "diveLab_link_unlinkBody": "Het plan en de duik blijven allebei bestaan. Ze worden alleen niet meer vergeleken.",

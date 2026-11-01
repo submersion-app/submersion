@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -54,6 +56,7 @@ class LabChart extends ConsumerWidget {
     required this.outcome,
     required this.branchSeconds,
     this.exportKey,
+    this.planOverlay,
   });
 
   final String diveId;
@@ -63,6 +66,9 @@ class LabChart extends ConsumerWidget {
 
   /// Wraps the chart in a RepaintBoundary for PNG capture (PDF, image share).
   final GlobalKey? exportKey;
+
+  /// The linked plan's line, when it is showing.
+  final ChartSourceOverlay? planOverlay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,11 +84,19 @@ class LabChart extends ConsumerWidget {
             color: kLabGhostColor,
           );
     final replay = o?.mode == ScenarioMode.replay;
+    final plan = planOverlay;
+    final overlays = [?plan, ?ghost];
+    // A plan can run past the dive; the axis has to reach its end.
+    final planEnd = plan == null || plan.points.isEmpty
+        ? 0
+        : plan.points.last.timestamp;
     return DiveProfileChart(
       profile: inputs.profile,
-      diveDuration: Duration(seconds: inputs.durationSeconds),
+      diveDuration: Duration(
+        seconds: math.max(inputs.durationSeconds, planEnd),
+      ),
       showTemperature: false,
-      overlays: ghost == null ? null : [ghost],
+      overlays: overlays.isEmpty ? null : overlays,
       ceilingCurve: o == null
           ? null
           : (replay ? o.counterfactual.ceilingCurve : o.actual.ceilingCurve),

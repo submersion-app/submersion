@@ -52281,6 +52281,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'Terv leválasztása';
 
   @override
+  String get diveLab_compare_planTable => 'Terv és merülés';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Tervezett menetrend';
+
+  @override
   String get diveLab_compare_waiting => 'Várakozás a merülésre';
 
   @override

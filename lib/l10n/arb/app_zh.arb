@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "提出假设",
   "diveLab_compare_linkPlan": "关联计划",
   "diveLab_compare_unlinkPlan": "取消关联计划",
+  "diveLab_compare_planTable": "计划与潜水",
+  "diveLab_compare_plannedSchedule": "计划时间表",
   "diveLab_compare_waiting": "等待潜水",
   "diveLab_link_unlinkTitle": "取消关联此计划？",
   "diveLab_link_unlinkBody": "计划和潜水都会保留，只是不再进行比较。",

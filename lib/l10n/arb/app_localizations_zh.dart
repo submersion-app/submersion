@@ -49306,6 +49306,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => '取消关联计划';
 
   @override
+  String get diveLab_compare_planTable => '计划与潜水';
+
+  @override
+  String get diveLab_compare_plannedSchedule => '计划时间表';
+
+  @override
   String get diveLab_compare_waiting => '等待潜水';
 
   @override

@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "اطرح سؤال ماذا لو",
   "diveLab_compare_linkPlan": "ربط خطة",
   "diveLab_compare_unlinkPlan": "إلغاء ربط الخطة",
+  "diveLab_compare_planTable": "الخطة مقابل الغطسة",
+  "diveLab_compare_plannedSchedule": "الجدول المخطط",
   "diveLab_compare_waiting": "بانتظار الغطسة",
   "diveLab_link_unlinkTitle": "إلغاء ربط هذه الخطة؟",
   "diveLab_link_unlinkBody": "تبقى الخطة والغطسة معاً، لكن لن تتم مقارنتهما بعد الآن.",

@@ -52240,6 +52240,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'Plan ontkoppelen';
 
   @override
+  String get diveLab_compare_planTable => 'Plan en duik';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Gepland schema';
+
+  @override
   String get diveLab_compare_waiting => 'Wacht op de duik';
 
   @override

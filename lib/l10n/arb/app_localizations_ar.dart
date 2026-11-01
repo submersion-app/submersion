@@ -53183,6 +53183,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_compare_unlinkPlan => 'إلغاء ربط الخطة';
 
   @override
+  String get diveLab_compare_planTable => 'الخطة مقابل الغطسة';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'الجدول المخطط';
+
+  @override
   String get diveLab_compare_waiting => 'بانتظار الغطسة';
 
   @override

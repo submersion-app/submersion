@@ -8,7 +8,11 @@ String compareColumnTitle(AppLocalizations l10n, CompareColumn column) =>
     switch (column.kind) {
       CompareLineKind.planned => l10n.diveLab_compare_line_planned,
       CompareLineKind.asDived => l10n.diveLab_compare_line_asDived,
-      CompareLineKind.whatIf => column.title ?? l10n.diveLab_panel_whatIf,
+      // An unsaved draft has no name yet.
+      CompareLineKind.whatIf =>
+        (column.title?.isEmpty ?? true)
+            ? l10n.diveLab_panel_whatIf
+            : column.title!,
     };
 
 String compareRowLabel(AppLocalizations l10n, CompareRow row) => switch (row) {

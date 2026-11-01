@@ -15780,6 +15780,8 @@
   "diveLab_compare_askWhatIf": "שאל מה אם",
   "diveLab_compare_linkPlan": "קישור תוכנית",
   "diveLab_compare_unlinkPlan": "ביטול קישור התוכנית",
+  "diveLab_compare_planTable": "תוכנית מול צלילה",
+  "diveLab_compare_plannedSchedule": "לוח זמנים מתוכנן",
   "diveLab_compare_waiting": "ממתין לצלילה",
   "diveLab_link_unlinkTitle": "לבטל את קישור התוכנית?",
   "diveLab_link_unlinkBody": "התוכנית והצלילה נשארות. הן פשוט לא יושוו יותר.",
