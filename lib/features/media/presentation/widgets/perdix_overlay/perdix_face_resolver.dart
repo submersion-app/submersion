@@ -19,10 +19,10 @@ class PerdixFaceData {
   final String? gasLabel;
   final double? tankPressureBar;
 
-  /// True when [tankPressureBar] is null though the dive has readings at this
-  /// moment, so the cylinder in use is unmeasured rather than the dive having
-  /// no pressure data. The face then holds the TANK cell open with no value,
-  /// which keeps the cells beside it from moving at a gas switch.
+  /// True when the dive has pressure readings at this moment but none to show
+  /// for the cylinder in use, as opposed to a dive with no pressure data. The
+  /// face then holds the TANK cell open with no value, which keeps the cells
+  /// beside it from moving at a gas switch.
   final bool tankPressureMissing;
   final double? cnsPercent;
   final double? ppO2Bar;
