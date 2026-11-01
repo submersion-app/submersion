@@ -5953,13 +5953,23 @@ class DiveRepository {
   /// [getPreviousDiveTimes]) rather than full hydration: the formula needs
   /// only timestamps and effective runtime, and this method sits on the
   /// residual-decompression lookback hot path (WS2, large-DB performance).
+  ///
+  /// [sameDiverOnly] measures from the dive's own diver's previous dive, as
+  /// [getPreviousDiveTimes] picks it. The lookback passes it: that interval
+  /// off-gasses one person's tissues.
   // stats-scope-exempt: physiological interval between real dives, not a statistic
-  Future<Duration?> getSurfaceInterval(String diveId) async {
+  Future<Duration?> getSurfaceInterval(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     try {
       final current = await getDiveTimes(diveId);
       if (current == null) return null;
 
-      final previous = await getPreviousDiveTimes(diveId);
+      final previous = await getPreviousDiveTimes(
+        diveId,
+        sameDiverOnly: sameDiverOnly,
+      );
       if (previous == null) return null;
 
       // Calculate interval: from previous dive exit to current dive entry
@@ -6024,7 +6034,7 @@ class DiveRepository {
   /// table use [effectiveRuntimeSecondsSql] instead, which resolves the same
   /// chain but short-circuits past the profile scan.
   static final _diveTimesSelect =
-      'SELECT d.id, d.dive_date_time, d.entry_time, d.exit_time, '
+      'SELECT d.id, d.diver_id, d.dive_date_time, d.entry_time, d.exit_time, '
       'd.runtime, d.bottom_time, '
       "${profileSpanSecondsSql('d')} AS profile_span "
       'FROM dives d';
@@ -6051,6 +6061,7 @@ class DiveRepository {
       bottomTime: bottom != null ? Duration(seconds: bottom) : null,
       // Matches Dive.calculateRuntimeFromProfile: null unless positive.
       profileSpan: span != null && span > 0 ? Duration(seconds: span) : null,
+      diverId: row.readNullable<String>('diver_id'),
     );
   }
 
@@ -6117,7 +6128,16 @@ class DiveRepository {
 
   /// Times-only equivalent of [getPreviousDive] (identical predicate and
   /// ordering), for lookback chains that need only id and timestamps.
-  Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {
+  ///
+  /// By default this is any diver's dive: the gap a shared logbook shows. A
+  /// residual load is one person's, so the lookback passes [sameDiverOnly] and
+  /// reads the dive's own diver's dives, whichever diver is active (#3923).
+  /// `IS` matches a null owner: unassigned dives are one implicit diver's, as
+  /// in `quality_prefilters.dart`, and never pair with an assigned diver's.
+  Future<domain.DiveTimes?> getPreviousDiveTimes(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;
 
@@ -6128,11 +6148,13 @@ class DiveRepository {
           '$_diveTimesSelect '
           'WHERE d.id != ? AND (d.entry_time < ? OR '
           '(d.entry_time IS NULL AND d.dive_date_time < ?)) '
+          '${sameDiverOnly ? 'AND d.diver_id IS ? ' : ''}'
           'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
           variables: [
             Variable<String>(diveId),
             Variable<int>(cutoff),
             Variable<int>(cutoff),
+            if (sameDiverOnly) Variable<String>(current.diverId),
           ],
           readsFrom: {_db.dives, _db.diveProfileSeries},
         )
@@ -6203,10 +6225,14 @@ class DiveRepository {
 
   /// Times-only equivalent of [getDivesInRange] (identical WHERE and
   /// ordering), for same-day and weekly exposure aggregation.
+  ///
+  /// [diverId] is required because exposure is one person's (#3923), and unlike
+  /// [getDivesInRange] a null one is not "every diver": it reads the unassigned
+  /// dives, for a dive that is itself unassigned.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
   }) => _diveTimesInRange(start, end, diverId: diverId);
 
   /// [getDiveTimesInRange] for [diverId], excluding planner rows
@@ -6222,18 +6248,19 @@ class DiveRepository {
   Future<List<domain.DiveTimes>> _diveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
     bool executedOnly = false,
   }) async {
-    final clauses = <String>['d.dive_date_time >= ?', 'd.dive_date_time <= ?'];
+    final clauses = <String>[
+      'd.dive_date_time >= ?',
+      'd.dive_date_time <= ?',
+      'd.diver_id IS ?',
+    ];
     final args = <Variable<Object>>[
       Variable<int>(start.millisecondsSinceEpoch),
       Variable<int>(end.millisecondsSinceEpoch),
+      Variable<String>(diverId),
     ];
-    if (diverId != null) {
-      clauses.add('d.diver_id = ?');
-      args.add(Variable<String>(diverId));
-    }
     if (executedOnly) clauses.add('d.is_planned = 0');
     final rows = await _db
         .customSelect(

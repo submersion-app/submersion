@@ -17,6 +17,9 @@ class DiveTimes {
   final Duration? bottomTime;
   final Duration? profileSpan;
 
+  /// The diver who logged this dive; null for an unassigned dive.
+  final String? diverId;
+
   const DiveTimes({
     required this.id,
     required this.dateTime,
@@ -25,6 +28,7 @@ class DiveTimes {
     this.runtime,
     this.bottomTime,
     this.profileSpan,
+    this.diverId,
   });
 
   /// Same resolution order as `Dive.effectiveRuntime`:

@@ -36,7 +36,9 @@ class SafetyReviewService {
   /// v8: ppO2, CNS and OTU read the dive's own water and surface pressure,
   /// which changes the oxygen findings of an altitude or fresh water dive
   /// (#3958).
-  static const int engineVersion = 8;
+  /// v9: a dive's residual tissue load comes from its own diver's dives only,
+  /// which changes what is graded on a dive in a shared logbook (#3923).
+  static const int engineVersion = 9;
 
   const SafetyReviewService();
 

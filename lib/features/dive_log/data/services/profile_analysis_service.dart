@@ -43,7 +43,9 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 /// v3: a depth spike is repaired by time-weighted interpolation rather than
 /// the midpoint of its neighbours, so an unevenly sampled dive replays
 /// different depths (#3910).
-const int analysisEngineVersion = 3;
+/// v4: a dive's residual tissue load comes from its own diver's dives only,
+/// so a shared logbook's dives no longer start loaded by each other (#3923).
+const int analysisEngineVersion = 4;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
