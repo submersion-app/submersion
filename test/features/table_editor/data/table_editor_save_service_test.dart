@@ -15,12 +15,17 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
+    as sites;
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/table_editor/data/table_editor_save_service.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_entity.dart';
 import 'package:submersion/features/table_editor/entities/dive_table_editor_entity.dart';
+import 'package:submersion/features/table_editor/entities/site_table_editor_entity.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../core/database/change_log/change_log_support.dart';
@@ -229,6 +234,52 @@ void main() {
     expect(after['d2']!.visibilityMeters, 10);
     expect(outcome.kept, 0);
   });
+  test(
+    'a stale half of a site\'s coordinate pair skips the whole pair',
+    () async {
+      final siteRepo = SiteRepository();
+      await siteRepo.createSite(
+        const sites.DiveSite(
+          id: 's1',
+          name: 'Reef',
+          location: sites.GeoPoint(1, 2),
+        ),
+      );
+      final site = SiteTableEditorEntity(
+        repo: siteRepo,
+        editableLibrarySites: const {},
+      );
+      // The diver clears both halves; a sync moves the longitude meanwhile.
+      await db.customStatement(
+        "UPDATE dive_sites SET longitude = 9 WHERE id = 's1'",
+      );
+
+      final result = await TableEditorSaveService().save(
+        entity: site,
+        drafts: [
+          TableDraft(
+            entityId: 's1',
+            fieldName: SiteField.latitude.name,
+            original: 1.0,
+            value: null,
+          ),
+          TableDraft(
+            entityId: 's1',
+            fieldName: SiteField.longitude.name,
+            original: 2.0,
+            value: null,
+          ),
+        ],
+      );
+
+      expect(result.saved, 0);
+      expect(result.changedElsewhere, hasLength(2));
+      expect(
+        (await siteRepo.getSiteById('s1'))!.location,
+        const sites.GeoPoint(1, 9),
+      );
+    },
+  );
 }
 
 /// Writes the first dive through the real entity, then throws, so the

@@ -151,4 +151,39 @@ void main() {
     expect(skipped.single.reason, PasteSkipReason.readOnlyCell);
     expect(skipped.single.detail, '3');
   });
+
+  test('pasting over a drafted cell keeps that draft\'s original', () {
+    final notifier = TableDraftsNotifier()
+      ..put(
+        TableDraft(
+          entityId: 'd1',
+          fieldName: DiveField.siteName.name,
+          original: 'old-site',
+          value: 's1',
+        ),
+      );
+    final plan = planClipboardPaste<Dive, DiveField>(
+      text: 'Blue Hole',
+      entity: entity,
+      rows: [d1],
+      visibleColumns: const [DiveField.diveNumber, DiveField.siteName],
+      selected: CellPosition('d1', DiveField.siteName.name),
+      l10n: l10n,
+    );
+
+    applyPastePlan<Dive, DiveField>(
+      plan: plan,
+      entity: entity,
+      rowsById: {'d1': d1},
+      units: units,
+      l10n: l10n,
+      notifier: notifier,
+      existing: notifier.state,
+    );
+
+    expect(
+      notifier.state.at('d1', DiveField.siteName.name)?.original,
+      'old-site',
+    );
+  });
 }

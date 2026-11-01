@@ -324,14 +324,20 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       ref.watch(tableEditorDraftsProvider(tab));
     }
     if (!ResponsiveBreakpoints.isDesktop(context)) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.tableEditor_title)),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              l10n.tableEditor_needsWiderScreen,
-              textAlign: TextAlign.center,
+      // The same guard as the wide view: drafts survive the narrowing and
+      // must not be walked away from unasked.
+      return PopScope(
+        canPop: !_anyDrafts,
+        onPopInvokedWithResult: (didPop, _) => _handlePop(didPop),
+        child: Scaffold(
+          appBar: AppBar(title: Text(l10n.tableEditor_title)),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                l10n.tableEditor_needsWiderScreen,
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),

@@ -93,8 +93,8 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
         if (column.kind == CellEditorKind.toggle) {
           // A toggle flips on the tap itself; opening it would be a step
           // for nothing.
-          final current =
-              drafts.at(id, field.name)?.value ?? column.valueOf(row);
+          final existing = drafts.at(id, field.name);
+          final current = existing?.value ?? column.valueOf(row);
           _commit(
             row: row,
             drafts: drafts,
@@ -102,7 +102,11 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
             next: TableDraft(
               entityId: id,
               fieldName: field.name,
-              original: column.valueOf(row),
+              // The baseline the first edit saw, so a moved value is still
+              // caught at save time.
+              original: existing != null
+                  ? existing.original
+                  : column.valueOf(row),
               value: current != true,
             ),
           );
@@ -264,8 +268,9 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
   }) {
     final id = entity.idOf(row);
     final position = CellPosition(id, column.field.name);
-    final original = column.valueOf(row);
-    final current = draft?.value ?? original;
+    // The baseline the first edit saw, so a moved value is still caught.
+    final original = draft != null ? draft.original : column.valueOf(row);
+    final current = draft?.value ?? column.valueOf(row);
 
     void move(CellMove m) {
       // Movement follows the order on screen, which the table sorts itself;

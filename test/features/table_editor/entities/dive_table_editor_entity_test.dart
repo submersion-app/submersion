@@ -2,6 +2,9 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -189,5 +192,28 @@ void main() {
     expect(e.columnFor(DiveField.maxDepth), isNull);
     expect(e.numberOf(r['d1']!), r['d1']!.diveNumber);
     expect(e.nameOf(r['d1']!), isNull);
+  });
+
+  test('surface pressure is typed in the diver\'s barometric unit', () async {
+    await seed('d1');
+    await seed('d2');
+    final e = await entity();
+    final column = e.columnFor(DiveField.surfacePressure)!;
+    const metric = UnitFormatter(AppSettings());
+    const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+    final dive = (await rows())['d1']!.copyWith(surfacePressure: 1.013);
+
+    expect(column.editText(dive, metric), '1013');
+    expect(column.unitSymbol(metric), 'mbar');
+    expect(
+      (column.parse('1013', metric, AppLocalizationsEn()) as CellParsed).value,
+      closeTo(1.013, 1e-9),
+    );
+    expect(column.unitSymbol(imperial), 'inHg');
+    expect(
+      (column.parse('29.92', imperial, AppLocalizationsEn()) as CellParsed)
+          .value,
+      closeTo(1.0132, 1e-3),
+    );
   });
 }

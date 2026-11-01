@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
@@ -101,6 +102,9 @@ void main() {
       testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
           tableEditorDiveConfigProvider.overrideWith(
             (ref) => _TestConfigNotifier(sheetConfig ?? config),
           ),
@@ -327,4 +331,38 @@ void main() {
     expect(draftOf(tester, 'd1', DiveField.visibility), isNull);
     expect(find.text(vis(15)), findsOneWidget);
   });
+
+  testWidgets(
+    'a toggle on an already drafted cell keeps the draft\'s original',
+    (tester) async {
+      await pumpSheet(
+        tester,
+        sheetConfig: EntityTableViewConfig<DiveField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: DiveField.diveNumber,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: DiveField.isFavorite),
+          ],
+        ),
+      );
+      containerOf(tester)
+          .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+          .put(
+            TableDraft(
+              entityId: 'd1',
+              fieldName: DiveField.isFavorite.name,
+              original: true,
+              value: false,
+            ),
+          );
+      await tester.pump();
+
+      await tapCell(tester, find.text('No').first);
+
+      final draft = draftOf(tester, 'd1', DiveField.isFavorite);
+      expect(draft, isNull); // true again equals the remembered original
+    },
+  );
 }

@@ -109,7 +109,11 @@ List<PasteSkip> applyPastePlan<T, F extends EntityField>({
       skipped.add(PasteSkip(PasteSkipReason.readOnlyCell, detail: key));
       continue;
     }
-    final original = column.valueOf(row);
+    // A cell drafted before keeps the baseline that draft was made against,
+    // so a value that moved since is still caught at save time.
+    final original =
+        existing.at(cell.entityId, cell.field.name)?.original ??
+        column.valueOf(row);
     final draft = switch (column.parse(cell.text, units, l10n)) {
       CellParsed(:final value) => TableDraft(
         entityId: cell.entityId,

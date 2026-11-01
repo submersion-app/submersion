@@ -299,4 +299,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.tableEditor_draftCount(1)), findsOneWidget);
   });
+
+  testWidgets('back from the narrow view with drafts asks first', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await draftVisibility(tester, '12');
+    tester.view.physicalSize = const Size(600, 800);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10n.forms_discard_title), findsOneWidget);
+  });
 }

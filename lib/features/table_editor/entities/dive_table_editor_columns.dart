@@ -77,10 +77,13 @@ List<DiveEditorColumn> diveEditorColumns({
     toStored: (u, v) => u.altitudeToMeters(v),
     symbol: (u) => u.altitudeSymbol,
   ),
-  plainNumberColumn(
+  // Stored in bar, typed in the diver's barometric unit (mbar or inHg).
+  numberColumn(
     DiveField.surfacePressure,
     (d) => d.surfacePressure,
-    symbol: 'bar',
+    toDisplay: (u, v) => u.convertSurfacePressure(v),
+    toStored: (u, v) => u.surfacePressureToBar(v),
+    symbol: (u) => u.surfacePressureSymbol,
     min: 0,
   ),
   integerColumn(

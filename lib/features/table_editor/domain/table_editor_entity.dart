@@ -45,6 +45,11 @@ abstract class TableEditorEntity<T, F extends EntityField> {
     Map<String, T> fresh,
   );
 
+  /// Fields saved as one value (a coordinate pair): when one of a record's
+  /// drafts in a group is left out as stale, the others are too, so a cleared
+  /// half never meets a moved partner. Default: none.
+  List<Set<String>> get linkedFields => const [];
+
   /// Extra lines for the save summary (site snapping, pair clearing).
   List<String> summaryNotes(List<TableDraft> drafts, AppLocalizations l10n) =>
       const [];

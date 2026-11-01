@@ -5,6 +5,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/presentation/providers/table_editor_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -80,6 +81,36 @@ void main() {
     expect(
       container.read(tableViewConfigProvider).sortField,
       isNot(DiveField.maxDepth),
+    );
+  });
+
+  test('a diver switch starts every tab with no drafts', () {
+    final diver = MockCurrentDiverIdNotifier();
+    final container = ProviderContainer(
+      overrides: [currentDiverIdProvider.overrideWith((ref) => diver)],
+    );
+    addTearDown(container.dispose);
+    diver.setCurrentDiver('a');
+    container
+        .read(tableEditorDraftsProvider(TableEditorTab.dives).notifier)
+        .put(
+          const TableDraft(
+            entityId: 'd1',
+            fieldName: 'notes',
+            original: null,
+            value: 'x',
+          ),
+        );
+    expect(
+      container.read(tableEditorDraftsProvider(TableEditorTab.dives)).count,
+      1,
+    );
+
+    diver.setCurrentDiver('b');
+
+    expect(
+      container.read(tableEditorDraftsProvider(TableEditorTab.dives)).isEmpty,
+      isTrue,
     );
   });
 }

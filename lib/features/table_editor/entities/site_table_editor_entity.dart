@@ -50,6 +50,11 @@ class SiteTableEditorEntity
   SiteField get keyField => SiteField.siteName;
 
   @override
+  List<Set<String>> get linkedFields => [
+    {SiteField.latitude.name, SiteField.longitude.name},
+  ];
+
+  @override
   int? numberOf(SiteWithCount entity) => null;
 
   @override

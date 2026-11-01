@@ -41,7 +41,12 @@ final tableEditorDraftsProvider =
       TableDraftsNotifier,
       TableDraftState,
       TableEditorTab
-    >((ref, tab) => TableDraftsNotifier());
+    >((ref, tab) {
+      // A diver switch starts every tab clean, so no draft can reach another
+      // profile's records.
+      ref.watch(currentDiverIdProvider);
+      return TableDraftsNotifier();
+    });
 
 // ---------------------------------------------------------------------------
 // Filters, one per tab

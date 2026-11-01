@@ -46,15 +46,58 @@ class TableEditorSaveService {
     required TableEditorEntity<T, F> entity,
     required List<TableDraft> drafts,
   }) async {
+    final database = _database;
+    var stale = <StaleDraft>[];
+    var saved = 0;
+    String? operationId;
+    // The scope stays outside the transaction: a failed body must not take
+    // the operation row with it (see ChangeLogScope). The reread and the
+    // stale check run inside it, so nothing can move between the check and
+    // the write.
+    await ChangeLogScope.bulk(
+      database,
+      label: ChangeLogLabels.tableEditor,
+      body: () async {
+        operationId = ChangeLogScope.currentOperationId;
+        Future<void> write() async {
+          final (grouped, skipped, fresh) = await _partition(entity, drafts);
+          stale = skipped;
+          saved = grouped.values.fold(0, (n, l) => n + l.length);
+          if (grouped.isNotEmpty) await entity.save(grouped, fresh);
+        }
+
+        if (database == null) {
+          await write();
+        } else {
+          await database.transaction(write);
+        }
+      },
+    );
+    return TableEditorSaveResult(
+      operationId: saved == 0 ? null : operationId,
+      saved: saved,
+      changedElsewhere: stale,
+    );
+  }
+
+  /// Rereads every drafted record and splits the drafts into those still
+  /// against the stored value (grouped by record) and those left out.
+  Future<(Map<String, List<TableDraft>>, List<StaleDraft>, Map<String, T>)>
+  _partition<T, F extends EntityField>(
+    TableEditorEntity<T, F> entity,
+    List<TableDraft> drafts,
+  ) async {
     final ids = drafts.map((d) => d.entityId).toSet().toList();
     final fresh = {for (final r in await entity.reload(ids)) entity.idOf(r): r};
     const eq = DeepCollectionEquality();
     final stale = <StaleDraft>[];
+    final staleKeys = <CellPosition>{};
     final grouped = <String, List<TableDraft>>{};
     for (final d in drafts) {
       final row = fresh[d.entityId];
       if (row == null) {
         stale.add(StaleDraft(d, null));
+        staleKeys.add(d.position);
         continue;
       }
       final column = entity.columnFor(entity.fieldFromName(d.fieldName));
@@ -65,38 +108,29 @@ class TableEditorSaveService {
           column == null ||
           !column.isEditable(row)) {
         stale.add(StaleDraft(d, current));
+        staleKeys.add(d.position);
         continue;
       }
       grouped.putIfAbsent(d.entityId, () => []).add(d);
     }
-    if (grouped.isEmpty) {
-      return TableEditorSaveResult(
-        operationId: null,
-        saved: 0,
-        changedElsewhere: stale,
-      );
-    }
-    final database = _database;
-    String? operationId;
-    // The scope stays outside the transaction: a failed body must not take
-    // the operation row with it (see ChangeLogScope).
-    await ChangeLogScope.bulk(
-      database,
-      label: ChangeLogLabels.tableEditor,
-      body: () async {
-        operationId = ChangeLogScope.currentOperationId;
-        Future<void> write() => entity.save(grouped, fresh);
-        if (database == null) {
-          await write();
-        } else {
-          await database.transaction(write);
+    // A stale draft takes its linked partners with it.
+    for (final group in entity.linkedFields) {
+      for (final entry in grouped.entries.toList()) {
+        final hit = staleKeys.any(
+          (k) => k.entityId == entry.key && group.contains(k.fieldName),
+        );
+        if (!hit) continue;
+        final partners = entry.value
+            .where((d) => group.contains(d.fieldName))
+            .toList();
+        for (final d in partners) {
+          final column = entity.columnFor(entity.fieldFromName(d.fieldName));
+          stale.add(StaleDraft(d, column?.valueOf(fresh[d.entityId] as T)));
+          entry.value.remove(d);
         }
-      },
-    );
-    return TableEditorSaveResult(
-      operationId: operationId,
-      saved: grouped.values.fold(0, (n, l) => n + l.length),
-      changedElsewhere: stale,
-    );
+        if (entry.value.isEmpty) grouped.remove(entry.key);
+      }
+    }
+    return (grouped, stale, fresh);
   }
 }
