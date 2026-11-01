@@ -67,6 +67,26 @@ void main() {
     litres: litres,
   );
 
+  test('helium gives way when both round up past 100 (#4007)', () {
+    final csv = CsvTripGasRecordWriter(CsvExportUnits.metric).write(
+      recordOf([
+        row(
+          withFill: fill.copyWith(
+            o2Percent: 10.25,
+            hePercent: 89.75,
+            analyzedO2: 10.75,
+            analyzedHe: 89.25,
+          ),
+        ),
+      ]),
+    );
+    final r = rowOf(csv, 1);
+    expect(r['O2 %'], '10.3');
+    expect(r['He %'], '89.7');
+    expect(r['Analyzed O2 %'], '10.8');
+    expect(r['Analyzed He %'], '89.2');
+  });
+
   test('metric mode writes canonical values and ISO date and time', () {
     final csv = CsvTripGasRecordWriter(CsvExportUnits.metric).write(
       recordOf([row(withFill: fill)]),

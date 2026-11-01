@@ -9985,6 +9985,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "Certaines colonnes n'ont pas été importées",
   "universalImport_summary_noticeColumnsNotImportedBody": "Ces colonnes correspondaient à un champ déjà rempli par une autre colonne ; elles ont donc été ignorées : {names}. Pour utiliser l'une d'elles à la place, importez à nouveau le fichier et choisissez-la à l'étape « Map Fields ».",
   "universalImport_summary_noticeValuesNotConvertedTitle": "Certaines valeurs laissées vides",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Certains mélanges gazeux ont été corrigés",
+  "universalImport_summary_noticeGasMixesCappedBody": "L'oxygène et l'hélium dépassaient 100 % au total dans ces lignes : {rows}. L'hélium a été réduit pour que le total soit de 100 %. Vérifiez le gaz de ces plongées.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{{count} valeur n'a pas pu être convertie et a été laissée vide. Si un champ semble incorrect, vérifiez l'association des colonnes et importez à nouveau.} other{{count} valeurs n'ont pas pu être converties et ont été laissées vides. Si un champ semble incorrect, vérifiez l'association des colonnes et importez à nouveau.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Certaines photos ignorées",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{{count} photo n'avait pas de nom de fichier et n'a pas pu être liée.} other{{count} photos n'avaient pas de nom de fichier et n'ont pas pu être liées.}}",

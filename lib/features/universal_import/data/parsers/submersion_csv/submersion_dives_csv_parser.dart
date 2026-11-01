@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/constants/enum_display_lookup.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
+import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_unit.dart';
 import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/services/export/csv/dive_csv_columns.dart';
@@ -186,7 +188,28 @@ class SubmersionDivesCsvParser implements ImportParser {
       if (typeIds.isNotEmpty) dive['diveTypeIds'] = typeIds;
 
       final tank = _tank(table, row);
-      if (tank != null) dive['tanks'] = <Map<String, dynamic>>[tank];
+      if (tank != null) {
+        final read = tank['gasMix'] as GasMix;
+        final kept = _withinAHundredPercent(read);
+        if (kept != read) {
+          tank['gasMix'] = kept;
+          warnings.add(
+            ImportWarning(
+              severity: ImportWarningSeverity.warning,
+              code: ImportWarningCode.gasMixesCapped,
+              message:
+                  'Row ${table.sourceRowOf(i)} has O2 ${trimFixed(read.o2, 1)} % '
+                  'and He ${trimFixed(read.he, 1)} %, over 100 % together; '
+                  'He was reduced to ${trimFixed(kept.he, 1)} %',
+              entityType: ImportEntityType.dives,
+              itemIndex: i,
+              field: DiveCsvColumns.hePercent,
+              sourceRow: table.sourceRowOf(i),
+            ),
+          );
+        }
+        dive['tanks'] = <Map<String, dynamic>>[tank];
+      }
 
       final custom = _customFields(table, row);
       if (custom.isNotEmpty) dive['customFields'] = custom;
@@ -356,6 +379,14 @@ class SubmersionDivesCsvParser implements ImportParser {
     }..removeWhere((_, value) => value == null);
   }
 }
+
+/// [mix] with helium reduced to what its oxygen leaves. An export from before
+/// issue #4007 rounded each gas to a whole percent on its own, so a 10.5/89.5
+/// mix reads 11/90, a gas with negative nitrogen. Oxygen stays as written, the
+/// same way the export now resolves an overflow. Binary noise on a total of
+/// 100 is no overflow.
+GasMix _withinAHundredPercent(GasMix mix) =>
+    mix.n2 >= -1e-9 ? mix : GasMix(o2: mix.o2, he: max(0.0, 100 - mix.o2));
 
 /// A range end with conversion noise removed (issue #3226). The export
 /// writes range ends unrounded, but feet to metres and back leaves float

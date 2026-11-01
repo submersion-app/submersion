@@ -33584,6 +33584,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'חלק מהערכים נשארו ריקים';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'חלק מתערובות הגז תוקנו';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'חמצן והליום יחד עברו את 100% בשורות האלה: $rows. ההליום הופחת כך שהסך הכול הוא 100%. בדקו את הגז בצלילות האלה.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

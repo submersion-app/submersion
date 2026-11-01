@@ -32424,6 +32424,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeValuesNotConvertedTitle => '部分值留空';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle => '部分混合气已更正';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return '这些行中的氧气和氦气合计超过 100%：$rows。已降低氦气，使总量为 100%。请检查这些潜水的气体。';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

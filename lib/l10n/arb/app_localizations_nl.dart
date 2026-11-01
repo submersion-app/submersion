@@ -34205,6 +34205,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Sommige waarden leeg gelaten';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Sommige gasmengsels zijn gecorrigeerd';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Zuurstof en helium kwamen samen boven de 100% uit in deze rijen: $rows. Helium is verlaagd zodat het totaal 100% is. Controleer het gas van deze duiken.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

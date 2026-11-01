@@ -10086,6 +10086,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "חלק מהעמודות לא יובאו",
   "universalImport_summary_noticeColumnsNotImportedBody": "העמודות האלה התאימו לשדה שעמודה אחרת כבר ממלאת, ולכן הושמטו: {names}. כדי להשתמש באחת מהן במקום, יש לייבא את הקובץ שוב ולבחור בה בשלב \"Map Fields\".",
   "universalImport_summary_noticeValuesNotConvertedTitle": "חלק מהערכים נשארו ריקים",
+  "universalImport_summary_noticeGasMixesCappedTitle": "חלק מתערובות הגז תוקנו",
+  "universalImport_summary_noticeGasMixesCappedBody": "חמצן והליום יחד עברו את 100% בשורות האלה: {rows}. ההליום הופחת כך שהסך הכול הוא 100%. בדקו את הגז בצלילות האלה.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.} other{{count} ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "חלק מהתמונות דולגו",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{לתמונה אחת לא היה שם קובץ ולא ניתן היה לקשר אותה.} other{ל-{count} תמונות לא היה שם קובץ ולא ניתן היה לקשר אותן.}}",

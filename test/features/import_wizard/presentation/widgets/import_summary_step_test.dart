@@ -1743,6 +1743,20 @@ void main() {
       );
     });
 
+    testWidgets('names the rows whose gas mix was capped', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.gasMixesCapped,
+          count: 2,
+          rowNumbers: [4, 9],
+        ),
+        title: 'Some gas mixes were corrected',
+        bodyFragment: 'over 100% in these rows: 4, 9.',
+        countLine: 'Affects 2 dives',
+      );
+    });
+
     testWidgets('counts skipped photos in the singular', (tester) async {
       await expectCard(
         tester,

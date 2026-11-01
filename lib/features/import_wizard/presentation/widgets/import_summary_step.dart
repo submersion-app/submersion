@@ -605,6 +605,13 @@ _FileNoticeWording? _fileNoticeWording(
       ),
       action: null,
     ),
+    ImportNoticeKind.gasMixesCapped => (
+      title: l10n.universalImport_summary_noticeGasMixesCappedTitle,
+      body: l10n.universalImport_summary_noticeGasMixesCappedBody(
+        notice.rowNumbers.join(', '),
+      ),
+      action: null,
+    ),
     ImportNoticeKind.photosSkipped => (
       title: l10n.universalImport_summary_noticePhotosSkippedTitle,
       body: l10n.universalImport_summary_noticePhotosSkippedBody(notice.count),

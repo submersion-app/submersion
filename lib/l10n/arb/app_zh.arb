@@ -10250,6 +10250,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "部分列未导入",
   "universalImport_summary_noticeColumnsNotImportedBody": "这些列匹配的字段已由另一列填充，因此已被忽略：{names}。如需改用其中一列，请重新导入文件，并在“Map Fields”步骤中选择它。",
   "universalImport_summary_noticeValuesNotConvertedTitle": "部分值留空",
+  "universalImport_summary_noticeGasMixesCappedTitle": "部分混合气已更正",
+  "universalImport_summary_noticeGasMixesCappedBody": "这些行中的氧气和氦气合计超过 100%：{rows}。已降低氦气，使总量为 100%。请检查这些潜水的气体。",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, other{{count} 个值无法转换，已留空。如果某个字段看起来不正确，请检查列映射后重新导入。}}",
   "universalImport_summary_noticePhotosSkippedTitle": "部分照片已跳过",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, other{{count} 张照片没有文件名，无法关联。}}",

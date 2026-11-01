@@ -9985,6 +9985,8 @@
   "universalImport_summary_noticeColumnsNotImportedTitle": "Néhány oszlop nem lett importálva",
   "universalImport_summary_noticeColumnsNotImportedBody": "Ezek az oszlopok olyan mezőhöz illeszkedtek, amelyet már egy másik oszlop kitölt, ezért kimaradtak: {names}. Ha inkább valamelyiket szeretnéd használni, importáld újra a fájlt, és válaszd ki a „Map Fields” lépésben.",
   "universalImport_summary_noticeValuesNotConvertedTitle": "Néhány érték üresen maradt",
+  "universalImport_summary_noticeGasMixesCappedTitle": "Néhány gázkeverék javítva lett",
+  "universalImport_summary_noticeGasMixesCappedBody": "Az oxigén és a hélium együtt több mint 100% volt ezekben a sorokban: {rows}. A héliumot csökkentettük, így az összeg 100%. Ellenőrizze ezeknek a merüléseknek a gázát.",
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 értéket nem sikerült átalakítani, ezért üresen maradt. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.} other{{count} értéket nem sikerült átalakítani, ezért üresen maradtak. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Néhány fénykép kimaradt",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 fényképnek nem volt fájlneve, ezért nem lehetett csatolni.} other{{count} fényképnek nem volt fájlneve, ezért nem lehetett csatolni őket.}}",
