@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/ble/ble_nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/ble/nearby_gatt.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -192,6 +193,24 @@ void main() {
     await carrier.startAdvertising();
     expect(peripheral.database, hasLength(1));
     expect(peripheral.advertising, isTrue);
+  });
+
+  test('what the platform reports after advertising started reaches the '
+      'log: the start call itself only asks', () async {
+    peripheral.powerOn();
+    final logged = LoggerService.logStream.firstWhere(
+      (entry) => entry.message.contains('Too many advertisers'),
+    );
+    await newCarrier().startAdvertising();
+
+    peripheral.updateAdvertisingState(
+      BlePeripheralAdvertisingStateChanged(
+        PeripheralAdvertisingState.error,
+        'Too many advertisers',
+      ),
+    );
+
+    await logged.timeout(const Duration(seconds: 5));
   });
 
   group('the doorbell', () {
