@@ -5983,7 +5983,6 @@
   "accessibility_shortcutCategory_planner": "المخطط",
   "plannerSeries_fill": "ملء {tank}",
   "plannerSeries_fillAll": "ملء كل الأسطوانات",
-  "plannerSeries_saveUnavailable": "لا يمكن حفظ سلسلة غطسات بعد",
   "plannerSeries_convertUnavailable": "لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد",
   "plannerSeries_missionUnavailable": "لا يمكن تخطيط سلسلة غطسات كمهمة DPV",
   "plannerSeries_followUnavailableInReplan": "لا يمكن لإعادة التخطيط اتباع غطسة أخرى",

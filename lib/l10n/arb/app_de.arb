@@ -6110,7 +6110,6 @@
   "accessibility_shortcutCategory_planner": "Planer",
   "plannerSeries_fill": "{tank} füllen",
   "plannerSeries_fillAll": "Alle Flaschen füllen",
-  "plannerSeries_saveUnavailable": "Eine Tauchgangsserie kann noch nicht gespeichert werden",
   "plannerSeries_convertUnavailable": "Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden",
   "plannerSeries_missionUnavailable": "Eine Tauchgangsserie kann nicht als DPV-Mission geplant werden",
   "plannerSeries_followUnavailableInReplan": "Eine Neuplanung kann keinem anderen Tauchgang folgen",

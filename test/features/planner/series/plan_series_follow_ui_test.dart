@@ -528,7 +528,7 @@ void main() {
     });
   });
 
-  testWidgets('a followed plan offers neither Save nor Convert to Dive', (
+  testWidgets('a followed plan offers Save but not Convert to Dive', (
     tester,
   ) async {
     await pumpPlan(tester, dayDives);
@@ -540,8 +540,7 @@ void main() {
         matching: find.byType(IconButton),
       ),
     );
-    expect(save.onPressed, isNull);
-    expect(save.tooltip, "A series of dives can't be saved yet");
+    expect(save.onPressed, isNotNull);
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();

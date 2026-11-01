@@ -5882,7 +5882,6 @@
   "accessibility_shortcutCategory_planner": "מתכנן",
   "plannerSeries_fill": "מילוי {tank}",
   "plannerSeries_fillAll": "מילוי כל המכלים",
-  "plannerSeries_saveUnavailable": "עדיין לא ניתן לשמור סדרת צלילות",
   "plannerSeries_convertUnavailable": "עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות",
   "plannerSeries_missionUnavailable": "לא ניתן לתכנן סדרת צלילות כמשימת DPV",
   "plannerSeries_followUnavailableInReplan": "תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת",

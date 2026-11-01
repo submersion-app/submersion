@@ -126,7 +126,13 @@ PlanSeries removeDive(PlanSeries series, int index) {
       : selected == index
       ? (index - 1).clamp(0, dives.length - 1)
       : selected;
-  return PlanSeries(dives: dives, selectedIndex: newSelected, follow: follow);
+  return PlanSeries(
+    id: series.id,
+    structureChanged: series.structureChanged,
+    dives: dives,
+    selectedIndex: newSelected,
+    follow: follow,
+  );
 }
 
 /// Selects the dive at [index], clamped to the series.

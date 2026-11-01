@@ -20715,10 +20715,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle flessen vullen';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Een reeks duiken kan nog niet worden opgeslagen';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
 

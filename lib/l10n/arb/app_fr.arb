@@ -5882,7 +5882,6 @@
   "accessibility_shortcutCategory_planner": "Planificateur",
   "plannerSeries_fill": "Remplir {tank}",
   "plannerSeries_fillAll": "Remplir tous les blocs",
-  "plannerSeries_saveUnavailable": "Une série de plongées ne peut pas encore être enregistrée",
   "plannerSeries_convertUnavailable": "Une série de plongées ne peut pas encore être convertie en plongées enregistrées",
   "plannerSeries_missionUnavailable": "Une série de plongées ne peut pas être planifiée comme mission DPV",
   "plannerSeries_followUnavailableInReplan": "Une replanification ne peut pas suivre une autre plongée",

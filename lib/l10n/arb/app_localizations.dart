@@ -33186,12 +33186,6 @@ abstract class AppLocalizations {
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
 
-  /// No description provided for @plannerSeries_saveUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'A series of dives can\'t be saved yet'**
-  String get plannerSeries_saveUnavailable;
-
   /// No description provided for @plannerSeries_convertUnavailable.
   ///
   /// In en, this message translates to:

@@ -5983,7 +5983,6 @@
   "accessibility_shortcutCategory_planner": "Planeador",
   "plannerSeries_fill": "Encher {tank}",
   "plannerSeries_fillAll": "Encher todas as garrafas",
-  "plannerSeries_saveUnavailable": "Ainda não é possível guardar uma série de mergulhos",
   "plannerSeries_convertUnavailable": "Ainda não é possível converter uma série de mergulhos em mergulhos registados",
   "plannerSeries_missionUnavailable": "Não é possível planear uma série de mergulhos como missão DPV",
   "plannerSeries_followUnavailableInReplan": "Um replanejamento não pode seguir outro mergulho",

@@ -88,9 +88,21 @@ Dive A is computed as given unless the series follows a logged dive (phase
 
 ### Saving
 
-A series cannot be saved until phase 3. While a plan has more than one dive,
-Save is disabled (its tooltip says why), and so is Convert to dive, which saves
-the plan. Removing dives back to one re-enables both.
+A series saves as a whole: a `dive_plan_series` row, and each dive as an
+ordinary saved plan placed in it (`series_id`, `series_index`). A plan with no
+series is a one-dive series, so nothing is backfilled. Save is on whenever any
+dive has changed, or a dive was added, removed or named. A single dive that
+follows a logged dive saves as a series too, since the series row holds the
+followed dive.
+
+Opening any dive opens its series with that dive selected. What it carries in
+is never stored: the follow is rebuilt from the followed dive, without
+re-minting tanks or resetting the interval, and the chain runs again, so a
+saved followed plan reopens with the same schedule, CNS and OTU it was saved
+with.
+
+Convert to dive stays off for a series, or a plan following a dive, until the
+update of planned dives in the log is built.
 
 ## Phase 4 behaviour
 

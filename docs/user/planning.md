@@ -161,11 +161,12 @@ From the menu you can also:
 
 ### Plans and logged dives
 
-- **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
-  the planner starts from the tissue loading that dive left, with the surface
-  interval set to the time since it ended. The dive needs a recorded profile.
-  A plan following a dive can't be saved or converted to a dive yet; **Stop
-  following** gives both back.
+- **Follow a dive** plans a repetitive dive: pick a logged dive, and the planner
+  starts from the tissue loading that dive left, with the surface interval set
+  to the time since it ended, or an hour if it ended less than an hour ago. The
+  dive needs a recorded profile. A plan following a dive saves with what it
+  carries, but can't be converted to a dive yet; **Stop following** gives that
+  back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.

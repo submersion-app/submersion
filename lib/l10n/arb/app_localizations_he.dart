@@ -20386,9 +20386,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_fillAll => 'מילוי כל המכלים';
 
   @override
-  String get plannerSeries_saveUnavailable => 'עדיין לא ניתן לשמור סדרת צלילות';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
 

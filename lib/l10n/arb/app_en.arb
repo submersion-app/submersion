@@ -12979,7 +12979,6 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_saveUnavailable": "A series of dives can't be saved yet",
   "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",

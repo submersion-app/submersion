@@ -6134,7 +6134,6 @@
   "accessibility_shortcutCategory_planner": "计划器",
   "plannerSeries_fill": "加满 {tank}",
   "plannerSeries_fillAll": "加满所有气瓶",
-  "plannerSeries_saveUnavailable": "暂时无法保存潜水系列",
   "plannerSeries_convertUnavailable": "暂时无法将潜水系列转换为已记录的潜水",
   "plannerSeries_missionUnavailable": "潜水系列无法规划为 DPV 任务",
   "plannerSeries_followUnavailableInReplan": "重新规划无法跟随另一次潜水",

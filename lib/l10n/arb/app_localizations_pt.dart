@@ -20850,10 +20850,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_fillAll => 'Encher todas as garrafas';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Ainda não é possível guardar uma série de mergulhos';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Ainda não é possível converter uma série de mergulhos em mergulhos registados';
 

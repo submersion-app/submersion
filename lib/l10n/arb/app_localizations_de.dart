@@ -20823,10 +20823,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle Flaschen füllen';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Eine Tauchgangsserie kann noch nicht gespeichert werden';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden';
 

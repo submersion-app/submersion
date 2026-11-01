@@ -1,0 +1,150 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' as db;
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
+import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+
+import '../../../../helpers/test_database.dart';
+import '../../series/series_fixtures.dart';
+
+void main() {
+  late DivePlanSeriesRepository repo;
+  late DivePlanRepository plans;
+
+  setUp(() async {
+    await setUpTestDatabase();
+    plans = DivePlanRepository();
+    repo = DivePlanSeriesRepository(plans: plans);
+  });
+
+  tearDown(tearDownTestDatabase);
+
+  StoredSeries twoDives() {
+    final a = divePlanFromState(seriesDiveState(id: 'a'));
+    final b = divePlanFromState(
+      seriesDiveState(id: 'b', surfaceInterval: const Duration(hours: 2)),
+    );
+    return StoredSeries(
+      id: 's1',
+      name: 'Reef day',
+      dives: [
+        StoredSeriesDive(
+          plan: a,
+          name: 'Wreck',
+          summaryMaxDepth: 30,
+          summaryRuntimeSeconds: 2400,
+        ),
+        StoredSeriesDive(
+          plan: b,
+          fixedStart: true,
+          settingOverrides: const {
+            PlanSettingGroup.deco,
+            PlanSettingGroup.tanks,
+          },
+          sourceTankIds: const {'b-back': 'a-back', 'b-stage': 'a-stage'},
+          pinnedTankIds: const {'b-stage'},
+        ),
+      ],
+    );
+  }
+
+  test('a series comes back as it was saved', () async {
+    await repo.saveSeries(twoDives());
+
+    final loaded = (await repo.getSeries('s1'))!;
+
+    expect(loaded.name, 'Reef day');
+    expect(loaded.dives.map((d) => d.plan.id), ['a', 'b']);
+    expect(loaded.dives[0].name, 'Wreck');
+    expect(loaded.dives[0].summaryMaxDepth, 30);
+    final b = loaded.dives[1];
+    expect(b.name, isNull);
+    expect(b.fixedStart, isTrue);
+    expect(b.settingOverrides, {PlanSettingGroup.deco, PlanSettingGroup.tanks});
+    expect(b.sourceTankIds, {'b-back': 'a-back', 'b-stage': 'a-stage'});
+    expect(b.pinnedTankIds, {'b-stage'});
+    expect(b.plan.surfaceInterval, const Duration(hours: 2));
+  });
+
+  test('a plan knows its series; one saved alone has none', () async {
+    await repo.saveSeries(twoDives());
+    await plans.savePlan(divePlanFromState(seriesDiveState(id: 'alone')));
+
+    expect(await repo.seriesIdForPlan('b'), 's1');
+    expect(await repo.seriesIdForPlan('alone'), isNull);
+    expect(await repo.getSeries('missing'), isNull);
+  });
+
+  test('a dive no longer in the series is deleted', () async {
+    final series = await repo.saveSeries(twoDives());
+    await repo.saveSeries(series.copyWith(dives: [series.dives.first]));
+
+    expect((await repo.getSeries('s1'))!.dives, hasLength(1));
+    expect(await plans.getPlan('b'), isNull);
+  });
+
+  test('saving again keeps the dives and their order', () async {
+    final series = await repo.saveSeries(twoDives());
+    await repo.saveSeries(series.copyWith(name: 'Renamed'));
+
+    final loaded = (await repo.getSeries('s1'))!;
+    expect(loaded.name, 'Renamed');
+    expect(loaded.dives.map((d) => d.plan.id), ['a', 'b']);
+  });
+
+  test('deleting a series deletes its dives', () async {
+    await repo.saveSeries(twoDives());
+    await repo.deleteSeries('s1');
+
+    expect(await repo.getSeries('s1'), isNull);
+    expect(await plans.getPlan('a'), isNull);
+    expect(await plans.getPlan('b'), isNull);
+  });
+
+  test('a followed dive that is gone is dropped, not a failed save', () async {
+    final stored = await repo.saveSeries(
+      twoDives().copyWith(followedDiveId: 'gone'),
+    );
+
+    expect(stored.followedDiveId, isNull);
+  });
+
+  test('a tank id another plan holds moves the links with it', () async {
+    await plans.savePlan(divePlanFromState(seriesDiveState(id: 'a')));
+    final taken = twoDives();
+    final clash = taken.copyWith(
+      dives: [
+        taken.dives[0].copyWith(
+          plan: taken.dives[0].plan.copyWith(id: 'other'),
+        ),
+        taken.dives[1],
+      ],
+    );
+
+    final stored = await repo.saveSeries(clash);
+
+    final firstTanks = stored.dives[0].plan.tanks.map((t) => t.id).toSet();
+    expect(firstTanks, isNot(contains('a-back')));
+    expect(stored.dives[1].sourceTankIds.values.toSet(), firstTanks);
+  });
+
+  test('a setting group this build does not know is left out', () async {
+    await repo.saveSeries(twoDives());
+    final database = DatabaseService.instance.database;
+    await (database.update(
+      database.divePlans,
+    )..where((p) => p.id.equals('b'))).write(
+      const db.DivePlansCompanion(
+        settingOverrides: Value('deco,fromTheFuture'),
+      ),
+    );
+
+    final loaded = (await repo.getSeries('s1'))!;
+
+    expect(loaded.dives[1].settingOverrides, {PlanSettingGroup.deco});
+  });
+}

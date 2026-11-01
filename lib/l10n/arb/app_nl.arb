@@ -5983,7 +5983,6 @@
   "accessibility_shortcutCategory_planner": "Planner",
   "plannerSeries_fill": "{tank} vullen",
   "plannerSeries_fillAll": "Alle flessen vullen",
-  "plannerSeries_saveUnavailable": "Een reeks duiken kan nog niet worden opgeslagen",
   "plannerSeries_convertUnavailable": "Een reeks duiken kan nog niet worden omgezet in gelogde duiken",
   "plannerSeries_missionUnavailable": "Een reeks duiken kan niet als DPV-missie worden gepland",
   "plannerSeries_followUnavailableInReplan": "Een herplanning kan geen andere duik volgen",

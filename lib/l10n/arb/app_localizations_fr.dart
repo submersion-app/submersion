@@ -20908,10 +20908,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_fillAll => 'Remplir tous les blocs';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Une série de plongées ne peut pas encore être enregistrée';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Une série de plongées ne peut pas encore être convertie en plongées enregistrées';
 

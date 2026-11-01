@@ -5983,7 +5983,6 @@
   "accessibility_shortcutCategory_planner": "Planificador",
   "plannerSeries_fill": "Llenar {tank}",
   "plannerSeries_fillAll": "Llenar todas las botellas",
-  "plannerSeries_saveUnavailable": "Todavía no se puede guardar una serie de inmersiones",
   "plannerSeries_convertUnavailable": "Todavía no se puede convertir una serie de inmersiones en inmersiones registradas",
   "plannerSeries_missionUnavailable": "Una serie de inmersiones no se puede planificar como misión DPV",
   "plannerSeries_followUnavailableInReplan": "Una replanificación no puede seguir otra inmersión",

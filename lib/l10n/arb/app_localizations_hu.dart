@@ -20772,10 +20772,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_fillAll => 'Minden palack töltése';
 
   @override
-  String get plannerSeries_saveUnavailable =>
-      'Merülések sorozata még nem menthető';
-
-  @override
   String get plannerSeries_convertUnavailable =>
       'Merülések sorozata még nem alakítható naplózott merülésekké';
 

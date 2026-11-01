@@ -34,6 +34,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_export_act
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
@@ -86,7 +87,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       // callbacks; defer the load to a microtask.
       Future.microtask(() {
         if (!mounted) return;
-        ref.read(divePlanNotifierProvider.notifier).loadPlanById(planId);
+        logFailure(
+          openSavedPlan(ref.container, planId),
+          _PlanCanvasPageState,
+          'open a saved plan',
+        );
       });
     }
   }
@@ -123,12 +128,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    // A series of dives, or a plan following a logged dive, cannot be saved
-    // or logged until series persistence lands (issue #3565).
-    final saveAllowed = ref.watch(planSaveAllowedProvider);
+    // A series of dives, or a plan following a logged dive, cannot be logged
+    // yet (issue #3565).
+    final convertAllowed = ref.watch(planConvertAllowedProvider);
+    final savedSeriesId = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.id),
+    );
+    final isDirty = ref.watch(planSeriesDirtyProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     // A series is not a throwaway: leaving must not lose what cannot be saved.
-    _replanId = planState.sourceDiveId != null && saveAllowed
+    _replanId = planState.sourceDiveId != null && convertAllowed
         ? planState.id
         : null;
     final units = ref.watch(unitFormatterProvider);
@@ -138,15 +147,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The
     // summaries watch only runs for a new plan, where it flips the Delete item
     // on once the plan is first saved.
-    // A series offers none: the route's plan may not be the dive on screen.
+    // A saved series deletes as a whole; one not saved yet has nothing to
+    // delete, and the route's plan may not be the dive on screen.
     final canDelete =
-        saveAllowed &&
-        (widget.planId != null ||
-            planIsPersisted(
-              planState.id,
-              ref.watch(divePlanSummariesProvider).valueOrNull ??
-                  const <domain.DivePlanSummary>[],
-            ));
+        savedSeriesId != null ||
+        (convertAllowed &&
+            (widget.planId != null ||
+                planIsPersisted(
+                  planState.id,
+                  ref.watch(divePlanSummariesProvider).valueOrNull ??
+                      const <domain.DivePlanSummary>[],
+                )));
 
     return Scaffold(
       appBar: AppBar(
@@ -214,11 +225,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(planState.isDirty ? Icons.save : Icons.save_outlined),
-            tooltip: saveAllowed
-                ? context.l10n.divePlanner_action_savePlan
-                : context.l10n.plannerSeries_saveUnavailable,
-            onPressed: planState.isDirty && saveAllowed ? _savePlan : null,
+            icon: Icon(isDirty ? Icons.save : Icons.save_outlined),
+            tooltip: context.l10n.divePlanner_action_savePlan,
+            onPressed: isDirty ? _savePlan : null,
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole app bar: it contributes no render object, so
@@ -260,8 +269,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'convert',
                   Icons.scuba_diving,
                   context.l10n.divePlanner_action_convertToDive,
-                  enabled: saveAllowed,
-                  tooltip: saveAllowed
+                  enabled: convertAllowed,
+                  tooltip: convertAllowed
                       ? null
                       : context.l10n.plannerSeries_convertUnavailable,
                 ),
@@ -722,7 +731,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // list is not a wall of identically-named rows. Re-saves stay silent, and
     // so does Convert to Dive: that flow is already multi-step and should not
     // grow a modal.
-    if (!notifier.isPersisted) {
+    final series = ref.read(planSeriesNotifierProvider);
+    if (!notifier.isPersisted && series.id == null) {
       final l10n = context.l10n;
       final units = UnitFormatter(ref.read(settingsProvider));
       final siteId = ref.read(divePlanNotifierProvider).siteId;
@@ -765,13 +775,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // the plan actually being persisted, never whatever it looked like before
     // the naming flow's async gaps.
     final outcome = ref.read(planOutcomeProvider);
-    await notifier.save(
-      summary: PlanSummaryData(
-        maxDepth: outcome.maxDepth,
-        runtimeSeconds: outcome.runtimeSeconds,
-        ttsSeconds: outcome.ttsAtBottom,
-      ),
-    );
+    if (ref.read(planSeriesNotifierProvider).savesAsSeries) {
+      await saveCurrentSeries(ref.container);
+    } else {
+      await notifier.save(
+        summary: PlanSummaryData(
+          maxDepth: outcome.maxDepth,
+          runtimeSeconds: outcome.runtimeSeconds,
+          ttsSeconds: outcome.ttsAtBottom,
+        ),
+      );
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
@@ -886,7 +900,41 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
   }
 
+  Future<void> _deleteSeries(String seriesId) async {
+    final name = ref.read(divePlanNotifierProvider).name;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.divePlanner_action_deletePlan),
+        content: Text(
+          context.l10n.divePlanner_message_deleteConfirmation(name),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.common_action_delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await ref.read(divePlanSeriesRepositoryProvider).deleteSeries(seriesId);
+    if (!mounted) return;
+    ref.read(divePlanNotifierProvider.notifier).newPlan();
+    context.go('/planning');
+  }
+
   Future<void> _deletePlan() async {
+    final seriesId = ref.read(planSeriesNotifierProvider).id;
+    if (seriesId != null) return _deleteSeries(seriesId);
     // Prefer the route's planId. During the loadPlanById() window the notifier
     // state still holds a freshly generated placeholder id, so reading it here
     // could target (and tombstone) the wrong plan. widget.planId is the

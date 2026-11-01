@@ -130,20 +130,34 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// Adds a dive after the last one and selects it.
   void addDive() {
     if (!edits.canAppendDive(state)) return;
-    state = edits.appendDive(state, newId: _newId);
+    state = edits
+        .appendDive(state, newId: _newId)
+        .copyWith(structureChanged: true);
     _loadSelected();
   }
 
   void removeDive(int index) {
     final before = state;
     state = edits.removeDive(state, index);
-    if (!identical(before, state)) _loadSelected();
+    if (identical(before, state)) return;
+    state = state.copyWith(structureChanged: true);
+    _loadSelected();
   }
 
   /// Names the selected dive; a blank name clears it. The name is the
   /// series' own, so the editor is left alone.
   void renameSelected(String name) {
-    state = edits.renameDive(state, state.selectedIndex, name);
+    state = edits
+        .renameDive(state, state.selectedIndex, name)
+        .copyWith(structureChanged: true);
+  }
+
+  /// Replaces the series with [series], as saved or opened, and loads its
+  /// selected dive. Not an outside load: it is the series doing the loading.
+  void loadSeries(PlanSeries series) {
+    _earlier = const [];
+    state = series;
+    _loadSelected();
   }
 
   /// Sets when the selected dive starts, as clock digits stamped UTC; null
@@ -355,14 +369,18 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
-/// Whether the plan can be saved. Until series persistence lands (issue #3565,
-/// phase 3), a series of more than one dive cannot be, and nor can a plan
-/// following a logged dive: the tissues, CNS and OTU it carries in are never
-/// stored, so it would reopen as a fresh diver with less load than it has.
-final planSaveAllowedProvider = Provider<bool>((ref) {
+/// Whether the plan can be converted to a dive in the log. A series, or a plan
+/// following a logged dive, cannot be yet (issue #3565).
+final planConvertAllowedProvider = Provider<bool>((ref) {
   final series = ref.watch(planSeriesNotifierProvider);
-  return !series.isSeries && series.follow == null;
+  return !series.savesAsSeries;
 });
+
+/// Whether anything in the series has changed since it was saved or opened,
+/// on any dive, not only the one in the editor.
+final planSeriesDirtyProvider = Provider<bool>(
+  (ref) => ref.watch(planSeriesNotifierProvider.select((s) => s.isDirty)),
+);
 
 /// Whether the plan can follow a logged dive. A replan cannot: it already
 /// starts from the dive before the one it replans, and its source dive is

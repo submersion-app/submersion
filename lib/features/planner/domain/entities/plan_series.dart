@@ -82,6 +82,14 @@ class PlanSeriesDive extends Equatable {
 /// An ordered series of planned dives and the one being edited, and the
 /// logged dives it follows, if any.
 class PlanSeries extends Equatable {
+  /// The saved series this is, or null until it is saved as one. A single
+  /// dive that follows nothing is saved as an ordinary plan and keeps null.
+  final String? id;
+
+  /// Whether a dive was added, removed or named since the series was last
+  /// saved or opened: changes no single dive's state marks as unsaved.
+  final bool structureChanged;
+
   final List<PlanSeriesDive> dives;
   final int selectedIndex;
 
@@ -89,8 +97,13 @@ class PlanSeries extends Equatable {
   /// follows none.
   final SeriesFollow? follow;
 
-  const PlanSeries({required this.dives, this.selectedIndex = 0, this.follow})
-    : assert(dives.length > 0);
+  const PlanSeries({
+    required this.dives,
+    this.selectedIndex = 0,
+    this.follow,
+    this.id,
+    this.structureChanged = false,
+  }) : assert(dives.length > 0);
 
   /// A plan of one dive: where every plan starts.
   factory PlanSeries.single(DivePlanState state) =>
@@ -101,21 +114,38 @@ class PlanSeries extends Equatable {
   /// Whether this is a repetitive series rather than a single dive.
   bool get isSeries => dives.length > 1;
 
+  /// Whether anything here has changed since it was last saved or opened.
+  bool get isDirty =>
+      structureChanged || dives.any((dive) => dive.state.isDirty);
+
+  /// Whether saving this takes a series row rather than an ordinary plan.
+  bool get savesAsSeries => id != null || isSeries || follow != null;
+
   PlanSeries copyWith({
     List<PlanSeriesDive>? dives,
     int? selectedIndex,
     SeriesFollow? follow,
     bool clearFollow = false,
+    String? id,
+    bool? structureChanged,
   }) {
     return PlanSeries(
       dives: dives ?? this.dives,
       selectedIndex: selectedIndex ?? this.selectedIndex,
       follow: clearFollow ? null : (follow ?? this.follow),
+      id: id ?? this.id,
+      structureChanged: structureChanged ?? this.structureChanged,
     );
   }
 
   @override
-  List<Object?> get props => [dives, selectedIndex, follow];
+  List<Object?> get props => [
+    dives,
+    selectedIndex,
+    follow,
+    id,
+    structureChanged,
+  ];
 }
 
 /// The letter a planned dive goes by within its series: A, B ... Z, AA, AB.
