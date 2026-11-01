@@ -17395,12 +17395,6 @@ abstract class AppLocalizations {
   /// **'Add Tank'**
   String get divePlanner_action_addTank;
 
-  /// No description provided for @divePlanner_action_convertToDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Convert to Dive'**
-  String get divePlanner_action_convertToDive;
-
   /// No description provided for @divePlanner_action_deletePlan.
   ///
   /// In en, this message translates to:
@@ -33138,6 +33132,54 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_cannotUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdate(String dive);
+
+  /// No description provided for @plannerSeries_updatePlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dives'**
+  String get plannerSeries_updatePlannedDives;
+
+  /// No description provided for @plannerSeries_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} planned dives updated in the log'**
+  String plannerSeries_updated(int count);
+
+  /// No description provided for @plannerSeries_orphans_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete planned dives from the log?'**
+  String get plannerSeries_orphans_title;
+
+  /// No description provided for @plannerSeries_orphans_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} planned dives no longer in this series are still in the log.'**
+  String plannerSeries_orphans_body(int count);
+
+  /// No description provided for @plannerSeries_orphans_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get plannerSeries_orphans_keep;
+
+  /// No description provided for @diveLog_planned_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_planned_openInPlanner;
+
+  /// No description provided for @diveLog_detail_menu_viewInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'View in planner'**
+  String get diveLog_detail_menu_viewInPlanner;
+
   /// No description provided for @plannerSeries_issue_shortInterval.
   ///
   /// In en, this message translates to:
@@ -33281,12 +33323,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
-
-  /// No description provided for @plannerSeries_convertUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'A series of dives can\'t be converted to logged dives yet'**
-  String get plannerSeries_convertUnavailable;
 
   /// No description provided for @plannerSeries_missionUnavailable.
   ///

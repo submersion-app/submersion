@@ -10922,9 +10922,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_action_addTank => 'Agregar Botella';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convertir a Inmersión';
-
-  @override
   String get divePlanner_action_deletePlan => 'Eliminar plan';
 
   @override
@@ -20812,6 +20809,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive tiene una advertencia crítica, por lo que las inmersiones planificadas no se actualizaron';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Actualizar inmersiones planificadas';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count inmersiones planificadas actualizadas en el registro';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      '¿Eliminar inmersiones planificadas del registro?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count inmersiones planificadas que ya no están en esta serie siguen en el registro.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Conservar';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Abrir en el planificador';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Ver en el planificador';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'El intervalo en superficie de $time es inferior a 10 minutos';
   }
@@ -20899,10 +20928,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'Todavía no se puede convertir una serie de inmersiones en inmersiones registradas';
 
   @override
   String get plannerSeries_missionUnavailable =>

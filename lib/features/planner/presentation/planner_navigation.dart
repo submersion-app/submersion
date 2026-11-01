@@ -20,6 +20,18 @@ void openDivePlanner(BuildContext context) {
   }
 }
 
+/// Opens the saved plan [planId] in the planner from elsewhere in the app,
+/// with the same care as [openDivePlanner].
+void openSavedPlanInPlanner(BuildContext context, String planId) {
+  final router = GoRouter.of(context);
+  final location = '$divePlannerLocation/$planId';
+  if (plannerInStack(router.routerDelegate.currentConfiguration)) {
+    router.go(location);
+  } else {
+    router.push(location);
+  }
+}
+
 /// Whether any route of [matches], pushed ones and those inside shells
 /// included, is in the planning section.
 @visibleForTesting

@@ -10681,9 +10681,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override
-  String get divePlanner_action_convertToDive => 'המר לצלילה';
-
-  @override
   String get divePlanner_action_deletePlan => 'מחק תוכנית';
 
   @override
@@ -20358,6 +20355,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'ביטול שינויים';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'ל-$dive יש אזהרה קריטית, ולכן הצלילות המתוכננות לא עודכנו';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'עדכון צלילות מתוכננות';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count צלילות מתוכננות עודכנו ביומן';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'למחוק צלילות מתוכננות מהיומן?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count צלילות מתוכננות שכבר אינן בסדרה זו עדיין ביומן.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'שמירה';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'פתיחה במתכנן';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'הצגה במתכנן';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'מרווח שטח של $time קצר מ-10 דקות';
   }
@@ -20444,10 +20471,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'מילוי כל המכלים';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
 
   @override
   String get plannerSeries_missionUnavailable =>

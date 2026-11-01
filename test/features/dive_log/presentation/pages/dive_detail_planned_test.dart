@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -29,8 +30,9 @@ void main() {
     WidgetTester tester, {
     required Dive dive,
     bool embedded = false,
+    List<Override> overrides = const [],
   }) async {
-    final overrides = await getBaseOverrides();
+    final base = await getBaseOverrides();
     final router = GoRouter(
       initialLocation: '/detail',
       routes: [
@@ -53,6 +55,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...base,
           ...overrides,
           diveRepositoryProvider.overrideWithValue(repository),
           diveProvider(dive.id).overrideWith((ref) async => dive),
@@ -87,6 +90,79 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Mark as logged'), findsWidgets);
+  });
+
+  group('the link back to the planner', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    testWidgets('a planned dive from a plan offers Open in planner', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime(
+        diveNumber: null,
+      ).copyWith(isPlanned: true);
+      await pumpDetail(
+        tester,
+        dive: dive,
+        overrides: [
+          planLinkedToDiveProvider(dive.id).overrideWith((ref) async => 'p1'),
+        ],
+      );
+
+      expect(find.text('Open in planner'), findsOneWidget);
+    });
+
+    testWidgets('a planned dive with no plan does not', (tester) async {
+      final dive = createTestDiveWithBottomTime(
+        diveNumber: null,
+      ).copyWith(isPlanned: true);
+      await pumpDetail(
+        tester,
+        dive: dive,
+        overrides: [
+          planLinkedToDiveProvider(dive.id).overrideWith((ref) async => null),
+        ],
+      );
+
+      expect(find.text('Open in planner'), findsNothing);
+    });
+
+    testWidgets('a dived plan offers View in planner in its menu', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime();
+      await pumpDetail(
+        tester,
+        dive: dive,
+        overrides: [
+          planLinkedToDiveProvider(dive.id).overrideWith((ref) async => 'p1'),
+        ],
+      );
+      await openMenu(tester);
+
+      expect(find.text('View in planner'), findsOneWidget);
+    });
+
+    testWidgets('once the plan is gone the entry goes, with no message', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime();
+      await pumpDetail(
+        tester,
+        dive: dive,
+        overrides: [
+          planLinkedToDiveProvider(dive.id).overrideWith((ref) async => null),
+        ],
+      );
+      await openMenu(tester);
+
+      expect(find.text('View in planner'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+    });
   });
 
   testWidgets('a logged dive shows neither the banner nor the action', (

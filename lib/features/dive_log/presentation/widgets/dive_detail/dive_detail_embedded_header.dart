@@ -134,7 +134,8 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
             ],
           ),
         ),
-        if (dive.isPlanned) PlannedDiveBanner(onMarkLogged: onMarkLogged),
+        if (dive.isPlanned)
+          PlannedDiveBanner(diveId: dive.id, onMarkLogged: onMarkLogged),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),

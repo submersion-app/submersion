@@ -6603,7 +6603,6 @@
     }
   },
   "divePlanner_action_addTank": "Add Tank",
-  "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
@@ -12963,6 +12962,35 @@
   "plannerSeries_unsaved_title": "Save this series?",
   "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
   "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdate": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_updated": "{count} planned dives updated in the log",
+  "@plannerSeries_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_title": "Delete planned dives from the log?",
+  "plannerSeries_orphans_body": "{count} planned dives no longer in this series are still in the log.",
+  "@plannerSeries_orphans_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_keep": "Keep",
+  "diveLog_planned_openInPlanner": "Open in planner",
+  "diveLog_detail_menu_viewInPlanner": "View in planner",
   "plannerSeries_issue_shortInterval": "Surface interval of {time} is under 10 minutes",
   "@plannerSeries_issue_shortInterval": {
     "placeholders": {
@@ -13034,7 +13062,6 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",

@@ -87,32 +87,39 @@ class PlanDiveStartField extends ConsumerWidget {
     WidgetRef ref,
     DateTime? current,
   ) async {
-    // Shown as the clock digits it holds, so read them as a local time.
-    final shown = current == null
-        ? DateTime.now()
-        : DateTime(
-            current.year,
-            current.month,
-            current.day,
-            current.hour,
-            current.minute,
-          );
-    final date = await showAppDatePicker(
-      context: context,
-      initialDate: shown,
-      firstDate: DateTime(1950),
-      lastDate: DateTime(shown.year + 10),
-    );
-    if (date == null || !context.mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(shown),
-    );
-    if (time == null || !context.mounted) return;
-    ref
-        .read(planSeriesNotifierProvider.notifier)
-        .setSelectedStart(
-          DateTime.utc(date.year, date.month, date.day, time.hour, time.minute),
-        );
+    final start = await pickPlanStart(context, current: current);
+    if (start == null || !context.mounted) return;
+    ref.read(planSeriesNotifierProvider.notifier).setSelectedStart(start);
   }
+}
+
+/// Asks for a date and time, returned as clock digits stamped UTC like the dive
+/// log's times; null when the diver backs out of either.
+Future<DateTime?> pickPlanStart(
+  BuildContext context, {
+  DateTime? current,
+}) async {
+  // Shown as the clock digits it holds, so read them as a local time.
+  final shown = current == null
+      ? DateTime.now()
+      : DateTime(
+          current.year,
+          current.month,
+          current.day,
+          current.hour,
+          current.minute,
+        );
+  final date = await showAppDatePicker(
+    context: context,
+    initialDate: shown,
+    firstDate: DateTime(1950),
+    lastDate: DateTime(shown.year + 10),
+  );
+  if (date == null || !context.mounted) return null;
+  final time = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.fromDateTime(shown),
+  );
+  if (time == null) return null;
+  return DateTime.utc(date.year, date.month, date.day, time.hour, time.minute);
 }

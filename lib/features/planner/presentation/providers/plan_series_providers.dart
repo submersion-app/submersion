@@ -163,6 +163,31 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     _loadSelected();
   }
 
+  /// Links dives to their entries in the log, by index.
+  void setLinkedDives(Map<int, String> links) {
+    state = state.copyWith(
+      dives: [
+        for (final (index, dive) in state.dives.indexed)
+          if (links[index] case final id?)
+            dive.copyWith(state: dive.state.copyWith(linkedDiveId: id))
+          else
+            dive,
+      ],
+    );
+    _loadSelected();
+  }
+
+  /// Forgets the log entries of removed dives, once they have been offered.
+  void clearRemovedLinkedDives() {
+    state = state.copyWith(removedLinkedDiveIds: const {});
+  }
+
+  /// Sets when the first dive starts, whichever dive is selected.
+  void setFirstStart(DateTime start) {
+    state = edits.setDiveStart(state, 0, start);
+    _loadSelected();
+  }
+
   /// Sets when the selected dive starts, as clock digits stamped UTC; null
   /// clears it. A later dive's interval then comes from it (see
   /// [PlanSeriesDive.fixedStart]).
@@ -407,13 +432,6 @@ final canAddSeriesDiveProvider = Provider<bool>(
 final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
-
-/// Whether the plan can be converted to a dive in the log. A series, or a plan
-/// following a logged dive, cannot be yet (issue #3565).
-final planConvertAllowedProvider = Provider<bool>((ref) {
-  final series = ref.watch(planSeriesNotifierProvider);
-  return !series.savesAsSeries;
-});
 
 /// Whether the plan saves as a series rather than an ordinary plan.
 final planSeriesSavesAsSeriesProvider = Provider<bool>(

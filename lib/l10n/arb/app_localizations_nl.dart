@@ -10852,9 +10852,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_action_addTank => 'Fles toevoegen';
 
   @override
-  String get divePlanner_action_convertToDive => 'Omzetten naar duik';
-
-  @override
   String get divePlanner_action_deletePlan => 'Plan verwijderen';
 
   @override
@@ -20688,6 +20685,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerpen';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Geplande duiken bijwerken';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count geplande duiken bijgewerkt in het logboek';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      'Geplande duiken uit het logboek verwijderen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behouden';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Openen in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Bekijken in planner';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'Oppervlakte-interval van $time is korter dan 10 minuten';
   }
@@ -20774,10 +20802,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'Alle flessen vullen';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
 
   @override
   String get plannerSeries_missionUnavailable =>

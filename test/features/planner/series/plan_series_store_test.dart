@@ -125,7 +125,7 @@ void main() {
 
     expect(editor().id, id);
     expect(c.read(planSeriesNotifierProvider).id, isNull);
-    expect(c.read(planConvertAllowedProvider), isTrue);
+    expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
   });
 
   test('a saved followed plan reopens with what it carries, not as a fresh '

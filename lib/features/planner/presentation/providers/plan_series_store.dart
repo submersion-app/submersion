@@ -39,7 +39,7 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
       // A followed dive deleted since it was followed has gone from the row.
       follow: stored.followedDiveId == null ? null : series.follow,
       selectedIndex: series.selectedIndex,
-    ),
+    ).copyWith(removedLinkedDiveIds: series.removedLinkedDiveIds),
   );
 }
 

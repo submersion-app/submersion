@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -339,7 +340,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // spacing of its own is needed.
             if (!widget.embedded) ...[
               if (dive.isPlanned)
-                PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
+                PlannedDiveBanner(
+                  diveId: dive.id,
+                  onMarkLogged: () => _markAsLogged(dive),
+                ),
               SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
             ],
             // Fixed: Header
@@ -465,6 +469,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _unlinkPreDiveChecklist(linkedPreDive!);
       case 'whatIf':
         openWhatIf(context, dive);
+      case 'viewInPlanner':
+        final planId = ref.read(planLinkedToDiveProvider(dive.id)).value;
+        if (planId != null) openSavedPlanInPlanner(context, planId);
       case 'planRepetitive':
         logFailure(
           _planRepetitiveDive(dive),

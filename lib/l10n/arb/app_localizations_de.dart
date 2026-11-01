@@ -10915,9 +10915,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_action_addTank => 'Flasche hinzufügen';
 
   @override
-  String get divePlanner_action_convertToDive => 'In Tauchgang umwandeln';
-
-  @override
   String get divePlanner_action_deletePlan => 'Plan löschen';
 
   @override
@@ -20795,6 +20792,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerfen';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive hat eine kritische Warnung, daher wurden die geplanten Tauchgänge nicht aktualisiert';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Geplante Tauchgänge aktualisieren';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count geplante Tauchgänge im Logbuch aktualisiert';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      'Geplante Tauchgänge aus dem Logbuch löschen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count geplante Tauchgänge, die nicht mehr zu dieser Serie gehören, sind noch im Logbuch.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behalten';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Im Planer öffnen';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Im Planer ansehen';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'Oberflächenpause von $time liegt unter 10 Minuten';
   }
@@ -20882,10 +20911,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'Alle Flaschen füllen';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden';
 
   @override
   String get plannerSeries_missionUnavailable =>

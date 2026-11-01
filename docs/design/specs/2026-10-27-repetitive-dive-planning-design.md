@@ -101,8 +101,29 @@ re-minting tanks or resetting the interval, and the chain runs again, so a
 saved followed plan reopens with the same schedule, CNS and OTU it was saved
 with.
 
-Convert to dive stays off for a series, or a plan following a dive, until the
-update of planned dives in the log is built.
+## Updating the log
+
+**Update planned dives** replaces Convert to Dive in the planner's menu, for a
+single plan or a series. The log only changes through this action, never on save.
+
+- A dive with no entry gets a planned one, with its time, site, computed profile
+  and tanks, linked by the plan's `linkedDiveId`.
+- A dive whose entry is still planned has it rewritten, keeping its id. A rename
+  made in the log to a planned entry is overwritten.
+- A dive already dived is left alone: the log owns it now.
+- A series with no start asks for the first dive's, since its dives need times.
+- A series' entries take each dive's own name, or none, so a completed dive goes
+  by its number. A single plan's entry takes the plan's name, its only one.
+- A dive of the plan that can't be logged (critical warnings, no segments) stops
+  the whole update with nothing written, and the message names the dive. A later
+  dive running out of gas on carried pressures is the usual case: Fill clears it.
+- A dive removed from the series whose entry is still planned is offered for
+  deletion on the next update. That list is held in memory, so it's lost when
+  the app closes, and the entry stays in the log as a plain planned dive.
+
+**From the log:** a planned entry's banner has **Open in planner**, and a dived
+one has **View in planner** in its menu, both while the plan still exists. The
+link is the plan's, so deleting the plan takes both away with nothing to clean up.
 
 **The saved plans list** shows a series as one row with its dive count, deepest
 depth and total runtime, and each dive on a line that opens the series on it.

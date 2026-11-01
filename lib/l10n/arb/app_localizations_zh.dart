@@ -10379,9 +10379,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override
-  String get divePlanner_action_convertToDive => '转换为潜水';
-
-  @override
   String get divePlanner_action_deletePlan => '删除计划';
 
   @override
@@ -19805,6 +19802,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_unsaved_discard => '放弃';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive 有严重警告，因此未更新计划潜水';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives => '更新计划潜水';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '已在日志中更新 $count 次计划潜水';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '从日志中删除计划潜水？';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '有 $count 次不再属于此系列的计划潜水仍在日志中。';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => '保留';
+
+  @override
+  String get diveLog_planned_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => '在计划器中查看';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return '$time 的水面间隔不足 10 分钟';
   }
@@ -19887,9 +19914,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => '加满所有气瓶';
-
-  @override
-  String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
 
   @override
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';

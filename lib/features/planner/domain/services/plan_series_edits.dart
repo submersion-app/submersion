@@ -129,6 +129,10 @@ PlanSeries removeDive(PlanSeries series, int index) {
   return PlanSeries(
     id: series.id,
     structureChanged: series.structureChanged,
+    removedLinkedDiveIds: {
+      ...series.removedLinkedDiveIds,
+      ?removed.state.linkedDiveId,
+    },
     dives: dives,
     selectedIndex: newSelected,
     follow: follow,

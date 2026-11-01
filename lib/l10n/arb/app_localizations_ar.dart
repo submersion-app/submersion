@@ -11066,9 +11066,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
 
   @override
-  String get divePlanner_action_convertToDive => 'تحويل إلى غطسة';
-
-  @override
   String get divePlanner_action_deletePlan => 'حذف الخطة';
 
   @override
@@ -21116,6 +21113,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'يوجد تحذير حرج في $dive، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return 'تم تحديث $count غطسات مخططة في السجل';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      'هل تريد حذف الغطسات المخططة من السجل؟';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'إبقاء';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'عرض في المخطط';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'فترة السطح البالغة $time أقل من 10 دقائق';
   }
@@ -21202,10 +21230,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
 
   @override
   String get plannerSeries_missionUnavailable =>

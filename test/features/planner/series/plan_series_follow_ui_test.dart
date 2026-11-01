@@ -528,7 +528,7 @@ void main() {
     });
   });
 
-  testWidgets('a followed plan offers Save but not Convert to Dive', (
+  testWidgets('a followed plan offers Save and Update planned dives', (
     tester,
   ) async {
     await pumpPlan(tester, dayDives);
@@ -546,11 +546,11 @@ void main() {
     await tester.pumpAndSettle();
     final convert = tester.widget<PopupMenuItem<String>>(
       find.ancestor(
-        of: find.text('Convert to Dive'),
+        of: find.text('Update planned dives'),
         matching: find.byType(PopupMenuItem<String>),
       ),
     );
-    expect(convert.enabled, isFalse);
+    expect(convert.enabled, isTrue);
   });
 
   testWidgets('Stop following drops the logged dives', (tester) async {

@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/planner/presentation/planner_navigation.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shown above the header of a planned dive (issue #2002): awaiting dive
 /// computer data, with the promote action for a dive made without one.
-class PlannedDiveBanner extends StatelessWidget {
+class PlannedDiveBanner extends ConsumerWidget {
+  final String diveId;
   final VoidCallback onMarkLogged;
 
-  const PlannedDiveBanner({super.key, required this.onMarkLogged});
+  const PlannedDiveBanner({
+    super.key,
+    required this.diveId,
+    required this.onMarkLogged,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    // Only while the plan it came from still exists (issue #3565).
+    final planId = ref.watch(planLinkedToDiveProvider(diveId)).value;
     return Card(
       color: scheme.tertiaryContainer,
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -45,6 +55,11 @@ class PlannedDiveBanner extends StatelessWidget {
               onPressed: onMarkLogged,
               child: Text(context.l10n.diveLog_detail_menu_markLogged),
             ),
+            if (planId != null)
+              TextButton(
+                onPressed: () => openSavedPlanInPlanner(context, planId),
+                child: Text(context.l10n.diveLog_planned_openInPlanner),
+              ),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
@@ -48,6 +49,7 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final linkedPlanId = ref.watch(planLinkedToDiveProvider(dive.id)).value;
     final hasRawData =
         ref.watch(diveHasRawDataProvider(dive.id)).valueOrNull ?? false;
     final hasImportedFile =
@@ -157,6 +159,16 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.tune),
                 title: Text(context.l10n.diveLog_detail_menu_whatIf),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          // A dived plan, only while the plan it came from still exists.
+          if (!dive.isPlanned && linkedPlanId != null)
+            PopupMenuItem(
+              value: 'viewInPlanner',
+              child: ListTile(
+                leading: const Icon(Icons.route),
+                title: Text(context.l10n.diveLog_detail_menu_viewInPlanner),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

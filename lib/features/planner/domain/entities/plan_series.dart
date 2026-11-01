@@ -90,6 +90,10 @@ class PlanSeries extends Equatable {
   /// saved or opened: changes no single dive's state marks as unsaved.
   final bool structureChanged;
 
+  /// Log entries of dives removed from the series, until "Update planned
+  /// dives" offers to delete the ones still only planned. Held in memory.
+  final Set<String> removedLinkedDiveIds;
+
   final List<PlanSeriesDive> dives;
   final int selectedIndex;
 
@@ -103,6 +107,7 @@ class PlanSeries extends Equatable {
     this.follow,
     this.id,
     this.structureChanged = false,
+    this.removedLinkedDiveIds = const {},
   }) : assert(dives.length > 0);
 
   /// A plan of one dive: where every plan starts.
@@ -128,6 +133,7 @@ class PlanSeries extends Equatable {
     bool clearFollow = false,
     String? id,
     bool? structureChanged,
+    Set<String>? removedLinkedDiveIds,
   }) {
     return PlanSeries(
       dives: dives ?? this.dives,
@@ -135,6 +141,7 @@ class PlanSeries extends Equatable {
       follow: clearFollow ? null : (follow ?? this.follow),
       id: id ?? this.id,
       structureChanged: structureChanged ?? this.structureChanged,
+      removedLinkedDiveIds: removedLinkedDiveIds ?? this.removedLinkedDiveIds,
     );
   }
 
@@ -145,6 +152,7 @@ class PlanSeries extends Equatable {
     follow,
     id,
     structureChanged,
+    removedLinkedDiveIds,
   ];
 }
 

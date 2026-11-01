@@ -10896,9 +10896,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override
-  String get divePlanner_action_convertToDive => 'Átalakítás merüléssé';
-
-  @override
   String get divePlanner_action_deletePlan => 'Terv törlése';
 
   @override
@@ -20744,6 +20741,38 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Tervezett merülések frissítése';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count tervezett merülés frissítve a naplóban';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      'Törli a tervezett merüléseket a naplóból?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Megtartás';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Megtekintés a tervezőben';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'A(z) $time felszíni idő kevesebb 10 percnél';
   }
@@ -20831,10 +20860,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'Minden palack töltése';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'Merülések sorozata még nem alakítható naplózott merülésekké';
 
   @override
   String get plannerSeries_missionUnavailable =>

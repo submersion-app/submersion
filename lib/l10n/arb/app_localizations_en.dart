@@ -10750,9 +10750,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convert to Dive';
-
-  @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
@@ -20511,6 +20508,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Discard';
 
   @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive has a critical warning, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Update planned dives';
+
+  @override
+  String plannerSeries_updated(int count) {
+    return '$count planned dives updated in the log';
+  }
+
+  @override
+  String get plannerSeries_orphans_title =>
+      'Delete planned dives from the log?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    return '$count planned dives no longer in this series are still in the log.';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Keep';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'View in planner';
+
+  @override
   String plannerSeries_issue_shortInterval(String time) {
     return 'Surface interval of $time is under 10 minutes';
   }
@@ -20597,10 +20625,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerSeries_fillAll => 'Fill all tanks';
-
-  @override
-  String get plannerSeries_convertUnavailable =>
-      'A series of dives can\'t be converted to logged dives yet';
 
   @override
   String get plannerSeries_missionUnavailable =>

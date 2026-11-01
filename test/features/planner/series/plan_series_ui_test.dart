@@ -235,22 +235,13 @@ void main() {
         expect(save().tooltip, 'Save Plan');
       });
 
-      testWidgets('Convert to Dive says why a series holds it back', (
+      testWidgets('Update planned dives is offered for a series', (
         tester,
       ) async {
         await pumpPlan(tester, size);
-        await openMenu(tester);
-        expect(menuItem(tester, 'Convert to Dive').enabled, isTrue);
-        expect(tooltipOn('Convert to Dive'), findsNothing);
-        await closeMenu(tester);
-
         await addDive(tester);
         await openMenu(tester);
-        expect(menuItem(tester, 'Convert to Dive').enabled, isFalse);
-        expect(
-          tester.widget<Tooltip>(tooltipOn('Convert to Dive')).message,
-          "A series of dives can't be converted to logged dives yet",
-        );
+        expect(menuItem(tester, 'Update planned dives').enabled, isTrue);
       });
 
       testWidgets('Follow a dive is offered on every dive of a series', (
