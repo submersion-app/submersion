@@ -53,6 +53,7 @@ void main() {
     String name = 'Perdix 2',
     int diveCount = 3,
     DateTime? lastDownload,
+    String? bluetoothAddress,
   }) => DiveComputer(
     id: id,
     name: name,
@@ -60,6 +61,7 @@ void main() {
     model: name,
     diveCount: diveCount,
     lastDownload: lastDownload,
+    bluetoothAddress: bluetoothAddress,
     createdAt: now,
     updatedAt: now,
   );
@@ -211,6 +213,7 @@ void main() {
 
   group('passive auto-connect scan, route-aware (issue #3361)', () {
     late _FakeHostApi hostApi;
+    late pigeon.DiveComputerService service;
 
     /// A few bounded pumps, not `pumpAndSettle`: while this group's scan is
     /// active, the "Searching..." indicator's `CircularProgressIndicator`
@@ -227,11 +230,15 @@ void main() {
     /// Registers `computersRouteObserver` on this test's own `GoRouter`,
     /// unlike `pumpComputersSection` above: only this group exercises the
     /// push/pop pause-resume path, so only it pays for the extra route.
-    Future<GoRouter> pumpWithRouteObserver(WidgetTester tester) async {
+    Future<GoRouter> pumpWithRouteObserver(
+      WidgetTester tester, {
+      List<DiveComputer> computers = const [],
+    }) async {
       await tester.binding.setSurfaceSize(const Size(420, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       hostApi = _FakeHostApi();
+      service = pigeon.DiveComputerService(hostApi: hostApi);
       final router = GoRouter(
         initialLocation: '/transfer?selected=computers',
         observers: [computersRouteObserver],
@@ -247,16 +254,20 @@ void main() {
               ),
             ],
           ),
+          GoRoute(
+            path: '/dive-computers/:id/download',
+            builder: (context, state) => Scaffold(
+              body: Text('Download page ${state.pathParameters['id']}'),
+            ),
+          ),
         ],
       );
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            diveComputerServiceProvider.overrideWithValue(
-              pigeon.DiveComputerService(hostApi: hostApi),
-            ),
-            allDiveComputersProvider.overrideWith((ref) async => const []),
+            diveComputerServiceProvider.overrideWithValue(service),
+            allDiveComputersProvider.overrideWith((ref) async => computers),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -292,6 +303,40 @@ void main() {
       router.pop();
       await pumpBriefly(tester);
       expect(hostApi.startDiscoveryCalls, 2);
+    });
+
+    testWidgets('leaving the section stops the scan without modifying a '
+        'provider while the tree is being torn down', (tester) async {
+      await pumpWithRouteObserver(tester);
+      expect(hostApi.startDiscoveryCalls, 1);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(hostApi.stopDiscoveryCalls, 1);
+    });
+
+    testWidgets('a known computer in range opens its download page, the one '
+        'that imports the dives', (tester) async {
+      await pumpWithRouteObserver(
+        tester,
+        computers: [computer(bluetoothAddress: '11:22:33:44:55:66')],
+      );
+
+      service.onDeviceDiscovered(
+        pigeon.DiscoveredDevice(
+          vendor: 'Shearwater',
+          product: 'Perdix 2',
+          model: 10,
+          address: '11:22:33:44:55:66',
+          name: 'Perdix 2',
+          transport: pigeon.TransportType.ble,
+        ),
+      );
+      await pumpBriefly(tester);
+
+      expect(find.text('Download page dc-1'), findsOneWidget);
     });
   });
 }

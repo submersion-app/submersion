@@ -29,11 +29,11 @@ class _FakeHostApi extends pigeon.DiveComputerHostApi {
   }
 }
 
-/// Records every `startDownload` call instead of running a real transfer, so
-/// `AutoConnectController`'s trigger logic can be verified without a real
-/// `DiveComputerService`/`DiveComputerRepository` behind it. `finish()` lets
-/// a test simulate the download completing, which is what re-arms matching
-/// for a second known computer still in range (issue #3361).
+/// Records every `startDownload` call instead of running a real transfer.
+/// The controller must never call it: an automatic download goes through
+/// the computer's download page, which also imports the dives (issue
+/// #3361). `markDownloading()`/`finish()` simulate a download running
+/// elsewhere, which the controller's guard has to respect.
 class _FakeDownloadNotifier extends DownloadNotifier {
   _FakeDownloadNotifier()
     : super(
@@ -76,9 +76,23 @@ DiveComputer _computer(
   updatedAt: DateTime(2026, 1, 1),
 );
 
+pigeon.DiscoveredDevice _advert(String address, {String name = 'Perdix'}) =>
+    pigeon.DiscoveredDevice(
+      vendor: 'Shearwater',
+      product: 'Perdix',
+      model: 10,
+      address: address,
+      name: name,
+      transport: pigeon.TransportType.ble,
+    );
+
 void main() {
   late _FakeHostApi hostApi;
   late _FakeDownloadNotifier downloadNotifier;
+
+  /// Ids of the computers whose download page the controller requested, in
+  /// order: each new `justTriggered` is one request.
+  late List<String> requested;
 
   ProviderContainer makeContainer({
     List<DiveComputer> computers = const [],
@@ -104,8 +118,15 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    // Keeps the autoDispose controller alive for the life of the test.
-    container.listen(autoConnectControllerProvider, (_, _) {});
+    requested = [];
+    // Keeps the autoDispose controller alive for the life of the test, and
+    // records each download-page request the way the widget consumes it.
+    container.listen(autoConnectControllerProvider, (previous, next) {
+      final computer = next.justTriggered;
+      if (computer != null && !identical(computer, previous?.justTriggered)) {
+        requested.add(computer.id);
+      }
+    });
     return container;
   }
 
@@ -124,7 +145,7 @@ void main() {
   });
 
   test('switch on, known computer discovered, not opted out, idle -> '
-      'startDownload called exactly once', () async {
+      'requests its download page once and pauses the scan', () async {
     final container = makeContainer(
       computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
     );
@@ -135,24 +156,20 @@ void main() {
     expect(hostApi.startDiscoveryCalls, 1);
 
     final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:22:33:44:55:66',
-        name: 'Perdix',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, hasLength(1));
-    expect(downloadNotifier.calls.single.computer?.id, 'c1');
+    expect(requested, ['c1']);
+    // The page downloads and imports; the controller never downloads
+    // directly, or the dives would never reach the logbook.
+    expect(downloadNotifier.calls, isEmpty);
+    // Paused before the page opens, so its scan cannot fight the page's own.
+    expect(hostApi.stopDiscoveryCalls, 1);
+    expect(container.read(autoConnectControllerProvider).isActive, isFalse);
   });
 
-  test('the same computer advertising twice in one visit triggers '
-      'startDownload only once', () async {
+  test('the same computer advertising twice in one visit is requested '
+      'only once', () async {
     final container = makeContainer(
       computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
     );
@@ -161,26 +178,12 @@ void main() {
     await pumpEventQueue();
 
     final service = container.read(diveComputerServiceProvider);
-    final advert = pigeon.DiscoveredDevice(
-      vendor: 'Shearwater',
-      product: 'Perdix',
-      model: 10,
-      address: '11:22:33:44:55:66',
-      name: 'Perdix',
-      transport: pigeon.TransportType.ble,
-    );
-    service.onDeviceDiscovered(advert);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
-    // A repeat advertisement of the exact same device from the native
-    // side is already deduplicated by DiscoveryNotifier itself
-    // (`_onDeviceDiscovered`), so re-emitting it does not even change
-    // `discoveredDevicesProvider` - nothing for the controller to
-    // re-match against. The id-based `triggeredComputerIds` guard is
-    // what covers a second device matching the SAME computer.
-    service.onDeviceDiscovered(advert);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, hasLength(1));
+    expect(requested, ['c1']);
   });
 
   test('autoDownloadDisabled: skipped even with the switch on', () async {
@@ -198,19 +201,10 @@ void main() {
     await pumpEventQueue();
 
     final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:22:33:44:55:66',
-        name: 'Perdix',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, isEmpty);
+    expect(requested, isEmpty);
   });
 
   test('a manual download already in progress suppresses the auto-trigger '
@@ -224,19 +218,56 @@ void main() {
     await pumpEventQueue();
 
     final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:22:33:44:55:66',
-        name: 'Perdix',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, isEmpty);
+    expect(requested, isEmpty);
+  });
+
+  test('a download finishing elsewhere re-runs matching without a new scan '
+      'event', () async {
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
+    downloadNotifier.markDownloading();
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+
+    final service = container.read(diveComputerServiceProvider);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
+    expect(requested, isEmpty);
+
+    downloadNotifier.finish();
+    await pumpEventQueue();
+
+    expect(requested, ['c1']);
+  });
+
+  test('release() stops its own scan without notifying listeners, so it is '
+      "safe from the hosting widget's dispose", () async {
+    final container = makeContainer(computers: const []);
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
+    expect(hostApi.startDiscoveryCalls, 1);
+
+    var notifications = 0;
+    container.listen(autoConnectControllerProvider, (_, _) => notifications++);
+
+    controller.release();
+    await pumpEventQueue();
+
+    expect(hostApi.stopDiscoveryCalls, 1);
+    expect(notifications, 0);
+
+    // Nothing left listening: an overlay closing afterwards must not
+    // restart the scan.
+    container.read(rootOverlayActiveProvider.notifier).state = true;
+    container.read(rootOverlayActiveProvider.notifier).state = false;
+    await pumpEventQueue();
+    expect(hostApi.startDiscoveryCalls, 1);
   });
 
   test(
@@ -260,42 +291,41 @@ void main() {
     },
   );
 
-  test(
-    'leaving and re-entering the section resets triggeredComputerIds',
-    () async {
-      final container = makeContainer(
-        computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
-      );
-      final controller = container.read(autoConnectControllerProvider.notifier);
-      controller.activate();
-      await pumpEventQueue();
+  test('returning from the download page does not request the same '
+      'computer again; a new visit does', () async {
+    final container = makeContainer(
+      computers: [_computer('c1', bluetoothAddress: '11:22:33:44:55:66')],
+    );
+    final controller = container.read(autoConnectControllerProvider.notifier);
+    controller.activate();
+    await pumpEventQueue();
 
-      final service = container.read(diveComputerServiceProvider);
-      final advert = pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:22:33:44:55:66',
-        name: 'Perdix',
-        transport: pigeon.TransportType.ble,
-      );
-      service.onDeviceDiscovered(advert);
-      await pumpEventQueue();
-      expect(downloadNotifier.calls, hasLength(1));
+    final service = container.read(diveComputerServiceProvider);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
+    expect(requested, ['c1']);
 
-      controller.deactivate();
-      downloadNotifier.finish();
-      controller.activate();
-      await pumpEventQueue();
-      service.onDeviceDiscovered(advert);
-      await pumpEventQueue();
+    // The download page covers the section, then is closed again.
+    controller.deactivate();
+    controller.activate();
+    await pumpEventQueue();
+    expect(hostApi.startDiscoveryCalls, 2);
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
+    expect(requested, ['c1']);
 
-      expect(downloadNotifier.calls, hasLength(2));
-    },
-  );
+    // Leaving the section disposes the controller; the next visit re-arms.
+    container.invalidate(autoConnectControllerProvider);
+    container.read(autoConnectControllerProvider.notifier).activate();
+    await pumpEventQueue();
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
+    await pumpEventQueue();
 
-  test('two known computers both reachable: B downloads automatically once '
-      "A's download completes, without a new scan event", () async {
+    expect(requested, ['c1', 'c1']);
+  });
+
+  test('two known computers reachable: requested one at a time, in the '
+      'order they were discovered', () async {
     final container = makeContainer(
       computers: [
         _computer('a', bluetoothAddress: '11:11:11:11:11:11'),
@@ -307,38 +337,23 @@ void main() {
     await pumpEventQueue();
 
     final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:11:11:11:11:11',
-        name: 'A',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '22:22:22:22:22:22',
-        name: 'B',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
+    // B is found first although A comes first in the computer list, and
+    // both arrive before the controller's first match pass completes.
+    service.onDeviceDiscovered(_advert('22:22:22:22:22:22', name: 'B'));
+    service.onDeviceDiscovered(_advert('11:11:11:11:11:11', name: 'A'));
     await pumpEventQueue();
 
-    // Both devices were already visible when A was picked; only A
-    // started, since DownloadNotifier cannot run two at once.
-    expect(downloadNotifier.calls, hasLength(1));
-    expect(downloadNotifier.calls.single.computer?.id, 'a');
+    expect(requested, ['b']);
 
-    downloadNotifier.finish();
+    // B's download page is closed again; A is still in range.
+    controller.deactivate();
+    controller.activate();
+    await pumpEventQueue();
+    service.onDeviceDiscovered(_advert('11:11:11:11:11:11', name: 'A'));
+    service.onDeviceDiscovered(_advert('22:22:22:22:22:22', name: 'B'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, hasLength(2));
-    expect(downloadNotifier.calls.last.computer?.id, 'b');
+    expect(requested, ['b', 'a']);
   });
 
   test('a computer absent from allDiveComputersProvider (e.g. belonging to a '
@@ -352,19 +367,10 @@ void main() {
     await pumpEventQueue();
 
     final service = container.read(diveComputerServiceProvider);
-    service.onDeviceDiscovered(
-      pigeon.DiscoveredDevice(
-        vendor: 'Shearwater',
-        product: 'Perdix',
-        model: 10,
-        address: '11:22:33:44:55:66',
-        name: 'Perdix',
-        transport: pigeon.TransportType.ble,
-      ),
-    );
+    service.onDeviceDiscovered(_advert('11:22:33:44:55:66'));
     await pumpEventQueue();
 
-    expect(downloadNotifier.calls, isEmpty);
+    expect(requested, isEmpty);
   });
 
   test(

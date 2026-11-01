@@ -730,7 +730,7 @@ class _ComputersSectionContentState
   @override
   void dispose() {
     computersRouteObserver.unsubscribe(this);
-    _autoConnectController.deactivate();
+    _autoConnectController.release();
     super.dispose();
   }
 
@@ -759,6 +759,9 @@ class _ComputersSectionContentState
     ) {
       final computer = next.justTriggered;
       if (computer == null) return;
+      // The same page the computer's own download button opens: it imports
+      // the dives, which a bare download here would not.
+      context.push('/dive-computers/${computer.id}/download');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

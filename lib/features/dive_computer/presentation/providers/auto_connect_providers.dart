@@ -17,16 +17,16 @@ class AutoConnectState {
   /// True while this controller owns an active passive scan.
   final bool isActive;
 
-  /// Ids of computers downloaded-or-downloading during this visit, so a
-  /// repeat advertisement from the same device during the same visit is not
-  /// retried. Cleared on [AutoConnectController.activate], so leaving and
-  /// re-entering the section re-arms every computer.
+  /// Ids of computers whose download page was opened during this visit, so
+  /// the same computer is not opened again when the diver comes back from
+  /// it. Kept across pauses; leaving the section disposes the controller
+  /// (`autoDispose`), so the next visit re-arms every computer.
   final Set<String> triggeredComputerIds;
 
-  /// The computer an auto-trigger just started downloading from, surfaced
-  /// once for the "Downloading from `name`..." feedback. The widget clears
-  /// it via [AutoConnectController.clearTriggerFeedback] right after
-  /// showing it, so it is not re-shown on an unrelated rebuild.
+  /// The computer whose download page the widget should open now. The
+  /// widget opens it, shows the "Downloading from `name`..." feedback and
+  /// clears this via [AutoConnectController.clearTriggerFeedback], so it is
+  /// not acted on again on an unrelated rebuild.
   final DiveComputer? justTriggered;
 
   const AutoConnectState({
@@ -53,8 +53,12 @@ class AutoConnectState {
 /// computers (issue #3361) while the Transfer tab's Dive Computers section
 /// is visible.
 ///
-/// Drives the *existing* [DiscoveryNotifier] and [DownloadNotifier] rather
-/// than reimplementing scanning or downloading. [activate]/[deactivate] are
+/// Drives the *existing* [DiscoveryNotifier] for scanning, and hands each
+/// match to the computer's existing download page rather than calling
+/// [DownloadNotifier] itself: that page is what imports the dives and
+/// updates the computer's dive count, fingerprint and connection, so a
+/// download started here directly would never reach the logbook.
+/// [activate]/[deactivate] are
 /// called directly by the hosting widget - not left to Riverpod's own
 /// dispose - because they must also react to a route being pushed on top
 /// (pause) and popped back (resume), not just widget mount/unmount.
@@ -106,12 +110,29 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _resume();
   }
 
-  /// Stops the passive scan and tears down the one-shot listeners. Leaves
-  /// the root-overlay and switch subscriptions in place, matching
-  /// `activate()` being idempotent: the hosting widget's own `dispose()`
-  /// discards this whole controller instance anyway (`autoDispose`).
+  /// Pauses the passive scan while a page covers the section, and tears down
+  /// the one-shot listeners. Leaves the root-overlay and switch
+  /// subscriptions in place, matching `activate()` being idempotent; the
+  /// hosting widget's `dispose()` uses [release] instead.
   void deactivate() {
     _pause();
+  }
+
+  /// For the hosting widget's `dispose()`: closes every listener and stops
+  /// this controller's own scan, but never sets [state]. `dispose()` runs
+  /// while the tree is being torn down, where Riverpod rejects a provider
+  /// change, and the controller itself is discarded right after
+  /// (`autoDispose`), so its state no longer matters.
+  void release() {
+    _devicesSubscription?.close();
+    _devicesSubscription = null;
+    _downloadingSubscription?.close();
+    _downloadingSubscription = null;
+    _overlaySubscription?.close();
+    _overlaySubscription = null;
+    _switchSubscription?.close();
+    _switchSubscription = null;
+    _stopOwnedScan();
   }
 
   void _resume() {
@@ -143,12 +164,15 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     _downloadingSubscription?.close();
     _downloadingSubscription = null;
 
-    if (_scanOwnedByUs) {
-      unawaited(_ref.read(discoveryNotifierProvider.notifier).stopScan());
-      _scanOwnedByUs = false;
-    }
+    _stopOwnedScan();
 
-    state = state.copyWith(isActive: false, triggeredComputerIds: const {});
+    state = state.copyWith(isActive: false);
+  }
+
+  void _stopOwnedScan() {
+    if (!_scanOwnedByUs) return;
+    unawaited(_ref.read(discoveryNotifierProvider.notifier).stopScan());
+    _scanOwnedByUs = false;
   }
 
   /// Consumed by the widget right after it shows the "Downloading from
@@ -157,16 +181,15 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
     state = state.copyWith(clearJustTriggered: true);
   }
 
-  /// Matches every discovered device against the active diver's own known
-  /// computers and starts at most one download per pass - `DownloadNotifier`
-  /// holds a single device/computer pair, not a queue. Re-running this on
-  /// every scan result AND on every `isDownloadingProvider` `true -> false`
-  /// edge is what delivers "download sequentially from everything in
-  /// range": a computer already visible when another one's download starts
-  /// never produces a new scan event of its own.
+  /// Matches the discovered devices against the active diver's own known
+  /// computers and requests the download page of at most one per pass, the
+  /// one found first. Computers in range are handled one at a time: the
+  /// page covers the section and pauses this controller, and coming back
+  /// resumes the scan, which finds the next one. Re-running on every
+  /// `isDownloadingProvider` `true -> false` edge as well covers a download
+  /// that was still running elsewhere when a computer was already in range.
   Future<void> _tryTriggerNextMatch() async {
-    if (!state.isActive) return;
-    if (_ref.read(isDownloadingProvider)) return;
+    if (!_canTrigger) return;
 
     final List<DiveComputer> computers;
     try {
@@ -183,8 +206,38 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       );
       return;
     }
-    final discovered = _ref.read(discoveredDevicesProvider);
 
+    // Checked again: the await yields, so a pause, a download started
+    // elsewhere, or another pass that already requested a page can have
+    // happened in between.
+    if (!mounted || !_canTrigger) return;
+
+    final computer = _firstMatchInDiscoveryOrder(
+      computers,
+      _ref.read(discoveredDevicesProvider),
+    );
+    if (computer == null) return;
+
+    state = state.copyWith(
+      triggeredComputerIds: {...state.triggeredComputerIds, computer.id},
+      justTriggered: computer,
+    );
+    // Paused before the page opens: stops this scan so it cannot fight the
+    // page's own, and closes the listeners so nothing requests a second page
+    // meanwhile.
+    _pause();
+  }
+
+  bool get _canTrigger => state.isActive && !_ref.read(isDownloadingProvider);
+
+  /// The eligible computer whose device appears earliest in [discovered],
+  /// which `DiscoveryNotifier` keeps in the order the devices were found.
+  DiveComputer? _firstMatchInDiscoveryOrder(
+    List<DiveComputer> computers,
+    List<DiscoveredDevice> discovered,
+  ) {
+    DiveComputer? first;
+    var firstIndex = discovered.length;
     for (final computer in computers) {
       if (state.triggeredComputerIds.contains(computer.id)) continue;
       if (computer.autoDownloadDisabled) continue;
@@ -192,26 +245,13 @@ class AutoConnectController extends StateNotifier<AutoConnectState> {
       final device = _resolveDevice(computer, discovered);
       if (device == null) continue;
 
-      state = state.copyWith(
-        triggeredComputerIds: {...state.triggeredComputerIds, computer.id},
-        justTriggered: computer,
-      );
-      unawaited(
-        _ref
-            .read(downloadNotifierProvider.notifier)
-            .startDownload(device, computer: computer)
-            .catchError((Object error, StackTrace stackTrace) {
-              _log.error(
-                'Auto-connect download failed to start for '
-                '${computer.displayName}',
-                category: LogCategory.bluetooth,
-                error: error,
-                stackTrace: stackTrace,
-              );
-            }),
-      );
-      return;
+      final index = discovered.indexWhere((d) => identical(d, device));
+      if (index >= 0 && index < firstIndex) {
+        first = computer;
+        firstIndex = index;
+      }
     }
+    return first;
   }
 
   /// Resolves the discovered device for [computer]: an exact Bluetooth
