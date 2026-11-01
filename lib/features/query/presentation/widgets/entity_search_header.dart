@@ -115,7 +115,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
   }
 
   void _takeFocusRequest() {
-    if (!mounted) return;
+    if (!mounted || !_onScreen) return;
     final pending = entitySearchFocusPendingProvider(widget.subject);
     if (!ref.read(pending)) return;
     ref.read(pending.notifier).state = false;
@@ -124,6 +124,14 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       if (mounted) _focus.requestFocus();
     });
   }
+
+  /// Whether this row is the one the diver can see. The request is keyed by
+  /// subject, and two lists of one subject can be mounted at once: the Trips
+  /// nav page under the Trips list that See all pushes. The covered one, or
+  /// one on an inactive nav branch, must leave the request to the other.
+  bool get _onScreen =>
+      (ModalRoute.of(context)?.isCurrent ?? true) &&
+      TickerMode.valuesOf(context).enabled;
 
   void _onQueryChanged(QueryNode? node) {
     _local = node;
@@ -159,7 +167,14 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
         widget.alwaysShown ||
         widget.query != null ||
         ref.watch(entitySearchOpenProvider(widget.subject));
-    if (!visible) return const SizedBox.shrink();
+    if (!visible) {
+      // Hidden by the icon rather than Close: text not yet written, and the
+      // write it was waiting on, go with the row, as they do on Close.
+      _debounce?.cancel();
+      _local = null;
+      _text = '';
+      return const SizedBox.shrink();
+    }
     final l10n = context.l10n;
     final showEverywhere = _text.trim().isNotEmpty && _focus.hasFocus;
     return Column(

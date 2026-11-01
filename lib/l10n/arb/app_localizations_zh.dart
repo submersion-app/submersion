@@ -3397,11 +3397,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_picker_tapToAdd => '点击「添加」选择潜伴';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return '未找到与「$query」匹配的潜伴';
-  }
-
-  @override
   String get buddies_section_certifications => '认证';
 
   @override
@@ -4410,11 +4405,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => '选择证书';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return '未找到与「$query」匹配的证书';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6559,14 +6549,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveCenters_picker_nearYourLocation => '你的位置附近';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return '未找到“$query”的结果';
-  }
-
-  @override
-  String get diveCenters_search_prompt => '搜索潜水中心';
 
   @override
   String get diveCenters_tag_closed => '已关闭';
@@ -11663,11 +11645,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_refresh_nothing => '没有潜点带有可查询的坐标。';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return '错误： $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return '无潜水点已找到为 \"$query\"';
   }
@@ -15876,14 +15853,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_retypeOther_undone => '已撤销类型更改';
 
   @override
-  String get equipment_search_fieldLabel => '搜索装备...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return '无装备已找到为 \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => '添加';
 
   @override
@@ -17788,9 +17757,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => '取消';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => '清除搜索';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return '自定义物种 ($count)';
   }
@@ -17991,9 +17957,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => '搜索你见过的物种';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => '清除搜索';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => '管理目录';
@@ -31460,26 +31423,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => '使用';
-
-  @override
-  String get trips_search_empty_hint => '按名称、地点或度假村搜索';
-
-  @override
-  String get trips_search_fieldLabel => '搜索旅行...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return '未找到「$query」的旅行';
-  }
-
-  @override
-  String get trips_search_error => '无法搜索旅行。';
-
-  @override
-  String get trips_search_tooltip_back => '返回';
-
-  @override
-  String get trips_search_tooltip_clear => '清除搜索';
 
   @override
   String get trips_summary_header_subtitle => '从列表中选择一个旅行以查看详情';

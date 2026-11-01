@@ -5503,12 +5503,6 @@ abstract class AppLocalizations {
   /// **'Tap \'Add\' to select dive buddies'**
   String get buddies_picker_tapToAdd;
 
-  /// No description provided for @buddies_search_noResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No buddies found for \"{query}\"'**
-  String buddies_search_noResults(Object query);
-
   /// No description provided for @buddies_section_certifications.
   ///
   /// In en, this message translates to:
@@ -7213,12 +7207,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Certifications'**
   String get certifications_picker_selectTitle;
-
-  /// No description provided for @certifications_search_noResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No certifications found for \"{query}\"'**
-  String certifications_search_noResults(Object query);
 
   /// No description provided for @certifications_share_error_card.
   ///
@@ -10852,18 +10840,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Near your location'**
   String get diveCenters_picker_nearYourLocation;
-
-  /// No description provided for @diveCenters_search_noResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No results for \"{query}\"'**
-  String diveCenters_search_noResults(Object query);
-
-  /// No description provided for @diveCenters_search_prompt.
-  ///
-  /// In en, this message translates to:
-  /// **'Search dive centers'**
-  String get diveCenters_search_prompt;
 
   /// No description provided for @diveCenters_tag_closed.
   ///
@@ -19528,12 +19504,6 @@ abstract class AppLocalizations {
   /// **'No site has coordinates to look up.'**
   String get diveSites_refresh_nothing;
 
-  /// No description provided for @diveSites_list_search_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Error: {error}'**
-  String diveSites_list_search_error(Object error);
-
   /// No description provided for @diveSites_list_search_noResults.
   ///
   /// In en, this message translates to:
@@ -26695,18 +26665,6 @@ abstract class AppLocalizations {
   /// **'Retype undone'**
   String get equipment_retypeOther_undone;
 
-  /// No description provided for @equipment_search_fieldLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Search equipment...'**
-  String get equipment_search_fieldLabel;
-
-  /// No description provided for @equipment_search_noResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No equipment found for \"{query}\"'**
-  String equipment_search_noResults(Object query);
-
   /// No description provided for @equipment_serviceDialog_addButton.
   ///
   /// In en, this message translates to:
@@ -30041,12 +29999,6 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get marineLife_speciesManage_cancelButton;
 
-  /// No description provided for @marineLife_speciesManage_clearSearchTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear search'**
-  String get marineLife_speciesManage_clearSearchTooltip;
-
   /// No description provided for @marineLife_speciesManage_customSpeciesHeader.
   ///
   /// In en, this message translates to:
@@ -30328,12 +30280,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search species you have seen'**
   String get marineLife_speciesPage_searchHint;
-
-  /// No description provided for @marineLife_speciesPage_clearSearchTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear search'**
-  String get marineLife_speciesPage_clearSearchTooltip;
 
   /// No description provided for @marineLife_speciesPage_manageCatalogTooltip.
   ///
@@ -53023,42 +52969,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use'**
   String get trips_picker_suggestedUse;
-
-  /// No description provided for @trips_search_empty_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search by name, location, or resort'**
-  String get trips_search_empty_hint;
-
-  /// No description provided for @trips_search_fieldLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Search trips...'**
-  String get trips_search_fieldLabel;
-
-  /// No description provided for @trips_search_noResults.
-  ///
-  /// In en, this message translates to:
-  /// **'No trips found for \"{query}\"'**
-  String trips_search_noResults(Object query);
-
-  /// No description provided for @trips_search_error.
-  ///
-  /// In en, this message translates to:
-  /// **'Couldn\'t search your trips.'**
-  String get trips_search_error;
-
-  /// No description provided for @trips_search_tooltip_back.
-  ///
-  /// In en, this message translates to:
-  /// **'Back'**
-  String get trips_search_tooltip_back;
-
-  /// No description provided for @trips_search_tooltip_clear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear search'**
-  String get trips_search_tooltip_clear;
 
   /// No description provided for @trips_summary_header_subtitle.
   ///

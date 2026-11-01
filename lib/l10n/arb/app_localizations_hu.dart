@@ -3581,11 +3581,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Koppints a \'Hozzáadás\'-ra a búvártársak kiválasztásához';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return 'Nincs találat erre: \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'Képesítések';
 
   @override
@@ -4656,11 +4651,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'Tanúsítványok kiválasztása';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'Nem található tanúsítvány a következőre: \"$query\"';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6899,14 +6889,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveCenters_picker_nearYourLocation =>
       'A jelenlegi hely közelében';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return 'Nincs találat erre: \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'Búvárközpontok keresése';
 
   @override
   String get diveCenters_tag_closed => 'Bezárt';
@@ -12235,11 +12217,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyetlen merülőhelynek sincs lekérdezhető koordinátája.';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return 'Hiba: $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return 'Nem található helyszín \"$query\" keresési kifejezésre';
   }
@@ -16607,14 +16584,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Típusmódosítás visszavonva';
 
   @override
-  String get equipment_search_fieldLabel => 'Felszerelés keresése...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'Nem található felszerelés \"$query\" keresési kifejezésre';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'Hozzáadás';
 
   @override
@@ -18640,9 +18609,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'Mégse';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'Keresés törlése';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'Egyedi fajok ($count)';
   }
@@ -18857,9 +18823,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'Látott fajok keresése';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'Keresés törlése';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip =>
@@ -33216,27 +33179,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'Használat';
-
-  @override
-  String get trips_search_empty_hint =>
-      'Keresés név, helyszín vagy üdülőhely alapján';
-
-  @override
-  String get trips_search_fieldLabel => 'Utak keresése...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'Nem található út a következőre: \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'Nem sikerült keresni az utaid között.';
-
-  @override
-  String get trips_search_tooltip_back => 'Vissza';
-
-  @override
-  String get trips_search_tooltip_clear => 'Keresés törlése';
 
   @override
   String get trips_summary_header_subtitle =>

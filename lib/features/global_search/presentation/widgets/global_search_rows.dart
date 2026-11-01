@@ -28,8 +28,10 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_tile.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
@@ -91,10 +93,10 @@ class GlobalSearchRows extends ConsumerWidget {
         (entry) => entry.trip.id,
         (entry, onTap) => _TripRow(entry: entry, onTap: onTap),
       ),
-      GlobalSearchKind.equipment => _each(
+      GlobalSearchKind.equipment => _rows(
         ref.watch(allEquipmentProvider),
         (item) => item.id,
-        (item, onTap) => EquipmentListTile(item: item, onTap: onTap),
+        (items) => _EquipmentRows(items: items, onOpen: onOpen),
       ),
       GlobalSearchKind.equipmentSets => _each(
         ref.watch(equipmentSetsProvider),
@@ -268,6 +270,33 @@ class _DiveRows extends ConsumerWidget {
             gradientStartColor: gradient.start,
             gradientEndColor: gradient.end,
             onTap: () => onOpen(dive.id),
+          ),
+      ],
+    );
+  }
+}
+
+/// As the Equipment list: the rows are labelled as one list, so two identical
+/// items read differently from each other (#1549). Compact, so no tag chips.
+class _EquipmentRows extends ConsumerWidget {
+  const _EquipmentRows({required this.items, required this.onOpen});
+
+  final List<EquipmentItem> items;
+  final ValueChanged<String> onOpen;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final labels = equipmentRowLabelsOf(context, ref, items);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final item in items)
+          EquipmentListTile(
+            key: globalSearchRowKey(GlobalSearchKind.equipment, item.id),
+            item: item,
+            label: labels[item.id],
+            onTap: () => onOpen(item.id),
           ),
       ],
     );

@@ -2037,7 +2037,6 @@
   "buddies_picker_selectRole": "Select Role for {name}",
   "buddies_picker_setMyRole": "Set my role",
   "buddies_picker_tapToAdd": "Tap 'Add' to select dive buddies",
-  "buddies_search_noResults": "No buddies found for \"{query}\"",
   "buddies_section_certifications": "Certifications",
   "buddies_certifications_empty": "No certifications",
   "buddies_section_contact": "Contact",
@@ -2150,13 +2149,6 @@
   "@buddies_picker_selectRole": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@buddies_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -2761,7 +2753,6 @@
   "@certifications_picker_selectTitle": {
     "description": "Title of the multi-select certification sheet in the course editor"
   },
-  "certifications_search_noResults": "No certifications found for \"{query}\"",
   "certifications_share_error_card": "Failed to share card: {error}",
   "certifications_share_error_certificate": "Failed to share certificate: {error}",
   "certifications_share_option_card_subtitle": "Credit card-style certification image",
@@ -2929,13 +2920,6 @@
   "@certifications_picker_error": {
     "placeholders": {
       "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@certifications_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -4181,8 +4165,6 @@
   "diveCenters_picker_nearThisDive": "Near this dive",
   "diveCenters_picker_nearYourLocation": "Near your location",
   "@diveCenters_picker_nearYourLocation": {"description": "Dive center picker section header: centers near where the device is now, for a new dive with no site or GPS"},
-  "diveCenters_search_noResults": "No results for \"{query}\"",
-  "diveCenters_search_prompt": "Search dive centers",
   "diveCenters_tag_closed": "Closed",
   "diveCenters_section_address": "Address",
   "diveCenters_section_affiliations": "Affiliations",
@@ -4346,13 +4328,6 @@
   "@diveCenters_label_source": {
     "placeholders": {
       "source": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveCenters_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }
@@ -7151,7 +7126,6 @@
   },
   "diveSites_refresh_progress_title": "Refreshing place names",
   "diveSites_refresh_nothing": "No site has coordinates to look up.",
-  "diveSites_list_search_error": "Error: {error}",
   "diveSites_list_search_noResults": "No sites found for \"{query}\"",
   "diveSites_list_search_placeholder": "Search sites...",
   "diveSites_list_selection_mergeTooltip": "Merge Selected",
@@ -7437,13 +7411,6 @@
     }
   },
   "@diveSites_list_error_loadingSites": {
-    "placeholders": {
-      "error": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveSites_list_search_error": {
     "placeholders": {
       "error": {
         "type": "Object"
@@ -9832,8 +9799,6 @@
     }
   },
   "equipment_retypeOther_undone": "Retype undone",
-  "equipment_search_fieldLabel": "Search equipment...",
-  "equipment_search_noResults": "No equipment found for \"{query}\"",
   "equipment_serviceDialog_addButton": "Add",
   "equipment_serviceDialog_addTitle": "Add Service Record",
   "equipment_serviceDialog_cancelButton": "Cancel",
@@ -10242,13 +10207,6 @@
   },
   "@equipment_list_typeFilterAll": {
     "description": "Label of the chip that clears the category filter and shows equipment of every type"
-  },
-  "@equipment_search_noResults": {
-    "placeholders": {
-      "query": {
-        "type": "Object"
-      }
-    }
   },
   "@equipment_serviceDialog_snackbar_error": {
     "placeholders": {
@@ -11089,7 +11047,6 @@
   "marineLife_speciesManage_backTooltip": "Back",
   "marineLife_speciesManage_builtInSpeciesHeader": "Built-in Species ({count})",
   "marineLife_speciesManage_cancelButton": "Cancel",
-  "marineLife_speciesManage_clearSearchTooltip": "Clear search",
   "marineLife_speciesManage_customSpeciesHeader": "Custom Species ({count})",
   "marineLife_speciesManage_deleteButton": "Delete",
   "marineLife_speciesManage_deleteTooltip": "Delete species",
@@ -11207,7 +11164,6 @@
   },
   "marineLife_speciesPage_title": "Species",
   "marineLife_speciesPage_searchHint": "Search species you have seen",
-  "marineLife_speciesPage_clearSearchTooltip": "Clear search",
   "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
   "marineLife_speciesPage_sortTooltip": "Sort",
   "marineLife_speciesPage_sort_mostSightings": "Most sightings",
@@ -19101,12 +19057,6 @@
   "trips_picker_sheetTitle": "Select Trip",
   "trips_picker_suggestedPrefix": "Suggested: {name}",
   "trips_picker_suggestedUse": "Use",
-  "trips_search_empty_hint": "Search by name, location, or resort",
-  "trips_search_fieldLabel": "Search trips...",
-  "trips_search_noResults": "No trips found for \"{query}\"",
-  "trips_search_error": "Couldn't search your trips.",
-  "trips_search_tooltip_back": "Back",
-  "trips_search_tooltip_clear": "Clear search",
   "trips_summary_header_subtitle": "Select a trip from the list to view details",
   "trips_summary_header_title": "Trips",
   "trips_summary_overview_title": "Overview",
@@ -19774,13 +19724,6 @@
   "@trips_picker_suggestedPrefix": {
     "placeholders": {
       "name": {
-        "type": "Object"
-      }
-    }
-  },
-  "@trips_search_noResults": {
-    "placeholders": {
-      "query": {
         "type": "Object"
       }
     }

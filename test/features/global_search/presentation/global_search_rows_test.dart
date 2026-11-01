@@ -109,6 +109,9 @@ Widget _host(
   List<Diver> divers = const [],
   Set<String> sharedSites = const {},
   Future<List<BuddyWithDiveCount>> Function()? buddies,
+  List<EquipmentItem> equipment = const [
+    EquipmentItem(id: 'x', name: 'Primary', type: EquipmentType.regulator),
+  ],
 }) => ProviderScope(
   overrides: [
     sharedPreferencesProvider.overrideWithValue(_prefs),
@@ -138,11 +141,7 @@ Widget _host(
     allTripsWithStatsProvider.overrideWith(
       (ref) async => [TripWithStats(trip: _trip, diveCount: 3)],
     ),
-    allEquipmentProvider.overrideWith(
-      (ref) async => const [
-        EquipmentItem(id: 'x', name: 'Primary', type: EquipmentType.regulator),
-      ],
-    ),
+    allEquipmentProvider.overrideWith((ref) async => equipment),
     equipmentSetsProvider.overrideWith(
       (ref) async => [
         EquipmentSet(id: 'x', name: 'Cold', createdAt: _now, updatedAt: _now),
@@ -275,6 +274,32 @@ void main() {
       expect(opened, ['x']);
     });
   }
+
+  testWidgets('identical gear is told apart as the Equipment list does', (
+    tester,
+  ) async {
+    EquipmentItem pouch(String id, String serial) => EquipmentItem(
+      id: id,
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+      serialNumber: serial,
+    );
+    await tester.pumpWidget(
+      _host(
+        GlobalSearchKind.equipment,
+        ids: const ['a', 'b'],
+        equipment: [pouch('a', 'X1'), pouch('b', 'X2')],
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    // Labelled as one list (#1549): the serial that differs is shown.
+    expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
+    expect(find.text('Palantic Drop-Bottom · S/N X2'), findsOneWidget);
+  });
 
   testWidgets('a logged species reads as the logbook does', (tester) async {
     await tester.pumpWidget(

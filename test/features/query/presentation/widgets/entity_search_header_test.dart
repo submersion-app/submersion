@@ -21,38 +21,52 @@ final _query = StateProvider<QueryNode?>((ref) => null);
 const _subject = QuerySubject.buddies;
 final _field = entitySearchFieldKey(_subject);
 
+/// The list's search icon by key: once the row is open, the field wears a
+/// search icon of its own.
+final _action = ValueKey('entity-search-action-${_subject.name}');
+
+/// A list whose whole filter is [_query], with its search icon in the app
+/// bar and the header over its body, which reads [marker].
+Widget _listPage(String marker, {bool alwaysShown = false}) => Consumer(
+  builder: (context, ref, _) => Scaffold(
+    appBar: AppBar(
+      actions: [
+        EntitySearchAction(
+          subject: _subject,
+          active: ref.watch(_query) != null,
+        ),
+      ],
+    ),
+    body: Column(
+      children: [
+        EntitySearchHeader(
+          subject: _subject,
+          root: buddyQueryEntity,
+          query: ref.watch(_query),
+          onChanged: (q) => ref.read(_query.notifier).state = q,
+          alwaysShown: alwaysShown,
+        ),
+        Expanded(child: Text(marker)),
+      ],
+    ),
+  ),
+);
+
 /// The header over a list whose whole filter is [_query], with the list's
-/// search icon above it and a `/search` page to land on.
+/// search icon above it, a `/search` page to land on, and a second list of
+/// the same subject at `/second` to push over it.
 Widget _app({bool alwaysShown = false}) {
   final router = GoRouter(
     initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => Consumer(
-          builder: (context, ref, _) => Scaffold(
-            appBar: AppBar(
-              actions: [
-                EntitySearchAction(
-                  subject: _subject,
-                  active: ref.watch(_query) != null,
-                ),
-              ],
-            ),
-            body: Column(
-              children: [
-                EntitySearchHeader(
-                  subject: _subject,
-                  root: buddyQueryEntity,
-                  query: ref.watch(_query),
-                  onChanged: (q) => ref.read(_query.notifier).state = q,
-                  alwaysShown: alwaysShown,
-                ),
-                const Expanded(child: Text('the list')),
-              ],
-            ),
-          ),
-        ),
+        builder: (context, state) =>
+            _listPage('the list', alwaysShown: alwaysShown),
+      ),
+      GoRoute(
+        path: '/second',
+        builder: (context, state) => _listPage('the second list'),
       ),
       GoRoute(
         path: '/search',
@@ -89,6 +103,63 @@ void main() {
     await tester.pumpAndSettle();
     final field = tester.widget<TextField>(find.byKey(_field));
     expect(field.focusNode!.hasFocus, isTrue);
+  });
+
+  testWidgets('a list pushed over another of the same subject gets the caret', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    // See all pushes a second Trips list over the Trips nav page: both
+    // headers hear the focus request, and the covered one must leave it.
+    GoRouter.of(tester.element(find.text('the list'))).push('/second');
+    await tester.pumpAndSettle();
+    expect(find.text('the second list'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byKey(_field));
+    expect(field.focusNode!.hasFocus, isTrue);
+  });
+
+  testWidgets('the icon hiding an idle row drops its text', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    // Nothing a buddy reads, so the list has no query and the row is idle.
+    await tester.enterText(find.byKey(_field), 'depth >');
+    await tester.pump();
+    expect(find.byKey(kSearchEverywhereRowKey), findsOneWidget);
+
+    await tester.tap(find.byKey(_action));
+    await tester.pumpAndSettle();
+    expect(find.byKey(_field), findsNothing);
+    await tester.tap(find.byKey(_action));
+    await tester.pumpAndSettle();
+    expect(find.byKey(_field), findsOneWidget);
+    expect(find.byKey(kSearchEverywhereRowKey), findsNothing);
+  });
+
+  testWidgets('the icon hiding a row cancels the write it was waiting on', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(_field), 'robin');
+    await tester.pump();
+
+    // Hidden inside the debounce: the row must not come back filtered. The
+    // frame that hides it comes first, as it does in the app; pump(duration)
+    // would fire the timer before building it.
+    await tester.tap(find.byKey(_action));
+    await tester.pump();
+    await tester.pump(kEntitySearchDebounce);
+    await tester.pumpAndSettle();
+    expect(_container(tester).read(_query), isNull);
+    expect(find.byKey(_field), findsNothing);
   });
 
   testWidgets('writes the list\'s query once typing rests', (tester) async {

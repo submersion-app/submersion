@@ -3592,11 +3592,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tippen Sie auf \'Hinzufügen\', um Tauchpartner auszuwählen';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return 'Keine Tauchpartner für \"$query\" gefunden';
-  }
-
-  @override
   String get buddies_section_certifications => 'Zertifizierungen';
 
   @override
@@ -4679,11 +4674,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'Zertifizierungen auswählen';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'Keine Zertifizierungen gefunden für \"$query\"';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6923,14 +6913,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveCenters_picker_nearYourLocation =>
       'In der Nähe des aktuellen Standorts';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return 'Keine Ergebnisse für \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'Tauchcenter suchen';
 
   @override
   String get diveCenters_tag_closed => 'Geschlossen';
@@ -12262,11 +12244,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Tauchplatz hat Koordinaten für eine Abfrage.';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return 'Fehler: $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return 'Keine Tauchplätze für \"$query\" gefunden';
   }
@@ -16650,14 +16627,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Typänderung rückgängig gemacht';
 
   @override
-  String get equipment_search_fieldLabel => 'Ausrüstung suchen...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'Keine Ausrüstung für \"$query\" gefunden';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'Hinzufügen';
 
   @override
@@ -18685,9 +18654,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'Abbrechen';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'Suche löschen';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'Benutzerdefinierte Arten ($count)';
   }
@@ -18902,9 +18868,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'Gesehene Arten suchen';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'Suche löschen';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'Katalog verwalten';
@@ -33324,27 +33287,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'Verwenden';
-
-  @override
-  String get trips_search_empty_hint => 'Nach Name, Ort oder Resort suchen';
-
-  @override
-  String get trips_search_fieldLabel => 'Reisen durchsuchen...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'Keine Reisen gefunden für \"$query\"';
-  }
-
-  @override
-  String get trips_search_error =>
-      'Deine Reisen konnten nicht durchsucht werden.';
-
-  @override
-  String get trips_search_tooltip_back => 'Zurück';
-
-  @override
-  String get trips_search_tooltip_clear => 'Suche löschen';
 
   @override
   String get trips_summary_header_subtitle =>

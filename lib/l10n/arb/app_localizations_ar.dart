@@ -3679,11 +3679,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'اضغط على \'إضافة\' لاختيار رفاق الغوص';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return 'لم يتم العثور على رفاق لـ \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'الاعتمادات';
 
   @override
@@ -4759,11 +4754,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'اختيار الشهادات';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'لم يتم العثور على شهادات لـ \"$query\"';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -7022,14 +7012,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_picker_nearYourLocation => 'بالقرب من موقعك';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return 'لا توجد نتائج لـ \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'البحث عن مراكز الغوص';
 
   @override
   String get diveCenters_tag_closed => 'مغلق';
@@ -12439,11 +12421,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_refresh_nothing => 'لا يوجد موقع غوص له إحداثيات للبحث.';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return 'خطأ: $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return 'لم يتم العثور على مواقع لـ \"$query\"';
   }
@@ -16914,14 +16891,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_retypeOther_undone => 'تم التراجع عن تغيير النوع';
 
   @override
-  String get equipment_search_fieldLabel => 'البحث في المعدات...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'لم يتم العثور على معدات لـ \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'إضافة';
 
   @override
@@ -18928,9 +18897,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'إلغاء';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'مسح البحث';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'الأنواع المخصصة ($count)';
   }
@@ -19159,9 +19125,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'ابحث في الأنواع التي رأيتها';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'مسح البحث';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'إدارة الفهرس';
@@ -33738,26 +33701,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'استخدام';
-
-  @override
-  String get trips_search_empty_hint => 'البحث بالاسم أو الموقع أو المنتجع';
-
-  @override
-  String get trips_search_fieldLabel => 'البحث في الرحلات...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'لم يتم العثور على رحلات لـ \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'تعذّر البحث في رحلاتك.';
-
-  @override
-  String get trips_search_tooltip_back => 'رجوع';
-
-  @override
-  String get trips_search_tooltip_clear => 'مسح البحث';
 
   @override
   String get trips_summary_header_subtitle =>

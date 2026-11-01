@@ -1,8 +1,10 @@
 # Global search: one search field for every kind of record
 
 Date: 2026-10-30
-Status: approved to build; the maintainer chose to skip the design questions, so
-every decision below is the builder's call, recorded here so it can be changed.
+Status: approved to build. The maintainer decided where Search sits in the
+navigation and the shared search row on every list, with the full-screen search
+boxes removed (sections 6 and 6a); every other decision below is the builder's
+call, recorded here so it can be changed.
 Release: v1.8.4
 
 ## 1. Problem

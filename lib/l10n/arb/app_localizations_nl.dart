@@ -3571,11 +3571,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tik op \'Toevoegen\' om duikbuddies te selecteren';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return 'Geen buddies gevonden voor \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'Certificeringen';
 
   @override
@@ -4652,11 +4647,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'Selecteer certificeringen';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'Geen certificeringen gevonden voor \"$query\"';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6875,14 +6865,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveCenters_picker_nearYourLocation =>
       'In de buurt van je locatie';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return 'Geen resultaten voor \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'Zoek duikcentra';
 
   @override
   String get diveCenters_tag_closed => 'Gesloten';
@@ -12185,11 +12167,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen enkele duikstek heeft coördinaten om op te zoeken.';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return 'Fout: $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return 'Geen stekken gevonden voor \"$query\"';
   }
@@ -16556,14 +16533,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_retypeOther_undone => 'Typewijziging ongedaan gemaakt';
 
   @override
-  String get equipment_search_fieldLabel => 'Uitrusting zoeken...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'Geen uitrusting gevonden voor \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'Toevoegen';
 
   @override
@@ -18586,10 +18555,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'Annuleren';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip =>
-      'Zoekopdracht wissen';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'Aangepaste soorten ($count)';
   }
@@ -18801,9 +18766,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get marineLife_speciesPage_searchHint =>
       'Zoek soorten die je hebt gezien';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'Zoekopdracht wissen';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'Catalogus beheren';
@@ -33172,26 +33134,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'Gebruik';
-
-  @override
-  String get trips_search_empty_hint => 'Zoek op naam, locatie of resort';
-
-  @override
-  String get trips_search_fieldLabel => 'Reizen zoeken...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'Geen reizen gevonden voor \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'Kan je reizen niet doorzoeken.';
-
-  @override
-  String get trips_search_tooltip_back => 'Terug';
-
-  @override
-  String get trips_search_tooltip_clear => 'Zoekopdracht wissen';
 
   @override
   String get trips_summary_header_subtitle =>

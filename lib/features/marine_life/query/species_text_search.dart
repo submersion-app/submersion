@@ -10,13 +10,19 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// `species.common_name` cannot find "Walhai". Matching every language, not
 /// just the active one, keeps the compiler locale-free and gives a saved
 /// search the same species on every device, as dive types do (issue #2884).
-final Map<String, List<String>> _builtInNames = Map.unmodifiable({
-  for (final id in kBuiltInSpeciesIds)
-    id: List<String>.unmodifiable({
-      for (final locale in AppLocalizations.supportedLocales)
-        ?builtInSpeciesName(lookupAppLocalizations(locale), id)?.toLowerCase(),
-    }),
-});
+final Map<String, List<String>> _builtInNames = _namesByLanguage([
+  for (final locale in AppLocalizations.supportedLocales)
+    lookupAppLocalizations(locale),
+]);
+
+Map<String, List<String>> _namesByLanguage(List<AppLocalizations> languages) =>
+    Map.unmodifiable({
+      for (final id in kBuiltInSpeciesIds)
+        id: List<String>.unmodifiable({
+          for (final l10n in languages)
+            ?builtInSpeciesName(l10n, id)?.toLowerCase(),
+        }),
+    });
 
 /// The built-in species ids whose translated name, in any app language,
 /// contains [term], ignoring case and surrounding whitespace.

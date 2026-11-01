@@ -3528,11 +3528,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_picker_tapToAdd => 'לחץ על \'הוסף\' כדי לבחור חברי צוללים';
 
   @override
-  String buddies_search_noResults(Object query) {
-    return 'לא נמצאו חברי צוללים עבור \"$query\"';
-  }
-
-  @override
   String get buddies_section_certifications => 'הסמכות';
 
   @override
@@ -4574,11 +4569,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get certifications_picker_selectTitle => 'בחר הסמכות';
-
-  @override
-  String certifications_search_noResults(Object query) {
-    return 'לא נמצאו הסמכות עבור \"$query\"';
-  }
 
   @override
   String certifications_share_error_card(Object error) {
@@ -6769,14 +6759,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_picker_nearYourLocation => 'ליד המיקום שלך';
-
-  @override
-  String diveCenters_search_noResults(Object query) {
-    return 'אין תוצאות עבור \"$query\"';
-  }
-
-  @override
-  String get diveCenters_search_prompt => 'חפש מרכזי צלילה';
 
   @override
   String get diveCenters_tag_closed => 'סגור';
@@ -11996,11 +11978,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_refresh_nothing => 'לאף אתר אין קואורדינטות לבדיקה.';
 
   @override
-  String diveSites_list_search_error(Object error) {
-    return 'שגיאה: $error';
-  }
-
-  @override
   String diveSites_list_search_noResults(Object query) {
     return 'לא נמצאו אתרים עבור \"$query\"';
   }
@@ -16320,14 +16297,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_retypeOther_undone => 'שינוי הסוג בוטל';
 
   @override
-  String get equipment_search_fieldLabel => 'חפש ציוד...';
-
-  @override
-  String equipment_search_noResults(Object query) {
-    return 'לא נמצא ציוד עבור \"$query\"';
-  }
-
-  @override
   String get equipment_serviceDialog_addButton => 'הוסף';
 
   @override
@@ -18292,9 +18261,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesManage_cancelButton => 'ביטול';
 
   @override
-  String get marineLife_speciesManage_clearSearchTooltip => 'נקה חיפוש';
-
-  @override
   String marineLife_speciesManage_customSpeciesHeader(Object count) {
     return 'מינים מותאמים אישית ($count)';
   }
@@ -18502,9 +18468,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_searchHint => 'חיפוש מינים שראית';
-
-  @override
-  String get marineLife_speciesPage_clearSearchTooltip => 'ניקוי החיפוש';
 
   @override
   String get marineLife_speciesPage_manageCatalogTooltip => 'ניהול הקטלוג';
@@ -32559,26 +32522,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_picker_suggestedUse => 'השתמש';
-
-  @override
-  String get trips_search_empty_hint => 'חיפוש לפי שם, מיקום או אתר נופש';
-
-  @override
-  String get trips_search_fieldLabel => 'חיפוש טיולים...';
-
-  @override
-  String trips_search_noResults(Object query) {
-    return 'לא נמצאו טיולים עבור \"$query\"';
-  }
-
-  @override
-  String get trips_search_error => 'לא ניתן לחפש בטיולים.';
-
-  @override
-  String get trips_search_tooltip_back => 'חזרה';
-
-  @override
-  String get trips_search_tooltip_clear => 'נקה חיפוש';
 
   @override
   String get trips_summary_header_subtitle =>
