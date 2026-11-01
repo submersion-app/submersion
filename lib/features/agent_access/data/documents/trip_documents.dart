@@ -76,7 +76,7 @@ Map<String, Object?> tripCylinderEventDocument(TripCylinderEvent e) => {
   'id': e.id,
   'trip_cylinder_id': e.tripCylinderId,
   'kind': e.kind.name,
-  'occurred_at': instant(e.occurredAt),
+  'occurred_time': wallClock(e.occurredAt),
   'bottle_label': e.bottleLabel,
   'pressure_bar': e.pressure,
   'o2_fraction': _fraction(e.o2Percent),

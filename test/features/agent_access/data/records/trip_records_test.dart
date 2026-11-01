@@ -261,6 +261,8 @@ void main() {
       expect(doc['trip_cylinder_id'], 'cyl-open');
       expect(doc['pressure_bar'], 220.0);
       expect(doc['o2_fraction'], closeTo(0.32, 1e-9));
+      expect(doc['occurred_time'], endsWith('Z'));
+      expect(doc.keys, isNot(contains('occurred_at')));
       expect(await h.one('trip_cylinder_events', 'evt-theirs'), isNull);
       expect(await h.list('trip_cylinder_events', parentId: 'cyl-open'), [
         'evt-open',

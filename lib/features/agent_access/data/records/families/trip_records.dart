@@ -138,7 +138,7 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
       },
     ),
     document: tripCylinderEventDocument,
-    summaryKeys: const ['trip_cylinder_id', 'kind', 'occurred_at'],
+    summaryKeys: const ['trip_cylinder_id', 'kind', 'occurred_time'],
   ),
   RecordEntity<TripChecklistSection>(
     name: 'trip_checklist_sections',

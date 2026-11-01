@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/data/repositories/diver_weight_entry_
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
@@ -341,6 +342,14 @@ void main() {
     test('nav tracks stop at the profile', () async {
       expect(await h.one('nav_tracks', 'nav-b'), isNull);
     });
+
+    test('scope matches getAll for nav tracks', () async {
+      final expected = {
+        for (final x in await NavTrackRepository().getAll(diverId: kDiverA))
+          x.id,
+      };
+      expect(await listed('nav_tracks'), expected);
+    });
   });
 
   group('logged records', () {
@@ -425,6 +434,9 @@ void main() {
         name: 'Mine',
         spec: MapSpec.of(const {}, const {}),
       );
+      expect(await listed('connection_maps'), {
+        for (final x in await ConnectionMapRepository().getAll(kDiverA)) x.id,
+      });
       final doc = (await h.one('connection_maps', map.id))!;
       expect(doc['spec'], isA<Map>());
       expect(await h.one('connection_maps', map.id, diverId: kDiverB), isNull);
