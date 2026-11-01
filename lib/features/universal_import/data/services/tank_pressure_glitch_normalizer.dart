@@ -1,6 +1,6 @@
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
-import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/services/payload_dive_rewrite.dart';
 
 /// Replace every cylinder start or end pressure that the source took from a
 /// signal dropout or a pre-valve lead-in reading of its own pressure series
@@ -18,24 +18,11 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 /// series, a near-zero value is cleared when the other end is a real
 /// pressure (issue #2687). Any other header pressure is left alone. The
 /// payload is rebuilt, never mutated.
-ImportPayload replaceGlitchedTankPressures(ImportPayload payload) {
-  final dives = payload.entitiesOf(ImportEntityType.dives);
-  if (dives.isEmpty) {
-    return payload;
-  }
+ImportPayload replaceGlitchedTankPressures(ImportPayload payload) =>
+    rewriteDives(payload, deglitchDiveTankPressures);
 
-  return ImportPayload(
-    entities: {
-      ...payload.entities,
-      ImportEntityType.dives: [for (final dive in dives) _fixDive(dive)],
-    },
-    warnings: payload.warnings,
-    metadata: payload.metadata,
-    sourceDivers: payload.sourceDivers,
-  );
-}
-
-Map<String, dynamic> _fixDive(Map<String, dynamic> dive) {
+/// [replaceGlitchedTankPressures] for one dive map.
+Map<String, dynamic> deglitchDiveTankPressures(Map<String, dynamic> dive) {
   final tanks = dive['tanks'];
   if (tanks is! List || tanks.isEmpty) {
     return dive;

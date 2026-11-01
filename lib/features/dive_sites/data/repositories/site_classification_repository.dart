@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,6 +28,13 @@ class SiteClassificationRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
+
+  /// New links or sites per statement in the writes over many sites, well
+  /// under SQLite's bound-variable limit.
+  static const _linkChunk = 500;
+
+  /// `?, ?, ...` for [count] bound ids.
+  static String _marks(int count) => List.filled(count, '?').join(', ');
 
   /// Emits when either junction, or the type or tag vocabulary, changes.
   Stream<void> watchChanges() => _db.tableUpdates(
@@ -199,7 +207,7 @@ class SiteClassificationRepository {
         for (final id in wanted)
           if (!have.contains(id)) id,
       ];
-      await _insertTypes(siteId, added);
+      await addTypesToSites({siteId: added});
       return removed || added.isNotEmpty;
     });
     if (notify) {
@@ -218,14 +226,12 @@ class SiteClassificationRepository {
   Future<void> addTypes(
     String siteId,
     List<String> typeIds, {
-    bool notify = true,
     String? actingDiverId,
   }) async {
     // A library site [actingDiverId] may not edit (a reader's): never
     // changed here, or the list would differ from the library's for good
-    // (issue #2567). The bridge applying a pulled list does not notify.
-    if (notify &&
-        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+    // (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       return;
     }
     if (typeIds.isEmpty) return;
@@ -238,17 +244,15 @@ class SiteClassificationRepository {
         for (final id in typeIds.toSet())
           if (!have.contains(id)) id,
       ];
-      await _insertTypes(siteId, added);
+      await addTypesToSites({siteId: added});
       return added.isNotEmpty;
     });
-    if (notify) {
-      if (changed) {
-        await _libraryStamper.stamp(siteId, {
-          'siteTypes',
-        }, actingDiverId: actingDiverId);
-      }
-      SyncEventBus.notifyLocalChange();
+    if (changed) {
+      await _libraryStamper.stamp(siteId, {
+        'siteTypes',
+      }, actingDiverId: actingDiverId);
     }
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Makes [siteId]'s tags exactly [tagIds].
@@ -287,7 +291,7 @@ class SiteClassificationRepository {
         for (final id in wanted)
           if (!have.contains(id)) id,
       ];
-      await _insertTags(siteId, added);
+      await addTagsToSites({siteId: added});
       return removed || added.isNotEmpty;
     });
     if (notify) {
@@ -304,14 +308,12 @@ class SiteClassificationRepository {
   Future<void> addTags(
     String siteId,
     List<String> tagIds, {
-    bool notify = true,
     String? actingDiverId,
   }) async {
     // A library site [actingDiverId] may not edit (a reader's): never
     // changed here, or the list would differ from the library's for good
-    // (issue #2567). The bridge applying a pulled list does not notify.
-    if (notify &&
-        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+    // (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       return;
     }
     if (tagIds.isEmpty) return;
@@ -324,60 +326,141 @@ class SiteClassificationRepository {
         for (final id in tagIds.toSet())
           if (!have.contains(id)) id,
       ];
-      await _insertTags(siteId, added);
+      await addTagsToSites({siteId: added});
       return added.isNotEmpty;
     });
-    if (notify) {
-      if (changed) {
-        await _libraryStamper.stamp(siteId, {
-          'tags',
-        }, actingDiverId: actingDiverId);
-      }
-      SyncEventBus.notifyLocalChange();
+    if (changed) {
+      await _libraryStamper.stamp(siteId, {
+        'tags',
+      }, actingDiverId: actingDiverId);
     }
+    SyncEventBus.notifyLocalChange();
   }
 
-  /// Removes [tagIds] from [siteId]'s tags; never adds one. [replaceTags]
-  /// with the rest, so the library rule, the tombstones and the stamp are
-  /// that one write's. A tag the site does not carry is ignored.
-  Future<void> removeTags(
-    String siteId,
-    List<String> tagIds, {
-    bool notify = true,
-    String? actingDiverId,
+  /// [addTypes] over many sites in one pass (#4012): [missing] names the
+  /// types each site lacks, in the order to add them, from a read the caller
+  /// has just made. For a caller's transaction, as `notify: false` is: it
+  /// neither notifies nor checks who may edit a library site.
+  Future<void> addTypesToSites(Map<String, List<String>> missing) =>
+      _insertLinks(
+        _db.siteSiteTypes,
+        linkColumn: 'site_type_id',
+        entityType: 'siteSiteTypes',
+        missing: missing,
+      );
+
+  /// [addTypesToSites] for tags.
+  Future<void> addTagsToSites(Map<String, List<String>> missing) =>
+      _insertLinks(
+        _db.siteTags,
+        linkColumn: 'tag_id',
+        entityType: 'siteTags',
+        missing: missing,
+      );
+
+  /// Removes [typeIds] from [siteIds] in one pass (#4012), on the terms of
+  /// [addTypesToSites], tombstoning each row that goes. A type a site does
+  /// not carry is ignored.
+  Future<void> removeTypesFromSites(
+    List<String> siteIds,
+    List<String> typeIds,
+  ) => _removeLinks(
+    _db.siteSiteTypes,
+    linkColumn: 'site_type_id',
+    entityType: 'siteSiteTypes',
+    siteIds: siteIds,
+    linkedIds: typeIds,
+  );
+
+  /// [removeTypesFromSites] for tags.
+  Future<void> removeTagsFromSites(List<String> siteIds, List<String> tagIds) =>
+      _removeLinks(
+        _db.siteTags,
+        linkColumn: 'tag_id',
+        entityType: 'siteTags',
+        siteIds: siteIds,
+        linkedIds: tagIds,
+      );
+
+  /// Inserts [missing], one statement per chunk. `created_at` counts up
+  /// within each site, because the read order is `created_at, id` and a
+  /// shared timestamp would leave the order to random uuids. RETURNING names
+  /// the rows that landed, so a pair already held is not marked pending.
+  Future<void> _insertLinks(
+    TableInfo<Table, dynamic> table, {
+    required String linkColumn,
+    required String entityType,
+    required Map<String, List<String>> missing,
   }) async {
-    if (tagIds.isEmpty) return;
-    final unwanted = tagIds.toSet();
-    await replaceTags(
-      siteId,
-      [
-        for (final id in (await getTagIdsBySite([siteId]))[siteId] ?? const [])
-          if (!unwanted.contains(id)) id,
-      ],
-      notify: notify,
-      actingDiverId: actingDiverId,
-    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rows = [
+      for (final MapEntry(key: siteId, value: linkedIds) in missing.entries)
+        for (final (i, linkedId) in linkedIds.indexed)
+          (siteId: siteId, linkedId: linkedId, createdAt: now + i),
+    ];
+    if (rows.isEmpty) return;
+    await _db.transaction(() async {
+      final inserted = <String>[];
+      for (final chunk in rows.slices(_linkChunk)) {
+        final landed = await _db.customWriteReturning(
+          'INSERT INTO ${table.actualTableName} '
+          '(id, site_id, $linkColumn, created_at) '
+          "VALUES ${List.filled(chunk.length, '(?, ?, ?, ?)').join(', ')} "
+          'ON CONFLICT DO NOTHING RETURNING id',
+          variables: [
+            for (final row in chunk) ...[
+              Variable.withString(_uuid.v4()),
+              Variable.withString(row.siteId),
+              Variable.withString(row.linkedId),
+              Variable.withInt(row.createdAt),
+            ],
+          ],
+          updates: {table},
+          updateKind: UpdateKind.insert,
+        );
+        inserted.addAll(landed.map((r) => r.read<String>('id')));
+      }
+      await _syncRepository.markRecordsPending(
+        entityType: entityType,
+        recordIds: inserted,
+        localUpdatedAt: now,
+      );
+    });
   }
 
-  /// Removes [typeIds] from [siteId]'s types; never adds one. [replaceTypes]
-  /// with the rest, as [removeTags] does.
-  Future<void> removeTypes(
-    String siteId,
-    List<String> typeIds, {
-    bool notify = true,
-    String? actingDiverId,
+  /// Deletes [linkedIds] from [siteIds], one statement per chunk, and
+  /// tombstones each row that went.
+  Future<void> _removeLinks(
+    TableInfo<Table, dynamic> table, {
+    required String linkColumn,
+    required String entityType,
+    required List<String> siteIds,
+    required List<String> linkedIds,
   }) async {
-    if (typeIds.isEmpty) return;
-    final unwanted = typeIds.toSet();
-    await replaceTypes(
-      siteId,
-      [
-        for (final id in (await getTypeIdsBySite([siteId]))[siteId] ?? const [])
-          if (!unwanted.contains(id)) id,
-      ],
-      notify: notify,
-      actingDiverId: actingDiverId,
-    );
+    if (siteIds.isEmpty || linkedIds.isEmpty) return;
+    final unwanted = linkedIds.toSet().toList();
+    await _db.transaction(() async {
+      final removed = <String>[];
+      for (final chunk in siteIds.slices(_linkChunk)) {
+        final gone = await _db.customWriteReturning(
+          'DELETE FROM ${table.actualTableName} '
+          'WHERE site_id IN (${_marks(chunk.length)}) '
+          'AND $linkColumn IN (${_marks(unwanted.length)}) '
+          'RETURNING id',
+          variables: [
+            for (final id in chunk) Variable.withString(id),
+            for (final id in unwanted) Variable.withString(id),
+          ],
+          updates: {table},
+          updateKind: UpdateKind.delete,
+        );
+        removed.addAll(gone.map((r) => r.read<String>('id')));
+      }
+      await _syncRepository.logDeletions(
+        entityType: entityType,
+        recordIds: removed,
+      );
+    });
   }
 
   /// Moves the duplicates' links onto [survivorId] during a site merge.
@@ -446,59 +529,6 @@ class SiteClassificationRepository {
           recordId: row.id,
         );
       }
-    }
-  }
-
-  /// Inserts in the given order: `created_at` is `now + index`, because the
-  /// read order is `created_at, id` and a shared timestamp would leave the
-  /// order to random uuids.
-  Future<void> _insertTypes(String siteId, List<String> typeIds) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (var i = 0; i < typeIds.length; i++) {
-      final id = _uuid.v4();
-      final inserted = await _db
-          .into(_db.siteSiteTypes)
-          .insertReturningOrNull(
-            SiteSiteTypesCompanion.insert(
-              id: id,
-              siteId: siteId,
-              siteTypeId: typeIds[i],
-              createdAt: now + i,
-            ),
-            onConflict: DoNothing<$SiteSiteTypesTable, SiteSiteType>(
-              target: const [],
-            ),
-          );
-      if (inserted == null) continue;
-      await _syncRepository.markRecordPending(
-        entityType: 'siteSiteTypes',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-    }
-  }
-
-  Future<void> _insertTags(String siteId, List<String> tagIds) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (var i = 0; i < tagIds.length; i++) {
-      final id = _uuid.v4();
-      final inserted = await _db
-          .into(_db.siteTags)
-          .insertReturningOrNull(
-            SiteTagsCompanion.insert(
-              id: id,
-              siteId: siteId,
-              tagId: tagIds[i],
-              createdAt: now + i,
-            ),
-            onConflict: DoNothing<$SiteTagsTable, SiteTag>(target: const []),
-          );
-      if (inserted == null) continue;
-      await _syncRepository.markRecordPending(
-        entityType: 'siteTags',
-        recordId: id,
-        localUpdatedAt: now,
-      );
     }
   }
 }

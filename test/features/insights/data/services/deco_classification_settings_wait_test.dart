@@ -110,7 +110,7 @@ void main() {
         settingsFingerprint: _fingerprintOf(
           const AppSettings(gfLow: 40, gfHigh: 80),
         ),
-        diveUpdatedAt: updatedAt,
+        diveRevision: updatedAt,
       ),
     );
   });
@@ -160,7 +160,7 @@ void main() {
           settingsFingerprint: _fingerprintOf(
             const AppSettings(gfLow: 30, gfHigh: 70),
           ),
-          diveUpdatedAt: updatedAt,
+          diveRevision: updatedAt,
         ),
       ),
     );

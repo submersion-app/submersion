@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
@@ -25,6 +26,7 @@ typedef _SegmentInputs = ({
   List<DiveTank> tanks,
   List<GasSwitchWithTank> gasSwitches,
   Map<String, List<TankPressurePoint>> tankPressures,
+  DiveEnvironment environment,
 });
 
 /// The source whose samples [key] names, or null when the dive has no
@@ -63,6 +65,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
       tanks: dive.tanks,
       gasSwitches: gasSwitches,
       tankPressures: tankPressures,
+      environment: dive.environment,
     );
   }
 
@@ -88,6 +91,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
       for (final entry in ownPressures.entries)
         if (tankIds.contains(entry.key)) entry.key: entry.value,
     },
+    environment: dive.environment,
   );
 }
 
@@ -111,6 +115,7 @@ final gasSwitchSegmentsProvider =
         tankPressures: inputs.tankPressures.isEmpty
             ? null
             : inputs.tankPressures,
+        environment: inputs.environment,
       );
     });
 
@@ -130,6 +135,7 @@ final phaseSegmentsProvider =
             ? null
             : inputs.tankPressures,
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
+        environment: inputs.environment,
       );
     });
 

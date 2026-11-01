@@ -28,6 +28,14 @@ class ScheduleLine {
 
   /// Half-up rounding of a runtime in seconds to whole minutes.
   static int minutesOf(int seconds) => (seconds + 30) ~/ 60;
+
+  /// [durationMinutes] as a table prints it, then any air break within it
+  /// rounded up to a whole minute. [minuteMark] closes each number.
+  String durationLabel([String minuteMark = '']) {
+    final base = '$durationMinutes$minuteMark';
+    if (row.airBreakSeconds == 0) return base;
+    return '$base (+${(row.airBreakSeconds / 60).ceil()}$minuteMark)';
+  }
 }
 
 /// The printable lines for [rows], in order.

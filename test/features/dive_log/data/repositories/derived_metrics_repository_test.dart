@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
@@ -119,6 +121,145 @@ void main() {
     await r.ensureCurrent('d1');
     await r.ensureCurrent('d1', force: true);
     expect(runs, 2);
+  });
+
+  group('the environment handed to the worker (issue #3958)', () {
+    Future<DiveEnvironment> environmentOf(String diveId) async {
+      late DiveEnvironment seen;
+      await DerivedMetricsRepository(
+        runner: (input) async {
+          seen = input.environment;
+          return DiveDerivedMetrics(
+            diveId: input.diveId,
+            engineVersion: DerivedMetricsService.version,
+            sourceUpdatedAt: input.sourceUpdatedAt,
+            computedAt: input.computedAtMs,
+          );
+        },
+      ).ensureCurrent(diveId);
+      return seen;
+    }
+
+    Future<void> insertConditions(
+      String id, {
+      double? altitude,
+      String? waterType,
+      String? siteId,
+    }) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion(
+            id: Value(id),
+            diveDateTime: Value(now),
+            altitude: Value(altitude),
+            waterType: Value(waterType),
+            siteId: Value(siteId),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+
+    Future<void> insertFreshSite(String id) => db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion(
+            id: Value(id),
+            name: const Value('Lake'),
+            waterType: const Value('fresh'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+
+    test('reads the dive\'s own conditions', () async {
+      await insertConditions('d1', altitude: 3000, waterType: 'fresh');
+
+      expect(
+        await environmentOf('d1'),
+        DiveEnvironment.forConditions(
+          altitudeMeters: 3000,
+          waterType: WaterType.fresh,
+        ),
+      );
+    });
+
+    test('falls back to the site water type', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', siteId: 's1');
+
+      expect(
+        (await environmentOf('d1')).waterDensityKgM3,
+        DiveEnvironment.freshWaterDensity,
+      );
+    });
+
+    Future<void> setSiteWater(String id, String waterType) =>
+        (db.update(db.diveSites)..where((t) => t.id.equals(id))).write(
+          DiveSitesCompanion(waterType: Value(waterType)),
+        );
+
+    test('a site water edit makes the dives taking it stale', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await setSiteWater('s1', 'salt');
+
+      expect(await r.staleDiveIds(), ['d1']);
+      await r.ensureCurrent('d1');
+      expect(runs, 2);
+      expect(await r.staleDiveIds(), isEmpty);
+    });
+
+    test('a site water edit leaves a dive with its own water alone', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', waterType: 'brackish', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+
+      await setSiteWater('s1', 'salt');
+
+      expect(await r.staleDiveIds(), isEmpty);
+    });
+
+    test('a blank water type on the dive takes its site\'s', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', waterType: '', siteId: 's1');
+
+      expect(
+        (await environmentOf('d1')).waterDensityKgM3,
+        DiveEnvironment.freshWaterDensity,
+      );
+    });
+
+    test('a blank water type on both reads the standard water', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion(
+              id: const Value('s1'),
+              name: const Value('Lake'),
+              waterType: const Value(''),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await insertConditions('d1', waterType: '', siteId: 's1');
+
+      expect(await environmentOf('d1'), DiveEnvironment.standard);
+    });
+
+    test('the dive\'s water type wins over its site\'s', () async {
+      await insertFreshSite('s1');
+      await insertConditions('d1', waterType: 'salt', siteId: 's1');
+
+      expect(
+        (await environmentOf('d1')).waterDensityKgM3,
+        DiveEnvironment.saltWaterDensity,
+      );
+    });
   });
 
   test('a dive that does not exist yields null and no work', () async {

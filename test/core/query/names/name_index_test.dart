@@ -18,6 +18,28 @@ NameEntry _row(
   rank: rank,
 );
 
+/// A site row that counts how often its label is read.
+class _LabelCounting extends NameEntry {
+  _LabelCounting(String label)
+    : _label = label,
+      super(
+        subject: QuerySubject.sites,
+        label: label,
+        ids: [label],
+        target: NameTarget.siteId,
+        primary: true,
+      );
+
+  final String _label;
+  int reads = 0;
+
+  @override
+  String get label {
+    reads++;
+    return _label;
+  }
+}
+
 void main() {
   test('fromRefs holds one primary row per ref', () {
     final index = NameIndex.fromRefs({
@@ -163,6 +185,53 @@ void main() {
       ),
     ]);
     expect(index.candidates(QuerySubject.sites, 'Salt Pie'), ['Salt Pier']);
+    // Both labels start with this, so only the row filter tells them apart.
+    expect(index.candidates(QuerySubject.sites, 'Salt'), ['Salt Pier']);
+  });
+
+  test('candidates offer a label two rows share once', () {
+    final index = NameIndex([
+      _row(QuerySubject.sites, 's1', 'Blue Hole'),
+      _row(QuerySubject.sites, 's2', 'Blue Hole'),
+    ]);
+    expect(index.candidates(QuerySubject.sites, 'Blue Hol'), ['Blue Hole']);
+  });
+
+  test('candidates read the labels once, not on every edit (#3849)', () {
+    final salt = _LabelCounting('Salt Pier');
+    final blue = _LabelCounting('Blue Hole');
+    final index = NameIndex([salt, blue]);
+    salt.reads = blue.reads = 0;
+
+    expect(index.candidates(QuerySubject.sites, 'Salt Pi'), ['Salt Pier']);
+    final prepared = salt.reads + blue.reads;
+    expect(prepared, greaterThan(0));
+
+    expect(index.candidates(QuerySubject.sites, 'Salt Pir'), ['Salt Pier']);
+    expect(index.candidates(QuerySubject.sites, 'Blue Hol'), ['Blue Hole']);
+    expect(salt.reads + blue.reads, prepared);
+  });
+
+  test('candidates keep each subject to its own labels', () {
+    final index = NameIndex([
+      _row(QuerySubject.sites, 's1', 'Salt Pier'),
+      _row(QuerySubject.buddies, 'b1', 'Salt Bae'),
+    ]);
+    expect(index.candidates(QuerySubject.sites, 'Salt'), ['Salt Pier']);
+    expect(index.candidates(QuerySubject.buddies, 'Salt'), ['Salt Bae']);
+    expect(index.candidates(QuerySubject.tags, 'Salt'), isEmpty);
+  });
+
+  test('an index built from another offers the added names', () {
+    final base = NameIndex([_row(QuerySubject.sites, 's1', 'Salt Pier')]);
+    expect(base.candidates(QuerySubject.sites, 'Salt'), ['Salt Pier']);
+
+    final more = base.followedBy([_row(QuerySubject.sites, 's2', 'Salt Pond')]);
+    expect(more.candidates(QuerySubject.sites, 'Salt'), [
+      'Salt Pier',
+      'Salt Pond',
+    ]);
+    expect(base.candidates(QuerySubject.sites, 'Salt'), ['Salt Pier']);
   });
 
   test('followedBy adds entries after its own, primaries still first', () {

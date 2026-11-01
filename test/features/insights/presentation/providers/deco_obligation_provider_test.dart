@@ -66,6 +66,8 @@ void main() {
   late LocalCacheDatabase cacheDb;
 
   final now = DateTime.utc(2026, 6, 1).millisecondsSinceEpoch;
+  // The revision of a seeded dive: its own stamp plus its one profile series.
+  final seededRevision = now * 2;
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -252,7 +254,7 @@ void main() {
         settingsFingerprint: container
             .read(diverAnalysisSettingsProvider)
             .fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
     );
 
@@ -281,7 +283,7 @@ void main() {
       inputsHash: decoInputsHash(
         engineVersion: analysisEngineVersion,
         settingsFingerprint: other.fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
     );
 
@@ -294,7 +296,7 @@ void main() {
       decoInputsHash(
         engineVersion: analysisEngineVersion,
         settingsFingerprint: active.fingerprint,
-        diveUpdatedAt: now,
+        diveRevision: seededRevision,
       ),
       reason: 'the recomputed entry records the settings it ran on',
     );
@@ -413,7 +415,7 @@ void main() {
           settingsFingerprint: container
               .read(diverAnalysisSettingsProvider)
               .fingerprint,
-          diveUpdatedAt: now,
+          diveRevision: seededRevision,
         ),
       );
 

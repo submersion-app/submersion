@@ -495,8 +495,8 @@ void main() {
   });
 }
 
-/// Holds the payload install until [_gate] completes, standing in for a
-/// duplicate check that is still reading the library.
+/// Holds the payload install until [_gate] completes, so a test can change
+/// the session or dispose the step while the install is in flight.
 class _GatedNotifier extends UniversalImportNotifier {
   _GatedNotifier(super.ref, this._gate);
 

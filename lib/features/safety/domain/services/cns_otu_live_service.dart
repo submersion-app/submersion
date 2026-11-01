@@ -19,6 +19,9 @@ class CnsOtuLiveService {
   /// elapsed since [lastDiveEnd] using the same 90-minute half-time formula
   /// as the inter-dive residual lookback ([CnsTable.cnsAfterSurfaceInterval]).
   ///
+  /// [lastDiveEnd] and [now] are true instants, not wall-clock-as-UTC: clock
+  /// digits gain or lose an hour of recovery across a DST change.
+  ///
   /// A [now] at or before [lastDiveEnd] (clock skew, or evaluating right at
   /// the dive's end) applies no decay rather than a negative elapsed span.
   ///

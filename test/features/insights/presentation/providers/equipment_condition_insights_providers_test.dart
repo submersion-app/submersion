@@ -13,11 +13,13 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/presentation/providers/equipment_condition_insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 
+import '../../../../helpers/counting_findings_repository.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -167,6 +169,35 @@ void main() {
       expect(filtered.map((r) => r.id), ['incidentLinked']);
     },
   );
+
+  test('a marker-only review does not reload the ranking', () async {
+    final findings = CountingFindingsRepository(db: db);
+    final watching = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => settings),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        equipmentFindingsRepositoryProvider.overrideWithValue(findings),
+      ],
+    );
+    addTearDown(watching.dispose);
+    Future<void> review(String fingerprint) => findings.saveReview(
+      equipmentId: reg.id,
+      inputFingerprint: fingerprint,
+      findings: [finding(reg.id, ConditionRuleId.issueRecurring)],
+      engineVersion: 1,
+      now: DateTime(2026, 2),
+    );
+    await review('a');
+    final sub = watching.listen(findingsByRuleProvider(en), (_, _) {});
+    addTearDown(sub.close);
+    await watching.read(findingsByRuleProvider(en).future);
+    expect(findings.reads, 1);
+
+    await review('b');
+    await pumpEventQueue();
+    await watching.read(findingsByRuleProvider(en).future);
+    expect(findings.reads, 1);
+  });
 
   test('findings on another diver\'s gear are not counted', () async {
     // equipment_findings has no diver_id, so an unscoped read pulls in

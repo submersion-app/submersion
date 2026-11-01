@@ -20,7 +20,7 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 /// ([ImportNoticeKind.reportsMissingDives]); the rest have no dive to explain.
 ///
 /// Names (divers, logbooks) from several files are merged without repeats, in
-/// the order first seen. Rows skipped for an unreadable date list their
+/// the order first seen. Kinds with [ImportNoticeKind.listsRows] list their
 /// spreadsheet rows in order. Notices come out in [ImportNoticeKind] order,
 /// data loss first.
 List<ImportNotice> groupImportNotices(
@@ -29,7 +29,7 @@ List<ImportNotice> groupImportNotices(
 ) {
   final counts = <ImportNoticeKind, int>{};
   final names = <ImportNoticeKind, Set<String>>{};
-  final rows = <int>{};
+  final rows = <ImportNoticeKind, Set<int>>{};
   for (final warning in warnings) {
     if (warning.severity == ImportWarningSeverity.error) continue;
     final kind = _kindFor(warning.code);
@@ -38,7 +38,7 @@ List<ImportNotice> groupImportNotices(
     counts[kind] = (counts[kind] ?? 0) + warning.count;
     (names[kind] ??= <String>{}).addAll(warning.names);
     final row = warning.sourceRow;
-    if (kind == ImportNoticeKind.unreadableDates && row != null) rows.add(row);
+    if (kind.listsRows && row != null) (rows[kind] ??= <int>{}).add(row);
   }
 
   final kinds = counts.keys.toList()
@@ -51,9 +51,7 @@ List<ImportNotice> groupImportNotices(
             ? importedDives
             : counts[kind]!,
         names: List.unmodifiable(names[kind]!),
-        rowNumbers: kind == ImportNoticeKind.unreadableDates
-            ? List.unmodifiable(rows.toList()..sort())
-            : const [],
+        rowNumbers: List.unmodifiable((rows[kind]?.toList() ?? [])..sort()),
       ),
   ];
 }
@@ -69,6 +67,7 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
     ImportNoticeKind.profileUndecodableOnPlatform,
   ImportWarningCode.columnsNotImported => ImportNoticeKind.columnsNotImported,
   ImportWarningCode.valuesNotConverted => ImportNoticeKind.valuesNotConverted,
+  ImportWarningCode.gasMixesCapped => ImportNoticeKind.gasMixesCapped,
   ImportWarningCode.photosSkipped => ImportNoticeKind.photosSkipped,
   ImportWarningCode.logbookImagesNotImported =>
     ImportNoticeKind.logbookImagesNotImported,

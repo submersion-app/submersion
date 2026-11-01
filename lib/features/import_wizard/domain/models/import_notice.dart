@@ -60,6 +60,11 @@ enum ImportNoticeKind {
   /// [ImportNotice.count] is the number of values.
   valuesNotConverted,
 
+  /// CSV rows whose oxygen and helium came to more than 100 %, so helium was
+  /// reduced (issue #4007). [ImportNotice.count] is the number of imported
+  /// dives affected and [ImportNotice.rowNumbers] lists their rows.
+  gasMixesCapped,
+
   /// Photo references with no file name, which could not be linked.
   /// [ImportNotice.count] is the number of photos.
   photosSkipped,
@@ -128,6 +133,9 @@ enum ImportNoticeKind {
   bool get reportsMissingDives =>
       this == divesSkipped || this == unreadableDates;
 
+  /// Whether [ImportNotice.rowNumbers] lists the rows the notice is about.
+  bool get listsRows => this == unreadableDates || this == gasMixesCapped;
+
   /// Whether [ImportNotice.count] counts imported dives, and so can never
   /// exceed the number of dives the run imported.
   bool get countsImportedDives => switch (this) {
@@ -139,6 +147,7 @@ enum ImportNoticeKind {
     transmitterNameRoles ||
     sitesUnresolved ||
     macdiveDeviceTimeZone ||
+    gasMixesCapped ||
     diveNumberConflict => true,
     divesSkipped ||
     unreadableDates ||
@@ -170,8 +179,8 @@ class ImportNotice {
   /// list none.
   final List<String> names;
 
-  /// Spreadsheet rows (header = row 1) the notice is about, in order. Only
-  /// [ImportNoticeKind.unreadableDates] fills it in.
+  /// Spreadsheet rows (header = row 1) the notice is about, in order, for the
+  /// kinds where [ImportNoticeKind.listsRows] is true.
   final List<int> rowNumbers;
 
   /// The record the notice's action opens, for kinds that have one.

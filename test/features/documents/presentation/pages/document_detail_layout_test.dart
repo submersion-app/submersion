@@ -10,15 +10,15 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_details_panel.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../document_repository_doubles.dart';
 
-/// The pages fill the detail page and the details stay out of their way
-/// (issue #3333): a PDF boxed into a short preview could not be read.
 void main() {
   late String docId;
 
@@ -56,7 +56,11 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpDetail(WidgetTester t, Size size) async {
+  Future<void> pumpDetail(
+    WidgetTester t,
+    Size size, {
+    DocumentRepository? repository,
+  }) async {
     t.view.physicalSize = size;
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
@@ -86,6 +90,8 @@ void main() {
         overrides: [
           ...overrides,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          if (repository != null)
+            documentRepositoryProvider.overrideWithValue(repository),
         ].cast(),
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -99,6 +105,35 @@ void main() {
     await t.tap(find.text('open'));
     await t.pumpAndSettle();
   }
+
+  testWidgets('opening a long document reads the first two pages (#3847)', (
+    t,
+  ) async {
+    final repo = DocumentReadSpy();
+    final existing = (await repo.getById(docId))!;
+    await repo.save(existing, [
+      for (var i = 0; i < 20; i++)
+        DocumentPage(
+          id: '',
+          documentId: '',
+          pageIndex: i,
+          fileName: 'scan$i.jpg',
+          mimeType: 'image/jpeg',
+          sizeBytes: 2,
+          bytes: Uint8List.fromList([i, 1]),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+    ]);
+    final pages = await repo.getPages(docId, withBytes: false);
+    repo.pageListings.clear();
+
+    await pumpDetail(t, const Size(420, 900), repository: repo);
+
+    expect(find.text('1 of 20'), findsOneWidget);
+    expect(repo.pageListings, everyElement(isFalse));
+    expect(repo.contentReads, [pages[0].id, pages[1].id]);
+  });
 
   testWidgets('the pages take the height the details do not need', (t) async {
     await pumpDetail(t, const Size(420, 900));

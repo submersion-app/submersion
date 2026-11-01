@@ -300,28 +300,48 @@ void main() {
     expect(await tombstones(db, 'documentPages'), 0);
   });
 
-  test(
-    'a first page that is not an image is loaded without its bytes',
-    () async {
-      final pdf = DocumentPage(
-        id: '',
-        documentId: '',
-        pageIndex: 0,
-        fileName: 'a.pdf',
-        mimeType: 'application/pdf',
-        sizeBytes: 3,
-        bytes: Uint8List.fromList([1, 2, 3]),
-        createdAt: DateTime(2026),
-        updatedAt: DateTime(2026),
-      );
-      final a = await repo.save(newDoc(), [pdf]);
-      final b = await repo.save(newDoc(), [
-        page(0, [7]),
-      ]);
-      expect((await repo.getFirstPage(a.id))!.bytes, isNull);
-      expect((await repo.getFirstPage(b.id))!.bytes, [7]);
-    },
-  );
+  test('a first page is loaded without its bytes', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [7]),
+    ]);
+    final first = (await repo.getFirstPage(saved.id))!;
+    expect(first.isImage, isTrue);
+    expect(first.bytes, isNull);
+  });
+
+  test('a save skips a listed page that has since been deleted', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [1]),
+      page(1, [2]),
+    ]);
+    final listed = await repo.getPages(saved.id, withBytes: false);
+    await repo.save(saved, [listed[1]]);
+
+    await repo.save(saved, listed);
+
+    final stored = await repo.getPages(saved.id);
+    expect([for (final p in stored) p.id], [listed[1].id]);
+    expect(stored.single.bytes, [2]);
+  });
+
+  test('a save refuses a new page with no content', () async {
+    await expectLater(
+      repo.save(newDoc(), [
+        page(0, [1]).withoutBytes(),
+      ]),
+      throwsArgumentError,
+    );
+  });
+
+  test('getPageContent reads the one page it is asked for', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [1]),
+      page(1, [2, 3]),
+    ]);
+    final pages = await repo.getPages(saved.id, withBytes: false);
+    expect(await repo.getPageContent(pages[1].id), [2, 3]);
+    expect(await repo.getPageContent('gone'), isNull);
+  });
 
   test('deleteForOwner refuses the personal kind', () async {
     expect(

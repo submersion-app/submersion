@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+
+import 'package:submersion/core/utils/off_isolate.dart';
 
 /// How long a sender keeps a full copy, and a receiver keeps its partial
 /// one, for a resume after a dropped link.
@@ -42,11 +45,16 @@ class NearbyOutgoing {
 
 /// Temp files for nearby transfers, one directory per device.
 class NearbyTransferFiles {
-  NearbyTransferFiles(this.dir, {required DateTime Function() now})
-    : _now = now;
+  NearbyTransferFiles(
+    this.dir, {
+    required DateTime Function() now,
+    @visibleForTesting OffIsolateRunner offIsolateRunner = isolateRun,
+  }) : _now = now,
+       _offIsolateRunner = offIsolateRunner;
 
   final Directory dir;
   final DateTime Function() _now;
+  final OffIsolateRunner _offIsolateRunner;
 
   /// Whether [value] (a transfer id or device id, both sent by the peer)
   /// is safe inside a file name: letters, digits, `-` and `_` only, so it
@@ -126,10 +134,10 @@ class NearbyTransferFiles {
   Future<NearbyOutgoing> prepareDelta(
     String peerId,
     String id,
-    String json,
+    Uint8List json,
   ) async {
     final out = _file('nearby-delta', [peerId, id], '.gz');
-    await out.writeAsBytes(gzip.encode(utf8.encode(json)));
+    await out.writeAsBytes(await _gzipped(json, _offIsolateRunner));
     return NearbyOutgoing(
       id: id,
       kind: 'delta',
@@ -137,6 +145,14 @@ class NearbyTransferFiles {
       byteLength: await out.length(),
     );
   }
+
+  /// Static so that the closure holds [bytes] alone, not this object's [_now].
+  static Future<List<int>> _gzipped(Uint8List bytes, OffIsolateRunner runner) =>
+      runOffIsolate(
+        () => gzip.encode(bytes),
+        bytes: bytes.length,
+        runner: runner,
+      );
 
   /// Removes the remembered full copy for [peerId], if any.
   Future<void> discardOutgoing(String peerId) async {

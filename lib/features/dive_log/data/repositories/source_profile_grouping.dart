@@ -1,5 +1,6 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
@@ -10,6 +11,13 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 /// Not the row itself: this crosses to a background isolate, and a row can
 /// carry its whole raw download.
 typedef ShownSource = ({String id, String? computerId});
+
+/// The sources one dive shows, in shown order, and the shown row each of its
+/// source rows speaks through: what [sourceProfilesReduction] needs per dive.
+typedef DiveShownSources = ({
+  List<ShownSource> shownSources,
+  Map<String, String> shownIdByRow,
+});
 
 /// Reduces a dive's series to one profile per source, by the rules
 /// `DiveRepository.getProfilesByDataSource` documents.
@@ -24,6 +32,41 @@ SeriesReduce<Map<String, SourceProfile>> sourceProfilesReduction({
     (series) => shownSources.isEmpty
     ? _syntheticPrimaryProfile(diveId, series)
     : _profilesBySource(series, shownSources, shownIdByRow);
+
+/// [reduce] over the primary source's profile of every dive in
+/// [shownByDive]: the first entry [sourceProfilesReduction] would give that
+/// dive, so a batched reader sees exactly the samples the single-dive read
+/// shows for the primary source, superseded originals dropped and all.
+///
+/// Every dive in [shownByDive] gets an entry. One with no series, or whose
+/// sources own none, reduces an empty list; the caller decides what that
+/// means (issue #3857: the career terrain skips it, as it skipped an empty
+/// bucket before).
+///
+/// [series] must be grouped by dive and ordered within each dive as
+/// `ProfileSeriesRepository.getRowsForDives` returns them. Both this and
+/// [reduce] cross to a background isolate, so [reduce] must be a top-level
+/// function (see [SeriesReduce]).
+SeriesReduce<Map<String, R>> primarySourceProfilesReduction<R>({
+  required Map<String, DiveShownSources> shownByDive,
+  required R Function(List<DiveProfilePoint> points) reduce,
+}) => (series) {
+  final byDive = <String, List<ProfileSeries>>{};
+  for (final s in series) {
+    byDive.putIfAbsent(s.diveId, () => []).add(s);
+  }
+  return {
+    for (final MapEntry(key: diveId, value: shown) in shownByDive.entries)
+      diveId: reduce(
+        sourceProfilesReduction(
+              diveId: diveId,
+              shownSources: shown.shownSources,
+              shownIdByRow: shown.shownIdByRow,
+            )(byDive[diveId] ?? const []).values.firstOrNull?.points ??
+            const [],
+      ),
+  };
+};
 
 /// Dives with series but no dive_data_sources row (older imports predate that
 /// table): synthesize the primary source.
@@ -62,6 +105,27 @@ Map<String, SourceProfile> _profilesBySource(
         points: mergeSeriesPoints(live.byShownId[s.id]!),
       ),
   };
+}
+
+/// How many points the first profile of [sourceProfilesReduction] would hold,
+/// given the same arguments.
+///
+/// That read keeps every sample of the series it merges, so the stored counts
+/// are its answer and [series] may hold no samples (issue #3856). A series
+/// whose blob no longer decodes still counts here, though the read skips it.
+int primaryProfileSampleCount({
+  required List<ProfileSeries> series,
+  required List<ShownSource> shownSources,
+  required Map<String, String> shownIdByRow,
+}) {
+  final counted = shownSources.isEmpty
+      ? series.where((s) => s.isPrimary)
+      : _liveSeriesByShownSource(
+          series,
+          shownSources,
+          shownIdByRow,
+        ).byShownId[shownSources.first.id]!;
+  return counted.fold(0, (total, s) => total + s.summary.sampleCount);
 }
 
 /// The series behind each source's profile in [sourceProfilesReduction], kept

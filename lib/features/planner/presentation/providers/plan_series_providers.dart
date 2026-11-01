@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     as calculator;
@@ -71,16 +72,23 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       state = edits.setPlanName(state, next.name);
     }
     // The OTU carried in depends on how long ago each earlier dive ended.
-    if (index > 0 && previous?.surfaceInterval != next.surfaceInterval) {
-      final carried = calculator.carriedState(state.dives, index, _earlier);
+    if ((index > 0 || state.follow != null) &&
+        previous?.surfaceInterval != next.surfaceInterval) {
+      final carried = calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      );
       if (carried.initialOtu != next.initialOtu) {
         _push(next.copyWith(initialOtu: carried.initialOtu));
       }
     }
   }
 
-  /// Re-seeds the selected dive after the engine settings changed. Nothing
-  /// is carried into a first dive, so it has nothing to re-seed.
+  /// Re-seeds the selected dive after the engine settings changed. What a
+  /// first dive carries comes from the logged dive it follows, not the
+  /// engine, so it has nothing to re-seed.
   void configChanged() {
     if (state.selectedIndex > 0) _loadSelected();
   }
@@ -115,6 +123,27 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     state = edits.renameDive(state, state.selectedIndex, name);
   }
 
+  /// Follows the logged dives in [follow]: the first dive starts from the
+  /// followed one, after [surfaceInterval]. Ignored for a replan, which
+  /// keeps the seed it was opened with (see [followAllowedProvider]).
+  void followDive(SeriesFollow follow, {required Duration surfaceInterval}) {
+    if (isReplan(state)) return;
+    state = edits.followDive(
+      state,
+      follow,
+      surfaceInterval: surfaceInterval,
+      newId: _newId,
+    );
+    _loadSelected();
+  }
+
+  /// Stops following a logged dive.
+  void unfollow() {
+    if (state.follow == null) return;
+    state = edits.unfollow(state);
+    _loadSelected();
+  }
+
   /// Fills one tank of the selected dive.
   void fillTank(String tankId) {
     state = edits.fillTank(state, state.selectedIndex, tankId);
@@ -132,8 +161,16 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     _earlier = calculator.computeSeries(
       state.dives.sublist(0, index),
       config: _getConfig(),
+      follow: state.follow,
     );
-    _push(calculator.carriedState(state.dives, index, _earlier));
+    _push(
+      calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      ),
+    );
   }
 
   /// Loads [plan] into the editor and stores what the editor ends up with.
@@ -143,10 +180,10 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       _editor.loadPlan(plan);
     } finally {
       _pushing = false;
+      // Loading the state the editor already holds notifies nobody, so this
+      // load would otherwise read as an outside one at the next edit.
+      _seenLoads = _editor.loadCount;
     }
-    // Loading the plan the editor already holds notifies no one, so
-    // [editorChanged] cannot be left to catch this count up.
-    _seenLoads = _editor.loadCount;
     state = edits.updateDiveState(
       state,
       state.selectedIndex,
@@ -188,9 +225,8 @@ final planSeriesNotifierProvider =
 final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   ref,
 ) {
-  final dives = ref
-      .watch(planSeriesNotifierProvider.select(_chainInputs))
-      .dives;
+  final inputs = ref.watch(planSeriesNotifierProvider.select(_chainInputs));
+  final dives = inputs.dives;
   // One dive is the plan in the editor, which that provider already runs.
   if (dives.length == 1) {
     return [
@@ -203,6 +239,7 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   return calculator.computeSeries(
     dives,
     config: ref.watch(planEngineConfigProvider),
+    follow: inputs.follow,
   );
 });
 
@@ -210,6 +247,7 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
 /// selection, so neither of those runs the engine again.
 PlanSeries _chainInputs(PlanSeries series) => PlanSeries(
   dives: [for (final dive in series.dives) dive.copyWith(clearName: true)],
+  follow: series.follow,
 );
 
 /// Whether a dive can be added after the last one.
@@ -222,24 +260,34 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
-/// Whether the plan can be saved. A series of more than one dive cannot be
-/// saved until series persistence lands (issue #3565, phase 3).
-final planSaveAllowedProvider = Provider<bool>(
-  (ref) => !ref.watch(planSeriesNotifierProvider).isSeries,
+/// Whether the plan can be saved. Until series persistence lands (issue #3565,
+/// phase 3), a series of more than one dive cannot be, and nor can a plan
+/// following a logged dive: the tissues, CNS and OTU it carries in are never
+/// stored, so it would reopen as a fresh diver with less load than it has.
+final planSaveAllowedProvider = Provider<bool>((ref) {
+  final series = ref.watch(planSeriesNotifierProvider);
+  return !series.isSeries && series.follow == null;
+});
+
+/// Whether the plan can follow a logged dive. A replan cannot: it already
+/// starts from the dive before the one it replans, and its source dive is
+/// what makes it a replan.
+final followAllowedProvider = Provider<bool>(
+  (ref) => !ref.watch(planSeriesNotifierProvider.select(isReplan)),
 );
 
-/// Whether the selected dive can follow a logged dive. Only the first dive
-/// of a series can: every later one starts from the dive before it.
-final followAllowedProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(planSeriesNotifierProvider.select((s) => s.selectedIndex)) == 0,
-);
+/// Whether [series] replans a logged dive. Its first dive does; the dives
+/// added after it have no source dive of their own, so the selected dive
+/// cannot answer this.
+bool isReplan(PlanSeries series) =>
+    series.dives.first.state.sourceDiveId != null;
 
 /// The tanks of the selected dive that Fill would top up, with the pressure
-/// it fills each to. Empty on the first dive, where nothing is carried in.
+/// it fills each to. Empty on a first dive that follows no logged dive,
+/// where nothing is carried in.
 final seriesFillPressuresProvider = Provider<Map<String, double>>((ref) {
   final series = ref.watch(planSeriesNotifierProvider);
   final index = series.selectedIndex;
-  if (index == 0) return const {};
+  if (index == 0 && series.follow == null) return const {};
   return edits.fillPressures(series, index);
 });

@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -20,13 +20,16 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
@@ -881,6 +884,77 @@ class SyncDataSerializer {
   /// lives outside the library and so outside any delete cascade.
   final Future<void> Function(String trackId) _evictTrackGeometry;
 
+  /// Evicts the cached geometry of each track in [trackIds].
+  ///
+  /// The cache is derived data, so failing to evict must never fail the
+  /// merge. The local cache sweep catches a missed eviction for a deleted
+  /// track; for an edited one the stale LODs stay until the track is next
+  /// edited, which still beats aborting the merge over a cache.
+  Future<void> _evictGeometryOf(Iterable<String> trackIds) async {
+    for (final trackId in trackIds) {
+      try {
+        await _evictTrackGeometry(trackId);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not evict cached geometry for track $trackId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
+  /// Ids of the [incoming] tracks whose cached LODs may no longer match, read
+  /// BEFORE the upsert overwrites the stored rows.
+  ///
+  /// A trim or split made on this device evicts its own cached LODs
+  /// (trimTrackProvider, splitTrackProvider); one arriving from a peer only
+  /// overwrites the row, and the cache has no TTL, so without this the map
+  /// kept drawing the pre-trim polyline for good (issue #2447). Only a stored
+  /// row that draws exactly like the incoming one proves the cache still
+  /// valid, so a metadata-only edit (a rename) keeps it. A track with no
+  /// stored row is included: LODs can outlive their track (a delete that
+  /// predates eviction, or a failed eviction), and there is nothing to
+  /// compare them against.
+  Future<Set<String>> _gpsTracksWithNewGeometry(
+    List<GpsTrackRow> incoming,
+  ) async {
+    final byId = {for (final track in incoming) track.id: track};
+    final ids = byId.keys.toList();
+    final geometryChanged = ids.toSet();
+    // Chunked to stay under SQLite's bound-variable limit.
+    for (final chunk in seriesIdChunks(ids)) {
+      final stored = await (_db.select(
+        _db.gpsTracks,
+      )..where((t) => t.id.isIn(chunk))).get();
+      for (final row in stored) {
+        final next = byId[row.id]!;
+        if (row.trimStartTime == next.trimStartTime &&
+            row.trimEndTime == next.trimEndTime &&
+            row.pointCount == next.pointCount &&
+            // A null blob is left out of the upsert, so the stored points
+            // stand and the cached lines still match them.
+            (next.points == null || listEquals(row.points, next.points))) {
+          geometryChanged.remove(row.id);
+        }
+      }
+    }
+    return geometryChanged;
+  }
+
+  /// The insert for a gps_tracks upsert.
+  ///
+  /// Null columns stay out of it, so a row arriving without its points blob
+  /// cannot wipe the recording, but the trim bounds always go in: a null there
+  /// is a peer's Reset trim, and leaving it out kept the old trim for good.
+  /// Do not switch this to `.toCompanion(false)`, which would clear the blob.
+  static GpsTracksCompanion _gpsTrackUpsert(GpsTrackRow track) => track
+      .toCompanion(true)
+      .copyWith(
+        trimStartTime: Value(track.trimStartTime),
+        trimEndTime: Value(track.trimEndTime),
+      );
+
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
     Future<List<Map<String, dynamic>>> Function() loader,
@@ -911,13 +985,13 @@ class SyncDataSerializer {
     try {
       _log.info('Exporting full data snapshot');
       final data = await _buildSyncData(null);
-      final dataJson = jsonEncode(data.toJson());
+      final checksum = await checksumOfOffIsolate(data);
       return SyncPayload(
         version: syncFormatVersion,
         exportedAt: DateTime.now().millisecondsSinceEpoch,
         deviceId: deviceId,
         lastSyncTimestamp: lastSyncTimestamp,
-        checksum: _computeChecksum(dataJson),
+        checksum: checksum,
         data: data,
         deletions: _groupDeletions(deletions),
         uploadNonce: uploadNonce,
@@ -965,12 +1039,12 @@ class SyncDataSerializer {
         : deletions
               .where((d) => d.hlc == null || d.hlc!.compareTo(hlcWatermark) > 0)
               .toList();
-    final dataJson = jsonEncode(data.toJson());
+    final checksum = await checksumOfOffIsolate(data);
     return SyncPayload(
       version: syncFormatVersion,
       exportedAt: DateTime.now().millisecondsSinceEpoch,
       deviceId: deviceId,
-      checksum: _computeChecksum(dataJson),
+      checksum: checksum,
       data: data,
       deletions: _groupDeletions(includedDeletions),
       seq: seq,
@@ -1652,7 +1726,7 @@ class SyncDataSerializer {
     String? maxRowHlc;
     var rowCount = 0;
 
-    // Writes + hashes only the `data` object bytes (matches _computeChecksum,
+    // Writes + hashes only the `data` object bytes (matches checksumOf,
     // which hashes jsonEncode(data.toJson())).
     Future<void> writeData(String s) async {
       final bytes = utf8.encode(s);
@@ -2967,37 +3041,33 @@ class SyncDataSerializer {
   /// True when a previous apply left rows staged that it could not place.
   Future<bool> hasStagedLegacySamples() => hasStagedLegacyRows(_db);
 
-  /// Convert payload to JSON string
-  String serializePayload(SyncPayload payload) {
-    return jsonEncode(payload.toJson());
-  }
-
-  /// Parse JSON string to payload
-  SyncPayload deserializePayload(String json) {
-    final map = jsonDecode(json) as Map<String, dynamic>;
-    return SyncPayload.fromJson(map);
-  }
-
   /// Validate checksum of payload.
   ///
   /// Verified over the data section as received ([SyncPayload.rawDataJson])
   /// so payloads written by builds with fewer/more entity keys still
   /// validate; falls back to re-serializing for locally built payloads.
-  bool validateChecksum(SyncPayload payload) => checksumIsValid(payload);
-
-  /// [validateChecksum] without an instance, for nearby sync's receiver.
   static bool checksumIsValid(SyncPayload payload) {
     final dataJson = payload.rawDataJson ?? jsonEncode(payload.data.toJson());
     return _sha256Hex(dataJson) == payload.checksum;
   }
 
-  /// Compute SHA-256 checksum
-  String _computeChecksum(String data) => _sha256Hex(data);
-
-  /// The checksum a payload carrying [data] must have, for a caller that
-  /// rebuilds a payload's data (nearby sync's per-writer filter).
+  /// The checksum a payload carrying [data] must have.
   static String checksumOf(SyncData data) =>
       _sha256Hex(jsonEncode(data.toJson()));
+
+  /// [checksumOf] on a worker once [data] is substantial: hashing costs more
+  /// than the JSON it covers, and a sync usually runs on the UI isolate. Static
+  /// so that the closure holds [data] alone, not this serializer's database.
+  static Future<String> checksumOfOffIsolate(
+    SyncData data, {
+    @visibleForTesting int minBytes = kOffIsolateMinBytes,
+    @visibleForTesting OffIsolateRunner runner = isolateRun,
+  }) => runOffIsolate(
+    () => checksumOf(data),
+    bytes: syncJsonWeight(data.toJson(), limit: minBytes),
+    minBytes: minBytes,
+    runner: runner,
+  );
 
   static String _sha256Hex(String data) =>
       sha256.convert(utf8.encode(data)).toString();
@@ -5536,11 +5606,15 @@ class SyncDataSerializer {
             );
         return;
       case 'gpsTracks':
+        final track = GpsTrackRow.fromJson(
+          data,
+          serializer: _syncBlobSerializer,
+        );
+        final geometryChanged = await _gpsTracksWithNewGeometry([track]);
         await _db
             .into(_db.gpsTracks)
-            .insertOnConflictUpdate(
-              GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
-            );
+            .insertOnConflictUpdate(_gpsTrackUpsert(track));
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         // The data-class upsert leaves null columns out (nullToAbsent), so a
@@ -6781,17 +6855,18 @@ class SyncDataSerializer {
         );
         return;
       case 'gpsTracks':
+        final tracks = records
+            .map(
+              (r) => GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+            )
+            .toList();
+        final geometryChanged = await _gpsTracksWithNewGeometry(tracks);
         await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.gpsTracks,
-            records
-                .map(
-                  (r) =>
-                      GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
-                )
-                .toList(),
-          ),
+          (b) => b.insertAllOnConflictUpdate(_db.gpsTracks, [
+            for (final track in tracks) _gpsTrackUpsert(track),
+          ]),
         );
+        await _evictGeometryOf(geometryChanged);
         return;
       case 'navTracks':
         await _db.batch(
@@ -8990,17 +9065,8 @@ class SyncDataSerializer {
         // A delete made on this device evicts the cached LODs itself
         // (deleteTrackProvider); one arriving from a peer has to do it here,
         // or up to three blobs outlive the track until the next local cache
-        // sweep (issue #1929). The cache is derived data, so failing to evict
-        // must never fail the merge: the sweep catches what this misses.
-        try {
-          await _evictTrackGeometry(recordId);
-        } catch (e, stackTrace) {
-          _log.warning(
-            'Could not evict cached geometry for track $recordId',
-            error: e,
-            stackTrace: stackTrace,
-          );
-        }
+        // sweep (issue #1929).
+        await _evictGeometryOf([recordId]);
         return;
       case 'navTracks':
         await (_db.delete(

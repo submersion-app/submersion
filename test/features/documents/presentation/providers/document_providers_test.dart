@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../document_repository_doubles.dart';
 
 /// Records which documents had their reminders rescheduled.
 class _RecordingScheduler extends NotificationScheduler {
@@ -27,6 +31,18 @@ class _RecordingScheduler extends NotificationScheduler {
     AppSettings settings,
   ) async => updated.add(document.id);
 }
+
+DocumentPage _scan(List<int> bytes) => DocumentPage(
+  id: '',
+  documentId: '',
+  pageIndex: 0,
+  fileName: 'scan.jpg',
+  mimeType: 'image/jpeg',
+  sizeBytes: bytes.length,
+  bytes: Uint8List.fromList(bytes),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 void main() {
   setUp(() async {
@@ -61,6 +77,145 @@ void main() {
       updatedAt: now,
     );
   }
+
+  group('page content (issue #3847)', () {
+    late DocumentReadSpy repo;
+    late ProviderContainer c;
+
+    setUp(() {
+      repo = DocumentReadSpy();
+      c = ProviderContainer(
+        overrides: [documentRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(c.dispose);
+    });
+
+    Future<List<DocumentPage>> settledPages(String id) async {
+      await pumpEventQueue();
+      return c.read(documentPagesProvider(id).future);
+    }
+
+    test('the page list holds no content; a page reads its own', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+      expect(page.bytes, isNull);
+      expect(repo.contentReads, isEmpty);
+
+      expect(
+        await c.read(documentPageContentProvider(page.contentKey).future),
+        [1, 2],
+      );
+    });
+
+    test('a title edit does not read a loaded page again', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final pages = await settledPages(saved.id);
+      final key = pages.single.contentKey;
+      c.listen(documentPageContentProvider(key), (_, _) {});
+      await c.read(documentPageContentProvider(key).future);
+      expect(repo.contentReads, hasLength(1));
+
+      await repo.save(saved.copyWith(title: 'renamed'), pages);
+
+      expect((await settledPages(saved.id)).single.contentKey, key);
+      expect(await c.read(documentPageContentProvider(key).future), [1, 2]);
+      expect(repo.contentReads, hasLength(1));
+    });
+
+    test('a content write in the same millisecond gets a new key', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+
+      await repo.save(saved, [
+        page.copyWith(bytes: Uint8List.fromList([3])),
+      ]);
+      // Puts the clock back: the second write stamped the first's millisecond.
+      await DatabaseService.instance.database.customStatement(
+        'UPDATE document_pages SET updated_at = ? WHERE id = ?',
+        [page.updatedAt.millisecondsSinceEpoch, page.id],
+      );
+
+      final changed = (await settledPages(saved.id)).single;
+      expect(changed.updatedAt, page.updatedAt);
+      expect(changed.contentKey, isNot(page.contentKey));
+      expect(
+        await c.read(documentPageContentProvider(changed.contentKey).future),
+        [3],
+      );
+    });
+
+    test('releasing a page drops its decoded images from the cache', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      final page = (await repo.getPages(saved.id, withBytes: false)).single;
+      final provider = documentPageContentProvider(page.contentKey);
+      final held = c.listen(provider, (_, _) {});
+      final bytes = (await c.read(provider.future))!;
+
+      final cache = PaintingBinding.instance.imageCache;
+      final keys = [
+        for (final image in <ImageProvider>[
+          MemoryImage(bytes),
+          ResizeImage.resizeIfNeeded(
+            documentPageStripImageWidth,
+            null,
+            MemoryImage(bytes),
+          ),
+          ResizeImage.resizeIfNeeded(
+            documentPageThumbnailImageWidth,
+            null,
+            MemoryImage(bytes),
+          ),
+        ])
+          await image.obtainKey(ImageConfiguration.empty),
+      ];
+      for (final key in keys) {
+        cache.putIfAbsent(
+          key,
+          () => OneFrameImageStreamCompleter(Completer<ImageInfo>().future),
+        );
+      }
+      expect(keys.where(cache.containsKey), hasLength(3));
+
+      held.close();
+      await pumpEventQueue();
+
+      expect(c.exists(provider), isFalse);
+      expect(keys.where(cache.containsKey), isEmpty);
+    });
+
+    test('new content gives the page a new key to read', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+
+      // Saves stamp milliseconds: the second must land on a later one.
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      await repo.save(saved, [
+        page.copyWith(bytes: Uint8List.fromList([3])),
+      ]);
+
+      final changed = (await settledPages(saved.id)).single;
+      expect(changed.contentKey, isNot(page.contentKey));
+      expect(
+        await c.read(documentPageContentProvider(changed.contentKey).future),
+        [3],
+      );
+    });
+  });
 
   test('attention list excludes insurance and sorts expired first', () async {
     final c = container();

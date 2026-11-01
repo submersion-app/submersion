@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
@@ -98,12 +99,16 @@ void main() {
     required Map<String, SourceProfile> profiles,
     required List<GasSwitchWithTank> switches,
     TankPressureRepository? pressures,
+    double? altitude,
+    WaterType? waterType,
   }) {
     final dive = Dive(
       id: diveId,
       dateTime: now,
       tanks: const [shared, theirs],
       profile: samples(3600),
+      altitude: altitude,
+      waterType: waterType,
     );
     final result = ProviderContainer(
       overrides: [
@@ -196,6 +201,65 @@ void main() {
 
     expect(segments!.map((s) => s.tankId).toSet(), {'shared'});
     expect(segments.last.endTimestamp, lessThanOrEqualTo(1200));
+  });
+
+  group('in the dive\'s environment (issue #3958)', () {
+    final environment = DiveEnvironment.forConditions(
+      altitudeMeters: 3000,
+      waterType: WaterType.fresh,
+    );
+    // Every sample is at 20 m, 3 bar on the flat model.
+    final scale = 3.0 / environment.pressureAtDepth(20);
+
+    Future<double> firstSac({
+      required List<DiveDataSource> sources,
+      required Map<String, SourceProfile> profiles,
+      required bool byGas,
+      required bool atSite,
+    }) async {
+      const key = (diveId: diveId, sourceId: null);
+      final read = container(
+        sources: sources,
+        profiles: profiles,
+        switches: byGas ? [switchTo(theirs, 900, 'primary-dc')] : const [],
+        altitude: atSite ? 3000 : null,
+        waterType: atSite ? WaterType.fresh : null,
+      );
+      final segments = await read.read(
+        byGas
+            ? gasSwitchSegmentsProvider(key).future
+            : phaseSegmentsProvider(key).future,
+      );
+      return segments!.first.sacRate;
+    }
+
+    for (final byGas in [false, true]) {
+      final name = byGas ? 'gas' : 'phase';
+
+      test('$name rows on one source read it', () async {
+        final one = [source('a', 'primary-dc', isPrimary: true)];
+        final profiles = {'a': bucket('a', 'primary-dc', 1800)};
+        Future<double> sac(bool atSite) => firstSac(
+          sources: one,
+          profiles: profiles,
+          byGas: byGas,
+          atSite: atSite,
+        );
+
+        expect(await sac(true), closeTo(await sac(false) * scale, 1e-9));
+      });
+
+      test('$name rows scoped to a computer read it', () async {
+        Future<double> sac(bool atSite) => firstSac(
+          sources: twoComputers,
+          profiles: twoProfiles,
+          byGas: byGas,
+          atSite: atSite,
+        );
+
+        expect(await sac(true), closeTo(await sac(false) * scale, 1e-9));
+      });
+    }
   });
 
   test('pressures come from the viewed source\'s own series', () async {

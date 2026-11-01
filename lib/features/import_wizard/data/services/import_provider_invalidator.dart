@@ -81,6 +81,7 @@ void invalidateImportRelatedProviders(
 
       case ImportEntityType.certifications:
         invalidate(allCertificationsProvider);
+        invalidate(certificationMetadataProvider);
 
       case ImportEntityType.courses:
         invalidate(allCoursesProvider);

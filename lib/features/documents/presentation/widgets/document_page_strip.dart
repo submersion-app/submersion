@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The editor's pages: card types first show a Front and a Back slot, then
@@ -127,7 +129,7 @@ class _Frame extends StatelessWidget {
   }
 }
 
-class _PageTile extends StatelessWidget {
+class _PageTile extends ConsumerWidget {
   final DocumentPage page;
   final VoidCallback onRemove;
   final String? label;
@@ -135,8 +137,14 @@ class _PageTile extends StatelessWidget {
   const _PageTile({required this.page, required this.onRemove, this.label});
 
   @override
-  Widget build(BuildContext context) {
-    final bytes = page.bytes;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // A page just added carries its content; a stored image reads it for as
+    // long as its tile is built, so a long strip holds only what is on view.
+    final bytes =
+        page.bytes ??
+        (page.isImage
+            ? ref.watch(documentPageContentProvider(page.contentKey)).value
+            : null);
     final scheme = Theme.of(context).colorScheme;
     return _Frame(
       child: Stack(
@@ -146,7 +154,7 @@ class _PageTile extends StatelessWidget {
             Image.memory(
               bytes,
               fit: BoxFit.cover,
-              cacheWidth: 300,
+              cacheWidth: documentPageStripImageWidth,
               errorBuilder: (context, _, _) => _fileFace(context),
             )
           else

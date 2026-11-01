@@ -138,9 +138,18 @@ class _UnifiedImportWizardBodyState
   /// the whole advance (bundle build included) a second time.
   bool _advancing = false;
 
+  /// True while a step's work runs, which is what the bottom bar shows: a
+  /// large file can take a while on a worker, with the app live around it.
+  /// Back is held as well as Next, because [_advance] carries on from
+  /// wherever the wizard is when that work ends.
+  bool _stepWorking = false;
+
   /// Why the last Next tap did not move the wizard on, shown above the bottom
   /// bar until the next attempt. Null while nothing has failed.
   String? _advanceError;
+
+  /// The step whose `onBeforeAdvance` is running, if any.
+  WizardStepDef? _advancingStep;
 
   static const _log = LoggerService('UnifiedImportWizard');
 
@@ -206,6 +215,7 @@ class _UnifiedImportWizardBodyState
 
   @override
   void dispose() {
+    _advancingStep?.onCancelAdvance?.call();
     _pageController.dispose();
     super.dispose();
   }
@@ -257,13 +267,17 @@ class _UnifiedImportWizardBodyState
     }
     try {
       await _advance();
+    } on ImportStepCancelled {
+      // The diver stopped the step, so there is nothing to report. As with a
+      // failure, the wizard has to stop arming auto-advance on this step.
+      _navigatingForward = false;
     } catch (e, stackTrace) {
       // An ImportStepFailure carries text the step wrote for the user.
-      // Anything else -- a database read the duplicate check made, a parser
-      // blowing up on an unexpected shape -- is unexpected, so log it and
-      // wrap it. Before this, the future returned by _onNext was dropped on
-      // the floor by the Next button's VoidCallback, so either kind of throw
-      // surfaced nowhere at all and the button simply looked dead.
+      // Anything else, such as a failed database read or a parser blowing up
+      // on an unexpected shape, is unexpected, so log it and wrap it. Before
+      // this, the future returned by _onNext was dropped on the floor by the
+      // Next button's VoidCallback, so either kind of throw surfaced nowhere
+      // at all and the button simply looked dead.
       if (e is! ImportStepFailure) {
         _log.error(
           'Import wizard could not advance',
@@ -287,15 +301,22 @@ class _UnifiedImportWizardBodyState
       });
     } finally {
       _advancing = false;
+      _setStepWorking(false);
     }
+  }
+
+  void _setStepWorking(bool working) {
+    if (!mounted || _stepWorking == working) return;
+    setState(() => _stepWorking = working);
   }
 
   Future<void> _advance() async {
     _navigatingForward = true;
     if (_currentPage < _reviewIndex) {
+      _setStepWorking(true);
+
       // Let the current step commit any pending state before we leave it.
-      final step = _acquisitionSteps[_currentPage];
-      await step.onBeforeAdvance?.call();
+      await _beforeAdvance(_acquisitionSteps[_currentPage]);
       if (!mounted) return;
 
       // Determine the next page. Skip any remaining acquisition steps whose
@@ -313,7 +334,7 @@ class _UnifiedImportWizardBodyState
 
       // Run onBeforeAdvance for each skipped step so it can finalize state.
       for (final step in skipped) {
-        await step.onBeforeAdvance?.call();
+        await _beforeAdvance(step);
         if (!mounted) return;
       }
 
@@ -321,7 +342,7 @@ class _UnifiedImportWizardBodyState
       if (nextPage >= _reviewIndex) {
         final bundle = await widget.adapter.buildBundle();
         if (!mounted) return;
-        // Duplicate detection reads the whole existing library and is only an
+        // Duplicate detection reads the existing library and is only an
         // advisory overlay on the review list. Letting it throw here used to
         // abandon the advance entirely, which is what a large or unhappy
         // library looked like from the outside: Next did nothing, forever.
@@ -353,9 +374,21 @@ class _UnifiedImportWizardBodyState
               autoTagImports: ref.read(settingsProvider).autoTagImports,
             );
       }
+      _setStepWorking(false);
       await _animateToPage(nextPage);
     } else if (_currentPage == _reviewIndex) {
       await _startImport();
+    }
+  }
+
+  /// Runs [step]'s `onBeforeAdvance`, remembering the step so that leaving
+  /// while it runs can stop it.
+  Future<void> _beforeAdvance(WizardStepDef step) async {
+    _advancingStep = step;
+    try {
+      await step.onBeforeAdvance?.call();
+    } finally {
+      _advancingStep = null;
     }
   }
 
@@ -594,10 +627,12 @@ class _UnifiedImportWizardBodyState
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(100, 48),
                 ),
-                onPressed: () {
-                  _navigatingForward = false;
-                  _animateToPage(_currentPage - 1);
-                },
+                onPressed: _stepWorking
+                    ? null
+                    : () {
+                        _navigatingForward = false;
+                        _animateToPage(_currentPage - 1);
+                      },
                 child: Text(context.l10n.common_action_back),
               ),
             const Spacer(),
@@ -605,6 +640,7 @@ class _UnifiedImportWizardBodyState
               _AcquisitionNextButton(
                 stepIndex: _currentPage,
                 step: _acquisitionSteps[_currentPage],
+                working: _stepWorking,
                 onNext: _onNext,
               )
             else if (_currentPage == _reviewIndex)
@@ -720,21 +756,33 @@ class _AcquisitionNextButton extends ConsumerWidget {
   const _AcquisitionNextButton({
     required this.stepIndex,
     required this.step,
+    required this.working,
     required this.onNext,
   });
 
   final int stepIndex;
   final WizardStepDef step;
+  final bool working;
   final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final canAdvance = ref.watch(step.canAdvance);
 
-    return FilledButton(
+    return FilledButton.icon(
       style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
-      onPressed: canAdvance ? onNext : null,
-      child: Text(context.l10n.universalImport_action_next),
+      onPressed: canAdvance && !working ? onNext : null,
+      icon: working
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: context.l10n.common_label_loading,
+              ),
+            )
+          : null,
+      label: Text(context.l10n.universalImport_action_next),
     );
   }
 }

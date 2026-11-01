@@ -1134,35 +1134,14 @@ class DiveComputerRepository {
           ? null
           : diverId;
 
-      // Build diver filter conditionally
-      final diverClause = normalizedDiverId != null ? 'AND diver_id = ?' : '';
-      final diverVars = normalizedDiverId != null
-          ? [Variable(normalizedDiverId)]
-          : <Variable>[];
-
-      // Search for dives within the tolerance window.
-      //
-      // [durationSeconds] is the computer's runtime, so total_seconds is the
-      // whole Dive.effectiveRuntime chain rather than the bottom time.
       final result = await _db
           .customSelect(
-            '''
-        SELECT id, dive_date_time, entry_time, max_depth,
-          ${effectiveRuntimeSecondsSql('dives')} as total_seconds,
-          COALESCE(entry_time, dive_date_time) as effective_time,
-          ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
-        FROM dives
-        WHERE ABS(COALESCE(entry_time, dive_date_time) - ?) <= ?
-          AND is_planned = 0
-          $diverClause
-        ORDER BY time_diff ASC
-        LIMIT 10
-      ''',
+            diveMatchCandidatesSql(scopedToDiver: normalizedDiverId != null),
             variables: [
               Variable(startMs),
-              Variable(startMs),
-              Variable(toleranceMs),
-              ...diverVars,
+              Variable(startMs - toleranceMs),
+              Variable(startMs + toleranceMs),
+              if (normalizedDiverId != null) Variable(normalizedDiverId),
             ],
           )
           .get();

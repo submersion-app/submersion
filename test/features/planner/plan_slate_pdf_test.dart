@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/domain/services/bailout_solver.dart'
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
+import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import '../../helpers/fake_hosts.dart';
 
@@ -138,6 +139,17 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
   });
 
+  test('a bailout gas gap renders through the slate (#3961)', () async {
+    final plan = _plan(
+      mode: domain.PlanMode.ccr,
+    ).copyWith(tanks: const [_airTank, _decoTank]);
+    expect(const BailoutSolver().solve(plan)!.gasGap, isNotNull);
+
+    final bytes = await _build(plan);
+
+    expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+  });
+
   // The header used to hand-assemble an ISO date, ignoring the diver's
   // DateFormatPreference like the rest of the PDF exports did (#964). Asserted
   // on the header string rather than on the saved PDF because the slate embeds
@@ -195,6 +207,32 @@ void main() {
     expect(line, contains(' Min.'));
     expect(line, contains('max. '));
     expect(line, isNot(contains(' min ')));
+  });
+
+  group('runtime table cells', () {
+    const units = UnitFormatter(AppSettings());
+    List<String> cells({int airBreakSeconds = 0}) => planSlateRuntimeCells(
+      scheduleLines([
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.stop,
+          depthMeters: 6,
+          durationSeconds: 1440,
+          runtimeSeconds: 1440,
+          gasFO2: 1,
+          gasFHe: 0,
+          airBreakSeconds: airBreakSeconds,
+        ),
+      ]).single,
+      units,
+    );
+
+    test('a stop prints its depth, minutes, runtime and gas', () {
+      expect(cells(), ['- 6m', '24', '24', 'O2']);
+    });
+
+    test('a stop with an air break prints the break minutes (#3928)', () {
+      expect(cells(airBreakSeconds: 360)[1], '24 (+6)');
+    });
   });
 
   group('turn and min gas cells (#3603)', () {

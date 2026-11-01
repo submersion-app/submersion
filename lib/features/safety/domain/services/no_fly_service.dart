@@ -73,10 +73,13 @@ enum FlightWindowState {
 /// Forward-looking dive window for a trip's return flight: the latest safe
 /// surfacing time is the departure minus the guideline interval for the
 /// (preset, category) pair. Same fixed-interval doctrine as [NoFlyStatus].
+///
+/// Its times are true UTC instants: `tripFlightWindowProvider` converts the
+/// stored wall-clock value first.
 class FlightWindowStatus {
   final FlightWindowState state;
 
-  /// Flight departure, wall-clock-as-UTC (the dive-time frame).
+  /// Flight departure.
   final DateTime flightAt;
 
   /// Latest safe surfacing time before [flightAt].
@@ -93,6 +96,7 @@ class FlightWindowStatus {
     required this.interval,
   });
 
+  /// Time left before [deadline]. [now] must be a true UTC instant too.
   Duration remaining(DateTime now) =>
       deadline.isAfter(now) ? deadline.difference(now) : Duration.zero;
 }
@@ -176,7 +180,9 @@ class NoFlyService {
   /// has already departed. [prospectiveCategory] is the caller's
   /// forward-looking classification (at least repetitive on a trip);
   /// [currentNoFlyUntil] is the backward-looking restriction end used to
-  /// detect a conflict.
+  /// detect a conflict. Every time passed in must be a true instant: the
+  /// interval is elapsed time, which clock digits misstate across a DST
+  /// change.
   FlightWindowStatus? flightWindow({
     required DateTime flightAt,
     required NoFlyPreset preset,

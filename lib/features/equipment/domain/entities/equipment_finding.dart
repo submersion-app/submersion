@@ -272,3 +272,11 @@ class EquipmentFinding extends Equatable {
     createdAt,
   ];
 }
+
+/// What a list badge or a ranking reads of a finding: no evidence, which
+/// can name every qualifying dive and is the bulk of a stored row.
+typedef FindingSummary = ({
+  String equipmentId,
+  ConditionRuleId ruleId,
+  ConditionSeverity severity,
+});

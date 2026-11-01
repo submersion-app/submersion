@@ -1367,10 +1367,13 @@ void main() {
       adapter.setParsedDives([dive1, dive2, dive3]);
       final bundle = await adapter.buildBundle();
 
-      final existing = makeDomainDive(id: 'ex-1');
-      when(
-        mockRepo.getAllDives(diverId: diverId),
-      ).thenAnswer((_) async => [existing]);
+      when(mockRepo.getAllDives(diverId: diverId)).thenAnswer(
+        (_) async => [
+          makeDomainDive(id: 'ex-1', dateTime: dive1.startTime),
+          makeDomainDive(id: 'ex-2', dateTime: dive2.startTime),
+          makeDomainDive(id: 'ex-3', dateTime: dive3.startTime),
+        ],
+      );
 
       var callIndex = 0;
       when(
@@ -1393,6 +1396,83 @@ void main() {
       // dive1 (0.9) and dive3 (0.6) match; dive2 (0.3) does not
       expect(dupes, containsAll([0, 2]));
       expect(dupes, isNot(contains(1)));
+    });
+
+    test('scores a workout only against dives near its start', () async {
+      final workoutStart = DateTime(2026, 3, 15, 9, 00);
+      adapter.setParsedDives([makeDive(startTime: workoutStart)]);
+      final bundle = await adapter.buildBundle();
+
+      when(mockRepo.getAllDives(diverId: diverId)).thenAnswer(
+        (_) async => [
+          makeDomainDive(id: 'days-away', dateTime: DateTime(2026, 3, 12, 9)),
+          makeDomainDive(
+            id: 'at-the-window',
+            dateTime: workoutStart.add(
+              DiveMatcher.candidateWindow + const Duration(seconds: 1),
+            ),
+          ),
+          makeDomainDive(id: 'near', dateTime: DateTime(2026, 3, 15, 9, 10)),
+        ],
+      );
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.8);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      verify(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).called(1);
+      expect(
+        result.groups[ImportEntityType.dives]!.matchResults![0]!.diveId,
+        'near',
+      );
+    });
+
+    test('finds a saved dive by its entry time, not its dive date', () async {
+      final workoutStart = DateTime(2026, 3, 15, 9, 00);
+      adapter.setParsedDives([makeDive(startTime: workoutStart)]);
+      final bundle = await adapter.buildBundle();
+
+      final saved = makeDomainDive(
+        id: 'corrected',
+        dateTime: DateTime(2026, 3, 12, 9),
+      ).copyWith(entryTime: workoutStart);
+      when(
+        mockRepo.getAllDives(diverId: diverId),
+      ).thenAnswer((_) async => [saved]);
+      when(
+        mockMatcher.calculateMatchScore(
+          wearableStartTime: anyNamed('wearableStartTime'),
+          wearableMaxDepth: anyNamed('wearableMaxDepth'),
+          wearableDurationSeconds: anyNamed('wearableDurationSeconds'),
+          existingStartTime: anyNamed('existingStartTime'),
+          existingMaxDepth: anyNamed('existingMaxDepth'),
+          existingDurationSeconds: anyNamed('existingDurationSeconds'),
+        ),
+      ).thenReturn(0.8);
+
+      final result = await adapter.checkDuplicates(bundle);
+
+      expect(
+        result.groups[ImportEntityType.dives]!.matchResults![0]!.diveId,
+        'corrected',
+      );
     });
 
     test('preserves non-dives groups in result bundle', () async {

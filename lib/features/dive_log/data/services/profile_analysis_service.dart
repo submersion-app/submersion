@@ -20,6 +20,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency_analyzer.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/profile_depth_sanitizer.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
@@ -42,7 +43,14 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dar
 /// v3: a depth spike is repaired by time-weighted interpolation rather than
 /// the midpoint of its neighbours, so an unevenly sampled dive replays
 /// different depths (#3910).
-const int analysisEngineVersion = 3;
+/// v4: a logged dive's residual load no longer starts from a plan that was
+/// never dived (#3924).
+/// v5: tissues carried between dives off-gas at the dives' own surface, not at
+/// 1.0 bar, so a repetitive dive with a known surface pressure, at altitude
+/// above all, starts from different tissues (#3925).
+/// v6: a dive's residual tissue load comes from its own diver's dives only,
+/// so a shared logbook's dives no longer start loaded by each other (#3923).
+const int analysisEngineVersion = 6;
 
 /// Represents SAC calculated over a segment of the dive.
 class SacSegment extends Equatable {
@@ -314,6 +322,12 @@ class ProfileAnalysis {
   /// [DecoStatus] pair and show no provenance.
   final GradientFactorSource? gfSource;
 
+  /// The water and surface pressure every pressure-derived number here was
+  /// read against: the deco curves and the oxygen and gas curves alike, so a
+  /// surface extrapolating one of them back to the surface uses the same
+  /// pressures (issue #3958).
+  final DiveEnvironment environment;
+
   /// True when this is a rebreather dive whose loop could not be modelled (no
   /// setpoint, no measured loop ppO2), so tissue loading and everything built
   /// on it (NDL, ceiling, TTS, GF, inert-gas overlays) were deliberately not
@@ -366,6 +380,7 @@ class ProfileAnalysis {
     required this.maxDepthTimestamp,
     required this.durationSeconds,
     this.gfSource,
+    this.environment = DiveEnvironment.standard,
     this.tissueLoadingWithheld = false,
     this.inputsFingerprint,
     this.gasSwitchEfficiency,
@@ -468,6 +483,7 @@ class ProfileAnalysis {
     int? maxDepthTimestamp,
     int? durationSeconds,
     GradientFactorSource? gfSource,
+    DiveEnvironment? environment,
     bool? tissueLoadingWithheld,
     String? inputsFingerprint,
     GasSwitchEfficiency? gasSwitchEfficiency,
@@ -509,6 +525,7 @@ class ProfileAnalysis {
       maxDepthTimestamp: maxDepthTimestamp ?? this.maxDepthTimestamp,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       gfSource: gfSource ?? this.gfSource,
+      environment: environment ?? this.environment,
       tissueLoadingWithheld:
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
       inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
@@ -550,6 +567,7 @@ class ProfileAnalysisService {
   final O2ToxicityCalculator _o2ToxicityCalculator;
   final BuhlmannAlgorithm _buhlmannAlgorithm;
   final GradientFactorSource _gfSource;
+  final DiveEnvironment _environment;
   final Uuid _uuid;
 
   /// [gfSource] names the gradient factors AND where they came from, and takes
@@ -580,6 +598,7 @@ class ProfileAnalysisService {
          ppO2CriticalThreshold: ppO2CriticalThreshold,
          cnsWarningThreshold: cnsWarningThreshold,
          cnsMethod: cnsCalculationMethod,
+         environment: environment,
        ),
        _buhlmannAlgorithm = BuhlmannAlgorithm(
          gfLow: gfSource?.lowFraction ?? gfLow,
@@ -595,6 +614,7 @@ class ProfileAnalysisService {
              high: (gfHigh * 100).round(),
              origin: GfOrigin.diverSettings,
            ),
+       _environment = environment,
        _uuid = const Uuid();
 
   /// The gradient factors this service decompresses with, and their origin.
@@ -652,7 +672,10 @@ class ProfileAnalysisService {
     if (depths.isEmpty || depths.length != timestamps.length) {
       // Still an answer from a configured service, so it can say which
       // gradient factors it would have used.
-      return ProfileAnalysis.empty().copyWith(gfSource: _gfSource);
+      return ProfileAnalysis.empty().copyWith(
+        gfSource: _gfSource,
+        environment: _environment,
+      );
     }
 
     // Repair implausible single-sample depth readings once, here, so every
@@ -723,6 +746,7 @@ class ProfileAnalysisService {
             ? timestamps.last - timestamps.first
             : 0,
         gfSource: _gfSource,
+        environment: _environment,
       );
     }
 
@@ -1040,6 +1064,7 @@ class ProfileAnalysisService {
             pressures: pressures,
             reserveBar: gtrReserveBar,
             ceilings: tissueLoadingWithheld ? null : ceilingCurve,
+            environment: _environment,
           )
         : null;
     final cnsCurve =
@@ -1101,6 +1126,7 @@ class ProfileAnalysisService {
       maxDepthTimestamp: maxDepthTimestamp,
       durationSeconds: durationSeconds,
       gfSource: _gfSource,
+      environment: _environment,
       tissueLoadingWithheld: tissueLoadingWithheld,
       gasSwitchEfficiency: gasSwitchEfficiency,
     );
@@ -1387,7 +1413,7 @@ class ProfileAnalysisService {
 
       // Average depth for segment
       final avgDepth = (depths[i - 1] + depths[i]) / 2.0;
-      final ambientPressure = 1.0 + (avgDepth / 10.0);
+      final ambientPressure = _environment.pressureAtDepth(avgDepth);
 
       // Gas consumed in bar/min
       final consumptionRate = pressureDrop / (duration / 60.0);
@@ -1456,7 +1482,7 @@ class ProfileAnalysisService {
         );
 
         // Calculate SAC
-        final ambientPressure = 1.0 + (avgDepth / 10.0);
+        final ambientPressure = _environment.pressureAtDepth(avgDepth);
         final consumptionRate = pressureDrop / (duration / 60.0);
         final sac = consumptionRate / ambientPressure;
 
@@ -1585,7 +1611,7 @@ class ProfileAnalysisService {
         // Calculate SAC for segment
         double sacRate = 0;
         if (pressureDrop > 0) {
-          final ambientPressure = 1.0 + (avgDepth / 10.0);
+          final ambientPressure = _environment.pressureAtDepth(avgDepth);
           final consumptionRate = pressureDrop / (segmentDuration / 60.0);
           sacRate = consumptionRate / ambientPressure;
         }
@@ -1762,15 +1788,12 @@ class ProfileAnalysisService {
           targetTimestamp: subIntervalEnd,
         );
         final avgDepth = (startDepth + endDepth) / 2.0;
-        final avgPpO2 = O2ToxicityCalculator.calculatePpO2(
-          avgDepth,
-          o2Fraction,
-        );
+        final avgPpO2 = _environment.pressureAtDepth(avgDepth) * o2Fraction;
 
         // On one gas, ppO2 follows depth, so it peaks at an end of the stretch.
         peakPpO2s
-          ..add(O2ToxicityCalculator.calculatePpO2(startDepth, o2Fraction))
-          ..add(O2ToxicityCalculator.calculatePpO2(endDepth, o2Fraction));
+          ..add(_environment.pressureAtDepth(startDepth) * o2Fraction)
+          ..add(_environment.pressureAtDepth(endDepth) * o2Fraction);
         peakDepths
           ..add(startDepth)
           ..add(endDepth);
@@ -1870,7 +1893,7 @@ class ProfileAnalysisService {
         continue;
       }
 
-      final ambientPressure = 1.0 + (depths[i] / 10.0);
+      final ambientPressure = _environment.pressureAtDepth(depths[i]);
       final loopPpO2 = i < loopPpO2Curve.length ? loopPpO2Curve[i] : 0.0;
       if (loopPpO2 <= 0 || diluentInert <= 0) {
         o2Fractions.add(1.0 - diluentInert);
@@ -1908,26 +1931,29 @@ class ProfileAnalysisService {
       final gas = _activeGasSegmentAtTimestamp(timestamps[i], gasSegments);
       if (gas.setpoint != null) return loopPpO2Curve[i];
       final fO2 = (1.0 - gas.fN2 - gas.fHe).clamp(0.0, 1.0);
-      return (1.0 + depths[i] / 10.0) * fO2;
+      return _environment.pressureAtDepth(depths[i]) * fO2;
     });
   }
 
   /// Calculate partial pressure curve from per-point gas fractions.
   List<double> _calculatePpCurve(List<double> depths, List<double> fractions) {
-    return List<double>.generate(depths.length, (i) {
-      final depth = depths[i];
-      final ambientPressure = 1.0 + (depth / 10.0);
-      return ambientPressure * fractions[i];
-    });
+    return List<double>.generate(
+      depths.length,
+      (i) => _environment.pressureAtDepth(depths[i]) * fractions[i],
+    );
   }
 
   /// Calculate MOD (Maximum Operating Depth) curve.
   ///
-  /// MOD = ((maxPpO2 / O2_fraction) - 1) × 10
-  /// Using 1.4 bar as the standard recreational MOD limit.
+  /// The depth in this dive's water where the gas reaches 1.4 bar, the
+  /// standard recreational MOD limit.
   List<double> _calculateModCurve(List<double> o2Fractions) {
     return o2Fractions.map((o2Fraction) {
-      return O2ToxicityCalculator.calculateMod(o2Fraction, maxPpO2: 1.4);
+      return maxOperatingDepthMeters(
+        o2Fraction,
+        maxPpO2: 1.4,
+        environment: _environment,
+      );
     }).toList();
   }
 
@@ -1946,11 +1972,10 @@ class ProfileAnalysisService {
     required List<double> heFractions,
   }) {
     return List<double>.generate(depths.length, (i) {
-      final ambientPressure = 1.0 + (depths[i] / 10.0);
       return gasDensityGPerL(
         fO2: o2Fractions[i],
         fHe: heFractions[i],
-        ambientPressureBar: ambientPressure,
+        ambientPressureBar: _environment.pressureAtDepth(depths[i]),
       );
     });
   }

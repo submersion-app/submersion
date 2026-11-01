@@ -84,7 +84,7 @@ class CertificationWalletPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final certificationsAsync = ref.watch(certificationListNotifierProvider);
+    final certificationsAsync = ref.watch(walletCertificationsProvider);
     final diverAsync = ref.watch(currentDiverProvider);
     // The grid's action rows title custom levels through the catalog, which
     // can arrive after the first frame (issue #690).
@@ -180,7 +180,7 @@ class CertificationWalletPage extends ConsumerWidget {
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
-                ref.invalidate(certificationListNotifierProvider);
+                ref.invalidate(walletCertificationsProvider);
               },
               icon: const Icon(Icons.refresh),
               label: Text(context.l10n.certifications_wallet_error_retry),
