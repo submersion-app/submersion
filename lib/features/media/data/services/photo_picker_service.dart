@@ -177,9 +177,11 @@ abstract class PhotoPickerService {
   /// than raw bytes. Returns null if the asset no longer exists.
   Future<String?> getFilePath(String assetId);
 
-  /// Get original metadata for an asset without exporting the whole asset.
+  /// Get original metadata for an asset, including its capture wall-time.
   ///
-  /// Platform implementations may use native gallery APIs for this. Returns
-  /// null when the platform cannot provide metadata or the asset is missing.
+  /// Platform implementations may use native gallery APIs for this, which on
+  /// iOS and macOS means fetching the full-size photo: a download when it is
+  /// held only in iCloud. Returns null when the platform cannot provide
+  /// metadata or the asset is missing.
   Future<MediaSourceMetadata?> getAssetMetadata(String assetId);
 }

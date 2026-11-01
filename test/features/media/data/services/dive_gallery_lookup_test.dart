@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
@@ -39,6 +41,7 @@ class _Library implements PhotoPickerService {
     this.exif = const {},
     this.files = const {},
     this.unreadable = const {},
+    this.hanging = const {},
     this.supportsGalleryBrowsing = true,
   });
 
@@ -50,6 +53,9 @@ class _Library implements PhotoPickerService {
 
   /// Assets whose metadata read fails, like an iCloud download that errors.
   final Set<String> unreadable;
+
+  /// Assets whose metadata read never finishes, like a stalled download.
+  final Set<String> hanging;
 
   @override
   final bool supportsGalleryBrowsing;
@@ -78,6 +84,9 @@ class _Library implements PhotoPickerService {
     metadataReads.add(assetId);
     if (unreadable.contains(assetId)) {
       throw StateError('download failed');
+    }
+    if (hanging.contains(assetId)) {
+      return Completer<MediaSourceMetadata?>().future;
     }
     return exif[assetId];
   }
@@ -160,26 +169,27 @@ void main() {
       expect(found.single.createDateTime.isUtc, isFalse);
     });
 
-    test('leaves out a photo whose EXIF wall-time is outside the dive, even '
-        'when the digits on this device fall inside it', () async {
-      // The phone's clock runs an hour behind where the photos were taken:
-      // this one was an hour before the window, the other is in the dive.
-      final library = _Library(
-        assets: [
-          _asset('before-dive', DateTime(2026, 3, 10, 9, 30)),
-          _asset('in-dive', DateTime(2026, 3, 10, 10)),
-        ],
-        exif: {
-          'before-dive': _exif(DateTime.utc(2026, 3, 10, 8, 30)),
-          'in-dive': _exif(DateTime.utc(2026, 3, 10, 11)),
-        },
-      );
+    test(
+      'keeps a photo this device places in the dive when its EXIF says '
+      'otherwise, since a date fixed in Photos leaves the EXIF stale',
+      () async {
+        final library = _Library(
+          assets: [
+            _asset('date-fixed', DateTime(2026, 3, 10, 9, 30)),
+            _asset('in-dive', DateTime(2026, 3, 10, 10)),
+          ],
+          exif: {
+            'date-fixed': _exif(DateTime.utc(2026, 3, 10, 8, 30)),
+            'in-dive': _exif(DateTime.utc(2026, 3, 10, 11)),
+          },
+        );
 
-      final found = await find(library);
+        final found = await find(library);
 
-      expect(found.map((a) => a.id), ['in-dive']);
-      expect(found.single.createDateTime, DateTime(2026, 3, 10, 11));
-    });
+        expect(found.map((a) => a.id), ['in-dive', 'date-fixed']);
+        expect(found.last.createDateTime, DateTime(2026, 3, 10, 9, 30));
+      },
+    );
 
     test('stops after a few photos when their EXIF agrees with this device, '
         'so the common case downloads almost nothing', () async {
@@ -271,6 +281,111 @@ void main() {
         expect(library.metadataReads, unorderedEquals(['camera', 'palau']));
       },
     );
+
+    test('does not take an EXIF date no timezone could explain as a clock '
+        'disagreement', () async {
+      final library = _Library(
+        assets: [
+          _asset('unset-clock', DateTime(2026, 3, 10, 10)),
+          _asset('lunch', DateTime(2026, 3, 10, 13)),
+          _asset('coffee', DateTime(2026, 3, 10, 14)),
+          _asset('walk', DateTime(2026, 3, 10, 15)),
+          _asset('dinner', DateTime(2026, 3, 10, 19)),
+        ],
+        exif: {
+          'unset-clock': _exif(DateTime.utc(2000, 1, 1)),
+          'lunch': _exif(DateTime.utc(2026, 3, 10, 13)),
+          'coffee': _exif(DateTime.utc(2026, 3, 10, 14)),
+          'walk': _exif(DateTime.utc(2026, 3, 10, 15)),
+          'dinner': _exif(DateTime.utc(2026, 3, 10, 19)),
+        },
+      );
+
+      await find(library);
+
+      expect(library.metadataReads, ['unset-clock', 'lunch', 'coffee', 'walk']);
+    });
+
+    test('gives up the clock check after a handful of photos with no EXIF, '
+        'rather than fetching every one', () async {
+      final library = _Library(
+        assets: [
+          for (var i = 0; i < 20; i++)
+            _asset('screenshot-$i', DateTime(2026, 3, 10, 13, i)),
+        ],
+      );
+
+      await find(library);
+
+      expect(library.metadataReads, hasLength(8));
+    });
+
+    test('once the clocks disagree, reads first the photos that gap puts in '
+        'the dive', () async {
+      // Fifteen hours out, as a phone in Denver is from Palau.
+      final library = _Library(
+        assets: [
+          _asset('after-dive', DateTime(2026, 3, 10, 8)),
+          _asset('further', DateTime(2026, 3, 10, 1)),
+          _asset('in-dive', DateTime(2026, 3, 9, 19, 20)),
+        ],
+        exif: {
+          'after-dive': _exif(DateTime.utc(2026, 3, 10, 23)),
+          'further': _exif(DateTime.utc(2026, 3, 10, 16)),
+          'in-dive': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+        },
+      );
+
+      await find(library);
+
+      expect(library.metadataReads, ['after-dive', 'in-dive', 'further']);
+    });
+
+    test('moves on from a read that never finishes', () {
+      fakeAsync((async) {
+        final library = _Library(
+          assets: [
+            _asset('stalled', DateTime(2026, 3, 10, 10)),
+            _asset('palau', DateTime(2026, 3, 9, 19, 20)),
+          ],
+          exif: {'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20))},
+          hanging: {'stalled'},
+        );
+        List<AssetInfo>? found;
+
+        find(library).then((result) => found = result);
+        async.elapse(const Duration(seconds: 16));
+
+        expect(found, isNotNull);
+        expect(found!.map((a) => a.id), containsAll(['stalled', 'palau']));
+      });
+    });
+
+    test('stops reading when its time is spent, and returns what it has', () {
+      fakeAsync((async) {
+        final library = _Library(
+          assets: [
+            _asset('after-dive', DateTime(2026, 3, 10, 8)),
+            _asset('palau', DateTime(2026, 3, 9, 19, 20)),
+            for (var i = 0; i < 20; i++)
+              _asset('stalled-$i', DateTime(2026, 3, 10, 1, i)),
+          ],
+          exif: {
+            'after-dive': _exif(DateTime.utc(2026, 3, 10, 23)),
+            'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20)),
+          },
+          hanging: {for (var i = 0; i < 20; i++) 'stalled-$i'},
+        );
+        List<AssetInfo>? found;
+
+        find(library).then((result) => found = result);
+        async.elapse(const Duration(minutes: 2));
+
+        expect(found, isNotNull);
+        expect(found!.map((a) => a.id), ['palau']);
+        expect(library.metadataReads.length, lessThanOrEqualTo(7));
+      });
+    });
 
     test('checks the clock on the photo nearest the dive', () async {
       final library = _Library(

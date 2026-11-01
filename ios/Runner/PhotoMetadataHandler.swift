@@ -81,13 +81,10 @@ class PhotoMetadataHandler: NSObject {
 
             var output: [String: Any] = [:]
             let exif = properties[kCGImagePropertyExifDictionary as String] as? [String: Any]
-            let tiff = properties[kCGImagePropertyTIFFDictionary as String] as? [String: Any]
             let gps = properties[kCGImagePropertyGPSDictionary as String] as? [String: Any]
 
             if let dateTimeOriginal = exif?[kCGImagePropertyExifDateTimeOriginal as String] as? String {
                 output["dateTimeOriginal"] = dateTimeOriginal
-            } else if let dateTime = tiff?[kCGImagePropertyTIFFDateTime as String] as? String {
-                output["dateTimeOriginal"] = dateTime
             }
 
             if let width = properties[kCGImagePropertyPixelWidth as String] as? Int {

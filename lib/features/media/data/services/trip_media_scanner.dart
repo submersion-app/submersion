@@ -349,8 +349,9 @@ class TripMediaScanner {
   /// Scan the device gallery for photos near a single dive.
   ///
   /// Uses the dive's entry/exit times with [DivePhotoMatcher.preBuffer] before
-  /// entry and [DivePhotoMatcher.postBuffer] after exit as the gallery query
-  /// window. Filters out photos the dive's [linked] rows already stand for.
+  /// entry and [DivePhotoMatcher.postBuffer] after exit as the dive window that
+  /// [DiveGalleryLookup] searches. Filters out photos the dive's [linked] rows
+  /// already stand for.
   ///
   /// Returns a list of new [AssetInfo] found, or null if permission is denied.
   static Future<List<AssetInfo>?> scanGalleryForDive({

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -22,6 +23,18 @@ const int _clockSamplesInside = 1;
 /// a wrong clock has pushed away, so they are the evidence that counts.
 const int _clockSamplesOutside = 3;
 
+/// How many photos the clock check may read in all, dated or not. A library
+/// short on EXIF should not be fetched whole to find the samples above.
+const int _clockSampleReads = 8;
+
+/// How long one photo's metadata may take. A photo held only in iCloud has to
+/// download, and on a dive boat that can stall for good.
+const Duration _readTimeout = Duration(seconds: 15);
+
+/// How long one search may spend reading before it settles for what it has.
+/// The picker shows nothing until the search returns.
+const Duration _readBudget = Duration(seconds: 60);
+
 final _log = LoggerService.forClass(DiveGalleryLookup);
 
 /// Finds the gallery photos taken during one dive (issue #259).
@@ -44,6 +57,10 @@ final _log = LoggerService.forClass(DiveGalleryLookup);
 /// A library that disagrees only beyond the nearest photos is not noticed.
 /// Reading everything to rule that out would download two days of photos
 /// each time the picker opens, for every diver.
+///
+/// EXIF only ever adds a photo or corrects its time. A photo this device
+/// already places in the dive stays even when its EXIF says otherwise, because
+/// a date corrected in Photos leaves the EXIF stale: the device is right then.
 abstract final class DiveGalleryLookup {
   /// The library's photos and videos from `[windowStart, windowEnd]`, a dive
   /// window in wall-clock-as-UTC, newest first.
@@ -53,7 +70,8 @@ abstract final class DiveGalleryLookup {
   /// saw, and lands in the right place on the profile.
   ///
   /// [isActive] is asked before each read, so a caller that has gone away
-  /// stops the fetching. What had been found by then is returned.
+  /// stops the fetching. What had been found by then is returned, as it is
+  /// when the reads run out of time.
   static Future<List<AssetInfo>> find({
     required DateTime windowStart,
     required DateTime windowEnd,
@@ -101,56 +119,78 @@ abstract final class DiveGalleryLookup {
       );
     }
 
-    bool stillWanted() => isActive == null || isActive();
+    var outOfTime = false;
+    final readBudget = Timer(_readBudget, () => outOfTime = true);
+    bool stillWanted() => !outOfTime && (isActive == null || isActive());
 
-    List<AssetInfo> newestFirst() =>
-        found.values.toList()
-          ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
+    try {
+      var insideLeft = _clockSamplesInside;
+      var outsideLeft = _clockSamplesOutside;
+      var readsLeft = _clockSampleReads;
+      Duration? clockGap;
+      for (final photo in photos) {
+        if (readsLeft == 0 || insideLeft + outsideLeft == 0) break;
+        final inside = found.containsKey(photo.id);
+        if ((inside ? insideLeft : outsideLeft) == 0) continue;
+        if (!stillWanted()) break;
+        readsLeft--;
+        final wallTime = await wallTimeOf(photo);
+        if (wallTime == null) continue;
 
-    var insideLeft = _clockSamplesInside;
-    var outsideLeft = _clockSamplesOutside;
-    var clocksAgree = true;
-    for (final photo in photos) {
-      final inside = found.containsKey(photo.id);
-      if ((inside ? insideLeft : outsideLeft) == 0) continue;
-      if (!stillWanted()) break;
-      final wallTime = await wallTimeOf(photo);
-      if (wallTime == null) continue;
-
-      final deviceDigits = asWallClockUtc(photo.createDateTime);
-      if (wallTime.difference(deviceDigits).abs() >= _sameClockTolerance) {
-        clocksAgree = false;
-        break;
+        final gap = wallTime.difference(asWallClockUtc(photo.createDateTime));
+        // No timezone is this far out: the camera's own clock was wrong.
+        if (gap.abs() > _widestZoneGap) continue;
+        if (gap.abs() >= _sameClockTolerance) {
+          clockGap = gap;
+          break;
+        }
+        if (inside) {
+          insideLeft--;
+        } else {
+          outsideLeft--;
+        }
       }
-      if (inside) {
-        insideLeft--;
-      } else {
-        outsideLeft--;
+
+      if (clockGap case final gap?) {
+        // Photos from the same clock are out by the same gap, so the dive's
+        // own photos come first in case the time runs out.
+        final likeliestFirst = [...photos]
+          ..sort(
+            (a, b) => _gapToWindow(
+              a,
+              start,
+              end,
+              shift: gap,
+            ).compareTo(_gapToWindow(b, start, end, shift: gap)),
+          );
+        for (final photo in likeliestFirst) {
+          if (!stillWanted()) break;
+          final wallTime = await wallTimeOf(photo);
+          if (wallTime != null && inWindow(wallTime)) {
+            found[photo.id] = photo.copyWith(
+              createDateTime: fromWallClockUtc(wallTime),
+            );
+          }
+        }
       }
+    } finally {
+      readBudget.cancel();
     }
-    if (clocksAgree) return newestFirst();
 
-    for (final photo in photos) {
-      if (!stillWanted()) break;
-      final wallTime = await wallTimeOf(photo);
-      if (wallTime == null) continue;
-
-      if (inWindow(wallTime)) {
-        found[photo.id] = photo.copyWith(
-          createDateTime: fromWallClockUtc(wallTime),
-        );
-      } else {
-        found.remove(photo.id);
-      }
-    }
-
-    return newestFirst();
+    return found.values.toList()
+      ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
   }
 
-  /// How far [asset]'s digits on this device are from the window; zero
-  /// inside it. The nearest photo is the likeliest to be from the same trip.
-  static Duration _gapToWindow(AssetInfo asset, DateTime start, DateTime end) {
-    final digits = asWallClockUtc(asset.createDateTime);
+  /// How far [asset]'s digits on this device, moved by [shift], are from the
+  /// window; zero inside it. The nearest photo is the likeliest to be from
+  /// the same trip.
+  static Duration _gapToWindow(
+    AssetInfo asset,
+    DateTime start,
+    DateTime end, {
+    Duration shift = Duration.zero,
+  }) {
+    final digits = asWallClockUtc(asset.createDateTime).add(shift);
     if (digits.isBefore(start)) return start.difference(digits);
     if (digits.isAfter(end)) return digits.difference(end);
     return Duration.zero;
@@ -181,21 +221,18 @@ abstract final class DiveGalleryLookup {
 /// answer for a photo stands even when it found no capture time. A video
 /// falls through because native readers only date photos.
 ///
-/// Returns null when the asset cannot be read; a scan carries on without it.
+/// Returns null when the asset cannot be read, or has not answered within
+/// [_readTimeout]; a scan carries on without it. Dart cannot cancel the read,
+/// so a download that overran finishes unattended.
 Future<MediaSourceMetadata?> readGalleryAssetMetadata(
   AssetInfo asset,
   PhotoPickerService photoPickerService,
 ) async {
   try {
-    final nativeMetadata = await photoPickerService.getAssetMetadata(asset.id);
-    if (nativeMetadata != null &&
-        (nativeMetadata.takenAt != null || !asset.isVideo)) {
-      return nativeMetadata;
-    }
-
-    final path = await photoPickerService.getFilePath(asset.id);
-    if (path == null) return null;
-    return await ExifExtractor().extract(File(path));
+    return await _readAssetMetadata(
+      asset,
+      photoPickerService,
+    ).timeout(_readTimeout);
   } on Object catch (error, stackTrace) {
     _log.debug(
       'Failed to read metadata for gallery asset ${asset.id}',
@@ -204,4 +241,19 @@ Future<MediaSourceMetadata?> readGalleryAssetMetadata(
     );
     return null;
   }
+}
+
+Future<MediaSourceMetadata?> _readAssetMetadata(
+  AssetInfo asset,
+  PhotoPickerService photoPickerService,
+) async {
+  final nativeMetadata = await photoPickerService.getAssetMetadata(asset.id);
+  if (nativeMetadata != null &&
+      (nativeMetadata.takenAt != null || !asset.isVideo)) {
+    return nativeMetadata;
+  }
+
+  final path = await photoPickerService.getFilePath(asset.id);
+  if (path == null) return null;
+  return ExifExtractor().extract(File(path));
 }
