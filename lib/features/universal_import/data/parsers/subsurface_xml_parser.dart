@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/core/utils/two_digit_year.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -23,14 +25,37 @@ import 'package:submersion/features/universal_import/data/services/suit_classifi
 /// Parses the native Subsurface XML format, extracting dives with full
 /// metadata including gas mixes, profile samples, weights, and equipment.
 class SubsurfaceXmlParser implements ImportParser {
+  SubsurfaceXmlParser({@visibleForTesting OffIsolateRunner runner = isolateRun})
+    : _runner = runner;
+
+  final OffIsolateRunner _runner;
+
   @override
   List<ImportFormat> get supportedFormats => [ImportFormat.subsurfaceXml];
 
+  /// A file of any size runs one synchronous parse from start to finish, so a
+  /// large one goes to a worker isolate rather than stalling the import wizard
+  /// (#3854). `Isolate.run` hands the payload back without copying it, so the
+  /// calling isolate only pays for copying [fileBytes] out.
   @override
-  Future<ImportPayload> parse(
-    Uint8List fileBytes, {
-    ImportOptions? options,
-  }) async {
+  Future<ImportPayload> parse(Uint8List fileBytes, {ImportOptions? options}) =>
+      _parseOffIsolate(fileBytes, _runner);
+
+  /// Minimal-scope hop to the worker isolate, kept static so the closure
+  /// carries the bytes alone and never this instance. A date the file cannot
+  /// back up is an answer about the data, so it comes back as the
+  /// [FormatException] it would be here, without a second parse.
+  static Future<ImportPayload> _parseOffIsolate(
+    Uint8List fileBytes,
+    OffIsolateRunner runner,
+  ) => runOffIsolate(
+    () => SubsurfaceXmlParser()._parseBytes(fileBytes),
+    bytes: fileBytes.length,
+    isExpected: (e) => e is FormatException,
+    runner: runner,
+  );
+
+  ImportPayload _parseBytes(Uint8List fileBytes) {
     final warnings = <ImportWarning>[];
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
 

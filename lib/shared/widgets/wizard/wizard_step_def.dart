@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show AsyncCallback;
+import 'package:flutter/foundation.dart' show AsyncCallback, VoidCallback;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
@@ -45,6 +45,12 @@ class WizardStepDef {
   /// proceeding.
   final AsyncCallback? onBeforeAdvance;
 
+  /// Optional callback invoked when the diver leaves while [onBeforeAdvance]
+  /// is still running, by going back or out of the wizard. An adapter whose
+  /// [onBeforeAdvance] can take a while uses this to stop it, so the wizard
+  /// does not advance from under the diver once it finishes.
+  final VoidCallback? onCancelAdvance;
+
   /// When true, the wizard hides the standard bottom bar (Back/Next) for this
   /// step. The step widget is responsible for its own navigation controls.
   final bool hideBottomBar;
@@ -63,6 +69,7 @@ class WizardStepDef {
     this.autoAdvance = false,
     this.canAutoAdvance,
     this.onBeforeAdvance,
+    this.onCancelAdvance,
     this.hideBottomBar = false,
     this.hiddenWhen,
   });

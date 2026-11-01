@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/parse_progress.dart';
 
 /// Step 1: Show detection result and let user confirm or override.
 class SourceConfirmationStep extends ConsumerStatefulWidget {
@@ -30,6 +31,12 @@ class _SourceConfirmationStepState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // The wizard stays on this step until the parse is done.
+          if (state.isLoading) ...[
+            const ParseProgress(),
+            const SizedBox(height: 16),
+          ],
+
           // A parse that failed on the way out of this step leaves its reason
           // here. The wizard stays put in that case, so this is where the user
           // is standing and where the reason has to appear.

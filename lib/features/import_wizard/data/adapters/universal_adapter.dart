@@ -339,6 +339,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           universalImportNotifierProvider.notifier,
         ).confirmSource();
       },
+      onCancelAdvance: _cancelParse,
     ),
     WizardStepDef(
       label: 'Map Fields',
@@ -353,9 +354,13 @@ class UniversalAdapter implements ImportSourceAdapter {
         await notifier.confirmFieldMapping();
         await _seedDiverMapping();
       },
+      onCancelAdvance: _cancelParse,
     ),
     ...payloadSteps,
   ];
+
+  void _cancelParse() =>
+      readProvider(universalImportNotifierProvider.notifier).cancelParse();
 
   /// The steps that act on a payload once it exists, whatever produced it.
   /// A subclass that fetches its payload rather than parsing a file keeps

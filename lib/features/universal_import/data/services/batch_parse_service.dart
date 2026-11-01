@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
+import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
@@ -23,7 +25,11 @@ class BatchParseResult {
 /// a parse failure marks that file failed and the batch continues. Bytes are
 /// read lazily per file (path-backed files are only in memory while parsing).
 class BatchParseService {
-  const BatchParseService();
+  const BatchParseService({
+    ImportParser Function(ImportFormat format) parserFor = parserForFormat,
+  }) : _parserFor = parserFor;
+
+  final ImportParser Function(ImportFormat format) _parserFor;
 
   /// File extensions worth scanning for in a folder pick.
   static const importableExtensions = {
@@ -39,11 +45,20 @@ class BatchParseService {
     'csv', // included so CSVs surface in triage as "import individually"
   };
 
+  /// Stops as soon as [cancelToken] is cancelled, without waiting for the file
+  /// in flight: a parse writes nothing, so its result can simply be dropped.
+  /// That file stays pending, and [BatchParseResult.cancelled] is true.
   Future<BatchParseResult> parseAll(
     List<PickedImportFile> files, {
     void Function(int current, int total)? onProgress,
-    bool Function()? isCancelled,
+    ImportCancellationToken? cancelToken,
   }) async {
+    final token = cancelToken ?? ImportCancellationToken();
+    BatchParseResult cancelled(
+      List<FilePayload> parsed,
+      List<PickedImportFile> updated,
+    ) => BatchParseResult(parsed: parsed, files: updated, cancelled: true);
+
     final updated = List<PickedImportFile>.of(files);
     final parsed = <FilePayload>[];
     final pendingTotal = files
@@ -55,20 +70,14 @@ class BatchParseService {
       final file = updated[i];
       if (file.status != ImportFileStatus.pending) continue;
 
-      if (isCancelled?.call() ?? false) {
-        return BatchParseResult(
-          parsed: parsed,
-          files: updated,
-          cancelled: true,
-        );
-      }
+      if (token.isCancelled) return cancelled(parsed, updated);
 
       current++;
       onProgress?.call(current, pendingTotal);
 
       try {
         final bytes = file.bytes ?? await File(file.path!).readAsBytes();
-        final parser = parserForFormat(file.detection.format);
+        final parser = _parserFor(file.detection.format);
         final options = ImportOptions(
           sourceApp: file.detection.sourceApp ?? SourceApp.generic,
           format: file.detection.format,
@@ -76,7 +85,10 @@ class BatchParseService {
           // (e.g. FIT dive naming, #507) work for batch imports too.
           fileName: file.name,
         );
-        final payload = await parser.parse(bytes, options: options);
+        final payload = await token.untilCancelled(
+          parser.parse(bytes, options: options),
+        );
+        if (payload == null) return cancelled(parsed, updated);
 
         if (payload.isEmpty) {
           final message =
