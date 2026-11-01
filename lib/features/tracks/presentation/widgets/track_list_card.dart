@@ -17,22 +17,33 @@ import 'package:submersion/shared/widgets/record_list_card.dart';
 class TrackListCard extends StatelessWidget {
   const TrackListCard({
     super.key,
-    required this.selected,
+    required this.highlighted,
     required this.onTap,
     required this.builder,
+    this.picked = false,
   });
 
-  final bool selected;
+  /// Filled: the split layout's live pick, or the entry last opened.
+  final bool highlighted;
+
+  /// The split layout's live map-pane pick alone, announced as selected to
+  /// assistive technology. The entry merely last opened is filled but not
+  /// selected.
+  final bool picked;
+
   final VoidCallback onTap;
   final Widget Function(BuildContext context, RecordCardColors colors) builder;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fill = selected ? recordCardSelectionFill(theme.colorScheme) : null;
+    final fill = highlighted
+        ? recordCardSelectionFill(theme.colorScheme)
+        : null;
     final colors = RecordCardColors.forFill(theme.colorScheme, fill);
     return RecordListCard(
       color: fill,
+      selected: picked,
       onTap: onTap,
       child: ListTileTheme.merge(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12),

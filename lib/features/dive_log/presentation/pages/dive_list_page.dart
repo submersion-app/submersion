@@ -58,8 +58,8 @@ import 'package:submersion/shared/utils/ink_centered_text_style.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
-import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom], via the

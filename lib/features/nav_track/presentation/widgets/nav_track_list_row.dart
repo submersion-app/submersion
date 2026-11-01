@@ -123,7 +123,8 @@ class NavTrackListRow extends ConsumerWidget {
     // there starves the file name down to one fragment per line on a phone
     // or in the map view's list pane (issue #2692, same hazard as #935).
     return TrackListCard(
-      selected: selected || isHighlighted,
+      highlighted: selected || isHighlighted,
+      picked: selected,
       onTap: onTap,
       builder: (context, colors) => ListTile(
         isThreeLine: true,

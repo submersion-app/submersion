@@ -48,6 +48,7 @@ class RecordListCard extends StatelessWidget {
     this.onTap,
     this.onDoubleTap,
     this.semanticsLabel,
+    this.selected,
     this.clipBehavior,
     this.margin,
   });
@@ -59,6 +60,11 @@ class RecordListCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDoubleTap;
   final String? semanticsLabel;
+
+  /// Announced as the card's selected state to assistive technology; null
+  /// leaves the card without one.
+  final bool? selected;
+
   final Clip? clipBehavior;
 
   /// Defaults to 16 horizontal and 4 vertical.
@@ -74,6 +80,7 @@ class RecordListCard extends StatelessWidget {
         clipBehavior: clipBehavior,
         child: Semantics(
           button: true,
+          selected: selected,
           label: semanticsLabel,
           child: InkWell(
             onTap: onTap,

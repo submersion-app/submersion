@@ -368,7 +368,7 @@ class NavTrackDetailPage extends ConsumerWidget {
                     l10n.navTrack_detail_defaultTrackTitle,
               ),
               const SizedBox(height: 16),
-              _StatsCard(route: route, stats: stats, units: units),
+              _StatsCard(stats: stats, units: units),
               const SizedBox(height: 16),
               _LinkCard(
                 route: route,
@@ -567,13 +567,8 @@ class _TitleCard extends StatelessWidget {
 }
 
 class _StatsCard extends ConsumerWidget {
-  const _StatsCard({
-    required this.route,
-    required this.stats,
-    required this.units,
-  });
+  const _StatsCard({required this.stats, required this.units});
 
-  final NavTrack route;
   final NavTrackStats stats;
   final UnitFormatter units;
 

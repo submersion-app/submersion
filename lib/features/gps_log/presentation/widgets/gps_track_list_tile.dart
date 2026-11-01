@@ -23,7 +23,6 @@ class GpsTrackListTile extends ConsumerWidget {
     this.selected = false,
     this.isHighlighted = false,
     this.onDelete,
-    this.contentPadding,
     this.kindBadge,
   });
 
@@ -38,7 +37,6 @@ class GpsTrackListTile extends ConsumerWidget {
 
   /// Shown as a trailing delete icon when set.
   final VoidCallback? onDelete;
-  final EdgeInsetsGeometry? contentPadding;
 
   /// Shown at the end of the detail line, the same place an
   /// underwater row puts its badge (next to its dive link), so both kinds
@@ -50,10 +48,10 @@ class GpsTrackListTile extends ConsumerWidget {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     return TrackListCard(
-      selected: selected || isHighlighted,
+      highlighted: selected || isHighlighted,
+      picked: selected,
       onTap: onTap,
       builder: (context, colors) => ListTile(
-        contentPadding: contentPadding,
         minLeadingWidth: kTrackThumbnailWidth,
         leading: GpsTrackThumbnail(trackId: track.id),
         title: Text(formatTrackTitle(units, track)),

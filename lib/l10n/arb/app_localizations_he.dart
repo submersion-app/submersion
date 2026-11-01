@@ -53763,7 +53763,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String navTrack_detail_battery(String start, String end, String change) {
-    return 'סוללה: $start וולט → $end וולט ($change וולט)';
+    return 'סוללה: $start וולט ← $end וולט ($change וולט)';
   }
 
   @override

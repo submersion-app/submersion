@@ -31,7 +31,10 @@ class NavTrackRecorderCard extends StatelessWidget {
                 context.l10n.navTrack_detail_battery(
                   formatFixedForDisplay(battery.start, 2),
                   formatFixedForDisplay(battery.end, 2),
-                  formatSignedVolts(battery.change),
+                  isolateForDirection(
+                    formatSignedVolts(battery.change),
+                    Directionality.of(context),
+                  ),
                 ),
               ),
       ),
@@ -48,3 +51,10 @@ String formatSignedVolts(double volts) {
   final sign = double.parse(magnitude) == 0 ? '' : (volts > 0 ? '+' : '-');
   return '$sign${localiseDecimalText(magnitude)}';
 }
+
+/// [text] kept left to right inside right-to-left text. Without the
+/// isolate, bidi reordering can move a signed number's minus to its end
+/// ("0.12-") in Hebrew or Arabic.
+@visibleForTesting
+String isolateForDirection(String text, TextDirection direction) =>
+    direction == TextDirection.rtl ? '\u2066$text\u2069' : text;

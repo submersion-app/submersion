@@ -16378,7 +16378,7 @@
   "navTrack_detail_maxSpeed": "מהירות מקס׳: {value}",
   "navTrack_detail_avgSpeed": "מהירות ממוצעת: {value}",
   "navTrack_detail_duration": "משך: {hours} שעות {minutes} דק׳",
-  "navTrack_detail_battery": "סוללה: {start} וולט → {end} וולט ({change} וולט)",
+  "navTrack_detail_battery": "סוללה: {start} וולט ← {end} וולט ({change} וולט)",
   "navTrack_detail_noDiveLinked": "אין צלילה מקושרת",
   "navTrack_detail_chooseDive": "בחר צלילה",
   "navTrack_detail_noSite": "אין אתר צלילה",
