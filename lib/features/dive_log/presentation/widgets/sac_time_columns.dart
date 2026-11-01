@@ -101,6 +101,10 @@ class SacTimeColumns extends StatelessWidget {
   static const double _chartHeight = 96;
   static const double _rateAxisGap = 6;
 
+  /// The most of the chart's width the rate axis takes, however long its unit
+  /// runs at large text.
+  static const double _maxRateAxisShare = 0.4;
+
   /// Shortest a column draws, so a near-zero rate still has a target and a
   /// mark.
   static const double _minHeightFactor = 0.03;
@@ -155,40 +159,47 @@ class SacTimeColumns extends StatelessWidget {
 
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (rateTicks.isNotEmpty) ...[
-            _RateAxis(ticks: rateTicks, height: _chartHeight),
-            const SizedBox(width: _rateAxisGap),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  key: plotKey,
-                  height: _chartHeight,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) =>
-                        _plot(theme, constraints.maxWidth),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (rateTicks.isNotEmpty) ...[
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth * _maxRateAxisShare,
+                ),
+                child: _RateAxis(ticks: rateTicks, height: _chartHeight),
+              ),
+              const SizedBox(width: _rateAxisGap),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    key: plotKey,
+                    height: _chartHeight,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) =>
+                          _plot(theme, constraints.maxWidth),
+                    ),
                   ),
-                ),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: colorScheme.outlineVariant,
-                ),
-                const SizedBox(height: 2),
-                _TimeAxis(
-                  totalSeconds: columns.last.endSeconds,
-                  endLabel: endLabel,
-                ),
-              ],
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant,
+                  ),
+                  const SizedBox(height: 2),
+                  _TimeAxis(
+                    totalSeconds: columns.last.endSeconds,
+                    endLabel: endLabel,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,6 +299,21 @@ class _TimeAxisState extends State<_TimeAxis> {
   Object? _measuredFor;
   List<int> _marks = const [];
 
+  @override
+  void initState() {
+    super.initState();
+    PaintingBinding.instance.systemFonts.addListener(_remeasure);
+  }
+
+  @override
+  void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_remeasure);
+    super.dispose();
+  }
+
+  /// A theme's downloaded font can arrive after the first layout.
+  void _remeasure() => setState(() => _measuredFor = null);
+
   String _label(int tick, {required bool isLast}) =>
       isLast && tick > 0 ? widget.endLabel(tick) : '$tick';
 
@@ -372,8 +398,8 @@ class _TimeAxisState extends State<_TimeAxis> {
 }
 
 /// The rate labels, each level with its gridline. The widest sets the width.
-/// Larger text can outgrow the fixed height, so labels then skip lines, always
-/// keeping the top one, which carries the unit.
+/// Larger text can outgrow the fixed height, so labels then skip lines, down
+/// to the top one alone, which carries the unit.
 class _RateAxis extends StatelessWidget {
   final List<SacRateTick> ticks;
   final double height;
@@ -384,7 +410,7 @@ class _RateAxis extends StatelessWidget {
     final intervals = ticks.length - 1;
     final room = height - lineHeight;
     var stride = 1;
-    while (stride < intervals && room * stride / intervals < lineHeight) {
+    while (stride <= intervals && room * stride / intervals < lineHeight) {
       stride++;
     }
     return [for (var i = intervals; i >= 0; i -= stride) ticks[i]];

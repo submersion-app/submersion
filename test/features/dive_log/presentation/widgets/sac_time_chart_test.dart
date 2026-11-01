@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -367,7 +368,7 @@ void main() {
         ..sort((a, b) => a.top.compareTo(b.top));
     }
 
-    for (final scale in [1.0, 1.5, 2.0, 3.0]) {
+    for (final scale in [1.0, 1.5, 2.0, 3.0, 4.0]) {
       testWidgets('labels stay apart at text x$scale', (tester) async {
         tallWindow(tester);
         await pumpSacSegmentsView(
@@ -456,6 +457,51 @@ void main() {
 
       // Only the one label drawn, none measured.
       expect(endLabels, measured + 1);
+    });
+
+    testWidgets('measures again when a font arrives', (tester) async {
+      var endLabels = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 342,
+              child: SacTimeColumns(
+                columns: const [
+                  SacTimeColumn(
+                    startSeconds: 0,
+                    durationSeconds: 3000,
+                    heightFactor: 1,
+                    semanticLabel: 'all',
+                  ),
+                ],
+                averageFactor: 0.5,
+                activeIndex: null,
+                endLabel: (minutes) {
+                  if (minutes > 0) endLabels++;
+                  return '$minutes min';
+                },
+                onTap: (_) {},
+                onScrub: (_) {},
+                onHover: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final measured = endLabels;
+
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        SystemChannels.system.name,
+        SystemChannels.system.codec.encodeMessage(<String, Object?>{
+          'type': 'fontsChange',
+        }),
+        (_) {},
+      );
+      await tester.pump();
+
+      // More than the one label a rebuild draws: the marks were measured.
+      expect(endLabels, greaterThan(measured + 1));
     });
 
     void widenWindow(WidgetTester tester) {
