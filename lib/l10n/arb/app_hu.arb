@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "Ez nem vonható vissza.",
   "navTrack_detail_defaultTrackTitle": "Víz alatti nyomvonal",
   "navTrack_detail_menuRename": "Átnevezés",
+  "navTrack_detail_menuChangeDive": "Merülés módosítása",
   "navTrack_detail_menuChangeSite": "Merülőhely módosítása",
   "navTrack_detail_menuChangeDevice": "Eszköz módosítása",
   "navTrack_detail_noMapYet": "Állítsd be a kezdőpontot, hogy ezt térképen lásd.",

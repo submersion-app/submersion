@@ -54594,6 +54594,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Átnevezés';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Merülés módosítása';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Merülőhely módosítása';
 
   @override

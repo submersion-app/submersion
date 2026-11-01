@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "Dit kan niet ongedaan worden gemaakt.",
   "navTrack_detail_defaultTrackTitle": "Onderwatertrack",
   "navTrack_detail_menuRename": "Hernoemen",
+  "navTrack_detail_menuChangeDive": "Duik wijzigen",
   "navTrack_detail_menuChangeSite": "Duikstek wijzigen",
   "navTrack_detail_menuChangeDevice": "Apparaat wijzigen",
   "navTrack_detail_noMapYet": "Stel het startpunt in om dit op een kaart te zien.",

@@ -54026,6 +54026,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Rename';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Change dive';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Change site';
 
   @override

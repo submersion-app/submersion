@@ -54895,6 +54895,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Renomear';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Alterar mergulho';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Alterar ponto de mergulho';
 
   @override

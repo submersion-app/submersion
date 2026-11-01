@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "此操作无法撤销。",
   "navTrack_detail_defaultTrackTitle": "水下轨迹",
   "navTrack_detail_menuRename": "重命名",
+  "navTrack_detail_menuChangeDive": "更改潜水记录",
   "navTrack_detail_menuChangeSite": "更改潜点",
   "navTrack_detail_menuChangeDevice": "更改设备",
   "navTrack_detail_noMapYet": "设置起点以在地图上查看。",

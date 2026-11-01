@@ -55017,6 +55017,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Renommer';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Changer de plongée';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Changer de site';
 
   @override

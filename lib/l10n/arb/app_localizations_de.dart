@@ -54777,6 +54777,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_detail_menuRename => 'Umbenennen';
 
   @override
+  String get navTrack_detail_menuChangeDive => 'Tauchgang ändern';
+
+  @override
   String get navTrack_detail_menuChangeSite => 'Tauchplatz ändern';
 
   @override

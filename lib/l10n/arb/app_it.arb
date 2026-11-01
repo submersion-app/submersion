@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "Questa azione non può essere annullata.",
   "navTrack_detail_defaultTrackTitle": "Traccia subacquea",
   "navTrack_detail_menuRename": "Rinomina",
+  "navTrack_detail_menuChangeDive": "Cambia immersione",
   "navTrack_detail_menuChangeSite": "Cambia sito",
   "navTrack_detail_menuChangeDevice": "Cambia dispositivo",
   "navTrack_detail_noMapYet": "Imposta il punto di inizio per vederlo su una mappa.",

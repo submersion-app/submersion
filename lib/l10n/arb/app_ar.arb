@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "لا يمكن التراجع عن هذا.",
   "navTrack_detail_defaultTrackTitle": "مسار تحت الماء",
   "navTrack_detail_menuRename": "إعادة التسمية",
+  "navTrack_detail_menuChangeDive": "تغيير الغطسة",
   "navTrack_detail_menuChangeSite": "تغيير الموقع",
   "navTrack_detail_menuChangeDevice": "تغيير الجهاز",
   "navTrack_detail_noMapYet": "عيّن نقطة البداية لرؤية هذا على خريطة.",

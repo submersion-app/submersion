@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "Cette action est irréversible.",
   "navTrack_detail_defaultTrackTitle": "Trace sous-marine",
   "navTrack_detail_menuRename": "Renommer",
+  "navTrack_detail_menuChangeDive": "Changer de plongée",
   "navTrack_detail_menuChangeSite": "Changer de site",
   "navTrack_detail_menuChangeDevice": "Changer d'appareil",
   "navTrack_detail_noMapYet": "Placez le point de départ pour voir ceci sur une carte.",

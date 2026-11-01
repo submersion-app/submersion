@@ -86793,6 +86793,12 @@ abstract class AppLocalizations {
   /// **'Rename'**
   String get navTrack_detail_menuRename;
 
+  /// No description provided for @navTrack_detail_menuChangeDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Change dive'**
+  String get navTrack_detail_menuChangeDive;
+
   /// No description provided for @navTrack_detail_menuChangeSite.
   ///
   /// In en, this message translates to:

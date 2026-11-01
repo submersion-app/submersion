@@ -16365,6 +16365,7 @@
   "navTrack_detail_deleteMessage": "Isso não pode ser desfeito.",
   "navTrack_detail_defaultTrackTitle": "Trilha subaquática",
   "navTrack_detail_menuRename": "Renomear",
+  "navTrack_detail_menuChangeDive": "Alterar mergulho",
   "navTrack_detail_menuChangeSite": "Alterar ponto de mergulho",
   "navTrack_detail_menuChangeDevice": "Alterar dispositivo",
   "navTrack_detail_noMapYet": "Defina o ponto de início para ver isso em um mapa.",
