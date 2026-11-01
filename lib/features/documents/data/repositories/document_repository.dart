@@ -271,7 +271,8 @@ class DocumentRepository {
   }
 
   /// A document's pages in order. [withBytes] false reads every column but
-  /// the content, so listing pages costs no BLOB reads.
+  /// the content, so listing pages costs no BLOB reads; [getPageContent]
+  /// then reads a page when it is shown.
   Future<List<DocumentPage>> getPages(
     String documentId, {
     bool withBytes = true,
@@ -285,14 +286,9 @@ class DocumentRepository {
     return [for (final r in rows) pageFromRow(r)];
   }
 
-  /// The first page, for a thumbnail: its content only when it is an
-  /// image. A PDF, Word or text page shows an icon, so its (up to 10 MB)
-  /// bytes are not read.
-  Future<DocumentPage?> getFirstPage(String documentId) async {
-    final page = (await _pagesWithoutBytes(documentId, limit: 1)).firstOrNull;
-    if (page == null || !page.isImage) return page;
-    return page.copyWith(bytes: await _pageBytes(page.id));
-  }
+  /// The first page without its content, for a thumbnail.
+  Future<DocumentPage?> getFirstPage(String documentId) async =>
+      (await _pagesWithoutBytes(documentId, limit: 1)).firstOrNull;
 
   Future<List<DocumentPage>> _pagesWithoutBytes(
     String documentId, {
@@ -330,7 +326,8 @@ class DocumentRepository {
     ];
   }
 
-  Future<Uint8List?> _pageBytes(String pageId) =>
+  /// One page's content, up to 10 MB; null when the page is gone.
+  Future<Uint8List?> getPageContent(String pageId) =>
       (_db.selectOnly(_db.documentPages)
             ..addColumns([_db.documentPages.bytes])
             ..where(_db.documentPages.id.equals(pageId)))
@@ -441,7 +438,7 @@ class DocumentRepository {
           (old == null ||
               old.sizeBytes != bytes.length ||
               !const ListEquality<int>().equals(
-                await _pageBytes(pageId),
+                await getPageContent(pageId),
                 bytes,
               ));
       if (!contentChanged) {

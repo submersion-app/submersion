@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -55,16 +56,29 @@ final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
   },
 );
 
-/// Every page of a document with its content (up to 10 MB each), so it is
-/// released once no page shows the document.
+/// A document's pages without their content, so a document opens at the
+/// same cost however many it holds: [documentPageContentProvider] reads
+/// what is on screen.
 final documentPagesProvider = FutureProvider.autoDispose
     .family<List<DocumentPage>, String>((ref, id) async {
       final repo = ref.watch(documentRepositoryProvider);
       ref.invalidateSelfWhen(repo.watchChanges());
-      return repo.getPages(id);
+      return repo.getPages(id, withBytes: false);
     });
 
-/// A thumbnail's first page; released with the tile that shows it.
+/// One stored page's content (up to 10 MB), released once nothing shows the
+/// page.
+// no-tick: the key is the page's version. Every write to a page moves its
+// updated_at (a save, a sync pull, a change log revert), and the ticking page
+// list then asks for a new key, so an unrelated write rereads no content.
+final documentPageContentProvider = FutureProvider.autoDispose
+    .family<Uint8List?, DocumentPageContentKey>(
+      (ref, key) =>
+          ref.watch(documentRepositoryProvider).getPageContent(key.id),
+    );
+
+/// A thumbnail's first page, without its content; released with the tile
+/// that shows it.
 final documentFirstPageProvider = FutureProvider.autoDispose
     .family<DocumentPage?, String>((ref, id) async {
       final repo = ref.watch(documentRepositoryProvider);

@@ -14,6 +14,10 @@ enum DocumentPageSide {
   };
 }
 
+/// Which stored content a page holds. Every write to a page stamps its
+/// updatedAt, so two pages with the same key hold the same bytes.
+typedef DocumentPageContentKey = ({String id, DateTime updatedAt});
+
 /// One page of a document: an embedded file (image, PDF, Word or text).
 class DocumentPage extends Equatable {
   /// Empty for a page not yet saved.
@@ -45,6 +49,12 @@ class DocumentPage extends Equatable {
 
   bool get isImage => mimeType.startsWith('image/');
   bool get isPdf => mimeType == 'application/pdf';
+
+  /// Whether the app draws this page, and so needs its content to show it.
+  /// Any other page is a file tile, which reads it only when opened.
+  bool get rendersInApp => isImage || isPdf;
+
+  DocumentPageContentKey get contentKey => (id: id, updatedAt: updatedAt);
 
   DocumentPage copyWith({
     String? id,

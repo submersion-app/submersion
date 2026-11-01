@@ -12,6 +12,7 @@ import 'package:submersion/features/documents/domain/document_file_gate.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -22,6 +23,51 @@ DocumentPageCapture _files(PickedBytes picked) => DocumentPageCapture(
   pickImage: (_) async => (bytes: Uint8List(4), name: 'shot.jpg'),
   encode: (p) async =>
       (outcome: ImageEncodeOutcome.encoded, bytes: Uint8List.fromList([9])),
+);
+
+/// Records what the editor reads of a document's pages.
+class _SpyRepository extends DocumentRepository {
+  _SpyRepository() : super(cancelReminders: (_) async {});
+
+  final contentReads = <String>[];
+  final pageListings = <bool>[];
+
+  @override
+  Future<List<DocumentPage>> getPages(
+    String documentId, {
+    bool withBytes = true,
+  }) {
+    pageListings.add(withBytes);
+    return super.getPages(documentId, withBytes: withBytes);
+  }
+
+  @override
+  Future<Uint8List?> getPageContent(String pageId) {
+    contentReads.add(pageId);
+    return super.getPageContent(pageId);
+  }
+}
+
+Document _permit() => Document(
+  id: '',
+  diverId: 'd1',
+  owner: const DocumentOwner.personal(),
+  type: DocumentType.permit,
+  title: 'Marine park',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
+DocumentPage _storedPage(int index, String mimeType) => DocumentPage(
+  id: '',
+  documentId: '',
+  pageIndex: index,
+  fileName: 'page$index',
+  mimeType: mimeType,
+  sizeBytes: 2,
+  bytes: Uint8List.fromList([index, 1]),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
 );
 
 void main() {
@@ -42,6 +88,7 @@ void main() {
     DocumentPageCapture? capture,
     VoidCallback? onCancel,
     DocumentOwner? pickedOwner,
+    DocumentRepository? repository,
   }) async {
     t.view.physicalSize = const Size(900, 1600);
     t.view.devicePixelRatio = 1;
@@ -54,6 +101,8 @@ void main() {
         overrides: [
           ...overrides,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          if (repository != null)
+            documentRepositoryProvider.overrideWithValue(repository),
         ],
         child: DocumentEditPage(
           documentId: documentId,
@@ -76,6 +125,47 @@ void main() {
     await t.tap(find.text('Choose file'));
     await t.pumpAndSettle();
   }
+
+  group('stored page content (issue #3847)', () {
+    testWidgets('opening reads only the images the strip builds', (t) async {
+      final repo = _SpyRepository();
+      final doc = await repo.save(_permit(), [
+        for (var i = 0; i < 40; i++) _storedPage(i, 'image/jpeg'),
+        _storedPage(40, 'application/pdf'),
+      ]);
+      final stored = await repo.getPages(doc.id, withBytes: false);
+      repo.pageListings.clear();
+
+      await pumpEditor(t, documentId: doc.id, repository: repo);
+
+      expect(repo.pageListings, [false]);
+      expect(repo.contentReads, isNotEmpty);
+      expect(repo.contentReads.length, lessThan(20));
+      expect(repo.contentReads, isNot(contains(stored.last.id)));
+    });
+
+    testWidgets('saving an edit leaves the stored pages untouched', (t) async {
+      final repo = _SpyRepository();
+      final doc = await repo.save(_permit(), [
+        _storedPage(0, 'image/jpeg'),
+        _storedPage(1, 'application/pdf'),
+      ]);
+      final before = await repo.getPages(doc.id);
+
+      await pumpEditor(t, documentId: doc.id, repository: repo);
+      await t.enterText(find.byKey(const Key('document-title')), 'Renamed');
+      await t.tap(find.text('Save'));
+      await t.pumpAndSettle();
+
+      expect((await repo.getById(doc.id))!.title, 'Renamed');
+      final after = await repo.getPages(doc.id);
+      expect(after, before);
+      expect(
+        [for (final p in after) p.bytes],
+        [for (final p in before) p.bytes],
+      );
+    });
+  });
 
   testWidgets('insurance shows the phones and the primary toggle', (t) async {
     await pumpEditor(t, initialType: DocumentType.insurance);

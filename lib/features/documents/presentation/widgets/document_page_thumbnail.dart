@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -21,26 +23,29 @@ class DocumentPageThumbnail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final page = ref.watch(documentFirstPageProvider(document.id)).value;
+    // A PDF, Word or text page shows an icon, so its content is not read.
+    final bytes = page != null && page.isImage
+        ? ref.watch(documentPageContentProvider(page.contentKey)).value
+        : null;
     return SizedBox.square(
       dimension: size,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
-        child: _content(context, page),
+        child: _content(context, page, bytes),
       ),
     );
   }
 
-  Widget _content(BuildContext context, DocumentPage? page) {
-    final bytes = page?.bytes;
-    if (page != null && page.isImage && bytes != null) {
-      return Image.memory(
-        bytes,
-        fit: BoxFit.cover,
-        cacheWidth: (size * 3).round(),
-        errorBuilder: (context, _, _) => _icon(context, page),
-      );
-    }
-    return _icon(context, page);
+  Widget _content(BuildContext context, DocumentPage? page, Uint8List? bytes) {
+    if (page == null || !page.isImage) return _icon(context, page);
+    // The type's icon until the image arrives, not a file's for a moment.
+    if (bytes == null) return _icon(context, null);
+    return Image.memory(
+      bytes,
+      fit: BoxFit.cover,
+      cacheWidth: (size * 3).round(),
+      errorBuilder: (context, _, _) => _icon(context, page),
+    );
   }
 
   Widget _icon(BuildContext context, DocumentPage? page) {

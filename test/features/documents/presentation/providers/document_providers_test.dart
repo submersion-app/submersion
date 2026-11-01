@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
@@ -27,6 +28,31 @@ class _RecordingScheduler extends NotificationScheduler {
     AppSettings settings,
   ) async => updated.add(document.id);
 }
+
+/// Counts the page content reads that reach the database.
+class _CountingRepository extends DocumentRepository {
+  _CountingRepository() : super(cancelReminders: (_) async {});
+
+  int contentReads = 0;
+
+  @override
+  Future<Uint8List?> getPageContent(String pageId) {
+    contentReads++;
+    return super.getPageContent(pageId);
+  }
+}
+
+DocumentPage _scan(List<int> bytes) => DocumentPage(
+  id: '',
+  documentId: '',
+  pageIndex: 0,
+  fileName: 'scan.jpg',
+  mimeType: 'image/jpeg',
+  sizeBytes: bytes.length,
+  bytes: Uint8List.fromList(bytes),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
 
 void main() {
   setUp(() async {
@@ -61,6 +87,78 @@ void main() {
       updatedAt: now,
     );
   }
+
+  group('page content (issue #3847)', () {
+    late _CountingRepository repo;
+    late ProviderContainer c;
+
+    setUp(() {
+      repo = _CountingRepository();
+      c = ProviderContainer(
+        overrides: [documentRepositoryProvider.overrideWithValue(repo)],
+      );
+      addTearDown(c.dispose);
+    });
+
+    Future<List<DocumentPage>> settledPages(String id) async {
+      await pumpEventQueue();
+      return c.read(documentPagesProvider(id).future);
+    }
+
+    test('the page list holds no content; a page reads its own', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+      expect(page.bytes, isNull);
+      expect(repo.contentReads, 0);
+
+      expect(
+        await c.read(documentPageContentProvider(page.contentKey).future),
+        [1, 2],
+      );
+    });
+
+    test('a title edit does not read a loaded page again', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final pages = await settledPages(saved.id);
+      final key = pages.single.contentKey;
+      c.listen(documentPageContentProvider(key), (_, _) {});
+      await c.read(documentPageContentProvider(key).future);
+      expect(repo.contentReads, 1);
+
+      await repo.save(saved.copyWith(title: 'renamed'), pages);
+
+      expect((await settledPages(saved.id)).single.contentKey, key);
+      expect(await c.read(documentPageContentProvider(key).future), [1, 2]);
+      expect(repo.contentReads, 1);
+    });
+
+    test('new content gives the page a new key to read', () async {
+      final saved = await repo.save(doc(DocumentType.permit, null, 'p'), [
+        _scan([1, 2]),
+      ]);
+      c.listen(documentPagesProvider(saved.id), (_, _) {});
+      final page = (await settledPages(saved.id)).single;
+
+      // Saves stamp milliseconds: the second must land on a later one.
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      await repo.save(saved, [
+        page.copyWith(bytes: Uint8List.fromList([3])),
+      ]);
+
+      final changed = (await settledPages(saved.id)).single;
+      expect(changed.contentKey, isNot(page.contentKey));
+      expect(
+        await c.read(documentPageContentProvider(changed.contentKey).future),
+        [3],
+      );
+    });
+  });
 
   test('attention list excludes insurance and sorts expired first', () async {
     final c = container();
