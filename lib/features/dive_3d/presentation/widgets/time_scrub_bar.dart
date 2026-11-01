@@ -11,7 +11,7 @@ class TimeScrubBar extends StatelessWidget {
   final VoidCallback onPlayPause;
 
   /// Called when the user begins dragging the slider, so the owner can pause
-  /// playback -- otherwise the player keeps overwriting [position] and fights
+  /// playback; otherwise the player keeps overwriting [position] and fights
   /// the drag.
   final VoidCallback? onScrubStart;
 

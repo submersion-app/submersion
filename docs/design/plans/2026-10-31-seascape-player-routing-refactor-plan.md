@@ -61,7 +61,8 @@ not play/pause, like the two sites in Scope addition 1).
 - `dart format .` after each task. Stage explicit paths, never a directory.
 - Pure refactor: every existing playback test must keep passing unchanged.
   Any test edit that is not itself a new test for the extracted code is a
-  signal the refactor changed behavior, stop and investigate.
+  signal the refactor changed behavior, stop and investigate. This held for
+  the extraction; the fixes under Review outcome change behavior on purpose.
 - No new isolated unit test for `ScenePlayer` driving a bare
   `AnimationController` outside a widget tree: there is no precedent for that
   in this repo, every existing play/pause test (in `dive_3d_page_test.dart`,
@@ -93,6 +94,10 @@ not play/pause, like the two sites in Scope addition 1).
    notifies on completion for every site.
 
 ## Task 1: Shared player/toggle logic (issue #2771, point 2, extended scope)
+
+These steps record the extraction as first built. Review replaced the
+`onEdgeReached` callback and the per-site `setState` wiring they name: see
+Review outcome.
 
 - [x] Read all five current implementations once more immediately before
       editing (do not rely on memory of an earlier read):
@@ -174,9 +179,9 @@ The two sequential awaits stay as they are.
       (`compare_profile_3d_view_test.dart`).
 - [x] PR description notes that the issue's routing-helper point was
       investigated and intentionally left out (with the reasoning above),
-      and that the player-logic point was extended to two sites the issue
-      did not name (`Dive3dPage`, `NavTrack3dPage`), with the reasoning
-      above. `Closes #2771`.
+      and that the player-logic point was extended to three sites the issue
+      did not name (`Dive3dPage`, `NavTrack3dPage`, `CompareProfile3dView`),
+      with the reasoning above. `Closes #2771`.
 
 ## Review outcome
 
@@ -191,3 +196,5 @@ Fixed on top of the extraction, each with a test that failed first:
   recreate: `TickerProviderStateMixin`.
 - `Dive3dPage`'s player ran on behind the Computers scene: the scene toggle
   stops it.
+- `SiteTerrainPane`'s player ran on after its active path, and so its
+  timeline, went away: a listener on the overlay stops it.

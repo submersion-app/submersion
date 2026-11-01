@@ -83,6 +83,26 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   /// siteSeascapeProvider-derived watch below is keyed on this.
   bool get _isolatePaths => widget.playbackContext != null;
 
+  /// The one dive's or route's path being played back on top of the site
+  /// scene (see [SiteTerrainPane.playbackContext]); null for the plain site
+  /// view, where there is nothing to play.
+  SiteActivePathOverlayRequest? get _activePathRequest {
+    final playbackContext = widget.playbackContext;
+    if (playbackContext == null) return null;
+    return (
+      siteId: widget.siteId,
+      pathId: switch (playbackContext) {
+        DivePlaybackContext(diveId: final id) => id,
+        NavTrackPlaybackContext(trackId: final id) => id,
+      },
+      source: switch (playbackContext) {
+        DivePlaybackContext() => PathOverlaySource.dive,
+        NavTrackPlaybackContext() => PathOverlaySource.navTrack,
+      },
+      isolatePaths: _isolatePaths,
+    );
+  }
+
   // Parked at 0 for the plain site view (no timeline there); driven by
   // [_player] once [SiteTerrainPane.playbackContext] is set. The mixin is
   // unconditional (Dart mixins can't be added only for some instances), but
@@ -184,6 +204,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   @override
   Widget build(BuildContext context) {
+    final activePathRequest = _activePathRequest;
+    if (activePathRequest != null) {
+      // No path means no timeline, and with it the only control that could
+      // stop the player.
+      ref.listen(siteActivePathOverlayProvider(activePathRequest), (_, next) {
+        if (next.hasSettled && next.value == null) _player?.stop();
+      });
+    }
     final stateAsync = ref.watch(
       siteSeascapeProvider((
         siteId: widget.siteId,
@@ -308,27 +336,11 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                     )),
                   )
                   .value;
-              // The one dive's or route's path being played back on top of
-              // the site scene (see SiteTerrainPane.playbackContext); null
-              // for the plain site view, where there is nothing to play.
               final playbackContext = widget.playbackContext;
-              final activePathAsync = playbackContext == null
+              final activePathRequest = _activePathRequest;
+              final activePathAsync = activePathRequest == null
                   ? null
-                  : ref.watch(
-                      siteActivePathOverlayProvider((
-                        siteId: widget.siteId,
-                        pathId: switch (playbackContext) {
-                          DivePlaybackContext(diveId: final id) => id,
-                          NavTrackPlaybackContext(trackId: final id) => id,
-                        },
-                        source: switch (playbackContext) {
-                          DivePlaybackContext() => PathOverlaySource.dive,
-                          NavTrackPlaybackContext() =>
-                            PathOverlaySource.navTrack,
-                        },
-                        isolatePaths: _isolatePaths,
-                      )),
-                    );
+                  : ref.watch(siteActivePathOverlayProvider(activePathRequest));
               final activePath = activePathAsync?.value;
               // scene.layers can legitimately be empty (e.g. right after a
               // source switch, before the terrain layer has been added);
@@ -581,14 +593,14 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
                           playbackContext,
                           activePath?.hasLinkedRoute ?? false,
                         ),
-                        // Gated on activePath, not just playbackContext: a
+                        // Gated on activePath, not just the player: a
                         // dive/route whose path has fewer than two usable
                         // points (siteActivePathOverlayProvider then
                         // returns null) would otherwise show a playable
                         // timeline with no path for it to actually move
                         // along (code review).
-                        if (playbackContext != null && activePath != null)
-                          _timeline(),
+                        if (_player case final player? when activePath != null)
+                          ScenePlayerBar(player: player),
                       ],
                     ),
                   ),
@@ -598,15 +610,6 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
           ),
       },
     );
-  }
-
-  /// The playback timeline: present only when
-  /// [SiteTerrainPane.playbackContext] is set (see [_syncPlayer], which
-  /// creates [_player] exactly then).
-  Widget _timeline() {
-    final player = _player;
-    if (player == null) return const SizedBox.shrink();
-    return ScenePlayerBar(player: player);
   }
 
   /// Feature markers are read-only in 3D (placement and editing live on

@@ -74,6 +74,28 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
   }
 
+  Future<void> pumpMultiSourcePage(WidgetTester tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
+          computerComparisonProfilesProvider(
+            'd1',
+          ).overrideWith((ref) async => compareProfiles()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   testWidgets('shows scene chrome once providers resolve', (tester) async {
     await pumpPage(tester);
     expect(find.byType(TimeScrubBar), findsOneWidget);
@@ -303,25 +325,7 @@ void main() {
   testWidgets('Computers segment opens the compare view for multi-source', (
     tester,
   ) async {
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          ...overrides,
-          dive3dSceneDataProvider(
-            'd1',
-          ).overrideWith((ref) async => readoutSceneData()),
-          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
-          computerComparisonProfilesProvider(
-            'd1',
-          ).overrideWith((ref) async => compareProfiles()),
-        ],
-        child: const Dive3dPage(diveId: 'd1'),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pump(const Duration(milliseconds: 50));
+    await pumpMultiSourcePage(tester);
 
     expect(find.text('Computers'), findsOneWidget);
     await tester.tap(find.text('Computers'));
@@ -334,25 +338,7 @@ void main() {
   });
 
   testWidgets('leaving the dive scene stops its playback', (tester) async {
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      testApp(
-        overrides: [
-          ...overrides,
-          dive3dSceneDataProvider(
-            'd1',
-          ).overrideWith((ref) async => readoutSceneData()),
-          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
-          computerComparisonProfilesProvider(
-            'd1',
-          ).overrideWith((ref) async => compareProfiles()),
-        ],
-        child: const Dive3dPage(diveId: 'd1'),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pump(const Duration(milliseconds: 50));
+    await pumpMultiSourcePage(tester);
 
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();

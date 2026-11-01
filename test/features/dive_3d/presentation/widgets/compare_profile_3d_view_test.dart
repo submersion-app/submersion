@@ -20,7 +20,7 @@ ComparisonProfile prof(String id, Color color) => ComparisonProfile(
 );
 
 void main() {
-  Future<void> pumpStandalone(WidgetTester tester) async {
+  Future<void> pumpView(WidgetTester tester) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
@@ -74,7 +74,7 @@ void main() {
   });
 
   testWidgets('play toggles to pause and back', (tester) async {
-    await pumpStandalone(tester);
+    await pumpView(tester);
 
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     await tester.tap(find.byIcon(Icons.play_arrow));
@@ -90,7 +90,7 @@ void main() {
   });
 
   testWidgets('scrubbing while playing stops playback', (tester) async {
-    await pumpStandalone(tester);
+    await pumpView(tester);
 
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();
@@ -106,7 +106,7 @@ void main() {
   });
 
   testWidgets('the play icon returns when the timeline ends', (tester) async {
-    await pumpStandalone(tester);
+    await pumpView(tester);
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();
     expect(find.byIcon(Icons.pause), findsOneWidget);
