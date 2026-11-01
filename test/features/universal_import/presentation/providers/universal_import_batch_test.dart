@@ -150,9 +150,8 @@ void main() {
     container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        // The duplicate preview formats coordinates in the diver's notation,
-        // so this notifier now reads settings. The real one loads from the
-        // database asynchronously and would outlive this container.
+        // The surfacing pressure rule reads settings. The real notifier loads
+        // from the database asynchronously and would outlive this container.
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       ],
     );
@@ -280,7 +279,6 @@ void main() {
       final payload = notifier.state.payload;
       expect(payload, isNotNull);
       expect(payload!.metadata['batchFileCount'], 2);
-      expect(notifier.state.duplicateResult, isNotNull);
       // Two distinct dives selected by default.
       expect(notifier.state.selectionFor(ImportEntityType.dives), hasLength(2));
     });

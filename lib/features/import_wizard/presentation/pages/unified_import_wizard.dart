@@ -273,11 +273,11 @@ class _UnifiedImportWizardBodyState
       _navigatingForward = false;
     } catch (e, stackTrace) {
       // An ImportStepFailure carries text the step wrote for the user.
-      // Anything else -- a database read the duplicate check made, a parser
-      // blowing up on an unexpected shape -- is unexpected, so log it and
-      // wrap it. Before this, the future returned by _onNext was dropped on
-      // the floor by the Next button's VoidCallback, so either kind of throw
-      // surfaced nowhere at all and the button simply looked dead.
+      // Anything else, such as a failed database read or a parser blowing up
+      // on an unexpected shape, is unexpected, so log it and wrap it. Before
+      // this, the future returned by _onNext was dropped on the floor by the
+      // Next button's VoidCallback, so either kind of throw surfaced nowhere
+      // at all and the button simply looked dead.
       if (e is! ImportStepFailure) {
         _log.error(
           'Import wizard could not advance',
@@ -342,7 +342,7 @@ class _UnifiedImportWizardBodyState
       if (nextPage >= _reviewIndex) {
         final bundle = await widget.adapter.buildBundle();
         if (!mounted) return;
-        // Duplicate detection reads the whole existing library and is only an
+        // Duplicate detection reads the existing library and is only an
         // advisory overlay on the review list. Letting it throw here used to
         // abandon the advance entirely, which is what a large or unhappy
         // library looked like from the outside: Next did nothing, forever.

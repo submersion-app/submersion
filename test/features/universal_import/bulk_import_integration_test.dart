@@ -39,6 +39,7 @@ import 'package:submersion/features/universal_import/data/services/batch_parse_s
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
+import '../../helpers/dive_match_records.dart';
 import '../../helpers/test_database.dart';
 
 const _minimalUddf = '''<uddf version="3.2.1">
@@ -345,7 +346,7 @@ void main() {
       );
       final reimport = const ImportDuplicateChecker().check(
         payload: merged,
-        existingDives: [existingDive],
+        existingDives: [diveMatchRecordOf(existingDive)],
         existingSites: const [],
         existingTrips: const [],
         existingEquipment: const [],

@@ -127,7 +127,6 @@ void main() {
       );
 
       expect(notifier.state.payload, isNull);
-      expect(notifier.state.duplicateResult, isNull);
       expect(notifier.state.selections, isEmpty);
       expect(notifier.state.error, isNotNull);
     });
@@ -407,12 +406,10 @@ void main() {
     });
   });
 
-  group('duplicate detection is advisory', () {
-    // No test database: every read the duplicate check makes throws
-    // "Database not initialized". The import must still go through -- flagging
-    // duplicates is a convenience, and losing it is no reason to make the file
-    // unimportable.
-    test('a failing duplicate check still produces the payload', () async {
+  group('parsing reads no library', () {
+    // No test database: any read would throw "Database not initialized". The
+    // duplicate check belongs to the wizard, which treats it as advisory.
+    test('a file parses into a payload without a database', () async {
       final notifier = await _notifier();
       _seed(notifier, _bytes(_oneDiveUddf));
 
@@ -423,8 +420,6 @@ void main() {
         notifier.state.payload!.entitiesOf(ImportEntityType.dives),
         hasLength(1),
       );
-      expect(notifier.state.duplicateResult, isNotNull);
-      expect(notifier.state.duplicateResult!.hasDuplicates, isFalse);
       expect(notifier.state.isLoading, isFalse);
     });
   });

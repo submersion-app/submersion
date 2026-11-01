@@ -39,8 +39,8 @@ PickedImportFile testPickedFile(Uint8List bytes, [String name = 'test-file']) {
 
 Uint8List _csvBytes(String csv) => Uint8List.fromList(csv.codeUnits);
 
-/// Wait for the notifier's background async work (e.g. _parseAndCheckDuplicates)
-/// to complete. Non-CSV confirmSource fires parsing without await, so we need
+/// Wait for the notifier's background async work (e.g. _parseAndInstall) to
+/// complete. Non-CSV confirmSource fires parsing without await, so we need
 /// to pump the event loop until isLoading settles back to false.
 Future<void> _waitForAsyncWork(UniversalImportNotifier notifier) async {
   // Pump microtasks until the notifier finishes loading.
@@ -349,7 +349,6 @@ void main() {
         expect(notifier.state.options, isNull);
         expect(notifier.state.fieldMapping, isNull);
         expect(notifier.state.payload, isNull);
-        expect(notifier.state.duplicateResult, isNull);
         expect(notifier.state.selections, isEmpty);
         expect(notifier.state.importCounts, isEmpty);
       });
@@ -518,7 +517,7 @@ void main() {
 
         // The pending override was CSV, so this takes the CSV path.
         // No need to wait for background parse since CSV path doesn't fire
-        // _parseAndCheckDuplicates.
+        // _parseAndInstall.
         expect(notifier.state.pendingSourceOverride, isNull);
         expect(notifier.state.pendingFormatOverride, isNull);
       });
@@ -869,9 +868,6 @@ void main() {
         await _tolerating(notifier.confirmFieldMapping);
 
         // The CSV parser should use the field mapping and produce dives.
-        // It may fail at duplicate checking (no provider overrides), but
-        // we can verify the parse attempt happened.
-        // If parse succeeded but duplicate check fails, we get an error.
         // If parse produced dives, they would be in the payload.
         expect(notifier.state.isLoading, isFalse);
       });

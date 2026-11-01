@@ -42,7 +42,9 @@ class SafetyReviewService {
   /// v10: tissues carried between dives off-gas at the dives' own surface, not
   /// at 1.0 bar, which changes the ceilings graded on a repetitive dive with a
   /// known surface pressure, at altitude above all (#3925).
-  static const int engineVersion = 10;
+  /// v11: a dive's residual tissue load comes from its own diver's dives only,
+  /// which changes what is graded on a dive in a shared logbook (#3923).
+  static const int engineVersion = 11;
 
   const SafetyReviewService();
 

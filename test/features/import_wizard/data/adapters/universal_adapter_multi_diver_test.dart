@@ -78,10 +78,12 @@ Future<UniversalAdapter> _adapter(
   required ImportPayload payload,
   List<DiveSite> activeSites = const [],
   required MockSiteRepository siteRepo,
+  MockDiveRepository? mockDiveRepo,
+  MockDiveTypeRepository? mockDiveTypeRepo,
 }) async {
-  final diveRepo = MockDiveRepository();
+  final diveRepo = mockDiveRepo ?? MockDiveRepository();
   when(
-    diveRepo.getAllDives(diverId: anyNamed('diverId')),
+    diveRepo.getDiveMatchRecords(diverId: anyNamed('diverId')),
   ).thenAnswer((_) async => []);
   late UniversalAdapter adapter;
   await tester.pumpWidget(
@@ -116,7 +118,9 @@ Future<UniversalAdapter> _adapter(
           MockCertificationRepository(),
         ),
         tagRepositoryProvider.overrideWithValue(MockTagRepository()),
-        diveTypeRepositoryProvider.overrideWithValue(MockDiveTypeRepository()),
+        diveTypeRepositoryProvider.overrideWithValue(
+          mockDiveTypeRepo ?? MockDiveTypeRepository(),
+        ),
         // The active profile still reads through these providers.
         allTripsProvider.overrideWith((ref) async => []),
         // Custom certification agencies the duplicate check names (#690).
@@ -182,6 +186,92 @@ void main() {
       expect(bundle.groups[ImportEntityType.sites]!.duplicateIndices, {1});
       verify(siteRepo.getAllSites(diverId: 'diver-2')).called(1);
       verifyNever(siteRepo.getAllSites(diverId: null));
+    });
+
+    testWidgets('each profile reads only what its own share carries', (
+      tester,
+    ) async {
+      final siteRepo = MockSiteRepository();
+      final diveRepo = MockDiveRepository();
+      final adapter = await _adapter(
+        tester,
+        payload: ImportPayload(
+          entities: {
+            ui.ImportEntityType.sites: const [
+              {
+                'name': 'Blue Hole',
+                'uddfId': 'Blue Hole',
+                DiverTarget.itemKey: 'diver:diver-1',
+              },
+            ],
+            ui.ImportEntityType.dives: [
+              {
+                'dateTime': DateTime.utc(2024),
+                DiverTarget.itemKey: 'diver:diver-2',
+              },
+            ],
+          },
+        ),
+        siteRepo: siteRepo,
+        mockDiveRepo: diveRepo,
+      );
+
+      await adapter.checkDuplicates(await adapter.buildBundle());
+
+      verify(diveRepo.getDiveMatchRecords(diverId: 'diver-2')).called(1);
+      verifyNever(diveRepo.getDiveMatchRecords(diverId: 'diver-1'));
+      verifyNever(siteRepo.getAllSites(diverId: anyNamed('diverId')));
+    });
+
+    testWidgets('a new profile leaves dive types unread when none come', (
+      tester,
+    ) async {
+      final diveTypeRepo = MockDiveTypeRepository();
+      final adapter = await _adapter(
+        tester,
+        payload: ImportPayload(
+          entities: {
+            ui.ImportEntityType.sites: [
+              {
+                'name': 'Blue Hole',
+                'uddfId': 'Blue Hole',
+                DiverTarget.itemKey: const NewDiverTarget('source').targetKey,
+              },
+            ],
+          },
+        ),
+        siteRepo: MockSiteRepository(),
+        mockDiveTypeRepo: diveTypeRepo,
+      );
+
+      await adapter.checkDuplicates(await adapter.buildBundle());
+
+      verifyNever(diveTypeRepo.getAllDiveTypes());
+    });
+
+    testWidgets('a new profile reads dive types when the file has some', (
+      tester,
+    ) async {
+      final diveTypeRepo = MockDiveTypeRepository();
+      final adapter = await _adapter(
+        tester,
+        payload: ImportPayload(
+          entities: {
+            ui.ImportEntityType.diveTypes: [
+              {
+                'name': 'Cave',
+                DiverTarget.itemKey: const NewDiverTarget('source').targetKey,
+              },
+            ],
+          },
+        ),
+        siteRepo: MockSiteRepository(),
+        mockDiveTypeRepo: diveTypeRepo,
+      );
+
+      await adapter.checkDuplicates(await adapter.buildBundle());
+
+      verify(diveTypeRepo.getAllDiveTypes()).called(1);
     });
   });
 

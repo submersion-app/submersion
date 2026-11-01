@@ -15,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -111,11 +110,7 @@ void main() {
   late _HeldParser parser;
   late UniversalImportNotifier notifier;
 
-  /// [overrides] can hold a later stage of the pipeline open as well.
-  Future<void> startWith({
-    List<Override> overrides = const [],
-    BatchParseService? batchParseService,
-  }) async {
+  Future<void> startWith({BatchParseService? batchParseService}) async {
     parser = _HeldParser();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -132,7 +127,6 @@ void main() {
                 BatchParseService(parserFor: (_) => parser),
           ),
         ),
-        ...overrides,
       ],
     );
     addTearDown(container.dispose);
@@ -291,25 +285,6 @@ void main() {
     });
   });
 
-  test('cancelling during the duplicate check drops the payload', () async {
-    // The check starts by reading the trips, so holding that read holds it.
-    final trips = Completer<Never>();
-    await startWith(
-      overrides: [allTripsProvider.overrideWith((ref) => trips.future)],
-    );
-    await notifier.loadFileFromBytes(_ssrf, 'log.ssrf');
-    final confirming = notifier.confirmSource();
-    await parser.reached(1);
-    parser.finish(1, _payload('parsed'));
-    await pumpEventQueue();
-
-    notifier.cancelParse();
-
-    await expectLater(confirming, _cancelled);
-    expect(notifier.state.payload, isNull);
-    expect(notifier.state.isLoading, isFalse);
-  });
-
   test('an unexpected error does not leave the step loading', () async {
     await startWith(batchParseService: const _ThrowingBatchService());
     notifier.debugSetFilesForTest([_pending('a.ssrf'), _pending('b.ssrf')]);
@@ -367,30 +342,6 @@ void main() {
 
       await expectLater(confirming, _cancelled);
       expect(notifier.state, same(fresh));
-    });
-
-    test('cancelling during the duplicate check returns to triage', () async {
-      final trips = Completer<Never>();
-      await startWith(
-        overrides: [allTripsProvider.overrideWith((ref) => trips.future)],
-      );
-      notifier.debugSetFilesForTest([_pending('a.ssrf'), _pending('b.ssrf')]);
-      final confirming = notifier.confirmSource();
-      await parser.reached(1);
-      parser.finish(1, _payload('a'));
-      await parser.reached(2);
-      parser.finish(2, _payload('b'));
-      await pumpEventQueue();
-
-      notifier.cancelParse();
-
-      await expectLater(confirming, _cancelled);
-      expect(notifier.state.isLoading, isFalse);
-      expect(notifier.state.payload, isNull);
-      expect(notifier.state.files.map((f) => f.status), [
-        ImportFileStatus.pending,
-        ImportFileStatus.pending,
-      ]);
     });
   });
 }

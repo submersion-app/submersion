@@ -1,6 +1,6 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -9,7 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Presentational card for a [FlightWindowStatus]. Parents own the ticking:
 /// re-build (NoFlyPage's minute timer, the trip story wrapper's timer) and
-/// the countdown re-renders against the current wall-clock.
+/// the countdown re-renders against the current time.
 class FlightWindowCard extends ConsumerWidget {
   final FlightWindowStatus status;
 
@@ -19,15 +19,8 @@ class FlightWindowCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
-    final now = NoFlyService.wallClockNowUtc();
-    // Wall-clock-as-UTC values format their components directly -- no
-    // toLocal(), matching how dive times are displayed everywhere. The weekday
-    // has no ordering to respect, so it stays locale-derived; the clock half
-    // goes through the diver's 12h/24h preference.
+    final now = clock.now().toUtc();
     final units = ref.watch(unitFormatterProvider);
-    final weekdayFormat = DateFormat.E();
-    String formatWhen(DateTime value) =>
-        '${weekdayFormat.format(value)} ${units.formatTime(value)}';
 
     final (
       IconData icon,
@@ -41,19 +34,19 @@ class FlightWindowCard extends ConsumerWidget {
         l10n.flightWindow_openTitle(
           formatNoFlyRemaining(status.remaining(now)),
         ),
-        l10n.flightWindow_surfaceBy(formatWhen(status.deadline)),
+        l10n.flightWindow_surfaceBy(formatNoFlyWhen(status.deadline, units)),
       ),
       FlightWindowState.closed => (
         Icons.airplanemode_inactive,
         scheme.tertiary,
         l10n.flightWindow_closed,
-        l10n.flightWindow_departs(formatWhen(status.flightAt)),
+        l10n.flightWindow_departs(formatNoFlyWhen(status.flightAt, units)),
       ),
       FlightWindowState.conflict => (
         Icons.warning_amber,
         scheme.error,
         l10n.flightWindow_conflict,
-        l10n.flightWindow_departs(formatWhen(status.flightAt)),
+        l10n.flightWindow_departs(formatNoFlyWhen(status.flightAt, units)),
       ),
     };
 

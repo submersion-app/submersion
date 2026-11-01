@@ -10,7 +10,6 @@ import 'package:submersion/features/universal_import/domain/services/import_medi
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
-import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
 // ============================================================================
 // Wizard Steps
@@ -61,7 +60,6 @@ class UniversalImportState {
     this.payload,
     this.sourcePayload,
     this.diverMapping = const {},
-    this.duplicateResult,
     this.selections = const {},
     this.importCounts = const {},
     this.importPhase = '',
@@ -186,9 +184,6 @@ class UniversalImportState {
   /// The parsed payload, whether or not it has been split across profiles.
   ImportPayload? get parsedPayload => sourcePayload ?? payload;
 
-  /// Duplicate check results (set before review step).
-  final ImportDuplicateResult? duplicateResult;
-
   /// Selected indices per entity type.
   final Map<ImportEntityType, Set<int>> selections;
 
@@ -240,8 +235,6 @@ class UniversalImportState {
     ImportPayload? sourcePayload,
     Map<String, DiverTarget>? diverMapping,
     bool clearDiverMapping = false,
-    ImportDuplicateResult? duplicateResult,
-    bool clearDuplicateResult = false,
     Map<ImportEntityType, Set<int>>? selections,
     Map<ImportEntityType, int>? importCounts,
     String? importPhase,
@@ -311,9 +304,6 @@ class UniversalImportState {
       diverMapping: clearPayload || clearDiverMapping
           ? const {}
           : (diverMapping ?? this.diverMapping),
-      duplicateResult: clearDuplicateResult
-          ? null
-          : (duplicateResult ?? this.duplicateResult),
       selections: selections ?? this.selections,
       importCounts: importCounts ?? this.importCounts,
       importPhase: importPhase ?? this.importPhase,

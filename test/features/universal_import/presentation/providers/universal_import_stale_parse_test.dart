@@ -14,8 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_step_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
@@ -151,44 +149,7 @@ void main() {
 
       expect(notifier.state.error, isNull);
     });
-
-    test('installs nothing if dropped during the duplicate check', () async {
-      final gate = Completer<List<Trip>>();
-      final notifier = await _notifier(
-        overrides: [allTripsProvider.overrideWith((ref) => gate.future)],
-      );
-      _seed(notifier, [_bytes(_oneDiveUddf)]);
-
-      final parsing = notifier.confirmSource();
-      await pumpEventQueue();
-      notifier.reset();
-      gate.complete(const []);
-      await expectLater(parsing, _dropped);
-
-      expect(notifier.state.payload, isNull);
-      expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
-    });
   });
-
-  test(
-    'a batch installs nothing if dropped during the duplicate check',
-    () async {
-      final gate = Completer<List<Trip>>();
-      final notifier = await _notifier(
-        overrides: [allTripsProvider.overrideWith((ref) => gate.future)],
-      );
-      _seed(notifier, [_bytes(_oneDiveUddf), _bytes(_oneDiveUddf)]);
-
-      final parsing = notifier.confirmSource();
-      await pumpEventQueue();
-      notifier.reset();
-      gate.complete(const []);
-      await expectLater(parsing, _dropped);
-
-      expect(notifier.state.payload, isNull);
-      expect(notifier.state.files, isEmpty);
-    },
-  );
 
   test('a batch stops and writes nothing once the wizard drops it', () async {
     final service = _GatedBatchParseService(Completer<void>());
