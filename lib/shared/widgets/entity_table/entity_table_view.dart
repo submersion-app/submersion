@@ -107,6 +107,25 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// their text when this is null.
   final Widget? Function(T entity, F field)? cellTrailingBuilder;
 
+  /// A tap on a cell, with its entity and column. When set (and selection
+  /// mode is off) a cell tap goes here instead of [onEntityTap], so an
+  /// editor can open the cell (#3422). Double taps stay the row's.
+  final void Function(T entity, F field)? onCellTap;
+
+  /// Replaces a cell's text with the widget it returns, filling the cell's
+  /// box with no padding; null keeps the formatted text (#3422).
+  final Widget? Function(
+    BuildContext context,
+    T entity,
+    F field,
+    String formatted,
+  )?
+  cellBuilder;
+
+  /// A colour painted behind one cell, above the row background, such as a
+  /// pending edit; null paints nothing (#3422).
+  final Color? Function(T entity, F field)? cellBackground;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -130,6 +149,9 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.hasCellMenu,
     this.isEntityMuted,
     this.cellTrailingBuilder,
+    this.onCellTap,
+    this.cellBuilder,
+    this.cellBackground,
   });
 
   @override
@@ -411,11 +433,19 @@ class _EntityTableViewState<T, F extends EntityField>
       ),
     );
     final trailing = widget.cellTrailingBuilder?.call(entity, column.field);
+    final custom = widget.cellBuilder?.call(
+      context,
+      entity,
+      column.field,
+      text,
+    );
 
     final box = Container(
       width: _widthOf(column),
       height: kEntityTableRowHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: custom == null
+          ? const EdgeInsets.symmetric(horizontal: 8)
+          : EdgeInsets.zero,
       alignment: column.field.isRightAligned
           ? Alignment.centerRight
           : Alignment.centerLeft,
@@ -433,25 +463,39 @@ class _EntityTableViewState<T, F extends EntityField>
       // The trailing widget keeps its natural width up to half the cell, so
       // a long tag ellipsizes rather than overflowing a narrow column, and a
       // right-aligned column stays right-aligned.
-      child: trailing == null
-          ? label
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(child: label),
-                const SizedBox(width: 6),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
-                  ),
-                  child: trailing,
-                ),
-              ],
-            ),
+      child:
+          custom ??
+          (trailing == null
+              ? label
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: label),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
+                      ),
+                      child: trailing,
+                    ),
+                  ],
+                )),
     );
-    final cell = (widget.isEntityMuted?.call(entity) ?? false)
-        ? Opacity(opacity: kEntityTableMutedOpacity, child: box)
-        : box;
+    final background = widget.cellBackground?.call(entity, column.field);
+    final painted = background == null
+        ? box
+        : ColoredBox(color: background, child: box);
+    final muted = (widget.isEntityMuted?.call(entity) ?? false)
+        ? Opacity(opacity: kEntityTableMutedOpacity, child: painted)
+        : painted;
+    final onCellTap = widget.onCellTap;
+    final cell = onCellTap == null || widget.isSelectionMode
+        ? muted
+        : GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => onCellTap(entity, column.field),
+            child: muted,
+          );
     final menu = widget.cellMenuBuilder;
     if (menu == null ||
         !(widget.hasCellMenu?.call(entity, column.field) ?? true)) {

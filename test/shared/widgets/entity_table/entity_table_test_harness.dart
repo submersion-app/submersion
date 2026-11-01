@@ -113,6 +113,9 @@ Widget buildTestTable({
   bool Function(TestEntity, TestField)? hasCellMenu,
   bool Function(TestEntity)? isEntityMuted,
   Widget? Function(TestEntity, TestField)? cellTrailingBuilder,
+  void Function(TestEntity, TestField)? onCellTap,
+  Widget? Function(BuildContext, TestEntity, TestField, String)? cellBuilder,
+  Color? Function(TestEntity, TestField)? cellBackground,
   Locale? locale,
 }) {
   return testApp(
@@ -133,6 +136,9 @@ Widget buildTestTable({
       hasCellMenu: hasCellMenu,
       isEntityMuted: isEntityMuted,
       cellTrailingBuilder: cellTrailingBuilder,
+      onCellTap: onCellTap,
+      cellBuilder: cellBuilder,
+      cellBackground: cellBackground,
     ),
   );
 }
