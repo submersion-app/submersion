@@ -1694,6 +1694,52 @@ void main() {
       expect(find.byKey(hint), findsNothing);
     });
 
+    testWidgets('fits a phone with the widest value and the hint showing', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(tester.view.reset);
+
+      await _pump(
+        tester,
+        route: anchored(
+          endMode: NavTrackEndMode.point,
+          endLatitude: 10.001,
+          endLongitude: 20.001,
+        ).copyWith(scaleFactor: 4, headingOffsetDeg: -180),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(fieldPercent(tester), 400);
+      expect(find.byKey(hint), findsOneWidget);
+      // Too wide for one row at this width, so Scale drops below Rotation.
+      expect(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('nav-track-align-scale-field')),
+            )
+            .dy,
+        greaterThan(
+          tester
+              .getTopLeft(
+                find.byKey(const ValueKey('nav-track-align-rotation-field')),
+              )
+              .dy,
+        ),
+      );
+      for (final key in [
+        'nav-track-align-scale-down',
+        'nav-track-align-scale-up',
+        'nav-track-align-rotate-up',
+      ]) {
+        expect(
+          tester.getBottomRight(find.byKey(ValueKey(key))).dx,
+          lessThanOrEqualTo(390),
+        );
+      }
+    });
+
     group('the handle', () {
       const handle = ValueKey('nav-track-align-scale-handle');
 
