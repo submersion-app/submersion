@@ -187,6 +187,16 @@ void main() {
       );
     });
 
+    test('the chart replay switches inside a sample, not after it', () {
+      // 1200 s to 30 m crosses 10 m at 400 s, inside the 390 to 420 s sample.
+      _expectSameDive(
+        _engine.compute(_plan([_leg('ramp', 30, 1200, 0)])),
+        _engine.compute(
+          _plan([_leg('low', 10, 400, 0), _leg('high', 30, 800, 1)]),
+        ),
+      );
+    });
+
     test('a ramp stays one authored leg in the outcome and the table', () {
       final outcome = _engine.compute(_plan([_leg('ramp', 20, 1200, 0)]));
 

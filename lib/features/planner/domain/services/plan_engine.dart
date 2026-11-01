@@ -653,6 +653,9 @@ double setpointAt(
 /// PlanEngine.compute does, or the replay loads a loop's worth of gas for
 /// a leg the diver actually breathed open circuit -- caught by a Copilot
 /// review).
+///
+/// One call is one setpoint, so a replay of a ramp asks for each stretch
+/// [splitAtSetpointSwitch] returns rather than for the ramp's mean depth.
 BreathingConfig breathingFor(
   domain.DivePlan plan,
   GasMix gas,
@@ -893,15 +896,14 @@ class PlanEngine {
           durationSeconds: segment.durationSeconds,
         ),
       )) {
-        final pieceDepth = (piece.startDepth + piece.endDepth) / 2.0;
         final breathing = _breathingFor(
           plan,
           segment.gasMix,
-          pieceDepth,
+          piece.avgDepth,
           segment: segment,
         );
         state = model.applySegment(state, piece, breathing);
-        final ambient = environment.pressureAtDepth(pieceDepth);
+        final ambient = environment.pressureAtDepth(piece.avgDepth);
         addExposure(
           runtime,
           piece.durationSeconds,

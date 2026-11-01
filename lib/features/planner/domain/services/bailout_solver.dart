@@ -376,7 +376,7 @@ class BailoutSolver {
             breathingFor(
               plan,
               segment.gasMix,
-              (piece.startDepth + piece.endDepth) / 2.0,
+              piece.avgDepth,
               config: config,
               segment: segment,
             ),
