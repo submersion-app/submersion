@@ -12970,9 +12970,11 @@
       }
     }
   },
+  "plannerSeries_createPlannedDive": "Create planned dive",
+  "plannerSeries_updatePlannedDive": "Update planned dive",
   "plannerSeries_updatePlannedDives": "Update planned dives",
   "plannerSeries_createPlannedDives": "Create planned dives",
-  "plannerSeries_created": "{count} planned dives added to the log",
+  "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
   "@plannerSeries_created": {
     "placeholders": {
       "count": {
@@ -12980,7 +12982,7 @@
       }
     }
   },
-  "plannerSeries_updated": "{count} planned dives updated in the log",
+  "plannerSeries_updated": "{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}",
   "@plannerSeries_updated": {
     "placeholders": {
       "count": {
@@ -12988,8 +12990,8 @@
       }
     }
   },
-  "plannerSeries_orphans_title": "Delete planned dives from the log?",
-  "plannerSeries_orphans_body": "{count} planned dives no longer in this series are still in the log.",
+  "plannerSeries_orphans_title": "Delete from the log?",
+  "plannerSeries_orphans_body": "{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}",
   "@plannerSeries_orphans_body": {
     "placeholders": {
       "count": {

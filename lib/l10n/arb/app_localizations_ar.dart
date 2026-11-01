@@ -21118,6 +21118,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'إنشاء الغطسة المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'تحديث الغطسة المخططة';
+
+  @override
   String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
 
   @override
@@ -21125,21 +21131,47 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return 'تمت إضافة $count غطسات مخططة إلى السجل';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      many: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      few: 'تمت إضافة $count غطسات مخططة إلى السجل',
+      two: 'تمت إضافة غطستين مخططتين إلى السجل',
+      one: 'تمت إضافة $count غطسة مخططة إلى السجل',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return 'تم تحديث $count غطسات مخططة في السجل';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count غطسة مخططة في السجل',
+      many: 'تم تحديث $count غطسة مخططة في السجل',
+      few: 'تم تحديث $count غطسات مخططة في السجل',
+      two: 'تم تحديث غطستين مخططتين في السجل',
+      one: 'تم تحديث $count غطسة مخططة في السجل',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'هل تريد حذف الغطسات المخططة من السجل؟';
+  String get plannerSeries_orphans_title => 'هل تريد الحذف من السجل؟';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      many: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      few: 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.',
+      two: 'لا تزال غطستان مخططتان لم تعودا في هذه السلسلة في السجل.',
+      one: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+    );
+    return '$_temp0';
   }
 
   @override

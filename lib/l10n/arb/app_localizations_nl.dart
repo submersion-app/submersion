@@ -20690,6 +20690,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Geplande duik aanmaken';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Geplande duik bijwerken';
+
+  @override
   String get plannerSeries_updatePlannedDives => 'Geplande duiken bijwerken';
 
   @override
@@ -20697,21 +20703,40 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count geplande duiken toegevoegd aan het logboek';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken toegevoegd aan het logboek',
+      one: '$count geplande duik toegevoegd aan het logboek',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count geplande duiken bijgewerkt in het logboek';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken bijgewerkt in het logboek',
+      one: '$count geplande duik bijgewerkt in het logboek',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Geplande duiken uit het logboek verwijderen?';
+  String get plannerSeries_orphans_title => 'Uit het logboek verwijderen?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.',
+      one:
+          '$count geplande duik die niet meer in deze reeks zit, staat nog in het logboek.',
+    );
+    return '$_temp0';
   }
 
   @override

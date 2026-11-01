@@ -528,7 +528,7 @@ void main() {
     });
   });
 
-  testWidgets('a followed plan offers Save and Create planned dives', (
+  testWidgets('a followed plan offers Save and Create planned dive', (
     tester,
   ) async {
     await pumpPlan(tester, dayDives);
@@ -546,7 +546,7 @@ void main() {
     await tester.pumpAndSettle();
     final convert = tester.widget<PopupMenuItem<String>>(
       find.ancestor(
-        of: find.text('Create planned dives'),
+        of: find.text('Create planned dive'),
         matching: find.byType(PopupMenuItem<String>),
       ),
     );

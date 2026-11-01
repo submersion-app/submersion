@@ -20746,6 +20746,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Tervezett merülés létrehozása';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Tervezett merülés frissítése';
+
+  @override
   String get plannerSeries_updatePlannedDives =>
       'Tervezett merülések frissítése';
 
@@ -20755,21 +20761,40 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count tervezett merülés hozzáadva a naplóhoz';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés hozzáadva a naplóhoz',
+      one: '$count tervezett merülés hozzáadva a naplóhoz',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count tervezett merülés frissítve a naplóban';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés frissítve a naplóban',
+      one: '$count tervezett merülés frissítve a naplóban',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Törli a tervezett merüléseket a naplóból?';
+  String get plannerSeries_orphans_title => 'Törli a naplóból?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+      one:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+    );
+    return '$_temp0';
   }
 
   @override

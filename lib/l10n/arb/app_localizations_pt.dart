@@ -20824,6 +20824,12 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Criar mergulho planeado';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Atualizar mergulho planeado';
+
+  @override
   String get plannerSeries_updatePlannedDives =>
       'Atualizar mergulhos planeados';
 
@@ -20832,21 +20838,40 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count mergulhos planeados adicionados ao registo';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados adicionados ao registo',
+      one: '$count mergulho planeado adicionado ao registo',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count mergulhos planeados atualizados no registo';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados atualizados no registo',
+      one: '$count mergulho planeado atualizado no registo',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Eliminar mergulhos planeados do registo?';
+  String get plannerSeries_orphans_title => 'Eliminar do registo?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count mergulhos planeados que já não estão nesta série continuam no registo.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos planeados que já não estão nesta série permanecem no registo.',
+      one:
+          '$count mergulho planeado que já não está nesta série permanece no registo.',
+    );
+    return '$_temp0';
   }
 
   @override

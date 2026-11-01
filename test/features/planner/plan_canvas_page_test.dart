@@ -307,7 +307,7 @@ void main() {
     await tester.pumpWidget(harness());
     seed(tester);
     await tester.pumpAndSettle();
-    await openMenu(tester, 'Create planned dives');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
@@ -355,7 +355,7 @@ void main() {
     ).read(divePlanNotifierProvider.notifier).updateSite(siteId);
     await tester.pumpAndSettle();
 
-    await openMenu(tester, 'Create planned dives');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
 
     final listed = await tester.runAsync(
@@ -412,7 +412,7 @@ void main() {
         (point.timeSeconds, point.depth),
     ], isNot([for (final point in live) (point.timeSeconds, point.depth)]));
 
-    await openMenu(tester, 'Create planned dives');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
 
     final logged = await tester.runAsync(() async {
@@ -509,7 +509,7 @@ void main() {
 
     // Convert while the plan is valid, then make it invalid (a deep air
     // plan trips a critical gas-density issue) before the lookup resolves.
-    await openMenu(tester, 'Create planned dives');
+    await openMenu(tester, 'Create planned dive');
     notifier.addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
     lookup.complete(null);
     await tester.pumpAndSettle();

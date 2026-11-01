@@ -20513,6 +20513,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Create planned dive';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Update planned dive';
+
+  @override
   String get plannerSeries_updatePlannedDives => 'Update planned dives';
 
   @override
@@ -20520,21 +20526,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count planned dives added to the log';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives added to the log',
+      one: '$count planned dive added to the log',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count planned dives updated in the log';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives updated in the log',
+      one: '$count planned dive updated in the log',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Delete planned dives from the log?';
+  String get plannerSeries_orphans_title => 'Delete from the log?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count planned dives no longer in this series are still in the log.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count planned dives no longer in this series are still in the log.',
+      one: '$count planned dive no longer in this series is still in the log.',
+    );
+    return '$_temp0';
   }
 
   @override

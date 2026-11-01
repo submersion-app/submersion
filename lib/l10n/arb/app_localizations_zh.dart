@@ -19807,6 +19807,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => '创建计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDive => '更新计划潜水';
+
+  @override
   String get plannerSeries_updatePlannedDives => '更新计划潜水';
 
   @override
@@ -19814,20 +19820,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '已将 $count 次计划潜水添加到日志';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 次计划潜水添加到日志',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '已在日志中更新 $count 次计划潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在日志中更新 $count 次计划潜水',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title => '从日志中删除计划潜水？';
+  String get plannerSeries_orphans_title => '从日志中删除？';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '有 $count 次不再属于此系列的计划潜水仍在日志中。';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次不再属于此系列的计划潜水仍在日志中。',
+    );
+    return '$_temp0';
   }
 
   @override

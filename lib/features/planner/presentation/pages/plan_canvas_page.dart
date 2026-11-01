@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_start_field.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
@@ -129,6 +130,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final planState = ref.watch(divePlanNotifierProvider);
     final savesAsSeries = ref.watch(planSeriesSavesAsSeriesProvider);
     final plannedDivesExist = ref.watch(plannedDivesExistProvider);
+    final isSeries = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.isSeries),
+    );
     final savedSeriesId = ref.watch(
       planSeriesNotifierProvider.select((s) => s.id),
     );
@@ -266,9 +270,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                 _menuItem(
                   'convert',
                   Icons.scuba_diving,
-                  plannedDivesExist
-                      ? context.l10n.plannerSeries_updatePlannedDives
-                      : context.l10n.plannerSeries_createPlannedDives,
+                  _plannedDivesLabel(
+                    context.l10n,
+                    exist: plannedDivesExist,
+                    isSeries: isSeries,
+                  ),
                 ),
                 _menuItem(
                   'slate',
@@ -810,6 +816,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
     );
   }
+
+  static String _plannedDivesLabel(
+    AppLocalizations l10n, {
+    required bool exist,
+    required bool isSeries,
+  }) => switch ((exist, isSeries)) {
+    (false, false) => l10n.plannerSeries_createPlannedDive,
+    (false, true) => l10n.plannerSeries_createPlannedDives,
+    (true, false) => l10n.plannerSeries_updatePlannedDive,
+    (true, true) => l10n.plannerSeries_updatePlannedDives,
+  };
 
   /// Writes the plan's dives to the log as planned entries, or brings the ones
   /// already there up to date. A series needs a start to lay its dives out on,

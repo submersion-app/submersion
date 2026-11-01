@@ -20882,6 +20882,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Créer la plongée planifiée';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Mettre à jour la plongée planifiée';
+
+  @override
   String get plannerSeries_updatePlannedDives =>
       'Mettre à jour les plongées planifiées';
 
@@ -20891,21 +20898,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count plongées planifiées ajoutées au carnet';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées ajoutées au carnet',
+      one: '$count plongée planifiée ajoutée au carnet',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count plongées planifiées mises à jour dans le carnet';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées mises à jour dans le carnet',
+      one: '$count plongée planifiée mise à jour dans le carnet',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Supprimer les plongées planifiées du carnet ?';
+  String get plannerSeries_orphans_title => 'Supprimer du carnet ?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count plongées planifiées qui ne sont plus dans cette série restent dans le carnet.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées planifiées qui ne sont plus dans cette série restent dans le carnet.',
+      one:
+          '$count plongée planifiée qui n\'est plus dans cette série reste dans le carnet.',
+    );
+    return '$_temp0';
   }
 
   @override

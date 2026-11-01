@@ -20360,6 +20360,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'יצירת צלילה מתוכננת';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'עדכון צלילה מתוכננת';
+
+  @override
   String get plannerSeries_updatePlannedDives => 'עדכון צלילות מתוכננות';
 
   @override
@@ -20367,20 +20373,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count צלילות מתוכננות נוספו ליומן';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות נוספו ליומן',
+      one: '$count צלילה מתוכננת נוספה ליומן',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count צלילות מתוכננות עודכנו ביומן';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות עודכנו ביומן',
+      one: '$count צלילה מתוכננת עודכנה ביומן',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title => 'למחוק צלילות מתוכננות מהיומן?';
+  String get plannerSeries_orphans_title => 'למחוק מהיומן?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count צלילות מתוכננות שכבר אינן בסדרה זו עדיין ביומן.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות שכבר אינן בסדרה זו עדיין ביומן.',
+      one: '$count צלילה מתוכננת שכבר אינה בסדרה זו עדיין ביומן.',
+    );
+    return '$_temp0';
   }
 
   @override

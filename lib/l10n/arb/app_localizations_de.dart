@@ -20797,6 +20797,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Geplanten Tauchgang erstellen';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Geplanten Tauchgang aktualisieren';
+
+  @override
   String get plannerSeries_updatePlannedDives =>
       'Geplante Tauchgänge aktualisieren';
 
@@ -20806,21 +20813,40 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count geplante Tauchgänge zum Logbuch hinzugefügt';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplante Tauchgänge zum Logbuch hinzugefügt',
+      one: '$count geplanter Tauchgang zum Logbuch hinzugefügt',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count geplante Tauchgänge im Logbuch aktualisiert';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplante Tauchgänge im Logbuch aktualisiert',
+      one: '$count geplanter Tauchgang im Logbuch aktualisiert',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Geplante Tauchgänge aus dem Logbuch löschen?';
+  String get plannerSeries_orphans_title => 'Aus dem Logbuch löschen?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count geplante Tauchgänge, die nicht mehr zu dieser Serie gehören, sind noch im Logbuch.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplante Tauchgänge, die nicht mehr zu dieser Serie gehören, sind noch im Logbuch.',
+      one:
+          '$count geplanter Tauchgang, der nicht mehr zu dieser Serie gehört, ist noch im Logbuch.',
+    );
+    return '$_temp0';
   }
 
   @override

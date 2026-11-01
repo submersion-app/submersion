@@ -20824,6 +20824,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get plannerSeries_createPlannedDive => 'Crea immersione pianificata';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Aggiorna immersione pianificata';
+
+  @override
   String get plannerSeries_updatePlannedDives =>
       'Aggiorna immersioni pianificate';
 
@@ -20832,21 +20839,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String plannerSeries_created(int count) {
-    return '$count immersioni pianificate aggiunte al registro';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni pianificate aggiunte al registro',
+      one: '$count immersione pianificata aggiunta al registro',
+    );
+    return '$_temp0';
   }
 
   @override
   String plannerSeries_updated(int count) {
-    return '$count immersioni pianificate aggiornate nel registro';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni pianificate aggiornate nel registro',
+      one: '$count immersione pianificata aggiornata nel registro',
+    );
+    return '$_temp0';
   }
 
   @override
-  String get plannerSeries_orphans_title =>
-      'Eliminare le immersioni pianificate dal registro?';
+  String get plannerSeries_orphans_title => 'Eliminare dal registro?';
 
   @override
   String plannerSeries_orphans_body(int count) {
-    return '$count immersioni pianificate non più in questa serie sono ancora nel registro.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni pianificate non più in questa serie sono ancora nel registro.',
+      one:
+          '$count immersione pianificata non più in questa serie è ancora nel registro.',
+    );
+    return '$_temp0';
   }
 
   @override

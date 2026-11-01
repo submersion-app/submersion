@@ -33138,6 +33138,18 @@ abstract class AppLocalizations {
   /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
   String plannerSeries_cannotUpdate(String dive);
 
+  /// No description provided for @plannerSeries_createPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Create planned dive'**
+  String get plannerSeries_createPlannedDive;
+
+  /// No description provided for @plannerSeries_updatePlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dive'**
+  String get plannerSeries_updatePlannedDive;
+
   /// No description provided for @plannerSeries_updatePlannedDives.
   ///
   /// In en, this message translates to:
@@ -33153,25 +33165,25 @@ abstract class AppLocalizations {
   /// No description provided for @plannerSeries_created.
   ///
   /// In en, this message translates to:
-  /// **'{count} planned dives added to the log'**
+  /// **'{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}'**
   String plannerSeries_created(int count);
 
   /// No description provided for @plannerSeries_updated.
   ///
   /// In en, this message translates to:
-  /// **'{count} planned dives updated in the log'**
+  /// **'{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}'**
   String plannerSeries_updated(int count);
 
   /// No description provided for @plannerSeries_orphans_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete planned dives from the log?'**
+  /// **'Delete from the log?'**
   String get plannerSeries_orphans_title;
 
   /// No description provided for @plannerSeries_orphans_body.
   ///
   /// In en, this message translates to:
-  /// **'{count} planned dives no longer in this series are still in the log.'**
+  /// **'{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}'**
   String plannerSeries_orphans_body(int count);
 
   /// No description provided for @plannerSeries_orphans_keep.
