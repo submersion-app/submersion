@@ -136,6 +136,9 @@ class DiveSplitService {
       // dive_profile_series.source_id is ON DELETE SET NULL, so reading
       // after would lose the FK ownership signal this rule needs.
       final allProfileSeries = await _profileSeries.getSeriesForDive(diveId);
+      // Also before the deletes: they take the demoted generation an edit is
+      // recognised by.
+      final liveEditIds = await _profileSeries.liveEditIds(diveId);
       final allPressureSeries = await _tankSeries.getSeriesForDive(diveId);
       final movingProfiles = [
         for (final s in allProfileSeries)
@@ -647,14 +650,9 @@ class DiveSplitService {
 
         // An edit that stayed behind describes the dive; the promoted source's
         // row describes a recording the dive is not showing (issue #3931).
-        // Asked of the series read up front: step 13 took the demoted
-        // generation that liveEditIds would recognise it by.
-        final keptEdit = allProfileSeries.any(
-          (s) =>
-              s.isPrimary &&
-              s.computerId == null &&
-              !movingProfiles.contains(s),
-        );
+        final keptEdit = liveEditIds.difference({
+          for (final s in movingProfiles) s.id,
+        }).isNotEmpty;
         final keptDepths = keptEdit
             ? await _profileSeries.liveDepthSummary(diveId)
             : null;

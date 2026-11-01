@@ -485,6 +485,27 @@ void main() {
       expectDepths(await diveRow(), 20, 10);
     });
 
+    test(
+      'keeps a live edit\'s summary over a source with no samples',
+      () async {
+        await seedSource('src-a', computerId: 'dc-a');
+        await seedSource(
+          'src-b',
+          computerId: 'dc-b',
+          isPrimary: false,
+          maxDepth: 28,
+          avgDepth: 14,
+          withSeries: false,
+        );
+        await saveEdit();
+
+        await makePrimary('src-b');
+
+        expect(await liveDepths(), [0, 20, 20, 0]);
+        expectDepths(await diveRow(), 20, 10);
+      },
+    );
+
     test('keeps the summary a source reports when nothing is edited', () async {
       // 14.5 m is the computer's own time-weighted average; the mean of these
       // four samples is 14.
@@ -581,6 +602,26 @@ void main() {
             .write(const DiveProfileSeriesCompanion(isPrimary: Value(true)));
 
         await splitOut('src-a');
+
+        expectDepths(await diveRowOf(diveId), 28, 14.5);
+      },
+    );
+
+    test(
+      'keeps the promoted source\'s summary over an unedited file',
+      () async {
+        // A source with no computer leaves its own primary series behind too,
+        // edited or not. Only an edit takes the summary with it.
+        await seedSource('src-file');
+        await seedSource(
+          'src-b',
+          computerId: 'dc-b',
+          isPrimary: false,
+          maxDepth: 28,
+          avgDepth: 14.5,
+        );
+
+        await splitOut('src-file');
 
         expectDepths(await diveRowOf(diveId), 28, 14.5);
       },
