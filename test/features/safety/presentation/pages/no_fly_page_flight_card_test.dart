@@ -16,23 +16,24 @@ import '../../../../helpers/mock_providers.dart';
 final _tripWindowSource = FutureProvider<int>((ref) async => 0);
 
 void main() {
-  testWidgets('keeps the flight card through a reload', (tester) async {
-    final status = FlightWindowStatus(
-      state: FlightWindowState.open,
-      flightAt: DateTime.utc(2126, 8, 10, 9),
-      deadline: DateTime.utc(2126, 8, 9, 15),
-      category: NoFlyCategory.repetitive,
-      interval: const Duration(hours: 18),
-    );
-    await tester.pumpWidget(
+  final status = FlightWindowStatus(
+    state: FlightWindowState.open,
+    flightAt: DateTime.utc(2126, 8, 10, 9),
+    deadline: DateTime.utc(2126, 8, 9, 15),
+    category: NoFlyCategory.repetitive,
+    interval: const Duration(hours: 18),
+  );
+
+  Future<void> pumpPage(
+    WidgetTester tester,
+    Future<FlightWindowStatus?> Function(Ref ref) window,
+  ) {
+    return tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           noFlyStatusProvider.overrideWith((ref) async => null),
-          activeTripFlightWindowProvider.overrideWith((ref) async {
-            await ref.watch(_tripWindowSource.future);
-            return status;
-          }),
+          activeTripFlightWindowProvider.overrideWith(window),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -42,6 +43,13 @@ void main() {
         ),
       ),
     );
+  }
+
+  testWidgets('keeps the flight card through a reload', (tester) async {
+    await pumpPage(tester, (ref) async {
+      await ref.watch(_tripWindowSource.future);
+      return status;
+    });
     await tester.pump();
     await tester.pump();
     expect(find.byType(FlightWindowCard), findsOneWidget);
@@ -54,5 +62,22 @@ void main() {
       await tester.pump();
       expect(find.byType(FlightWindowCard), findsOneWidget);
     }
+  });
+
+  testWidgets('hides the flight card when the window fails to load', (
+    tester,
+  ) async {
+    await pumpPage(tester, (ref) async => throw StateError('no window'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      ProviderScope.containerOf(
+        tester.element(find.byType(NoFlyPage)),
+      ).read(activeTripFlightWindowProvider).hasError,
+      isTrue,
+    );
+    expect(find.byType(FlightWindowCard), findsNothing);
+    expect(find.byType(NoFlyStatusCard), findsOneWidget);
   });
 }

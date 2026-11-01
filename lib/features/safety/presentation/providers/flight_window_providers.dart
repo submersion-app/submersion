@@ -33,10 +33,6 @@ final tripFlightWindowProvider =
       final preset = ref.watch(settingsProvider.select((s) => s.noFlyPreset));
       final diverId = ref.watch(currentDiverIdProvider);
 
-      // The flight is stored wall-clock-as-UTC. Read it in the device's zone
-      // to get a real instant before taking a guideline interval off it, as
-      // activeNoFlyStatus does for dive end times: interval arithmetic on
-      // clock digits is an hour off across a DST change (issue #3926).
       final now = clock.now().toUtc();
 
       // Asked directly, not by watching noFlyStatusProvider: a dependency
@@ -54,6 +50,11 @@ final tripFlightWindowProvider =
       final category = current?.category == NoFlyCategory.deco
           ? NoFlyCategory.deco
           : NoFlyCategory.repetitive;
+
+      // The flight is stored wall-clock-as-UTC. Read it in the device's zone
+      // to get a real instant before taking a guideline interval off it, as
+      // activeNoFlyStatus does for dive end times: interval arithmetic on
+      // clock digits is an hour off across a DST change (issue #3926).
       final status = const NoFlyService().flightWindow(
         flightAt: fromWallClockUtc(flightAt).toUtc(),
         preset: preset,
