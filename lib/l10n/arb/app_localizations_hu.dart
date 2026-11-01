@@ -16469,17 +16469,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_searchTooltip => 'Felszerelés keresése';
 
   @override
-  String equipment_list_showMore(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count további megjelenítése',
-      one: '1 további megjelenítése',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get equipment_list_sortTitle => 'Felszerelés rendezése';
 
   @override

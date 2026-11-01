@@ -4735,7 +4735,6 @@
   "equipment_locations_notesHint": "כתובת, טלפון, מספר לוקר",
   "equipment_list_retryButton": "נסה שוב",
   "equipment_list_searchTooltip": "חפש ציוד",
-  "equipment_list_showMore": "{count, plural, =1{הצג עוד 1} other{הצג עוד {count}}}",
   "equipment_list_sortTitle": "מיין ציוד",
   "equipment_list_sortTooltip": "מיין",
   "equipment_menu_delete": "מחק",

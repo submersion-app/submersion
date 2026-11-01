@@ -4836,7 +4836,6 @@
   "equipment_locations_notesHint": "العنوان، الهاتف، رقم الخزانة",
   "equipment_list_retryButton": "إعادة المحاولة",
   "equipment_list_searchTooltip": "البحث في المعدات",
-  "equipment_list_showMore": "{count, plural, =1{إظهار 1 إضافي} two{إظهار عنصرين إضافيين} few{إظهار {count} عناصر إضافية} many{إظهار {count} عنصرًا إضافيًا} other{إظهار {count} عنصر إضافي}}",
   "equipment_list_sortTitle": "ترتيب المعدات",
   "equipment_list_sortTooltip": "ترتيب",
   "equipment_menu_delete": "حذف",

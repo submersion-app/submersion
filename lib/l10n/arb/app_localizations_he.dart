@@ -16183,17 +16183,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_searchTooltip => 'חפש ציוד';
 
   @override
-  String equipment_list_showMore(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'הצג עוד $count',
-      one: 'הצג עוד 1',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get equipment_list_sortTitle => 'מיין ציוד';
 
   @override

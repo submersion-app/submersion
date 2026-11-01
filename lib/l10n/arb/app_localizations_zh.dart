@@ -15747,17 +15747,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_searchTooltip => '搜索装备';
 
   @override
-  String equipment_list_showMore(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '显示另外 $count 项',
-      one: '显示另外 1 项',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get equipment_list_sortTitle => '排序装备';
 
   @override

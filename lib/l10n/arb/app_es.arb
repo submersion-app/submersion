@@ -4836,7 +4836,6 @@
   "equipment_locations_notesHint": "Dirección, teléfono, número de taquilla",
   "equipment_list_retryButton": "Reintentar",
   "equipment_list_searchTooltip": "Buscar equipo",
-  "equipment_list_showMore": "{count, plural, =1{Mostrar 1 más} other{Mostrar {count} más}}",
   "equipment_list_sortTitle": "Ordenar equipo",
   "equipment_list_sortTooltip": "Ordenar",
   "equipment_menu_delete": "Eliminar",

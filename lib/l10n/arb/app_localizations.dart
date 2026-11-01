@@ -26536,12 +26536,6 @@ abstract class AppLocalizations {
   /// **'Search Equipment'**
   String get equipment_list_searchTooltip;
 
-  /// No description provided for @equipment_list_showMore.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Show 1 more} other{Show {count} more}}'**
-  String equipment_list_showMore(num count);
-
   /// No description provided for @equipment_list_sortTitle.
   ///
   /// In en, this message translates to:

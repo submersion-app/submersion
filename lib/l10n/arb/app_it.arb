@@ -4735,7 +4735,6 @@
   "equipment_locations_notesHint": "Indirizzo, telefono, numero dell'armadietto",
   "equipment_list_retryButton": "Riprova",
   "equipment_list_searchTooltip": "Cerca attrezzatura",
-  "equipment_list_showMore": "{count, plural, =1{Mostra 1 altro} other{Mostra altri {count}}}",
   "equipment_list_sortTitle": "Ordina attrezzatura",
   "equipment_list_sortTooltip": "Ordina",
   "equipment_menu_delete": "Elimina",

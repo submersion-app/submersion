@@ -4735,7 +4735,6 @@
   "equipment_locations_notesHint": "Cím, telefon, szekrényszám",
   "equipment_list_retryButton": "Újra",
   "equipment_list_searchTooltip": "Felszerelés keresése",
-  "equipment_list_showMore": "{count, plural, =1{1 további megjelenítése} other{{count} további megjelenítése}}",
   "equipment_list_sortTitle": "Felszerelés rendezése",
   "equipment_list_sortTooltip": "Rendezés",
   "equipment_menu_delete": "Törlés",
