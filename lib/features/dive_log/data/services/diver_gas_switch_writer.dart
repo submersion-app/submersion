@@ -17,9 +17,11 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 /// leave alone, and its stored safety review is dropped so it is rebuilt
 /// from the new switches.
 class DiverGasSwitchWriter {
+  /// A [db] given without [sync] binds the sync repository to that same
+  /// database, so rows and their pending records never split across two.
   DiverGasSwitchWriter({AppDatabase? db, SyncRepository? sync})
     : _db = db ?? DatabaseService.instance.database,
-      _sync = sync ?? SyncRepository();
+      _sync = sync ?? SyncRepository(database: db);
 
   final AppDatabase _db;
   final SyncRepository _sync;

@@ -10,7 +10,8 @@ extension _GasSwitchEditing on _DiveEditPageState {
       _tanks.length >= 2 && _diveMode != DiveMode.gauge && !_isPlanned;
 
   /// The switches that apply to the dive's primary computer: its own plus
-  /// any that carry no computer. Another computer's are left alone.
+  /// any that carry no computer. Another computer's are left alone, and a
+  /// dive with no primary computer shows the untagged ones only.
   Future<List<GasSwitch>> _loadGasSwitches(Dive dive) async {
     final withTank = await ref
         .read(diveRepositoryProvider)
@@ -18,7 +19,10 @@ extension _GasSwitchEditing on _DiveEditPageState {
     final computer = dive.computerId;
     return _inTimeOrder([
       for (final g in withTank)
-        if (computer == null || g.gasSwitch.appliesTo(computer)) g.gasSwitch,
+        if (computer == null
+            ? g.gasSwitch.computerId == null
+            : g.gasSwitch.appliesTo(computer))
+          g.gasSwitch,
     ]);
   }
 

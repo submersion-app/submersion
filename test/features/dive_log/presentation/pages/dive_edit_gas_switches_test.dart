@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart' show GasSwitche;
+import 'package:submersion/core/database/database.dart'
+    show DiveComputersCompanion, GasSwitche, GasSwitchesCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -260,6 +261,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(rowIds(), ['gas-switch-time-gs-b', 'gas-switch-time-gs-a']);
   });
+
+  testWidgets(
+    'a dive with no primary computer shows the untagged switches only',
+    (tester) async {
+      final dive = await seedDive();
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.diveComputers)
+          .insert(
+            const DiveComputersCompanion(
+              id: Value('comp-x'),
+              name: Value('Secondary'),
+              createdAt: Value(0),
+              updatedAt: Value(0),
+            ),
+          );
+      for (final (id, computer) in [
+        ('gs-plain', null),
+        ('gs-tagged', 'comp-x'),
+      ]) {
+        await db
+            .into(db.gasSwitches)
+            .insert(
+              GasSwitchesCompanion.insert(
+                id: id,
+                diveId: dive.id,
+                tankId: 'tank-deco',
+                timestamp: id == 'gs-plain' ? 600 : 900,
+                createdAt: 0,
+                computerId: Value(computer),
+              ),
+            );
+      }
+      await pumpEditor(tester, dive.id);
+      await openGasGear(tester);
+
+      final rows = tester
+          .widgetList<MinutesSecondsField>(find.byType(MinutesSecondsField))
+          .map((f) => (f.key as ValueKey<String>).value)
+          .toList();
+      expect(rows, ['gas-switch-time-gs-plain']);
+    },
+  );
 
   testWidgets('a dive with one tank shows no gas switch list', (tester) async {
     final dive = await seedDive(tanks: const [back]);

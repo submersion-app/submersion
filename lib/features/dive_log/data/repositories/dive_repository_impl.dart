@@ -2646,12 +2646,22 @@ class DiveRepository {
         // This will cascade to both tank_pressure_series and gas_switches for removed tanks
         final tanksToDelete = existingTankIds.difference(updatedTankIds);
         for (final tankId in tanksToDelete) {
+          // SQLite cascades the cylinder's gas switches without Drift seeing
+          // a write, so their tombstones are logged here, whichever computer
+          // they belong to (issue #32); without them a peer keeps the rows.
+          final cascadedSwitches = await (_db.select(
+            _db.gasSwitches,
+          )..where((t) => t.tankId.equals(tankId))).get();
           await (_db.delete(
             _db.diveTanks,
           )..where((t) => t.id.equals(tankId))).go();
           await _syncRepository.logDeletion(
             entityType: 'diveTanks',
             recordId: tankId,
+          );
+          await _syncRepository.logDeletions(
+            entityType: 'gasSwitches',
+            recordIds: cascadedSwitches.map((s) => s.id),
           );
         }
 

@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
@@ -321,6 +323,46 @@ void main() {
       expect((await row('gs-new-dive'))?.tankId, 'new-deco');
     },
   );
+
+  test('a writer given only a database keeps its sync records in it', () async {
+    // A caller that injects the database but not the sync repository must
+    // not write rows in one database and pending records in another.
+    final other = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(other.close);
+    await other
+        .into(other.dives)
+        .insert(
+          DivesCompanion(
+            id: const Value('o-dive'),
+            diveDateTime: Value(seededAt),
+            notes: const Value(''),
+            createdAt: Value(seededAt),
+            updatedAt: Value(seededAt),
+          ),
+        );
+    await other
+        .into(other.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 'o-tank', diveId: 'o-dive'));
+
+    final changed = await DiverGasSwitchWriter(db: other).save(
+      diveId: 'o-dive',
+      switches: [sw(id: 'o-gs', timestamp: 0, tankId: 'o-tank')],
+      loadedIds: const {},
+      now: now,
+    );
+
+    expect(changed, isTrue);
+    final pendingInOther =
+        await (other.select(other.syncRecords)..where(
+              (t) =>
+                  t.entityType.equals('gasSwitches') &
+                  t.recordId.equals('o-gs'),
+            ))
+            .get();
+    expect(pendingInOther, isNotEmpty);
+  });
 
   test('an unchanged list writes nothing', () async {
     final reviews = SafetyFindingsRepository(db: db, syncRepository: sync);
