@@ -25,6 +25,11 @@ enum PlanIssueType {
   /// (#3961). [PlanIssue.value] is the plan's deepest point and
   /// [PlanIssue.threshold] the deepest MOD carried, both in meters.
   noEligibleBailoutGas,
+
+  /// A loop plan's bailout gases stop being breathable on the way up (#4008).
+  /// [PlanIssue.atDepth] is where, and [PlanIssue.value] the inspired ppO2
+  /// there, in bar.
+  bailoutGasHypoxic,
   minGasViolation,
 
   /// A back gas whose rock-bottom minimum is at or above its fill, so no
