@@ -602,4 +602,340 @@ void main() {
       expect(corrected[4].north, isNot(points[4].north));
     });
   });
+
+  group('NavTrackCorrection.scaleFactor', () {
+    // A pre-dive fix, the real dive, then a post-dive fix: the first active
+    // sample is index 3 and the last is index 5.
+    List<NavTrackPoint> fixBeforeAndAfter() => [
+      _p(timestamp: 0, north: 0, east: 0, depth: 0),
+      _p(timestamp: 2, north: 300, east: 0, depth: 0),
+      _p(timestamp: 4, north: 302, east: 1, depth: 0),
+      _p(timestamp: 6, north: 302, east: 5, depth: 5),
+      _p(timestamp: 8, north: 305, east: 8, depth: 12),
+      _p(timestamp: 10, north: 305, east: 8, depth: 0),
+      _p(timestamp: 12, north: 700, east: 100, depth: 0),
+      _p(timestamp: 14, north: 702, east: 101, depth: 0),
+    ];
+
+    // A closed square: the end already sits on the start.
+    List<NavTrackPoint> squareLoop() => [
+      _p(timestamp: 0, depth: 5),
+      _p(timestamp: 60, north: 100, depth: 5),
+      _p(timestamp: 120, north: 100, east: 100, depth: 5),
+      _p(timestamp: 180, east: 100, depth: 5),
+      _p(timestamp: 240, depth: 5),
+    ];
+
+    test('scales east and north about the first active sample', () {
+      final points = [
+        _p(depth: 5),
+        _p(timestamp: 1, north: 10, depth: 5),
+        _p(timestamp: 2, north: 10, east: 20, depth: 5),
+      ];
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(scaleFactor: 2),
+      );
+      expect(out[0].north, 0);
+      expect(out[1].north, closeTo(20, 1e-9));
+      expect(out[2].north, closeTo(20, 1e-9));
+      expect(out[2].east, closeTo(40, 1e-9));
+    });
+
+    test('depth and timestamp pass through', () {
+      final points = squareLoop();
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(scaleFactor: 1.5),
+      );
+      for (var i = 0; i < points.length; i++) {
+        expect(out[i].depth, points[i].depth);
+        expect(out[i].timestamp, points[i].timestamp);
+      }
+    });
+
+    test('1.0 is identical to a correction with no scale', () {
+      final points = fixBeforeAndAfter();
+      final withScale = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(headingOffsetDeg: 12, scaleFactor: 1),
+      );
+      final without = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(headingOffsetDeg: 12),
+      );
+      for (var i = 0; i < points.length; i++) {
+        expect(withScale[i].north, without[i].north);
+        expect(withScale[i].east, without[i].east);
+      }
+    });
+
+    test('pivots on the first active sample when a pre-dive fix moves it off '
+        'the origin', () {
+      final points = fixBeforeAndAfter();
+      final range = NavTrackCorrector.activeRange(points);
+      expect(range.start, 3);
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(scaleFactor: 2),
+      );
+      expect(out[range.start].north, points[range.start].north);
+      expect(out[range.start].east, points[range.start].east);
+      // (305, 8) is (3, 3) from the pivot, so doubling lands it at (308, 11).
+      expect(out[4].north, closeTo(308, 1e-9));
+      expect(out[4].east, closeTo(11, 1e-9));
+    });
+
+    test('leaves samples before the active range alone', () {
+      final points = fixBeforeAndAfter();
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(scaleFactor: 2),
+      );
+      for (var i = 0; i < 3; i++) {
+        expect(out[i].north, points[i].north);
+        expect(out[i].east, points[i].east);
+      }
+    });
+
+    test('leaves samples after the active range alone', () {
+      final points = fixBeforeAndAfter();
+      final range = NavTrackCorrector.activeRange(points);
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(scaleFactor: 2),
+      );
+      for (var i = range.end + 1; i < points.length; i++) {
+        expect(out[i].north, points[i].north);
+        expect(out[i].east, points[i].east);
+      }
+    });
+
+    test('scales about the pivot after rotation', () {
+      final points = [
+        _p(depth: 5),
+        _p(timestamp: 1, north: 10, depth: 5),
+        _p(timestamp: 2, north: 20, depth: 5),
+      ];
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(headingOffsetDeg: 90, scaleFactor: 2),
+      );
+      expect(out[2].east, closeTo(40, 1e-9));
+      expect(out[2].north, closeTo(0, 1e-9));
+    });
+
+    test('sameAsStart still closes the route', () {
+      final points = [
+        _p(depth: 5),
+        _p(timestamp: 60, north: 100, depth: 5),
+        _p(timestamp: 120, north: 100, east: 100, depth: 5),
+        _p(timestamp: 180, north: 20, east: 10, depth: 5),
+      ];
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.sameAsStart,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out.last.north, closeTo(out.first.north, 1e-9));
+      expect(out.last.east, closeTo(out.first.east, 1e-9));
+    });
+
+    test('a loop changes size under sameAsStart', () {
+      final out = NavTrackCorrector.apply(
+        squareLoop(),
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.sameAsStart,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out[2].north, closeTo(200, 1e-9));
+      expect(out[2].east, closeTo(200, 1e-9));
+    });
+
+    test('point mode lands on the point', () {
+      const anchor = GeoPoint(10, 20);
+      final endPoint = offsetToGeoPoint(anchor, east: 40, north: 60);
+      final out = NavTrackCorrector.apply(
+        squareLoop(),
+        NavTrackCorrection(
+          anchor: anchor,
+          endMode: NavTrackEndMode.point,
+          endPoint: endPoint,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out.last.east, closeTo(40, 1e-6));
+      expect(out.last.north, closeTo(60, 1e-6));
+    });
+
+    test('gpsFix lands on the unscaled target', () {
+      final points = [
+        _p(timestamp: 0, north: 0, east: 0, depth: 5, distance: 0),
+        _p(timestamp: 2, north: 100, east: 0, depth: 0, distance: 100),
+        _p(timestamp: 4, north: 500, east: 20, depth: 0, distance: 100),
+      ];
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.gpsFix,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out[1].north, closeTo(500, 1e-6));
+      expect(out[1].east, closeTo(20, 1e-6));
+    });
+
+    test('samples before the trust mark are scaled too', () {
+      final points = [
+        _p(depth: 5),
+        _p(timestamp: 60, north: 100, depth: 5),
+        _p(timestamp: 120, north: 200, depth: 5),
+        _p(timestamp: 180, north: 300, depth: 5),
+        _p(timestamp: 240, north: 400, depth: 5),
+      ];
+      final out = NavTrackCorrector.apply(
+        points,
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.sameAsStart,
+          trustFraction: 0.5,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out[1].north, closeTo(200, 1e-9));
+    });
+
+    test('trust fraction 1 returns the scaled list', () {
+      final out = NavTrackCorrector.apply(
+        squareLoop(),
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.sameAsStart,
+          trustFraction: 1,
+          scaleFactor: 2,
+        ),
+      );
+      expect(out[2].north, closeTo(200, 1e-9));
+    });
+
+    test('a route with no target returns the scaled list', () {
+      final out = NavTrackCorrector.apply(
+        straightRoute(),
+        const NavTrackCorrection(
+          endMode: NavTrackEndMode.gpsFix,
+          scaleFactor: 2,
+        ),
+      );
+      final raw = straightRoute();
+      expect(out.last.north, closeTo(2 * raw.last.north, 1e-9));
+    });
+
+    test('copyWith carries the scale and defaults to 1', () {
+      expect(const NavTrackCorrection().scaleFactor, 1);
+      expect(
+        const NavTrackCorrection().copyWith(scaleFactor: 1.5).scaleFactor,
+        1.5,
+      );
+      expect(
+        const NavTrackCorrection(
+          scaleFactor: 1.5,
+        ).copyWith(headingOffsetDeg: 3).scaleFactor,
+        1.5,
+      );
+    });
+  });
+
+  group('NavTrackCorrector.endIsPinned', () {
+    const anchor = GeoPoint(10, 20);
+    const endPoint = GeoPoint(10.001, 20.001);
+
+    List<NavTrackPoint> withPostDiveFix() => [
+      _p(timestamp: 0, north: 0, east: 0, depth: 5, distance: 0),
+      _p(timestamp: 2, north: 100, east: 0, depth: 0, distance: 100),
+      _p(timestamp: 4, north: 500, east: 20, depth: 0, distance: 100),
+    ];
+
+    test('a complete end point pins the end', () {
+      expect(
+        NavTrackCorrector.endIsPinned(
+          straightRoute(),
+          const NavTrackCorrection(
+            anchor: anchor,
+            endMode: NavTrackEndMode.point,
+            endPoint: endPoint,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a GPS fix after the dive pins the end', () {
+      expect(
+        NavTrackCorrector.endIsPinned(
+          withPostDiveFix(),
+          const NavTrackCorrection(endMode: NavTrackEndMode.gpsFix),
+        ),
+        isTrue,
+      );
+    });
+
+    test('no end and same as start do not pin the end', () {
+      for (final mode in [NavTrackEndMode.none, NavTrackEndMode.sameAsStart]) {
+        expect(
+          NavTrackCorrector.endIsPinned(
+            straightRoute(),
+            NavTrackCorrection(endMode: mode),
+          ),
+          isFalse,
+        );
+      }
+    });
+
+    test('an end point with no coordinates yet does not pin the end', () {
+      expect(
+        NavTrackCorrector.endIsPinned(
+          straightRoute(),
+          const NavTrackCorrection(
+            anchor: anchor,
+            endMode: NavTrackEndMode.point,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        NavTrackCorrector.endIsPinned(
+          straightRoute(),
+          const NavTrackCorrection(
+            endMode: NavTrackEndMode.point,
+            endPoint: endPoint,
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('gpsFix on a recording with no fix does not pin the end', () {
+      expect(
+        NavTrackCorrector.endIsPinned(
+          straightRoute(),
+          const NavTrackCorrection(endMode: NavTrackEndMode.gpsFix),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a trust fraction of 1 does not pin the end', () {
+      expect(
+        NavTrackCorrector.endIsPinned(
+          withPostDiveFix(),
+          const NavTrackCorrection(
+            endMode: NavTrackEndMode.gpsFix,
+            trustFraction: 1,
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
 }

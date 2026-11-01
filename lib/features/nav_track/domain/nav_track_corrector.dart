@@ -9,7 +9,8 @@ import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 /// says it actually ended.
 enum NavTrackEndMode {
   /// No drift correction: the route is used exactly as recorded (after
-  /// [NavTrackCorrection.headingOffsetDeg] rotation).
+  /// [NavTrackCorrection.headingOffsetDeg] rotation and
+  /// [NavTrackCorrection.scaleFactor]).
   none,
 
   /// The route should end where it started -- a loop.
@@ -51,12 +52,24 @@ class NavTrackCorrection {
   /// before any drift correction.
   final double headingOffsetDeg;
 
+  /// Multiplier on the track's horizontal size, about the dive's first
+  /// active sample, applied after rotation and before any drift correction.
+  /// 1 (default) leaves the size as recorded. Never touches depth or time,
+  /// and recorded distance and speed readouts do not follow it.
+  final double scaleFactor;
+
+  /// The range a diver can set, 25% to 400%: wide enough for a real unit
+  /// mix-up (feet read as metres is about 30%).
+  static const double minScaleFactor = 0.25;
+  static const double maxScaleFactor = 4;
+
   const NavTrackCorrection({
     this.anchor,
     this.endMode = NavTrackEndMode.none,
     this.endPoint,
     this.trustFraction = 0,
     this.headingOffsetDeg = 0,
+    this.scaleFactor = 1,
   });
 
   NavTrackCorrection copyWith({
@@ -65,6 +78,7 @@ class NavTrackCorrection {
     GeoPoint? endPoint,
     double? trustFraction,
     double? headingOffsetDeg,
+    double? scaleFactor,
   }) {
     return NavTrackCorrection(
       anchor: anchor ?? this.anchor,
@@ -72,11 +86,12 @@ class NavTrackCorrection {
       endPoint: endPoint ?? this.endPoint,
       trustFraction: trustFraction ?? this.trustFraction,
       headingOffsetDeg: headingOffsetDeg ?? this.headingOffsetDeg,
+      scaleFactor: scaleFactor ?? this.scaleFactor,
     );
   }
 }
 
-/// One sample after rotation and drift correction: the local frame the 2D
+/// One sample after rotation, scale and drift correction: the local frame the 2D
 /// layer, the 3D adapter, and the terrain check all read from. Depth and
 /// timestamp pass through [NavTrackCorrector.apply] unchanged.
 class CorrectedNavTrackPoint {
@@ -218,8 +233,72 @@ class NavTrackCorrector {
       for (final p in points) _rotate(p, correction.headingOffsetDeg),
     ];
 
-    final target = _resolveTarget(points, rotated, correction);
-    if (target == null) return rotated;
+    final scaled = correction.scaleFactor == 1
+        ? rotated
+        : _scale(rotated, activeRange(points), correction.scaleFactor);
+
+    final stretch = _stretchOf(points, scaled, correction);
+    if (stretch == null) return scaled;
+    final target = stretch.target;
+    final cumulative = stretch.cumulative;
+    final sTrust = stretch.sTrust;
+    final denominator = stretch.denominator;
+
+    final last = scaled[target.end];
+    final residualEast = target.east - last.east;
+    final residualNorth = target.north - last.north;
+
+    return [
+      for (var i = 0; i < scaled.length; i++)
+        if (i < target.start || i > target.end || cumulative[i] <= sTrust)
+          scaled[i]
+        else
+          _shift(
+            scaled[i],
+            residualEast * (cumulative[i] - sTrust) / denominator,
+            residualNorth * (cumulative[i] - sTrust) / denominator,
+          ),
+    ];
+  }
+
+  /// Whether [correction] fixes the route's end to a place other than its
+  /// start: an end point or GPS fix that [apply] really reaches. The end
+  /// sample then lands on that target whatever the scale, so the target sets
+  /// the route's overall size and a scale only reshapes the path before it.
+  ///
+  /// [NavTrackEndMode.sameAsStart] does not count: its target is the pivot,
+  /// so a scale still resizes the route. Shares [apply]'s own rule, so an
+  /// incomplete end point, a missing fix or a trust fraction of 1 all read
+  /// as not pinned.
+  static bool endIsPinned(
+    List<NavTrackPoint> points,
+    NavTrackCorrection correction,
+  ) {
+    if (points.isEmpty) return false;
+    if (correction.endMode == NavTrackEndMode.sameAsStart) return false;
+    final rotated = [
+      for (final p in points) _rotate(p, correction.headingOffsetDeg),
+    ];
+    return _stretchOf(points, rotated, correction) != null;
+  }
+
+  /// The proportional correction [correction] asks of [samples], or null when
+  /// there is none to make: no target, or (trust fraction 1, or a zero-length
+  /// active range) nothing to distribute the residual over, so the recording
+  /// stands as it is.
+  static ({
+    ({double east, double north, int start, int end}) target,
+    List<double> cumulative,
+    double sTrust,
+    double denominator,
+  })?
+  _stretchOf(
+    List<NavTrackPoint> points,
+    List<CorrectedNavTrackPoint> samples,
+    NavTrackCorrection correction,
+  ) {
+    final target = _resolveTarget(points, samples, correction);
+    if (target == null) return null;
 
     final cumulative = cumulativeDistances(
       points,
@@ -229,29 +308,13 @@ class NavTrackCorrector {
     final sLast = cumulative[target.end];
     final sTrust = correction.trustFraction.clamp(0.0, 1.0) * sLast;
     final denominator = sLast - sTrust;
-
-    if (denominator <= 0) {
-      // trustFraction is 1 (or numerically indistinguishable from it), or
-      // the active range has zero length: there is nothing to distribute
-      // the residual over, so the recording stands as rotated.
-      return rotated;
-    }
-
-    final last = rotated[target.end];
-    final residualEast = target.east - last.east;
-    final residualNorth = target.north - last.north;
-
-    return [
-      for (var i = 0; i < rotated.length; i++)
-        if (i < target.start || i > target.end || cumulative[i] <= sTrust)
-          rotated[i]
-        else
-          _shift(
-            rotated[i],
-            residualEast * (cumulative[i] - sTrust) / denominator,
-            residualNorth * (cumulative[i] - sTrust) / denominator,
-          ),
-    ];
+    if (denominator <= 0) return null;
+    return (
+      target: target,
+      cumulative: cumulative,
+      sTrust: sTrust,
+      denominator: denominator,
+    );
   }
 
   /// The correction target and the active range (start and end index) the
@@ -274,19 +337,19 @@ class NavTrackCorrector {
   /// on a sample that is not actually where the dive began.
   static ({double east, double north, int start, int end})? _resolveTarget(
     List<NavTrackPoint> points,
-    List<CorrectedNavTrackPoint> rotated,
+    List<CorrectedNavTrackPoint> samples,
     NavTrackCorrection correction,
   ) {
     if (correction.endMode == NavTrackEndMode.none) return null;
 
     final segmentation = NavTrackSegmenter.classify(points);
-    final range = _activeRange(segmentation, rotated.length);
+    final range = _activeRange(segmentation, samples.length);
 
     switch (correction.endMode) {
       case NavTrackEndMode.none:
         return null; // handled above; unreachable here
       case NavTrackEndMode.sameAsStart:
-        final startPoint = rotated[range.start];
+        final startPoint = samples[range.start];
         return (
           east: startPoint.east,
           north: startPoint.north,
@@ -389,6 +452,28 @@ class NavTrackCorrector {
       end++;
     }
     return (start: start, end: end);
+  }
+
+  /// Scales the samples of [range] about its first sample, leaving everything
+  /// outside it alone: those are GPS-derived, not dead-reckoned.
+  static List<CorrectedNavTrackPoint> _scale(
+    List<CorrectedNavTrackPoint> samples,
+    ({int start, int end}) range,
+    double scaleFactor,
+  ) {
+    final pivot = samples[range.start];
+    return [
+      for (var i = 0; i < samples.length; i++)
+        if (i < range.start || i > range.end)
+          samples[i]
+        else
+          CorrectedNavTrackPoint(
+            timestamp: samples[i].timestamp,
+            east: pivot.east + (samples[i].east - pivot.east) * scaleFactor,
+            north: pivot.north + (samples[i].north - pivot.north) * scaleFactor,
+            depth: samples[i].depth,
+          ),
+    ];
   }
 
   static CorrectedNavTrackPoint _rotate(
