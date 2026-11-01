@@ -125,6 +125,60 @@ void main() {
     expect(dive.avgDepth, avgDepth);
   }
 
+  group('liveEditIds', () {
+    Future<Set<String>> editIds() =>
+        ProfileSeriesRepository().liveEditIds(diveId);
+
+    Future<String> liveSeriesId() async => (await (db.select(
+      db.diveProfileSeries,
+    )..where((t) => t.isPrimary.equals(true))).getSingle()).id;
+
+    test('finds an edit of a computer source', () async {
+      await seedSource('src-a', computerId: 'dc-a');
+      await saveEdit();
+
+      expect(await editIds(), {await liveSeriesId()});
+    });
+
+    test('finds an edit of a file source', () async {
+      await seedSource('src-file');
+      await saveEdit();
+
+      expect(await editIds(), {await liveSeriesId()});
+    });
+
+    test('finds an edit that lost its source', () async {
+      await seedSource('src-a', computerId: 'dc-a');
+      await seedSource('src-file', isPrimary: false);
+      await saveEdit();
+      final series = ProfileSeriesRepository();
+      await series.deleteByComputer(diveId, 'dc-a');
+      await series.clearSource('src-a');
+
+      expect(await editIds(), {await liveSeriesId()});
+    });
+
+    test('finds nothing under an unedited computer series', () async {
+      await seedSource('src-a', computerId: 'dc-a');
+      await seedSource('src-b', computerId: 'dc-b', isPrimary: false);
+
+      expect(await editIds(), isEmpty);
+    });
+
+    test('finds nothing in an unedited file over a second computer', () async {
+      await seedSource('src-file');
+      await seedSource('src-b', computerId: 'dc-b', isPrimary: false);
+
+      expect(await editIds(), isEmpty);
+    });
+
+    test('finds nothing in a file with nothing beneath it', () async {
+      await seedSource('src-file');
+
+      expect(await editIds(), isEmpty);
+    });
+  });
+
   group('a computer re-parse', () {
     pigeon.ParsedDive parsedRecording({
       double maxDepth = 30,
@@ -198,6 +252,30 @@ void main() {
 
       expectDepths(await diveRow(), 20, 10);
     });
+
+    test(
+      'reads the edit once a stale primary series beside it is gone',
+      () async {
+        // A re-parse before #3189 inserted the recording primary beside the edit.
+        await seedSource('src-a', computerId: 'dc-a');
+        await saveEdit();
+        await ProfileSeriesRepository().insertSeries(
+          diveId: diveId,
+          computerId: 'dc-a',
+          sourceId: 'src-a',
+          samples: [
+            for (final (timestamp, depth) in recorded)
+              ProfileSample(timestamp: timestamp, depth: depth),
+          ],
+          now: now,
+        );
+
+        await reparse(parsedRecording());
+
+        expect(await liveDepths(), [0, 20, 20, 0]);
+        expectDepths(await diveRow(), 20, 10);
+      },
+    );
 
     test('keeps the edit\'s summary when it does not own the strand', () async {
       await seedSource('src-a', computerId: 'dc-a');
@@ -312,6 +390,28 @@ void main() {
 
       await resync(parsedFile());
 
+      expectDepths(await diveRow(), 20, 10);
+    });
+
+    test('keeps an edit that lost its source', () async {
+      // Replace Source clears the source of the edit it leaves behind, which
+      // can then sit over a demoted series that does name its source.
+      final series = ProfileSeriesRepository();
+      await seedSource('src-a', computerId: 'dc-a');
+      await seedSource('src-file', isPrimary: false);
+      await saveEdit();
+      await series.deleteByComputer(diveId, 'dc-a');
+      await series.clearSource('src-a');
+      await (db.delete(
+        db.diveDataSources,
+      )..where((t) => t.id.equals('src-a'))).go();
+      await (db.update(db.diveDataSources)
+            ..where((t) => t.id.equals('src-file')))
+          .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
+
+      await resync(parsedFile());
+
+      expect(await liveDepths(), [0, 20, 20, 0]);
       expectDepths(await diveRow(), 20, 10);
     });
 
@@ -464,6 +564,27 @@ void main() {
       expect(await liveDepthsOf(diveId), [0, 20, 20, 0]);
       expectDepths(await diveRowOf(diveId), 20, 10);
     });
+
+    test(
+      'keeps the promoted source\'s summary over its own live series',
+      () async {
+        await seedSource('src-a', computerId: 'dc-a');
+        await seedSource(
+          'src-b',
+          computerId: 'dc-b',
+          isPrimary: false,
+          maxDepth: 28,
+          avgDepth: 14.5,
+        );
+        await (db.update(db.diveProfileSeries)
+              ..where((t) => t.sourceId.equals('src-b')))
+            .write(const DiveProfileSeriesCompanion(isPrimary: Value(true)));
+
+        await splitOut('src-a');
+
+        expectDepths(await diveRowOf(diveId), 28, 14.5);
+      },
+    );
 
     test('keeps the source\'s summary when nothing is edited', () async {
       await seedSource('src-a', computerId: 'dc-a', avgDepth: 15.5);

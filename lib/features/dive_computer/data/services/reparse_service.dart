@@ -174,7 +174,7 @@ class ReparseService {
       ));
 
       // ------------------------------------------------------------------
-      // 2. Check isPrimary -- only update Dives row if the source is primary
+      // 2. Read the source row: its isPrimary gates the Dives row in step 4
       // ------------------------------------------------------------------
       final sourceRow = await (db.select(
         db.diveDataSources,
@@ -188,19 +188,6 @@ class ReparseService {
           sourceRow.computerId != null &&
           await _profileSeries.hasLiveEdit(diveId, sourceId: sourceRow.id);
 
-      if (sourceRow.isPrimary) {
-        // ----------------------------------------------------------------
-        // 3. Update Dives row (allowlisted columns only)
-        // ----------------------------------------------------------------
-        await _updateDiveRow(
-          diveId: diveId,
-          parsed: parsed,
-          now: now,
-          vendor: descriptorVendor,
-          beneathEdit: beneathEdit,
-        );
-      }
-
       final sourceRows = await (db.select(
         db.diveDataSources,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -208,7 +195,7 @@ class ReparseService {
       final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
       // ------------------------------------------------------------------
-      // 4. Replace DiveProfiles for this source's computerId -- but only
+      // 3. Replace DiveProfiles for this source's computerId -- but only
       //    when this source actually authored that strand in its own parse
       //    frame (#1164).
       // ------------------------------------------------------------------
@@ -235,6 +222,21 @@ class ReparseService {
           isPrimary: sourceRow.isPrimary,
           beneathEdit: beneathEdit,
           timeOffset: sourceRow.timeOffsetSeconds ?? 0,
+        );
+      }
+
+      // ------------------------------------------------------------------
+      // 4. Update Dives row (allowlisted columns only). After the profile:
+      //    a dive re-parsed before #3189 holds its recording live beside the
+      //    edit, and the depths under an edit are read from what stays live.
+      // ------------------------------------------------------------------
+      if (sourceRow.isPrimary) {
+        await _updateDiveRow(
+          diveId: diveId,
+          parsed: parsed,
+          now: now,
+          vendor: descriptorVendor,
+          beneathEdit: beneathEdit,
         );
       }
 

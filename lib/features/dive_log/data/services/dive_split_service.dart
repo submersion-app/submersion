@@ -615,8 +615,7 @@ class DiveSplitService {
         // `promoted.computerId != null`, so a file-imported source promoted
         // nothing and left the remaining dive with zero is_primary series --
         // the same stranding as issue #1149.
-        final keepsLiveSeries = await _profileSeries.hasPrimarySeries(diveId);
-        if (!keepsLiveSeries) {
+        if (!await _profileSeries.hasPrimarySeries(diveId)) {
           await _profileSeries.promoteOwnedBy(
             diveId,
             sourceId: promoted.id,
@@ -646,9 +645,17 @@ class DiveSplitService {
         // one graded the computer that just left.
         await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
 
-        // Samples that stayed live describe the dive; the promoted source's
+        // An edit that stayed behind describes the dive; the promoted source's
         // row describes a recording the dive is not showing (issue #3931).
-        final keptDepths = keepsLiveSeries
+        // Asked of the series read up front: step 13 took the demoted
+        // generation that liveEditIds would recognise it by.
+        final keptEdit = allProfileSeries.any(
+          (s) =>
+              s.isPrimary &&
+              s.computerId == null &&
+              !movingProfiles.contains(s),
+        );
+        final keptDepths = keptEdit
             ? await _profileSeries.liveDepthSummary(diveId)
             : null;
 

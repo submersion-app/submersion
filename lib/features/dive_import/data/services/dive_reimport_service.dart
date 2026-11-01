@@ -137,9 +137,10 @@ class DiveReimportService {
 
       // Outside the ownership gate, inside a primary-source one: the dive's
       // summary belongs to whichever source is primary, which on a resync is
-      // the row that names the stored file. `ReparseService` writes the dive
-      // row on exactly this rule. A dive with no primary row has nobody
-      // claiming to have authored the summary, so nothing overwrites it.
+      // the row that names the stored file, save the depths of a live edit
+      // (see [_updateDiveRow]). `ReparseService` writes the dive row on
+      // exactly this rule. A dive with no primary row has nobody claiming to
+      // have authored the summary, so nothing overwrites it.
       if (primary != null || sourceRows.isEmpty) {
         await _updateDiveRow(diveId: diveId, diveData: diveData, now: now);
       }

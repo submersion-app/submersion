@@ -703,6 +703,12 @@ class ProfileSeriesRepository {
   /// demoted series another source owns says nothing, which is every dive
   /// with a second computer below an unedited file. History would name an
   /// edit outright, but it does not sync, so a peer holds the edit without it.
+  ///
+  /// A live series with no source counts whatever lies beneath it, where
+  /// [hasLiveEdit] refuses it: `clearSource` strips the source of an edit
+  /// that outlives its row, and a resync deletes what this does not name. The
+  /// price is that a merge's surface fill can read as an edit here, which
+  /// only makes a dive's depths come from the samples it shows.
   Future<Set<String>> liveEditIds(String diveId) async {
     final series = await getIdentitiesForDive(diveId);
     return {
@@ -712,7 +718,9 @@ class ProfileSeriesRepository {
             series.any(
               (s) =>
                   !s.isPrimary &&
-                  (s.sourceId == null || s.sourceId == live.sourceId),
+                  (live.sourceId == null ||
+                      s.sourceId == null ||
+                      s.sourceId == live.sourceId),
             ))
           live.id,
     };
