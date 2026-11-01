@@ -30,7 +30,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interac
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -76,7 +76,7 @@ class SiteTerrainPane extends ConsumerStatefulWidget {
 const double _minOverlayColumnWidth = 160;
 
 class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   /// A playbackContext means this pane is showing one dive's or route's own
   /// path on top of the site scene; the site scene itself then has no
   /// reason to carry every OTHER dive's path too (issue #3571), so every
@@ -87,7 +87,8 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   // [_player] once [SiteTerrainPane.playbackContext] is set. The mixin is
   // unconditional (Dart mixins can't be added only for some instances), but
   // [_player] itself is only ever created below when there is a context to
-  // play back, so the site-only path pays nothing for it.
+  // play back, so the site-only path pays nothing for it. Not the
+  // single-ticker mixin: [_syncPlayer] can create a player more than once.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
 
   /// The docked control card's laid-out size, and whether it held the
@@ -155,7 +156,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
 
   /// Creates or disposes [_player] to match whether
   /// [SiteTerrainPane.playbackContext] is currently set. An existing
-  /// controller is kept, so a dive-to-dive or route-to-route switch keeps
+  /// player is kept, so a dive-to-dive or route-to-route switch keeps
   /// the timeline position instead of restarting playback from 0.
   void _syncPlayer() {
     if (widget.playbackContext == null) {
@@ -164,26 +165,11 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
       _scrub.value = 0;
       return;
     }
-    if (_player != null) return;
-    // Playback reaching the end stops the controller on its own, with no
-    // call to _togglePlay -- without this, the pane never rebuilds for that,
-    // so _timeline()'s cached `player.isPlaying` read (captured at the last
-    // build) keeps reading true and the pause icon stays up forever after
-    // the timeline finishes (code review).
-    _player = ScenePlayer(
+    _player ??= ScenePlayer(
       vsync: this,
       duration: const Duration(seconds: 45),
       position: _scrub,
-      onEdgeReached: () {
-        if (mounted) setState(() {});
-      },
     );
-  }
-
-  void _togglePlay() {
-    final player = _player;
-    if (player == null) return;
-    setState(player.togglePlay);
   }
 
   @override
@@ -620,14 +606,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane>
   Widget _timeline() {
     final player = _player;
     if (player == null) return const SizedBox.shrink();
-    return TimeScrubBar(
-      position: _scrub,
-      playing: player.isPlaying,
-      onPlayPause: _togglePlay,
-      onScrubStart: () {
-        if (player.isPlaying) setState(player.stop);
-      },
-    );
+    return ScenePlayerBar(player: player);
   }
 
   /// Feature markers are read-only in 3D (placement and editing live on

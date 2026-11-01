@@ -28,7 +28,7 @@ import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interac
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_readout_rows.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_readout_panel.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_hover_tooltip.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/tissue_tooltip_layout.dart';
@@ -130,8 +130,6 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
     _hoverPick.dispose();
     super.dispose();
   }
-
-  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -356,17 +354,7 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
             ],
           ),
         ),
-        SafeArea(
-          top: false,
-          child: TimeScrubBar(
-            position: _position,
-            playing: _player.isPlaying,
-            onPlayPause: _togglePlay,
-            onScrubStart: () {
-              if (_player.isPlaying) setState(_player.stop);
-            },
-          ),
-        ),
+        SafeArea(top: false, child: ScenePlayerBar(player: _player)),
       ],
     );
   }
@@ -392,7 +380,11 @@ class _Dive3dPageState extends ConsumerState<Dive3dPage>
         ),
       ],
       selected: {_sceneKind},
-      onSelectionChanged: (s) => setState(() => _sceneKind = s.first),
+      onSelectionChanged: (s) {
+        // The Computers scene has its own timeline; this one has no bar there.
+        _player.stop();
+        setState(() => _sceneKind = s.first);
+      },
       showSelectedIcon: false,
     );
   }

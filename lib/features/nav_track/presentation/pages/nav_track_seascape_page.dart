@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_con
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
@@ -114,8 +114,6 @@ class _NavTrackSeascapeStandaloneState
     super.dispose();
   }
 
-  void _togglePlay() => setState(_player.togglePlay);
-
   @override
   Widget build(BuildContext context) {
     final sceneAsync = ref.watch(navTrackSceneProvider(widget.trackId));
@@ -144,17 +142,7 @@ class _NavTrackSeascapeStandaloneState
                   contourLabels: result!.contourLabels,
                 ),
               ),
-              SafeArea(
-                top: false,
-                child: TimeScrubBar(
-                  position: _position,
-                  playing: _player.isPlaying,
-                  onPlayPause: _togglePlay,
-                  onScrubStart: () {
-                    if (_player.isPlaying) setState(_player.stop);
-                  },
-                ),
-              ),
+              SafeArea(top: false, child: ScenePlayerBar(player: _player)),
             ],
           );
         },

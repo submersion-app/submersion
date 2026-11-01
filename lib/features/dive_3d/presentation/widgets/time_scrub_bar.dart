@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Scrubber + play/pause. Owns no state: the page owns the ValueNotifier
-/// and the AnimationController so viewport, readout, and bar all observe
-/// the same normalized position.
+/// and the ScenePlayer so viewport, readout, and bar all observe the same
+/// normalized position.
 class TimeScrubBar extends StatelessWidget {
   final ValueNotifier<double> position;
   final bool playing;
   final VoidCallback onPlayPause;
 
   /// Called when the user begins dragging the slider, so the owner can pause
-  /// playback -- otherwise the AnimationController keeps overwriting
-  /// [position] and fights the drag.
+  /// playback -- otherwise the player keeps overwriting [position] and fights
+  /// the drag.
   final VoidCallback? onScrubStart;
 
   const TimeScrubBar({

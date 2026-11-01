@@ -20,6 +20,24 @@ ComparisonProfile prof(String id, Color color) => ComparisonProfile(
 );
 
 void main() {
+  Future<void> pumpStandalone(WidgetTester tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: CompareProfile3dView(
+          profiles: AsyncValue.data([
+            prof('a', const Color(0xFF00D4FF)),
+            prof('b', const Color(0xFFFF9500)),
+          ]),
+          initialLayout: CompareLayout.overlay,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
   testWidgets('renders the compare scene with legend and readout', (
     tester,
   ) async {
@@ -56,21 +74,7 @@ void main() {
   });
 
   testWidgets('play toggles to pause and back', (tester) async {
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      testApp(
-        overrides: overrides,
-        child: CompareProfile3dView(
-          profiles: AsyncValue.data([
-            prof('a', const Color(0xFF00D4FF)),
-            prof('b', const Color(0xFFFF9500)),
-          ]),
-          initialLayout: CompareLayout.overlay,
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
+    await pumpStandalone(tester);
 
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     await tester.tap(find.byIcon(Icons.play_arrow));
@@ -86,21 +90,7 @@ void main() {
   });
 
   testWidgets('scrubbing while playing stops playback', (tester) async {
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      testApp(
-        overrides: overrides,
-        child: CompareProfile3dView(
-          profiles: AsyncValue.data([
-            prof('a', const Color(0xFF00D4FF)),
-            prof('b', const Color(0xFFFF9500)),
-          ]),
-          initialLayout: CompareLayout.overlay,
-        ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 50));
+    await pumpStandalone(tester);
 
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();
@@ -108,6 +98,20 @@ void main() {
 
     await tester.drag(find.byType(Slider), const Offset(20, 0));
     await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpStandalone(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 46));
 
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
 

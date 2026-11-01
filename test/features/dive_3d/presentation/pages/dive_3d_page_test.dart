@@ -106,6 +106,17 @@ void main() {
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
   });
 
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 46));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+  });
+
   testWidgets('overlay menu toggles an overlay entry', (tester) async {
     await pumpPage(tester);
     await tester.tap(find.byIcon(Icons.layers));
@@ -317,6 +328,44 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(CompareProfile3dView), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('leaving the dive scene stops its playback', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          dive3dSceneDataProvider(
+            'd1',
+          ).overrideWith((ref) async => readoutSceneData()),
+          isMultiDataSourceDiveProvider('d1').overrideWith((ref) async => true),
+          computerComparisonProfilesProvider(
+            'd1',
+          ).overrideWith((ref) async => compareProfiles()),
+        ],
+        child: const Dive3dPage(diveId: 'd1'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.tap(find.text('Computers'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text('Dive'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));

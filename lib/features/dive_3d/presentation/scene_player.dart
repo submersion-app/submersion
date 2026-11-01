@@ -1,48 +1,54 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 
-/// Shared play/pause/reset-at-end timeline driver for a seascape or scene
-/// scrub position, replacing the identical `AnimationController` +
-/// toggle logic that used to live separately in `SiteTerrainPane`,
-/// `SpatialSitePage`, `NavTrackSeascapePage`, `Dive3dPage` and
-/// `NavTrack3dPage` (issue #2771).
-class ScenePlayer {
+/// Play/pause/rewind-at-end driver for a scene's scrub [position]. Notifies
+/// whenever [isPlaying] changes, including when the timeline reaches the end
+/// and stops on its own, with no call from its owner.
+class ScenePlayer extends ChangeNotifier {
   ScenePlayer({
     required TickerProvider vsync,
     required Duration duration,
-    required ValueNotifier<double> position,
-    VoidCallback? onEdgeReached,
-  }) : _position = position,
-       controller = AnimationController(vsync: vsync, duration: duration) {
-    controller.addListener(() => _position.value = controller.value);
-    if (onEdgeReached != null) {
-      controller.addStatusListener((status) {
-        if (status == AnimationStatus.completed ||
-            status == AnimationStatus.dismissed) {
-          onEdgeReached();
-        }
+    required this.position,
+  }) : _controller = AnimationController(
+         vsync: vsync,
+         duration: duration,
+         // Playback is content the diver asked for, not decoration: left at
+         // the default, a reduce-motion setting runs it at 5% of [duration].
+         animationBehavior: AnimationBehavior.preserve,
+       ) {
+    _controller
+      ..addListener(() => position.value = _controller.value)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) notifyListeners();
       });
-    }
   }
 
-  final AnimationController controller;
-  final ValueNotifier<double> _position;
+  final ValueNotifier<double> position;
+  final AnimationController _controller;
 
-  bool get isPlaying => controller.isAnimating;
+  bool get isPlaying => _controller.isAnimating;
 
-  /// Resumes from the current position, wrapping back to 0 first if
-  /// playback had already reached the end; stops if already playing.
+  /// Resumes from [position], rewinding to 0 first if it is already at the
+  /// end; stops if already playing.
   void togglePlay() {
-    if (controller.isAnimating) {
-      controller.stop();
+    if (isPlaying) {
+      _controller.stop();
     } else {
-      if (_position.value >= 1.0) controller.value = 0;
-      controller.forward(from: _position.value);
+      _controller.forward(from: position.value >= 1.0 ? 0 : position.value);
     }
+    notifyListeners();
   }
 
   /// Interrupts playback without resuming it, for a manual scrub.
-  void stop() => controller.stop();
+  void stop() {
+    if (!isPlaying) return;
+    _controller.stop();
+    notifyListeners();
+  }
 
-  void dispose() => controller.dispose();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 }

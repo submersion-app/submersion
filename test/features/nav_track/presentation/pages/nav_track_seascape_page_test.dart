@@ -27,6 +27,25 @@ ReckonedPath _reckoned() {
 }
 
 void main() {
+  Future<void> pumpStandalone(WidgetTester tester) async {
+    final overrides = await getBaseOverrides();
+    final path = _reckoned();
+    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          navTrackSceneProvider(
+            't1',
+          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
+        ],
+        child: const NavTrackSeascapePage(trackId: 't1'),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('shows a loading indicator while the scene resolves', (
     tester,
   ) async {
@@ -141,22 +160,7 @@ void main() {
   });
 
   testWidgets('play toggles to pause and back', (tester) async {
-    final overrides = await getBaseOverrides();
-    final path = _reckoned();
-    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
-    await tester.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        overrides: [
-          ...overrides,
-          navTrackSceneProvider(
-            't1',
-          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
-        ],
-        child: const NavTrackSeascapePage(trackId: 't1'),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await pumpStandalone(tester);
 
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     await tester.tap(find.byIcon(Icons.play_arrow));
@@ -172,22 +176,7 @@ void main() {
   });
 
   testWidgets('scrubbing while playing stops playback', (tester) async {
-    final overrides = await getBaseOverrides();
-    final path = _reckoned();
-    final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
-    await tester.pumpWidget(
-      testApp(
-        locale: const Locale('en'),
-        overrides: [
-          ...overrides,
-          navTrackSceneProvider(
-            't1',
-          ).overrideWith((ref) async => SpatialSceneResult(scene: scene)),
-        ],
-        child: const NavTrackSeascapePage(trackId: 't1'),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await pumpStandalone(tester);
 
     await tester.tap(find.byIcon(Icons.play_arrow));
     await tester.pump();
@@ -195,6 +184,20 @@ void main() {
 
     await tester.drag(find.byType(Slider), const Offset(20, 0));
     await tester.pump();
+
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('the play icon returns when the timeline ends', (tester) async {
+    await pumpStandalone(tester);
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 31));
 
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
 

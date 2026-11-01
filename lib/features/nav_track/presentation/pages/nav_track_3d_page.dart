@@ -9,7 +9,7 @@ import 'package:submersion/features/dive_3d/presentation/dive_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input.dart';
@@ -103,8 +103,6 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
     _position.dispose();
     super.dispose();
   }
-
-  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -217,17 +215,7 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
             ],
           ),
         ),
-        SafeArea(
-          top: false,
-          child: TimeScrubBar(
-            position: _position,
-            playing: _player.isPlaying,
-            onPlayPause: _togglePlay,
-            onScrubStart: () {
-              if (_player.isPlaying) setState(_player.stop);
-            },
-          ),
-        ),
+        SafeArea(top: false, child: ScenePlayerBar(player: _player)),
       ],
     );
   }

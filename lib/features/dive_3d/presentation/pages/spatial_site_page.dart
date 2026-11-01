@@ -23,7 +23,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -143,8 +143,6 @@ class _DiveSeascapeStandaloneState
     _hoverPick.dispose();
     super.dispose();
   }
-
-  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -331,14 +329,7 @@ class _DiveSeascapeStandaloneState
                           ],
                         ),
                       ),
-                    TimeScrubBar(
-                      position: _position,
-                      playing: _player.isPlaying,
-                      onPlayPause: _togglePlay,
-                      onScrubStart: () {
-                        if (_player.isPlaying) setState(_player.stop);
-                      },
-                    ),
+                    ScenePlayerBar(player: _player),
                   ],
                 ),
               ),

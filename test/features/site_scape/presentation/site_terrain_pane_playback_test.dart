@@ -87,6 +87,38 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('playback can leave and return on the same pane', (tester) async {
+    Widget host(SeascapePlaybackContext? context) => page(
+      readyState(),
+      playbackContext: context,
+      extraOverrides: [
+        siteActivePathOverlayProvider((
+          siteId: 'site-1',
+          pathId: 'd1',
+          source: PathOverlaySource.dive,
+          isolatePaths: true,
+        )).overrideWith(
+          (ref) async =>
+              (overlay: testActivePathOverlay(), hasLinkedRoute: false),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(host(const DivePlaybackContext('d1')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpWidget(host(null));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpWidget(host(const DivePlaybackContext('d1')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byType(TimeScrubBar), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('dive playback with no linked route hides the route toggle', (
     tester,
   ) async {

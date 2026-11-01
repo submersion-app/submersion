@@ -9,7 +9,7 @@ import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/compare_readout_panel.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
-import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared body for both comparison entry points (the standalone dives page and
@@ -62,8 +62,6 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
     _position.dispose();
     super.dispose();
   }
-
-  void _togglePlay() => setState(_player.togglePlay);
 
   @override
   Widget build(BuildContext context) {
@@ -157,17 +155,7 @@ class _CompareProfile3dViewState extends ConsumerState<CompareProfile3dView>
             ],
           ),
         ),
-        SafeArea(
-          top: false,
-          child: TimeScrubBar(
-            position: _position,
-            playing: _player.isPlaying,
-            onPlayPause: _togglePlay,
-            onScrubStart: () {
-              if (_player.isPlaying) setState(_player.stop);
-            },
-          ),
-        ),
+        SafeArea(top: false, child: ScenePlayerBar(player: _player)),
       ],
     );
   }

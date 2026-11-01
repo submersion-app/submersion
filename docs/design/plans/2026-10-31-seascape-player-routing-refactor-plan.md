@@ -3,10 +3,10 @@
 > **For agentic workers:** Execute inline with superpowers:executing-plans, in one
 > session, with no subagents. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Address the two follow-up cleanups from issue #2771 (itself a
-follow-up to #2694) that are still worth doing: extract the shared play/pause
-timeline logic, and parallelize two independent awaits in
-`siteActivePathOverlayProvider`. No behavior change for divers.
+**Goal:** Address the follow-up cleanup from issue #2771 (itself a follow-up
+to #2694) that is still worth doing: extract the shared play/pause timeline
+logic. The extraction also fixes the playback bugs listed under Review
+outcome; nothing else changes for divers.
 
 **Scope decision:** The issue's third point (a shared routing helper for
 `SpatialSitePage`/`NavTrackSeascapePage`) is dropped. Investigation (see
@@ -17,6 +17,9 @@ remains is a thin, deliberately mirrored ~25-line routing shell with matching
 code-review-driven comments in both places. Extracting that into a
 6-parameter helper function would trade a small, readable duplication for a
 lambda-heavy indirection, not a net readability or maintenance win.
+
+The issue's point about `Future.wait` in `siteActivePathOverlayProvider` is
+dropped as well: see Task 2.
 
 **Scope addition:** While investigating the player-logic point, two more
 byte-identical copies of the same `AnimationController` + reset-at-end toggle
@@ -31,14 +34,13 @@ widgets already in scope, use the same `SingleTickerProviderStateMixin` +
 their own play/pause widget tests (`dive_3d_page_test.dart`,
 `nav_track_3d_page_test.dart`) following the same tap-pump-expect pattern
 used elsewhere in this repo. They are included in the `ScenePlayer`
-extraction below, bringing the total from three sites to five.
+extraction below, bringing the total from three sites to five, and to six
+with Scope addition 2.
 
-**Architecture:** A new `ScenePlayer` class wraps the `AnimationController` +
-reset-at-end toggle logic shared by `SiteTerrainPane`, `SpatialSitePage`'s
-and `NavTrackSeascapePage`'s standalone widgets, `Dive3dPage` and
-`NavTrack3dPage`. The provider change replaces two sequential awaits with one
-`Future.wait`, mirroring the existing pattern in `siteSeascapeProvider` in
-the same file.
+**Architecture:** A new `ScenePlayer` `ChangeNotifier` wraps the
+`AnimationController` + reset-at-end toggle logic shared by all six sites, and
+a `ScenePlayerBar` wires a `TimeScrubBar` to it, so no page calls `setState`
+for playback.
 
 **Scope addition 2 (found during `/code-review` on the finished diff):** a
 sixth byte-identical copy in `CompareProfile3dView`
@@ -67,35 +69,28 @@ not play/pause, like the two sites in Scope addition 1).
   `site_terrain_pane_playback_test.dart`) drives it through the full widget
   tree (tap the icon, pump, assert the icon changed). Rely on those five
   existing test files as the RED/GREEN signal instead of inventing a new
-  harness.
-- No dedicated concurrency-timing test for the `Future.wait` change either:
-  the existing `Future.wait` usage in `siteSeascapeProvider` (same file) has
-  no such test, only correctness assertions on the resolved values. Match
-  that precedent; do not add a `Completer`-based timing test.
+  harness. Superseded in review: `TestVSync`-driven tests do exist
+  (`map_camera_animator_test.dart`), and `scene_player_test.dart` now covers
+  what no widget test asserts.
 - Run the affected test files directly (`flutter test <path>`), not the full
-  suite, per [[submersion-no-local-tests]] guidance in local memory: trust
-  CI for the full-suite signal, use local runs only to drive TDD on the
-  files being touched.
+  suite: trust CI for the full-suite signal, use local runs only to drive TDD
+  on the files being touched.
 
 ## Review Focus
 
 1. **Player state after extraction.** `SiteTerrainPane`'s player is nullable
    and created/disposed on `playbackContext` changes (`_syncPlayer`); the
-   other four sites' players are `late final`, created once in `initState`.
+   other five sites' players are `late final`, created once in `initState`.
    `ScenePlayer` must support both lifecycles without forcing
    `SiteTerrainPane` into always having a controller, and without forcing the
-   other four into a nullable one they do not need.
-2. **Durations stay different.** The five sites use 45s (four of them) and
+   other five into a nullable one they do not need.
+2. **Durations stay different.** The six sites use 45s (five of them) and
    30s (`NavTrackSeascapePage`'s standalone widget) today. `ScenePlayer`
    takes `duration` as a constructor parameter; nothing unifies it.
-3. **`onEdgeReached` stays opt-in.** Only `SiteTerrainPane` currently has the
-   `addStatusListener` that forces a `setState` when playback reaches the end
-   (keeps the pause icon in sync, see its code-review comment). Confirm none
-   of the other four sites silently gain or lose that behavior.
-4. **`Future.wait` ordering.** `primaryNavTrackForDiveProvider` and
-   `diveProvider` must still each receive `request.pathId`, and
-   `hasLinkedRoute`/`anchorPoint` must still be computed from the resolved
-   `route` and `dive`, not from stale closures.
+3. **The end of the timeline.** Only `SiteTerrainPane` had the
+   `addStatusListener` that rebuilds when playback reaches the end. Review
+   showed the other five kept the pause icon up forever, so `ScenePlayer` now
+   notifies on completion for every site.
 
 ## Task 1: Shared player/toggle logic (issue #2771, point 2, extended scope)
 
@@ -108,7 +103,7 @@ not play/pause, like the two sites in Scope addition 1).
       `lib/features/nav_track/presentation/pages/nav_track_3d_page.dart`.
 - [x] RED (existing coverage): confirm the three existing play/pause tests
       pass on `main` first, as the pre-refactor baseline. Only three of the
-      five sites actually have one today -- `spatial_site_page_test.dart`
+      five sites actually have one today: `spatial_site_page_test.dart`
       and `nav_track_seascape_page_test.dart` check that `TimeScrubBar`
       renders but never exercise play/pause:
       `flutter test test/features/dive_3d/presentation/pages/dive_3d_page_test.dart test/features/nav_track/presentation/pages/nav_track_3d_page_test.dart test/features/site_scape/presentation/site_terrain_pane_playback_test.dart`
@@ -162,25 +157,11 @@ not play/pause, like the two sites in Scope addition 1).
 
 ## Task 2: `Future.wait` in `siteActivePathOverlayProvider` (issue #2771, point 3)
 
-- [x] RED: confirm the existing dive-branch tests pass on `main` first, as
-      the pre-refactor baseline. The actual coverage for this provider lives
-      in `test/features/dive_3d/application/site_active_path_overlay_provider_test.dart`
-      (not in `site_seascape_providers_test.dart`, which does not reference
-      this provider at all), specifically `'dive source places the path and
-      reports no linked route'`, `'dive source reports a linked route when
-      one exists'`, and `'a dive with no usable path yields no overlay'`:
-      `flutter test test/features/dive_3d/application/site_active_path_overlay_provider_test.dart`
-- [x] GREEN: in `siteActivePathOverlayProvider`'s `PathOverlaySource.dive`
-      case, after the `path` null/length check, replace the two sequential
-      `await ref.watch(primaryNavTrackForDiveProvider(request.pathId).future)`
-      and `await ref.watch(diveProvider(request.pathId).future)` with one
-      `Future.wait` over both, then compute `hasLinkedRoute` and
-      `anchorPoint` from the two resolved results exactly as today.
-- [x] Re-run `site_active_path_overlay_provider_test.dart` in full; all
-      pre-existing cases stay green with no edits to the test file (a pure
-      latency optimization with identical resolved values needs no new
-      test case, see Global Constraints on the dropped timing test).
-- [x] `dart format lib/features/dive_3d/application/site_seascape_providers.dart`
+Dropped in review. `spatialReckonedPathProvider`, awaited just above, starts by
+awaiting `primaryNavTrackForDiveProvider` and, on the dead-reckoned path,
+`diveProvider` too, so at most one real lookup remains and nothing can overlap.
+A record `.wait` would also have wrapped any failure in `ParallelWaitError`.
+The two sequential awaits stay as they are.
 
 ## Task 3: Wrap-up
 
@@ -191,11 +172,22 @@ not play/pause, like the two sites in Scope addition 1).
       `CompareProfile3dView`, the same way as the other four `late final`
       sites (45s, no `onEdgeReached`), with the same missing-test fix first
       (`compare_profile_3d_view_test.dart`).
-- [ ] PR description notes that the issue's routing-helper point was
+- [x] PR description notes that the issue's routing-helper point was
       investigated and intentionally left out (with the reasoning above),
       and that the player-logic point was extended to two sites the issue
       did not name (`Dive3dPage`, `NavTrack3dPage`), with the reasoning
       above. `Closes #2771`.
-- [ ] `/code-review` on the full diff before push, per local workflow rules.
-- [ ] Local patch-coverage check (sharded `flutter test --coverage`, merge,
-      `diff-cover`) before opening the PR, per local workflow rules.
+
+## Review outcome
+
+Fixed on top of the extraction, each with a test that failed first:
+
+- Five sites kept the pause icon up after the timeline ended.
+  `ScenePlayer` notifies on completion and `ScenePlayerBar` follows it, which
+  replaces `onEdgeReached` and every site's `_togglePlay` and `onScrubStart`.
+- A reduce-motion setting ran the timeline at 5% of its duration:
+  `AnimationBehavior.preserve`.
+- `SiteTerrainPane` used the single-ticker mixin with a player it can
+  recreate: `TickerProviderStateMixin`.
+- `Dive3dPage`'s player ran on behind the Computers scene: the scene toggle
+  stops it.
