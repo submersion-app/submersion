@@ -41530,6 +41530,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'לחות';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key מתאים ליותר משורה אחת';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: התא הזה לקריאה בלבד';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'בטל שינוי';
+
+  @override
+  String get tableEditor_changeLog => 'יומן שינויים';
+
+  @override
   String get settings_tableEditor_title => 'עורך הטבלה';
 
   @override

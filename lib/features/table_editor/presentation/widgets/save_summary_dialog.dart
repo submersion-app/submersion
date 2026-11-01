@@ -34,6 +34,12 @@ Future<bool> showSaveSummaryDialog(
           s.detail,
         ),
         PasteSkipReason.hiddenRow => l10n.tableEditor_skip_hiddenRow(s.detail),
+        PasteSkipReason.ambiguousRow => l10n.tableEditor_skip_ambiguousRow(
+          s.detail,
+        ),
+        PasteSkipReason.readOnlyCell => l10n.tableEditor_skip_readOnlyCell(
+          s.detail,
+        ),
         PasteSkipReason.unknownColumn => l10n.tableEditor_skip_unknownColumn(
           s.detail,
         ),

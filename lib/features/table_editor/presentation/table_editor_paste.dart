@@ -88,7 +88,7 @@ PastePlan<F> planClipboardPaste<T, F extends EntityField>({
 /// Turns [plan]'s cells into drafts: each parsed by its column, reconciled
 /// per record with the drafts already there, then stored. A cell the row
 /// cannot edit (a library site's name) is left alone.
-void applyPastePlan<T, F extends EntityField>({
+List<PasteSkip> applyPastePlan<T, F extends EntityField>({
   required PastePlan<F> plan,
   required TableEditorEntity<T, F> entity,
   required Map<String, T> rowsById,
@@ -98,10 +98,17 @@ void applyPastePlan<T, F extends EntityField>({
   TableDraftState existing = const TableDraftState(),
 }) {
   final byEntity = <String, Map<String, TableDraft>>{};
+  final skipped = <PasteSkip>[];
   for (final cell in plan.cells) {
     final row = rowsById[cell.entityId];
     final column = entity.columnFor(cell.field);
-    if (row == null || column == null || !column.isEditable(row)) continue;
+    if (row == null || column == null) continue;
+    if (!column.isEditable(row)) {
+      // Reported by the row's key, since the column itself is editable.
+      final key = entity.numberOf(row)?.toString() ?? entity.nameOf(row) ?? '';
+      skipped.add(PasteSkip(PasteSkipReason.readOnlyCell, detail: key));
+      continue;
+    }
     final original = column.valueOf(row);
     final draft = switch (column.parse(cell.text, units, l10n)) {
       CellParsed(:final value) => TableDraft(
@@ -131,4 +138,5 @@ void applyPastePlan<T, F extends EntityField>({
     };
     notifier.putAll(entity.reconcile(row, merged.values.toList()));
   }
+  return skipped;
 }

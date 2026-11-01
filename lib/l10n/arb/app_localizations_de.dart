@@ -42494,6 +42494,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Luftf.';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key bezeichnet mehr als eine Zeile';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: diese Zelle ist schreibgeschützt';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Änderung verwerfen';
+
+  @override
+  String get tableEditor_changeLog => 'Änderungsprotokoll';
+
+  @override
   String get settings_tableEditor_title => 'Tabelleneditor';
 
   @override

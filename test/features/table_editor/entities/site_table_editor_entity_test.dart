@@ -178,4 +178,31 @@ void main() {
 
     expect(fresh.map((r) => r.site.id), containsAll(['s1', 's2']));
   });
+
+  test(
+    'typing one half again after a clear keeps the stored other half',
+    () async {
+      await seed('s1', location: const GeoPoint(1, 2));
+      final e = entity();
+      final r = await row('s1');
+      final cleared = e.reconcile(r, [
+        draft('s1', SiteField.latitude, 1.0, null),
+      ]);
+      expect(cleared.every((d) => d.value == null), isTrue);
+
+      final retyped = e.reconcile(r, [
+        ...cleared.where((d) => d.fieldName != SiteField.latitude.name),
+        draft('s1', SiteField.latitude, 1.0, 5.0),
+      ]);
+
+      final lat = retyped.firstWhere(
+        (d) => d.fieldName == SiteField.latitude.name,
+      );
+      final lon = retyped.firstWhere(
+        (d) => d.fieldName == SiteField.longitude.name,
+      );
+      expect(lat.value, 5.0);
+      expect(lon.value, 2.0);
+    },
+  );
 }

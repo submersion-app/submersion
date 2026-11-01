@@ -2,7 +2,6 @@ import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/table_editor/domain/cell_parsers.dart';
@@ -24,7 +23,6 @@ const kDecoAlgorithmChoices = [
 /// plus the single-row weight. Computer-measured columns are left out, so
 /// they stay read-only in the sheet.
 List<DiveEditorColumn> diveEditorColumns({
-  required Map<String, List<DiveWeight>> weightsByDive,
   required List<ChoiceOption> sites,
   required List<ChoiceOption> centers,
   required List<ChoiceOption> trips,
@@ -158,6 +156,7 @@ List<DiveEditorColumn> diveEditorColumns({
     valueOf: (d) => d.diluentGas,
     editText: (d, _) => _gasText(d.diluentGas),
     parse: (text, _, _) => _parseGas(text),
+    displayValue: (v, _) => _gasText(v as GasMix),
   ),
   textColumn(DiveField.scrubberType, (d) => d.scrubber?.type),
   integerColumn(
@@ -166,7 +165,7 @@ List<DiveEditorColumn> diveEditorColumns({
     min: 0,
   ),
   textColumn(DiveField.notes, (d) => d.notes.isEmpty ? null : d.notes),
-  _weight(weightsByDive),
+  _weight(),
 ];
 
 DiveEditorColumn _depth(DiveField field, double? Function(Dive) get) =>
@@ -182,14 +181,13 @@ DiveEditorColumn _depth(DiveField field, double? Function(Dive) get) =>
 DiveEditorColumn _setpoint(DiveField field, double? Function(Dive) get) =>
     plainNumberColumn(field, get, symbol: 'bar', min: 0, max: 2);
 
-DiveEditorColumn _weight(Map<String, List<DiveWeight>> weightsByDive) {
-  int rowsOf(Dive d) => weightsByDive[d.id]?.length ?? 0;
+/// The single weight row's amount. The row's weights must be loaded (the
+/// editor's dives provider merges them in), or every dive looks weightless.
+DiveEditorColumn _weight() {
+  int rowsOf(Dive d) => d.weights.length;
   return numberColumn(
     DiveField.totalWeight,
-    (d) {
-      final rows = weightsByDive[d.id];
-      return rows == null || rows.length != 1 ? null : rows.single.amountKg;
-    },
+    (d) => d.weights.length == 1 ? d.weights.single.amountKg : null,
     toDisplay: (u, v) => u.convertWeight(v),
     toStored: (u, v) => u.weightToKg(v),
     symbol: (u) => u.weightSymbol,

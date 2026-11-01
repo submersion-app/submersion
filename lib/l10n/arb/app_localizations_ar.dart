@@ -43107,6 +43107,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'الرطوبة';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key يطابق أكثر من صف';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: تلك الخلية للقراءة فقط';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'تجاهل التغيير';
+
+  @override
+  String get tableEditor_changeLog => 'سجل التغييرات';
+
+  @override
   String get settings_tableEditor_title => 'محرر الجدول';
 
   @override

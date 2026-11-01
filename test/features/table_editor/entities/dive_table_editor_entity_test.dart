@@ -71,10 +71,6 @@ void main() {
     return DiveTableEditorEntity(
       diveRepo: diveRepo,
       bulk: bulk,
-      weightsByDive: {
-        for (final d in dives)
-          if (d.weights.isNotEmpty) d.id: d.weights,
-      },
       sites: const [ChoiceOption('s1', 'Site s1')],
       centers: const [],
       trips: const [],

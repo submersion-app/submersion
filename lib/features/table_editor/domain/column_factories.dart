@@ -102,6 +102,9 @@ TableEditorColumn<T, F> integerColumn<T, F extends EntityField>(
   parse: (text, _, _) => parseIntegerCell(text, min: min, max: max),
   isEditable: isEditable,
   readOnlyReason: readOnlyReason,
+  // An int reads as itself; the adapter may expect another type (a
+  // Duration for a surface interval) and show the placeholder instead.
+  displayValue: (v, _) => v.toString(),
 );
 
 /// Decimal degrees: 90 for a latitude, 180 for a longitude.

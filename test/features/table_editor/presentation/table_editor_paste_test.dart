@@ -1,11 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/table_editor/domain/paste_planner.dart';
@@ -32,7 +34,6 @@ void main() {
     entity = DiveTableEditorEntity(
       diveRepo: repo,
       bulk: BulkDiveEditService(repo, BuddyRepository(), SpeciesRepository()),
-      weightsByDive: const {},
       sites: const [ChoiceOption('s1', 'Blue Hole')],
       centers: const [],
       trips: const [],
@@ -104,5 +105,50 @@ void main() {
 
     mockClipboard(() => throw PlatformException(code: 'denied'));
     expect(await readClipboardText(), isNull);
+  });
+
+  test('a cell the row cannot edit is reported as read-only', () {
+    final twoWeights = Dive(
+      id: 'd3',
+      diveNumber: 3,
+      dateTime: DateTime(2026, 1, 3),
+      weights: const [
+        DiveWeight(
+          id: 'w1',
+          diveId: 'd3',
+          weightType: WeightType.belt,
+          amountKg: 3,
+        ),
+        DiveWeight(
+          id: 'w2',
+          diveId: 'd3',
+          weightType: WeightType.belt,
+          amountKg: 4,
+        ),
+      ],
+    );
+    final plan = planClipboardPaste<Dive, DiveField>(
+      text: '3\t6\n1\t7\n',
+      entity: entity,
+      rows: [d1, twoWeights],
+      visibleColumns: const [DiveField.diveNumber, DiveField.totalWeight],
+      selected: CellPosition('d1', DiveField.totalWeight.name),
+      l10n: l10n,
+    );
+    final notifier = TableDraftsNotifier();
+
+    final skipped = applyPastePlan<Dive, DiveField>(
+      plan: plan,
+      entity: entity,
+      rowsById: {'d1': d1, 'd3': twoWeights},
+      units: units,
+      l10n: l10n,
+      notifier: notifier,
+    );
+
+    expect(notifier.state.at('d1', DiveField.totalWeight.name)?.value, 7.0);
+    expect(notifier.state.at('d3', DiveField.totalWeight.name), isNull);
+    expect(skipped.single.reason, PasteSkipReason.readOnlyCell);
+    expect(skipped.single.detail, '3');
   });
 }

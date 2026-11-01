@@ -42299,6 +42299,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Vocht';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key komt met meer dan één rij overeen';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: die cel is alleen-lezen';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Wijziging verwerpen';
+
+  @override
+  String get tableEditor_changeLog => 'Wijzigingslogboek';
+
+  @override
   String get settings_tableEditor_title => 'Tabelbewerker';
 
   @override

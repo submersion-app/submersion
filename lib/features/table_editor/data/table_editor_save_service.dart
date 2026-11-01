@@ -60,7 +60,11 @@ class TableEditorSaveService {
       }
       final column = entity.columnFor(entity.fieldFromName(d.fieldName));
       final current = column?.valueOf(row);
-      if (!eq.equals(current, d.original)) {
+      // A cell that can no longer be edited (a second weight row arrived, a
+      // site joined a library) is as stale as a changed value.
+      if (!eq.equals(current, d.original) ||
+          column == null ||
+          !column.isEditable(row)) {
         stale.add(StaleDraft(d, current));
         continue;
       }

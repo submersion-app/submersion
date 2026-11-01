@@ -67112,6 +67112,30 @@ abstract class AppLocalizations {
   /// **'Humid'**
   String get enum_diveField_humidity_short;
 
+  /// No description provided for @tableEditor_skip_ambiguousRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} names more than one row'**
+  String tableEditor_skip_ambiguousRow(String key);
+
+  /// No description provided for @tableEditor_skip_readOnlyCell.
+  ///
+  /// In en, this message translates to:
+  /// **'{key}: that cell is read-only'**
+  String tableEditor_skip_readOnlyCell(String key);
+
+  /// No description provided for @tableEditor_discardDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard change'**
+  String get tableEditor_discardDraft;
+
+  /// No description provided for @tableEditor_changeLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Change log'**
+  String get tableEditor_changeLog;
+
   /// No description provided for @settings_tableEditor_title.
   ///
   /// In en, this message translates to:

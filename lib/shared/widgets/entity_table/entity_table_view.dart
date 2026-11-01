@@ -13,6 +13,37 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 
+/// The rows in the order the table shows them for [config]: the sort field
+/// ascending or descending, nulls last, text through the collator. Public so
+/// an editor can walk cells in that order (#3422).
+List<T> sortTableEntities<T, F extends EntityField>(
+  List<T> entities,
+  EntityFieldAdapter<T, F> adapter,
+  EntityTableViewConfig<F> config,
+  UnitFormatter units,
+) {
+  final field = config.sortField;
+  if (field == null) return entities;
+  final ascending = config.sortAscending;
+  final sorted = List<T>.from(entities);
+  final collator = TextCollator();
+  sorted.sort((a, b) {
+    final va = adapter.extractValue(field, a);
+    final vb = adapter.extractValue(field, b);
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    final cmp = compareTableValues(
+      va,
+      vb,
+      collator: collator,
+      formatted: (value) => adapter.formatValue(field, value, units),
+    );
+    return ascending ? cmp : -cmp;
+  });
+  return sorted;
+}
+
 /// Row height for each row in the table.
 const double kEntityTableRowHeight = 38.0;
 const double _kCheckboxWidth = 48.0;
@@ -300,36 +331,12 @@ class _EntityTableViewState<T, F extends EntityField>
   // Sorting
   // ---------------------------------------------------------------------------
 
-  List<T> _sortedEntities() {
-    final config = widget.config;
-    if (config.sortField == null) return widget.entities;
-
-    final field = config.sortField!;
-    final ascending = config.sortAscending;
-
-    final sorted = List<T>.from(widget.entities);
-    final collator = TextCollator();
-    sorted.sort((a, b) {
-      final va = widget.adapter.extractValue(field, a);
-      final vb = widget.adapter.extractValue(field, b);
-
-      if (va == null && vb == null) return 0;
-      if (va == null) return 1;
-      if (vb == null) return -1;
-
-      final cmp = compareTableValues(
-        va,
-        vb,
-        collator: collator,
-        formatted: (value) =>
-            widget.adapter.formatValue(field, value, widget.units),
-      );
-
-      return ascending ? cmp : -cmp;
-    });
-
-    return sorted;
-  }
+  List<T> _sortedEntities() => sortTableEntities(
+    widget.entities,
+    widget.adapter,
+    widget.config,
+    widget.units,
+  );
 
   // ---------------------------------------------------------------------------
   // Column helpers

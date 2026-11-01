@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/change_log/data/services/change_log_revert_s
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -53,7 +56,6 @@ void main() {
         BuddyRepository(),
         SpeciesRepository(),
       ),
-      weightsByDive: const {},
       sites: const [],
       centers: const [],
       trips: const [],
@@ -155,6 +157,48 @@ void main() {
     expect(result.saved, 2);
     expect(result.changedElsewhere.single.draft.entityId, 'd2');
     expect(result.changedElsewhere.single.current, 11);
+  });
+
+  test('a draft on a cell that became read-only is skipped as changed '
+      'elsewhere', () async {
+    final before = await rows();
+    // Two weight rows arrive from a sync after the weight was drafted.
+    await diveRepo.bulkAddWeights(
+      ['d1'],
+      const [
+        domain.DiveWeight(
+          id: '',
+          diveId: '',
+          weightType: WeightType.belt,
+          amountKg: 3,
+        ),
+        domain.DiveWeight(
+          id: '',
+          diveId: '',
+          weightType: WeightType.belt,
+          amountKg: 4,
+        ),
+      ],
+    );
+
+    final result = await TableEditorSaveService().save(
+      entity: entity,
+      rows: before,
+      drafts: [
+        TableDraft(
+          entityId: 'd1',
+          fieldName: DiveField.totalWeight.name,
+          original: null,
+          value: 6.0,
+        ),
+        visibility('d2', 20),
+      ],
+    );
+
+    expect(result.saved, 1);
+    expect(result.changedElsewhere.single.draft.entityId, 'd1');
+    final after = await rows();
+    expect(after['d1']!.weights.map((w) => w.amountKg), [3, 4]);
   });
 
   test('all or nothing: a failing write leaves every dive unchanged', () async {

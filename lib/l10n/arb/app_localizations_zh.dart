@@ -40113,6 +40113,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key 对应多行';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key：该单元格为只读';
+  }
+
+  @override
+  String get tableEditor_discardDraft => '放弃更改';
+
+  @override
+  String get tableEditor_changeLog => '更改日志';
+
+  @override
   String get settings_tableEditor_title => '表格编辑器';
 
   @override

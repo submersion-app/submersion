@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_servic
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
@@ -20,7 +19,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   final DiveRepository _diveRepo;
   final BulkDiveEditService _bulk;
-  final Map<String, List<DiveWeight>> weightsByDive;
 
   /// The type a weight row created from an empty cell takes.
   final WeightType defaultWeightType;
@@ -34,7 +32,6 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   DiveTableEditorEntity({
     required DiveRepository diveRepo,
     required BulkDiveEditService bulk,
-    required this.weightsByDive,
     required List<ChoiceOption> sites,
     required List<ChoiceOption> centers,
     required List<ChoiceOption> trips,
@@ -48,7 +45,6 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
          diveTypeLabel: diveTypeLabel,
        ),
        columns = diveEditorColumns(
-         weightsByDive: weightsByDive,
          sites: sites,
          centers: centers,
          trips: trips,

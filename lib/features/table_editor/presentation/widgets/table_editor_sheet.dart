@@ -206,17 +206,18 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     final current = draft?.value ?? original;
 
     void move(CellMove m) {
-      final editable = [
-        for (final c in config.columns)
-          if (entity.columnFor(c.field) case final col?)
-            if (col.isEditable(rowsById[id] ?? row)) c.field.name,
-      ];
+      final fieldNames = [for (final c in config.columns) c.field.name];
       notifier.setEditing(
         nextCell(
           from: position,
           move: m,
           rowIds: [for (final r in rows) entity.idOf(r)],
-          editableFieldNames: editable,
+          fieldNames: fieldNames,
+          isEditable: (rowId, fieldName) {
+            final target = rowsById[rowId];
+            final col = entity.columnFor(entity.fieldFromName(fieldName));
+            return target != null && col != null && col.isEditable(target);
+          },
         ),
       );
     }

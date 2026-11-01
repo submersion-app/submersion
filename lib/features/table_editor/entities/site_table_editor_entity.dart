@@ -87,15 +87,30 @@ class SiteTableEditorEntity
             d,
       ];
     }
+    // A typed half beside a cleared half means the diver is typing the
+    // position back: the cleared half returns to its stored value.
+    final typed =
+        (lat != null && lat.value != null) ||
+        (lon != null && lon.value != null);
+    if (typed) {
+      return [
+        for (final d in drafts)
+          if (_isCoordinate(d) && d.value == null)
+            d.copyWith(
+              value: d.fieldName == SiteField.latitude.name
+                  ? location.latitude
+                  : location.longitude,
+            )
+          else
+            d,
+      ];
+    }
     // Clearing either half clears the position, so the other half follows.
     final clearing =
         (lat != null && lat.value == null) ||
         (lon != null && lon.value == null);
     if (!clearing) return drafts;
-    final out = [
-      for (final d in drafts)
-        _isCoordinate(d) && d.value != null ? d.copyWith(clearValue: true) : d,
-    ];
+    final out = [...drafts];
     if (lat == null) {
       out.add(_clearDraft(entity, SiteField.latitude, location.latitude));
     }

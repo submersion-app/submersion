@@ -43,4 +43,18 @@ void main() {
     expect(parsePasteText('').rows, isEmpty);
     expect(parsePasteText('\n').rows, isEmpty);
   });
+
+  test(
+    'a quoted cell keeps its newline and tab, and a doubled quote is one',
+    () {
+      final block = parsePasteText(
+        '1\t"first line\nsecond\tpart"\n2\t"say ""hi"""\n',
+      );
+
+      expect(block.rows, [
+        ['1', 'first line\nsecond\tpart'],
+        ['2', 'say "hi"'],
+      ]);
+    },
+  );
 }

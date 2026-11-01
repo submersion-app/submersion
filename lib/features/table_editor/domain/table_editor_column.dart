@@ -77,6 +77,10 @@ class TableEditorColumn<T, F extends EntityField> {
   /// Why the cell is read-only on [entity], for a tooltip; null when editable.
   final String? Function(T entity, AppLocalizations l10n) readOnlyReason;
 
+  /// How a stored value of this column reads in a drafted cell; null leaves
+  /// it to the entity's adapter.
+  final String Function(Object value, UnitFormatter units)? displayValue;
+
   TableEditorColumn({
     required this.field,
     required this.kind,
@@ -87,6 +91,7 @@ class TableEditorColumn<T, F extends EntityField> {
     bool Function(T entity)? isEditable,
     String? Function(UnitFormatter units)? unitSymbol,
     String? Function(T entity, AppLocalizations l10n)? readOnlyReason,
+    this.displayValue,
   }) : editText = editText ?? ((_, _) => ''),
        choices = choices ?? ((_) => const []),
        isEditable = isEditable ?? ((_) => true),

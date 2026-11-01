@@ -79,7 +79,6 @@ void main() {
         BuddyRepository(),
         SpeciesRepository(),
       ),
-      weightsByDive: const {},
       sites: const [],
       centers: const [],
       trips: const [],

@@ -19,7 +19,9 @@ class SheetRow {
 enum PasteSkipReason {
   unknownRow,
   hiddenRow,
+  ambiguousRow,
   readOnlyColumn,
+  readOnlyCell,
   unknownColumn,
   truncated,
 }
@@ -82,7 +84,10 @@ PastePlan<F> planPaste<F extends EntityField>({
 }) {
   final skipped = <PasteSkip>[];
   final cells = <PastedCell<F>>[];
-  if (block.rows.isEmpty) {
+  // A selection that left the sheet (a filter or a save moved it) places
+  // nothing; the page clears it rather than guess a cell.
+  final offSheet = selectedRowIndex < 0 || selectedColumnIndex < 0;
+  if (block.rows.isEmpty || offSheet) {
     return PastePlan(
       matching: PasteMatching.byPosition,
       hadHeader: false,
@@ -101,7 +106,10 @@ PastePlan<F> planPaste<F extends EntityField>({
       .entries
       .where((e) => e.value.trim().isNotEmpty)
       .every((e) => mapped[e.key] != null || (e.key == 0 && keyHeader));
-  final hadHeader = keyHeader || (first.isNotEmpty && allLabels);
+  // A row of nothing but blanks is data (a sparse column starts that way),
+  // never a header.
+  final hasLabel = first.any((h) => h.trim().isNotEmpty);
+  final hadHeader = keyHeader || (hasLabel && allLabels);
   final data = hadHeader ? block.rows.sublist(1) : block.rows;
 
   // Which block column carries the key, and which sheet column each data
@@ -111,13 +119,21 @@ PastePlan<F> planPaste<F extends EntityField>({
   final keyOf = byNumber
       ? (SheetRow r) => r.number?.toString()
       : (SheetRow r) => r.name?.toLowerCase();
-  final rowByKey = <String, SheetRow>{for (final r in rows) ?keyOf(r): r};
+  final rowByKey = <String, SheetRow>{};
+  final ambiguous = <String>{};
+  for (final r in rows) {
+    final k = keyOf(r);
+    if (k == null) continue;
+    if (rowByKey.containsKey(k)) {
+      ambiguous.add(k);
+    } else {
+      rowByKey[k] = r;
+    }
+  }
   // A hidden row's key still reads as a key, so the row is reported as
   // hidden rather than the whole block sliding into position.
-  final knownKeys = {
-    ...rowByKey.keys,
-    for (final k in hiddenKeys) k.toLowerCase(),
-  };
+  final hidden = {for (final k in hiddenKeys) k.toLowerCase()};
+  final knownKeys = {...rowByKey.keys, ...hidden, ...ambiguous};
   bool everyFirstIsKey() =>
       data.isNotEmpty &&
       data.every(
@@ -206,12 +222,16 @@ PastePlan<F> planPaste<F extends EntityField>({
     final SheetRow? target;
     if (keyed) {
       final key = row.isEmpty ? '' : row.first.trim().toLowerCase();
+      final raw = row.isEmpty ? '' : row.first.trim();
+      if (ambiguous.contains(key)) {
+        skipped.add(PasteSkip(PasteSkipReason.ambiguousRow, detail: raw));
+        continue;
+      }
       target = rowByKey[key];
       if (target == null) {
-        final raw = row.isEmpty ? '' : row.first.trim();
         skipped.add(
           PasteSkip(
-            hiddenKeys.contains(raw)
+            hidden.contains(key)
                 ? PasteSkipReason.hiddenRow
                 : PasteSkipReason.unknownRow,
             detail: raw,

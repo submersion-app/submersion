@@ -2,16 +2,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/table_editor/domain/cell_navigation.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
 
-/// Where Enter, Tab and Shift+Tab take the open cell (#3422).
+/// Where Enter, Tab and Shift+Tab take the open cell (#3422): always an
+/// editable cell, never a read-only one on the way.
 void main() {
   const rows = ['r1', 'r2', 'r3'];
   const columns = ['a', 'b', 'c'];
 
-  CellPosition? next(CellPosition from, CellMove move) => nextCell(
+  CellPosition? next(
+    CellPosition from,
+    CellMove move, {
+    bool Function(String rowId, String fieldName)? isEditable,
+  }) => nextCell(
     from: from,
     move: move,
     rowIds: rows,
-    editableFieldNames: columns,
+    fieldNames: columns,
+    isEditable: isEditable ?? (_, _) => true,
   );
 
   test('down moves to the same column in the next row and null at the last '
@@ -47,6 +53,34 @@ void main() {
       const CellPosition('r1', 'c'),
     );
     expect(next(const CellPosition('r1', 'a'), CellMove.previous), isNull);
+  });
+
+  test('down skips a row whose cell is read-only', () {
+    bool editable(String row, String field) => !(row == 'r2' && field == 'b');
+    expect(
+      next(const CellPosition('r1', 'b'), CellMove.down, isEditable: editable),
+      const CellPosition('r3', 'b'),
+    );
+    expect(
+      next(const CellPosition('r2', 'b'), CellMove.down, isEditable: editable),
+      const CellPosition('r3', 'b'),
+    );
+  });
+
+  test('next and previous skip read-only cells, wrapping as needed', () {
+    bool editable(String row, String field) => field != 'b';
+    expect(
+      next(const CellPosition('r1', 'a'), CellMove.next, isEditable: editable),
+      const CellPosition('r1', 'c'),
+    );
+    expect(
+      next(
+        const CellPosition('r2', 'a'),
+        CellMove.previous,
+        isEditable: editable,
+      ),
+      const CellPosition('r1', 'c'),
+    );
   });
 
   test('none stays put, and an unknown cell goes nowhere', () {

@@ -42337,6 +42337,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Pára';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key több sort is jelöl';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: ez a cella csak olvasható';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Módosítás elvetése';
+
+  @override
+  String get tableEditor_changeLog => 'Változásnapló';
+
+  @override
   String get settings_tableEditor_title => 'Táblázatszerkesztő';
 
   @override

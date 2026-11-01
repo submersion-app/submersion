@@ -131,7 +131,9 @@ final tableEditorCenterConfigProvider =
 // Rows, one list per tab, narrowed by the tab's filter
 // ---------------------------------------------------------------------------
 
-final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
+/// The dive list narrowed by the editor's filter, as the list loads it:
+/// without weight rows.
+final tableEditorListedDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
   final filter = ref.watch(tableEditorDiveFilterProvider);
   return narrowDivesByIds(
     ref.watch(diveListNotifierProvider),
@@ -143,12 +145,29 @@ final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
 /// the weight cell needs the row count and the single row's amount.
 final tableEditorWeightsProvider =
     FutureProvider<Map<String, List<DiveWeight>>>((ref) async {
-      final dives = ref.watch(tableEditorDivesProvider).value ?? const [];
+      final dives = ref.watch(tableEditorListedDivesProvider).value ?? const [];
+      final repository = ref.watch(diveRepositoryProvider);
+      // Weight rows change under a save, an undo or a sync pull.
+      ref.invalidateSelfWhen(repository.watchDivesChanges());
       if (dives.isEmpty) return const {};
-      return ref.watch(diveRepositoryProvider).getWeightsForDives([
-        for (final d in dives) d.id,
-      ]);
+      return repository.getWeightsForDives([for (final d in dives) d.id]);
     });
+
+/// The sheet's dives: the listed dives with their weight rows merged in, so
+/// the weight column and the stale check read the row itself. A refetch of
+/// the weights keeps the previous rows, so the sheet never drops to a
+/// spinner mid-edit.
+final tableEditorDivesProvider = Provider<AsyncValue<List<Dive>>>((ref) {
+  final listed = ref.watch(tableEditorListedDivesProvider);
+  final weights = ref.watch(tableEditorWeightsProvider);
+  if (!weights.hasValue) return const AsyncValue.loading();
+  final byDive = weights.value ?? const <String, List<DiveWeight>>{};
+  return listed.whenData(
+    (dives) => [
+      for (final d in dives) d.copyWith(weights: byDive[d.id] ?? const []),
+    ],
+  );
+});
 
 final tableEditorSitesProvider = Provider<AsyncValue<List<SiteWithCount>>>(
   (ref) => narrowByQuery(
@@ -202,14 +221,10 @@ final tableEditorSaveServiceProvider = Provider<TableEditorSaveService>(
 /// The dive descriptor, once its pick lists and the sheet's weights are in.
 final tableEditorDiveEntityProvider =
     Provider<AsyncValue<DiveTableEditorEntity>>((ref) {
-      final weights = ref.watch(tableEditorWeightsProvider);
       final sites = ref.watch(sitesProvider);
       final centers = ref.watch(allDiveCentersProvider);
       final trips = ref.watch(allTripsProvider);
-      if (weights.isLoading ||
-          sites.isLoading ||
-          centers.isLoading ||
-          trips.isLoading) {
+      if (!sites.hasValue || !centers.hasValue || !trips.hasValue) {
         return const AsyncValue.loading();
       }
       final dives = ref.watch(tableEditorDivesProvider).value ?? const [];
@@ -217,7 +232,6 @@ final tableEditorDiveEntityProvider =
         DiveTableEditorEntity(
           diveRepo: ref.watch(diveRepositoryProvider),
           bulk: ref.watch(bulkDiveEditServiceProvider),
-          weightsByDive: weights.value ?? const {},
           sites: [
             for (final s in sites.value ?? const []) ChoiceOption(s.id, s.name),
           ],
@@ -236,7 +250,7 @@ final tableEditorDiveEntityProvider =
 final tableEditorSiteEntityProvider =
     Provider<AsyncValue<SiteTableEditorEntity>>((ref) {
       final editable = ref.watch(tableEditorEditableLibrarySitesProvider);
-      if (editable.isLoading) return const AsyncValue.loading();
+      if (!editable.hasValue) return const AsyncValue.loading();
       return AsyncValue.data(
         SiteTableEditorEntity(
           repo: ref.watch(siteRepositoryProvider),

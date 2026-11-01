@@ -181,4 +181,43 @@ void main() {
     expect(p.cells, isEmpty);
     expect(p.skipped.single.reason, PasteSkipReason.readOnlyColumn);
   });
+
+  test('a blank first line is data, not a header', () {
+    final p = plan('\n6\n7', selectedRow: 0);
+
+    expect(p.hadHeader, isFalse);
+    expect(p.cells.map((c) => (c.entityId, c.text)), [
+      ('d1', ''),
+      ('d2', '6'),
+      ('d3', '7'),
+    ]);
+  });
+
+  test('a duplicate key is reported as ambiguous and matched to nothing', () {
+    final sheet = [
+      const SheetRow(id: 's1', name: 'Reef'),
+      const SheetRow(id: 's2', name: 'Reef'),
+      const SheetRow(id: 's3', name: 'Wall'),
+    ];
+    final p = plan('reef\t9\nwall\t8', sheet: sheet);
+
+    expect(p.matching, PasteMatching.byName);
+    expect(p.cells.map((c) => c.entityId), ['s3']);
+    expect(p.skipped.map((s) => (s.reason, s.detail)), [
+      (PasteSkipReason.ambiguousRow, 'reef'),
+    ]);
+  });
+
+  test('a selection off the sheet yields no cells', () {
+    expect(plan('6\n7', selectedRow: -1).cells, isEmpty);
+    expect(plan('6\n7', selectedColumn: -1).cells, isEmpty);
+  });
+
+  test('a hidden key is recognised whatever its case', () {
+    final sheet = [const SheetRow(id: 's1', name: 'Reef')];
+    final p = plan('REEF\t1\nwall\t2', sheet: sheet, hidden: {'Wall'});
+
+    expect(p.matching, PasteMatching.byName);
+    expect(p.skipped.single.reason, PasteSkipReason.hiddenRow);
+  });
 }

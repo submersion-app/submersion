@@ -38,18 +38,6 @@ class _TestConfigNotifier extends EntityTableConfigNotifier<DiveField> {
 /// The sheet (#3422): a tap opens a cell, Enter commits and moves down,
 /// Escape cancels, bad text is flagged and shown as typed.
 void main() {
-  final d1 = Dive(
-    id: 'd1',
-    diveNumber: 1,
-    dateTime: DateTime(2026, 1, 1),
-    visibilityMeters: 15,
-  );
-  final d2 = Dive(
-    id: 'd2',
-    diveNumber: 2,
-    dateTime: DateTime(2026, 1, 2),
-    visibilityMeters: 20,
-  );
   const twoWeights = [
     DiveWeight(
       id: 'w1',
@@ -64,6 +52,19 @@ void main() {
       amountKg: 4,
     ),
   ];
+  final d1 = Dive(
+    id: 'd1',
+    diveNumber: 1,
+    dateTime: DateTime(2026, 1, 1),
+    visibilityMeters: 15,
+    weights: twoWeights,
+  );
+  final d2 = Dive(
+    id: 'd2',
+    diveNumber: 2,
+    dateTime: DateTime(2026, 1, 2),
+    visibilityMeters: 20,
+  );
   final config = EntityTableViewConfig<DiveField>(
     columns: [
       EntityTableColumnConfig(field: DiveField.diveNumber, isPinned: true),
@@ -88,7 +89,6 @@ void main() {
         BuddyRepository(),
         SpeciesRepository(),
       ),
-      weightsByDive: const {'d1': twoWeights},
       sites: const [],
       centers: const [],
       trips: const [],
@@ -209,10 +209,12 @@ void main() {
     tester,
   ) async {
     await pumpSheet(tester);
-    // d1 has two weight rows: its weight cell shows the placeholder and
-    // stays closed.
-    final weightCells = find.text('--');
-    await tapCell(tester, weightCells.first);
+    // d1 has two weight rows: its weight cell shows their total and stays
+    // closed.
+    await tapCell(
+      tester,
+      find.text(const UnitFormatter(AppSettings()).formatWeight(7)),
+    );
 
     expect(find.byType(TextField), findsNothing);
   });

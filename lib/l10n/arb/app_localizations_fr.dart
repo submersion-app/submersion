@@ -42693,6 +42693,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Humid.';
 
   @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key désigne plusieurs lignes';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key : cette cellule est en lecture seule';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Abandonner la modification';
+
+  @override
+  String get tableEditor_changeLog => 'Journal des modifications';
+
+  @override
   String get settings_tableEditor_title => 'Éditeur de tableau';
 
   @override
