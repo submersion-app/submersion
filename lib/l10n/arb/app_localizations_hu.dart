@@ -3157,6 +3157,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_action_shareDives => 'Merülések megosztása';
 
   @override
+  String get buddies_action_lendGear => 'Felszerelés kölcsönadása';
+
+  @override
+  String buddies_gear_title(String name) {
+    return '$name birtokában lévő felszerelés';
+  }
+
+  @override
+  String get buddies_gear_returned => 'Visszakerült';
+
+  @override
+  String get buddies_gear_allReturned => 'Minden visszakerült';
+
+  @override
   String get buddies_action_sort => 'Rendezés';
 
   @override
@@ -16238,6 +16252,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'Új hely';
 
   @override
+  String get equipment_location_picker_lendToBuddy =>
+      'Kölcsönadás búvártársnak';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'Búvártárs kiválasztása';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16320,6 +16341,45 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '$count elem áthelyezve',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem visszavétele',
+      one: '$count elem visszavétele',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'Vissza ide: $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'Minden elem oda kerül vissza, ahol volt';
+
+  @override
+  String get equipment_location_return_confirm => 'Visszakapottnak jelölés';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem visszakerült',
+      one: '$count elem visszakerült',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return '$name birtokában';
   }
 
   @override
@@ -16451,6 +16511,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'Nincs';
+
+  @override
+  String get equipment_locations_buddyLabel => 'Búvártárs';
+
+  @override
+  String get equipment_locations_buddyNone => 'Nincs';
+
+  @override
+  String get equipment_locations_buddyClear => 'Búvártárs eltávolítása';
 
   @override
   String get equipment_locations_savedCenterClear =>

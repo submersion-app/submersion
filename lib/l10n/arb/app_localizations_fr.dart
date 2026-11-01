@@ -3179,6 +3179,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_action_shareDives => 'Partager les plongées';
 
   @override
+  String get buddies_action_lendGear => 'Prêter du matériel';
+
+  @override
+  String buddies_gear_title(String name) {
+    return 'Matériel avec $name';
+  }
+
+  @override
+  String get buddies_gear_returned => 'Rendu';
+
+  @override
+  String get buddies_gear_allReturned => 'Tout rendu';
+
+  @override
   String get buddies_action_sort => 'Trier';
 
   @override
@@ -16336,6 +16350,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'Nouveau lieu';
 
   @override
+  String get equipment_location_picker_lendToBuddy => 'Prêter à un binôme';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'Choisir un binôme';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16417,6 +16437,45 @@ class AppLocalizationsFr extends AppLocalizations {
       one: '$count élément déplacé',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rendre $count éléments',
+      one: 'Rendre $count élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'Retour à $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'Chaque élément retourne à sa place';
+
+  @override
+  String get equipment_location_return_confirm => 'Marquer comme rendu';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments rendus',
+      one: '$count élément rendu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return 'Avec $name';
   }
 
   @override
@@ -16549,6 +16608,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'Aucun';
+
+  @override
+  String get equipment_locations_buddyLabel => 'Binôme';
+
+  @override
+  String get equipment_locations_buddyNone => 'Aucun';
+
+  @override
+  String get equipment_locations_buddyClear => 'Retirer le binôme';
 
   @override
   String get equipment_locations_savedCenterClear =>

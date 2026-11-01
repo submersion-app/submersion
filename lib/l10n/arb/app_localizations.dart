@@ -4909,6 +4909,30 @@ abstract class AppLocalizations {
   /// **'Share Dives'**
   String get buddies_action_shareDives;
 
+  /// Buddy page action that lends the diver's gear to this buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Lend gear'**
+  String get buddies_action_lendGear;
+
+  /// Buddy page section listing the diver's gear this buddy has
+  ///
+  /// In en, this message translates to:
+  /// **'Gear with {name}'**
+  String buddies_gear_title(String name);
+
+  /// Action on a gear row: this item came back
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get buddies_gear_returned;
+
+  /// Action on the gear section: everything came back
+  ///
+  /// In en, this message translates to:
+  /// **'All returned'**
+  String get buddies_gear_allReturned;
+
   /// No description provided for @buddies_action_sort.
   ///
   /// In en, this message translates to:
@@ -26182,6 +26206,18 @@ abstract class AppLocalizations {
   /// **'New place'**
   String get equipment_location_picker_newPlace;
 
+  /// Row in the place picker that lends gear to one of the diver's buddies
+  ///
+  /// In en, this message translates to:
+  /// **'Lend to a buddy'**
+  String get equipment_location_picker_lendToBuddy;
+
+  /// Title of the sheet that picks the buddy to lend gear to
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a buddy'**
+  String get equipment_location_pickBuddy_title;
+
   /// Title of the sheet that moves gear to a place
   ///
   /// In en, this message translates to:
@@ -26283,6 +26319,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{Moved {count} item} other{Moved {count} items}}'**
   String equipment_location_moved(int count);
+
+  /// Title of the sheet that records gear coming back from a buddy
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Return {count} item} other{Return {count} items}}'**
+  String equipment_location_return_title(int count);
+
+  /// Where returned gear goes, in the return sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Back to {place}'**
+  String equipment_location_return_to(String place);
+
+  /// Return sheet line when the items go back to different places
+  ///
+  /// In en, this message translates to:
+  /// **'Each item goes back where it was'**
+  String get equipment_location_return_eachToOwn;
+
+  /// Button confirming gear came back from a buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Mark returned'**
+  String get equipment_location_return_confirm;
+
+  /// Snackbar after gear comes back from a buddy
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item returned} other{{count} items returned}}'**
+  String equipment_location_returned(int count);
+
+  /// Title on an item's location card when a buddy has it
+  ///
+  /// In en, this message translates to:
+  /// **'With {name}'**
+  String equipment_location_withBuddy(String name);
 
   /// Title of the card showing where an item is
   ///
@@ -26505,6 +26577,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get equipment_locations_savedCenterNone;
+
+  /// Field on a Person place naming the buddy it stands for
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get equipment_locations_buddyLabel;
+
+  /// Value of the Buddy field when no buddy is linked
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_locations_buddyNone;
+
+  /// Tooltip of the button clearing the Buddy field
+  ///
+  /// In en, this message translates to:
+  /// **'Remove buddy'**
+  String get equipment_locations_buddyClear;
 
   /// Tooltip of the button that removes the link to a saved dive center
   ///

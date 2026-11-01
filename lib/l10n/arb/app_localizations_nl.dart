@@ -3152,6 +3152,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_action_shareDives => 'Duiken delen';
 
   @override
+  String get buddies_action_lendGear => 'Uitrusting uitlenen';
+
+  @override
+  String buddies_gear_title(String name) {
+    return 'Uitrusting bij $name';
+  }
+
+  @override
+  String get buddies_gear_returned => 'Terug';
+
+  @override
+  String get buddies_gear_allReturned => 'Alles terug';
+
+  @override
   String get buddies_action_sort => 'Sorteren';
 
   @override
@@ -16188,6 +16202,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'Nieuwe plek';
 
   @override
+  String get equipment_location_picker_lendToBuddy => 'Uitlenen aan een buddy';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'Kies een buddy';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16269,6 +16289,45 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '$count item verplaatst',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items terugnemen',
+      one: '$count item terugnemen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'Terug naar $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'Elk item gaat terug naar waar het was';
+
+  @override
+  String get equipment_location_return_confirm => 'Markeren als terug';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items terug',
+      one: '$count item terug',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return 'Bij $name';
   }
 
   @override
@@ -16400,6 +16459,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'Geen';
+
+  @override
+  String get equipment_locations_buddyLabel => 'Buddy';
+
+  @override
+  String get equipment_locations_buddyNone => 'Geen';
+
+  @override
+  String get equipment_locations_buddyClear => 'Buddy verwijderen';
 
   @override
   String get equipment_locations_savedCenterClear =>

@@ -3239,6 +3239,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_action_shareDives => 'مشاركة الغطسات';
 
   @override
+  String get buddies_action_lendGear => 'إعارة معدات';
+
+  @override
+  String buddies_gear_title(String name) {
+    return 'المعدات مع $name';
+  }
+
+  @override
+  String get buddies_gear_returned => 'أُعيد';
+
+  @override
+  String get buddies_gear_allReturned => 'أُعيد الكل';
+
+  @override
   String get buddies_action_sort => 'ترتيب';
 
   @override
@@ -16515,6 +16529,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'مكان جديد';
 
   @override
+  String get equipment_location_picker_lendToBuddy => 'إعارة لرفيق';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'اختر رفيقًا';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16612,6 +16632,53 @@ class AppLocalizationsAr extends AppLocalizations {
       zero: 'لم يُنقل أي عنصر',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إرجاع $count عنصر',
+      many: 'إرجاع $count عنصرًا',
+      few: 'إرجاع $count عناصر',
+      two: 'إرجاع عنصرين',
+      one: 'إرجاع عنصر واحد',
+      zero: 'إرجاع $count عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'العودة إلى $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'يعود كل عنصر إلى مكانه السابق';
+
+  @override
+  String get equipment_location_return_confirm => 'تحديد كمُعاد';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُعيد $count عنصر',
+      many: 'أُعيد $count عنصرًا',
+      few: 'أُعيدت $count عناصر',
+      two: 'أُعيد عنصران',
+      one: 'أُعيد عنصر واحد',
+      zero: 'لم يُعد أي عنصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return 'مع $name';
   }
 
   @override
@@ -16747,6 +16814,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'لا شيء';
+
+  @override
+  String get equipment_locations_buddyLabel => 'الرفيق';
+
+  @override
+  String get equipment_locations_buddyNone => 'لا شيء';
+
+  @override
+  String get equipment_locations_buddyClear => 'إزالة الرفيق';
 
   @override
   String get equipment_locations_savedCenterClear => 'إزالة مركز الغوص المحفوظ';

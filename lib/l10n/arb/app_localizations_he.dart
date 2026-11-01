@@ -3113,6 +3113,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_action_shareDives => 'שתף צלילות';
 
   @override
+  String get buddies_action_lendGear => 'השאלת ציוד';
+
+  @override
+  String buddies_gear_title(String name) {
+    return 'ציוד אצל $name';
+  }
+
+  @override
+  String get buddies_gear_returned => 'הוחזר';
+
+  @override
+  String get buddies_gear_allReturned => 'הכול הוחזר';
+
+  @override
   String get buddies_action_sort => 'מיין';
 
   @override
@@ -15956,6 +15970,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_location_picker_newPlace => 'מקום חדש';
 
   @override
+  String get equipment_location_picker_lendToBuddy => 'השאלה לחבר צוללים';
+
+  @override
+  String get equipment_location_pickBuddy_title => 'בחירת חבר צוללים';
+
+  @override
   String equipment_location_move_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -16036,6 +16056,45 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'פריט אחד הועבר',
     );
     return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'החזרת $count פריטים',
+      one: 'החזרת פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_return_to(String place) {
+    return 'חזרה אל $place';
+  }
+
+  @override
+  String get equipment_location_return_eachToOwn =>
+      'כל פריט חוזר למקום שבו היה';
+
+  @override
+  String get equipment_location_return_confirm => 'סימון כהוחזר';
+
+  @override
+  String equipment_location_returned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים הוחזרו',
+      one: 'פריט אחד הוחזר',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_location_withBuddy(String name) {
+    return 'אצל $name';
   }
 
   @override
@@ -16166,6 +16225,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_locations_savedCenterNone => 'ללא';
+
+  @override
+  String get equipment_locations_buddyLabel => 'חבר צוללים';
+
+  @override
+  String get equipment_locations_buddyNone => 'ללא';
+
+  @override
+  String get equipment_locations_buddyClear => 'הסר חבר צוללים';
 
   @override
   String get equipment_locations_savedCenterClear => 'הסר מרכז צלילה שמור';
