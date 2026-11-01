@@ -2679,15 +2679,14 @@ class PlanEngine {
   /// When [tankId] is first breathed, which can be partway up a leg folded
   /// into a line rather than at the start of a line of its own.
   int? _firstBreathedRuntime(List<PlanScheduleRow> schedule, String tankId) {
+    var runtime = 0;
     for (final row in schedule) {
-      var runtime =
-          row.startRuntimeSeconds -
-          row.foldedTravel.fold<int>(0, (sum, leg) => sum + leg.seconds);
       for (final leg in row.foldedTravel) {
         if (leg.tankId == tankId && leg.seconds > 0) return runtime;
         runtime += leg.seconds;
       }
       if (row.tankId == tankId) return row.startRuntimeSeconds;
+      runtime = row.runtimeSeconds;
     }
     return null;
   }
@@ -2890,17 +2889,21 @@ class PlanEngine {
       );
     }
 
-    // The cylinder a stretch of ascent on [gas] draws from. A loop stays on
-    // its supply the whole way up, whatever [gas] normalizes to.
-    String? travelTankId(AscentGas gas) => ascentPlan is LoopAscentGas
-        ? loopSupplyTankId ??
-              _tankForGas(
-                plan.tanks,
-                ascentPlan.supplyFO2,
-                ascentPlan.supplyFHe,
-                isCcr: isCcr,
-              )
-        : _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
+    // The cylinder a stretch of ascent leaving [depth] draws from. A loop
+    // stays on its supply the whole way up.
+    String? travelTankId(double depth) {
+      if (ascentPlan is LoopAscentGas) {
+        return loopSupplyTankId ??
+            _tankForGas(
+              plan.tanks,
+              ascentPlan.supplyFO2,
+              ascentPlan.supplyFHe,
+              isCcr: isCcr,
+            );
+      }
+      final gas = ascentPlan.gasForDepth(depth);
+      return _tankForGas(plan.tanks, gas.fO2, gas.fHe, isCcr: isCcr);
+    }
 
     void addTravel(double from, double to, int duration, int arrival) {
       if (ascentPlan is LoopAscentGas) {
@@ -2914,7 +2917,7 @@ class PlanEngine {
           runtime: arrival,
           fO2: ascentPlan.supplyFO2,
           fHe: ascentPlan.supplyFHe,
-          tankId: travelTankId(ascentPlan.gasForDepth(from)),
+          tankId: travelTankId(from),
           physicsDepth: from,
           ppO2Override: loopPpO2At(from),
         );
@@ -2942,7 +2945,7 @@ class PlanEngine {
           runtime: legArrival,
           fO2: gas.fO2,
           fHe: gas.fHe,
-          tankId: travelTankId(gas),
+          tankId: travelTankId(span.fromDepth),
           physicsDepth: span.fromDepth,
         );
       }
@@ -2961,7 +2964,7 @@ class PlanEngine {
           fromDepthMeters: span.fromDepth,
           toDepthMeters: span.toDepth,
           seconds: span.seconds,
-          tankId: travelTankId(ascentPlan.gasForDepth(span.fromDepth)),
+          tankId: travelTankId(span.fromDepth),
         ),
     ];
 

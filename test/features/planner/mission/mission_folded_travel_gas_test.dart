@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
@@ -84,7 +85,7 @@ void main() {
     startPressure: 200,
   );
 
-  void expectBudgetMatchesEngine(domain.DivePlan plan) {
+  PlanOutcome expectBudgetMatchesEngine(domain.DivePlan plan) {
     final mission = missionEngine.compute(plan: plan, mission: _mission);
     final outcome = engine.compute(plan.copyWith(segments: mission.segments));
 
@@ -106,6 +107,7 @@ void main() {
         reason: usage.tankId,
       );
     }
+    return outcome;
   }
 
   group('mission gas budget over travel between stops (#3927)', () {
@@ -114,9 +116,12 @@ void main() {
     });
 
     test('follows a switch the diver set between two stops', () {
-      expectBudgetMatchesEngine(
+      final outcome = expectBudgetMatchesEngine(
         _plan([back, ean50.copyWith(role: TankRole.deco, decoSwitchDepth: 10)]),
       );
+
+      final legs = outcome.schedule.map((r) => r.foldedTravel);
+      expect(legs.map((leg) => leg.length), contains(greaterThan(1)));
     });
 
     test('an exit ending below reserve is not survivable', () {
