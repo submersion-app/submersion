@@ -265,6 +265,6 @@ The maintainer has not been asked about these. Each is easy to change.
 - The handle's glyph and colour, within "distinct from the existing markers".
 - How map panning is suspended while the handle is held.
 - The exact wording of new strings.
-- Where the handle's pure maths lives, keeping `nav_track_align_page.dart` under
-  the 800-line limit. It is at 816 lines today, so new page logic must not grow
-  it, and a small extraction may be needed.
+- Where the handle's maths and gesture live. `nav_track_align_page.dart` is
+  already at 816 lines, so they belong outside it and the page only wires them in.
+  Splitting the page further waits for open PR #4038, which reworks the same panel.
