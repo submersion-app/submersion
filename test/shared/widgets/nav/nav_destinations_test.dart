@@ -39,7 +39,6 @@ void main() {
         'dives',
         'sites',
         'trips',
-        'search',
         'equipment',
         'buddies',
         'dive-centers',
@@ -50,6 +49,7 @@ void main() {
         'planning',
         'transfer',
         'tracks',
+        'search',
         'settings',
         'more',
       ]);
@@ -148,7 +148,6 @@ void main() {
         'dives',
         'sites',
         'trips',
-        'search',
         'equipment',
         'buddies',
         'dive-centers',
@@ -159,6 +158,7 @@ void main() {
         'planning',
         'transfer',
         'tracks',
+        'search',
         'settings',
       ]);
     });

@@ -302,10 +302,11 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tracks is rail index 13 (after Transfer, before Settings; Media and
-      // Documents, issue #3631, share one slot earlier in the rail).
+      // Tracks is rail index 13 (after Transfer, before Search and
+      // Settings; Media and Documents, issue #3631, share one slot earlier
+      // in the rail).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(14);
+      rail.onDestinationSelected!(13);
       await tester.pumpAndSettle();
 
       expect(find.text('Tracks Page'), findsOneWidget);
@@ -313,7 +314,7 @@ void main() {
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
-      expect(selected, 14);
+      expect(selected, 13);
     });
 
     testWidgets('the Tracks destination stays selected on a nested tracks '
@@ -333,7 +334,7 @@ void main() {
         tester
             .widget<NavigationRail>(find.byType(NavigationRail))
             .selectedIndex,
-        14,
+        13,
       );
     });
 
@@ -940,7 +941,6 @@ void main() {
         'Dives',
         'Sites',
         'Trips',
-        'Search',
         'Equipment',
         'Buddies',
         'Dive Centers',
@@ -951,6 +951,7 @@ void main() {
         'Planning',
         'Transfer',
         'Tracks',
+        'Search',
         'Settings',
       ]);
     });

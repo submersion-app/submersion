@@ -13,7 +13,6 @@ void main() {
       ('dives', '/dives'),
       ('sites', '/sites'),
       ('trips', '/trips'),
-      ('search', '/search'),
       ('equipment', '/equipment'),
       ('buddies', '/buddies'),
       ('dive-centers', '/dive-centers'),
@@ -24,6 +23,7 @@ void main() {
       ('planning', '/planning'),
       ('transfer', '/transfer'),
       ('tracks', '/tracks'),
+      ('search', '/search'),
       ('settings', '/settings'),
     ];
     expect(rail.length, expected.length);

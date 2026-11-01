@@ -302,15 +302,15 @@ void main() {
     testWidgets('move-up on first overflow row promotes it to primary', (
       tester,
     ) async {
-      // Default primary: [dives, sites, trips]; first overflow = search.
+      // Default primary: [dives, sites, trips]; first overflow = equipment.
       final repo = await pumpPage(tester);
 
-      await tester.tap(find.byTooltip('Move Search up'));
+      await tester.tap(find.byTooltip('Move Equipment up'));
       await tester.pumpAndSettle();
 
-      // Search should now be primary; trips (the last default primary)
+      // Equipment should now be primary; trips (the last default primary)
       // should drop to overflow.
-      expect(repo.navPrimaryIds!.take(3), contains('search'));
+      expect(repo.navPrimaryIds!.take(3), contains('equipment'));
       expect(repo.navPrimaryIds!.take(3), isNot(contains('trips')));
     });
 
@@ -323,7 +323,7 @@ void main() {
       await tester.tap(find.byTooltip('Move Trips down'));
       await tester.pumpAndSettle();
 
-      expect(repo.navPrimaryIds!.take(3), contains('search'));
+      expect(repo.navPrimaryIds!.take(3), contains('equipment'));
       expect(repo.navPrimaryIds!.take(3), isNot(contains('trips')));
     });
 

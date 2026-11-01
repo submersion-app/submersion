@@ -117,16 +117,6 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     selectedIcon: Icons.flight,
     label: (l10n) => l10n.nav_trips,
   ),
-  // Search reaches every record (#3882). It sits below the three default
-  // bottom-bar slots, so no phone loses one: it lands first in More, where
-  // it can be pinned.
-  NavDestination(
-    id: 'search',
-    route: kGlobalSearchLocation,
-    icon: Icons.search_outlined,
-    selectedIcon: Icons.search,
-    label: (l10n) => l10n.nav_search,
-  ),
   NavDestination(
     id: 'equipment',
     route: '/equipment',
@@ -222,6 +212,16 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     selectedIcon: Icons.route,
     label: (l10n) => l10n.nav_tracks,
     subtitle: (l10n) => l10n.nav_tracksSubtitle,
+  ),
+  // Search reaches every record (#3882). Last before Settings: it is a
+  // door to the other sections rather than one of them, and far enough down
+  // that no phone's bottom bar loses a slot to it.
+  NavDestination(
+    id: 'search',
+    route: kGlobalSearchLocation,
+    icon: Icons.search_outlined,
+    selectedIcon: Icons.search,
+    label: (l10n) => l10n.nav_search,
   ),
   NavDestination(
     id: 'settings',
