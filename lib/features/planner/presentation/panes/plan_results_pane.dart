@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/planner/presentation/widgets/plan_series_summary_card.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
@@ -70,6 +71,7 @@ class PlanResultsPane extends ConsumerWidget {
             children: tiles,
           ),
         ),
+        const PlanSeriesSummaryCard(),
         const PlanSourceDiveCompareStrip(),
         if (shrinkWrap)
           PlanResultsSheet(controller: controller, shrinkWrap: true)

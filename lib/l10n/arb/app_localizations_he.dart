@@ -20358,6 +20358,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'ביטול שינויים';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'מרווח שטח של $time קצר מ-10 דקות';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'מתחילה $time לפני סיום הצלילה הקודמת';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'מתחילה עם חובת דקו מהצלילה הקודמת';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'פרופיל הפוך: $depth, עמוק מהצלילה הקודמת של $previous';
+  }
+
+  @override
+  String get plannerSeries_summary_title => 'סדרה';
+
+  @override
+  String get plannerSeries_summary_total => 'זמן כולל';
+
+  @override
+  String get plannerSeries_summary_highestCns => 'CNS מרבי';
+
+  @override
+  String get plannerSeries_summary_dailyOtu => 'OTU יומי';
+
+  @override
+  String get plannerSeries_summary_noFly => 'אין טיסה עד';
+
+  @override
+  String plannerSeries_summary_noFlyWait(String time) {
+    return '$time אחרי הצלילה האחרונה';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'לשמור את הצלילה?';
 
   @override

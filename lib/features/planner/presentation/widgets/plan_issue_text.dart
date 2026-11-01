@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -106,6 +107,21 @@ String planIssueMessage(
       return l10n.plannerCanvas_issue_diluentModExceeded(
         units.formatDepth(issue.atDepth ?? 0, decimals: 0),
         issue.value?.toStringAsFixed(2) ?? '--',
+      );
+    case PlanIssueType.shortSurfaceInterval:
+      return l10n.plannerSeries_issue_shortInterval(
+        formatHoursMinutes(Duration(minutes: (issue.value ?? 0).round())),
+      );
+    case PlanIssueType.startsBeforePreviousEnds:
+      return l10n.plannerSeries_issue_startsBefore(
+        formatHoursMinutes(Duration(minutes: (issue.value ?? 0).ceil())),
+      );
+    case PlanIssueType.startsOwingDeco:
+      return l10n.plannerSeries_issue_owingDeco;
+    case PlanIssueType.reverseProfile:
+      return l10n.plannerSeries_issue_reverseProfile(
+        units.formatDepth(issue.value ?? 0, decimals: 0),
+        units.formatDepth(issue.threshold ?? 0, decimals: 0),
       );
     case PlanIssueType.ceilingViolated:
       return l10n.plannerCanvas_issue_ceilingViolated(

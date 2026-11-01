@@ -20795,6 +20795,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerfen';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'Oberflächenpause von $time liegt unter 10 Minuten';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Beginnt $time vor dem Ende des vorherigen Tauchgangs';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Beginnt mit einer Deko-Verpflichtung aus dem vorherigen Tauchgang';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Umgekehrtes Profil: $depth, tiefer als der vorherige Tauchgang mit $previous';
+  }
+
+  @override
+  String get plannerSeries_summary_title => 'Serie';
+
+  @override
+  String get plannerSeries_summary_total => 'Gesamtzeit';
+
+  @override
+  String get plannerSeries_summary_highestCns => 'Höchster CNS';
+
+  @override
+  String get plannerSeries_summary_dailyOtu => 'Tages-OTU';
+
+  @override
+  String get plannerSeries_summary_noFly => 'Kein Fliegen bis';
+
+  @override
+  String plannerSeries_summary_noFlyWait(String time) {
+    return '$time nach dem letzten Tauchgang';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Diesen Tauchgang speichern?';
 
   @override

@@ -56,6 +56,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         end: end,
         endInstant: diveEndInstant(dive),
         otu: analysis?.o2Exposure.otu ?? 0,
+        maxDepth: dive.maxDepth,
       ),
     );
   }

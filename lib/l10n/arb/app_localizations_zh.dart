@@ -19805,6 +19805,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_unsaved_discard => '放弃';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return '$time 的水面间隔不足 10 分钟';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return '在上一次潜水结束前 $time 开始';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco => '开始时带有上一次潜水的减压义务';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return '反向剖面：$depth，比上一次 $previous 的潜水更深';
+  }
+
+  @override
+  String get plannerSeries_summary_title => '系列';
+
+  @override
+  String get plannerSeries_summary_total => '总时间';
+
+  @override
+  String get plannerSeries_summary_highestCns => '最高 CNS';
+
+  @override
+  String get plannerSeries_summary_dailyOtu => '每日 OTU';
+
+  @override
+  String get plannerSeries_summary_noFly => '禁飞至';
+
+  @override
+  String plannerSeries_summary_noFlyWait(String time) {
+    return '最后一次潜水后 $time';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => '保存此潜水？';
 
   @override

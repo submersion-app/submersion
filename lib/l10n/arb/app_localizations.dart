@@ -33138,6 +33138,66 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_issue_shortInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval of {time} is under 10 minutes'**
+  String plannerSeries_issue_shortInterval(String time);
+
+  /// No description provided for @plannerSeries_issue_startsBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {time} before the previous dive ends'**
+  String plannerSeries_issue_startsBefore(String time);
+
+  /// No description provided for @plannerSeries_issue_owingDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts with a deco obligation from the dive before'**
+  String get plannerSeries_issue_owingDeco;
+
+  /// No description provided for @plannerSeries_issue_reverseProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse profile: {depth}, deeper than the {previous} dive before'**
+  String plannerSeries_issue_reverseProfile(String depth, String previous);
+
+  /// No description provided for @plannerSeries_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Series'**
+  String get plannerSeries_summary_title;
+
+  /// No description provided for @plannerSeries_summary_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time'**
+  String get plannerSeries_summary_total;
+
+  /// No description provided for @plannerSeries_summary_highestCns.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest CNS'**
+  String get plannerSeries_summary_highestCns;
+
+  /// No description provided for @plannerSeries_summary_dailyOtu.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily OTU'**
+  String get plannerSeries_summary_dailyOtu;
+
+  /// No description provided for @plannerSeries_summary_noFly.
+  ///
+  /// In en, this message translates to:
+  /// **'No flying until'**
+  String get plannerSeries_summary_noFly;
+
+  /// No description provided for @plannerSeries_summary_noFlyWait.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} after the last dive'**
+  String plannerSeries_summary_noFlyWait(String time);
+
   /// No description provided for @plannerSeries_unsaved_titleDive.
   ///
   /// In en, this message translates to:

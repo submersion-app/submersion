@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -20,6 +21,20 @@ PlanOutcome computeOutcomeForState(
   );
 }
 
+/// Whether an editing [state] starts with a deco obligation left by the dive
+/// before it: its tissues, once off-gassed over the surface interval, still
+/// cannot surface at the plan's high gradient factor.
+bool startsOwingDeco(DivePlanState state, {required PlanEngineConfig config}) {
+  final seed = startStateForPlan(state, config: config);
+  if (seed is! BuhlmannState) return false;
+  final algorithm = BuhlmannAlgorithm(
+    gfLow: (state.gfLow ?? config.gfLow) / 100.0,
+    gfHigh: (state.gfHigh ?? config.gfHigh) / 100.0,
+    environment: _environmentFor(state),
+  )..setCompartments(seed.compartments);
+  return algorithm.surfaceTargetCeiling() > 0;
+}
+
 /// The tissues an editing [state] starts from: a followed dive's
 /// compartments off-gassed over the surface interval, or null for a fresh
 /// diver. Every engine run that stands in for this plan (the live outcome,
@@ -38,12 +53,15 @@ TissueState? startStateForPlan(
     surfaceInterval: state.surfaceInterval,
     gfLow: (state.gfLow ?? config.gfLow) / 100.0,
     gfHigh: (state.gfHigh ?? config.gfHigh) / 100.0,
-    // Match the engine: altitude <= 0 is unset (legacy 1.0 bar), so the seed
-    // is off-gassed at the same surface pressure the plan is computed at.
-    environment: DiveEnvironment.forConditions(
+    environment: _environmentFor(state),
+  );
+}
+
+/// Matches the engine: altitude <= 0 is unset (legacy 1.0 bar), so the seed
+/// is off-gassed at the same surface pressure the plan is computed at.
+DiveEnvironment _environmentFor(DivePlanState state) =>
+    DiveEnvironment.forConditions(
       altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
       waterType: state.waterType ?? WaterType.salt,
       salinityPpt: state.salinityPpt,
-    ),
-  );
-}
+    );

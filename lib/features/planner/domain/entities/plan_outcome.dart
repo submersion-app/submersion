@@ -39,6 +39,23 @@ enum PlanIssueType {
   /// stay at) and [PlanIssue.threshold] the depth they were actually at, so
   /// grouping by the highest value keeps the deepest ceiling.
   ceilingViolated,
+
+  /// A dive of a series after too short a surface interval (issue #3565).
+  /// [PlanIssue.value] is the interval and [PlanIssue.threshold] the limit,
+  /// both in minutes.
+  shortSurfaceInterval,
+
+  /// A dive of a series whose start falls before the dive before it ends.
+  /// [PlanIssue.value] is the overlap in minutes.
+  startsBeforePreviousEnds,
+
+  /// A dive of a series that starts with a deco obligation left from the dive
+  /// before it.
+  startsOwingDeco,
+
+  /// A dive of a series deeper than the one before it. [PlanIssue.value] is
+  /// its depth and [PlanIssue.threshold] the previous dive's, in meters.
+  reverseProfile,
 }
 
 /// One issue found while computing a plan.
@@ -415,6 +432,31 @@ class PlanOutcome {
     required this.ceilingTrace,
     this.authoredDecoSeconds = 0,
   });
+
+  /// This outcome with [extra] issues joined to its own, most severe first.
+  PlanOutcome withIssues(List<PlanIssue> extra) {
+    if (extra.isEmpty) return this;
+    final merged = [...issues, ...extra]
+      ..sort((a, b) => b.severity.index.compareTo(a.severity.index));
+    return PlanOutcome(
+      runtimeSeconds: runtimeSeconds,
+      maxDepth: maxDepth,
+      ndlAtBottom: ndlAtBottom,
+      ttsAtBottom: ttsAtBottom,
+      stops: stops,
+      schedule: schedule,
+      segmentOutcomes: segmentOutcomes,
+      tankUsages: tankUsages,
+      cnsEnd: cnsEnd,
+      otuTotal: otuTotal,
+      issues: merged,
+      endTissue: endTissue,
+      tissueTimeline: tissueTimeline,
+      surfacedTissue: surfacedTissue,
+      ceilingTrace: ceilingTrace,
+      authoredDecoSeconds: authoredDecoSeconds,
+    );
+  }
 
   /// Time spent on stops the diver authored as segments (a stop leg in the
   /// resolved chain), as opposed to the [stops] the engine scheduled after

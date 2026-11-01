@@ -20812,6 +20812,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'El intervalo en superficie de $time es inferior a 10 minutos';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Empieza $time antes de que termine la inmersión anterior';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Empieza con una obligación de descompresión de la inmersión anterior';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Perfil inverso: $depth, más profundo que la inmersión anterior de $previous';
+  }
+
+  @override
+  String get plannerSeries_summary_title => 'Serie';
+
+  @override
+  String get plannerSeries_summary_total => 'Tiempo total';
+
+  @override
+  String get plannerSeries_summary_highestCns => 'CNS máximo';
+
+  @override
+  String get plannerSeries_summary_dailyOtu => 'OTU diario';
+
+  @override
+  String get plannerSeries_summary_noFly => 'No volar hasta';
+
+  @override
+  String plannerSeries_summary_noFlyWait(String time) {
+    return '$time después de la última inmersión';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
 
   @override

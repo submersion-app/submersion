@@ -17,7 +17,93 @@ class SeriesDiveResult {
   final DivePlanState state;
   final PlanOutcome outcome;
 
-  const SeriesDiveResult({required this.state, required this.outcome});
+  /// What the series itself raises about this dive (see [seriesIssuesFor]),
+  /// also among [outcome]'s issues. Held apart for the live outcome, which the
+  /// engine computes alone.
+  final List<PlanIssue> seriesIssues;
+
+  const SeriesDiveResult({
+    required this.state,
+    required this.outcome,
+    this.seriesIssues = const [],
+  });
+}
+
+/// A surface interval shorter than this is flagged.
+const shortSurfaceIntervalLimit = Duration(minutes: 10);
+
+/// How much deeper than the dive before counts as a reverse profile. A few
+/// metres between two dives to the same site is not a change of plan.
+const reverseProfileMarginMeters = 3.0;
+
+/// What the series raises about the dive at [index], whose inputs with its
+/// carry applied are [state], from [earlier]: the dives before it, in order.
+/// A first dive that follows nothing has no dive before it, so raises nothing.
+List<PlanIssue> seriesIssuesFor(
+  List<PlanSeriesDive> dives,
+  int index,
+  DivePlanState state,
+  double maxDepth,
+  List<SeriesDiveResult> earlier, {
+  required PlanEngineConfig config,
+  SeriesFollow? follow,
+}) {
+  if (index == 0 && follow == null) return const [];
+  final issues = <PlanIssue>[];
+
+  final end = previousEnd(index, earlier, follow: follow);
+  final start = state.startDateTime;
+  final overlap = end == null || start == null || !dives[index].fixedStart
+      ? Duration.zero
+      : end.difference(fromWallClockUtc(start));
+  final interval = state.surfaceInterval;
+  if (overlap > Duration.zero) {
+    issues.add(
+      PlanIssue(
+        type: PlanIssueType.startsBeforePreviousEnds,
+        severity: PlanIssueSeverity.critical,
+        message: 'Starts before the previous dive ends',
+        value: overlap.inMinutes.toDouble(),
+      ),
+    );
+  } else if (interval != null && interval < shortSurfaceIntervalLimit) {
+    issues.add(
+      PlanIssue(
+        type: PlanIssueType.shortSurfaceInterval,
+        severity: PlanIssueSeverity.warning,
+        message: 'Surface interval under the limit',
+        value: interval.inMinutes.toDouble(),
+        threshold: shortSurfaceIntervalLimit.inMinutes.toDouble(),
+      ),
+    );
+  }
+
+  if (startsOwingDeco(state, config: config)) {
+    issues.add(
+      const PlanIssue(
+        type: PlanIssueType.startsOwingDeco,
+        severity: PlanIssueSeverity.critical,
+        message: 'Starts with a deco obligation',
+      ),
+    );
+  }
+
+  final previousDepth = index == 0
+      ? follow?.followed.maxDepth
+      : earlier[index - 1].outcome.maxDepth;
+  if (previousDepth != null &&
+      maxDepth > previousDepth + reverseProfileMarginMeters) {
+    issues.add(
+      PlanIssue(
+        type: PlanIssueType.reverseProfile,
+        severity: PlanIssueSeverity.warning,
+        message: 'Deeper than the dive before',
+        value: maxDepth,
+        threshold: previousDepth,
+      ),
+    );
+  }
+  return issues;
 }
 
 /// Computes a repetitive series in order (issue #3565). Each dive after the
@@ -35,10 +121,21 @@ List<SeriesDiveResult> computeSeries(
   final results = <SeriesDiveResult>[];
   for (var i = 0; i < dives.length; i++) {
     final state = carriedState(dives, i, results, follow: follow);
+    final outcome = computeOutcomeForState(state, config: config);
+    final issues = seriesIssuesFor(
+      dives,
+      i,
+      state,
+      outcome.maxDepth,
+      results,
+      config: config,
+      follow: follow,
+    );
     results.add(
       SeriesDiveResult(
         state: state,
-        outcome: computeOutcomeForState(state, config: config),
+        outcome: outcome.withIssues(issues),
+        seriesIssues: issues,
       ),
     );
   }

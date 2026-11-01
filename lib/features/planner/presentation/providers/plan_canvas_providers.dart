@@ -1,3 +1,4 @@
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -552,8 +553,11 @@ final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
 /// deco time, CNS, issues) are shown: the selected contingency's outcome when
 /// one is being previewed, else the live plan's outcome.
 final activePlanOutcomeProvider = Provider<PlanOutcome>((ref) {
-  return ref.watch(selectedContingencyProvider)?.outcome ??
-      ref.watch(planOutcomeProvider);
+  final preview = ref.watch(selectedContingencyProvider)?.outcome;
+  if (preview != null) return preview;
+  return ref
+      .watch(planOutcomeProvider)
+      .withIssues(ref.watch(selectedSeriesIssuesProvider));
 });
 
 /// The logged dive a "What if..." plan was converted from, plus its profile:

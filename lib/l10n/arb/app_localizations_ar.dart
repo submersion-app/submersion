@@ -21116,6 +21116,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'فترة السطح البالغة $time أقل من 10 دقائق';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'تبدأ قبل $time من انتهاء الغطسة السابقة';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'تبدأ بالتزام تخفيف ضغط من الغطسة السابقة';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'ملف عكسي: $depth، أعمق من الغطسة السابقة البالغة $previous';
+  }
+
+  @override
+  String get plannerSeries_summary_title => 'السلسلة';
+
+  @override
+  String get plannerSeries_summary_total => 'الوقت الإجمالي';
+
+  @override
+  String get plannerSeries_summary_highestCns => 'أعلى CNS';
+
+  @override
+  String get plannerSeries_summary_dailyOtu => 'OTU اليومي';
+
+  @override
+  String get plannerSeries_summary_noFly => 'لا طيران حتى';
+
+  @override
+  String plannerSeries_summary_noFlyWait(String time) {
+    return '$time بعد آخر غطسة';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
 
   @override

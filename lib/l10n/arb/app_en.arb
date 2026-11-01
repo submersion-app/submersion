@@ -12963,6 +12963,47 @@
   "plannerSeries_unsaved_title": "Save this series?",
   "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
   "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_issue_shortInterval": "Surface interval of {time} is under 10 minutes",
+  "@plannerSeries_issue_shortInterval": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_issue_startsBefore": "Starts {time} before the previous dive ends",
+  "@plannerSeries_issue_startsBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_issue_owingDeco": "Starts with a deco obligation from the dive before",
+  "plannerSeries_issue_reverseProfile": "Reverse profile: {depth}, deeper than the {previous} dive before",
+  "@plannerSeries_issue_reverseProfile": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "previous": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_summary_title": "Series",
+  "plannerSeries_summary_total": "Total time",
+  "plannerSeries_summary_highestCns": "Highest CNS",
+  "plannerSeries_summary_dailyOtu": "Daily OTU",
+  "plannerSeries_summary_noFly": "No flying until",
+  "plannerSeries_summary_noFlyWait": "{time} after the last dive",
+  "@plannerSeries_summary_noFlyWait": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "plannerSeries_unsaved_titleDive": "Save this dive?",
   "plannerSeries_unsaved_bodyDive": "This dive has changes that haven't been saved.",
   "plannerSeries_saved_diveCount": "{count} dives",
