@@ -58,7 +58,8 @@ part 'insights_repository_time_of_day.dart';
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
 /// The four groups partition the filtered dive library. [needsCompute] maps
-/// dive id to that dive's `dives.updated_at`, which the computed fallback
+/// dive id to the latest write to that dive or to one in its residual lookback
+/// ([earlierDivesRevisionSql]), which the computed fallback
 /// uses as the profile revision in its cache fingerprint; the lean `Dive`
 /// hydration used by the analysis pipeline carries no `updatedAt`, so this
 /// scan is the only place that value is cheaply available. [noProfile] holds
@@ -2903,7 +2904,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           sig.dive_id AS dive_id,
           MAX(d.updated_at, COALESCE(${earlierDivesRevisionSql('d')}, 0))
-            AS updated_at,
+            AS revision,
           CASE
             WHEN sig.deco_stop = 1 OR ev.dive_id IS NOT NULL THEN 'deco'
             WHEN sig.has_deco_type = 1 THEN 'no_deco'
@@ -2929,12 +2930,12 @@ class InsightsRepository with InsightsChartDives {
             recordedNoDeco.add(id);
           case 'compute':
             // Non-null read on purpose. `dives.updated_at` is a non-nullable
-            // column and the query inner-joins dives, so a null here means the
-            // schema or the query drifted. Defaulting to 0 would silently
+            // column and the query inner-joins dives, so a null revision means
+            // the schema or the query drifted. Defaulting to 0 would silently
             // collapse every dive onto one fingerprint component and stop
             // edits invalidating the computed classification cache, so fail
             // loudly instead.
-            needsCompute[id] = row.read<int>('updated_at');
+            needsCompute[id] = row.read<int>('revision');
           default:
             noProfile.add(id);
         }
