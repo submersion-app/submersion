@@ -2533,8 +2533,9 @@ class PlanEngine {
             ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
       bool hypoxicAt(double depth) => ppO2At(depth) < _hypoxicPpO2;
       if (!hypoxicAt(span.toDepth)) continue;
-      // Only the first span can leave hypoxic, on a gas the last leg did not
-      // breathe, and a stop there is one no span ends at.
+      // Only the first span can leave hypoxic, since any later one starts
+      // where the span before it ended, and a stop there is one no span ends
+      // at.
       final leavesHypoxic = hypoxicAt(span.fromDepth);
       final depth = leavesHypoxic ? span.fromDepth : span.toDepth;
       final ppO2 = ppO2At(depth);
