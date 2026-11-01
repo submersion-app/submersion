@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
@@ -14,6 +17,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -22,8 +26,7 @@ import '../../../../helpers/mock_providers.dart';
 /// the count through a dependency, as a dive write does.
 final _dependency = StateProvider<int>((ref) => 0);
 
-/// The Trips row refreshes through the trip filter it counts (issue #4016), so
-/// every dive write reloads it. It keeps its figure while that runs.
+/// The item page's count rows describe the lists they open (issue #4016).
 void main() {
   const equipment = EquipmentItem(
     id: 'equip-trips',
@@ -31,9 +34,7 @@ void main() {
     type: EquipmentType.regulator,
   );
 
-  testWidgets('the Trips row keeps its figure through a reload', (
-    tester,
-  ) async {
+  Future<ProviderContainer> pumpPage(WidgetTester tester) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(1400, 1600);
     addTearDown(() {
@@ -47,6 +48,11 @@ void main() {
         overrides: [
           ...overrides,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          // In table mode a wide page stays put, instead of redirecting to the
+          // master-detail list.
+          equipmentListViewModeProvider.overrideWith(
+            (ref) => ListViewMode.table,
+          ),
           equipmentItemProvider(
             equipment.id,
           ).overrideWith((ref) async => equipment),
@@ -92,20 +98,56 @@ void main() {
             equipment.id,
           ).overrideWith((ref) => _MockServiceRecordNotifier()),
         ].cast(),
-        child: MaterialApp(
+        child: MaterialApp.router(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: EquipmentDetailPage(equipmentId: equipment.id),
+          routerConfig: GoRouter(
+            initialLocation: '/item',
+            routes: [
+              GoRoute(
+                path: '/item',
+                builder: (context, state) =>
+                    EquipmentDetailPage(equipmentId: equipment.id),
+              ),
+              GoRoute(
+                path: '/dives',
+                builder: (context, state) =>
+                    const Scaffold(body: Text('DIVE_LIST')),
+              ),
+            ],
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    return ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentDetailPage)),
+    );
+  }
+
+  testWidgets('the Dives row opens the dives it counts', (tester) async {
+    final container = await pumpPage(tester);
+
+    await tester.tap(find.text('3 dives'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('DIVE_LIST'), findsOneWidget);
+    expect(
+      container.read(diveFilterProvider),
+      DiveFilterState.itemUse(equipment.id),
+    );
+  });
+
+  // The row refreshes through the trip filter it counts, so every dive write
+  // reloads it.
+  testWidgets('the Trips row keeps its figure through a reload', (
+    tester,
+  ) async {
+    final container = await pumpPage(tester);
     expect(find.text('1 trip'), findsOneWidget);
 
-    ProviderScope.containerOf(
-      tester.element(find.byType(EquipmentDetailPage)),
-    ).read(_dependency.notifier).state++;
+    container.read(_dependency.notifier).state++;
     await tester.pump();
 
     expect(find.text('1 trip'), findsOneWidget);
