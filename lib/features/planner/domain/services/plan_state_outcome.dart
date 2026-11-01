@@ -38,12 +38,16 @@ TissueState? startStateForPlan(
     surfaceInterval: state.surfaceInterval,
     gfLow: (state.gfLow ?? config.gfLow) / 100.0,
     gfHigh: (state.gfHigh ?? config.gfHigh) / 100.0,
-    // Match the engine: altitude <= 0 is unset (legacy 1.0 bar), so the seed
-    // is off-gassed at the same surface pressure the plan is computed at.
-    environment: DiveEnvironment.forConditions(
+    environment: environmentForPlan(state),
+    followedEnvironment: state.initialTissueEnvironment,
+  );
+}
+
+/// The environment [state] is computed in. Matches the engine: altitude <= 0
+/// is unset (legacy 1.0 bar).
+DiveEnvironment environmentForPlan(DivePlanState state) =>
+    DiveEnvironment.forConditions(
       altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
       waterType: state.waterType ?? WaterType.salt,
       salinityPpt: state.salinityPpt,
-    ),
-  );
-}
+    );

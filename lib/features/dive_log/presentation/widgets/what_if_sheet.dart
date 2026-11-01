@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -155,6 +156,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
     );
 
     List<TissueCompartment> tissueCompartments = const [];
+    DiveEnvironment? tissueEnvironment;
     Duration? surfaceInterval;
     // Replay this dive as it started. Seeding from THIS dive's end tissues
     // plus "now" would plan a repetitive after it and inflate TTS.
@@ -168,6 +170,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
         );
         if (analysis != null && analysis.decoStatuses.isNotEmpty) {
           tissueCompartments = analysis.decoStatuses.last.compartments;
+          tissueEnvironment = preceding.environment;
         }
         final precedingEnd = (preceding.entryTime ?? preceding.dateTime).add(
           preceding.effectiveRuntime ?? Duration.zero,
@@ -203,6 +206,7 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
       initialTissueState: tissueCompartments.isEmpty
           ? null
           : tissueCompartments,
+      initialTissueEnvironment: tissueEnvironment,
       surfaceInterval: surfaceInterval,
     );
 

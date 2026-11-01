@@ -1054,7 +1054,9 @@ void main() {
           currentPN2: 1.2,
         ),
       ];
+      const altitude = DiveEnvironment(surfacePressureBar: 0.7);
       notifier.setFollowedDive(
+        environment: altitude,
         diveId: 'dive-9',
         compartments: compartments,
         surfaceInterval: const Duration(hours: 2),
@@ -1063,12 +1065,14 @@ void main() {
       var state = notifier.state;
       expect(state.sourceDiveId, 'dive-9');
       expect(state.initialTissueState, compartments);
+      expect(state.initialTissueEnvironment, altitude);
       expect(state.surfaceInterval, const Duration(hours: 2));
       expect(state.isDirty, isTrue);
 
       notifier.clearFollowedDive();
       state = notifier.state;
       expect(state.sourceDiveId, isNull);
+      expect(state.initialTissueEnvironment, isNull);
       expect(state.initialTissueState, isNull);
       expect(state.surfaceInterval, isNull);
     });
@@ -1092,6 +1096,7 @@ void main() {
 
       test('when following a dive', () {
         notifier.setFollowedDive(
+          environment: DiveEnvironment.standard,
           diveId: 'dive-9',
           surfaceInterval: const Duration(hours: 2),
         );

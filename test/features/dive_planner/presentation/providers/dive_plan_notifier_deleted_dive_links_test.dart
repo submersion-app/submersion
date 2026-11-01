@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -68,6 +69,7 @@ void main() {
     final planner = notifier();
     addTearDown(planner.dispose);
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
@@ -90,6 +92,7 @@ void main() {
     final planner = notifier();
     addTearDown(planner.dispose);
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-1',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 2),
@@ -121,6 +124,7 @@ void main() {
       final planner = notifier();
       addTearDown(planner.dispose);
       planner.setFollowedDive(
+        environment: DiveEnvironment.standard,
         diveId: 'dive-1',
         compartments: tissues,
         surfaceInterval: const Duration(hours: 2),
@@ -158,6 +162,7 @@ void main() {
     final planner = notifier();
     addTearDown(planner.dispose);
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
@@ -198,6 +203,7 @@ void main() {
     final planner = notifier();
     addTearDown(planner.dispose);
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-1',
       surfaceInterval: const Duration(hours: 2),
     );
@@ -205,6 +211,7 @@ void main() {
 
     final saving = planner.save();
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-2',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 3),
@@ -223,6 +230,7 @@ void main() {
     final planner = notifier();
     addTearDown(planner.dispose);
     planner.setFollowedDive(
+      environment: DiveEnvironment.standard,
       diveId: 'dive-1',
       compartments: tissues,
       surfaceInterval: const Duration(hours: 2),

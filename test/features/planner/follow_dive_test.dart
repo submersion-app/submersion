@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -57,6 +58,7 @@ void main() {
     container
         .read(divePlanNotifierProvider.notifier)
         .setFollowedDive(
+          environment: DiveEnvironment.standard,
           diveId: 'dive-9',
           compartments: null,
           surfaceInterval: const Duration(hours: 1),

@@ -141,6 +141,7 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
         .setFollowedDive(
           diveId: dive.id,
           compartments: compartments,
+          environment: dive.environment,
           surfaceInterval: interval,
         );
 

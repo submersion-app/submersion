@@ -1112,17 +1112,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   }
 
   /// Follow a logged dive: seed tissues from its end-of-dive compartments
-  /// and set the surface interval separating it from this plan. Any CNS or
-  /// OTU carried in from an earlier planned dive goes: the plan now follows
+  /// and [environment], and set the surface interval separating it from this
+  /// plan. Any CNS or OTU carried in from an earlier planned dive goes: the plan now follows
   /// the logged dive instead.
   void setFollowedDive({
     required String diveId,
     List<TissueCompartment>? compartments,
+    required DiveEnvironment environment,
     required Duration surfaceInterval,
   }) {
     state = state.copyWith(
       sourceDiveId: diveId,
       initialTissueState: compartments,
+      initialTissueEnvironment: environment,
       clearInitialTissueState: compartments == null,
       clearInitialExposure: true,
       surfaceInterval: surfaceInterval,
