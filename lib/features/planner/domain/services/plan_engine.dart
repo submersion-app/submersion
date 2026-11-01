@@ -2660,6 +2660,7 @@ class PlanEngine {
   ) {
     final stops = <PlanStop>[];
     final policy = _policyFor(plan);
+    final isCcr = plan.mode == domain.PlanMode.ccr;
     var arrival = segmentsRuntime;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
@@ -2684,7 +2685,6 @@ class PlanEngine {
       final onLoop = ascentPlan is LoopAscentGas;
       final fO2 = onLoop ? ascentPlan.supplyFO2 : 1.0 - gas.fN2 - gas.fHe;
       final fHe = onLoop ? ascentPlan.supplyFHe : gas.fHe;
-      final isCcr = plan.mode == domain.PlanMode.ccr;
       final tankId =
           loopSupplyTankId ?? _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr);
       stops.add(
