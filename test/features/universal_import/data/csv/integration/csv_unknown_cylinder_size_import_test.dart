@@ -94,6 +94,7 @@ void main() {
       expect(tank['startPressure'], 200.0);
       expect(tank['endPressure'], 80.0);
       expect(tank['gasMix'], const GasMix(o2: 32));
+      expect(payload.warnings, isEmpty);
     });
 
     test('the size is the only difference from a sized cylinder', () {

@@ -69,15 +69,11 @@ class TankExtractor {
   /// unused group or an unknown reading can read: no cylinder has a zero size
   /// and no gas has no oxygen, so it must not reach the tank as a measurement.
   double? _reading(dynamic value) {
-    final number = _toDouble(value);
+    final number = switch (value) {
+      final num number => number.toDouble(),
+      final String text => double.tryParse(text),
+      _ => null,
+    };
     return number != null && number > 0 ? number : null;
-  }
-
-  double? _toDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    return null;
   }
 }

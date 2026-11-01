@@ -304,6 +304,18 @@ void main() {
         expect(tanks, isEmpty);
       });
 
+      test('does not invent a tank from zeros', () {
+        final tanks = extractor.extract({
+          'tankVolume': 0.0,
+          'startPressure': 0.0,
+          'endPressure': 0.0,
+          'o2Percent': 0.0,
+          'hePercent': 0.0,
+        }, diveId);
+
+        expect(tanks, isEmpty);
+      });
+
       test('extracts a tank with only startPressure', () {
         final row = <String, dynamic>{'startPressure': 200.0};
 

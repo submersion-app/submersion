@@ -286,6 +286,48 @@ void main() {
         expect(result.warnings, isEmpty);
       });
 
+      TransformedRows transformGasDefault(String defaultValue) =>
+          transformer.transform(
+            const ParsedCsv(
+              headers: ['Date', 'O2'],
+              rows: [
+                ['2024-01-15', ''],
+              ],
+            ),
+            ImportConfiguration(
+              mappings: {
+                'primary': FieldMapping(
+                  name: 'Gas default',
+                  columns: [
+                    const ColumnMapping(
+                      sourceColumn: 'Date',
+                      targetField: 'date',
+                    ),
+                    ColumnMapping(
+                      sourceColumn: 'O2',
+                      targetField: 'o2Percent_1',
+                      defaultValue: defaultValue,
+                    ),
+                  ],
+                ),
+              },
+            ),
+          );
+
+      test('reads a default value as a number, like a cell', () {
+        final result = transformGasDefault('32');
+
+        expect(result.rows.single['o2Percent_1'], 32.0);
+      });
+
+      for (final defaultValue in ['150', 'Infinity', 'EAN32']) {
+        test('refuses a default of $defaultValue', () {
+          final result = transformGasDefault(defaultValue);
+
+          expect(result.rows.single['o2Percent_1'], isNull);
+        });
+      }
+
       test('does not read a comma decimal as a larger number', () {
         final result = transformGas('31,0', '0');
 
