@@ -112,6 +112,43 @@ void main() {
     expect(peripheral.advertising, isTrue);
   });
 
+  test('Bluetooth going off as the add completes still hosts the service '
+      'again', () async {
+    peripheral.powerOn();
+    final carrier = newCarrier();
+    await carrier.checkAvailability();
+    peripheral.afterAdd = () async {
+      peripheral
+        ..afterAdd = null
+        ..bluetoothOff()
+        ..powerOn();
+      bluetooth.add(AvailabilityState.poweredOff);
+      await Future<void>.delayed(Duration.zero);
+    };
+
+    await carrier.startAdvertising();
+    expect(peripheral.database, isEmpty);
+
+    await carrier.startAdvertising();
+    expect(peripheral.database, hasLength(1));
+  });
+
+  test('a new carrier does not believe a list its predecessor learned was '
+      'stale', () async {
+    peripheral.powerOn();
+    final first = newCarrier();
+    await first.checkAvailability();
+    await first.startAdvertising();
+    peripheral.bluetoothOff();
+    bluetooth.add(AvailabilityState.poweredOff);
+    await Future<void>.delayed(Duration.zero);
+    await first.dispose();
+
+    peripheral.powerOn();
+    await newCarrier().startAdvertising();
+    expect(peripheral.database, hasLength(1));
+  });
+
   test('a failed add is tried again: the plugin lists the service though '
       'it was never hosted', () async {
     peripheral
@@ -152,7 +189,7 @@ void main() {
       final opened = carrier.incoming.first;
 
       peripheral.subscribe('central-1', nearbyDoorbellUuid);
-      final end = await opened;
+      final end = await opened.timeout(const Duration(seconds: 5));
       unawaited(end.send(Uint8List.fromList(const [7, 8, 9])));
       await Future<void>.delayed(Duration.zero);
 

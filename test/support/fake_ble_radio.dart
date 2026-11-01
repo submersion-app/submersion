@@ -15,8 +15,8 @@ import 'package:universal_ble/src/universal_ble_pigeon/universal_ble_pigeon_chan
 /// callback serving both read answers and notifications.
 ///
 /// Puts [central] and [peripheral] in place of the plugin until the test
-/// ends. The plugin keeps no way to read its current platform, so the
-/// restore names the one a host running tests starts with. Register a
+/// ends. The plugin has no way to read its current platform, so the
+/// restore installs an inert one: no test reaches a real radio. Register a
 /// carrier's dispose after this, so it runs first.
 void useFakeBleRadio({
   FakeAppleCentral? central,
@@ -48,6 +48,9 @@ class FakeApplePeripheralManager extends UniversalBlePeripheralPlatform {
 
   /// The next add fails after power-on, as `didAdd` reporting an error does.
   bool failNextAdd = false;
+
+  /// Runs once the service is hosted, before the add reports back.
+  Future<void> Function()? afterAdd;
 
   /// The one hosted service's id, for a test to name what it expects.
   String get hostedServiceUuid => database.single.uuid;
@@ -98,6 +101,7 @@ class FakeApplePeripheralManager extends UniversalBlePeripheralPlatform {
       );
     }
     database.add(service);
+    await afterAdd?.call();
   }
 
   @override
@@ -163,6 +167,11 @@ class FakeApplePeripheralManager extends UniversalBlePeripheralPlatform {
 /// characteristic reports the value to the notification stream, and the
 /// oldest outstanding read of that characteristic takes it as its answer.
 class FakeAppleCentral extends UniversalBlePlatform {
+  FakeAppleCentral({required this.serviceUuid});
+
+  /// The service [discoverServices] finds.
+  final String serviceUuid;
+
   /// What the peer has to send, one read answer at a time.
   final peerOutbox = Queue<Uint8List>();
 
@@ -230,9 +239,6 @@ class FakeAppleCentral extends UniversalBlePlatform {
     bool withDescriptors, {
     DiscoverServicesPlatformConfig? platformConfig,
   }) async => [BleService(serviceUuid, const [])];
-
-  /// The service [discoverServices] finds.
-  String serviceUuid = '';
 
   @override
   Future<int> requestMtu(String deviceId, int expectedMtu) async => 247;

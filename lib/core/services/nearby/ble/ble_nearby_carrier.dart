@@ -91,8 +91,9 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// names a service from the moment it is asked to add it, so an add that
   /// failed is still listed, and Apple empties its GATT database when
   /// Bluetooth goes off without the list noticing. Only adding the service
-  /// again puts it back.
-  bool _serviceListStale = false;
+  /// again puts it back. Static because the list outlives a carrier, as the
+  /// GATT server does.
+  static bool _serviceListStale = false;
 
   @override
   bool get canAdvertise => _canAdvertise;
@@ -323,17 +324,22 @@ class BleNearbyCarrier implements NearbyCarrier {
   Future<void> _hostService() async {
     if (_serviceInPlace) return;
     await _awaitPeripheralManager();
+    // Cleared first: Bluetooth going off during an await below sets it again.
     final stale = _serviceListStale;
-    if (stale) await UniversalBlePeripheral.clearServices();
-    // The GATT server outlives this carrier: after a restart of the
-    // provider scope (a restore, demo mode) the service is still hosted,
-    // and adding it again would give centrals two of it.
-    if (stale || !await _serviceHosted()) {
-      _serviceListStale = true;
-      await UniversalBlePeripheral.addService(_nearbyService());
-    }
     _serviceListStale = false;
-    _serviceInPlace = true;
+    try {
+      if (stale) await UniversalBlePeripheral.clearServices();
+      // The GATT server outlives this carrier: after a restart of the
+      // provider scope (a restore, demo mode) the service is still hosted,
+      // and adding it again would give centrals two of it.
+      if (stale || !await _serviceHosted()) {
+        await UniversalBlePeripheral.addService(_nearbyService());
+      }
+    } on Object {
+      _serviceListStale = true;
+      rethrow;
+    }
+    _serviceInPlace = !_serviceListStale;
   }
 
   static BlePeripheralService _nearbyService() => BlePeripheralService(

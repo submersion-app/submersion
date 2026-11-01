@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/nearby/ble/ble_nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/ble/nearby_gatt.dart';
 
+import '../../../../helpers/wait_until.dart';
 import '../../../../support/fake_ble_radio.dart';
 
 /// An Apple central reading the peer's outbox (issue #4093). CoreBluetooth
@@ -17,16 +18,9 @@ void main() {
   late FakeAppleCentral central;
 
   setUp(() {
-    central = FakeAppleCentral()..serviceUuid = nearbyServiceUuid;
+    central = FakeAppleCentral(serviceUuid: nearbyServiceUuid);
     useFakeBleRadio(central: central);
   });
-
-  Future<void> until(bool Function() done) async {
-    final deadline = DateTime.now().add(const Duration(seconds: 5));
-    while (!done() && DateTime.now().isBefore(deadline)) {
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-    }
-  }
 
   test('subscribes to the doorbell, never to the outbox it reads', () async {
     final carrier = BleNearbyCarrier(needsPermission: false);
@@ -50,13 +44,12 @@ void main() {
 
     // Hold the poll's read open, and ring while it is outstanding.
     central.holdReads = true;
-    await until(() => central.outstandingReads == 1);
-    expect(central.outstandingReads, 1);
+    await waitUntil(() async => central.outstandingReads == 1);
     central.peerOutbox.add(bytes);
     central.peerRings(peer);
     central.releaseReads(peer);
 
-    await until(() => received.length >= bytes.length);
+    await waitUntil(() async => received.length >= bytes.length);
     expect(received.takeBytes(), bytes);
   });
 
