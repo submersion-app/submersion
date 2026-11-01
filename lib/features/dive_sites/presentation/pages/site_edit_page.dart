@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/edit_section
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/place_lookup_row.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/type_tags_section.dart';
@@ -1235,6 +1236,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             islandController: _islandController,
             bodyOfWaterController: _bodyOfWaterController,
             nameValidator: _nameValidatorFn,
+            // Only the first edit rebuilds this page, so the row follows the
+            // coordinate fields itself.
+            placeLookup: ListenableBuilder(
+              listenable: Listenable.merge([
+                _latitudeController,
+                _longitudeController,
+              ]),
+              builder: (context, _) => PlaceLookupRow(
+                isBusy: _isGettingLocation,
+                onLookup: _parsedCoordinates() == null
+                    ? null
+                    : _lookupFromCoordinates,
+              ),
+            ),
             mergeExtras: widget.isMerging ? _mergeExtras : null,
             errorCount: _identityErrorCount(),
           ),
@@ -1277,9 +1292,6 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             isGettingLocation: _isGettingLocation,
             onUseMyLocation: _useMyLocation,
             onPickFromMap: _pickFromMap,
-            onLookupFromCoordinates: _parsedCoordinates() == null
-                ? null
-                : _lookupFromCoordinates,
             units: units,
             coordinatesExtras: _coordinateExtras(),
             altitudeExtras: _mergeExtras('altitude'),
@@ -1847,9 +1859,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return GeoPoint(lat, lng);
   }
 
-  /// Explicit lookup for the typed coordinates (issue #1187). Fills empty
-  /// fields; when nothing was empty and the lookup differs, offers to
-  /// replace. Never runs on save.
+  /// Explicit lookup for the typed coordinates (issue #1187). One press fills
+  /// the empty fields and offers to replace any that differ, so a site with
+  /// both needs no second press (issue #4084). Never runs on save.
   Future<void> _lookupFromCoordinates() async {
     final point = _parsedCoordinates();
     if (point == null) return;
@@ -1877,15 +1889,21 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         return;
       }
 
-      var changed = false;
+      var filled = false;
       setState(() {
-        changed = _applyPlaceLookup(lookup, overwrite: false);
-        if (changed) _hasChanges = true;
+        filled = _applyPlaceLookup(lookup, overwrite: false);
+        if (filled) _hasChanges = true;
       });
-      if (changed) return;
 
       final differing = _differingLookupValues(lookup);
-      if (differing.isEmpty) return;
+      if (differing.isEmpty) {
+        if (!filled) {
+          _showLookupSnackBar(
+            context.l10n.diveSites_edit_snackbar_lookupNoChanges,
+          );
+        }
+        return;
+      }
       final replace = await _confirmReplaceLocationDetails(differing);
       if (!mounted || !replace) return;
       setState(() {

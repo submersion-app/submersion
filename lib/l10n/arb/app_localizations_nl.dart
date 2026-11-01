@@ -11578,8 +11578,16 @@ class AppLocalizationsNl extends AppLocalizations {
       'Opzoeken op coördinaten';
 
   @override
+  String get diveSites_edit_gps_lookupNeedsCoordinates =>
+      'Voeg coördinaten toe bij Locatie om dit te gebruiken.';
+
+  @override
   String get diveSites_edit_snackbar_lookupNothingFound =>
       'Geen locatiegegevens gevonden voor deze coördinaten';
+
+  @override
+  String get diveSites_edit_snackbar_lookupNoChanges =>
+      'De locatiegegevens komen al overeen met deze coördinaten';
 
   @override
   String get diveSites_edit_snackbar_lookupFailed =>
