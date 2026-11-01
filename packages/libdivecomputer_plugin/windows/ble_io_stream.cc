@@ -242,8 +242,7 @@ bool BleIoStream::ConnectAndDiscover(uint64_t bluetooth_address) {
                             "Windows knows only as a Bluetooth Classic "
                             "device, an address the stack has not seen "
                             "advertise recently, or a random-static "
-                            "advertising address. Re-running a scan before "
-                            "the connect distinguishes the second");
+                            "advertising address");
         }
 
         device_name_ = winrt::to_string(device_.Name());
@@ -500,23 +499,33 @@ bool BleIoStream::DiscoverCharacteristics() {
                             DescribeGattStatus(
                                 GattCommunicationStatus::AccessDenied));
         }
-        if (discovered_service_uuids.empty()) {
+        if (services_listed == 0) {
             return Fail(failure,
                         "Service discovery succeeded but the computer "
                         "reported no services at all");
-        } else {
-            std::ostringstream seen;
-            for (size_t i = 0; i < discovered_service_uuids.size(); i++) {
-                if (i > 0) seen << ", ";
-                seen << discovered_service_uuids[i];
-            }
-            return Fail(
-                failure,
-                "No discovered service carries both a write and a notify "
-                "characteristic, nor matches a known read-poll service; " +
-                    std::to_string(discovered_service_uuids.size()) +
-                    " service(s) seen: " + seen.str());
         }
+        if (discovered_service_uuids.empty()) {
+            // Listed, but none would enumerate its characteristics and not
+            // all with AccessDenied, so the WARN lines above hold the
+            // statuses; saying "no services at all" here would contradict
+            // them.
+            return Fail(failure,
+                        "Every one of the " + std::to_string(services_listed) +
+                            " service(s) refused to list its "
+                            "characteristics; see the warnings above for "
+                            "each status");
+        }
+        std::ostringstream seen;
+        for (size_t i = 0; i < discovered_service_uuids.size(); i++) {
+            if (i > 0) seen << ", ";
+            seen << discovered_service_uuids[i];
+        }
+        return Fail(
+            failure,
+            "No discovered service carries both a write and a notify "
+            "characteristic, nor matches a known read-poll service; " +
+                std::to_string(discovered_service_uuids.size()) +
+                " service(s) seen: " + seen.str());
     }
 
     NativeLogger::Debug(kBleCategory,

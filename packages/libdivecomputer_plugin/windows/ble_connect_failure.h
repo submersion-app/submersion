@@ -59,9 +59,10 @@ BleConnectFailure ClassifyDiscoveryAccess(size_t services_listed,
 const char* BleConnectFailureCode(BleConnectFailure failure);
 
 // The DiveComputerError message. Dart shows it on screen only for
-// connect_failed, as diagnostic details, so that one carries `detail`; the
-// classified ones are localized in Dart, but this text is still what lands
-// in the debug log a diver attaches to a report.
+// connect_failed, as diagnostic details under its own "could not connect"
+// sentence, so that one is `detail` alone; the classified ones are localized
+// in Dart, but this text is still what lands in the debug log a diver
+// attaches to a report.
 std::string BleConnectFailureMessage(BleConnectFailure failure,
                                      const std::string& detail);
 

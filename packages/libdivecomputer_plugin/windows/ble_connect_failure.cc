@@ -99,9 +99,9 @@ std::string BleConnectFailureMessage(BleConnectFailure failure,
         case BleConnectFailure::kNone:
         case BleConnectFailure::kOther:
         default:
-            return detail.empty() ? std::string(kGenericMessage)
-                                  : std::string(kGenericMessage) + ": " +
-                                        detail;
+            // Dart wraps this in "Could not connect to dive computer", so
+            // the detail stands alone rather than repeating that sentence.
+            return detail.empty() ? std::string(kGenericMessage) : detail;
     }
 }
 

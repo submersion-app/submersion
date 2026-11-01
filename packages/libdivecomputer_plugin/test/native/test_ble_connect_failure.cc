@@ -101,18 +101,17 @@ static void test_error_codes(void) {
     printf("PASS: test_error_codes\n");
 }
 
-// The Dart layer shows the native message only for connect_failed, as
-// "Diagnostic details (share with developers)", so that message has to carry
-// the step that broke rather than the same sentence for every failure.
-static void test_unclassified_message_carries_detail(void) {
-    const std::string message = BleConnectFailureMessage(
-        BleConnectFailure::kOther,
+// The Dart layer shows the native message only for connect_failed, under its
+// own "Could not connect to dive computer" sentence as "Diagnostic details
+// (share with developers)", so that message is the step that broke and
+// nothing that repeats the sentence above it.
+static void test_unclassified_message_is_the_detail(void) {
+    const std::string detail =
         "Service discovery failed: protocol error; the computer refused the "
-        "request");
-    assert(Contains(message, "Failed to connect to device"));
-    assert(Contains(message, "Service discovery failed: protocol error"));
-    assert(message != "Failed to connect to device");
-    printf("PASS: test_unclassified_message_carries_detail\n");
+        "request";
+    assert(BleConnectFailureMessage(BleConnectFailure::kOther, detail) ==
+           detail);
+    printf("PASS: test_unclassified_message_is_the_detail\n");
 }
 
 static void test_message_without_detail(void) {
@@ -147,7 +146,7 @@ int main(void) {
     test_hresult_classification();
     test_discovery_access_classification();
     test_error_codes();
-    test_unclassified_message_carries_detail();
+    test_unclassified_message_is_the_detail();
     test_message_without_detail();
     test_classified_messages_name_the_cause();
     printf("All BLE connect failure tests passed.\n");
