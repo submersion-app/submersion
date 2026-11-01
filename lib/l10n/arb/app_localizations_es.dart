@@ -24708,6 +24708,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Factor de escala del track';
+
+  @override
   String get settings_conflict_field_height => 'Alto en píxeles';
 
   @override
@@ -54985,6 +54989,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotación:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Escala:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del track entre ambos puntos.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arrastra para cambiar el tamaño del track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55036,6 +55051,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Aún no se ha aplicado ninguna corrección.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Escala del track: $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

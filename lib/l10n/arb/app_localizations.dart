@@ -39264,6 +39264,12 @@ abstract class AppLocalizations {
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
 
+  /// No description provided for @settings_conflict_field_scaleFactor.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale factor'**
+  String get settings_conflict_field_scaleFactor;
+
   /// No description provided for @settings_conflict_field_height.
   ///
   /// In en, this message translates to:
@@ -86846,6 +86852,24 @@ abstract class AppLocalizations {
   /// **'Rotation:'**
   String get navTrack_align_rotationLabel;
 
+  /// No description provided for @navTrack_align_scaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale:'**
+  String get navTrack_align_scaleLabel;
+
+  /// No description provided for @navTrack_align_scalePinnedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.'**
+  String get navTrack_align_scalePinnedHint;
+
+  /// No description provided for @navTrack_align_scaleHandleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to resize the track'**
+  String get navTrack_align_scaleHandleLabel;
+
   /// No description provided for @navTrack_terrain_summary.
   ///
   /// In en, this message translates to:
@@ -86930,6 +86954,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No correction applied yet.'**
   String get navTrack_detail_correctionStatus_none;
+
+  /// No description provided for @navTrack_detail_scaleStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Track scale: {percent}%'**
+  String navTrack_detail_scaleStatus(String percent);
 
   /// No description provided for @navTrack_detail_correctionStatus_sameAsStart.
   ///

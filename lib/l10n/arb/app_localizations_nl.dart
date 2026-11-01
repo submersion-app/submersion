@@ -24551,6 +24551,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koerscorrectie in graden';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Schaalfactor van de track';
+
+  @override
   String get settings_conflict_field_height => 'Hoogte in pixels';
 
   @override
@@ -54583,6 +54586,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotatie:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Schaal:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'Het einde ligt vast en bepaalt dus de grootte van de track. De schaal verandert alleen de vorm van het pad ertussen.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Sleep om de track te vergroten of verkleinen';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54635,6 +54649,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Nog geen correctie toegepast.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Schaal van de track: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

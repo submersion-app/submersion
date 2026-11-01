@@ -24603,6 +24603,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Iránykorrekció fokban';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'A nyomvonal méretezési tényezője';
+
+  @override
   String get settings_conflict_field_height => 'Magasság pixelben';
 
   @override
@@ -54632,6 +54636,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Forgatás:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Méretezés:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'A vég rögzítve van, ezért ez határozza meg a nyomvonal méretét. A méretezés csak a köztes szakasz alakját változtatja meg.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Húzza a nyomvonal átméretezéséhez';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54683,6 +54698,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Még nincs alkalmazott korrekció.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Nyomvonal méretezése: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

@@ -40,6 +40,7 @@ NavTrack _route({
     endLongitude: correction.endPoint?.longitude,
     trustFraction: correction.trustFraction,
     headingOffsetDeg: correction.headingOffsetDeg,
+    scaleFactor: correction.scaleFactor,
     points: points,
     createdAt: now,
     updatedAt: now,
@@ -68,6 +69,23 @@ void main() {
         expect(path.maxDepth, 5);
       },
     );
+
+    test('follows the scale', () {
+      final points = [
+        for (var i = 0; i < 5; i++)
+          _p(timestamp: 1000 + i * 10, north: i * 10.0, east: 0, depth: 5),
+      ];
+
+      final path = NavTrackPathAdapter.toReckonedPath(
+        _route(
+          points: points,
+          correction: const NavTrackCorrection(scaleFactor: 2),
+        ),
+      );
+
+      expect(path.points.last.north, 80.0);
+      expect(path.points.last.depth, 5);
+    });
 
     test('re-bases timeSeconds to start at 0 for a non-zero timestamp', () {
       final points = [

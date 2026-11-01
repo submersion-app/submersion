@@ -6,6 +6,7 @@ class _ControlsPanel extends ConsumerWidget {
     required this.route,
     required this.correction,
     required this.hasPostDiveFix,
+    required this.endPinned,
     required this.activeStart,
     required this.cumulative,
     required this.totalDistance,
@@ -16,6 +17,7 @@ class _ControlsPanel extends ConsumerWidget {
   final NavTrack route;
   final NavTrackCorrection correction;
   final bool hasPostDiveFix;
+  final bool endPinned;
   final int activeStart;
 
   /// The trust slider's distance axis over the active range, as the page
@@ -108,7 +110,7 @@ class _ControlsPanel extends ConsumerWidget {
         NavTrackPositionOption(
           key: 'nav-track-align-from-dive-entry',
           label: l10n.navTrack_align_fromDiveEntry,
-          selected: _geoPointsMatch(anchor, diveEntry),
+          selected: geoPointsMatch(anchor, diveEntry),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: diveEntry), route),
         ),
@@ -116,7 +118,7 @@ class _ControlsPanel extends ConsumerWidget {
         NavTrackPositionOption(
           key: 'nav-track-align-from-site',
           label: l10n.navTrack_align_fromSite,
-          selected: _geoPointsMatch(anchor, site),
+          selected: geoPointsMatch(anchor, site),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: site), route),
         ),
@@ -130,7 +132,7 @@ class _ControlsPanel extends ConsumerWidget {
           // derivation ever lands a floating-point ULP off the value stored
           // on a prior selection, instead of silently un-selecting a choice
           // the diver did not actually change (code review).
-          selected: _geoPointsMatch(anchor, preDiveFix),
+          selected: geoPointsMatch(anchor, preDiveFix),
           onSelected: () =>
               state._selectChip((c) => c.copyWith(anchor: preDiveFix), route),
         ),
@@ -237,13 +239,32 @@ class _ControlsPanel extends ConsumerWidget {
                           route,
                         ),
                 ),
-                NavTrackRotationControl(
-                  headingOffsetDeg: correction.headingOffsetDeg,
-                  onChanged: (value) => state._updateCorrection(
-                    (c) => c.copyWith(headingOffsetDeg: value),
-                    route,
-                  ),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 4,
+                  children: [
+                    NavTrackRotationControl(
+                      headingOffsetDeg: correction.headingOffsetDeg,
+                      onChanged: (value) => state._updateCorrection(
+                        (c) => c.copyWith(headingOffsetDeg: value),
+                        route,
+                      ),
+                    ),
+                    NavTrackScaleControl(
+                      scaleFactor: correction.scaleFactor,
+                      onChanged: (value) => state._updateCorrection(
+                        (c) => c.copyWith(scaleFactor: value),
+                        route,
+                      ),
+                    ),
+                  ],
                 ),
+                if (endPinned)
+                  Text(
+                    key: const ValueKey('nav-track-align-scale-pinned-hint'),
+                    l10n.navTrack_align_scalePinnedHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 if (state._terrainResult != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),

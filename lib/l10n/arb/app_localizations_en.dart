@@ -24308,6 +24308,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'Track scale factor';
+
+  @override
   String get settings_conflict_field_height => 'Height in pixels';
 
   @override
@@ -54063,6 +54066,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation:';
 
   @override
+  String get navTrack_align_scaleLabel => 'Scale:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'Drag to resize the track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -54114,6 +54127,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'No correction applied yet.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Track scale: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

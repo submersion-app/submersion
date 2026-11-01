@@ -12,6 +12,7 @@ NavTrack _track({
   NavTrackEndMode endMode = NavTrackEndMode.none,
   double trustFraction = 0,
   double headingOffsetDeg = 0,
+  double scaleFactor = 1,
 }) {
   return NavTrack(
     id: 'track-1',
@@ -26,6 +27,7 @@ NavTrack _track({
     endLongitude: endLongitude,
     trustFraction: trustFraction,
     headingOffsetDeg: headingOffsetDeg,
+    scaleFactor: scaleFactor,
     createdAt: DateTime.utc(2026, 1, 1),
     updatedAt: DateTime.utc(2026, 1, 1),
   );
@@ -126,6 +128,7 @@ void main() {
         endLongitude: 7.5,
         trustFraction: 0.4,
         headingOffsetDeg: 12.5,
+        scaleFactor: 1.38,
       );
       final correction = track.correction;
       expect(correction.anchor, const GeoPoint(47.1, 8.2));
@@ -133,6 +136,7 @@ void main() {
       expect(correction.endPoint, const GeoPoint(46.5, 7.5));
       expect(correction.trustFraction, 0.4);
       expect(correction.headingOffsetDeg, 12.5);
+      expect(correction.scaleFactor, 1.38);
     });
 
     test('has null anchor/endPoint when coordinates are unset', () {
@@ -142,6 +146,7 @@ void main() {
       expect(correction.endMode, NavTrackEndMode.none);
       expect(correction.trustFraction, 0);
       expect(correction.headingOffsetDeg, 0);
+      expect(correction.scaleFactor, 1);
     });
   });
 
@@ -175,6 +180,7 @@ void main() {
         endLongitude: 7.5,
         trustFraction: 0.5,
         headingOffsetDeg: 10,
+        scaleFactor: 1.5,
         points: const [],
         createdAt: DateTime.utc(2026, 2, 2),
         updatedAt: DateTime.utc(2026, 2, 3),
@@ -206,6 +212,7 @@ void main() {
       expect(updated.endLongitude, 7.5);
       expect(updated.trustFraction, 0.5);
       expect(updated.headingOffsetDeg, 10);
+      expect(updated.scaleFactor, 1.5);
       expect(updated.createdAt, DateTime.utc(2026, 2, 2));
       expect(updated.updatedAt, DateTime.utc(2026, 2, 3));
     });
@@ -219,8 +226,29 @@ void main() {
         endLongitude: 7.5,
         trustFraction: 0.4,
         headingOffsetDeg: 12.5,
+        scaleFactor: 1.38,
       );
       expect(original.copyWith(), original);
+    });
+
+    test('withCorrection can clear the anchor and end point', () {
+      final track = _track(
+        anchorLatitude: 47.1,
+        anchorLongitude: 8.2,
+        endMode: NavTrackEndMode.point,
+        endLatitude: 46.5,
+        endLongitude: 7.5,
+        scaleFactor: 1.38,
+      ).copyWith(name: 'Kept');
+      final cleared = track.withCorrection(const NavTrackCorrection());
+      expect(cleared.anchor, isNull);
+      expect(cleared.endPoint, isNull);
+      expect(cleared.scaleFactor, 1);
+      expect(cleared.name, 'Kept');
+    });
+
+    test('two tracks differing only in scale are not equal', () {
+      expect(_track(scaleFactor: 1.5), isNot(_track()));
     });
 
     test(

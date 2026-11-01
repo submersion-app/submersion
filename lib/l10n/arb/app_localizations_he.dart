@@ -24105,6 +24105,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
+  String get settings_conflict_field_scaleFactor => 'מקדם קנה המידה של המסלול';
+
+  @override
   String get settings_conflict_field_height => 'גובה בפיקסלים';
 
   @override
@@ -53747,6 +53750,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'סיבוב:';
 
   @override
+  String get navTrack_align_scaleLabel => 'קנה מידה:';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'הסוף מקובע ולכן הוא קובע את גודל המסלול. קנה המידה משנה רק את צורת הדרך שביניהם.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => 'גררו כדי לשנות את גודל המסלול';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -53797,6 +53810,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_detail_correctionStatus_none => 'טרם הוחל תיקון.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'קנה מידה של המסלול: $percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

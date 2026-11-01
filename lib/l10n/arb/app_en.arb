@@ -14722,6 +14722,7 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Heading in degrees",
   "settings_conflict_field_headingOffsetDeg": "Heading correction in degrees",
+  "settings_conflict_field_scaleFactor": "Track scale factor",
   "settings_conflict_field_height": "Height in pixels",
   "settings_conflict_field_heightCm": "Height",
   "settings_conflict_field_heightMeters": "Tide height",
@@ -32358,6 +32359,9 @@
     }
   },
   "navTrack_align_rotationLabel": "Rotation:",
+  "navTrack_align_scaleLabel": "Scale:",
+  "navTrack_align_scalePinnedHint": "The end is pinned, so it sets the track's size. Scale only reshapes the path between.",
+  "navTrack_align_scaleHandleLabel": "Drag to resize the track",
   "navTrack_terrain_summary": "{onLand} points on land, {below} of {total} below the seafloor{maxPart}, {unknown} unknown{coarsePart}",
   "@navTrack_terrain_summary": {
     "placeholders": {
@@ -32400,6 +32404,14 @@
   "navTrack_detail_menuChangeDevice": "Change device",
   "navTrack_detail_noMapYet": "Set the start point to see this on a map.",
   "navTrack_detail_correctionStatus_none": "No correction applied yet.",
+  "navTrack_detail_scaleStatus": "Track scale: {percent}%",
+  "@navTrack_detail_scaleStatus": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "navTrack_detail_correctionStatus_sameAsStart": "End set to same as start.",
   "navTrack_detail_correctionStatus_point": "End point set on the map.",
   "navTrack_detail_correctionStatus_gpsFix": "End set from the recording's GPS fix.",

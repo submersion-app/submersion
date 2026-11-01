@@ -24773,6 +24773,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Correction de cap en degrés';
 
   @override
+  String get settings_conflict_field_scaleFactor =>
+      'Facteur d\'échelle de la trace';
+
+  @override
   String get settings_conflict_field_height => 'Hauteur en pixels';
 
   @override
@@ -55055,6 +55059,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_align_rotationLabel => 'Rotation :';
 
   @override
+  String get navTrack_align_scaleLabel => 'Échelle :';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme de la trace entre les deux.';
+
+  @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Faites glisser pour redimensionner la trace';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -55106,6 +55121,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get navTrack_detail_correctionStatus_none =>
       'Aucune correction appliquée pour l\'instant.';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return 'Échelle de la trace : $percent %';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart =>

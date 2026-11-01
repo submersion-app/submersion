@@ -23351,6 +23351,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
+  String get settings_conflict_field_scaleFactor => '轨迹缩放系数';
+
+  @override
   String get settings_conflict_field_height => '高度（像素）';
 
   @override
@@ -51502,6 +51505,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_align_rotationLabel => '旋转：';
 
   @override
+  String get navTrack_align_scaleLabel => '缩放：';
+
+  @override
+  String get navTrack_align_scalePinnedHint =>
+      '终点已固定，因此它决定了轨迹的大小。缩放只会改变中间轨迹的形状。';
+
+  @override
+  String get navTrack_align_scaleHandleLabel => '拖动以调整轨迹大小';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,
@@ -51550,6 +51563,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_detail_correctionStatus_none => '尚未应用校正。';
+
+  @override
+  String navTrack_detail_scaleStatus(String percent) {
+    return '轨迹缩放：$percent%';
+  }
 
   @override
   String get navTrack_detail_correctionStatus_sameAsStart => '终点已设置为与起点相同。';
