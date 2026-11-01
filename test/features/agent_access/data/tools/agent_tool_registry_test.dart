@@ -40,7 +40,7 @@ void main() {
     final settings = DiverSettingsRepository();
     return AgentToolRegistry.standard(
       loader: DiverContextLoader(
-        db: db,
+        db: () => db,
         divers: divers,
         settings: settings,
         localeTag: 'en',

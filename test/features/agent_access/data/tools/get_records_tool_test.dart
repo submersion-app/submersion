@@ -102,7 +102,7 @@ void main() {
 
   GetRecordsTool tool() => GetRecordsTool(
     loader: DiverContextLoader(
-      db: db,
+      db: () => db,
       divers: DiverRepository(),
       settings: DiverSettingsRepository(),
       localeTag: 'en',

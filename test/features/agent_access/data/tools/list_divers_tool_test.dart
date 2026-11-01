@@ -69,7 +69,7 @@ void main() {
     final settings = DiverSettingsRepository();
     return ListDiversTool(
       loader: DiverContextLoader(
-        db: db,
+        db: () => db,
         divers: divers,
         settings: settings,
         localeTag: 'en',

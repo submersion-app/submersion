@@ -40,7 +40,7 @@ void main() {
   tearDown(tearDownTestDatabase);
 
   DiverContextLoader loader({String? active = metric}) => DiverContextLoader(
-    db: db,
+    db: () => db,
     divers: DiverRepository(),
     settings: DiverSettingsRepository(),
     localeTag: 'en',

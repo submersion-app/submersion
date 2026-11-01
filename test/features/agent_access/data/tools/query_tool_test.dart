@@ -82,7 +82,7 @@ void main() {
 
   QueryTool tool() => QueryTool(
     loader: DiverContextLoader(
-      db: db,
+      db: () => db,
       divers: DiverRepository(),
       settings: DiverSettingsRepository(),
       localeTag: 'en',

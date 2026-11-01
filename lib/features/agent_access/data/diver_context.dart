@@ -32,10 +32,12 @@ class DiverContext {
 ///
 /// The app's own providers follow the active diver only; an agent may name
 /// any profile on the device, so this loader reads settings and names for
-/// the given id directly.
+/// the given id directly. The database is a getter, resolved per call, so a
+/// loader built eagerly (once per MCP session) never pins a swapped handle
+/// and never touches the database until a tool runs.
 class DiverContextLoader {
   DiverContextLoader({
-    required AppDatabase db,
+    required AppDatabase Function() db,
     required DiverRepository divers,
     required DiverSettingsRepository settings,
     required String localeTag,
@@ -46,7 +48,7 @@ class DiverContextLoader {
        _localeTag = localeTag,
        _activeDiverId = activeDiverId;
 
-  final AppDatabase _db;
+  final AppDatabase Function() _db;
   final DiverRepository _divers;
   final DiverSettingsRepository _settings;
   final String _localeTag;
@@ -86,7 +88,7 @@ class DiverContextLoader {
     final settings =
         await _settings.getSettingsForDiver(id) ?? const AppSettings();
     final names = await NameIndexLoader(
-      _db,
+      _db(),
     ).load(diverId: id, l10n: l10nForLocaleTag(_localeTag));
     return DiverContext(
       diverId: id,
