@@ -83,8 +83,8 @@ domain.DivePlan _plan({required double backFillBar}) => domain.DivePlan(
   ],
 );
 
-/// 12 minutes on oxygen at 6 m, 6 of them on the break cylinder when
-/// [airBreakSeconds] says so.
+/// A 12 minute oxygen stop at 6 m, [airBreakSeconds] of it on the cylinder
+/// [airBreakTankId] names.
 PlanScheduleRow _stop({int airBreakSeconds = 0, String? airBreakTankId}) =>
     PlanScheduleRow(
       kind: PlanScheduleRowKind.stop,

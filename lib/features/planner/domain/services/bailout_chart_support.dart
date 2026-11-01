@@ -1,10 +1,10 @@
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/breathing_config.dart';
-import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
@@ -13,20 +13,6 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 /// bailout_solver.dart to keep that file under the repo's size guideline --
 /// both functions are pure, taking every input explicitly, with no
 /// BailoutSolver instance state of their own.
-
-/// The bailout cylinder [stop]'s air break is breathed from, or null on a stop
-/// with no air break. Falls back to [stopTankId] the way the plan engine does
-/// when [bailoutPlan] offers no break gas at that depth.
-String? bailoutBreakTankId(
-  DecoStop stop, {
-  required String? stopTankId,
-  required AscentGasPlan bailoutPlan,
-  required String? Function(double fO2, double fHe) tankForGas,
-}) {
-  if (stop.airBreakSeconds == 0) return null;
-  final breakGas = bailoutPlan.breakGasForDepth(stop.depthMeters);
-  return breakGas != null ? tankForGas(breakGas.fO2, breakGas.fHe) : stopTankId;
-}
 
 /// The worst-case point's own ceiling trace: the bottom-phase samples
 /// already computed up to it (reusing [states], not re-simulating the
@@ -162,10 +148,10 @@ List<PlanStop> unfoldedOcStops(
         gasFO2: fO2,
         gasFHe: gas.fHe,
         tankId: tankId,
-        airBreakTankId: bailoutBreakTankId(
+        airBreakTankId: airBreakTankIdFor(
           stop,
+          plan: bailoutPlan,
           stopTankId: tankId,
-          bailoutPlan: bailoutPlan,
           tankForGas: tankForGas,
         ),
         arrivalRuntimeSeconds: arrival,

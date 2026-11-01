@@ -14,7 +14,11 @@ const _stressedAmv = 20.0;
 
 /// A CCR plan deep and long enough that its bailout owes a single oxygen stop
 /// at 6 m with air breaks, carried on air and oxygen bailout cylinders.
-domain.DivePlan _plan({AirBreakPolicy? airBreaks}) => domain.DivePlan(
+domain.DivePlan _plan({
+  AirBreakPolicy? airBreaks,
+  double? hypercapniaAmv,
+  int? hypercapniaMinutes,
+}) => domain.DivePlan(
   id: 'plan-1',
   name: 'bailout air breaks',
   mode: domain.PlanMode.ccr,
@@ -26,7 +30,9 @@ domain.DivePlan _plan({AirBreakPolicy? airBreaks}) => domain.DivePlan(
   airBreaks: airBreaks,
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
-  hypercapniaExplicitlyOff: true,
+  hypercapniaAmv: hypercapniaAmv,
+  hypercapniaMinutes: hypercapniaMinutes,
+  hypercapniaExplicitlyOff: hypercapniaMinutes == null,
   tanks: const [
     DiveTank(
       id: 'dil',
@@ -96,6 +102,46 @@ void main() {
       final oxygenSeconds = stop.durationSeconds - stop.airBreakSeconds;
       final expectedOxygen =
           oxygenSeconds / 60.0 * _stressedAmv * environment.pressureAtDepth(6) +
+          surfacing.durationSeconds /
+              60.0 *
+              _stressedAmv *
+              environment.pressureAtDepth(3);
+      expect(_usedFrom(outcome, 'o2'), closeTo(expectedOxygen, 1e-6));
+    });
+
+    test('charges each run at the rate in force when it is breathed', () {
+      const hypercapniaAmv = 60.0;
+      const hypercapnicSolver = BailoutSolver(
+        config: PlanEngineConfig(hypercapniaEnabled: true),
+      );
+      const breaks = AirBreakPolicy();
+      final baseline = solver.solve(_plan(airBreaks: breaks))!;
+      final toStop =
+          baseline.ocStops.last.arrivalRuntimeSeconds -
+          baseline.worstCase.runtimeSeconds;
+
+      // The window ends 14 to 15 minutes into the stop, inside its first break,
+      // so the first 12 oxygen minutes are at the raised rate and the rest are
+      // not. Charging the stop's oxygen in one lump would raise 14 of them.
+      final outcome = hypercapnicSolver.solve(
+        _plan(
+          airBreaks: breaks,
+          hypercapniaAmv: hypercapniaAmv,
+          hypercapniaMinutes: ((toStop + 14 * 60) / 60).ceil(),
+        ),
+      )!;
+      expect(
+        outcome.worstCase.runtimeSeconds,
+        baseline.worstCase.runtimeSeconds,
+      );
+
+      final stop = outcome.worstCase.schedule.stops.last;
+      final oxygenSeconds = stop.durationSeconds - stop.airBreakSeconds;
+      expect(oxygenSeconds, greaterThan(720));
+      final surfacing = outcome.worstCaseRows.last;
+      final expectedOxygen =
+          (12 * hypercapniaAmv + (oxygenSeconds - 720) / 60.0 * _stressedAmv) *
+              environment.pressureAtDepth(6) +
           surfacing.durationSeconds /
               60.0 *
               _stressedAmv *

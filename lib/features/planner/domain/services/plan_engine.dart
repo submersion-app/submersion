@@ -2692,7 +2692,6 @@ class PlanEngine {
             fHe,
             isCcr: plan.mode == domain.PlanMode.ccr,
           );
-      final breakGas = ascentPlan.breakGasForDepth(stop.depthMeters);
       stops.add(
         PlanStop(
           depthMeters: stop.depthMeters,
@@ -2701,11 +2700,12 @@ class PlanEngine {
           gasFO2: fO2,
           gasFHe: fHe,
           tankId: tankId,
-          airBreakTankId: stop.airBreakSeconds == 0
-              ? null
-              : breakGas != null
-              ? _tankForGas(plan.tanks, breakGas.fO2, breakGas.fHe)
-              : tankId,
+          airBreakTankId: airBreakTankIdFor(
+            stop,
+            plan: ascentPlan,
+            stopTankId: tankId,
+            tankForGas: (fO2, fHe) => _tankForGas(plan.tanks, fO2, fHe),
+          ),
           arrivalRuntimeSeconds: arrival,
         ),
       );

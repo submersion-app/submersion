@@ -822,10 +822,10 @@ class BailoutSolver {
       end += travelSeconds + stop.durationSeconds;
       final stopGas = bailoutPlan.gasForDepth(stop.depthMeters);
       final stopTankId = tankForGas(stopGas.fO2, stopGas.fHe);
-      final breakTankId = bailoutBreakTankId(
+      final breakTankId = airBreakTankIdFor(
         stop,
+        plan: bailoutPlan,
         stopTankId: stopTankId,
-        bailoutPlan: bailoutPlan,
         tankForGas: tankForGas,
       );
       add(

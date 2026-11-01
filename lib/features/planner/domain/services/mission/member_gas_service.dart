@@ -27,6 +27,12 @@ class MemberGasService {
   }) {
     final liters = <String, double>{};
     var previousDepth = startDepth;
+    void charge(String? tankId, int seconds, double depth, double sac) {
+      if (tankId == null) return;
+      final used = seconds / 60.0 * sac * environment.pressureAtDepth(depth);
+      liters[tankId] = (liters[tankId] ?? 0.0) + used;
+    }
+
     for (final row in rows) {
       final isTravel =
           row.kind == PlanScheduleRowKind.descent ||
@@ -35,15 +41,10 @@ class MemberGasService {
           ? (previousDepth + row.depthMeters) / 2.0
           : row.depthMeters;
       previousDepth = row.depthMeters;
-      final tankId = row.tankId;
-      if (tankId == null) continue;
-      final litersPerMinute = sacFor(row) * environment.pressureAtDepth(depth);
-      void charge(String id, int seconds) {
-        liters[id] = (liters[id] ?? 0.0) + seconds / 60.0 * litersPerMinute;
-      }
-
-      charge(tankId, row.durationSeconds - row.airBreakSeconds);
-      charge(row.airBreakTankId ?? tankId, row.airBreakSeconds);
+      final sac = sacFor(row);
+      final breakSeconds = row.airBreakSeconds;
+      charge(row.tankId, row.durationSeconds - breakSeconds, depth, sac);
+      charge(row.airBreakTankId ?? row.tankId, breakSeconds, depth, sac);
     }
     return liters;
   }
