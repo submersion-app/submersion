@@ -164,6 +164,39 @@ void main() {
     }
   });
 
+  test('links past one chunk keep each site\'s order and go pending', () async {
+    await seedSites(300);
+    const action = SiteMembershipAction(
+      SiteCollection.tags,
+      MembershipMode.add,
+      ['site', 'dive'],
+    );
+
+    await statementsOf(
+      () => SiteRuleApplier().apply(
+        ruleOf(RuleSubject.sites, action),
+        action,
+        siteIds(300),
+      ),
+    );
+
+    expect(
+      await count(
+        "SELECT COUNT(*) AS n FROM site_tags first "
+        "JOIN site_tags second ON second.site_id = first.site_id "
+        "WHERE first.tag_id = 'site' AND second.tag_id = 'dive' "
+        'AND first.created_at < second.created_at',
+      ),
+      300,
+    );
+    expect(
+      await count(
+        "SELECT COUNT(*) AS n FROM sync_records WHERE entity_type = 'siteTags'",
+      ),
+      600,
+    );
+  });
+
   test('a tag is read and widened once however many sites gain it', () async {
     await seedSites(50);
     const action = SiteMembershipAction(
@@ -323,6 +356,14 @@ void main() {
       expect(
         await count("SELECT applies_to_sites AS n FROM tags WHERE id = 'dive'"),
         1,
+      );
+      expect(
+        await count(
+          "SELECT COUNT(*) AS n FROM deletion_log "
+          "WHERE entity_type = 'siteTags'",
+        ),
+        4,
+        reason: "the removed link, then Undo's three",
       );
     });
   });

@@ -119,11 +119,12 @@ class SiteRuleApplier {
           id,
     ];
     if (changed.isNotEmpty) {
+      final distinct = wanted.toSet();
       add
           ? await _addToAll(a.collection, wanted, {
               for (final id in changed)
                 id: [
-                  for (final w in wanted.toSet())
+                  for (final w in distinct)
                     if (!before[id]!.contains(w)) w,
                 ],
             })
@@ -225,9 +226,7 @@ class SiteRuleApplier {
       for (final id in ids)
         if (before[id] != null) id,
     ];
-    for (final chunk in ruleIdChunks(present)) {
-      await _sites.appendDescriptionToAll(chunk, text);
-    }
+    await _sites.appendDescriptionToAll(present, text);
     String old(String id) => (before[id]!['description'] as String?) ?? '';
     return AppliedAction([
       for (final id in present)

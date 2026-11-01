@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -26,7 +27,10 @@ void main() {
   }
 
   setUp(() async => db = await setUpTestDatabase());
-  tearDown(tearDownTestDatabase);
+  tearDown(() async {
+    await tearDownTestDatabase();
+    SyncClock.instance.reset();
+  });
 
   test('marks every row pending and stamps its clock', () async {
     await seedSites(3);

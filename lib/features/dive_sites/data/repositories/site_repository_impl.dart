@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -505,25 +506,31 @@ class SiteRepository {
     }
   }
 
+  /// Sites per statement in [appendDescriptionToAll], well under SQLite's
+  /// bound-variable limit.
+  static const _appendChunk = 500;
+
   /// Appends [text] to each of [siteIds]' descriptions, as a new Markdown
   /// paragraph when one already holds text (logbook rules, #3513; #3683).
-  /// Marks the sites pending; the caller chunks [siteIds] and notifies.
+  /// Marks the sites pending; the caller notifies.
   Future<void> appendDescriptionToAll(List<String> siteIds, String text) async {
     if (text.isEmpty || siteIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.customUpdate(
-      "UPDATE dive_sites SET description = CASE WHEN description = '' "
-      "THEN ? ELSE description || char(10) || char(10) || ? END, "
-      'updated_at = ? '
-      "WHERE id IN (${List.filled(siteIds.length, '?').join(', ')})",
-      variables: [
-        Variable.withString(text),
-        Variable.withString(text),
-        Variable.withInt(now),
-        for (final id in siteIds) Variable.withString(id),
-      ],
-      updates: {_db.diveSites},
-    );
+    for (final chunk in siteIds.slices(_appendChunk)) {
+      await _db.customUpdate(
+        "UPDATE dive_sites SET description = CASE WHEN description = '' "
+        "THEN ? ELSE description || char(10) || char(10) || ? END, "
+        'updated_at = ? '
+        "WHERE id IN (${List.filled(chunk.length, '?').join(', ')})",
+        variables: [
+          Variable.withString(text),
+          Variable.withString(text),
+          Variable.withInt(now),
+          for (final id in chunk) Variable.withString(id),
+        ],
+        updates: {_db.diveSites},
+      );
+    }
     await _syncRepository.markRecordsPending(
       entityType: 'diveSites',
       recordIds: siteIds,

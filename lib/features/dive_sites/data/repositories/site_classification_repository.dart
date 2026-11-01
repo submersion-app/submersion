@@ -204,7 +204,7 @@ class SiteClassificationRepository {
         for (final id in wanted)
           if (!have.contains(id)) id,
       ];
-      await _insertTypes(siteId, added);
+      await addTypesToSites({siteId: added});
       return removed || added.isNotEmpty;
     });
     if (notify) {
@@ -243,7 +243,7 @@ class SiteClassificationRepository {
         for (final id in typeIds.toSet())
           if (!have.contains(id)) id,
       ];
-      await _insertTypes(siteId, added);
+      await addTypesToSites({siteId: added});
       return added.isNotEmpty;
     });
     if (notify) {
@@ -292,7 +292,7 @@ class SiteClassificationRepository {
         for (final id in wanted)
           if (!have.contains(id)) id,
       ];
-      await _insertTags(siteId, added);
+      await addTagsToSites({siteId: added});
       return removed || added.isNotEmpty;
     });
     if (notify) {
@@ -329,7 +329,7 @@ class SiteClassificationRepository {
         for (final id in tagIds.toSet())
           if (!have.contains(id)) id,
       ];
-      await _insertTags(siteId, added);
+      await addTagsToSites({siteId: added});
       return added.isNotEmpty;
     });
     if (notify) {
@@ -429,9 +429,10 @@ class SiteClassificationRepository {
         linkedIds: tagIds,
       );
 
-  /// Inserts [missing] as [_insertTags] does, one statement per chunk: each
-  /// site's `created_at` keeps its links in order, and RETURNING names the
-  /// rows that landed, so a pair already held is not marked pending.
+  /// Inserts [missing], one statement per chunk. `created_at` counts up
+  /// within each site, because the read order is `created_at, id` and a
+  /// shared timestamp would leave the order to random uuids. RETURNING names
+  /// the rows that landed, so a pair already held is not marked pending.
   Future<void> _insertLinks(
     TableInfo<Table, dynamic> table, {
     required String linkColumn,
@@ -575,59 +576,6 @@ class SiteClassificationRepository {
           recordId: row.id,
         );
       }
-    }
-  }
-
-  /// Inserts in the given order: `created_at` is `now + index`, because the
-  /// read order is `created_at, id` and a shared timestamp would leave the
-  /// order to random uuids.
-  Future<void> _insertTypes(String siteId, List<String> typeIds) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (var i = 0; i < typeIds.length; i++) {
-      final id = _uuid.v4();
-      final inserted = await _db
-          .into(_db.siteSiteTypes)
-          .insertReturningOrNull(
-            SiteSiteTypesCompanion.insert(
-              id: id,
-              siteId: siteId,
-              siteTypeId: typeIds[i],
-              createdAt: now + i,
-            ),
-            onConflict: DoNothing<$SiteSiteTypesTable, SiteSiteType>(
-              target: const [],
-            ),
-          );
-      if (inserted == null) continue;
-      await _syncRepository.markRecordPending(
-        entityType: 'siteSiteTypes',
-        recordId: id,
-        localUpdatedAt: now,
-      );
-    }
-  }
-
-  Future<void> _insertTags(String siteId, List<String> tagIds) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (var i = 0; i < tagIds.length; i++) {
-      final id = _uuid.v4();
-      final inserted = await _db
-          .into(_db.siteTags)
-          .insertReturningOrNull(
-            SiteTagsCompanion.insert(
-              id: id,
-              siteId: siteId,
-              tagId: tagIds[i],
-              createdAt: now + i,
-            ),
-            onConflict: DoNothing<$SiteTagsTable, SiteTag>(target: const []),
-          );
-      if (inserted == null) continue;
-      await _syncRepository.markRecordPending(
-        entityType: 'siteTags',
-        recordId: id,
-        localUpdatedAt: now,
-      );
     }
   }
 }

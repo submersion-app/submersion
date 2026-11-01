@@ -738,8 +738,7 @@ class SyncRepository {
     required SyncFactGroup group,
   }) async {
     if (recordIds.isEmpty) return;
-    if (hlcTargets[entityType] == null ||
-        compositeHlcKeys.containsKey(entityType)) {
+    if (!_hasSingleKeyClock(entityType)) {
       for (final recordId in recordIds) {
         await markFactsPending(
           entityType: entityType,
@@ -778,8 +777,7 @@ class SyncRepository {
     required int localUpdatedAt,
   }) async {
     if (recordIds.isEmpty) return;
-    if (hlcTargets[entityType] == null ||
-        compositeHlcKeys.containsKey(entityType) ||
+    if (!_hasSingleKeyClock(entityType) ||
         SyncFactGroups.of(entityType).isNotEmpty) {
       for (final recordId in recordIds) {
         await markRecordPending(
@@ -802,9 +800,14 @@ class SyncRepository {
     }
   }
 
+  /// Whether [_markAllPending] can address [entityType]'s rows by one key.
+  bool _hasSingleKeyClock(String entityType) =>
+      hlcTargets.containsKey(entityType) &&
+      !compositeHlcKeys.containsKey(entityType);
+
   /// The set-based write behind [markFactsPendingForAll] and
   /// [markRecordsPending]: every row pending, one clock reading in
-  /// [clockColumn]. [entityType] names a single-key [hlcTargets] table.
+  /// [clockColumn]. [entityType] passes [_hasSingleKeyClock].
   Future<void> _markAllPending(
     String entityType,
     List<String> recordIds,
