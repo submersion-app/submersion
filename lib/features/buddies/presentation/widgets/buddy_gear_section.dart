@@ -76,7 +76,19 @@ class BuddyGearSection extends ConsumerWidget {
                 ],
               ),
               for (final row in rows)
-                _GearRow(row: row, buddyId: buddy.id, namePlace: namePlaces),
+                _GearRow(
+                  row: row,
+                  namePlace: namePlaces,
+                  // This section's context, not the row's: a returned item
+                  // leaves the list as its move saves, and a prompt shown
+                  // from a context that has gone is silently a no.
+                  onReturned: () => showEquipmentReturnFlow(
+                    context,
+                    ref,
+                    items: [row.item],
+                    buddyId: buddy.id,
+                  ),
+                ),
             ],
           ),
         ),
@@ -88,13 +100,13 @@ class BuddyGearSection extends ConsumerWidget {
 class _GearRow extends ConsumerWidget {
   const _GearRow({
     required this.row,
-    required this.buddyId,
     required this.namePlace,
+    required this.onReturned,
   });
 
   final GearWithBuddy row;
-  final String buddyId;
   final bool namePlace;
+  final VoidCallback onReturned;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -127,12 +139,7 @@ class _GearRow extends ConsumerWidget {
           TileSubtitleAction(
             actionKey: ValueKey('buddy_gear_returned_${item.id}'),
             label: l10n.buddies_gear_returned,
-            onPressed: () => showEquipmentReturnFlow(
-              context,
-              ref,
-              items: [item],
-              buddyId: buddyId,
-            ),
+            onPressed: onReturned,
           ),
         ],
       ),

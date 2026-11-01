@@ -3160,10 +3160,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get buddies_gear_returned => 'Terug';
+  String get buddies_gear_returned => 'Teruggebracht';
 
   @override
-  String get buddies_gear_allReturned => 'Alles terug';
+  String get buddies_gear_allReturned => 'Alles teruggebracht';
 
   @override
   String get buddies_action_sort => 'Sorteren';
@@ -16296,8 +16296,8 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items terugnemen',
-      one: '$count item terugnemen',
+      other: '$count items terugbrengen',
+      one: '$count item terugbrengen',
     );
     return '$_temp0';
   }
@@ -16312,15 +16312,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Elk item gaat terug naar waar het was';
 
   @override
-  String get equipment_location_return_confirm => 'Markeren als terug';
+  String get equipment_location_return_confirm => 'Markeren als teruggebracht';
 
   @override
   String equipment_location_returned(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items terug',
-      one: '$count item terug',
+      other: '$count items teruggebracht',
+      one: '$count item teruggebracht',
     );
     return '$_temp0';
   }

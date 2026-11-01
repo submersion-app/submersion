@@ -19,6 +19,12 @@ import '../../../../helpers/mock_providers.dart';
 class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
   final returned = <Iterable<String>>[];
 
+  /// Runs while a move is being written, as a real save refreshes the list.
+  void Function()? onRecord;
+
+  /// How long the write takes, so a test can let frames pass during it.
+  Duration writeTakes = Duration.zero;
+
   @override
   Future<List<EquipmentLocationMove>> getMovesFor(String equipmentId) async =>
       const [];
@@ -35,6 +41,8 @@ class _FakeMoves extends Fake implements EquipmentLocationMoveRepository {
     String note = '',
   }) async {
     returned.add(equipmentIds);
+    onRecord?.call();
+    await Future<void>.delayed(writeTakes);
     return const [];
   }
 }
@@ -291,5 +299,69 @@ void main() {
     await pump(tester, items: [item('a', 'Drysuit')], current: {'a': hers});
 
     expect(find.text('Lend gear'), findsOneWidget);
+  });
+
+  testWidgets('the Active prompt still shows once the row has left the list', (
+    tester,
+  ) async {
+    final current = StateProvider<Map<String, EquipmentLocation>>(
+      (ref) => {'a': hers},
+    );
+    final moves = _FakeMoves();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => Scaffold(
+            body: SingleChildScrollView(child: BuddyGearSection(buddy: anna)),
+          ),
+        ),
+      ],
+    );
+    final loaned = item('a', 'Drysuit', status: EquipmentStatus.loaned);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          allEquipmentProvider.overrideWith((ref) async => [loaned]),
+          currentEquipmentLocationsProvider.overrideWith(
+            (ref) async => ref.watch(current),
+          ),
+          allEquipmentLocationsByIdProvider.overrideWith(
+            (ref) async => {'hers': hers},
+          ),
+          equipmentLocationMoveRepositoryProvider.overrideWithValue(moves),
+          equipmentListNotifierProvider.overrideWith(
+            (ref) => _StatusNotifier(),
+          ),
+          equipmentLocationMovesProvider(
+            'a',
+          ).overrideWith((ref) async => const <EquipmentLocationMove>[]),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BuddyGearSection)),
+    );
+    moves.onRecord = () => container.read(current.notifier).state = const {};
+    moves.writeTakes = const Duration(milliseconds: 500);
+
+    await tester.tap(find.byKey(const ValueKey('buddy_gear_returned_a')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('return_equipment_confirm')));
+    await tester.pumpAndSettle();
+    expect(find.text('Drysuit'), findsNothing);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Update status?'), findsOneWidget);
   });
 }

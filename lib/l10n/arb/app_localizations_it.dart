@@ -16412,7 +16412,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String equipment_location_return_to(String place) {
-    return 'Di nuovo a $place';
+    return 'Torna a $place';
   }
 
   @override

@@ -4700,7 +4700,7 @@
   "equipment_location_status_no": "Mantieni stato",
   "equipment_location_moved": "{count, plural, one{{count} elemento spostato} other{{count} elementi spostati}}",
   "equipment_location_return_title": "{count, plural, one{Restituisci {count} elemento} other{Restituisci {count} elementi}}",
-  "equipment_location_return_to": "Di nuovo a {place}",
+  "equipment_location_return_to": "Torna a {place}",
   "equipment_location_return_eachToOwn": "Ogni elemento torna dov'era",
   "equipment_location_return_confirm": "Segna come restituito",
   "equipment_location_returned": "{count, plural, one{{count} elemento restituito} other{{count} elementi restituiti}}",
