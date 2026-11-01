@@ -93,7 +93,7 @@ const _names = [
   'Şile',
   'İstanbul',
   '海の家',
-  'Reef 🐠 Garden',
+  'Reef 𝔊 Garden',
   '',
 ];
 
@@ -199,10 +199,10 @@ void main() {
       expect(reads, 1);
     });
 
-    test('a long typed word over short names stays in the table', () {
-      final typed = 'a' * 500;
-      final suggester = NameSuggester(['a', 'aa']);
-      expect(suggester.suggest(typed), isEmpty);
+    test('a typed word longer than every name stays in the table', () {
+      final near = 'a' * 300;
+      final far = 'b' * 300;
+      expect(NameSuggester([far, near]).suggest('a' * 500), [near]);
     });
 
     test('a later comparison does not inherit an earlier one', () {

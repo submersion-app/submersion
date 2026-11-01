@@ -61,10 +61,6 @@ void main() {
         expect(right.similarity(left), diceCoefficient(a, b), reason: '$b/$a');
       }
     });
-
-    test('holds the normalized text', () {
-      expect(DiceText('  Cancún ').normalized, 'cancun');
-    });
   });
 
   group('findSimilar', () {

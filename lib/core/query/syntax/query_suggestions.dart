@@ -29,20 +29,20 @@ class NameSuggester {
 
   final List<_Candidate> _candidates;
 
-  late final _rows = _DistanceRows(
-    _candidates.fold(0, (longest, c) => max(longest, c.lower.length)) + 1,
-  );
+  late final _rowWidth =
+      _candidates.fold(0, (longest, c) => max(longest, c.lower.length)) + 1;
 
   List<String> suggest(String typed) {
     final t = typed.toLowerCase();
     final typedDice = DiceText(t);
+    final rows = _DistanceRows(_rowWidth);
     final best = <(_Candidate, double)>[];
     for (final c in _candidates) {
       final full = best.length == _maxSuggestions;
       final bar = full ? best.last.$2 : _minScore;
       // Nothing scores above 1, and a tie stays behind what came first.
       if (full && bar == 1.0) break;
-      final score = _score(t, typedDice, c, bar);
+      final score = _score(t, typedDice, c, bar, rows);
       if (full ? score <= bar : score < bar) continue;
       if (full) best.removeLast();
       var at = best.length;
@@ -56,14 +56,20 @@ class NameSuggester {
 
   /// The score of [c], exact whenever it reaches [bar]. Below that the name
   /// is not offered, so the distance gives up as soon as it cannot help.
-  double _score(String t, DiceText typedDice, _Candidate c, double bar) {
+  double _score(
+    String t,
+    DiceText typedDice,
+    _Candidate c,
+    double bar,
+    _DistanceRows rows,
+  ) {
     final lower = c.lower;
     if (lower.startsWith(t) && t.isNotEmpty) return 1.0;
     final dice = typedDice.similarity(c.dice);
     final maxLen = max(t.length, lower.length);
     if (maxLen == 0) return dice;
     final limit = ((1 - max(dice, bar)) * maxLen).ceil();
-    return max(dice, 1 - _distanceWithin(limit, t, lower, _rows) / maxLen);
+    return max(dice, 1 - _distanceWithin(limit, t, lower, rows) / maxLen);
   }
 }
 
@@ -78,7 +84,8 @@ class _Candidate {
 }
 
 /// The three rows of the distance table a comparison can reach, reused from
-/// one comparison to the next. [width] fits the longest candidate.
+/// one comparison to the next within a [NameSuggester.suggest]. [width] fits
+/// the longest candidate.
 class _DistanceRows {
   _DistanceRows(int width)
     : twoBack = Int32List(width),
@@ -120,9 +127,9 @@ int _distanceWithin(int limit, String a, String b, _DistanceRows rows) {
       current[j] = cell;
       if (cell < currentMin) currentMin = cell;
     }
-    // No row is lower than the one before it by more than one, so a whole row
-    // past the limit leaves nothing a later row, or a transposition from two
-    // rows back, could bring back within it.
+    // A row's minimum rises by at most one, so the row before this one is at
+    // the limit or past it too, and a transposition from there costs one more:
+    // no later row can come back within the limit.
     if (currentMin > limit) return limit + 1;
     final spare = twoBack;
     twoBack = oneBack;

@@ -70,17 +70,17 @@ class DiceText {
     return DiceText._(normalized, _bigrams(normalized));
   }
 
-  const DiceText._(this.normalized, this._pairs);
+  DiceText._(this._normalized, this._pairs);
 
-  final String normalized;
+  final String _normalized;
   final Uint32List _pairs;
 
   /// The coefficient of this text and [other]; see [diceCoefficient]. Sorted
   /// bigrams intersect in one walk along both lists, a repeated bigram
   /// counting as many times as both sides have it.
   double similarity(DiceText other) {
-    if (normalized == other.normalized) return 1.0;
-    if (normalized.length < 2 || other.normalized.length < 2) return 0.0;
+    if (_normalized == other._normalized) return 1.0;
+    if (_normalized.length < 2 || other._normalized.length < 2) return 0.0;
 
     final a = _pairs;
     final b = other._pairs;
@@ -119,10 +119,11 @@ String? findSimilar(
   Iterable<String> candidates, {
   double threshold = 0.7,
 }) {
+  final text = DiceText(input);
   String? best;
   var bestScore = threshold;
   for (final candidate in candidates) {
-    final score = diceCoefficient(input, candidate);
+    final score = text.similarity(DiceText(candidate));
     if (score >= bestScore && (best == null || score > bestScore)) {
       best = candidate;
       bestScore = score;
