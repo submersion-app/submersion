@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart';
 import 'package:submersion/features/query/presentation/table/entity_column_menus.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -126,5 +127,20 @@ void main() {
     ).first.onSelected();
 
     expect((applied! as ConditionNode).value, const BoolValue(true));
+  });
+
+  test('an enum value is matched by its name', () {
+    QueryNode? applied;
+    entityColumnCellMenuItems(
+      l10n: l10n,
+      root: siteQueryEntity,
+      fieldKey: 'difficulty',
+      value: SiteDifficulty.advanced,
+      valueLabel: 'Advanced',
+      query: null,
+      onChanged: (q) => applied = q,
+    ).first.onSelected();
+
+    expect((applied! as ConditionNode).value, const EnumValue('advanced'));
   });
 }

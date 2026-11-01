@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/column_rules.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/constants/dive_center_field.dart';
 import 'package:submersion/features/dive_centers/query/dive_center_query_entity.dart';
@@ -254,6 +255,11 @@ class _QueryTab<T, F extends EntityField> extends ConsumerWidget {
         cellMenuBuilder: (context, row, field) {
           final key = keys[field];
           if (key == null) return const <EntityTableMenuAction>[];
+          // A bool-backed column (has coordinates) filters from its header
+          // only; a value rule on a latitude would be nonsense.
+          if (root.field(key)?.type == FieldType.bool) {
+            return const <EntityTableMenuAction>[];
+          }
           final value = entity.adapter.extractValue(field, row);
           return entityColumnCellMenuItems(
             l10n: l10n,

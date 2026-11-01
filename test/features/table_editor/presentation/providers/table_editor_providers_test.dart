@@ -14,7 +14,13 @@ import '../../../../helpers/test_database.dart';
 /// setup never changes the diver's everyday lists.
 void main() {
   test('the editor dive filter leaves diveFilterProvider untouched', () {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+      ],
+    );
     addTearDown(container.dispose);
     final rule = ConditionNode(
       FieldPath(const ['notes']),
@@ -32,7 +38,13 @@ void main() {
   });
 
   test('each tab keeps its own drafts', () {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+      ],
+    );
     addTearDown(container.dispose);
 
     container

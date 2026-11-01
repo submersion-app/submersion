@@ -86,6 +86,7 @@ QueryValue? _valueFor(QueryField field, Object value) => switch (field.type) {
   FieldType.number when value is num => NumberValue(value.toDouble(), null),
   FieldType.bool when value is bool => BoolValue(value),
   FieldType.enumName when value is String => EnumValue(value),
+  FieldType.enumName when value is Enum => EnumValue(value.name),
   FieldType.id when value is String => RefValue(value, value),
   _ => null,
 };

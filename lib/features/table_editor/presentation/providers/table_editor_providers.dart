@@ -47,11 +47,19 @@ final tableEditorDraftsProvider =
 // Filters, one per tab
 // ---------------------------------------------------------------------------
 
-final tableEditorDiveFilterProvider = StateProvider<DiveFilterState>(
-  (ref) => const DiveFilterState(),
-);
-final tableEditorSiteQueryProvider = StateProvider<QueryNode?>((ref) => null);
-final tableEditorCenterQueryProvider = StateProvider<QueryNode?>((ref) => null);
+// Each watches the diver, so a diver switch starts the next sheet unfiltered.
+final tableEditorDiveFilterProvider = StateProvider<DiveFilterState>((ref) {
+  ref.watch(currentDiverIdProvider);
+  return const DiveFilterState();
+});
+final tableEditorSiteQueryProvider = StateProvider<QueryNode?>((ref) {
+  ref.watch(currentDiverIdProvider);
+  return null;
+});
+final tableEditorCenterQueryProvider = StateProvider<QueryNode?>((ref) {
+  ref.watch(currentDiverIdProvider);
+  return null;
+});
 
 // ---------------------------------------------------------------------------
 // Column layouts, one per tab, stored apart from the list views'
