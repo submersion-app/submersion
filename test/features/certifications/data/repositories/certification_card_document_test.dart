@@ -63,7 +63,6 @@ void main() {
     expect(read.photoFront, [1]);
     expect(read.photoBack, [2]);
     expect((await repo.getAllCertifications()).single.photoBack, [2]);
-    expect((await repo.searchCertifications('open')).single.photoFront, [1]);
   });
 
   test('a stale photo on the row is never read', () async {

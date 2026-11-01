@@ -277,6 +277,10 @@ void main() {
       read: (c) => c.read(certificationByIdProvider(_id).future),
     ),
     (
+      name: 'certificationMetadataProvider',
+      read: (c) => c.read(certificationMetadataProvider.future),
+    ),
+    (
       name: 'certificationSearchProvider',
       read: (c) => c.read(certificationSearchProvider(_id).future),
     ),

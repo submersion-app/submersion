@@ -26,7 +26,8 @@ final certificationRepositoryProvider = Provider<CertificationRepository>((
   return CertificationRepository();
 });
 
-/// All certifications provider.
+/// All certifications with their card images, for what renders or exports
+/// them. Anything else reads [certificationMetadataProvider].
 ///
 /// Self-invalidates whenever the `certifications` table changes -- including
 /// when a sync applies remote changes -- so the list refreshes automatically,
@@ -43,13 +44,40 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
 
-/// Certifications owned by a specific buddy (issue #553). Self-invalidates on
-/// any certifications-table change, including sync.
+/// All certifications without their card images, so what depends on credential
+/// data never waits on or holds the scans (issue #3848). Refreshes as
+/// [allCertificationsProvider] does.
+final certificationMetadataProvider = FutureProvider<List<Certification>>((
+  ref,
+) async {
+  final repository = ref.watch(certificationRepositoryProvider);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+  return repository.getCertificationMetadata(diverId: validatedDiverId);
+});
+
+/// The certifications the wallet draws, card images included. Auto-disposed
+/// so the scans leave memory with the page (issue #3848).
+final walletCertificationsProvider =
+    FutureProvider.autoDispose<List<Certification>>((ref) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      return repository.getAllCertifications(diverId: validatedDiverId);
+    });
+
+/// Certifications owned by a specific buddy (issue #553), without their card
+/// images. Self-invalidates on any certifications-table change, including
+/// sync.
 final buddyCertificationsProvider =
     FutureProvider.family<List<Certification>, String>((ref, buddyId) async {
       final repository = ref.watch(certificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchCertificationsChanges());
-      return repository.getCertificationsByBuddy(buddyId);
+      return repository.getCertificationMetadataByBuddy(buddyId);
     });
 
 /// Certifications for every buddy, keyed by buddy id — the picker-annotation
@@ -153,7 +181,7 @@ final certificationSearchProvider =
         validatedCurrentDiverIdProvider.future,
       );
       if (query.isEmpty) {
-        return ref.watch(allCertificationsProvider).value ?? [];
+        return ref.watch(certificationMetadataProvider).value ?? [];
       }
       final repository = ref.watch(certificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchCertificationsChanges());
@@ -194,7 +222,9 @@ final certificationsByAgencyProvider =
       return repository.getCertificationsByAgency(agency);
     });
 
-/// Certification list notifier for mutations
+/// Certification list notifier for mutations. Its list carries no card
+/// images: the list, table, pickers and home screen read it, and none of them
+/// draw a card (issue #3848).
 class CertificationListNotifier
     extends StateNotifier<AsyncValue<List<Certification>>> {
   final CertificationRepository _repository;
@@ -215,6 +245,7 @@ class CertificationListNotifier
         state = const AsyncValue.loading();
         _ref.invalidate(validatedCurrentDiverIdProvider);
         _ref.invalidate(allCertificationsProvider);
+        _ref.invalidate(certificationMetadataProvider);
         logFailure(
           _initializeAndLoad(),
           CertificationListNotifier,
@@ -241,7 +272,7 @@ class CertificationListNotifier
   Future<void> _loadCertifications() async {
     state = const AsyncValue.loading();
     try {
-      final certifications = await _repository.getAllCertifications(
+      final certifications = await _repository.getCertificationMetadata(
         diverId: _validatedDiverId,
       );
       state = AsyncValue.data(certifications);
@@ -259,7 +290,7 @@ class CertificationListNotifier
       _validatedDiverId = await _ref.read(
         validatedCurrentDiverIdProvider.future,
       );
-      final certifications = await _repository.getAllCertifications(
+      final certifications = await _repository.getCertificationMetadata(
         diverId: _validatedDiverId,
       );
       if (mounted) state = AsyncValue.data(certifications);
@@ -274,6 +305,7 @@ class CertificationListNotifier
     _validatedDiverId = validatedId;
     await _loadCertifications();
     _ref.invalidate(allCertificationsProvider);
+    _ref.invalidate(certificationMetadataProvider);
     _ref.invalidate(expiringCertificationsProvider(90));
     _ref.invalidate(expiredCertificationsProvider);
   }

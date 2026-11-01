@@ -1,11 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -40,8 +45,8 @@ Diver _makeDiver({String name = 'D', bool isDefault = true}) {
   );
 }
 
-/// Repository whose [getAllCertifications] always throws, to exercise the
-/// error/catch branch of the providers. Its change stream is inert so no tick
+/// Repository whose list reads always throw, to exercise the error/catch
+/// branch of the providers. Its change stream is inert so no tick
 /// is ever delivered.
 class _ThrowingCertificationRepository extends CertificationRepository {
   @override
@@ -49,6 +54,13 @@ class _ThrowingCertificationRepository extends CertificationRepository {
 
   @override
   Future<List<Certification>> getAllCertifications({String? diverId}) async {
+    throw StateError('boom');
+  }
+
+  @override
+  Future<List<Certification>> getCertificationMetadata({
+    String? diverId,
+  }) async {
     throw StateError('boom');
   }
 }
@@ -145,6 +157,173 @@ void main() {
     });
   });
 
+  group('certificationMetadataProvider', () {
+    test('refreshes after a sync write and carries no card images', () async {
+      final diver = await seedCurrentDiver();
+      await certRepo.createCertification(
+        _makeCertification(
+          diverId: diver.id,
+        ).copyWith(photoFront: Uint8List.fromList([1])),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(certificationMetadataProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      final first = await container.read(certificationMetadataProvider.future);
+      expect(first.single.photoFront, isNull);
+      expect(first.single.cardImagesLoaded, isFalse);
+
+      await certRepo.createCertification(
+        _makeCertification(name: 'Synced Cert', diverId: diver.id),
+      );
+
+      var names = <String>[];
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        names = (await container.read(
+          certificationMetadataProvider.future,
+        )).map((c) => c.name).toList();
+        if (names.contains('Synced Cert')) break;
+      }
+      expect(names, contains('Synced Cert'));
+    });
+
+    test('moves with the active diver', () async {
+      final diver = await seedCurrentDiver();
+      await certRepo.createCertification(
+        _makeCertification(name: 'Mine', diverId: diver.id),
+      );
+      final other = await diverRepo.createDiver(
+        _makeDiver(name: 'Other', isDefault: false),
+      );
+      await certRepo.createCertification(
+        _makeCertification(name: 'Theirs', diverId: other.id),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(certificationMetadataProvider, (_, _) {});
+      addTearDown(sub.close);
+      final list = container.listen(
+        certificationListNotifierProvider,
+        (_, _) {},
+      );
+      addTearDown(list.close);
+
+      expect(
+        (await container.read(
+          certificationMetadataProvider.future,
+        )).map((c) => c.name),
+        ['Mine'],
+      );
+
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver(other.id);
+
+      expect(
+        (await container.read(
+          certificationMetadataProvider.future,
+        )).map((c) => c.name),
+        ['Theirs'],
+      );
+    });
+  });
+
+  group('walletCertificationsProvider', () {
+    test('carries the card images and follows a card change', () async {
+      final diver = await seedCurrentDiver();
+      final created = await certRepo.createCertification(
+        _makeCertification(diverId: diver.id).copyWith(
+          photoFront: Uint8List.fromList([1]),
+          photoBack: Uint8List.fromList([2]),
+        ),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(walletCertificationsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      final first = await container.read(walletCertificationsProvider.future);
+      expect(first.single.photoFront, [1]);
+      expect(first.single.photoBack, [2]);
+
+      // A new scan changes the document, not the certification's own fields
+      // the wallet would otherwise have ticked on.
+      await DocumentRepository().saveCardImages(
+        certificationId: created.id,
+        diverId: diver.id,
+        front: Uint8List.fromList([3]),
+        back: Uint8List.fromList([2]),
+      );
+
+      Uint8List? front;
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        front = (await container.read(
+          walletCertificationsProvider.future,
+        )).single.photoFront;
+        if (front?.first == 3) break;
+      }
+      expect(front, [3]);
+    });
+
+    test('keeps no scans once nothing shows the wallet', () async {
+      final diver = await seedCurrentDiver();
+      await certRepo.createCertification(
+        _makeCertification(
+          diverId: diver.id,
+        ).copyWith(photoFront: Uint8List.fromList([1])),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(walletCertificationsProvider, (_, _) {});
+      await container.read(walletCertificationsProvider.future);
+      expect(container.exists(walletCertificationsProvider), isTrue);
+
+      sub.close();
+      await container.pump();
+
+      expect(container.exists(walletCertificationsProvider), isFalse);
+    });
+  });
+
+  group('buddyCertificationsProvider', () {
+    test('reads a buddy\'s certifications without their cards', () async {
+      final diver = await seedCurrentDiver();
+      final now = DateTime(2024);
+      await BuddyRepository().createBuddy(
+        Buddy(
+          id: 'b1',
+          diverId: diver.id,
+          name: 'Sam',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      await certRepo.createCertification(
+        _makeCertification().copyWith(
+          buddyId: 'b1',
+          photoFront: Uint8List.fromList([1]),
+        ),
+      );
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final certs = await container.read(
+        buddyCertificationsProvider('b1').future,
+      );
+
+      expect(certs.single.name, 'Open Water');
+      expect(certs.single.cardImagesLoaded, isFalse);
+    });
+  });
+
   group('certificationListNotifierProvider', () {
     test('auto-refreshes the list when a certification is written directly to '
         'the DB (sync scenario)', () async {
@@ -193,7 +372,7 @@ void main() {
     test('reports AsyncError when the initial load throws', () async {
       await seedCurrentDiver();
 
-      // A repository whose getAllCertifications always throws makes the
+      // A repository whose metadata read always throws makes the
       // notifier's initial load (_loadCertifications) fail, exercising its
       // error catch branch. No table-change tick is involved here.
       final throwing = _ThrowingCertificationRepository();
