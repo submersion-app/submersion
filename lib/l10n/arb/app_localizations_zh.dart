@@ -7642,6 +7642,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_gasSwitches_duplicateError => '此时间已有另一次切换';
 
   @override
+  String get diveLog_edit_gasSwitches_startedDropping => '开始下降于';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return '使用 $time';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => '在剖面图上选择';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => '设置切换时间';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => '设置时间';
+
+  @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -45,6 +45,7 @@ Future<_Harness> _pump(
   int? maxTimestamp = 1800,
   int removedWithTankCount = 0,
   bool imperial = false,
+  Map<String, List<int>> breathStarts = const {},
 }) async {
   tester.view.physicalSize = const Size(900, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -69,6 +70,7 @@ Future<_Harness> _pump(
               maxTimestamp: maxTimestamp,
               startingTank: _back,
               removedWithTankCount: removedWithTankCount,
+              breathStarts: breathStarts,
               onChanged: (updated, field) =>
                   h.changes.add((updated: updated, field: field)),
               onRemove: h.removed.add,
@@ -253,5 +255,59 @@ void main() {
     await _pump(tester, switches: const [], removedWithTankCount: 1);
 
     expect(find.text('1 gas switch removed with its tank'), findsOneWidget);
+  });
+
+  group('suggested times', () {
+    testWidgets('a start of the row\'s cylinder shows as a chip', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'deco')],
+        breathStarts: const {
+          'deco': [890],
+        },
+      );
+
+      expect(find.text('Started dropping at'), findsOneWidget);
+      expect(find.widgetWithText(ActionChip, '14:50'), findsOneWidget);
+    });
+
+    testWidgets('tapping a chip fills the time and settles the row', (
+      tester,
+    ) async {
+      final h = await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'deco')],
+        breathStarts: const {
+          'deco': [890],
+        },
+      );
+
+      await tester.tap(find.widgetWithText(ActionChip, '14:50'));
+
+      expect(h.changes.single.updated.timestamp, 890);
+      expect(h.changes.single.field, GasSwitchField.time);
+      expect(h.settled, ['gs-1']);
+    });
+
+    testWidgets('a start of another cylinder shows nothing', (tester) async {
+      await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'back')],
+        breathStarts: const {
+          'deco': [890],
+        },
+      );
+
+      expect(find.byType(ActionChip), findsNothing);
+      expect(find.text('Started dropping at'), findsNothing);
+    });
+
+    testWidgets('no starts leave the row as it was', (tester) async {
+      await _pump(tester, switches: [_sw('gs-1', 900, 'deco')]);
+
+      expect(find.text('Started dropping at'), findsNothing);
+    });
   });
 }

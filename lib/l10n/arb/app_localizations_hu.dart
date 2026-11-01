@@ -8027,6 +8027,28 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egy másik váltás is erre az időre esik';
 
   @override
+  String get diveLog_edit_gasSwitches_startedDropping => 'Csökkenés kezdete:';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return '$time használata';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => 'Kiválasztás a profilon';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => 'Váltás idejének beállítása';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => 'Idő beállítása';
+
+  @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

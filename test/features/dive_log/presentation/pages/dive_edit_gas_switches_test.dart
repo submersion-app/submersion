@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -70,6 +72,7 @@ void main() {
     WidgetTester tester,
     String diveId, {
     void Function(String)? onSaved,
+    Future<Map<String, List<TankPressurePoint>>> Function()? pressures,
   }) async {
     tester.view.physicalSize = const Size(950, 8000);
     tester.view.devicePixelRatio = 1.0;
@@ -86,6 +89,8 @@ void main() {
             (ref) => DiveListNotifier(repository, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
+          if (pressures != null)
+            tankPressuresProvider(diveId).overrideWith((ref) => pressures()),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -336,4 +341,131 @@ void main() {
     expect((await storedSwitches()).map((s) => s.id), ['gs-deco']);
     expect(await flagged(), isFalse);
   });
+
+  group('suggested times', () {
+    /// The deco bottle held until 12:00, then breathed.
+    Map<String, List<TankPressurePoint>> decoBreathedAt720() => {
+      'tank-deco': [
+        for (var t = 0; t < 1500; t += 2)
+          TankPressurePoint(
+            tankId: 'tank-deco',
+            timestamp: t,
+            pressure: t < 720 ? 200 : 200 - (t - 720) * 3.4 / 60,
+          ),
+      ],
+    };
+
+    Future<void> addSwitch(WidgetTester tester) async {
+      await openGasGear(tester);
+      final add = find.text('Add Switch');
+      await tester.ensureVisible(add);
+      await tester.pumpAndSettle();
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+    }
+
+    final timeField = find.descendant(
+      of: find.byType(MinutesSecondsField),
+      matching: find.byType(TextFormField),
+    );
+
+    String timeText(WidgetTester tester) =>
+        tester.widget<TextFormField>(timeField).controller!.text;
+
+    testWidgets('a chip fills the time and refills the depth', (tester) async {
+      final dive = await seedDive();
+      await pumpEditor(
+        tester,
+        dive.id,
+        pressures: () async => decoBreathedAt720(),
+      );
+      await addSwitch(tester);
+
+      final chip = find.byType(ActionChip);
+      expect(chip, findsOneWidget);
+      final label = tester.widget<Text>(
+        find.descendant(of: chip, matching: find.byType(Text)),
+      );
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+
+      expect(timeText(tester), label.data);
+      final depth = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(ValueKey('gas-switch-depth-${_onlyRowId(tester)}')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(depth.controller!.text, '30.0');
+    });
+
+    testWidgets('a depth the diver typed stands when a chip is tapped', (
+      tester,
+    ) async {
+      final dive = await seedDive();
+      await pumpEditor(
+        tester,
+        dive.id,
+        pressures: () async => decoBreathedAt720(),
+      );
+      await addSwitch(tester);
+
+      final depthField = find.descendant(
+        of: find.byKey(ValueKey('gas-switch-depth-${_onlyRowId(tester)}')),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(depthField, '12');
+      await tester.pumpAndSettle();
+      final chip = find.byType(ActionChip);
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(depthField).controller!.text, '12');
+    });
+
+    testWidgets('a cylinder with no series shows no chip', (tester) async {
+      final dive = await seedDive();
+      await pumpEditor(tester, dive.id, pressures: () async => const {});
+      await addSwitch(tester);
+
+      expect(find.byType(ActionChip), findsNothing);
+    });
+
+    testWidgets('pressure data still loading leaves the editor working', (
+      tester,
+    ) async {
+      final dive = await seedDive();
+      final never = Completer<Map<String, List<TankPressurePoint>>>();
+      await pumpEditor(tester, dive.id, pressures: () => never.future);
+      await addSwitch(tester);
+
+      expect(find.byType(ActionChip), findsNothing);
+      expect(timeField, findsOneWidget);
+    });
+
+    testWidgets('pressure data failing leaves the editor working', (
+      tester,
+    ) async {
+      final dive = await seedDive();
+      await pumpEditor(
+        tester,
+        dive.id,
+        pressures: () async => throw StateError('no pressures'),
+      );
+      await addSwitch(tester);
+
+      expect(find.byType(ActionChip), findsNothing);
+      expect(timeField, findsOneWidget);
+    });
+  });
+}
+
+/// The switch id in the one row on screen, read from its time field's key.
+String _onlyRowId(WidgetTester tester) {
+  final key = tester.widget(find.byType(MinutesSecondsField)).key!;
+  return (key as ValueKey<String>).value.replaceFirst('gas-switch-time-', '');
 }

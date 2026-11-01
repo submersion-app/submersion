@@ -62,9 +62,10 @@ shows where the diver was at any moment.
 
 ### Suggested times
 
-Under a switch row, a line of tappable chips, each a time at which the row's
-selected cylinder started being breathed: `Started dropping at 14:50`. Changing
-the row's cylinder changes the chips. Tapping a chip fills the row's time.
+Under a switch row, a line reading `Started dropping at` followed by tappable
+chips, each a time at which the row's selected cylinder started being breathed:
+`14:50`. Changing the row's cylinder changes the chips. Tapping a chip fills the
+row's time.
 
 A sidemount diver rotates cylinders, so a cylinder can have many starts. The row
 offers every start of its cylinder except:

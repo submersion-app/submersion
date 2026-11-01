@@ -58,6 +58,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
 
   Widget? _buildGasSwitchesChild(UnitFormatter units) {
     if (!_gasSwitchesVisible) return null;
+    final diveId = widget.diveId;
     return GasSwitchesEditor(
       switches: _gasSwitches,
       tanks: _tanks,
@@ -69,6 +70,10 @@ extension _GasSwitchEditing on _DiveEditPageState {
       onRemove: _removeGasSwitch,
       onAdd: _addGasSwitch,
       onTimeSettled: _onGasSwitchTimeSettled,
+      breathStarts: diveId == null
+          ? const {}
+          : ref.watch(cylinderBreathStartsProvider(diveId)).valueOrNull ??
+                const {},
     );
   }
 

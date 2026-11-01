@@ -8004,6 +8004,28 @@ class AppLocalizationsNl extends AppLocalizations {
       'Er is al een wissel op dit tijdstip';
 
   @override
+  String get diveLog_edit_gasSwitches_startedDropping => 'Begon te dalen op';
+
+  @override
+  String diveLog_edit_gasSwitches_useTime(String time) {
+    return '$time gebruiken';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickOnProfile => 'Kiezen op profiel';
+
+  @override
+  String get diveLog_edit_gasSwitches_pickTitle => 'Wisseltijd instellen';
+
+  @override
+  String diveLog_edit_gasSwitches_pickReadout(String time, String depth) {
+    return '$time op $depth';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_pickConfirm => 'Tijd instellen';
+
+  @override
   String diveLog_edit_gasSwitches_removedWithTank(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
