@@ -191,7 +191,9 @@ void main() {
       (await findings.getReview('reg'))?.inputFingerprint,
       'written-elsewhere',
     );
-    expect(await untilSettled(), 1);
+    await pumpEventQueue();
+    await read();
+    expect(engine.calls, 1);
   });
 
   test('an unknown item yields null and never computes', () async {
