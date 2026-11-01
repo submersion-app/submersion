@@ -147,6 +147,57 @@ void main() {
     expect(out['ids'], ['theirs']);
   });
 
+  test('the named diver\'s reminder window decides dueSoon', () async {
+    // Due in about 45 days: inside a 60 day window, outside the default 30.
+    final now = DateTime.now();
+    final bought = DateTime(now.year, now.month, now.day - 320);
+    for (final (id, owner) in [('wide', kDiverB), ('narrow', kDiverA)]) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'regulator',
+              createdAt: t,
+              updatedAt: t,
+              diverId: Value(owner),
+              purchaseDate: Value(bought.millisecondsSinceEpoch),
+            ),
+          );
+      await db
+          .into(db.serviceSchedules)
+          .insert(
+            ServiceSchedulesCompanion.insert(
+              id: 'sch-$id',
+              equipmentId: id,
+              serviceKindId: 'annual',
+              intervalDays: const Value(365),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    }
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'settings-b',
+            diverId: kDiverB,
+            createdAt: t,
+            updatedAt: t,
+            serviceReminderDays: const Value('[60]'),
+          ),
+        );
+    Future<Object?> dueSoon(String diver) async => (await tool().call({
+      'root': 'equipment',
+      'query': 'serviceDue = dueSoon',
+      'diver_id': diver,
+    }, ctx()))['ids'];
+    expect(await dueSoon(kDiverB), ['wide']);
+    expect(await dueSoon(kDiverA), isEmpty);
+  });
+
   test('no gear means nothing is due', () async {
     final out = await tool().call({
       'root': 'equipment',

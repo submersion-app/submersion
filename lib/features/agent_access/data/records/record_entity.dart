@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/agent_access/data/documents/dive_document.dart'
-    show kProfileDefaultLimit;
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+
+/// The window over a long child series (dive samples, track points).
+const kProfileDefaultLimit = 500;
+const kProfileMaxLimit = 2000;
 
 /// What one read asked for.
 class RecordLoad {

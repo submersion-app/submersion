@@ -13,9 +13,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
-const kProfileDefaultLimit = 500;
-const kProfileMaxLimit = 2000;
-
 /// The full agent-facing document for one dive. Metric, unit-named keys,
 /// wall-clock UTC dates as ISO 8601. Child blocks are added by their loaders
 /// in `dive_records.dart`, only when a caller asks for them.
