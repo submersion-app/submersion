@@ -26470,7 +26470,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Fix dive times, link buddies, retype gear, data quality';
+      'Fix dive times, link buddies, retype gear, data quality, table editor';
 
   @override
   String get settings_sync_title => 'Sync between devices';
@@ -41872,6 +41872,173 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Humid';
+
+  @override
+  String get settings_tableEditor_title => 'Table editor';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Edit many dives, sites or centers in a spreadsheet';
+
+  @override
+  String get tableEditor_title => 'Table editor';
+
+  @override
+  String get tableEditor_tab_dives => 'Dives';
+
+  @override
+  String get tableEditor_tab_sites => 'Sites';
+
+  @override
+  String get tableEditor_tab_centers => 'Centers';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'The table editor needs a wider window. Open it on a tablet or a computer.';
+
+  @override
+  String get tableEditor_saveAll => 'Save all';
+
+  @override
+  String get tableEditor_paste => 'Paste';
+
+  @override
+  String get tableEditor_clearFilters => 'Clear filters';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unsaved',
+      one: '$count unsaved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Save changes?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cells change',
+      one: '$count cell changes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count need attention and will not be saved',
+      one: '$count needs attention and will not be saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count replace an existing value',
+      one: '$count replaces an existing value',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changed elsewhere since you edited them',
+      one: '$count changed elsewhere since you edited it',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Pasted rows matched by dive number';
+
+  @override
+  String get tableEditor_summary_matching_name => 'Pasted rows matched by name';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Pasted rows placed by position';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column is read-only';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'No row for $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key is hidden by the filter';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows past the end of the sheet',
+      one: '$count row past the end of the sheet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'No column named $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes saved',
+      one: '$count change saved',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Nothing was saved. Fix the error and try again.';
+
+  @override
+  String get tableEditor_undo => 'Undo';
+
+  @override
+  String get tableEditor_undoneAll => 'Changes undone';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return 'Undid $reverted of $total changes';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Save all and open';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Discard and open';
+
+  @override
+  String get tableEditor_open_stay => 'Stay';
 
   @override
   String tableEditor_original(String value) {

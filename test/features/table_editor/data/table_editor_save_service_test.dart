@@ -212,6 +212,8 @@ class _FailAfterFirst extends TableEditorEntity<domain.Dive, DiveField> {
   @override
   String idOf(domain.Dive entity) => inner.idOf(entity);
   @override
+  DiveField get keyField => inner.keyField;
+  @override
   int? numberOf(domain.Dive entity) => inner.numberOf(entity);
   @override
   String? nameOf(domain.Dive entity) => null;

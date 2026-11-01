@@ -1,0 +1,76 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/features/table_editor/domain/paste_planner.dart';
+import 'package:submersion/features/table_editor/domain/save_summary.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// What Save all is about to do (#3422). Returns true to go ahead.
+Future<bool> showSaveSummaryDialog(
+  BuildContext context,
+  SaveSummary summary, {
+  required String Function(String fieldName) columnLabel,
+}) async {
+  final l10n = context.l10n;
+  final lines = <String?>[
+    l10n.tableEditor_summary_changed(summary.changed),
+    if (summary.overwrites > 0)
+      l10n.tableEditor_summary_overwrite(summary.overwrites),
+    if (summary.needsAttention > 0)
+      l10n.tableEditor_summary_attention(summary.needsAttention),
+    if (summary.changedElsewhere > 0)
+      l10n.tableEditor_summary_changedElsewhere(summary.changedElsewhere),
+    switch (summary.matching) {
+      null => null,
+      PasteMatching.byNumber => l10n.tableEditor_summary_matching_number,
+      PasteMatching.byName => l10n.tableEditor_summary_matching_name,
+      PasteMatching.byPosition => l10n.tableEditor_summary_matching_position,
+    },
+    for (final s in summary.skipped)
+      switch (s.reason) {
+        PasteSkipReason.readOnlyColumn => l10n.tableEditor_skip_readOnlyColumn(
+          columnLabel(s.detail),
+        ),
+        PasteSkipReason.unknownRow => l10n.tableEditor_skip_unknownRow(
+          s.detail,
+        ),
+        PasteSkipReason.hiddenRow => l10n.tableEditor_skip_hiddenRow(s.detail),
+        PasteSkipReason.unknownColumn => l10n.tableEditor_skip_unknownColumn(
+          s.detail,
+        ),
+        PasteSkipReason.truncated => l10n.tableEditor_skip_truncated(s.count),
+      },
+    ...summary.notes,
+  ].nonNulls.toList();
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.tableEditor_summary_title),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final line in lines)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(line),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: summary.changed == 0
+              ? null
+              : () => Navigator.of(context).pop(true),
+          child: Text(l10n.tableEditor_saveAll),
+        ),
+      ],
+    ),
+  );
+  return result == true;
+}

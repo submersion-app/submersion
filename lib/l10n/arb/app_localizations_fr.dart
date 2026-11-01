@@ -26998,7 +26998,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corriger les heures de plongée, lier les binômes, reclasser l\'équipement, qualité des données';
+      'Corriger les heures, lier les binômes, retyper le matériel, qualité des données, éditeur de tableau';
 
   @override
   String get settings_sync_title => 'Synchronisation entre appareils';
@@ -42691,6 +42691,174 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Humid.';
+
+  @override
+  String get settings_tableEditor_title => 'Éditeur de tableau';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Modifier de nombreuses plongées, sites ou centres dans un tableau';
+
+  @override
+  String get tableEditor_title => 'Éditeur de tableau';
+
+  @override
+  String get tableEditor_tab_dives => 'Plongées';
+
+  @override
+  String get tableEditor_tab_sites => 'Sites';
+
+  @override
+  String get tableEditor_tab_centers => 'Centres';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'L\'éditeur de tableau a besoin d\'une fenêtre plus large. Ouvrez-le sur une tablette ou un ordinateur.';
+
+  @override
+  String get tableEditor_saveAll => 'Tout enregistrer';
+
+  @override
+  String get tableEditor_paste => 'Coller';
+
+  @override
+  String get tableEditor_clearFilters => 'Effacer les filtres';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count non enregistrées',
+      one: '$count non enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Enregistrer les modifications ?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cellules modifiées',
+      one: '$count cellule modifiée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count demandent attention et ne seront pas enregistrées',
+      one: '$count demande attention et ne sera pas enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count remplacent une valeur existante',
+      one: '$count remplace une valeur existante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ont été modifiées ailleurs depuis votre saisie',
+      one: '$count a été modifiée ailleurs depuis votre saisie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Lignes collées associées par numéro de plongée';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Lignes collées associées par nom';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Lignes collées placées par position';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column est en lecture seule';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Aucune ligne pour $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key est masqué par le filtre';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes au-delà de la fin du tableau',
+      one: '$count ligne au-delà de la fin du tableau',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Aucune colonne nommée $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modifications enregistrées',
+      one: '$count modification enregistrée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Rien n\'a été enregistré. Corrigez l\'erreur et réessayez.';
+
+  @override
+  String get tableEditor_undo => 'Annuler';
+
+  @override
+  String get tableEditor_undoneAll => 'Modifications annulées';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$reverted modifications sur $total annulées';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Tout enregistrer et ouvrir';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Abandonner et ouvrir';
+
+  @override
+  String get tableEditor_open_stay => 'Rester';
 
   @override
   String tableEditor_original(String value) {

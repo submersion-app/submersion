@@ -26793,7 +26793,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Merülési idők javítása, búvártársak összekapcsolása, felszerelés átsorolása, adatminőség';
+      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő';
 
   @override
   String get settings_sync_title => 'Szinkronizálás eszközök között';
@@ -42335,6 +42335,174 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Pára';
+
+  @override
+  String get settings_tableEditor_title => 'Táblázatszerkesztő';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Sok merülés, hely vagy központ szerkesztése táblázatban';
+
+  @override
+  String get tableEditor_title => 'Táblázatszerkesztő';
+
+  @override
+  String get tableEditor_tab_dives => 'Merülések';
+
+  @override
+  String get tableEditor_tab_sites => 'Helyek';
+
+  @override
+  String get tableEditor_tab_centers => 'Központok';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'A táblázatszerkesztőhöz szélesebb ablak kell. Nyisd meg táblagépen vagy számítógépen.';
+
+  @override
+  String get tableEditor_saveAll => 'Összes mentése';
+
+  @override
+  String get tableEditor_paste => 'Beillesztés';
+
+  @override
+  String get tableEditor_clearFilters => 'Szűrők törlése';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentetlen',
+      one: '$count mentetlen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Mented a módosításokat?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cella változik',
+      one: '$count cella változik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count figyelmet igényel, nem lesz mentve',
+      one: '$count figyelmet igényel, nem lesz mentve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meglévő értéket ír felül',
+      one: '$count meglévő értéket ír felül',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count máshol módosult a szerkesztésed óta',
+      one: '$count máshol módosult a szerkesztésed óta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'A beillesztett sorok merülésszám szerint párosítva';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'A beillesztett sorok név szerint párosítva';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'A beillesztett sorok pozíció szerint elhelyezve';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column csak olvasható';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Nincs sor ehhez: $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key rejtve a szűrő miatt';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sor a táblázat végén túl',
+      one: '$count sor a táblázat végén túl',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Nincs $header nevű oszlop';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count módosítás mentve',
+      one: '$count módosítás mentve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Semmi sem lett mentve. Javítsd a hibát, és próbáld újra.';
+
+  @override
+  String get tableEditor_undo => 'Visszavonás';
+
+  @override
+  String get tableEditor_undoneAll => 'Módosítások visszavonva';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$total módosításból $reverted visszavonva';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Összes mentése és megnyitás';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Elvetés és megnyitás';
+
+  @override
+  String get tableEditor_open_stay => 'Maradás';
 
   @override
   String tableEditor_original(String value) {

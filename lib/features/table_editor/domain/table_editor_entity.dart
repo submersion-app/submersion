@@ -22,6 +22,9 @@ abstract class TableEditorEntity<T, F extends EntityField> {
 
   String idOf(T entity);
 
+  /// The column a pasted block's key lives in: the dive number, or the name.
+  F get keyField;
+
   /// The record's number, for paste matching; null for entities without one.
   int? numberOf(T entity);
 

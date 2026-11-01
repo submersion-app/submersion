@@ -70,6 +70,9 @@ class DiveTableEditorEntity extends TableEditorEntity<Dive, DiveField> {
   String idOf(Dive entity) => entity.id;
 
   @override
+  DiveField get keyField => DiveField.diveNumber;
+
+  @override
   int? numberOf(Dive entity) => entity.diveNumber;
 
   @override

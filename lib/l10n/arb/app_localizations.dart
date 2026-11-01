@@ -43149,7 +43149,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_dataTools_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fix dive times, link buddies, retype gear, data quality'**
+  /// **'Fix dive times, link buddies, retype gear, data quality, table editor'**
   String get settings_data_dataTools_subtitle;
 
   /// No description provided for @settings_sync_title.
@@ -67111,6 +67111,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Humid'**
   String get enum_diveField_humidity_short;
+
+  /// No description provided for @settings_tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get settings_tableEditor_title;
+
+  /// No description provided for @settings_tableEditor_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit many dives, sites or centers in a spreadsheet'**
+  String get settings_tableEditor_subtitle;
+
+  /// No description provided for @tableEditor_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Table editor'**
+  String get tableEditor_title;
+
+  /// No description provided for @tableEditor_tab_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get tableEditor_tab_dives;
+
+  /// No description provided for @tableEditor_tab_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get tableEditor_tab_sites;
+
+  /// No description provided for @tableEditor_tab_centers.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers'**
+  String get tableEditor_tab_centers;
+
+  /// No description provided for @tableEditor_needsWiderScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'The table editor needs a wider window. Open it on a tablet or a computer.'**
+  String get tableEditor_needsWiderScreen;
+
+  /// No description provided for @tableEditor_saveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get tableEditor_saveAll;
+
+  /// No description provided for @tableEditor_paste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get tableEditor_paste;
+
+  /// No description provided for @tableEditor_clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get tableEditor_clearFilters;
+
+  /// No description provided for @tableEditor_draftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} unsaved} other{{count} unsaved}}'**
+  String tableEditor_draftCount(int count);
+
+  /// No description provided for @tableEditor_summary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get tableEditor_summary_title;
+
+  /// No description provided for @tableEditor_summary_changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} cell changes} other{{count} cells change}}'**
+  String tableEditor_summary_changed(int count);
+
+  /// No description provided for @tableEditor_summary_attention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} needs attention and will not be saved} other{{count} need attention and will not be saved}}'**
+  String tableEditor_summary_attention(int count);
+
+  /// No description provided for @tableEditor_summary_overwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} replaces an existing value} other{{count} replace an existing value}}'**
+  String tableEditor_summary_overwrite(int count);
+
+  /// No description provided for @tableEditor_summary_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} changed elsewhere since you edited it} other{{count} changed elsewhere since you edited them}}'**
+  String tableEditor_summary_changedElsewhere(int count);
+
+  /// No description provided for @tableEditor_summary_matching_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by dive number'**
+  String get tableEditor_summary_matching_number;
+
+  /// No description provided for @tableEditor_summary_matching_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows matched by name'**
+  String get tableEditor_summary_matching_name;
+
+  /// No description provided for @tableEditor_summary_matching_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted rows placed by position'**
+  String get tableEditor_summary_matching_position;
+
+  /// No description provided for @tableEditor_skip_readOnlyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'{column} is read-only'**
+  String tableEditor_skip_readOnlyColumn(String column);
+
+  /// No description provided for @tableEditor_skip_unknownRow.
+  ///
+  /// In en, this message translates to:
+  /// **'No row for {key}'**
+  String tableEditor_skip_unknownRow(String key);
+
+  /// No description provided for @tableEditor_skip_hiddenRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} is hidden by the filter'**
+  String tableEditor_skip_hiddenRow(String key);
+
+  /// No description provided for @tableEditor_skip_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} row past the end of the sheet} other{{count} rows past the end of the sheet}}'**
+  String tableEditor_skip_truncated(int count);
+
+  /// No description provided for @tableEditor_skip_unknownColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'No column named {header}'**
+  String tableEditor_skip_unknownColumn(String header);
+
+  /// No description provided for @tableEditor_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} change saved} other{{count} changes saved}}'**
+  String tableEditor_saved(int count);
+
+  /// No description provided for @tableEditor_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was saved. Fix the error and try again.'**
+  String get tableEditor_saveFailed;
+
+  /// No description provided for @tableEditor_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get tableEditor_undo;
+
+  /// No description provided for @tableEditor_undoneAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes undone'**
+  String get tableEditor_undoneAll;
+
+  /// No description provided for @tableEditor_undonePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Undid {reverted} of {total} changes'**
+  String tableEditor_undonePartial(int reverted, int total);
+
+  /// No description provided for @tableEditor_open_saveAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all and open'**
+  String get tableEditor_open_saveAndOpen;
+
+  /// No description provided for @tableEditor_open_discardAndOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard and open'**
+  String get tableEditor_open_discardAndOpen;
+
+  /// No description provided for @tableEditor_open_stay.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay'**
+  String get tableEditor_open_stay;
 
   /// No description provided for @tableEditor_original.
   ///

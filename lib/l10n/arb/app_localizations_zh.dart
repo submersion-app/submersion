@@ -25424,7 +25424,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_dataTools => '数据工具';
 
   @override
-  String get settings_data_dataTools_subtitle => '修正潜水时间、关联潜伴、重新分类装备、数据质量';
+  String get settings_data_dataTools_subtitle =>
+      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器';
 
   @override
   String get settings_sync_title => '设备间同步';
@@ -40110,6 +40111,168 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => '湿度';
+
+  @override
+  String get settings_tableEditor_title => '表格编辑器';
+
+  @override
+  String get settings_tableEditor_subtitle => '在表格中批量编辑潜水、潜点或潜店';
+
+  @override
+  String get tableEditor_title => '表格编辑器';
+
+  @override
+  String get tableEditor_tab_dives => '潜水';
+
+  @override
+  String get tableEditor_tab_sites => '潜点';
+
+  @override
+  String get tableEditor_tab_centers => '潜店';
+
+  @override
+  String get tableEditor_needsWiderScreen => '表格编辑器需要更宽的窗口。请在平板或电脑上打开。';
+
+  @override
+  String get tableEditor_saveAll => '全部保存';
+
+  @override
+  String get tableEditor_paste => '粘贴';
+
+  @override
+  String get tableEditor_clearFilters => '清除筛选';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项未保存',
+      one: '$count 项未保存',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => '保存更改？';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个单元格将更改',
+      one: '$count 个单元格将更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项需要处理，不会保存',
+      one: '$count 项需要处理，不会保存',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项将替换现有值',
+      one: '$count 项将替换现有值',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项自您编辑后已在别处更改',
+      one: '$count 项自您编辑后已在别处更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number => '粘贴的行已按潜水编号匹配';
+
+  @override
+  String get tableEditor_summary_matching_name => '粘贴的行已按名称匹配';
+
+  @override
+  String get tableEditor_summary_matching_position => '粘贴的行已按位置放置';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column 为只读';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return '没有与 $key 对应的行';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key 已被筛选隐藏';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 行超出表格末尾',
+      one: '$count 行超出表格末尾',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return '没有名为 $header 的列';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已保存 $count 项更改',
+      one: '已保存 $count 项更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed => '未保存任何内容。请修正错误后重试。';
+
+  @override
+  String get tableEditor_undo => '撤销';
+
+  @override
+  String get tableEditor_undoneAll => '已撤销更改';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '已撤销 $total 项更改中的 $reverted 项';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => '全部保存并打开';
+
+  @override
+  String get tableEditor_open_discardAndOpen => '放弃并打开';
+
+  @override
+  String get tableEditor_open_stay => '留在此处';
 
   @override
   String tableEditor_original(String value) {

@@ -26750,7 +26750,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, gegevenskwaliteit';
+      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker';
 
   @override
   String get settings_sync_title => 'Synchronisatie tussen apparaten';
@@ -42297,6 +42297,174 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Vocht';
+
+  @override
+  String get settings_tableEditor_title => 'Tabelbewerker';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Veel duiken, stekken of centra in een tabel bewerken';
+
+  @override
+  String get tableEditor_title => 'Tabelbewerker';
+
+  @override
+  String get tableEditor_tab_dives => 'Duiken';
+
+  @override
+  String get tableEditor_tab_sites => 'Stekken';
+
+  @override
+  String get tableEditor_tab_centers => 'Centra';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'De tabelbewerker heeft een breder venster nodig. Open hem op een tablet of computer.';
+
+  @override
+  String get tableEditor_saveAll => 'Alles opslaan';
+
+  @override
+  String get tableEditor_paste => 'Plakken';
+
+  @override
+  String get tableEditor_clearFilters => 'Filters wissen';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count niet opgeslagen',
+      one: '$count niet opgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => 'Wijzigingen opslaan?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cellen veranderen',
+      one: '$count cel verandert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vragen aandacht en worden niet opgeslagen',
+      one: '$count vraagt aandacht en wordt niet opgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vervangen een bestaande waarde',
+      one: '$count vervangt een bestaande waarde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count zijn elders gewijzigd sinds je bewerking',
+      one: '$count is elders gewijzigd sinds je bewerking',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Geplakte rijen gekoppeld op duiknummer';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Geplakte rijen gekoppeld op naam';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Geplakte rijen geplaatst op positie';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column is alleen-lezen';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'Geen rij voor $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key is verborgen door het filter';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rijen voorbij het einde van de tabel',
+      one: '$count rij voorbij het einde van de tabel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'Geen kolom met de naam $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wijzigingen opgeslagen',
+      one: '$count wijziging opgeslagen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'Er is niets opgeslagen. Verhelp de fout en probeer opnieuw.';
+
+  @override
+  String get tableEditor_undo => 'Ongedaan maken';
+
+  @override
+  String get tableEditor_undoneAll => 'Wijzigingen ongedaan gemaakt';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return '$reverted van $total wijzigingen ongedaan gemaakt';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Alles opslaan en openen';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Verwerpen en openen';
+
+  @override
+  String get tableEditor_open_stay => 'Blijven';
 
   @override
   String tableEditor_original(String value) {

@@ -47,6 +47,9 @@ class SiteTableEditorEntity
   String idOf(SiteWithCount entity) => entity.site.id;
 
   @override
+  SiteField get keyField => SiteField.siteName;
+
+  @override
   int? numberOf(SiteWithCount entity) => null;
 
   @override

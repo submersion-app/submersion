@@ -65,6 +65,9 @@ class CenterTableEditorEntity
   String idOf(DiveCenterRow entity) => entity.center.id;
 
   @override
+  DiveCenterField get keyField => DiveCenterField.centerName;
+
+  @override
   int? numberOf(DiveCenterRow entity) => null;
 
   @override
