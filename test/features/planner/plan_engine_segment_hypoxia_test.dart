@@ -295,6 +295,43 @@ void main() {
       expect(outcome.isDiveable, isFalse);
     });
 
+    test('a stop where the ascent begins is reported there', () {
+      // The leg into it is on air, but air only joins at 3 m, so the computed
+      // 6 m stop runs on Tx10/70. No span ends at a depth the ascent starts
+      // from, so the arrival has to be read at the start of the first span.
+      final outcome = engine.compute(
+        ocPlan(
+          tanks: const [
+            DiveTank(
+              id: 'air',
+              volume: 12,
+              startPressure: 200,
+              gasMix: _air,
+              decoSwitchDepth: 3,
+            ),
+            DiveTank(
+              id: 'tx',
+              volume: 24,
+              startPressure: 230,
+              gasMix: _hypoxic,
+            ),
+          ],
+          segments: [
+            _leg('desc', 30, 120, 0, tank: 'air'),
+            _leg('bottom', 30, 600, 1, gas: _hypoxic, tank: 'tx'),
+            _leg('up', 6, 180, 2, tank: 'air'),
+          ],
+        ),
+      );
+
+      expect(outcome.stops.first.depthMeters, 6);
+      final issue = _hypoxia(outcome).single;
+      expect(issue.segmentId, isNull);
+      expect(issue.atDepth, 6);
+      expect(issue.value, lessThan(0.16));
+      expect(issue.atRuntime, 120 + 600 + 180);
+    });
+
     test('a no-stop ascent that switches too shallow is blocked', () {
       // No stop falls on the hypoxic stretch and the surface is on air, so
       // only the span ending at the 3 m switch can see it.

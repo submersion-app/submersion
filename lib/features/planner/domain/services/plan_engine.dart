@@ -2477,12 +2477,13 @@ class PlanEngine {
   }
 
   /// The first stretch of a computed ascent to end unbreathable, or null
-  /// (issues #3896, #4008), reported at the depth it ends and timed where the
-  /// gas crosses the limit. The legs' own check cannot see this: ppO2 drops as
-  /// the diver shallows, so a final gas that is safe where it was authored can
-  /// be hypoxic at the stops, on a gas the descent never breathed. Each span
-  /// ends on the gas it left on, so open circuit is judged on arrival at a
-  /// switch, not on the richer gas it switches to there.
+  /// (issues #3896, #4008), reported where it ends, or where it starts if it
+  /// starts hypoxic, and timed from where the gas crosses the limit. The legs'
+  /// own check cannot see this: ppO2 drops as the diver shallows, so a final
+  /// gas that is safe where it was authored can be hypoxic at the stops, on a
+  /// gas the descent never breathed. Each span ends on the gas it left on, so
+  /// open circuit is judged on arrival at a switch, not on the richer gas it
+  /// switches to there.
   PlanIssue? _ascentHypoxia(
     SchedulePolicy policy,
     AscentGasPlan ascentPlan,
@@ -2505,22 +2506,32 @@ class PlanEngine {
               fO2: gas.fO2,
               fHe: gas.fHe,
             ).inspiredAt(environment.pressureAtDepth(depth)).pO2;
-      final depth = span.toDepth;
+      bool hypoxicAt(double depth) => ppO2At(depth) < _hypoxicPpO2;
+      if (!hypoxicAt(span.toDepth)) continue;
+      // Only the first span can leave hypoxic, on a gas the last leg did not
+      // breathe, and a stop there is one no span ends at.
+      final leavesHypoxic = hypoxicAt(span.fromDepth);
+      final depth = leavesHypoxic ? span.fromDepth : span.toDepth;
       final ppO2 = ppO2At(depth);
-      if (ppO2 >= _hypoxicPpO2) continue;
       return PlanIssue(
         type: PlanIssueType.hypoxicGas,
         severity: PlanIssueSeverity.critical,
         message:
             'Gas is hypoxic at ${depth.toStringAsFixed(0)} m '
             '(ppO2 ${ppO2.toStringAsFixed(2)} bar)',
-        atRuntime: legOnsetRuntime(
-          startRuntime: start,
-          durationSeconds: span.seconds,
-          startDepth: span.fromDepth,
-          endDepth: depth,
-          exceeds: (d) => ppO2At(d) < _hypoxicPpO2,
-        ),
+        atRuntime: leavesHypoxic
+            ? stops
+                      .where((stop) => stop.depthMeters == depth)
+                      .firstOrNull
+                      ?.arrivalRuntimeSeconds ??
+                  start
+            : legOnsetRuntime(
+                startRuntime: start,
+                durationSeconds: span.seconds,
+                startDepth: span.fromDepth,
+                endDepth: depth,
+                exceeds: hypoxicAt,
+              ),
         atDepth: depth,
         value: ppO2,
         threshold: _hypoxicPpO2,
