@@ -161,7 +161,7 @@ void main() {
   });
 
   test('a data-only rung, so the sync floor does not move', () {
-    // Not lessThan(318): a later rung (#3356, v332) has since raised the
+    // Not lessThan(318): a later rung (#3356, v336) has since raised the
     // floor past 318 for an unrelated reason. This rung's own contribution
     // was additive, so the floor is still at or above where it already was.
     expect(

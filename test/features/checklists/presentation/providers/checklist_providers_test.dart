@@ -78,12 +78,6 @@ void main() {
       );
       expect(items, hasLength(2));
 
-      final progress = await container.read(
-        tripChecklistProgressProvider(checklist.id).future,
-      );
-      expect(progress.done, 1);
-      expect(progress.total, 2);
-
       final combined = await container.read(
         tripChecklistCombinedProgressProvider(trip.id).future,
       );

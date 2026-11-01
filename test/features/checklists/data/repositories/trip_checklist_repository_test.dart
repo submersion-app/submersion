@@ -461,14 +461,27 @@ void main() {
   });
 
   group('progress and cascade', () {
-    test('getProgress counts done vs total', () async {
-      final a = await repository.createItem(await item(title: 'A'));
-      await repository.createItem(await item(title: 'B'));
-      await repository.toggleDone(a.id, isDone: true);
-      final progress = await repository.getProgress(testChecklist.id);
-      expect(progress.done, 1);
-      expect(progress.total, 2);
-    });
+    test(
+      'getAllItemsForTrip reads checklist by checklist, in list order',
+      () async {
+        final second = await checklistsRepository.createChecklist(
+          tripId: testTrip.id,
+          name: 'Clothing',
+        );
+        await repository.createItem(
+          (await item(title: 'Shirt')).copyWith(checklistId: second.id),
+        );
+        await repository.createItem(await item(title: 'Mask'));
+        await repository.createItem(await item(title: 'Fins'));
+        await checklistsRepository.reorderChecklists(testTrip.id, [
+          second.id,
+          testChecklist.id,
+        ]);
+
+        final items = await repository.getAllItemsForTrip(testTrip.id);
+        expect(items.map((i) => i.title).toList(), ['Shirt', 'Mask', 'Fins']);
+      },
+    );
 
     test('getProgressForTrips batches counts and omits empty trips', () async {
       final other = await tripRepository.createTrip(

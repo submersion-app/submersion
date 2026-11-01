@@ -52,7 +52,6 @@ void main() {
         ),
         throwsA(anything),
       );
-      await expectLater(repository.getProgress('c1'), throwsA(anything));
       await expectLater(
         repository.replaceWithTemplate(
           templateId: 'tpl1',

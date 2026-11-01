@@ -23,8 +23,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// later through that checklist's own menu). "Apply template..." instead
 /// creates a new checklist named after the picked template and applies its
 /// items, with no name prompt. Tapping anywhere on the row opens that same
-/// menu, anchored at the trailing icon exactly as tapping the icon itself
-/// would -- the whole row is one bigger target for the one thing it does.
+/// menu: the whole row is one bigger target for the one thing it does.
 ///
 /// Whichever way a checklist was just created, it renders expanded (see
 /// [TripChecklistBlock.initiallyExpanded]) so the diver sees its contents,
@@ -40,12 +39,20 @@ class TripChecklistsPanel extends ConsumerStatefulWidget {
       _TripChecklistsPanelState();
 }
 
-class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel> {
-  final GlobalKey _addMenuAnchorKey = GlobalKey();
-  String? _justCreatedChecklistId;
+class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
+    with AutomaticKeepAliveClientMixin {
+  final _addMenuKey = GlobalKey<PopupMenuButtonState<String>>();
+  Set<String> _justCreatedChecklistIds = const {};
+
+  // TabBarView disposes a tab it moves away from, which would collapse every
+  // block on the way back. Not a PageStorageKey on the tiles: a TextField
+  // inside one would read the tile's stored bool as its scroll offset.
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final checklistsAsync = ref.watch(tripChecklistsProvider(widget.trip.id));
     final checklists = checklistsAsync.value;
 
@@ -70,10 +77,19 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel> {
         if (checklists.isEmpty) _buildEmptyState(context),
         for (var i = 0; i < checklists.length; i++)
           TripChecklistBlock(
-            key: ValueKey(checklists[i].id),
+            // A tile reads initiallyExpanded only when it is first built, and
+            // the new row usually reaches this list before the write that
+            // made it returns. Keying on the flag rebuilds that one block
+            // when it flips, so it opens whichever came first.
+            key: ValueKey((
+              checklists[i].id,
+              _justCreatedChecklistIds.contains(checklists[i].id),
+            )),
             trip: widget.trip,
             checklist: checklists[i],
-            initiallyExpanded: checklists[i].id == _justCreatedChecklistId,
+            initiallyExpanded: _justCreatedChecklistIds.contains(
+              checklists[i].id,
+            ),
             onMoveUp: i == 0 ? null : () => _moveChecklist(checklists, i, -1),
             onMoveDown: i == checklists.length - 1
                 ? null
@@ -108,56 +124,37 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel> {
       child: ListTile(
         leading: const Icon(Icons.add),
         title: Text(context.l10n.checklists_addChecklist),
-        trailing: IconButton(
-          key: _addMenuAnchorKey,
-          icon: const Icon(Icons.more_vert),
-          onPressed: () => _showAddChecklistMenu(context),
+        trailing: PopupMenuButton<String>(
+          key: _addMenuKey,
+          onSelected: (value) {
+            switch (value) {
+              case 'apply':
+                _addChecklistFromTemplate(context);
+              case 'new':
+                _createBlankChecklist(context);
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'apply',
+              child: Text(context.l10n.checklists_menu_applyTemplate),
+            ),
+            PopupMenuItem(
+              value: 'new',
+              child: Text(context.l10n.checklists_menu_newChecklist),
+            ),
+          ],
         ),
-        onTap: () => _showAddChecklistMenu(context),
+        onTap: () => _addMenuKey.currentState?.showButtonMenu(),
       ),
     );
   }
 
-  /// Opens the same menu whether tapped via the row or the trailing icon,
-  /// anchored at the icon's position either way -- the row is one bigger
-  /// tap target for that icon's menu, not a second, differently-placed one.
-  Future<void> _showAddChecklistMenu(BuildContext context) async {
-    final anchorBox =
-        _addMenuAnchorKey.currentContext?.findRenderObject() as RenderBox?;
-    final overlayBox =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (anchorBox == null || overlayBox == null) return;
-
-    final topLeft = anchorBox.localToGlobal(Offset.zero, ancestor: overlayBox);
-    final bottomRight = anchorBox.localToGlobal(
-      anchorBox.size.bottomRight(Offset.zero),
-      ancestor: overlayBox,
+  void _markJustCreated(String checklistId) {
+    setState(
+      () =>
+          _justCreatedChecklistIds = {..._justCreatedChecklistIds, checklistId},
     );
-    final l10n = context.l10n;
-    final value = await showMenu<String>(
-      context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(topLeft, bottomRight),
-        Offset.zero & overlayBox.size,
-      ),
-      items: [
-        PopupMenuItem(
-          value: 'apply',
-          child: Text(l10n.checklists_menu_applyTemplate),
-        ),
-        PopupMenuItem(
-          value: 'new',
-          child: Text(l10n.checklists_menu_newChecklist),
-        ),
-      ],
-    );
-    if (!context.mounted) return;
-    switch (value) {
-      case 'apply':
-        await _addChecklistFromTemplate(context);
-      case 'new':
-        await _createBlankChecklist(context);
-    }
   }
 
   Future<void> _createBlankChecklist(BuildContext context) async {
@@ -172,55 +169,62 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel> {
         .read(tripChecklistsRepositoryProvider)
         .createChecklist(tripId: widget.trip.id, name: name);
     if (!mounted) return;
-    setState(() => _justCreatedChecklistId = checklist.id);
+    _markJustCreated(checklist.id);
   }
 
   Future<void> _addChecklistFromTemplate(BuildContext context) async {
     final templateId = await showTemplatePickerSheet(context: context);
     if (templateId == null || !context.mounted) return;
 
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    void showMessage(String message) => messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 4),
+        showCloseIcon: true,
+      ),
+    );
+
     final template = await ref.read(
       checklistTemplateProvider(templateId).future,
     );
-    if (template == null || !context.mounted) return;
+    if (!context.mounted) return;
+    if (template == null) {
+      showMessage(l10n.checklists_apply_templateGone);
+      return;
+    }
 
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
+    // Both read up front: ref is unusable once the panel unmounts, and the
+    // create and apply below must finish together even if the diver leaves.
     final checklistsRepository = ref.read(tripChecklistsRepositoryProvider);
+    final itemsRepository = ref.read(tripChecklistRepositoryProvider);
     final checklist = await checklistsRepository.createChecklist(
       tripId: widget.trip.id,
       name: template.name,
     );
     try {
-      final result = await ref
-          .read(tripChecklistRepositoryProvider)
-          .applyTemplate(
-            templateId: templateId,
-            checklistId: checklist.id,
-            trip: widget.trip,
-          );
-      if (!context.mounted) return;
-      setState(() => _justCreatedChecklistId = checklist.id);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.checklists_apply_success(result.added)),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
+      final result = await itemsRepository.applyTemplate(
+        templateId: templateId,
+        checklistId: checklist.id,
+        trip: widget.trip,
       );
-    } on StateError {
-      // The template vanished between the read above and here (a
-      // concurrent sync, say): drop the checklist this just created rather
-      // than leaving an empty, template-named orphan the diver would have
-      // to notice and remove by hand.
+      if (!mounted) return;
+      _markJustCreated(checklist.id);
+      showMessage(l10n.checklists_apply_success(result.added));
+    } catch (e) {
+      // Nothing was applied, so drop the checklist this just created rather
+      // than leaving an empty, template-named orphan the diver would have to
+      // notice and remove by hand.
       await checklistsRepository.deleteChecklist(checklist.id);
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.checklists_apply_templateGone),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
+      if (!mounted) return;
+      // A StateError means the template vanished between the read above and
+      // here (a concurrent sync, say). The repository has logged anything
+      // else.
+      showMessage(
+        e is StateError
+            ? l10n.checklists_apply_templateGone
+            : l10n.common_error_tryAgain,
       );
     }
   }

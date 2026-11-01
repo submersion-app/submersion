@@ -77,6 +77,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
@@ -745,13 +746,13 @@ void main() {
 
     tearDown(() => DatabaseService.instance.resetForTesting());
 
-    test('the floor is at least 332', () {
-      // v332 raised it again for issue #3356 (trip_id -> checklist_id on
-      // this same table family); the v332 migration test owns the exact
-      // value.
+    test('the floor is at least 336', () {
+      // v336 raised it again for issue #3356 (trip_id -> checklist_id on
+      // this same table family); migration_v336_trip_checklists_test.dart
+      // owns the exact value.
       expect(
         AppDatabase.minimumCompatibleSchemaVersion,
-        greaterThanOrEqualTo(332),
+        greaterThanOrEqualTo(336),
       );
     });
 
@@ -833,6 +834,175 @@ void main() {
         after['sectionId'],
         section.id,
         reason: 'THE HAZARD: the column the old peer never knew must survive',
+      );
+    });
+  });
+
+  group('pre-v336 peer publishing checklist rows (multiple checklists)', () {
+    late FakeCloudStorageProvider cloud;
+    late Trip trip;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      cloud = FakeCloudStorageProvider();
+      trip = await TripRepository().createTrip(
+        Trip(
+          id: '',
+          name: 'Red Sea',
+          startDate: DateTime(2026, 9, 10),
+          endDate: DateTime(2026, 9, 17),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await SyncRepository().resetSyncState();
+    });
+
+    tearDown(() => DatabaseService.instance.resetForTesting());
+
+    SyncService buildService() => SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+    );
+
+    /// A row as a build below v336 publishes it: `tripId`, no `checklistId`.
+    Map<String, dynamic> peerItem(String id) => {
+      'id': id,
+      'tripId': trip.id,
+      'title': 'Mask',
+      'notes': '',
+      'isDone': false,
+      'sortOrder': 0,
+      'createdAt': 1000,
+      'updatedAt': 2000,
+      'hlc': Hlc(
+        DateTime.now().millisecondsSinceEpoch + 60000,
+        0,
+        'peer-old',
+      ).toString(),
+    };
+
+    Future<void> publish(SyncData data, {String peer = 'peer-old'}) async {
+      final payload = SyncPayload(
+        version: syncFormatVersion,
+        exportedAt: 9000,
+        deviceId: peer,
+        checksum: sha256
+            .convert(utf8.encode(jsonEncode(data.toJson())))
+            .toString(),
+        data: data,
+        deletions: const {},
+      );
+      await seedPeerBaseFromPayload(cloud, peer, payload);
+    }
+
+    test('an item new here lands in the trip default checklist', () async {
+      await publish(SyncData(tripChecklistItems: [peerItem('i1')]));
+
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final after = await SyncDataSerializer().fetchRecord(
+        'tripChecklistItems',
+        'i1',
+      );
+      expect(after, isNotNull);
+      expect(after!['checklistId'], defaultTripChecklistId(trip.id));
+      final checklists = await TripChecklistsRepository().getChecklistsForTrip(
+        trip.id,
+      );
+      expect(checklists.single.id, defaultTripChecklistId(trip.id));
+      expect(checklists.single.name, kDefaultTripChecklistName);
+    });
+
+    test('a section new here lands in the same checklist', () async {
+      await publish(
+        SyncData(
+          tripChecklistSections: [
+            {
+              'id': 's1',
+              'tripId': trip.id,
+              'title': 'Gear',
+              'sortOrder': 0,
+              'createdAt': 1000,
+              'updatedAt': 2000,
+            },
+          ],
+        ),
+      );
+
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final after = await SyncDataSerializer().fetchRecord(
+        'tripChecklistSections',
+        's1',
+      );
+      expect(after!['checklistId'], defaultTripChecklistId(trip.id));
+    });
+
+    test('an edit keeps the checklist the item already sits in', () async {
+      final checklist = await TripChecklistsRepository().createChecklist(
+        tripId: trip.id,
+        name: 'Dive equipment',
+      );
+      final created = await TripChecklistRepository().createItem(
+        trip_checklist.TripChecklistItem(
+          id: '',
+          checklistId: checklist.id,
+          title: 'Mask',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      final row = (await SyncDataSerializer().fetchRecord(
+        'tripChecklistItems',
+        created.id,
+      ))!;
+      await SyncRepository().resetSyncState();
+
+      // The same row as the old build republishes it.
+      final peerRow = Map<String, dynamic>.from(row)
+        ..remove('checklistId')
+        ..['tripId'] = trip.id
+        ..['title'] = 'Renamed'
+        ..['hlc'] = Hlc(
+          Hlc.parse(row['hlc'] as String).physicalTime + 60000,
+          0,
+          'peer-old',
+        ).toString()
+        ..['updatedAt'] = (row['updatedAt'] as int) + 60000;
+      await publish(SyncData(tripChecklistItems: [peerRow]));
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      final after = await SyncDataSerializer().fetchRecord(
+        'tripChecklistItems',
+        created.id,
+      );
+      expect(after!['title'], 'Renamed');
+      expect(after['checklistId'], checklist.id);
+    });
+
+    test('a default checklist deleted here does not come back', () async {
+      await publish(SyncData(tripChecklistItems: [peerItem('i1')]));
+      await buildService().performSync();
+      final repository = TripChecklistsRepository();
+      expect(await repository.getChecklistsForTrip(trip.id), hasLength(1));
+      await repository.deleteChecklist(defaultTripChecklistId(trip.id));
+
+      await publish(
+        SyncData(tripChecklistItems: [peerItem('i2')]),
+        peer: 'peer-old-2',
+      );
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      expect(await repository.getChecklistsForTrip(trip.id), isEmpty);
+      expect(
+        await SyncDataSerializer().fetchRecord('tripChecklistItems', 'i2'),
+        isNull,
       );
     });
   });

@@ -53,20 +53,27 @@ already uses for items: delete items, then sections, then the checklist row.
 
 ### Migration
 
-A new rung, schema version **v332** (current `currentSchemaVersion` is 331,
-`database.dart:302`), follows the `checklist_section_migrations.dart` idiom:
+A new rung, schema version **v336** (main was at 332, the change log, with
+333 to 335 claimed by open PRs), follows the `checklist_section_migrations.dart` idiom:
 
 1. Guard: `trip_checklists` doesn't exist yet -> create it.
 2. For every trip that has at least one existing `trip_checklist_sections`
    or `trip_checklist_items` row, create one default checklist row (named
-   literally "Checklist", not localized -- migrations run before any UI
+   literally "Checklist", not localized: migrations run before any UI
    context exists; the diver can rename it like any other checklist,
    `sortOrder = 0`).
 3. Backfill `checklist_id` on every existing section/item row to that
    trip's new default checklist.
-4. Drop the old `trip_id` column from both tables.
+4. Drop the old `trip_id` column from both tables, then rebuild each from
+   its stored definition to give `checklist_id` the NOT NULL a fresh install
+   has. ADD COLUMN cannot add it, and without it `repairDanglingForeignKeys`
+   would clear an orphan's link instead of deleting the row, leaving a row
+   Drift cannot read back.
 5. Register the same idempotent backfill function in the before-open
-   backstop, matching the existing self-healing pattern.
+   backstop, matching the existing self-healing pattern. The ladder drops the
+   change log triggers before it starts; a database reaching this from
+   beforeOpen has them dropped here, since SQLite will not drop a column a
+   trigger names.
 
 ## Repository layer
 
@@ -98,13 +105,13 @@ A new rung, schema version **v332** (current `currentSchemaVersion` is 331,
 
 - Renaming a synced column is a breaking change by this codebase's own
   rule (`database.dart`'s `minimumCompatibleSchemaVersion` doc), so this
-  raises the floor 308 -> 332. **Known gap**: the floor is one-directional
-  (it stops THIS build's payload reaching an older reader), and unlike the
-  v297 `category` rename, no receiving-side overlay exists yet to tolerate
-  an older peer's still-`tripId`-shaped payload arriving here before that
-  peer updates. Worth a follow-up before this ships broadly; low risk pre-
-  release since no fleet currently carries pre-#3356 builds that would hit
-  this during a real rollout.
+  raises the floor 308 -> 336. The floor is one-directional: it stops THIS
+  build's payload reaching an older reader, but an older peer's rows, and
+  every base published before the update, still arrive here. So
+  `withCurrentWireKeys` points a `tripId`-shaped row at its trip's default
+  checklist (`defaultTripChecklistId`, the id the migration derives), and the
+  serializer creates that checklist when this device does not hold it yet.
+  On a row this device already holds, the local link stands.
 - New entity type `tripChecklists` registered at every touch point
   `tripChecklistSections` currently appears in `sync_data_serializer.dart`
   (constructor fields, named params, toJson/fromJson, registry entry,
@@ -120,7 +127,7 @@ A new rung, schema version **v332** (current `currentSchemaVersion` is 331,
   one extra join hop (`checklist_id -> trip_checklists.trip_id`) since
   those tables no longer carry `trip_id` directly.
 
-## UI (original, superseded -- see revision note at the top)
+## UI (original, superseded; see the revision note at the top)
 
 - The trip detail screen's "Checklist" tab (`trip_detail_tabs.dart`) becomes
   a vertical list of expandable checklist blocks (accordion), not a nested
@@ -145,7 +152,7 @@ checklist" name dialog above entirely:
   checklist.
 - Every checklist block (including a brand-new one) carries that same
   three-dot menu. A persistent "Add checklist" row always sits at the end of
-  the list, with nothing but that menu on it -- selecting a template there
+  the list, with nothing but that menu on it. Selecting a template there
   **creates** a new checklist (named after the template, populated with its
   items) rather than acting on an existing one, with no name prompt: a
   template-created checklist's name always comes from the template that
@@ -155,12 +162,12 @@ checklist" name dialog above entirely:
   (`ChecklistNameDialog`, shared with the rename dialog), then creates an
   empty checklist the diver fills in by hand through the existing manual
   "Add section"/"Add item" affordances, and can save as a template later
-  through that checklist's own menu -- restoring a capability the
+  through that checklist's own menu. This restores a capability the
   template-only placeholder from the first UI pass had dropped (maintainer
   feedback after testing that pass).
 - Picking the same template more than once is allowed and expected: each
-  pick is a new, separate checklist, even if same-named as an earlier one --
-  mirrors how two sections can already share a title today.
+  pick is a new, separate checklist, even if same-named as an earlier one,
+  which mirrors how two sections can already share a title today.
 - Choosing "Apply template..." on an **existing**, already-populated
   checklist does not merge or append: after a destructive-replace
   confirmation naming both the checklist and the chosen template, the
@@ -176,11 +183,14 @@ checklist" name dialog above entirely:
   checklist instance, never touches the template file), delete.
   The manual "+ Add section" / "Add item" affordances inside an expanded
   checklist are unchanged from today.
-- **All checklists start collapsed** when the trip is opened -- none are
+- **All checklists start collapsed** when the trip is opened; none are
   auto-expanded, even the first. Each block's progress line is always
   visible regardless of its expand state.
+  The one exception is a checklist created in this visit to the tab, which
+  opens straight away so the diver sees its contents. A block stays open
+  across a tab switch, because the panel keeps itself alive in `TabBarView`.
 - Checklists are reorderable via up/down arrows on each block, next to its
-  overflow menu -- the same up/down-arrow pattern `SectionListEditor`
+  overflow menu, the same up/down-arrow pattern `SectionListEditor`
   already uses for sections and items, now one level up.
   `TripChecklistsRepository.reorderChecklists` backs this.
 - No new router route: the feature stays embedded inline in trip detail, as

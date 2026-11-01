@@ -64,7 +64,7 @@ class SyncRepository {
     'checklistTemplates': (table: 'checklist_templates', pk: 'id'),
     'checklistTemplateItems': (table: 'checklist_template_items', pk: 'id'),
     'tripChecklistItems': (table: 'trip_checklist_items', pk: 'id'),
-    // Multiple checklists per trip (v332, issue #3356), the parent of
+    // Multiple checklists per trip (v336, issue #3356), the parent of
     // tripChecklistSections/tripChecklistItems below.
     'tripChecklists': (table: 'trip_checklists', pk: 'id'),
     // Section tables for checklists/pre-dive (v297-300, issue #3360), fully
@@ -974,18 +974,21 @@ class SyncRepository {
       timestamp: 'updated_at',
       filter: null,
     ),
-    // The category/section->section_id migration (issue #3360) clears hlc
-    // on every section it backfills (brand new rows, never stamped) and on
-    // every item it re-points at one (an already-synced row whose link just
-    // changed under it). Without these eight entries, a diver who had
-    // already synced before updating would see the migration's new
-    // sections and item links apply locally but never reach any peer.
+    // The trip_id->checklist_id migration (v336, issue #3356) clears hlc on
+    // the sections and items it re-points, listed below, and leaves each new
+    // default checklist unstamped, as the legacy sync apply does.
     (
       entityType: 'tripChecklists',
       table: 'trip_checklists',
       timestamp: 'updated_at',
       filter: null,
     ),
+    // The category/section->section_id migration (issue #3360) clears hlc
+    // on every section it backfills (brand new rows, never stamped) and on
+    // every item it re-points at one (an already-synced row whose link just
+    // changed under it). Without these eight entries, a diver who had
+    // already synced before updating would see the migration's new
+    // sections and item links apply locally but never reach any peer.
     (
       entityType: 'tripChecklistSections',
       table: 'trip_checklist_sections',

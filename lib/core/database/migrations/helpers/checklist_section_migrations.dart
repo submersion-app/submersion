@@ -14,10 +14,10 @@ extension ChecklistSectionMigrations on AppDatabase {
   Future<void> _assertAndBackfillTripChecklistSections() async {
     if (!await _tableExists('trips')) return;
     // Built from raw SQL, not Migrator(this).createTable(tripChecklistSections):
-    // that Dart class now describes the CURRENT (v332+, issue #3356) shape
+    // that Dart class now describes the CURRENT (v336+, issue #3356) shape
     // with checklist_id, but this rung must still produce the v297 shape it
-    // has always produced, with a direct trip_id column -- it is
-    // _assertAndBackfillTripChecklists (the v332 rung) that turns this
+    // has always produced, with a direct trip_id column. It is
+    // _assertAndBackfillTripChecklists (the v336 rung) that turns this
     // trip_id-shaped table into the checklist_id-shaped one the live class
     // describes, on every database that passes through here first.
     await customStatement('''
@@ -31,9 +31,9 @@ extension ChecklistSectionMigrations on AppDatabase {
         hlc TEXT
       )
     ''');
-    // v332 (issue #3356) replaces this column with checklist_id and drops
+    // v336 (issue #3356) replaces this column with checklist_id and drops
     // this index along with it (see TripChecklistMigrations), so recreating
-    // it here must not assume trip_id still exists -- it would crash every
+    // it here must not assume trip_id still exists: it would crash every
     // open on a database that already ran that migration.
     if (await _columnExists('trip_checklist_sections', 'trip_id')) {
       await customStatement(

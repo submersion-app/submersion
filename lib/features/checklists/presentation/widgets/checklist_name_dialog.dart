@@ -9,7 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Owns its [TextEditingController] through its own State so disposal
 /// happens when the framework actually removes this widget from the tree
 /// (after the dialog's exit transition finishes), not right after
-/// `showDialog` returns -- disposing eagerly there races the
+/// `showDialog` returns. Disposing eagerly there races the
 /// still-animating `TextFormField` and throws "A TextEditingController was
 /// used after being disposed."
 class ChecklistNameDialog extends StatefulWidget {

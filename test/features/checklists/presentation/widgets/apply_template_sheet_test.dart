@@ -8,8 +8,8 @@ import '../../../../helpers/test_app.dart';
 
 /// `showTemplatePickerSheet` is now a pure picker (issue #3356): it only
 /// lists templates and pops with the chosen one's id. What "applying" a
-/// template means -- creating a new checklist, or replacing an existing
-/// one's content after a confirmation -- lives in the callers instead
+/// template means (creating a new checklist, or replacing an existing
+/// one's content after a confirmation) lives in the callers instead
 /// (trip_checklists_panel_test.dart and trip_checklist_block_test.dart).
 void main() {
   testWidgets('lists templates with item counts', (tester) async {

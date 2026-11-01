@@ -12,7 +12,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist_se
 /// checklist since issue #3356), split out of [TripChecklistRepository] to
 /// keep that file under the project's 800-line cap.
 /// [TripChecklistRepository]'s own section methods are thin forwarders to
-/// this class, so its public API is unchanged for callers.
+/// this class.
 class TripChecklistSectionRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();

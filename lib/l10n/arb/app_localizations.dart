@@ -7412,12 +7412,6 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get certifications_wallet_tooltip_sort;
 
-  /// No description provided for @checklists_section_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Checklist'**
-  String get checklists_section_title;
-
   /// No description provided for @checklists_progress.
   ///
   /// In en, this message translates to:
@@ -7660,12 +7654,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 item} other{{count} items}}'**
   String checklists_applySheet_itemCount(int count);
-
-  /// No description provided for @checklists_applySheet_confirmAppend.
-  ///
-  /// In en, this message translates to:
-  /// **'{added, plural, =1{1 item will be added} other{{added} items will be added}}, {skipped, plural, =0{no duplicates skipped} =1{1 duplicate skipped} other{{skipped} duplicates skipped}}.'**
-  String checklists_applySheet_confirmAppend(int added, int skipped);
 
   /// No description provided for @checklists_apply_success.
   ///

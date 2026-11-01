@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 
 void main() {
@@ -34,6 +35,29 @@ void main() {
       final data = {'serviceType': 'repair'};
       withCurrentWireKeys('serviceRecords', data);
       expect(data, {'serviceType': 'repair'});
+    });
+
+    for (final entity in ['tripChecklistItems', 'tripChecklistSections']) {
+      test('points a pre-v336 $entity row at its default checklist', () {
+        const tripId = 'trip1';
+        expect(legacyChecklistTripId(entity, {'tripId': tripId}), tripId);
+        expect(withCurrentWireKeys(entity, {'id': 'a', 'tripId': tripId}), {
+          'id': 'a',
+          'checklistId': defaultTripChecklistId(tripId),
+        });
+      });
+
+      test('leaves a current $entity row alone', () {
+        final data = {'id': 'a', 'checklistId': 'c1'};
+        expect(legacyChecklistTripId(entity, data), isNull);
+        expect(withCurrentWireKeys(entity, data), same(data));
+      });
+    }
+
+    test('tripId means nothing to a table that still has the column', () {
+      final data = {'tripId': 'trip1'};
+      expect(legacyChecklistTripId('itineraryDays', data), isNull);
+      expect(withCurrentWireKeys('itineraryDays', data), same(data));
     });
   });
 

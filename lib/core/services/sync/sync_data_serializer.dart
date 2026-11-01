@@ -16,6 +16,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
@@ -5231,6 +5232,7 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) async {
+    await _ensureLegacyDefaultChecklists(entityType, [data]);
     data = _withoutUnsetNulls(
       entityType,
       withCurrentWireKeys(
@@ -6289,6 +6291,7 @@ class SyncDataSerializer {
     List<Map<String, dynamic>> records,
   ) async {
     if (records.isEmpty) return;
+    await _ensureLegacyDefaultChecklists(entityType, records);
     records = await _withLocalForOmitted(
       entityType,
       await _withDeviceLocalFromHere(entityType, [
@@ -11613,6 +11616,35 @@ class SyncDataSerializer {
       filled.add(values == null ? record : {...record, ...values});
     }
     return filled;
+  }
+
+  /// Issue #3356. A checklist row from a peer below v336 lands in its trip's
+  /// default checklist ([withCurrentWireKeys]), which this device may not
+  /// hold: the trip may have had nothing to migrate here, or be new here.
+  /// The row is created unstamped, like the migration's own, so the next sync
+  /// publishes it, and its id is deterministic, so every device that creates
+  /// it creates the same row.
+  Future<void> _ensureLegacyDefaultChecklists(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final tripIds = {
+      for (final record in records) ?legacyChecklistTripId(entityType, record),
+    };
+    if (tripIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.batch(
+      (b) => b.insertAll(_db.tripChecklists, [
+        for (final tripId in tripIds)
+          TripChecklistsCompanion.insert(
+            id: defaultTripChecklistId(tripId),
+            tripId: tripId,
+            name: kDefaultTripChecklistName,
+            createdAt: now,
+            updatedAt: now,
+          ),
+      ], mode: InsertMode.insertOrIgnore),
+    );
   }
 
   /// Fills each key [records] omit from the row this device already holds

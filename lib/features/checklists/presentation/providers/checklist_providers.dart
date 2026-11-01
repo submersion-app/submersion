@@ -136,17 +136,6 @@ final tripChecklistCombinedProgressProvider =
       return progress[tripId] ?? (done: 0, total: 0);
     });
 
-/// Done/total progress for one checklist.
-final tripChecklistProgressProvider =
-    FutureProvider.family<({int done, int total}), String>((
-      ref,
-      checklistId,
-    ) async {
-      final repository = ref.watch(tripChecklistRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchTripChecklistChanges());
-      return repository.getProgress(checklistId);
-    });
-
 /// The one trip worth surfacing a checklist badge for on the home screen, or
 /// null, with its combined progress summed across all of its checklists
 /// (issue #3356).

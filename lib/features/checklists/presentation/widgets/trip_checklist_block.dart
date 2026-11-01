@@ -17,12 +17,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_list_editor.dart';
 
 /// One collapsible block for one of a trip's checklists (issue #3356): a
-/// header with the checklist's name, its own progress bar (shown whether
+/// header with the checklist's name, its own progress line (shown whether
 /// expanded or not), reorder arrows, and an overflow menu (apply/save
 /// template, rename, clear, delete), expanding to the familiar
 /// sections/items editor scoped to just this checklist.
 ///
-/// Every checklist starts collapsed when a trip is opened -- with several
+/// Every checklist starts collapsed when a trip is opened: with several
 /// checklists on a trip, nothing is auto-expanded, unlike this widget's
 /// single-checklist predecessor. The one exception is [initiallyExpanded]:
 /// [TripChecklistsPanel] sets it for the checklist it just created in this
@@ -63,6 +63,9 @@ class TripChecklistBlock extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ExpansionTile(
         initiallyExpanded: initiallyExpanded,
+        // Leading, because a custom trailing replaces the expand icon, and
+        // the reorder arrows there look just like one.
+        controlAffinity: ListTileControlAffinity.leading,
         title: Text(
           checklist.name,
           style: Theme.of(
@@ -90,7 +93,14 @@ class TripChecklistBlock extends ConsumerWidget {
               onPressed: onMoveDown,
               tooltip: WidgetsLocalizations.of(context).reorderItemDown,
             ),
-            _buildOverflowMenu(context, ref, items ?? const []),
+            _buildOverflowMenu(
+              context,
+              ref,
+              items ?? const [],
+              // Unknown while loading, so assumed to need the confirmation.
+              isEmpty:
+                  (items?.isEmpty ?? false) && (sections?.isEmpty ?? false),
+            ),
           ],
         ),
         children: [
@@ -150,7 +160,7 @@ class TripChecklistBlock extends ConsumerWidget {
         // A diver may lay out empty sections before adding any items (the
         // whole point of issue #3360's "create a section empty" case), so
         // the planning invitation is shown alongside the section editor,
-        // not instead of it -- otherwise a brand new checklist with
+        // not instead of it. Otherwise a brand new checklist with
         // neither items nor sections would have no way to create that
         // first section at all, since the only "+ Add section" affordance
         // lives inside the editor this would otherwise hide.
@@ -175,13 +185,14 @@ class TripChecklistBlock extends ConsumerWidget {
   Widget _buildOverflowMenu(
     BuildContext context,
     WidgetRef ref,
-    List<TripChecklistItem> items,
-  ) {
+    List<TripChecklistItem> items, {
+    required bool isEmpty,
+  }) {
     return PopupMenuButton<String>(
       onSelected: (value) {
         switch (value) {
           case 'apply':
-            _applyTemplate(context, ref);
+            _applyTemplate(context, ref, isEmpty: isEmpty);
           case 'save':
             showSaveAsTemplateDialog(
               context: context,
@@ -227,44 +238,63 @@ class TripChecklistBlock extends ConsumerWidget {
   /// Replaces this checklist's entire content with a chosen template, after
   /// a destructive-replace confirmation (issue #3356): unlike the trip-wide
   /// merge the pre-#3356 single checklist used, picking a template here
-  /// never mixes with what the checklist already has -- it wholesale swaps
-  /// it, the same way picking a different template for an already-applied
-  /// checklist is expected to work.
-  Future<void> _applyTemplate(BuildContext context, WidgetRef ref) async {
+  /// never mixes with what the checklist already has. It wholesale swaps it,
+  /// the same way picking a different template for an already-applied
+  /// checklist is expected to work. An [isEmpty] checklist has nothing to
+  /// lose, so it skips the confirmation.
+  Future<void> _applyTemplate(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isEmpty,
+  }) async {
     final templateId = await showTemplatePickerSheet(context: context);
     if (templateId == null || !context.mounted) return;
 
     final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    void showMessage(String message) => messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 4),
+        showCloseIcon: true,
+      ),
+    );
+
     final template = await ref.read(
       checklistTemplateProvider(templateId).future,
     );
-    if (template == null || !context.mounted) return;
+    if (!context.mounted) return;
+    if (template == null) {
+      showMessage(l10n.checklists_apply_templateGone);
+      return;
+    }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.checklists_replaceTemplate_title),
-        content: Text(
-          l10n.checklists_replaceTemplate_content(
-            checklist.name,
-            template.name,
+    if (!isEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.checklists_replaceTemplate_title),
+          content: Text(
+            l10n.checklists_replaceTemplate_content(
+              checklist.name,
+              template.name,
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.checklists_replaceTemplate_confirm),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.checklists_replaceTemplate_confirm),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
 
-    final messenger = ScaffoldMessenger.of(context);
     try {
       final result = await ref
           .read(tripChecklistRepositoryProvider)
@@ -274,22 +304,10 @@ class TripChecklistBlock extends ConsumerWidget {
             trip: trip,
           );
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.checklists_apply_success(result.added)),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
-      );
+      showMessage(l10n.checklists_apply_success(result.added));
     } on StateError {
       if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.checklists_apply_templateGone),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
-      );
+      showMessage(l10n.checklists_apply_templateGone);
     }
   }
 

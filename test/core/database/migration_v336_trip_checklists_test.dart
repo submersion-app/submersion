@@ -8,13 +8,22 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 
-/// Schema v332: trip_checklists, splitting one trip's single flat
+/// A change log trigger as v332 builds it, reduced to the part that matters:
+/// it names trip_id.
+const _tripIdTrigger = '''
+  CREATE TRIGGER change_log_trg_trip_checklist_items_u
+  AFTER UPDATE ON trip_checklist_items
+  WHEN OLD."trip_id" IS NOT NEW."trip_id"
+  BEGIN SELECT 1; END
+''';
+
+/// Schema v336: trip_checklists, splitting one trip's single flat
 /// checklist into several named ones (issue #3356). `trip_id` on
 /// `trip_checklist_sections`/`trip_checklist_items` is replaced by
 /// `checklist_id`, backfilled by creating one default "Checklist" row per
 /// trip that already has sections or items.
 void main() {
-  /// Base schema at the pre-v332 shape: trips, plus
+  /// Base schema at the pre-v336 shape: trips, plus
   /// trip_checklist_sections/items still carrying `trip_id` directly
   /// (the v297-331 shape).
   void createBaseSchema(Database rawDb, int userVersion) {
@@ -103,6 +112,14 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
+  Future<Set<String>> notNullColumnsOf(AppDatabase db, String table) async {
+    final cols = await db.customSelect("PRAGMA table_info('$table')").get();
+    return {
+      for (final c in cols)
+        if (c.read<int>('notnull') == 1) c.read<String>('name'),
+    };
+  }
+
   Future<List<QueryRow>> checklistsForTrip(AppDatabase db, String tripId) => db
       .customSelect(
         'SELECT * FROM trip_checklists WHERE trip_id = ?',
@@ -110,9 +127,15 @@ void main() {
       )
       .get();
 
-  test('v332 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(332));
-    expect(AppDatabase.migrationVersions, contains(332));
+  test('v336 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(336));
+    expect(AppDatabase.migrationVersions, contains(336));
+  });
+
+  // Renaming a synced column is breaking: a build below this reads a
+  // non-nullable tripId from a row that no longer carries one.
+  test('the rename raises the sync floor to 336', () {
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 336);
   });
 
   test('a trip with existing sections and items gets one default checklist, '
@@ -232,11 +255,11 @@ void main() {
     },
   );
 
-  test('a database stamped v332 without the migration ever having run '
+  test('a database stamped v336 without the migration ever having run '
       'heals in beforeOpen (parallel-branch version collision)', () async {
     final db = AppDatabase(
       setupDb(
-        userVersion: 332,
+        userVersion: 336,
         seed: (raw) => insertItem(raw, id: 'i1', tripId: 'trip1', title: 'A'),
       ),
     );
@@ -250,6 +273,94 @@ void main() {
         )
         .getSingle();
     expect(item.data['checklist_id'], checklists.single.data['id']);
+  });
+
+  test('a database at the previous rung upgrades past its change log '
+      'triggers', () async {
+    // v332 installs triggers that name every column, trip_id included, and
+    // SQLite will not drop a column a trigger names.
+    final db = AppDatabase(
+      setupDb(
+        userVersion: 332,
+        seed: (raw) {
+          insertItem(raw, id: 'i1', tripId: 'trip1', title: 'A');
+          raw.execute(_tripIdTrigger);
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    final checklists = await checklistsForTrip(db, 'trip1');
+    expect(checklists, hasLength(1));
+    expect(
+      await columnsOf(db, 'trip_checklist_items'),
+      isNot(contains('trip_id')),
+    );
+  });
+
+  test('a database stamped v336 with a trigger naming trip_id still heals '
+      'in beforeOpen', () async {
+    final db = AppDatabase(
+      setupDb(
+        userVersion: 336,
+        seed: (raw) {
+          insertItem(raw, id: 'i1', tripId: 'trip1', title: 'A');
+          raw.execute(_tripIdTrigger);
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    expect(await checklistsForTrip(db, 'trip1'), hasLength(1));
+    expect(
+      await columnsOf(db, 'trip_checklist_items'),
+      isNot(contains('trip_id')),
+    );
+  });
+
+  test('an upgraded database requires checklist_id, and keeps every row, '
+      'index and section link while gaining that', () async {
+    final db = AppDatabase(
+      setupDb(
+        seed: (raw) {
+          insertSection(raw, id: 's1', tripId: 'trip1', title: 'Cells');
+          insertItem(
+            raw,
+            id: 'i1',
+            tripId: 'trip1',
+            title: 'O-rings',
+            sectionId: 's1',
+          );
+        },
+      ),
+    );
+    addTearDown(db.close);
+
+    expect(
+      await notNullColumnsOf(db, 'trip_checklist_sections'),
+      contains('checklist_id'),
+    );
+    expect(
+      await notNullColumnsOf(db, 'trip_checklist_items'),
+      contains('checklist_id'),
+    );
+
+    final item = await db
+        .customSelect(
+          "SELECT section_id, title FROM trip_checklist_items WHERE id = 'i1'",
+        )
+        .getSingle();
+    expect(item.data['title'], 'O-rings');
+    expect(item.data['section_id'], 's1');
+
+    final indexes = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'index' AND name IN "
+          "('idx_trip_checklist_items_checklist_id', "
+          "'idx_trip_checklist_sections_checklist_id')",
+        )
+        .get();
+    expect(indexes, hasLength(2));
   });
 
   test('a fixture without trips skips the table and the column', () async {
@@ -286,5 +397,16 @@ void main() {
       await columnsOf(upgraded, 'trip_checklist_items'),
       await columnsOf(fresh, 'trip_checklist_items'),
     );
+    for (final table in const [
+      'trip_checklists',
+      'trip_checklist_sections',
+      'trip_checklist_items',
+    ]) {
+      expect(
+        await notNullColumnsOf(upgraded, table),
+        await notNullColumnsOf(fresh, table),
+        reason: table,
+      );
+    }
   });
 }

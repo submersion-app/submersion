@@ -4771,9 +4771,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Rendezés';
 
   @override
-  String get checklists_section_title => 'Ellenőrzőlista';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done/$total tétel kész';
   }
@@ -4930,24 +4927,6 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 tétel',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: '$added tétel kerül hozzáadásra',
-      one: '1 tétel kerül hozzáadásra',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped duplikátum kihagyva',
-      one: '1 duplikátum kihagyva',
-      zero: 'nincs kihagyott duplikátum',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override

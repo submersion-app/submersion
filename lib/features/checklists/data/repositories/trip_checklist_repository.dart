@@ -17,8 +17,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_section_repository.dart';
 
-/// Item CRUD for one of a trip's checklists (issue #3356; sections were
-/// split to a single checklist by the same issue, items here follow).
+/// Item CRUD for one of a trip's checklists (issue #3356).
 class TripChecklistRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
@@ -69,7 +68,7 @@ class TripChecklistRepository {
   /// Moves [itemId] to [targetSectionId] (null = no section) and persists
   /// the checklist's full new item order in the same write. [orderedIds]
   /// must list every item of the checklist exactly once, in its new display
-  /// order -- the same contract [reorderSections] has for sections. One
+  /// order, the same contract [reorderSections] has for sections. One
   /// call covers both a same-section reorder (pass the item's current
   /// section again) and a cross-section move.
   Future<void> moveItem({
@@ -141,12 +140,22 @@ class TripChecklistRepository {
     String tripId,
   ) async {
     try {
-      final rows = await (_db.select(_db.tripChecklistItems).join([
-        innerJoin(
-          _db.tripChecklists,
-          _db.tripChecklists.id.equalsExp(_db.tripChecklistItems.checklistId),
-        ),
-      ])..where(_db.tripChecklists.tripId.equals(tripId))).get();
+      final rows =
+          await (_db.select(_db.tripChecklistItems).join([
+                  innerJoin(
+                    _db.tripChecklists,
+                    _db.tripChecklists.id.equalsExp(
+                      _db.tripChecklistItems.checklistId,
+                    ),
+                  ),
+                ])
+                ..where(_db.tripChecklists.tripId.equals(tripId))
+                ..orderBy([
+                  OrderingTerm.asc(_db.tripChecklists.sortOrder),
+                  OrderingTerm.asc(_db.tripChecklists.createdAt),
+                  OrderingTerm.asc(_db.tripChecklistItems.sortOrder),
+                ]))
+              .get();
       return rows
           .map((r) => _mapRow(r.readTable(_db.tripChecklistItems)))
           .toList();
@@ -308,7 +317,7 @@ class TripChecklistRepository {
   }
 
   /// Clears a checklist's items but keeps its sections (the "Clear
-  /// checklist" overflow action -- its confirmation copy promises only
+  /// checklist" overflow action: its confirmation copy promises only
   /// items are removed, and a diver who laid out empty sections in advance
   /// should not lose that structure by clearing the checklist before a new
   /// trip). Scoped to one checklist: a trip's other checklists are
@@ -343,57 +352,49 @@ class TripChecklistRepository {
   /// items while keeping a manually-laid-out structure. The caller is
   /// responsible for confirming this destructive swap with the diver first.
   ///
-  /// The delete and [applyTemplate]'s own copy run inside one shared
-  /// transaction: if the template is deleted concurrently between here and
-  /// applyTemplate's own internal re-check, its StateError unwinds the
-  /// whole transaction, including this method's deletes, leaving the
-  /// checklist exactly as it was rather than emptied with nothing to show
-  /// for it.
+  /// The reads, the deletes and [applyTemplate]'s own copy run inside one
+  /// shared transaction. A template deleted concurrently makes applyTemplate
+  /// throw its StateError, which unwinds the whole transaction, so the
+  /// checklist stays exactly as it was rather than emptied with nothing to
+  /// show for it. And a row written just before the delete is in the read,
+  /// so it gets a tombstone and cannot survive on a peer.
   Future<({int added, int skipped})> replaceWithTemplate({
     required String templateId,
     required String checklistId,
     required Trip trip,
   }) async {
     try {
-      final templateRepository = ChecklistTemplateRepository();
-      // A fast, pre-transaction check for the common case; the transaction
-      // below is what actually guarantees atomicity against a template
-      // deleted mid-flight.
-      if (await templateRepository.getTemplateById(templateId) == null) {
-        throw StateError('Checklist template $templateId no longer exists');
-      }
-
-      final existingItems = await getByChecklistId(checklistId);
-      final existingSections = await getSectionsForChecklist(checklistId);
-
-      final result = await _db.transaction(() async {
+      final (result, itemIds, sectionIds) = await _db.transaction(() async {
+        final items = await getByChecklistId(checklistId);
+        final sections = await getSectionsForChecklist(checklistId);
         await (_db.delete(
           _db.tripChecklistItems,
         )..where((t) => t.checklistId.equals(checklistId))).go();
         await (_db.delete(
           _db.tripChecklistSections,
         )..where((s) => s.checklistId.equals(checklistId))).go();
-        return await applyTemplate(
+        final applied = await applyTemplate(
           templateId: templateId,
           checklistId: checklistId,
           trip: trip,
+        );
+        return (
+          applied,
+          items.map((i) => i.id).toList(),
+          sections.map((s) => s.id).toList(),
         );
       });
 
       // Reached only once the transaction above has committed, so these
       // tombstones never fire for a replace that rolled back.
-      for (final item in existingItems) {
-        await _syncRepository.logDeletion(
-          entityType: 'tripChecklistItems',
-          recordId: item.id,
-        );
-      }
-      for (final section in existingSections) {
-        await _syncRepository.logDeletion(
-          entityType: 'tripChecklistSections',
-          recordId: section.id,
-        );
-      }
+      await _syncRepository.logDeletions(
+        entityType: 'tripChecklistItems',
+        recordIds: itemIds,
+      );
+      await _syncRepository.logDeletions(
+        entityType: 'tripChecklistSections',
+        recordIds: sectionIds,
+      );
       SyncEventBus.notifyLocalChange();
       return result;
     } catch (e, stackTrace) {
@@ -456,7 +457,7 @@ class TripChecklistRepository {
           // case-insensitively before creating one, the same resolution the
           // item editor's picker uses. The match is looked up (not created)
           // before the skip check below, so a fully-skipped re-apply creates
-          // no sections -- a placeholder key standing in for "this section
+          // no sections. A placeholder key standing in for "this section
           // doesn't exist among the checklist's sections yet" cannot equal
           // any persisted item's real sectionId (null or an existing uuid),
           // so it never causes a false-positive skip either.
@@ -639,28 +640,6 @@ class TripChecklistRepository {
     }
   }
 
-  Future<({int done, int total})> getProgress(String checklistId) async {
-    try {
-      final row = await _db
-          .customSelect(
-            'SELECT COUNT(*) AS total, '
-            'SUM(CASE WHEN is_done THEN 1 ELSE 0 END) AS done '
-            'FROM trip_checklist_items WHERE checklist_id = ?',
-            variables: [Variable.withString(checklistId)],
-            readsFrom: {_db.tripChecklistItems},
-          )
-          .getSingle();
-      return (done: row.read<int?>('done') ?? 0, total: row.read<int>('total'));
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get checklist progress',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   /// Done/total for several trips in one query, keyed by trip id and summed
   /// across every checklist of that trip (issue #3356: a trip's home-screen
   /// badge shows its combined progress rather than favouring one of several
@@ -671,7 +650,7 @@ class TripChecklistRepository {
   /// ranking trips read that absence as "nothing to show for this one".
   ///
   /// Batched deliberately. The caller (home screen) needs to look past a trip
-  /// whose list is empty, and doing that one `getProgress` at a time would
+  /// whose list is empty, and doing that one trip at a time would
   /// fan a per-trip query -- and, through the provider family, a per-trip
   /// table subscription -- out of a widget that rebuilds on every dashboard
   /// paint. Mirrors PreDiveSessionRepository.getItemsForSessions.

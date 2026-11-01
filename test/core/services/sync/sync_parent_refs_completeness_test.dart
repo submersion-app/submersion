@@ -192,7 +192,7 @@ void main() {
     // in this map before this change, and adding them is a broader,
     // unrelated completeness fix this plan does not cover.
     // Checklists (issue #3356): a checklist is deletable (its sections and
-    // items are deleted explicitly alongside it, never via SQL cascade --
+    // items are deleted explicitly alongside it, never via SQL cascade;
     // see TripChecklistsRepository.deleteChecklist), so this FK direction
     // needs checking too.
     'trip_checklists': 'tripChecklists',

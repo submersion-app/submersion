@@ -4791,9 +4791,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_wallet_tooltip_sort => 'Ordina';
 
   @override
-  String get checklists_section_title => 'Lista di controllo';
-
-  @override
   String checklists_progress(int done, int total) {
     return '$done di $total attività completate';
   }
@@ -4952,24 +4949,6 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 elemento',
     );
     return '$_temp0';
-  }
-
-  @override
-  String checklists_applySheet_confirmAppend(int added, int skipped) {
-    String _temp0 = intl.Intl.pluralLogic(
-      added,
-      locale: localeName,
-      other: 'Verranno aggiunti $added elementi',
-      one: 'Verrà aggiunto 1 elemento',
-    );
-    String _temp1 = intl.Intl.pluralLogic(
-      skipped,
-      locale: localeName,
-      other: '$skipped duplicati ignorati',
-      one: '1 duplicato ignorato',
-      zero: 'nessun duplicato ignorato',
-    );
-    return '$_temp0, $_temp1.';
   }
 
   @override

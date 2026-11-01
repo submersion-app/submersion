@@ -16,7 +16,7 @@ import 'package:sqlite3/sqlite3.dart' show Database;
 /// split does not apply to a migration written from scratch).
 ///
 /// A full `AppDatabase` always migrates to `currentSchemaVersion`, so by
-/// the time these tests inspect the schema, v332 (issue #3356) has already
+/// the time these tests inspect the schema, v336 (issue #3356) has already
 /// run too and replaced both tables' `trip_id` with `checklist_id`. Tests
 /// that need "this trip's sections/items" go through
 /// [defaultChecklistId] to resolve the backfilled default checklist
@@ -81,7 +81,7 @@ void main() {
   }
 
   /// A full `AppDatabase` always migrates all the way to
-  /// `currentSchemaVersion`, so by the time these assertions run, v332
+  /// `currentSchemaVersion`, so by the time these assertions run, v336
   /// (issue #3356) has already replaced `trip_id` with `checklist_id` on
   /// both tables and backfilled one default checklist per trip with
   /// existing rows. This resolves that default checklist so a test can

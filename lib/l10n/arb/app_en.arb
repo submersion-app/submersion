@@ -2957,7 +2957,6 @@
       }
     }
   },
-  "checklists_section_title": "Checklist",
   "checklists_progress": "{done} of {total} to-dos done",
   "@checklists_progress": {
     "placeholders": {
@@ -3042,17 +3041,6 @@
   "@checklists_applySheet_itemCount": {
     "placeholders": {
       "count": {
-        "type": "int"
-      }
-    }
-  },
-  "checklists_applySheet_confirmAppend": "{added, plural, =1{1 item will be added} other{{added} items will be added}}, {skipped, plural, =0{no duplicates skipped} =1{1 duplicate skipped} other{{skipped} duplicates skipped}}.",
-  "@checklists_applySheet_confirmAppend": {
-    "placeholders": {
-      "added": {
-        "type": "int"
-      },
-      "skipped": {
         "type": "int"
       }
     }

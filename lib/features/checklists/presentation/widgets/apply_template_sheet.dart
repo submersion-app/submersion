@@ -6,8 +6,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Bottom sheet listing checklist templates; tapping one pops the sheet with
 /// that template's id, or null if dismissed without a choice. What
-/// "applying" a template means -- creating a new checklist from it, or
-/// replacing an existing one's content -- is entirely up to the caller
+/// "applying" a template means (creating a new checklist from it, or
+/// replacing an existing one's content) is entirely up to the caller
 /// (issue #3356); this sheet only picks which template.
 Future<String?> showTemplatePickerSheet({required BuildContext context}) {
   return showModalBottomSheet<String>(

@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -11,6 +16,53 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Holds [applyTemplate] back until [gate] opens.
+class _GatedApplyRepository extends TripChecklistRepository {
+  _GatedApplyRepository(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<({int added, int skipped})> applyTemplate({
+    required String templateId,
+    required String checklistId,
+    required Trip trip,
+  }) async {
+    await gate;
+    return super.applyTemplate(
+      templateId: templateId,
+      checklistId: checklistId,
+      trip: trip,
+    );
+  }
+}
+
+/// Returns from [createChecklist] only once [gate] opens.
+class _GatedCreateRepository extends TripChecklistsRepository {
+  _GatedCreateRepository(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<TripChecklist> createChecklist({
+    required String tripId,
+    required String name,
+  }) async {
+    final created = await super.createChecklist(tripId: tripId, name: name);
+    await gate;
+    return created;
+  }
+}
+
+class _FailingApplyRepository extends TripChecklistRepository {
+  @override
+  Future<({int added, int skipped})> applyTemplate({
+    required String templateId,
+    required String checklistId,
+    required Trip trip,
+  }) async => throw Exception('disk full');
+}
 
 void main() {
   late TripRepository tripRepository;
@@ -38,11 +90,17 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpPanel(WidgetTester tester) async {
+  Future<void> pumpPanel(
+    WidgetTester tester, {
+    List<dynamic> overrides = const [],
+  }) async {
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          ...overrides,
+        ],
         child: SingleChildScrollView(
           child: TripChecklistsPanel(trip: upcomingTrip),
         ),
@@ -106,6 +164,162 @@ void main() {
       expect(find.text('Mask'), findsOneWidget);
     },
   );
+
+  Future<void> seedTemplate() async {
+    final template = await ChecklistTemplateRepository().createTemplate(
+      ChecklistTemplate(
+        id: '',
+        name: 'Dive equipment',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await ChecklistTemplateRepository().saveItems(template.id, [
+      ChecklistTemplateItem(
+        id: '',
+        templateId: template.id,
+        title: 'Mask',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    ]);
+  }
+
+  Future<void> addFromTemplate(WidgetTester tester) async {
+    await tester.tap(find.widgetWithText(ListTile, 'Add checklist'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply template...'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dive equipment'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('a new checklist opens even when its row reached the list '
+      'before the template finished applying', (tester) async {
+    // In the app the write runs on a worker isolate, so the panel rebuilds
+    // with the new row while the template is still being copied in.
+    await seedTemplate();
+    final gate = Completer<void>();
+
+    await pumpPanel(
+      tester,
+      overrides: [
+        tripChecklistRepositoryProvider.overrideWithValue(
+          _GatedApplyRepository(gate.future),
+        ),
+      ],
+    );
+    await addFromTemplate(tester);
+    expect(
+      find.widgetWithText(ExpansionTile, 'Dive equipment'),
+      findsOneWidget,
+    );
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mask'), findsOneWidget);
+  });
+
+  testWidgets('leaving the trip while a checklist is being created keeps it', (
+    tester,
+  ) async {
+    await seedTemplate();
+    final gate = Completer<void>();
+
+    await pumpPanel(
+      tester,
+      overrides: [
+        tripChecklistsRepositoryProvider.overrideWithValue(
+          _GatedCreateRepository(gate.future),
+        ),
+      ],
+    );
+    await addFromTemplate(tester);
+
+    await tester.pumpWidget(const SizedBox());
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    final checklists = await checklistsRepository.getChecklistsForTrip(
+      upcomingTrip.id,
+    );
+    expect(checklists.single.name, 'Dive equipment');
+  });
+
+  testWidgets('a failed apply leaves no empty checklist behind', (
+    tester,
+  ) async {
+    await seedTemplate();
+
+    await pumpPanel(
+      tester,
+      overrides: [
+        tripChecklistRepositoryProvider.overrideWithValue(
+          _FailingApplyRepository(),
+        ),
+      ],
+    );
+    await addFromTemplate(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(
+      await checklistsRepository.getChecklistsForTrip(upcomingTrip.id),
+      isEmpty,
+    );
+  });
+
+  testWidgets('a block stays open across a tab switch', (tester) async {
+    await checklistsRepository.createChecklist(
+      tripId: upcomingTrip.id,
+      name: 'Clothing',
+    );
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              const TabBar(
+                tabs: [
+                  Tab(text: 'Lists'),
+                  Tab(text: 'Other'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    SingleChildScrollView(
+                      child: TripChecklistsPanel(trip: upcomingTrip),
+                    ),
+                    const SizedBox(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Clothing'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add section'), findsOneWidget);
+
+    await tester.tap(find.text('Other'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lists'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Add section'), findsOneWidget);
+  });
 
   testWidgets(
     '"New checklist..." prompts for a name, creates an empty checklist and '

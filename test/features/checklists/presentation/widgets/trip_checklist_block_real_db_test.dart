@@ -8,6 +8,7 @@ import 'package:submersion/features/checklists/domain/entities/checklist_templat
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -62,10 +63,16 @@ void main() {
 
     tearDown(tearDownTestDatabase);
 
-    Future<void> pumpBlockReal(WidgetTester tester) async {
+    Future<void> pumpBlockReal(
+      WidgetTester tester, {
+      List<dynamic> overrides = const [],
+    }) async {
       await tester.pumpWidget(
         testApp(
-          overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            ...overrides,
+          ],
           child: SingleChildScrollView(
             child: TripChecklistBlock(trip: trip, checklist: checklist),
           ),
@@ -246,6 +253,88 @@ void main() {
         checklist.id,
       );
       expect(sections, isEmpty);
+    });
+
+    Future<ChecklistTemplate> clothingTemplate() async {
+      final template = await ChecklistTemplateRepository().createTemplate(
+        ChecklistTemplate(
+          id: '',
+          name: 'Clothing',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await ChecklistTemplateRepository().saveItems(template.id, [
+        ChecklistTemplateItem(
+          id: '',
+          templateId: template.id,
+          title: 'Swimsuit',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ]);
+      return template;
+    }
+
+    Future<void> pickClothing(WidgetTester tester) async {
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply template...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Clothing'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('an empty checklist takes a template with nothing to confirm', (
+      tester,
+    ) async {
+      await clothingTemplate();
+
+      await pumpBlockReal(tester);
+      await pickClothing(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      final items = await checklistRepository.getByChecklistId(checklist.id);
+      expect(items.map((i) => i.title).toList(), ['Swimsuit']);
+    });
+
+    testWidgets('a checklist holding only sections still asks first, since '
+        'they go too', (tester) async {
+      await checklistRepository.createSection(
+        checklistId: checklist.id,
+        title: 'Old gear',
+      );
+      await clothingTemplate();
+
+      await pumpBlockReal(tester);
+      await pickClothing(tester);
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
+    testWidgets('a template gone by the time it is read says so', (
+      tester,
+    ) async {
+      final template = await clothingTemplate();
+
+      await pumpBlockReal(
+        tester,
+        overrides: [
+          checklistTemplateProvider(
+            template.id,
+          ).overrideWith((ref) async => null),
+        ],
+      );
+      await pickClothing(tester);
+
+      expect(find.text('Template no longer exists'), findsOneWidget);
+    });
+
+    testWidgets('shows whether a block is open, apart from the reorder '
+        'arrows', (tester) async {
+      await pumpBlockReal(tester);
+
+      expect(find.byIcon(Icons.expand_more), findsOneWidget);
     });
 
     testWidgets('cancelling the replace confirmation keeps the old content', (
