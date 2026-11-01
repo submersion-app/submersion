@@ -226,14 +226,12 @@ class SiteClassificationRepository {
   Future<void> addTypes(
     String siteId,
     List<String> typeIds, {
-    bool notify = true,
     String? actingDiverId,
   }) async {
     // A library site [actingDiverId] may not edit (a reader's): never
     // changed here, or the list would differ from the library's for good
-    // (issue #2567). The bridge applying a pulled list does not notify.
-    if (notify &&
-        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+    // (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       return;
     }
     if (typeIds.isEmpty) return;
@@ -249,14 +247,12 @@ class SiteClassificationRepository {
       await addTypesToSites({siteId: added});
       return added.isNotEmpty;
     });
-    if (notify) {
-      if (changed) {
-        await _libraryStamper.stamp(siteId, {
-          'siteTypes',
-        }, actingDiverId: actingDiverId);
-      }
-      SyncEventBus.notifyLocalChange();
+    if (changed) {
+      await _libraryStamper.stamp(siteId, {
+        'siteTypes',
+      }, actingDiverId: actingDiverId);
     }
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Makes [siteId]'s tags exactly [tagIds].
@@ -312,14 +308,12 @@ class SiteClassificationRepository {
   Future<void> addTags(
     String siteId,
     List<String> tagIds, {
-    bool notify = true,
     String? actingDiverId,
   }) async {
     // A library site [actingDiverId] may not edit (a reader's): never
     // changed here, or the list would differ from the library's for good
-    // (issue #2567). The bridge applying a pulled list does not notify.
-    if (notify &&
-        !await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+    // (issue #2567).
+    if (!await _libraryStamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
       return;
     }
     if (tagIds.isEmpty) return;
@@ -335,14 +329,12 @@ class SiteClassificationRepository {
       await addTagsToSites({siteId: added});
       return added.isNotEmpty;
     });
-    if (notify) {
-      if (changed) {
-        await _libraryStamper.stamp(siteId, {
-          'tags',
-        }, actingDiverId: actingDiverId);
-      }
-      SyncEventBus.notifyLocalChange();
+    if (changed) {
+      await _libraryStamper.stamp(siteId, {
+        'tags',
+      }, actingDiverId: actingDiverId);
     }
+    SyncEventBus.notifyLocalChange();
   }
 
   /// [addTypes] over many sites in one pass (#4012): [missing] names the

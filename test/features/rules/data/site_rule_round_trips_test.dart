@@ -369,6 +369,44 @@ void main() {
       );
     });
 
+    test('Undo puts a site\'s types back', () async {
+      await statementsOf(() async {
+        await db.customStatement(
+          "INSERT INTO site_site_types (id, site_id, site_type_id, created_at) "
+          "VALUES ('held', 's0', 'wreck', 0)",
+        );
+        await ruleOver(
+          'Add a type',
+          const SiteMembershipAction(
+            SiteCollection.siteTypes,
+            MembershipMode.add,
+            ['reef'],
+          ),
+        );
+        await ruleOver(
+          'Remove a type',
+          const SiteMembershipAction(
+            SiteCollection.siteTypes,
+            MembershipMode.remove,
+            ['wreck'],
+          ),
+        );
+      });
+      Future<int> types(String type) => count(
+        "SELECT COUNT(*) AS n FROM site_site_types "
+        "WHERE site_type_id = '$type'",
+      );
+
+      final applied = await engine.run(request);
+      expect(await types('reef'), 3);
+      expect(await types('wreck'), 0);
+
+      await RuleUndoService().undo(applied.runId!);
+
+      expect(await types('reef'), 0);
+      expect(await types('wreck'), 1);
+    });
+
     test('a preview leaves no link, scope or sync record behind', () async {
       final preview = await engine.preview(request);
 
