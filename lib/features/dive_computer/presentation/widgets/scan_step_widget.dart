@@ -29,21 +29,31 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
+  /// Cached rather than read from [ref] in [dispose], which is unsafe once
+  /// the widget is unmounting.
+  late final DiscoveryNotifier _discovery;
+
   @override
   void initState() {
     super.initState();
+    _discovery = ref.read(discoveryNotifierProvider.notifier);
     if (ScanStepWidget.offersUsb) {
       _tabController = TabController(length: 2, vsync: this);
     }
 
     // Start Bluetooth scanning when widget is shown
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(discoveryNotifierProvider.notifier).startScan();
+      _discovery.startScan();
     });
   }
 
   @override
   void dispose() {
+    // The wizard's close button only pops the route (issue #4088): without
+    // this, leaving the step mid-scan left the native Bluetooth scan running
+    // until another scan replaced it or the app exited. A no-op when the
+    // scan was already stopped (e.g. via "Stop searching").
+    _discovery.stopScan();
     _tabController?.dispose();
     super.dispose();
   }
