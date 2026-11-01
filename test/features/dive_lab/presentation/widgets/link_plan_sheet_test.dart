@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -90,6 +91,35 @@ void main() {
     expect(title.style?.color, tile.colorScheme.outline);
   });
 
+  testWidgets('a short list keeps the sheet short', (tester) async {
+    tester.view.physicalSize = const Size(420, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divePlanSummariesProvider.overrideWith(
+            (ref) async => [summary('a', DateTime(2026))],
+          ),
+        ],
+        locale: const Locale('en'),
+        child: Consumer(
+          builder: (context, ref, _) => TextButton(
+            onPressed: () => pickPlanAndLink(context, ref, diveId: 'dive-1'),
+            child: const Text('go'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plan a'), findsOneWidget);
+    expect(tester.getSize(find.byType(LinkPlanSheet)).height, lessThan(300));
+  });
+
   testWidgets('says so when no plans are saved', (tester) async {
     await pump(tester, const []);
 
@@ -130,16 +160,13 @@ void main() {
           ),
         );
 
-    Future<void> settle(WidgetTester tester) async {
-      for (var i = 0; i < 4; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 40)),
-        );
-        await tester.pump(const Duration(milliseconds: 300));
-      }
-    }
+    /// What the pick returned, filled when the link has landed. Waiting on
+    /// this rather than reading the plan: the write runs in a transaction the
+    /// test's frames drive, so a read awaited meanwhile would never return.
+    late List<bool> results;
 
     Future<void> openSheet(WidgetTester tester) async {
+      results = [];
       await tester.pumpWidget(
         testApp(
           overrides: [
@@ -148,14 +175,20 @@ void main() {
           locale: const Locale('en'),
           child: Consumer(
             builder: (context, ref, _) => TextButton(
-              onPressed: () => pickPlanAndLink(context, ref, diveId: 'dive-1'),
+              onPressed: () async => results.add(
+                await pickPlanAndLink(context, ref, diveId: 'dive-1'),
+              ),
               child: const Text('go'),
             ),
           ),
         ),
       );
       await tester.tap(find.text('go'));
-      await settle(tester);
+      await pumpUntilRealAsync(
+        tester,
+        () => find.text('Plan plan-1').evaluate().isNotEmpty,
+      );
+      await tester.pumpAndSettle();
     }
 
     testWidgets('picking a free plan links it', (tester) async {
@@ -166,8 +199,9 @@ void main() {
 
       await openSheet(tester);
       await tester.tap(find.text('Plan plan-1'));
-      await settle(tester);
+      await pumpUntilRealAsync(tester, () => results.isNotEmpty);
 
+      expect(results, [true]);
       final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
       expect(plan!.linkedDiveId, 'dive-1');
     });
@@ -181,11 +215,15 @@ void main() {
 
       await openSheet(tester);
       await tester.tap(find.text('Plan plan-1'));
-      await settle(tester);
+      await pumpUntilRealAsync(
+        tester,
+        () => find.byType(AlertDialog).evaluate().isNotEmpty,
+      );
+      await tester.pumpAndSettle();
       expect(find.text("Move this plan's link?"), findsOneWidget);
 
       await tester.tap(find.text('Link'));
-      await settle(tester);
+      await pumpUntilRealAsync(tester, () => results.isNotEmpty);
 
       final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
       expect(plan!.linkedDiveId, 'dive-1');

@@ -77,6 +77,7 @@ class LinkPlanSheet extends ConsumerWidget {
             else
               Flexible(
                 child: ListView.builder(
+                  shrinkWrap: true,
                   itemCount: plans.length,
                   itemBuilder: (context, i) =>
                       _planTile(context, plans[i], units),

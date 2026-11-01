@@ -35,7 +35,6 @@ Future<String?> showLinkDiveSheet(
   return showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
-    isScrollControlled: true,
     builder: (_) =>
         LinkDiveSheet(planDay: planDay, currentDiveId: currentDiveId),
   );

@@ -77,6 +77,39 @@ void main() {
     expect(find.byIcon(Icons.check), findsOneWidget);
   });
 
+  testWidgets('a long logbook stays in a sheet below the full screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divesProvider.overrideWith(
+            (ref) async => [
+              for (var i = 1; i <= 200; i++)
+                dive('d$i', i, DateTime.utc(2026, 1, 1, i % 24)),
+            ],
+          ),
+        ],
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showLinkDiveSheet(context),
+            child: const Text('go'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(LinkDiveSheet)).height, lessThan(500));
+  });
+
   testWidgets('says so when there is nothing to link', (tester) async {
     await pump(tester, const []);
 

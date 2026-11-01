@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../helpers/mock_providers.dart';
+import '../../../helpers/pump_until.dart';
 import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
 
@@ -74,14 +75,14 @@ void main() {
     return results;
   }
 
-  Future<void> settle(WidgetTester tester) async {
-    for (var i = 0; i < 4; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 40)),
-      );
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-  }
+  Future<void> untilDialog(WidgetTester tester) => pumpUntilRealAsync(
+    tester,
+    () => find.byType(AlertDialog).evaluate().isNotEmpty,
+    reason: 'dialog',
+  );
+
+  Future<void> untilDone(WidgetTester tester, List<bool> results) =>
+      pumpUntilRealAsync(tester, () => results.isNotEmpty, reason: 'action');
 
   testWidgets('linking a free plan to a free dive asks nothing', (
     tester,
@@ -97,7 +98,7 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(results, [true]);
@@ -120,11 +121,11 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     expect(find.text("Move this plan's link?"), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(results, [false]);
     final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
@@ -150,12 +151,12 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     expect(find.text("Replace this dive's plan?"), findsOneWidget);
     expect(find.textContaining('Plan plan-old'), findsOneWidget);
 
     await tester.tap(find.text('Link'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(results, [true]);
     final old = await tester.runAsync(() => repository.getPlan('plan-old'));
@@ -174,7 +175,7 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(find.byType(AlertDialog), findsNothing);
     expect(results, [true]);
@@ -191,14 +192,14 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 5)),
     );
-    await pumpAction(
+    final results = await pumpAction(
       tester,
       (context, ref) =>
           linkPlanWithConfirm(context, ref, planId: 'plan-1', diveId: 'dive-1'),
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     final after = await tester.runAsync(() => repository.getPlan('plan-1'));
     expect(after!.updatedAt, before!.updatedAt);
@@ -225,7 +226,7 @@ void main() {
     });
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(results, [true]);
     final container = ProviderScope.containerOf(
@@ -242,7 +243,7 @@ void main() {
       await seedPlan('plan-new');
     });
     late String openId;
-    await pumpAction(tester, (context, ref) async {
+    final results = await pumpAction(tester, (context, ref) async {
       final notifier = ref.read(divePlanNotifierProvider.notifier);
       notifier.setLinkedDive('dive-1');
       await notifier.save();
@@ -257,9 +258,9 @@ void main() {
     });
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     await tester.tap(find.text('Link'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     final container = ProviderScope.containerOf(
       tester.element(find.text('go')),
@@ -276,7 +277,7 @@ void main() {
     tester,
   ) async {
     await tester.runAsync(() => seedDive('dive-1'));
-    await pumpAction(tester, (context, ref) async {
+    final results = await pumpAction(tester, (context, ref) async {
       final notifier = ref.read(divePlanNotifierProvider.notifier);
       notifier.setLinkedDive('dive-1');
       await notifier.save();
@@ -289,9 +290,9 @@ void main() {
     });
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     await tester.tap(find.text('Unlink'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     final container = ProviderScope.containerOf(
       tester.element(find.text('go')),
@@ -312,10 +313,10 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     expect(find.text('Unlink this plan?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(results, [false]);
     final kept = await tester.runAsync(() => repository.getPlan('plan-1'));
@@ -333,9 +334,9 @@ void main() {
     );
 
     await tester.tap(find.text('go'));
-    await settle(tester);
+    await untilDialog(tester);
     await tester.tap(find.text('Unlink'));
-    await settle(tester);
+    await untilDone(tester, results);
 
     expect(results, [true]);
     final gone = await tester.runAsync(() => repository.getPlan('plan-1'));

@@ -7,11 +7,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/link_dive_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/mock_providers.dart';
 import '../../helpers/planner_results.dart';
+import '../../helpers/pump_until.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 
@@ -86,8 +88,9 @@ void main() {
 
     expect(menuItem(tester, 'linkDive').enabled, isTrue);
     await tester.tap(find.text('Link to a logged dive'));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(LinkDiveSheet).evaluate().isNotEmpty,
     );
     await tester.pumpAndSettle();
 
@@ -108,8 +111,9 @@ void main() {
     await openMenu(tester);
 
     await tester.tap(find.text('Convert to Dive').last);
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(AlertDialog).evaluate().isNotEmpty,
     );
     await tester.pumpAndSettle();
 
@@ -129,10 +133,15 @@ void main() {
     );
     container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
     await save(tester, container);
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    await pumpUntilRealAsync(
+      tester,
+      () =>
+          container
+              .read(divePlanSummariesProvider)
+              .value
+              ?.any((s) => s.linkedDiveNumber == 7) ??
+          false,
     );
-    await tester.pumpAndSettle();
     await openMenu(tester);
 
     expect(find.text('Change linked dive'), findsOneWidget);

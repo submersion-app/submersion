@@ -26,6 +26,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
@@ -340,14 +341,10 @@ void main() {
     });
     tearDown(tearDownTestDatabase);
 
-    Future<void> realSettle(WidgetTester tester) async {
-      for (var i = 0; i < 4; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 40)),
-        );
-        await tester.pump(const Duration(milliseconds: 300));
-      }
-    }
+    Future<void> untilDialog(WidgetTester tester) => pumpUntilRealAsync(
+      tester,
+      () => find.byType(AlertDialog).evaluate().isNotEmpty,
+    );
 
     testWidgets('Unlink asks first', (tester) async {
       await tester.runAsync(() async {
@@ -366,23 +363,30 @@ void main() {
       await pump(tester, inputs: _inputs(), comparison: _comparison());
       await openMenu(tester);
       await tester.tap(find.text('Unlink plan'));
-      await realSettle(tester);
+      await untilDialog(tester);
 
       expect(find.text('Unlink this plan?'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
-      await realSettle(tester);
+      await tester.pumpAndSettle();
 
       final kept = await tester.runAsync(() => repository.getPlan('plan-1'));
       expect(kept!.linkedDiveId, 'd');
 
       await openMenu(tester);
       await tester.tap(find.text('Unlink plan'));
-      await realSettle(tester);
+      await untilDialog(tester);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Unlink'));
-      await realSettle(tester);
 
-      final gone = await tester.runAsync(() => repository.getPlan('plan-1'));
-      expect(gone!.linkedDiveId, isNull);
+      // The write has no result to wait on here, so real time and frames in
+      // turn; its update takes no transaction, so a read cannot block on it.
+      String? linked = 'd';
+      for (var round = 0; round < 100 && linked != null; round++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        final plan = await tester.runAsync(() => repository.getPlan('plan-1'));
+        linked = plan?.linkedDiveId;
+      }
+      expect(linked, isNull);
     });
   });
 }

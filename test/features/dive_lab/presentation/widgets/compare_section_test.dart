@@ -33,6 +33,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../domain/support/synthetic_dives.dart';
@@ -455,15 +456,6 @@ void main() {
     });
     tearDown(tearDownTestDatabase);
 
-    Future<void> settle(WidgetTester tester) async {
-      for (var i = 0; i < 4; i++) {
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 60)),
-        );
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-    }
-
     Future<void> pumpLive(WidgetTester tester) async {
       await tester.runAsync(() async {
         await database
@@ -500,7 +492,10 @@ void main() {
           ),
         ),
       );
-      await settle(tester);
+      await pumpUntilRealAsync(
+        tester,
+        () => chip('Planned').evaluate().isNotEmpty,
+      );
     }
 
     testWidgets('a what-if header opens that what-if', (tester) async {
@@ -528,9 +523,11 @@ void main() {
       expect(chip('Planned'), findsOneWidget);
 
       await tester.runAsync(() => repository.deletePlan('plan-1'));
-      await settle(tester);
 
-      expect(chip('Planned'), findsNothing);
+      await pumpUntilRealAsync(
+        tester,
+        () => chip('Planned').evaluate().isEmpty,
+      );
     });
 
     testWidgets('Planned leaves when the link is cleared', (tester) async {
@@ -538,9 +535,11 @@ void main() {
       expect(chip('Planned'), findsOneWidget);
 
       await tester.runAsync(() => repository.unlinkPlan('plan-1'));
-      await settle(tester);
 
-      expect(chip('Planned'), findsNothing);
+      await pumpUntilRealAsync(
+        tester,
+        () => chip('Planned').evaluate().isEmpty,
+      );
     });
   });
 }
