@@ -191,96 +191,116 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     return null;
   }
 
+  /// Below this width the three fields no longer fit on one line with their
+  /// labels, so the cylinder picker, the widest, takes a line of its own.
+  static const double _oneLineMinWidth = 520;
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final sw = widget.gasSwitch;
     final tankIds = {for (final t in widget.tanks) t.id};
+
+    final time = MinutesSecondsField(
+      key: ValueKey('gas-switch-time-${sw.id}'),
+      seconds: sw.timestamp,
+      label: l10n.diveLog_edit_gasSwitches_time,
+      formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
+      validator: (seconds) => _timeError(l10n, seconds),
+      onSettled: () => widget.onTimeSettled?.call(sw.id),
+      onChanged: (seconds) {
+        if (seconds == null) return;
+        widget.onChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
+      },
+    );
+    final picker = DropdownButtonFormField<String>(
+      key: ValueKey('gas-switch-tank-${sw.id}'),
+      initialValue: tankIds.contains(sw.tankId) ? sw.tankId : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: l10n.diveLog_edit_gasSwitches_switchTo,
+        isDense: true,
+      ),
+      items: [
+        for (final tank in widget.tanks)
+          DropdownMenuItem(
+            value: tank.id,
+            child: Text(
+              gasSwitchTankLabel(l10n, widget.tanks, tank),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
+      onChanged: (id) {
+        if (id == null) return;
+        widget.onChanged(sw.copyWith(tankId: id), GasSwitchField.tank);
+      },
+    );
+    final depth = NumberField(
+      key: ValueKey('gas-switch-depth-${sw.id}'),
+      controller: _depth,
+      decoration: InputDecoration(
+        labelText: l10n.diveLog_edit_gasSwitches_depth,
+        suffixText: widget.units.depthSymbol,
+        isDense: true,
+      ),
+      onChanged: (read) => switch (read) {
+        NumberValue(:final value) => widget.onChanged(
+          sw.copyWith(depth: widget.units.depthToMeters(value)),
+          GasSwitchField.depth,
+        ),
+        NumberBlank() => widget.onChanged(
+          sw.copyWith(clearDepth: true),
+          GasSwitchField.depth,
+        ),
+        // The field shows why the text cannot be read and blocks the
+        // save; the stored depth stands until it can.
+        NumberInvalid() => null,
+      },
+    );
+    final remove = IconButton(
+      key: ValueKey('gas-switch-remove-${sw.id}'),
+      icon: const Icon(Icons.remove_circle_outline),
+      tooltip: l10n.diveLog_edit_gasSwitches_remove,
+      onPressed: () => widget.onRemove(sw.id),
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 6, 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: MinutesSecondsField(
-              key: ValueKey('gas-switch-time-${sw.id}'),
-              seconds: sw.timestamp,
-              label: l10n.diveLog_edit_gasSwitches_time,
-              formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
-              validator: (seconds) => _timeError(l10n, seconds),
-              onSettled: () => widget.onTimeSettled?.call(sw.id),
-              onChanged: (seconds) {
-                if (seconds == null) return;
-                widget.onChanged(
-                  sw.copyWith(timestamp: seconds),
-                  GasSwitchField.time,
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          // The widest field: its closed label names the cylinder, its role
-          // and its gas, which is what the diver picks by.
-          Expanded(
-            flex: 5,
-            child: DropdownButtonFormField<String>(
-              key: ValueKey('gas-switch-tank-${sw.id}'),
-              initialValue: tankIds.contains(sw.tankId) ? sw.tankId : null,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: l10n.diveLog_edit_gasSwitches_switchTo,
-                isDense: true,
-              ),
-              items: [
-                for (final tank in widget.tanks)
-                  DropdownMenuItem(
-                    value: tank.id,
-                    child: Text(
-                      gasSwitchTankLabel(l10n, widget.tanks, tank),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= _oneLineMinWidth) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 2, child: time),
+                const SizedBox(width: 8),
+                // The widest field: its closed label names the cylinder,
+                // its role and its gas, which is what the diver picks by.
+                Expanded(flex: 5, child: picker),
+                const SizedBox(width: 8),
+                Expanded(flex: 2, child: depth),
+                remove,
               ],
-              onChanged: (id) {
-                if (id == null) return;
-                widget.onChanged(sw.copyWith(tankId: id), GasSwitchField.tank);
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: NumberField(
-              key: ValueKey('gas-switch-depth-${sw.id}'),
-              controller: _depth,
-              decoration: InputDecoration(
-                labelText: l10n.diveLog_edit_gasSwitches_depth,
-                suffixText: widget.units.depthSymbol,
-                isDense: true,
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: time),
+                  const SizedBox(width: 8),
+                  Expanded(child: depth),
+                  remove,
+                ],
               ),
-              onChanged: (read) => switch (read) {
-                NumberValue(:final value) => widget.onChanged(
-                  sw.copyWith(depth: widget.units.depthToMeters(value)),
-                  GasSwitchField.depth,
-                ),
-                NumberBlank() => widget.onChanged(
-                  sw.copyWith(clearDepth: true),
-                  GasSwitchField.depth,
-                ),
-                // The field shows why the text cannot be read and blocks the
-                // save; the stored depth stands until it can.
-                NumberInvalid() => null,
-              },
-            ),
-          ),
-          IconButton(
-            key: ValueKey('gas-switch-remove-${sw.id}'),
-            icon: const Icon(Icons.remove_circle_outline),
-            tooltip: l10n.diveLog_edit_gasSwitches_remove,
-            onPressed: () => widget.onRemove(sw.id),
-          ),
-        ],
+              const SizedBox(height: 4),
+              picker,
+            ],
+          );
+        },
       ),
     );
   }

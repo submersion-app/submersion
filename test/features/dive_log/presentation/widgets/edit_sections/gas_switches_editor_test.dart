@@ -92,6 +92,48 @@ Finder _timeField(String id) => find.descendant(
 Finder _depthField(String id) => find.byKey(ValueKey('gas-switch-depth-$id'));
 
 void main() {
+  testWidgets('a narrow row puts the cylinder picker on its own line', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(380, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Form(
+              child: GasSwitchesEditor(
+                switches: [_sw('gs-1', 600, 'deco', depth: 21.0)],
+                tanks: const [_back, _deco],
+                units: const UnitFormatter(AppSettings()),
+                maxTimestamp: 1800,
+                startingTank: _back,
+                removedWithTankCount: 0,
+                onChanged: (_, _) {},
+                onRemove: (_) {},
+                onAdd: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final time = tester.getTopLeft(_timeField('gs-1'));
+    final picker = tester.getTopLeft(
+      find.byKey(const ValueKey('gas-switch-tank-gs-1')),
+    );
+    final depth = tester.getTopLeft(_depthField('gs-1'));
+    expect(picker.dy, greaterThan(time.dy));
+    expect(depth.dy, time.dy);
+  });
+
   testWidgets('rows keep the order given and show the starting cylinder', (
     tester,
   ) async {
