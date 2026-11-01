@@ -63,7 +63,7 @@ final networkScanServiceProvider = Provider<NetworkScanService>(
 );
 
 /// Saved per-host credentials displayed in the Saved hosts card.
-/// `ref.invalidate` after writes (delete / edit / test) to refresh.
+/// `ref.invalidate` after writes (save / delete / edit / test) to refresh.
 final savedHostsProvider = FutureProvider<List<NetworkCredentialHost>>(
   (ref) => ref.watch(networkCredentialsServiceProvider).list(),
 );

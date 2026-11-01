@@ -7129,6 +7129,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Merülések visszaállítva';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Merülések visszaállítva, de néhány rögzített adatot nem sikerült helyreállítani';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20610,16 +20614,33 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '$name követése';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Még nincsenek naplózott merülések';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva';
+
+  @override
+  String get plannerCanvas_link_action => 'Összekapcsolás naplózott merüléssel';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Kapcsolt merülés módosítása';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Merülés leválasztása';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Merülve: #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Merülve: $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Először mentsd a tervet';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20654,6 +20675,41 @@ class AppLocalizationsHu extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return '$letter merülés: $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Naplózott merülés: $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Követés leállítása';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Átvitel ide: $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS a végén';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive $time ideje ért véget.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '#$number. merülés';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Követés';
 
   @override
   String get plannerSeries_surfaceInterval => 'Felszíni idő';
@@ -20694,8 +20750,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülések sorozata nem tervezhető DPV-küldetésként';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Csak a sorozat első merülése követhet egy naplózott merülést';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Az újratervezés nem követhet másik merülést';
 
   @override
   String get plannerCanvas_follow_title => 'Merülés követése';
@@ -20777,6 +20833,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'A dekompressziós terv nem tartalmaz bailout gázt';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'A bailout gáz hipoxiás $depth mélységben (ppO₂ $value bar). Vigyél a felszínig belélegezhető gázt.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -34251,6 +34312,15 @@ class AppLocalizationsHu extends AppLocalizations {
       'Néhány érték üresen maradt';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Néhány gázkeverék javítva lett';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Az oxigén és a hélium együtt több mint 100% volt ezekben a sorokban: $rows. A héliumot csökkentettük, így az összeg 100%. Ellenőrizze ezeknek a merüléseknek a gázát.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41648,8 +41718,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Adatforrások';
 
   @override
-  String get reef_section_loadError =>
-      'Az ökoszisztéma-adatok jelenleg nem tölthetők be';
+  String get reef_section_checking => 'Ellenőrzés…';
 
   @override
   String get reef_habitat_title => 'Zátony élőhely';
@@ -52578,11 +52647,92 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Új forgatókönyv';
+  String get diveLab_compare_line_planned => 'Tervezett';
 
   @override
-  String get diveLab_section_hint =>
-      'Ágaztasd el a merülést bármely pillanatban, és hasonlítsd össze, mi történt volna.';
+  String get diveLab_compare_line_asDived => 'Ahogy merültél';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Mi lenne, ha';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max. mélység';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Fenékidő';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL a fenék elhagyásakor';
+
+  @override
+  String get diveLab_compare_row_deco => 'Dekó';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'még $minutes perc';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Dekó ekkortól: $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done elvégezve';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Nincs';
+
+  @override
+  String get diveLab_compare_empty => 'Még nincs mit összehasonlítani';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Mi lenne, ha kérdés';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Terv kapcsolása';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Terv leválasztása';
+
+  @override
+  String get diveLab_compare_planTable => 'Terv és merülés';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Tervezett menetrend';
+
+  @override
+  String get diveLab_compare_waiting => 'Várakozás a merülésre';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Leválasztod ezt a tervet?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'A terv és a merülés is megmarad, csak már nem hasonlítjuk össze őket.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Leválasztás';
+
+  @override
+  String get diveLab_link_moveTitle => 'Áthelyezed a terv kapcsolatát?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Ez a terv egy másik merüléshez kapcsolódik. Az itteni összekapcsolás megszünteti azt.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Lecseréled a merülés tervét?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Ez a merülés a(z) \"$plan\" tervvel van összehasonlítva. Másik terv kapcsolása leválasztja azt.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Összekapcsolás';
 
   @override
   String get diveDetailSection_diveLab_name => 'Összehasonlítás';
@@ -54730,6 +54880,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Összehasonlítás…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Ismétlő merülés tervezése';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. eredeti merülés';

@@ -376,6 +376,7 @@ class PlanCalculatorService {
         sacRate: sacRate,
         avgDepth: avgDepth,
         durationSeconds: segment.durationSeconds,
+        environment: environment,
       );
 
       // Update tank usage
@@ -502,15 +503,17 @@ class PlanCalculatorService {
 
   /// Calculate gas consumption for a segment.
   ///
-  /// Formula: gas = SAC × time_min × (avgDepth/10 + 1)
+  /// Formula: gas = SAC × time_min × ambient pressure at avgDepth, in the
+  /// plan's water, as PlanEngine charges it (issue #4010).
   double _calculateGasConsumption({
     required double sacRate,
     required double avgDepth,
     required int durationSeconds,
+    required DiveEnvironment environment,
   }) {
-    final pressureAtm = (avgDepth / 10.0) + 1.0;
+    final pressureBar = environment.pressureAtDepth(avgDepth);
     final timeMinutes = durationSeconds / 60.0;
-    return sacRate * timeMinutes * pressureAtm;
+    return sacRate * timeMinutes * pressureBar;
   }
 
   /// Build deco schedule from current algorithm state.

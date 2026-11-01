@@ -6779,6 +6779,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkDelete_restored => '潜水已恢复';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete => '潜水已恢复，但部分记录的数据无法找回';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -19677,15 +19680,32 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return '跟随 $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => '还没有记录的潜水';
 
   @override
   String get plannerCanvas_follow_noTissues => '该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度';
+
+  @override
+  String get plannerCanvas_link_action => '关联到已记录的潜水';
+
+  @override
+  String get plannerCanvas_link_changeAction => '更改关联的潜水';
+
+  @override
+  String get plannerCanvas_unlink_action => '取消关联潜水';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return '已潜水，编号 #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return '潜水日期 $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => '请先保存计划';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -19722,6 +19742,41 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_loggedDive(String label) {
+    return '已记录潜水 $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => '在潜水日志中打开';
+
+  @override
+  String get plannerSeries_stopFollowing => '停止跟随';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return '带入 $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => '结束时 CNS';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive 已于 $time 前结束。';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return '潜水 #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => '跟随';
+
+  @override
   String get plannerSeries_surfaceInterval => '水面间隔';
 
   @override
@@ -19756,7 +19811,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';
 
   @override
-  String get plannerSeries_followFirstDiveOnly => '只有系列中的第一次潜水可以跟随已记录的潜水';
+  String get plannerSeries_followUnavailableInReplan => '重新规划无法跟随另一次潜水';
 
   @override
   String get plannerCanvas_follow_title => '跟随一次潜水';
@@ -19833,6 +19888,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_issue_noBailout => '减压计划未携带逃生气体';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return '$depth 处逃生气体为低氧气体（ppO₂ $value bar）。请携带可一直呼吸至水面的气体。';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -32424,6 +32484,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_summary_noticeValuesNotConvertedTitle => '部分值留空';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle => '部分混合气已更正';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return '这些行中的氧气和氦气合计超过 100%：$rows。已降低氦气，使总量为 100%。请检查这些潜水的气体。';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -39447,7 +39515,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reef_section_sourcesTooltip => '数据来源';
 
   @override
-  String get reef_section_loadError => '目前无法加载生态系统数据';
+  String get reef_section_checking => '正在检查…';
 
   @override
   String get reef_habitat_title => '珊瑚礁生境';
@@ -49581,10 +49649,90 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => '新建情形';
+  String get diveLab_compare_line_planned => '计划';
 
   @override
-  String get diveLab_section_hint => '在任意时刻分支此次潜水，比较本可能发生的情况。';
+  String get diveLab_compare_line_asDived => '实际潜水';
+
+  @override
+  String get diveLab_compare_addWhatIf => '假设';
+
+  @override
+  String get diveLab_compare_row_maxDepth => '最大深度';
+
+  @override
+  String get diveLab_compare_row_bottomTime => '水底时间';
+
+  @override
+  String get diveLab_compare_row_ndl => '离开水底时的免减压时间';
+
+  @override
+  String get diveLab_compare_row_deco => '减压';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '剩余 $minutes 分钟';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return '$time 进入减压';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required，已完成 $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => '无';
+
+  @override
+  String get diveLab_compare_empty => '暂无可比较的内容';
+
+  @override
+  String get diveLab_compare_askWhatIf => '提出假设';
+
+  @override
+  String get diveLab_compare_linkPlan => '关联计划';
+
+  @override
+  String get diveLab_compare_unlinkPlan => '取消关联计划';
+
+  @override
+  String get diveLab_compare_planTable => '计划与潜水';
+
+  @override
+  String get diveLab_compare_plannedSchedule => '计划时间表';
+
+  @override
+  String get diveLab_compare_waiting => '等待潜水';
+
+  @override
+  String get diveLab_link_unlinkTitle => '取消关联此计划？';
+
+  @override
+  String get diveLab_link_unlinkBody => '计划和潜水都会保留，只是不再进行比较。';
+
+  @override
+  String get diveLab_link_unlinkConfirm => '取消关联';
+
+  @override
+  String get diveLab_link_moveTitle => '移动此计划的关联？';
+
+  @override
+  String get diveLab_link_moveBody => '此计划已关联到另一次潜水。在此关联将移除原有关联。';
+
+  @override
+  String get diveLab_link_replaceTitle => '替换此潜水的计划？';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return '此潜水正在与“$plan”比较。关联其他计划将取消该关联。';
+  }
+
+  @override
+  String get diveLab_link_confirm => '关联';
 
   @override
   String get diveDetailSection_diveLab_name => '对比';
@@ -51587,6 +51735,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => '对比…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => '计划重复潜水';
 
   @override
   String get plannerCanvas_sourceCompare_title => '对比原始潜水';

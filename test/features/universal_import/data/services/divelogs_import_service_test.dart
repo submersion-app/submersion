@@ -14,6 +14,8 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 import 'package:submersion/features/universal_import/data/services/divelogs_import_service.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 
+import '../../../../helpers/dive_match_records.dart';
+
 void main() {
   Map<String, dynamic> diveJson(
     int id, {
@@ -432,7 +434,7 @@ void main() {
 
     final result = const ImportDuplicateChecker().check(
       payload: payload,
-      existingDives: [existingDive],
+      existingDives: [diveMatchRecordOf(existingDive)],
       existingSites: const [],
       existingTrips: const [],
       existingEquipment: const [],

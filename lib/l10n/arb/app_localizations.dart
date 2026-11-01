@@ -11225,6 +11225,12 @@ abstract class AppLocalizations {
   /// **'Dives restored'**
   String get diveLog_bulkDelete_restored;
 
+  /// No description provided for @diveLog_bulkDelete_restoredIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives restored, but some recorded data could not be recovered'**
+  String get diveLog_bulkDelete_restoredIncomplete;
+
   /// No description provided for @diveLog_bulkDelete_snackbar.
   ///
   /// In en, this message translates to:
@@ -32922,12 +32928,6 @@ abstract class AppLocalizations {
   /// **'Export failed: {error}'**
   String plannerCanvas_export_failed(String error);
 
-  /// No description provided for @plannerCanvas_follow_chip.
-  ///
-  /// In en, this message translates to:
-  /// **'Following {name}'**
-  String plannerCanvas_follow_chip(String name);
-
   /// No description provided for @plannerCanvas_follow_empty.
   ///
   /// In en, this message translates to:
@@ -32939,6 +32939,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data on that dive — surface interval set without tissue seeding'**
   String get plannerCanvas_follow_noTissues;
+
+  /// No description provided for @plannerCanvas_link_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a logged dive'**
+  String get plannerCanvas_link_action;
+
+  /// No description provided for @plannerCanvas_link_changeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change linked dive'**
+  String get plannerCanvas_link_changeAction;
+
+  /// No description provided for @plannerCanvas_unlink_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink dive'**
+  String get plannerCanvas_unlink_action;
+
+  /// No description provided for @plannerCanvas_link_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived as #{number}'**
+  String plannerCanvas_link_badge(int number);
+
+  /// No description provided for @plannerCanvas_link_badgeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived {date}'**
+  String plannerCanvas_link_badgeDate(String date);
+
+  /// No description provided for @plannerCanvas_link_saveFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the plan first'**
+  String get plannerCanvas_link_saveFirst;
 
   /// The planned dive's letter within its series: A, B, C
   ///
@@ -32987,6 +33023,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {letter}: {name}'**
   String plannerSeries_diveNamed(String letter, String name);
+
+  /// A logged dive shown in the planner series bar, by its dive number, name or date
+  ///
+  /// In en, this message translates to:
+  /// **'Logged dive {label}'**
+  String plannerSeries_loggedDive(String label);
+
+  /// No description provided for @plannerSeries_openInLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in dive log'**
+  String get plannerSeries_openInLog;
+
+  /// No description provided for @plannerSeries_stopFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop following'**
+  String get plannerSeries_stopFollowing;
+
+  /// Heading over what a logged dive passes on to the dive after it
+  ///
+  /// In en, this message translates to:
+  /// **'Carried into {dive}'**
+  String plannerSeries_carriedInto(String dive);
+
+  /// No description provided for @plannerSeries_endCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at the end'**
+  String get plannerSeries_endCns;
+
+  /// No description provided for @plannerSeries_otu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get plannerSeries_otu;
+
+  /// Offer to follow the most recent logged dive: its name or number, then h:mm since it ended
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} ended {time} ago.'**
+  String plannerSeries_followPrompt(String dive, String time);
+
+  /// A logged dive by its number in the log
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String plannerSeries_loggedDiveNumber(int number);
+
+  /// No description provided for @plannerSeries_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get plannerSeries_follow;
 
   /// No description provided for @plannerSeries_surfaceInterval.
   ///
@@ -33048,11 +33138,11 @@ abstract class AppLocalizations {
   /// **'A series of dives can\'t be planned as a DPV mission'**
   String get plannerSeries_missionUnavailable;
 
-  /// No description provided for @plannerSeries_followFirstDiveOnly.
+  /// No description provided for @plannerSeries_followUnavailableInReplan.
   ///
   /// In en, this message translates to:
-  /// **'Only the first dive of a series can follow a logged dive'**
-  String get plannerSeries_followFirstDiveOnly;
+  /// **'A replan can\'t follow another dive'**
+  String get plannerSeries_followUnavailableInReplan;
 
   /// No description provided for @plannerCanvas_follow_title.
   ///
@@ -33161,6 +33251,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decompression plan carries no bailout gas'**
   String get plannerCanvas_issue_noBailout;
+
+  /// No description provided for @plannerCanvas_issue_bailoutHypoxic.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout gas is hypoxic at {depth} (ppO₂ {value} bar). Carry a gas breathable to the surface.'**
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value);
 
   /// No description provided for @plannerCanvas_issue_noEligibleBailoutGas.
   ///
@@ -54214,7 +54310,7 @@ abstract class AppLocalizations {
   /// **'Parsing file {current} of {total}…'**
   String universalImport_triage_parsing(int current, int total);
 
-  /// Button that cancels a running batch parse at the next file boundary
+  /// Button that stops a running file parse straight away, for one file or a batch
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
@@ -54423,6 +54519,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Some values left blank'**
   String get universalImport_summary_noticeValuesNotConvertedTitle;
+
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some gas mixes were corrected'**
+  String get universalImport_summary_noticeGasMixesCappedTitle;
+
+  /// No description provided for @universalImport_summary_noticeGasMixesCappedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen and helium added up to over 100% in these rows: {rows}. Helium was reduced so the total is 100%. Check the gas on these dives.'**
+  String universalImport_summary_noticeGasMixesCappedBody(String rows);
 
   /// No description provided for @universalImport_summary_noticeValuesNotConvertedBody.
   ///
@@ -65936,11 +66044,11 @@ abstract class AppLocalizations {
   /// **'Data sources'**
   String get reef_section_sourcesTooltip;
 
-  /// No description provided for @reef_section_loadError.
+  /// No description provided for @reef_section_checking.
   ///
   /// In en, this message translates to:
-  /// **'Could not load ecosystem data right now'**
-  String get reef_section_loadError;
+  /// **'Checking…'**
+  String get reef_section_checking;
 
   /// No description provided for @reef_habitat_title.
   ///
@@ -83687,17 +83795,161 @@ abstract class AppLocalizations {
   /// **'Re-plan at {time}'**
   String diveLab_summary_replan(String time);
 
-  /// No description provided for @diveLab_section_new.
+  /// No description provided for @diveLab_compare_line_planned.
   ///
   /// In en, this message translates to:
-  /// **'New scenario'**
-  String get diveLab_section_new;
+  /// **'Planned'**
+  String get diveLab_compare_line_planned;
 
-  /// No description provided for @diveLab_section_hint.
+  /// No description provided for @diveLab_compare_line_asDived.
   ///
   /// In en, this message translates to:
-  /// **'Branch this dive at any moment and compare what would have happened.'**
-  String get diveLab_section_hint;
+  /// **'As dived'**
+  String get diveLab_compare_line_asDived;
+
+  /// No description provided for @diveLab_compare_addWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'What if'**
+  String get diveLab_compare_addWhatIf;
+
+  /// No description provided for @diveLab_compare_row_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get diveLab_compare_row_maxDepth;
+
+  /// No description provided for @diveLab_compare_row_bottomTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get diveLab_compare_row_bottomTime;
+
+  /// No description provided for @diveLab_compare_row_ndl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL on leaving bottom'**
+  String get diveLab_compare_row_ndl;
+
+  /// No description provided for @diveLab_compare_row_deco.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get diveLab_compare_row_deco;
+
+  /// No description provided for @diveLab_compare_ndlLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min left'**
+  String diveLab_compare_ndlLeft(int minutes);
+
+  /// No description provided for @diveLab_compare_decoAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco at {time}'**
+  String diveLab_compare_decoAt(String time);
+
+  /// No description provided for @diveLab_compare_decoDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{required}, {done} done'**
+  String diveLab_compare_decoDone(String required, String done);
+
+  /// No description provided for @diveLab_compare_noDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get diveLab_compare_noDeco;
+
+  /// No description provided for @diveLab_compare_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to compare yet'**
+  String get diveLab_compare_empty;
+
+  /// No description provided for @diveLab_compare_askWhatIf.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a what-if'**
+  String get diveLab_compare_askWhatIf;
+
+  /// No description provided for @diveLab_compare_linkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a plan'**
+  String get diveLab_compare_linkPlan;
+
+  /// No description provided for @diveLab_compare_unlinkPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink plan'**
+  String get diveLab_compare_unlinkPlan;
+
+  /// No description provided for @diveLab_compare_planTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan against dive'**
+  String get diveLab_compare_planTable;
+
+  /// No description provided for @diveLab_compare_plannedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned schedule'**
+  String get diveLab_compare_plannedSchedule;
+
+  /// No description provided for @diveLab_compare_waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the dive'**
+  String get diveLab_compare_waiting;
+
+  /// No description provided for @diveLab_link_unlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink this plan?'**
+  String get diveLab_link_unlinkTitle;
+
+  /// No description provided for @diveLab_link_unlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan and the dive both stay. They just stop being compared.'**
+  String get diveLab_link_unlinkBody;
+
+  /// No description provided for @diveLab_link_unlinkConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get diveLab_link_unlinkConfirm;
+
+  /// No description provided for @diveLab_link_moveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Move this plan\'s link?'**
+  String get diveLab_link_moveTitle;
+
+  /// No description provided for @diveLab_link_moveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan is linked to another dive. Linking it here removes that link.'**
+  String get diveLab_link_moveBody;
+
+  /// No description provided for @diveLab_link_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace this dive\'s plan?'**
+  String get diveLab_link_replaceTitle;
+
+  /// No description provided for @diveLab_link_replaceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is compared with \"{plan}\". Linking another plan unlinks that one.'**
+  String diveLab_link_replaceBody(String plan);
+
+  /// No description provided for @diveLab_link_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get diveLab_link_confirm;
 
   /// No description provided for @diveDetailSection_diveLab_name.
   ///
@@ -86958,6 +87210,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compare…'**
   String get diveLog_detail_menu_whatIf;
+
+  /// No description provided for @diveLog_detail_menu_planRepetitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan repetitive dive'**
+  String get diveLog_detail_menu_planRepetitive;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.
   ///

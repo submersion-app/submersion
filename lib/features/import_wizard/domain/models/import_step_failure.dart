@@ -16,3 +16,11 @@ class ImportStepFailure implements Exception {
   @override
   String toString() => message;
 }
+
+/// Thrown out of a step's `onBeforeAdvance` when the diver stopped it.
+///
+/// Stops the wizard where it is, for the reason [ImportStepFailure] does, but
+/// with nothing to report: the diver asked for this.
+class ImportStepCancelled implements Exception {
+  const ImportStepCancelled();
+}

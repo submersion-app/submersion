@@ -7150,6 +7150,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Inmersiones restauradas';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Inmersiones restauradas, pero no se pudieron recuperar algunos datos registrados';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20678,16 +20682,33 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Siguiendo $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'Aún no hay inmersiones registradas';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'Sin datos de perfil en esa inmersión — intervalo en superficie establecido sin saturación de tejidos';
+
+  @override
+  String get plannerCanvas_link_action => 'Vincular a una inmersión registrada';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Cambiar inmersión vinculada';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Desvincular inmersión';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Realizada como #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Realizada el $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Guarda primero el plan';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20722,6 +20743,41 @@ class AppLocalizationsEs extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return 'Inmersión $letter: $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Inmersión registrada $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Abrir en el registro';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Dejar de seguir';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Se traslada a $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS al final';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive terminó hace $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Inmersión #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Seguir';
 
   @override
   String get plannerSeries_surfaceInterval => 'Intervalo en superficie';
@@ -20762,8 +20818,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Una serie de inmersiones no se puede planificar como misión DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Solo la primera inmersión de una serie puede seguir una inmersión registrada';
+  String get plannerSeries_followUnavailableInReplan =>
+      'Una replanificación no puede seguir otra inmersión';
 
   @override
   String get plannerCanvas_follow_title => 'Seguir una inmersión';
@@ -20845,6 +20901,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'El plan de descompresión no lleva gas de bailout';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'El gas de bailout es hipóxico a $depth (ppO₂ $value bar). Lleva un gas respirable hasta la superficie.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -34467,6 +34528,15 @@ class AppLocalizationsEs extends AppLocalizations {
       'Algunos valores quedaron en blanco';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Se corrigieron algunas mezclas de gas';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'El oxígeno y el helio sumaban más del 100 % en estas filas: $rows. Se redujo el helio para que el total sea del 100 %. Revisa el gas de estas inmersiones.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41919,8 +41989,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Fuentes de datos';
 
   @override
-  String get reef_section_loadError =>
-      'No se pudieron cargar los datos del ecosistema en este momento';
+  String get reef_section_checking => 'Comprobando…';
 
   @override
   String get reef_habitat_title => 'Hábitat del arrecife';
@@ -52924,11 +52993,93 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'Nuevo escenario';
+  String get diveLab_compare_line_planned => 'Planificado';
 
   @override
-  String get diveLab_section_hint =>
-      'Ramifica esta inmersión en cualquier momento y compara lo que habría pasado.';
+  String get diveLab_compare_line_asDived => 'Realizada';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'Qué pasaría si';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Prof. máx.';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Tiempo de fondo';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL al dejar el fondo';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'quedan $minutes min';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco a los $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done hechos';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'Ninguna';
+
+  @override
+  String get diveLab_compare_empty => 'Aún no hay nada que comparar';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Plantear un qué pasaría si';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Vincular un plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Desvincular plan';
+
+  @override
+  String get diveLab_compare_planTable => 'Plan e inmersión';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Programa planificado';
+
+  @override
+  String get diveLab_compare_waiting => 'A la espera de la inmersión';
+
+  @override
+  String get diveLab_link_unlinkTitle => '¿Desvincular este plan?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'El plan y la inmersión se conservan. Solo dejan de compararse.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Desvincular';
+
+  @override
+  String get diveLab_link_moveTitle => '¿Mover el vínculo de este plan?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'Este plan está vinculado a otra inmersión. Vincularlo aquí elimina ese vínculo.';
+
+  @override
+  String get diveLab_link_replaceTitle =>
+      '¿Reemplazar el plan de esta inmersión?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'Esta inmersión se compara con \"$plan\". Vincular otro plan lo desvincula.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Vincular';
 
   @override
   String get diveDetailSection_diveLab_name => 'Comparar';
@@ -55082,6 +55233,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Comparar…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive =>
+      'Planificar inmersión sucesiva';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. inmersión original';

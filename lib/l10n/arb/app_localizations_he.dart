@@ -6996,6 +6996,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'הצלילות שוחזרו';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'הצלילות שוחזרו, אך לא ניתן היה לשחזר חלק מהנתונים המוקלטים';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20226,16 +20230,33 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'עוקב אחרי $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'אין עדיין צלילות מתועדות';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות';
+
+  @override
+  String get plannerCanvas_link_action => 'קישור לצלילה מתועדת';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'שינוי הצלילה המקושרת';
+
+  @override
+  String get plannerCanvas_unlink_action => 'ביטול קישור הצלילה';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'בוצעה כצלילה #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'בוצעה ב-$date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'שמור תחילה את התוכנית';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20270,6 +20291,41 @@ class AppLocalizationsHe extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return 'צלילה $letter: $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'צלילה מתועדת $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_stopFollowing => 'הפסקת מעקב';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'מועבר אל $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS בסוף';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive הסתיימה לפני $time.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'צלילה #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'מעקב';
 
   @override
   String get plannerSeries_surfaceInterval => 'מרווח שטח';
@@ -20309,8 +20365,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לתכנן סדרת צלילות כמשימת DPV';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'רק הצלילה הראשונה בסדרה יכולה לעקוב אחרי צלילה מתועדת';
+  String get plannerSeries_followUnavailableInReplan =>
+      'תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת';
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
@@ -20391,6 +20447,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'תוכנית דקומפרסיה ללא גז חילוץ (bailout)';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'גז החילוץ (bailout) היפוקסי ב-$depth (ppO₂ $value bar). יש לשאת גז שניתן לנשימה עד פני המים.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -33584,6 +33645,15 @@ class AppLocalizationsHe extends AppLocalizations {
       'חלק מהערכים נשארו ריקים';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'חלק מתערובות הגז תוקנו';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'חמצן והליום יחד עברו את 100% בשורות האלה: $rows. ההליום הופחת כך שהסך הכול הוא 100%. בדקו את הגז בצלילות האלה.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -40849,8 +40919,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'מקורות נתונים';
 
   @override
-  String get reef_section_loadError =>
-      'לא ניתן לטעון נתוני מערכת אקולוגית כרגע';
+  String get reef_section_checking => 'בודק…';
 
   @override
   String get reef_habitat_title => 'בית גידול השונית';
@@ -51736,11 +51805,92 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'תרחיש חדש';
+  String get diveLab_compare_line_planned => 'מתוכנן';
 
   @override
-  String get diveLab_section_hint =>
-      'הסתעפו מהצלילה בכל רגע והשוו מה היה קורה.';
+  String get diveLab_compare_line_asDived => 'כפי שבוצעה';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'מה אם';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'עומק מרבי';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL בעזיבת הקרקעית';
+
+  @override
+  String get diveLab_compare_row_deco => 'דקו';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return 'נותרו $minutes דק׳';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'דקו ב-$time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, בוצעו $done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'אין';
+
+  @override
+  String get diveLab_compare_empty => 'אין עדיין מה להשוות';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'שאל מה אם';
+
+  @override
+  String get diveLab_compare_linkPlan => 'קישור תוכנית';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'ביטול קישור התוכנית';
+
+  @override
+  String get diveLab_compare_planTable => 'תוכנית מול צלילה';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'לוח זמנים מתוכנן';
+
+  @override
+  String get diveLab_compare_waiting => 'ממתין לצלילה';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'לבטל את קישור התוכנית?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'התוכנית והצלילה נשארות. הן פשוט לא יושוו יותר.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'ביטול קישור';
+
+  @override
+  String get diveLab_link_moveTitle => 'להעביר את הקישור של התוכנית?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'התוכנית מקושרת לצלילה אחרת. קישור כאן יסיר את הקישור הקודם.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'להחליף את התוכנית של הצלילה?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'הצלילה מושווית אל \"$plan\". קישור תוכנית אחרת יבטל את הקישור אליה.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'קישור';
 
   @override
   String get diveDetailSection_diveLab_name => 'השוואה';
@@ -53843,6 +53993,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'השוואה…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'תכנון צלילה חוזרת';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'לעומת הצלילה המקורית';

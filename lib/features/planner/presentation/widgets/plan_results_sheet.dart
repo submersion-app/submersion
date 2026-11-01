@@ -404,7 +404,7 @@ class _RuntimeTable extends ConsumerWidget {
           glyph(scheduleRowGlyph(line.row.kind)),
           cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
           cell(
-            _durationText(line),
+            line.durationLabel('′'),
             style: hasMinimum
                 ? theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -442,15 +442,6 @@ class _RuntimeTable extends ConsumerWidget {
       ),
       child: row,
     );
-  }
-
-  /// Whole minutes, so the column adds up to the runtime beside it.
-  String _durationText(ScheduleLine line) {
-    final base = '${line.durationMinutes}′';
-    if (line.row.airBreakSeconds > 0) {
-      return "$base (+${(line.row.airBreakSeconds / 60).ceil()}′)";
-    }
-    return base;
   }
 }
 
@@ -877,7 +868,7 @@ class _BailoutScheduleTable extends StatelessWidget {
                   ),
                 ),
                 cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
-                cell('${line.durationMinutes}′'),
+                cell(line.durationLabel('′')),
                 cell('${line.runtimeMinutes}′'),
                 cell(
                   GasMix(

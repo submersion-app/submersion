@@ -8,16 +8,20 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 ///
 /// The plan engine charges gas at the plan's single SAC; a mission has one
 /// SAC per member, so consumption is re-derived from the engine's schedule
-/// rows (depth and duration) instead of running the engine once per member.
+/// rows (depth, duration and folded travel) instead of running the engine once
+/// per member.
 class MemberGasService {
   const MemberGasService();
 
   /// Surface litres breathed per tank id over [rows]. A travel row is charged
   /// at the mean of its start depth (the previous row's end, or [startDepth]
   /// for the first row) and its end depth; a level or stop row at its own
-  /// depth. [sacFor] gives the litres per minute in force on a row. Pass
-  /// [startDepth] when [rows] are a slice of a dive that does not begin at
-  /// the surface.
+  /// depth. A stop's air break is charged to the cylinder it is breathed
+  /// from, at the same depth and rate as the rest of the stop. Travel folded
+  /// into a row is charged too, at that row's rate, each stretch at its own
+  /// mean depth to its own cylinder. [sacFor] gives the litres per minute in
+  /// force on a row. Pass [startDepth] when [rows] are a slice of a dive that
+  /// does not begin at the surface.
   Map<String, double> litersByTank({
     required List<PlanScheduleRow> rows,
     required DiveEnvironment environment,
@@ -25,9 +29,19 @@ class MemberGasService {
     double startDepth = 0.0,
   }) {
     final liters = <String, double>{};
+    void charge(String? tankId, int seconds, double depth, double sac) {
+      if (tankId == null) return;
+      final used = seconds / 60.0 * sac * environment.pressureAtDepth(depth);
+      liters[tankId] = (liters[tankId] ?? 0.0) + used;
+    }
+
     var previousDepth = startDepth;
     for (final row in rows) {
-      final tankId = row.tankId;
+      final sac = sacFor(row);
+      for (final leg in row.foldedTravel) {
+        final depth = (leg.fromDepthMeters + leg.toDepthMeters) / 2.0;
+        charge(leg.tankId, leg.seconds, depth, sac);
+      }
       final isTravel =
           row.kind == PlanScheduleRowKind.descent ||
           row.kind == PlanScheduleRowKind.ascent;
@@ -35,10 +49,11 @@ class MemberGasService {
           ? (previousDepth + row.depthMeters) / 2.0
           : row.depthMeters;
       previousDepth = row.depthMeters;
-      if (tankId == null) continue;
-      final minutes = row.durationSeconds / 60.0;
-      final used = minutes * sacFor(row) * environment.pressureAtDepth(depth);
-      liters[tankId] = (liters[tankId] ?? 0.0) + used;
+      final breakSeconds = row.airBreakSeconds;
+      charge(row.tankId, row.durationSeconds - breakSeconds, depth, sac);
+      if (breakSeconds > 0) {
+        charge(row.airBreakTankId ?? row.tankId, breakSeconds, depth, sac);
+      }
     }
     return liters;
   }

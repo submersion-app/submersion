@@ -7038,6 +7038,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_bulkDelete_restored => 'Dives restored';
 
   @override
+  String get diveLog_bulkDelete_restoredIncomplete =>
+      'Dives restored, but some recorded data could not be recovered';
+
+  @override
   String diveLog_bulkDelete_snackbar(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -20378,16 +20382,33 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerCanvas_follow_chip(String name) {
-    return 'Following $name';
-  }
-
-  @override
   String get plannerCanvas_follow_empty => 'No logged dives yet';
 
   @override
   String get plannerCanvas_follow_noTissues =>
       'No profile data on that dive — surface interval set without tissue seeding';
+
+  @override
+  String get plannerCanvas_link_action => 'Link to a logged dive';
+
+  @override
+  String get plannerCanvas_link_changeAction => 'Change linked dive';
+
+  @override
+  String get plannerCanvas_unlink_action => 'Unlink dive';
+
+  @override
+  String plannerCanvas_link_badge(int number) {
+    return 'Dived as #$number';
+  }
+
+  @override
+  String plannerCanvas_link_badgeDate(String date) {
+    return 'Dived $date';
+  }
+
+  @override
+  String get plannerCanvas_link_saveFirst => 'Save the plan first';
 
   @override
   String plannerSeries_dive(String letter) {
@@ -20422,6 +20443,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannerSeries_diveNamed(String letter, String name) {
     return 'Dive $letter: $name';
   }
+
+  @override
+  String plannerSeries_loggedDive(String label) {
+    return 'Logged dive $label';
+  }
+
+  @override
+  String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_stopFollowing => 'Stop following';
+
+  @override
+  String plannerSeries_carriedInto(String dive) {
+    return 'Carried into $dive';
+  }
+
+  @override
+  String get plannerSeries_endCns => 'CNS at the end';
+
+  @override
+  String get plannerSeries_otu => 'OTU';
+
+  @override
+  String plannerSeries_followPrompt(String dive, String time) {
+    return '$dive ended $time ago.';
+  }
+
+  @override
+  String plannerSeries_loggedDiveNumber(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get plannerSeries_follow => 'Follow';
 
   @override
   String get plannerSeries_surfaceInterval => 'Surface interval';
@@ -20461,8 +20517,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'A series of dives can\'t be planned as a DPV mission';
 
   @override
-  String get plannerSeries_followFirstDiveOnly =>
-      'Only the first dive of a series can follow a logged dive';
+  String get plannerSeries_followUnavailableInReplan =>
+      'A replan can\'t follow another dive';
 
   @override
   String get plannerCanvas_follow_title => 'Follow a dive';
@@ -20544,6 +20600,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get plannerCanvas_issue_noBailout =>
       'Decompression plan carries no bailout gas';
+
+  @override
+  String plannerCanvas_issue_bailoutHypoxic(String depth, String value) {
+    return 'Bailout gas is hypoxic at $depth (ppO₂ $value bar). Carry a gas breathable to the surface.';
+  }
 
   @override
   String plannerCanvas_issue_noEligibleBailoutGas(
@@ -33862,6 +33923,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some values left blank';
 
   @override
+  String get universalImport_summary_noticeGasMixesCappedTitle =>
+      'Some gas mixes were corrected';
+
+  @override
+  String universalImport_summary_noticeGasMixesCappedBody(String rows) {
+    return 'Oxygen and helium added up to over 100% in these rows: $rows. Helium was reduced so the total is 100%. Check the gas on these dives.';
+  }
+
+  @override
   String universalImport_summary_noticeValuesNotConvertedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -41190,8 +41260,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reef_section_sourcesTooltip => 'Data sources';
 
   @override
-  String get reef_section_loadError =>
-      'Could not load ecosystem data right now';
+  String get reef_section_checking => 'Checking…';
 
   @override
   String get reef_habitat_title => 'Reef habitat';
@@ -52039,11 +52108,92 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLab_section_new => 'New scenario';
+  String get diveLab_compare_line_planned => 'Planned';
 
   @override
-  String get diveLab_section_hint =>
-      'Branch this dive at any moment and compare what would have happened.';
+  String get diveLab_compare_line_asDived => 'As dived';
+
+  @override
+  String get diveLab_compare_addWhatIf => 'What if';
+
+  @override
+  String get diveLab_compare_row_maxDepth => 'Max depth';
+
+  @override
+  String get diveLab_compare_row_bottomTime => 'Bottom time';
+
+  @override
+  String get diveLab_compare_row_ndl => 'NDL on leaving bottom';
+
+  @override
+  String get diveLab_compare_row_deco => 'Deco';
+
+  @override
+  String diveLab_compare_ndlLeft(int minutes) {
+    return '$minutes min left';
+  }
+
+  @override
+  String diveLab_compare_decoAt(String time) {
+    return 'Deco at $time';
+  }
+
+  @override
+  String diveLab_compare_decoDone(String required, String done) {
+    return '$required, $done done';
+  }
+
+  @override
+  String get diveLab_compare_noDeco => 'None';
+
+  @override
+  String get diveLab_compare_empty => 'Nothing to compare yet';
+
+  @override
+  String get diveLab_compare_askWhatIf => 'Ask a what-if';
+
+  @override
+  String get diveLab_compare_linkPlan => 'Link a plan';
+
+  @override
+  String get diveLab_compare_unlinkPlan => 'Unlink plan';
+
+  @override
+  String get diveLab_compare_planTable => 'Plan against dive';
+
+  @override
+  String get diveLab_compare_plannedSchedule => 'Planned schedule';
+
+  @override
+  String get diveLab_compare_waiting => 'Waiting for the dive';
+
+  @override
+  String get diveLab_link_unlinkTitle => 'Unlink this plan?';
+
+  @override
+  String get diveLab_link_unlinkBody =>
+      'The plan and the dive both stay. They just stop being compared.';
+
+  @override
+  String get diveLab_link_unlinkConfirm => 'Unlink';
+
+  @override
+  String get diveLab_link_moveTitle => 'Move this plan\'s link?';
+
+  @override
+  String get diveLab_link_moveBody =>
+      'This plan is linked to another dive. Linking it here removes that link.';
+
+  @override
+  String get diveLab_link_replaceTitle => 'Replace this dive\'s plan?';
+
+  @override
+  String diveLab_link_replaceBody(String plan) {
+    return 'This dive is compared with \"$plan\". Linking another plan unlinks that one.';
+  }
+
+  @override
+  String get diveLab_link_confirm => 'Link';
 
   @override
   String get diveDetailSection_diveLab_name => 'Compare';
@@ -54159,6 +54309,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_whatIf => 'Compare…';
+
+  @override
+  String get diveLog_detail_menu_planRepetitive => 'Plan repetitive dive';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

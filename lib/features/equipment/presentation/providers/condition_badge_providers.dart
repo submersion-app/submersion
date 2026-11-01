@@ -28,7 +28,7 @@ final conditionBadgeProvider = FutureProvider<Map<String, ConditionBadge>>((
   );
   if (!enabled) return const {};
   final out = <String, ConditionBadge>{};
-  for (final f in await findings.getAllUndismissed()) {
+  for (final f in await findings.getUndismissedSummaries()) {
     if (f.severity == ConditionSeverity.info) continue;
     if (disabled.contains(f.ruleId.dbValue)) continue;
     final current = out[f.equipmentId];

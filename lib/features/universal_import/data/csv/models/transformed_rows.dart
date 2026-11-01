@@ -9,6 +9,10 @@ class TransformedRows extends Equatable {
   /// Values are typed: double, int, DateTime, Duration, String.
   final List<Map<String, dynamic>> rows;
 
+  /// The spreadsheet row of each entry in [rows], numbered as
+  /// [ParsedCsv.sourceRowNumber] numbers them.
+  final List<int> sourceRows;
+
   /// Warnings accumulated during transformation.
   final List<ImportWarning> warnings;
 
@@ -23,6 +27,7 @@ class TransformedRows extends Equatable {
 
   const TransformedRows({
     required this.rows,
+    this.sourceRows = const [],
     this.warnings = const [],
     this.fileRole = 'primary',
     this.dateOrder,
@@ -32,6 +37,11 @@ class TransformedRows extends Equatable {
   bool get isNotEmpty => rows.isNotEmpty;
   int get rowCount => rows.length;
 
+  /// The spreadsheet row of `rows[index]`, or where it would sit in a file
+  /// with one header line when [sourceRows] does not say.
+  int sourceRowOf(int index) =>
+      index < sourceRows.length ? sourceRows[index] : index + 2;
+
   @override
-  List<Object?> get props => [rows, warnings, fileRole, dateOrder];
+  List<Object?> get props => [rows, warnings, fileRole, dateOrder, sourceRows];
 }

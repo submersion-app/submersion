@@ -854,6 +854,28 @@ void main() {
       expect(find.textContaining('Dive window'), findsOneWidget);
     });
 
+    testWidgets('counts down to a true instant', (tester) async {
+      await pumpStrip(
+        tester,
+        DashboardGauges(
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          flightWindow: FlightWindowStatus(
+            state: FlightWindowState.open,
+            flightAt: DateTime.now().toUtc().add(const Duration(hours: 23)),
+            deadline: DateTime.now().toUtc().add(
+              const Duration(hours: 5, minutes: 30),
+            ),
+            category: NoFlyCategory.repetitive,
+            interval: const Duration(hours: 18),
+          ),
+        ),
+      );
+      expect(find.textContaining('Dive window 5:'), findsOneWidget);
+    });
+
     testWidgets('shows the closed message past the deadline', (tester) async {
       await pumpStrip(tester, gaugesWith(FlightWindowState.closed));
       expect(find.text('No more diving before flight'), findsOneWidget);

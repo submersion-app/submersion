@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 class ScanApplyResult {
@@ -52,18 +53,23 @@ class QualityFindingsRepository {
     final producedById = {for (final f in produced) f.id: f};
 
     return _db.transaction(() async {
-      final existingRows =
-          await (_db.select(_db.qualityFindings)..where(
-                (t) =>
-                    t.detectorId.isIn(ranDetectorIds) &
-                    (t.diveId.isIn(scopeDiveIds) |
-                        t.relatedDiveId.isIn(scopeDiveIds)),
-              ))
-              .get();
-      final existingById = {for (final r in existingRows) r.id: r};
+      // Chunked because a scope can be a whole import, and each chunk binds
+      // twice. A pair can match in two chunks, so everything below reads this
+      // map rather than the rows, or a removed pair would be logged twice.
+      final existingById = <String, QualityFindingRow>{};
+      for (final chunk in seriesIdChunks(scopeDiveIds.toList())) {
+        final rows =
+            await (_db.select(_db.qualityFindings)..where(
+                  (t) =>
+                      t.detectorId.isIn(ranDetectorIds) &
+                      (t.diveId.isIn(chunk) | t.relatedDiveId.isIn(chunk)),
+                ))
+                .get();
+        existingById.addAll({for (final r in rows) r.id: r});
+      }
 
       var removed = 0;
-      for (final row in existingRows) {
+      for (final row in existingById.values) {
         if (producedById.containsKey(row.id)) continue;
         await (_db.delete(
           _db.qualityFindings,

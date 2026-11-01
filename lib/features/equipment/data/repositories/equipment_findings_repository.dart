@@ -47,13 +47,11 @@ class EquipmentFindingsRepository {
 
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
+  /// Ticks when a stored finding changes. The review marker is left out on
+  /// purpose: nothing displays it, and a pass over a changed fingerprint can
+  /// rewrite one marker per item with every finding untouched.
   Stream<void> watchChanges() => _db
-      .tableUpdates(
-        TableUpdateQuery.allOf([
-          TableUpdateQuery.onTable(_db.equipmentFindings),
-          TableUpdateQuery.onTable(_db.equipmentConditionReviews),
-        ]),
-      )
+      .tableUpdates(TableUpdateQuery.onTable(_db.equipmentFindings))
       .map((_) {});
 
   Future<EquipmentConditionReview?> getReview(String equipmentId) async {
@@ -82,12 +80,33 @@ class EquipmentFindingsRepository {
     return _sorted([for (final row in rows) ?_toDomain(row)]);
   }
 
-  /// Every undismissed finding across items, for badges.
-  Future<List<EquipmentFinding>> getAllUndismissed() async {
-    final rows = await (_db.select(
-      _db.equipmentFindings,
-    )..where((t) => t.dismissedAt.isNull())).get();
-    return _sorted([for (final row in rows) ?_toDomain(row)]);
+  /// Every undismissed finding across items, in rule order, for badges and
+  /// rankings. Reads three columns: evidence can name every qualifying dive,
+  /// and this runs for the whole list on each findings change, so its cost
+  /// must not grow with it.
+  ///
+  /// Rows whose rule this build does not know are dropped, as in
+  /// [getFindings]. Evidence is not looked at, so a row whose evidence does
+  /// not decode (a newer peer's shape) is summarised here though [getFindings]
+  /// drops it.
+  Future<List<FindingSummary>> getUndismissedSummaries() async {
+    final t = _db.equipmentFindings;
+    final rows =
+        await (_db.selectOnly(t)
+              ..addColumns([t.equipmentId, t.ruleId, t.severity])
+              ..where(t.dismissedAt.isNull()))
+            .get();
+    final summaries = <FindingSummary>[];
+    for (final row in rows) {
+      final rule = ConditionRuleId.fromDbValue(row.read(t.ruleId)!);
+      if (rule == null) continue;
+      summaries.add((
+        equipmentId: row.read(t.equipmentId)!,
+        ruleId: rule,
+        severity: ConditionSeverity.fromDbValue(row.read(t.severity)!),
+      ));
+    }
+    return summaries..sort((a, b) => a.ruleId.index.compareTo(b.ruleId.index));
   }
 
   /// Replaces the item's findings with [findings] in one transaction.

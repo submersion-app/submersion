@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_3d/domain/career/career_dive_shape.dart';
 import 'package:submersion/features/dive_3d/domain/career/career_geometry_service.dart';
 import 'package:submersion/features/dive_3d/domain/career/career_scene_data.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// A career-terrain query: all dives at a site, or dives in a date range.
 /// Structural equality (record) makes it a stable family key.
@@ -23,50 +23,50 @@ CareerQuery careerSiteQuery(String siteId, {int cap = 60}) =>
 CareerQuery careerRangeQuery(DateTime from, DateTime to, {int cap = 60}) =>
     (siteId: null, fromDate: from, toDate: to, cap: cap);
 
-DateTime _startOf(Dive d) => d.entryTime ?? d.dateTime;
-
-bool _matches(Dive dive, CareerQuery q) {
-  if (q.siteId != null) return dive.site?.id == q.siteId;
-  final start = _startOf(dive);
-  final afterFrom = q.fromDate == null || !start.isBefore(q.fromDate!);
-  final beforeTo = q.toDate == null || !start.isAfter(q.toDate!);
-  return afterFrom && beforeTo;
-}
-
-/// Downsample target per dive in the terrain (mini-profile resolution).
-const int _pointsPerDive = 120;
-
 /// The set of dives for the terrain, newest-kept up to [CareerQuery.cap],
-/// re-indexed oldest-first. Null when no dive matches.
+/// re-indexed oldest-first. Null when no dive matches, or none that matches
+/// has a profile to draw.
+///
+/// Two repository reads, both bounded to the set (issue #3857): the newest
+/// matching dives as id and start, then every kept dive's primary-source
+/// profile in one batch, decoded and reduced to [kCareerPointsPerDive]
+/// points off the UI isolate (inline only when the whole set is a few
+/// hundred samples). Dives outside the site or date range are never
+/// hydrated and their profiles never read: a site read seeks the site
+/// index, and a date-range read scans the `dives` rows once in SQL.
+///
+/// Follows the analysis-input tick: it covers the dives table, the profile
+/// series and the data sources, which are exactly what this reads.
 final careerSceneDataProvider =
     FutureProvider.family<CareerSceneData?, CareerQuery>((ref, query) async {
-      final all = await ref.watch(divesProvider.future);
-      final matched = all.where((d) => _matches(d, query)).toList()
-        ..sort((a, b) => _startOf(b).compareTo(_startOf(a))); // newest first
-      final kept = matched.take(query.cap).toList().reversed.toList();
-      if (kept.isEmpty) return null;
+      final repository = ref.watch(diveRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
 
+      final newest = await repository.getNewestDiveStarts(
+        diverId: diverId,
+        siteId: query.siteId,
+        from: query.fromDate,
+        to: query.toDate,
+        limit: query.cap,
+      );
+      if (newest.isEmpty) return null;
+      final kept = newest.reversed.toList(); // oldest first
+
+      final shapes = await repository.reducePrimarySourceProfiles([
+        for (final dive in kept) dive.id,
+      ], careerDiveShapeOf);
       final inputs = <CareerDiveInput>[];
-      for (var i = 0; i < kept.length; i++) {
-        final dive = kept[i];
-        final sources = await ref.watch(sourceProfilesProvider(dive.id).future);
-        final points = sources.values.firstOrNull?.points ?? const [];
-        if (points.length < 2) continue;
-        final sorted = [...points]..sort((a, b) => a.timestamp - b.timestamp);
-        final indices = decimateSeriesIndices([
-          for (final p in sorted) p.depth,
-        ], targetPoints: _pointsPerDive);
-        var maxDepth = 0.0;
-        for (final p in sorted) {
-          if (p.depth > maxDepth) maxDepth = p.depth;
-        }
+      for (final dive in kept) {
+        final shape = shapes[dive.id];
+        if (shape == null) continue; // no profile, or a manual dive
         inputs.add(
           CareerDiveInput(
             index: inputs.length,
-            date: _startOf(dive),
-            maxDepthMeters: maxDepth,
-            times: [for (final j in indices) sorted[j].timestamp.toDouble()],
-            depths: [for (final j in indices) sorted[j].depth],
+            date: dive.start,
+            maxDepthMeters: shape.maxDepthMeters,
+            times: shape.times,
+            depths: shape.depths,
           ),
         );
       }

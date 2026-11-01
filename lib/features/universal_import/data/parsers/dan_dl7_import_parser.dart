@@ -241,9 +241,17 @@ class DanDl7Parser implements ImportParser {
     if (named == null) return null;
 
     final name = named['name'] as String;
+    // A name alone is not an identity: two places can share it (#4015). As
+    // JSON, no separator inside one part can pass for the end of it.
+    final identity = jsonEncode([
+      name,
+      zar.country,
+      zar.stateProvince,
+      zar.city,
+    ]);
     return <String, dynamic>{
       ...named,
-      'uddfId': 'dl7_site_${name.toLowerCase()}',
+      'uddfId': 'dl7_site_${identity.toLowerCase()}',
       if (zar.country != null) 'country': zar.country,
       if (zar.stateProvince != null) 'region': zar.stateProvince,
       if (zar.city != null) 'notes': 'City: ${zar.city}',

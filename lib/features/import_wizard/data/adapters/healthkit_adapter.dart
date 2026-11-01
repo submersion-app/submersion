@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/data/services/dive_equipment_defau
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_start_time_index.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -212,6 +213,9 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final unclaimedDives = existingDives
         .where((dive) => !claimedIds.contains(dive.id))
         .toList();
+    final unclaimedByStart = DiveStartTimeIndex(
+      unclaimedDives.map((dive) => dive.effectiveEntryTime),
+    );
 
     for (var i = 0; i < _parsedDives.length; i++) {
       final imported = _parsedDives[i];
@@ -249,7 +253,12 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
       DiveMatchResult? bestMatch;
 
-      for (final existing in unclaimedDives) {
+      final nearby = unclaimedByStart.positionsNear(
+        imported.startTime,
+        DiveMatcher.candidateWindow,
+      );
+      for (final position in nearby) {
+        final existing = unclaimedDives[position];
         final existingSeconds = _diveSeconds(existing);
         final score = _diveMatcher.calculateMatchScore(
           wearableStartTime: imported.startTime,

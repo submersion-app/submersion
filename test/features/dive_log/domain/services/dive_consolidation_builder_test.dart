@@ -132,6 +132,40 @@ void main() {
       },
     );
 
+    group('a plan among the dives (#3924)', () {
+      final plan = makeDive(
+        'plan',
+        entry: t,
+        runtimeMin: 40,
+      ).copyWith(isPlanned: true);
+      final logged = makeDive(
+        'logged',
+        entry: t.add(const Duration(minutes: 10)),
+        runtimeMin: 40,
+      );
+
+      test('the default primary is the logged dive, not the earlier plan', () {
+        final result = builder.classify([plan, logged]);
+
+        expect((result as ConsolidationReady).primary.id, 'logged');
+      });
+
+      test('a plan picked as primary stays the primary', () {
+        final result = builder.classify([plan, logged], primaryDiveId: 'plan');
+
+        expect((result as ConsolidationReady).primary.id, 'plan');
+      });
+
+      test('plans alone default to the earliest', () {
+        final result = builder.classify([
+          plan,
+          logged.copyWith(isPlanned: true),
+        ]);
+
+        expect((result as ConsolidationReady).primary.id, 'plan');
+      });
+    });
+
     // A dive logged with no runtime and no profile has no length, so it is an
     // instant. A re-import of it starting at that instant must still fold
     // into it, or the re-import cannot repair it (#1809).

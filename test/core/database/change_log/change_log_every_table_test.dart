@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
+import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
 import 'package:submersion/core/database/database.dart';
 
 import '../../../helpers/test_database.dart';
@@ -41,14 +42,15 @@ void main() {
         .where((e) => e.value != ChangeLogClass.excluded)
         .map((e) => e.key)
         .toSet();
-    expect(
-      db.allTables.map((t) => t.actualTableName).toSet(),
-      containsAll(logged),
-    );
+    expect({
+      ...db.allTables.map((t) => t.actualTableName),
+      ...changeLogRawTableSpecs.map((spec) => spec.table),
+    }, containsAll(logged));
   });
 
   for (final tableName in changeLogTables.keys) {
     if (changeLogTables[tableName] == ChangeLogClass.excluded) continue;
+    if (changeLogRawTableSpecs.any((spec) => spec.table == tableName)) continue;
 
     test('$tableName writes through its triggers', () async {
       final table = db.allTables.singleWhere(

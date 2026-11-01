@@ -81,7 +81,9 @@ class BuddyCardBuilder {
   Future<Set<BuddyCardField>> availableFields(String diverId) async {
     final diver = await _divers.getDiverById(diverId);
     if (diver == null) return const {};
-    final certs = await _certifications.getAllCertifications(diverId: diverId);
+    final certs = await _certifications.getCertificationMetadata(
+      diverId: diverId,
+    );
     return {
       if (diver.photo != null) BuddyCardField.photo,
       if (_nonEmpty(diver.phone) != null) BuddyCardField.phone,
@@ -100,7 +102,9 @@ class BuddyCardBuilder {
     String diverId, {
     required bool withDetails,
   }) async {
-    final certs = await _certifications.getAllCertifications(diverId: diverId);
+    final certs = await _certifications.getCertificationMetadata(
+      diverId: diverId,
+    );
     if (certs.isEmpty) return const [];
     final catalog = await _catalog();
     return [

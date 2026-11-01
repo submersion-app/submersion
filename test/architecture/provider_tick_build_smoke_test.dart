@@ -277,6 +277,10 @@ void main() {
       read: (c) => c.read(certificationByIdProvider(_id).future),
     ),
     (
+      name: 'certificationMetadataProvider',
+      read: (c) => c.read(certificationMetadataProvider.future),
+    ),
+    (
       name: 'certificationSearchProvider',
       read: (c) => c.read(certificationSearchProvider(_id).future),
     ),
@@ -285,6 +289,10 @@ void main() {
       read: (c) => c.read(
         certificationsByAgencyProvider(CertificationAgency.padi.name).future,
       ),
+    ),
+    (
+      name: 'walletCertificationsProvider',
+      read: (c) => c.read(walletCertificationsProvider.future),
     ),
     (
       name: 'expiredCertificationsProvider',
@@ -511,6 +519,14 @@ void main() {
     (
       name: 'weeklyOtuProvider',
       read: (c) => c.read(weeklyOtuProvider(_id).future),
+    ),
+    (
+      name: 'residualOtuProvider',
+      read: (c) => c.read(residualOtuProvider(_id).future),
+    ),
+    (
+      name: 'residualTissueStateProvider',
+      read: (c) => c.read(residualTissueStateProvider(_id).future),
     ),
     (
       name: 'tablePresetsProvider',

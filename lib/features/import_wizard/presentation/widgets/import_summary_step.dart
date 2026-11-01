@@ -605,6 +605,13 @@ _FileNoticeWording? _fileNoticeWording(
       ),
       action: null,
     ),
+    ImportNoticeKind.gasMixesCapped => (
+      title: l10n.universalImport_summary_noticeGasMixesCappedTitle,
+      body: l10n.universalImport_summary_noticeGasMixesCappedBody(
+        _listedRows(notice.rowNumbers),
+      ),
+      action: null,
+    ),
     ImportNoticeKind.photosSkipped => (
       title: l10n.universalImport_summary_noticePhotosSkippedTitle,
       body: l10n.universalImport_summary_noticePhotosSkippedBody(notice.count),
@@ -680,6 +687,12 @@ _FileNoticeWording? _fileNoticeWording(
     ),
   };
 }
+
+/// [rows] up to [maxListedRows], then how many more. The count needs no
+/// translation, so a sentence in any language can carry it.
+String _listedRows(List<int> rows) => rows.length <= maxListedRows
+    ? rows.join(', ')
+    : '${rows.take(maxListedRows).join(', ')}, +${rows.length - maxListedRows}';
 
 /// Explains something the diver should know about an import that succeeded:
 /// data the source did not contain, or items that could not come across.
