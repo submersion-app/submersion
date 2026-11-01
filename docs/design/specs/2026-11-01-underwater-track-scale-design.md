@@ -187,7 +187,7 @@ The maintainer chose this after review found that, at the old fixed opening zoom
 
 An anchored track opens fitted to its drawn points as currently corrected, up to zoom 17, the detail map's limit. A track with no start point opens on the world view as before.
 
-The fit runs once, from `onMapReady`, not through `initialCameraFit`. That option reapplies on a size change, and this map resizes whenever the panel below it changes height, which must not undo the diver's own pan and zoom.
+The fit goes through `initialCameraFit`, computed once when the page first has the route. `flutter_map` applies it once at the first layout, so a later change in the map's height, which happens whenever the panel below it changes, does not undo the diver's own pan and zoom.
 
 ### Detail page
 
@@ -275,4 +275,3 @@ The maintainer has not been asked about these. Each is easy to change.
 - The exact wording of new strings.
 - Where the handle's maths and gesture live. `nav_track_align_page.dart` is
   already at 816 lines, so they belong outside it and the page only wires them in.
-  Splitting the page further waits for open PR #4038, which reworks the same panel.

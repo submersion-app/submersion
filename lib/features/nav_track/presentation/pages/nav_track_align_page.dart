@@ -16,6 +16,7 @@ import 'package:submersion/features/bathymetry/presentation/depth_overlay_toggle
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_corner_controls.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
@@ -81,7 +82,11 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   Timer? _terrainDebounce;
 
   bool _initialized = false;
-  bool _framed = false;
+
+  /// How the map opens: fitted to the track, so a small one keeps the scale
+  /// handle clear of the start marker. Read once, at the first layout. Null
+  /// for a track with no start point, which opens on the world view.
+  TrackCamera? _openingCamera;
   NavTrackCorrection _correction = const NavTrackCorrection();
   _Placing _placing = _Placing.none;
   NavTrackTerrainCheckResult? _terrainResult;
@@ -117,6 +122,16 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
       correction = correction.copyWith(endMode: NavTrackEndMode.sameAsStart);
     }
     _correction = correction;
+    final opening = route.withCorrection(correction);
+    if (opening.anchor != null) {
+      _openingCamera = navTrackCamera(
+        opening,
+        padding: const EdgeInsets.all(48),
+        // As on the detail map: a tiny track must not fit past what a map
+        // style has tiles for.
+        maxZoom: 17,
+      );
+    }
     _scheduleTerrainCheck(route);
   }
 
@@ -218,26 +233,6 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
     await _persistCorrection(route);
     if (!mounted) return;
     context.push(underwaterTrackSeascapeLocation(route.id));
-  }
-
-  /// Fits the map to the track, once, when the page opens: close enough on a
-  /// small track to keep the scale handle clear of the start marker.
-  ///
-  /// Driven from `onMapReady` rather than `initialCameraFit`, which reapplies
-  /// on a size change. This map resizes whenever the panel below it changes
-  /// height, and that must not undo the diver's own pan and zoom.
-  void _frameTrack(NavTrack route) {
-    if (_framed) return;
-    _framed = true;
-    final track = route.withCorrection(_correction);
-    if (track.anchor == null) return;
-    navTrackCamera(
-      track,
-      padding: const EdgeInsets.all(48),
-      // As on the detail map: a tiny track must not fit past what a map style
-      // has tiles for.
-      maxZoom: 17,
-    ).applyTo(_mapController);
   }
 
   void _startPlacing(_Placing target) => setState(() => _placing = target);
@@ -356,6 +351,7 @@ class _AlignPageBody extends ConsumerWidget {
         ? null
         : scaleHandleIndex(route.points, start: activeStart, end: activeEnd);
 
+    final opening = state._openingCamera;
     final initialCenter = anchor != null
         ? LatLng(anchor.latitude, anchor.longitude)
         : const LatLng(0, 0);
@@ -403,13 +399,13 @@ class _AlignPageBody extends ConsumerWidget {
                     child: FlutterMap(
                       mapController: state._mapController,
                       options: MapOptions(
-                        initialCenter: initialCenter,
-                        initialZoom: anchor != null ? 15 : 3,
+                        initialCameraFit: opening?.fit,
+                        initialCenter: opening?.center ?? initialCenter,
+                        initialZoom: opening?.zoom ?? (anchor != null ? 15 : 3),
                         // The zoom range, pole stop and pinch handling every
                         // other map has (#3664).
                         minZoom: 2.0,
                         maxZoom: 18.0,
-                        onMapReady: () => state._frameTrack(route),
                         interactionOptions: rotatableMapInteraction,
                         cameraConstraint: worldMapCameraConstraint,
                       ),
