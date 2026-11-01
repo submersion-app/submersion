@@ -107,7 +107,12 @@ class QualityScanService {
     DateTime? now,
   }) async {
     final enabled = _enabled(enabledDetectorIds);
-    final candidates = await QualityPrefilters().candidatesByDetector(now: now);
+    // Resolved here so the dives the prefilters pick are judged by the clock
+    // that picked them, however long the batches take.
+    final scanNow = now ?? DateTime.now();
+    final candidates = await QualityPrefilters().candidatesByDetector(
+      now: scanNow,
+    );
     final allDiveIds = [
       for (final r in await _db.customSelect('SELECT id FROM dives').get())
         r.read<String>('id'),
@@ -127,7 +132,7 @@ class QualityScanService {
           for (final d in enabled)
             if (candidates[d.id]?.contains(diveId) ?? true) d,
         ],
-        now: now,
+        now: scanNow,
       );
       produced += summary.findingsProduced;
       errors += summary.detectorErrors;

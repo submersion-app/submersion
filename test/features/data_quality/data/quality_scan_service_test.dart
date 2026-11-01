@@ -366,6 +366,24 @@ void main() {
     });
   });
 
+  test('a full scan judges every batch against one clock', () async {
+    for (var i = 0; i <= QualityScanService.batchSize; i++) {
+      await seedFutureDive('d$i');
+    }
+    final builder = _RecordingBuilder();
+    final service = QualityScanService(
+      contextBuilder: builder,
+      findingsRepository: _RecordingFindings(),
+      detectors: const [_UnprefilteredDetector()],
+    );
+
+    await service.scanLibrary();
+
+    expect(builder.clocks, hasLength(2));
+    expect(builder.clocks.first, isNotNull);
+    expect(builder.clocks.toSet(), hasLength(1));
+  });
+
   test('scheduler merges bursts and is awaitable', () async {
     await seedFutureDive('d1');
     QualityScanScheduler.enabled = true;
