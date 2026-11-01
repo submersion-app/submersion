@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -307,11 +305,7 @@ class _UnifiedImportWizardBodyState
   Future<void> _advance() async {
     _navigatingForward = true;
     if (_currentPage < _reviewIndex) {
-      // Not set here: auto-advance arrives from a provider listener, which can
-      // fire in the middle of a build, where setState throws.
-      scheduleMicrotask(() {
-        if (_advancing) _setStepWorking(true);
-      });
+      _setStepWorking(true);
 
       // Let the current step commit any pending state before we leave it.
       final step = _acquisitionSteps[_currentPage];
@@ -761,10 +755,13 @@ class _AcquisitionNextButton extends ConsumerWidget {
       style: FilledButton.styleFrom(minimumSize: const Size(120, 48)),
       onPressed: canAdvance && !working ? onNext : null,
       icon: working
-          ? const SizedBox(
+          ? SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                semanticsLabel: context.l10n.common_label_loading,
+              ),
             )
           : null,
       label: Text(context.l10n.universalImport_action_next),

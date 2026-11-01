@@ -88,6 +88,31 @@ class _TwoStepAdapter implements ImportSourceAdapter {
   }) => throw UnimplementedError();
 }
 
+final _ready = StateProvider<bool>((_) => false);
+final _readyToAdvance = Provider<bool>((ref) => ref.watch(_ready));
+
+/// A step that advances itself as soon as [_ready] turns true, and watches the
+/// same provider from a widget, so that change rebuilds the step as well.
+class _AutoAdvanceAdapter extends _TwoStepAdapter {
+  _AutoAdvanceAdapter() : super(onSecondStep: () async {});
+
+  @override
+  List<WizardStepDef> get acquisitionSteps => [
+    WizardStepDef(
+      label: 'Select File',
+      builder: (_) => Consumer(
+        builder: (_, ref, _) {
+          ref.watch(_readyToAdvance);
+          return const Center(child: Text('Step 1'));
+        },
+      ),
+      canAdvance: _readyToAdvance,
+      autoAdvance: true,
+    ),
+    ...super.acquisitionSteps.skip(1),
+  ];
+}
+
 /// Opens the wizard and goes to the second step, ready to tap Next on it.
 Future<void> _openSecondStep(
   WidgetTester tester,
@@ -126,6 +151,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Loading')), findsOneWidget);
     expect(_button(tester, 'Next').enabled, isFalse);
     expect(_button(tester, 'Back').enabled, isFalse);
 
@@ -154,6 +180,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Step 2'), findsNothing);
+  });
+
+  testWidgets('a step that advances itself goes through the same state', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: UnifiedImportWizard(adapter: _AutoAdvanceAdapter()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    container.read(_ready.notifier).state = true;
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Step 2'), findsOneWidget);
   });
 
   testWidgets('hands the buttons back when a step fails', (tester) async {
