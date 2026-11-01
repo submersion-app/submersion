@@ -7,6 +7,8 @@ import 'package:submersion/features/agent_access/presentation/providers/agent_ac
 import 'package:submersion/features/agent_access/presentation/widgets/agent_access_snippets.dart';
 import 'package:submersion/features/agent_access/presentation/widgets/agent_access_status_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data > Advanced > Data tools > Agent access: the switch, the
@@ -107,9 +109,12 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
-          buildSettingsSectionHeader(
-            context,
-            l10n.settings_agentAccess_snippets,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
+            child: buildSettingsSectionHeader(
+              context,
+              l10n.settings_agentAccess_snippets,
+            ),
           ),
           if (token != null) AgentAccessSnippets(url: url, token: token),
         ],
@@ -166,7 +171,7 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
               controller: controller,
               autofocus: true,
               keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              inputFormatters: numberInputFormatters(),
               decoration: InputDecoration(errorText: error),
             ),
             actions: [
@@ -176,7 +181,12 @@ class _AgentAccessPageState extends ConsumerState<AgentAccessPage> {
               ),
               FilledButton(
                 onPressed: () {
-                  final value = int.tryParse(controller.text);
+                  final read = readNumber(
+                    controller.text,
+                    integer: true,
+                    allowNegative: false,
+                  );
+                  final value = read is NumberValue ? read.value.toInt() : null;
                   if (value == null ||
                       value < kAgentAccessMinPort ||
                       value > kAgentAccessMaxPort) {
