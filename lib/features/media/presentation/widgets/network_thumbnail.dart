@@ -17,8 +17,8 @@
 //   without needing a wrapper. Width / height fall back to [size] when
 //   not provided so the plan's two-arg call site (`NetworkThumbnail(url:
 //   ..., size: ...)`) still compiles.
-// - While the `headersFor` future is in flight we render an
-//   [UnavailableMediaPlaceholder] only on error — during the brief
+// - While the headers are resolving we render an
+//   [UnavailableMediaPlaceholder] only on error, and during the brief
 //   resolve window we paint a neutral surface tint so the row doesn't
 //   flicker into a "broken" state for one frame. This mirrors
 //   `_ShimmerThumbnail` in `media_item_view.dart`.
@@ -31,10 +31,9 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 
-/// Compact thumbnail for a remote media URL. Fetches the appropriate
-/// `Authorization` header (if any) from
-/// [networkCredentialsServiceProvider] before delegating to
-/// [CachedNetworkImage].
+/// Compact thumbnail for a remote media URL. Reads the appropriate
+/// `Authorization` header (if any) from [networkThumbnailHeadersProvider]
+/// before delegating to [CachedNetworkImage].
 class NetworkThumbnail extends ConsumerWidget {
   const NetworkThumbnail({
     super.key,
@@ -49,29 +48,25 @@ class NetworkThumbnail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final credentials = ref.watch(networkCredentialsServiceProvider);
-    return FutureBuilder<Map<String, String>?>(
-      future: credentials.headersFor(Uri.parse(url)),
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return _Pending(size: size);
-        }
-        return CachedNetworkImage(
-          imageUrl: url,
-          httpHeaders: snap.data,
-          width: size,
-          height: size,
-          fit: fit,
-          placeholder: (_, _) => _Pending(size: size),
-          errorWidget: (_, _, _) => SizedBox(
-            width: size,
-            height: size,
-            child: const UnavailableMediaPlaceholder(
-              data: UnavailableData(kind: UnavailableKind.networkError),
-            ),
-          ),
-        );
-      },
+    final headers = ref.watch(networkThumbnailHeadersProvider(url));
+    if (headers.isLoading && !headers.hasValue) return _Pending(size: size);
+    return CachedNetworkImage(
+      // The image provider's identity ignores headers, so without this key an
+      // image that failed before the user signed in would never be refetched.
+      key: ValueKey(headers.value?['Authorization']),
+      imageUrl: url,
+      httpHeaders: headers.value,
+      width: size,
+      height: size,
+      fit: fit,
+      placeholder: (_, _) => _Pending(size: size),
+      errorWidget: (_, _, _) => SizedBox(
+        width: size,
+        height: size,
+        child: const UnavailableMediaPlaceholder(
+          data: UnavailableData(kind: UnavailableKind.networkError),
+        ),
+      ),
     );
   }
 }
