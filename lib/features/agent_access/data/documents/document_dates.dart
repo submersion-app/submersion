@@ -4,11 +4,11 @@ library;
 
 /// The rule every tool that emits dates states to the agent.
 const kDocumentDateRule =
-    'Dates: date_time, entry_time, exit_time and other dive clock keys are '
-    "the dive's local wall clock as ISO 8601 with a nominal Z suffix; they "
-    'are not UTC instants, so do not shift them to another time zone. Keys '
-    'ending in _date are calendar dates (2025-03-14). Keys ending in _at are '
-    'true UTC instants.';
+    'Dates: date_time and keys ending in _time are the local wall clock of '
+    'the dive or event, as ISO 8601 with a nominal Z suffix; they are not UTC '
+    'instants, so do not shift them to another time zone. Keys ending in '
+    '_date are calendar dates (2025-03-14). Keys ending in _at are true UTC '
+    'instants.';
 
 /// A dive clock value: wall-clock time flagged UTC. Printed as held, without
 /// `toLocal()`, so the `Z` it carries is nominal.

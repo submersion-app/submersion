@@ -152,12 +152,12 @@ void main() {
       expect(doc['end_date'], '2024-03-08');
     });
 
-    test('return_flight_at is an instant', () async {
+    test('return_flight_time keeps its wall clock', () async {
       await (db.update(db.trips)..where((x) => x.id.equals('mine'))).write(
         const TripsCompanion(returnFlightAt: Value(0)),
       );
       final doc = (await h.one('trips', 'mine'))!;
-      expect(doc['return_flight_at'], '1970-01-01T00:00:00.000Z');
+      expect(doc['return_flight_time'], '1970-01-01T00:00:00.000Z');
     });
 
     test('a shared trip reads for a share row holder', () async {

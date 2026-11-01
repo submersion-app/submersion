@@ -204,7 +204,7 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     orderBy: 'r0.equipment_id, r0.observed_at DESC',
     load: (ids, _) => loadEach(ids, r.equipmentObservations.getById),
     document: equipmentObservationDocument,
-    summaryKeys: const ['equipment_id', 'dive_id', 'observed_at', 'status'],
+    summaryKeys: const ['equipment_id', 'dive_id', 'observed_time', 'status'],
   ),
   RecordEntity<CylinderFill>(
     name: 'cylinder_fills',

@@ -20,7 +20,7 @@ Map<String, Object?> tripDocument(Trip t) => {
   'trip_type': t.tripType.name,
   'notes': t.notes,
   'is_shared': t.isShared,
-  'return_flight_at': instant(t.returnFlightAt),
+  'return_flight_time': wallClockOrNull(t.returnFlightAt),
   'expected_dives': t.expectedDives,
   'expected_runtime_minutes': t.expectedRuntimeMinutes,
   'divers_sharing_cylinders': t.diversSharingCylinders,

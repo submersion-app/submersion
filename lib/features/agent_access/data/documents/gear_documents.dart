@@ -153,7 +153,7 @@ Map<String, Object?> equipmentObservationDocument(EquipmentObservation o) => {
   'diver_id': o.diverId,
   'equipment_id': o.equipmentId,
   'dive_id': o.diveId,
-  'observed_at': instant(o.observedAt),
+  'observed_time': wallClock(o.observedAt),
   'status': o.status.name,
   'issue_tags': [for (final t in o.issueTags) t.name],
   'unrecognized_tags': o.unrecognizedTags,

@@ -6,6 +6,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
+import 'package:submersion/features/connections/data/repositories/connection_map_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
@@ -21,7 +22,9 @@ import 'package:submersion/features/dive_sites/data/repositories/site_classifica
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
@@ -33,9 +36,18 @@ import 'package:submersion/features/equipment/data/repositories/equipment_tag_re
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
+import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
+import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
+import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
+import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
+import 'package:submersion/features/safety/data/repositories/emergency_chamber_repository.dart';
+import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
@@ -46,6 +58,7 @@ import 'package:submersion/features/trips/data/repositories/side_trip_repository
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
 import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 /// The repositories the record catalogue reads through.
@@ -63,16 +76,21 @@ class RecordRepositories {
   late final certifications = CertificationRepository();
   late final checklistTemplates = ChecklistTemplateRepository();
   late final computers = DiveComputerRepository();
+  late final connectionMaps = ConnectionMapRepository();
   late final courseRequirements = CourseRequirementRepository();
   late final courses = CourseRepository();
+  late final csvPresets = CsvPresetRepository();
   late final currency = CertificationCurrencyRepository();
   late final customCertifications = CustomCertificationRepository();
   late final dives = DiveRepository();
   late final cylinderConfigs = CylinderConfigRepository();
   late final cylinderFills = CylinderFillRepository();
+  late final divePlans = DivePlanRepository();
   late final diveRoles = DiveRoleRepository();
   late final diveScenarios = DiveScenarioRepository();
   late final diveTypes = DiveTypeRepository();
+  late final documents = DocumentRepository();
+  late final emergencyChambers = EmergencyChamberRepository();
   late final equipment = EquipmentRepository();
   late final equipmentComponents = EquipmentComponentRepository();
   late final equipmentLocationMoves = EquipmentLocationMoveRepository();
@@ -81,11 +99,17 @@ class RecordRepositories {
   late final equipmentSets = EquipmentSetRepository();
   late final equipmentShares = EquipmentShareRepository();
   late final equipmentTags = EquipmentTagRepository();
+  late final gpsTracks = GpsTrackRepository();
+  late final incidents = IncidentRepository();
   late final itemShares = ItemSharesRepository();
   late final itineraryDays = ItineraryDayRepository();
   late final liveaboard = LiveaboardDetailsRepository();
   late final media = MediaRepository();
+  late final navTracks = NavTrackRepository();
+  late final preDiveSessions = PreDiveSessionRepository();
   late final preDiveTemplates = PreDiveTemplateRepository();
+  late final rules = RuleRepository();
+  late final savedQueries = SavedQueryRepository();
   late final serviceKinds = ServiceKindRepository();
   late final serviceRecords = ServiceRecordRepository();
   late final serviceSchedules = ServiceScheduleRepository();
@@ -94,6 +118,7 @@ class RecordRepositories {
   late final siteFeatures = SiteFeatureRepository();
   late final siteTypes = SiteTypeRepository();
   late final sites = SiteRepository();
+  late final smartAlbums = MediaSmartAlbumRepository();
   late final species = SpeciesRepository();
   late final tags = TagRepository();
   late final tankPresets = TankPresetRepository();
@@ -102,6 +127,7 @@ class RecordRepositories {
   late final tripCylinders = TripCylinderRepository();
   late final tripEquipment = TripEquipmentRepository();
   late final trips = TripRepository();
+  late final weightEntries = DiverWeightEntryRepository();
   late final weightPresets = WeightPresetRepository();
 
   DiveCustomFieldRepository get customFields => DiveCustomFieldRepository(db);
