@@ -220,8 +220,10 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
             ),
           ),
           const SizedBox(width: 8),
+          // The widest field: its closed label names the cylinder, its role
+          // and its gas, which is what the diver picks by.
           Expanded(
-            flex: 3,
+            flex: 5,
             child: DropdownButtonFormField<String>(
               key: ValueKey('gas-switch-tank-${sw.id}'),
               initialValue: tankIds.contains(sw.tankId) ? sw.tankId : null,
