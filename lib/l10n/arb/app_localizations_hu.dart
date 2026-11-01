@@ -7991,6 +7991,53 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'Mikor váltottál palackot. A dekó, a szöveti terhelés és a palackonkénti SAC ezeket a váltásokat követi.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'Kezdés: $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'Váltás hozzáadása';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'Idő';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'Váltás erre';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'Mélység';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'Váltás eltávolítása';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError =>
+      'Perc:másodperc formátum';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError =>
+      'A merülésen belül kell lennie';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'Egy másik váltás is erre az időre esik';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás eltávolítva a palackjukkal',
+      one: '$count gázváltás eltávolítva a palackjával',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
@@ -8125,6 +8172,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_edit_notesHint =>
       'Jegyzetek hozzáadása ehhez a merüléshez...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'Gázváltások';
 
   @override
   String get diveLog_edit_overline_tanks => 'Palackok';

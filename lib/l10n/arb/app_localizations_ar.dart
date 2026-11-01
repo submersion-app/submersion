@@ -8137,6 +8137,54 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_edit_gasSwitches_caption =>
+      'متى بدّلت الأسطوانة. تتبع إزالة الضغط وتحميل الأنسجة ومعدل SAC لكل أسطوانة هذه التبديلات.';
+
+  @override
+  String diveLog_edit_gasSwitches_startsOn(String tank) {
+    return 'يبدأ على $tank';
+  }
+
+  @override
+  String get diveLog_edit_gasSwitches_add => 'إضافة تبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_time => 'الوقت';
+
+  @override
+  String get diveLog_edit_gasSwitches_switchTo => 'التبديل إلى';
+
+  @override
+  String get diveLog_edit_gasSwitches_depth => 'العمق';
+
+  @override
+  String get diveLog_edit_gasSwitches_remove => 'إزالة التبديل';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeFormatError => 'استخدم دقائق:ثوانٍ';
+
+  @override
+  String get diveLog_edit_gasSwitches_timeRangeError => 'يجب أن يكون ضمن الغوص';
+
+  @override
+  String get diveLog_edit_gasSwitches_duplicateError =>
+      'يوجد تبديل آخر في هذا الوقت';
+
+  @override
+  String diveLog_edit_gasSwitches_removedWithTank(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      many: 'تمت إزالة $count تبديل غاز مع أسطواناتها',
+      few: 'تمت إزالة $count تبديلات غاز مع أسطواناتها',
+      two: 'تمت إزالة تبديلي غاز مع أسطوانتيهما',
+      one: 'تمت إزالة $count تبديل غاز مع أسطوانته',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override
@@ -8267,6 +8315,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_notesHint => 'أضف ملاحظات حول هذه الغوصة...';
+
+  @override
+  String get diveLog_edit_overline_gasSwitches => 'تبديلات الغاز';
 
   @override
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
