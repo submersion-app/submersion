@@ -124,12 +124,11 @@ void main() {
 
       test('is the previous dive of a logged dive', () async {
         await repository.createDive(
-          source
-              .copyWith(id: 'other-day')
-              .copyWith(
-                dateTime: DateTime.utc(2026, 4, 1, 8),
-                exitTime: DateTime.utc(2026, 4, 1, 9),
-              ),
+          source.copyWith(
+            id: 'other-day',
+            dateTime: DateTime.utc(2026, 4, 1, 8),
+            exitTime: DateTime.utc(2026, 4, 1, 9),
+          ),
         );
         await repository.createDive(mirror);
         await repository.createDive(laterReal);
@@ -259,7 +258,7 @@ void main() {
       await repository.createDive(
         domain.Dive(
           id: 'without-entry',
-          dateTime: start.subtract(const Duration(hours: 40)),
+          dateTime: start.subtract(const Duration(hours: 49)),
         ),
       );
       await touch('with-entry', 100);
@@ -272,8 +271,8 @@ void main() {
       await repository.createDive(
         domain.Dive(
           id: 'too-old',
-          dateTime: start.subtract(const Duration(hours: 49)),
-          entryTime: start.subtract(const Duration(hours: 49)),
+          dateTime: start.subtract(const Duration(hours: 73)),
+          entryTime: start.subtract(const Duration(hours: 73)),
         ),
       );
       await repository.createDive(

@@ -145,9 +145,13 @@ String diveUndivedSql(String alias) {
 /// How far back a dive's residual load reads: the tissue lookback's window.
 const kResidualLookback = Duration(hours: 48);
 
-/// The latest `updated_at` among the dives that start inside
-/// [kResidualLookback] before the dive at [alias], or NULL when there are
-/// none.
+/// The latest `updated_at` among the dives that start up to
+/// [kResidualLookback] plus a day before the dive at [alias], or NULL when
+/// there are none.
+///
+/// The lookback counts surface time from an earlier dive's exit and this reads
+/// starts, so the extra day keeps a long dive that ended inside the lookback.
+/// Reading too far costs one recompute and never a wrong answer.
 ///
 /// A stored result computed from a dive's residual load goes stale when one of
 /// those dives changes, which the dive's own `updated_at` cannot see. This is
@@ -159,7 +163,8 @@ const kResidualLookback = Duration(hours: 48);
 String earlierDivesRevisionSql(String alias) {
   const h = 'history_dive';
   final start = 'COALESCE($alias.entry_time, $alias.dive_date_time)';
-  final from = '$start - ${kResidualLookback.inMilliseconds}';
+  final window = kResidualLookback + const Duration(days: 1);
+  final from = '$start - ${window.inMilliseconds}';
   String newest(String where) =>
       '(SELECT MAX($h.updated_at) FROM dives $h WHERE $where)';
   return 'NULLIF(MAX('
