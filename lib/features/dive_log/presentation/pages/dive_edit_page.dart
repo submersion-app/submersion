@@ -1006,10 +1006,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         final settings = ref.read(settingsProvider);
         final units = UnitFormatter(settings);
 
-        final hasPrimarySource = await ref
-            .read(diveRepositoryProvider)
-            .hasPrimaryDataSource(dive.id);
-        final loadedSwitches = await _loadGasSwitches(dive);
+        // Independent reads, so they run together.
+        final (hasPrimarySource, loadedSwitches) = await (
+          repository.hasPrimaryDataSource(dive.id),
+          _loadGasSwitches(dive),
+        ).wait;
         if (!mounted) return;
         setState(() {
           _existingDive = dive;
@@ -4166,13 +4167,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _markDirty();
       _tanksDirty = true;
-      final removed = _tanks[index];
       _tanks.removeAt(index);
       // Update order for remaining tanks
       for (var i = 0; i < _tanks.length; i++) {
         _tanks[i] = _tanks[i].copyWith(order: i);
       }
-      _dropGasSwitchesOf(removed.id);
+      _dropGasSwitchesWithoutTank();
     });
   }
 
@@ -5765,6 +5765,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             endPressure: 50.0,
           ),
         );
+      // The copies carry new ids, so every gas switch loses its cylinder.
+      _dropGasSwitchesWithoutTank();
     });
     ScaffoldMessenger.of(
       context,
