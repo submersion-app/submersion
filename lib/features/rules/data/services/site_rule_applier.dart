@@ -188,27 +188,15 @@ class SiteRuleApplier {
     ),
   };
 
-  /// Adds [ids] to, or removes them from, [c] on one site, without
-  /// notifying. Undo's write: it restores one change at a time.
+  /// Adds [ids], which [siteId] lacks, to [c], or removes them from it,
+  /// without notifying. Undo's write: it restores one change at a time.
   Future<void> writeMembership(
     SiteCollection c, {
     required bool add,
     required String siteId,
     required List<String> ids,
-  }) async {
-    switch ((c, add)) {
-      case (SiteCollection.tags, true):
-        // A link implies its scope: a dive-only tag becomes a site tag too.
-        await _tags.widenScope(ids, TagScope.sites, notify: false);
-        await _classification.addTags(siteId, ids, notify: false);
-      case (SiteCollection.tags, false):
-        await _classification.removeTags(siteId, ids, notify: false);
-      case (SiteCollection.siteTypes, true):
-        await _classification.addTypes(siteId, ids, notify: false);
-      case (SiteCollection.siteTypes, false):
-        await _classification.removeTypes(siteId, ids, notify: false);
-    }
-  }
+  }) =>
+      add ? _addToAll(c, ids, {siteId: ids}) : _removeFromAll(c, [siteId], ids);
 
   Future<AppliedAction> _append(
     Rule rule,

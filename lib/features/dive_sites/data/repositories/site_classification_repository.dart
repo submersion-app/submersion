@@ -33,6 +33,9 @@ class SiteClassificationRepository {
   /// under SQLite's bound-variable limit.
   static const _linkChunk = 500;
 
+  /// `?, ?, ...` for [count] bound ids.
+  static String _marks(int count) => List.filled(count, '?').join(', ');
+
   /// Emits when either junction, or the type or tag vocabulary, changes.
   Stream<void> watchChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([
@@ -342,49 +345,6 @@ class SiteClassificationRepository {
     }
   }
 
-  /// Removes [tagIds] from [siteId]'s tags; never adds one. [replaceTags]
-  /// with the rest, so the library rule, the tombstones and the stamp are
-  /// that one write's. A tag the site does not carry is ignored.
-  Future<void> removeTags(
-    String siteId,
-    List<String> tagIds, {
-    bool notify = true,
-    String? actingDiverId,
-  }) async {
-    if (tagIds.isEmpty) return;
-    final unwanted = tagIds.toSet();
-    await replaceTags(
-      siteId,
-      [
-        for (final id in (await getTagIdsBySite([siteId]))[siteId] ?? const [])
-          if (!unwanted.contains(id)) id,
-      ],
-      notify: notify,
-      actingDiverId: actingDiverId,
-    );
-  }
-
-  /// Removes [typeIds] from [siteId]'s types; never adds one. [replaceTypes]
-  /// with the rest, as [removeTags] does.
-  Future<void> removeTypes(
-    String siteId,
-    List<String> typeIds, {
-    bool notify = true,
-    String? actingDiverId,
-  }) async {
-    if (typeIds.isEmpty) return;
-    final unwanted = typeIds.toSet();
-    await replaceTypes(
-      siteId,
-      [
-        for (final id in (await getTypeIdsBySite([siteId]))[siteId] ?? const [])
-          if (!unwanted.contains(id)) id,
-      ],
-      notify: notify,
-      actingDiverId: actingDiverId,
-    );
-  }
-
   /// [addTypes] over many sites in one pass (#4012): [missing] names the
   /// types each site lacks, in the order to add them, from a read the caller
   /// has just made. For a caller's transaction, as `notify: false` is: it
@@ -406,8 +366,9 @@ class SiteClassificationRepository {
         missing: missing,
       );
 
-  /// [removeTypes] over many sites in one pass (#4012), on the terms of
-  /// [addTypesToSites]. A type a site does not carry is ignored.
+  /// Removes [typeIds] from [siteIds] in one pass (#4012), on the terms of
+  /// [addTypesToSites], tombstoning each row that goes. A type a site does
+  /// not carry is ignored.
   Future<void> removeTypesFromSites(
     List<String> siteIds,
     List<String> typeIds,
@@ -491,8 +452,8 @@ class SiteClassificationRepository {
       for (final chunk in siteIds.slices(_linkChunk)) {
         final gone = await _db.customWriteReturning(
           'DELETE FROM ${table.actualTableName} '
-          "WHERE site_id IN (${List.filled(chunk.length, '?').join(', ')}) "
-          "AND $linkColumn IN (${List.filled(unwanted.length, '?').join(', ')}) "
+          'WHERE site_id IN (${_marks(chunk.length)}) '
+          'AND $linkColumn IN (${_marks(unwanted.length)}) '
           'RETURNING id',
           variables: [
             for (final id in chunk) Variable.withString(id),

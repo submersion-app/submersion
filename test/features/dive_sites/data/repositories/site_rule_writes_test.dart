@@ -34,9 +34,9 @@ void main() {
     return row.read<int>('n');
   }
 
-  test('removeTags removes only the named tags and tombstones them', () async {
+  test('removeTagsFromSites removes only the named tags', () async {
     await classification.replaceTags('s1', ['t1', 't2']);
-    await classification.removeTags('s1', ['t1']);
+    await classification.removeTagsFromSites(['s1'], ['t1']);
     final tags = await classification.getTagsForSite('s1');
     expect(tags.map((t) => t.id), ['t2']);
     expect(
@@ -47,9 +47,9 @@ void main() {
     );
   });
 
-  test('removeTags on a site without the tag is a no-op', () async {
+  test('removeTagsFromSites on a site without the tag is a no-op', () async {
     await classification.replaceTags('s1', ['t2']);
-    await classification.removeTags('s1', ['t1']);
+    await classification.removeTagsFromSites(['s1'], ['t1']);
     expect((await classification.getTagsForSite('s1')).map((t) => t.id), [
       't2',
     ]);
@@ -61,26 +61,23 @@ void main() {
     );
   });
 
-  test(
-    'removeTypes removes only the named types and tombstones them',
-    () async {
-      await classification.replaceTypes('s1', ['wreck', 'lake']);
-      await classification.removeTypes('s1', ['wreck']);
-      final types = await classification.getTypesForSite('s1');
-      expect(types.map((t) => t.id), ['lake']);
-      expect(
-        await count(
-          "SELECT COUNT(*) AS n FROM deletion_log "
-          "WHERE entity_type = 'siteSiteTypes'",
-        ),
-        1,
-      );
-    },
-  );
+  test('removeTypesFromSites removes only the named types', () async {
+    await classification.replaceTypes('s1', ['wreck', 'lake']);
+    await classification.removeTypesFromSites(['s1'], ['wreck']);
+    final types = await classification.getTypesForSite('s1');
+    expect(types.map((t) => t.id), ['lake']);
+    expect(
+      await count(
+        "SELECT COUNT(*) AS n FROM deletion_log "
+        "WHERE entity_type = 'siteSiteTypes'",
+      ),
+      1,
+    );
+  });
 
-  test('removeTypes of an absent type is a no-op', () async {
+  test('removeTypesFromSites of an absent type is a no-op', () async {
     await classification.replaceTypes('s1', ['lake']);
-    await classification.removeTypes('s1', ['wreck']);
+    await classification.removeTypesFromSites(['s1'], ['wreck']);
     expect((await classification.getTypesForSite('s1')).map((t) => t.id), [
       'lake',
     ]);
@@ -206,7 +203,7 @@ void main() {
       );
     });
 
-    test('nothing to write opens nothing', () async {
+    test('nothing to write leaves no sync record or tombstone', () async {
       await classification.addTagsToSites({});
       await classification.removeTagsFromSites([], ['t1']);
       await classification.removeTagsFromSites(['s1'], []);
