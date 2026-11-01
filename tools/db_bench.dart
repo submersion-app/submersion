@@ -14,8 +14,10 @@ import 'package:submersion/core/database/performance_indexes.dart';
 ///     dart run tools/db_bench.dart create-indexes <db-path>
 ///
 /// Query shapes are copied from dive_repository_impl.dart (getDiveSummaries,
-/// getDiveCount, searchDives, _mapRowToDive, getPreviousDive). Keep them in
-/// sync when those queries change materially.
+/// getDiveCount, searchDives, _mapRowToDive, getPreviousDive) and the Data
+/// Quality neighbor window (quality_neighbor_sql.dart, _neighbors in
+/// quality_context_builder.dart). Keep them in sync when those queries change
+/// materially.
 void main(List<String> args) {
   if (args.length < 2) {
     stderr.writeln(
@@ -101,6 +103,26 @@ const _searchSql = '''
     AND d.diver_id = ?
     ''';
 
+/// QualityThresholds.neighborWindow, in milliseconds.
+const _qualityWindowMs = 12 * 60 * 60 * 1000;
+
+/// The same-diver pair prefilter, verbatim shape from qualityPairWindowSql
+/// (issue #3863). Must stay under a second on a 10k-dive library: a full scan
+/// shows no progress and cannot be cancelled until it returns.
+const _qualityPairWindowSql =
+    'SELECT DISTINCT a.id AS id FROM dives a JOIN dives b ON a.id != b.id '
+    'AND a.diver_id IS b.diver_id '
+    'AND COALESCE(b.entry_time, b.dive_date_time) '
+    'BETWEEN COALESCE(a.entry_time, a.dive_date_time) - ? '
+    'AND COALESCE(a.entry_time, a.dive_date_time) + ?';
+
+/// One dive's neighbor lookup, the filter shape of _neighbors. A full scan
+/// runs this once per dive.
+const _qualityNeighborsSql =
+    'SELECT id FROM dives WHERE id != ? AND diver_id IS ? '
+    'AND COALESCE(entry_time, dive_date_time) BETWEEN ? AND ? '
+    'ORDER BY COALESCE(entry_time, dive_date_time) ASC';
+
 ({String diverId, String denseDiveId, int denseSamples}) _pickTargets(
   Database db,
 ) {
@@ -162,6 +184,13 @@ List<({String label, String sql, List<Object?> params})> _queries(
   final page = db.select(_summariesSql, [t.diverId]);
   final pageIds = page.map((r) => r['id'] as String).toList();
   final inList = List.filled(pageIds.length, '?').join(',');
+  final densestStart =
+      db.select(
+            'SELECT COALESCE(entry_time, dive_date_time) AS start FROM dives '
+            'WHERE id = ?',
+            [t.denseDiveId],
+          ).first['start']
+          as int;
   return [
     (
       label: 'profile_fetch_densest (${t.denseSamples} samples)',
@@ -205,6 +234,21 @@ List<({String label, String sql, List<Object?> params})> _queries(
       label: 'tags_for_page (${pageIds.length} ids)',
       sql: 'SELECT * FROM dive_tags WHERE dive_id IN ($inList)',
       params: pageIds,
+    ),
+    (
+      label: 'quality_pair_window',
+      sql: _qualityPairWindowSql,
+      params: [_qualityWindowMs, _qualityWindowMs],
+    ),
+    (
+      label: 'quality_neighbors_one_dive',
+      sql: _qualityNeighborsSql,
+      params: [
+        t.denseDiveId,
+        t.diverId,
+        densestStart - _qualityWindowMs,
+        densestStart + _qualityWindowMs,
+      ],
     ),
   ];
 }
