@@ -158,8 +158,8 @@ class SiteRuleApplier {
   }
 
   /// Adds to [c] the ids [missing] names for each of its sites, in one pass
-  /// over the snapshot the action just read (#4012). [wanted] is widened
-  /// once, not once per site.
+  /// over what the caller just read (#4012). [wanted] is widened once, not
+  /// once per site.
   Future<void> _addToAll(
     SiteCollection c,
     List<String> wanted,
