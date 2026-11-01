@@ -16989,5 +16989,37 @@
   "demo_enter_confirm_action": "Letöltés",
   "demo_enter_confirm_body_firstRun": "Ez letölt egy mintanaplót ({size}), amellyel körülnézhetsz az alkalmazásban. Lépj ki a demó módból, amikor a sajátodat szeretnéd elkezdeni.",
   "demo_enter_changed_body": "A mintanapló frissült, és most {size} méretű. Letöltöd?",
-  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}"
+  "common_byteSize": "{value} {unit, select, B{B} KB{KB} MB{MB} GB{GB} TB{TB} other{{unit}}}",
+  "checklists_addChecklist": "Add checklist",
+  "checklists_delete_confirm": "Delete",
+  "checklists_delete_content": "Delete \"{name}\"? Its sections and items are removed too.",
+  "@checklists_delete_content": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_delete_title": "Delete checklist",
+  "checklists_menu_delete": "Delete...",
+  "checklists_menu_rename": "Rename...",
+  "checklists_nameLabel": "Checklist name",
+  "checklists_nameRequired": "Name is required",
+  "checklists_noChecklists_past": "No checklists",
+  "checklists_noChecklists_upcoming": "No checklists yet - add one to start planning",
+  "checklists_renameChecklist_title": "Rename checklist",
+  "checklists_replaceTemplate_confirm": "Replace",
+  "checklists_replaceTemplate_content": "Replace all current items of \"{checklistName}\" with the items from \"{templateName}\"? This cannot be undone.",
+  "@checklists_replaceTemplate_content": {
+    "placeholders": {
+      "checklistName": {
+        "type": "String"
+      },
+      "templateName": {
+        "type": "String"
+      }
+    }
+  },
+  "checklists_replaceTemplate_title": "Replace checklist content",
+  "settings_conflict_ref_tripChecklist": "Checklist"
 }
