@@ -245,6 +245,8 @@ class BleNearbyCarrier implements NearbyCarrier {
       throw UnsupportedError('This platform cannot host the nearby service');
     }
     await _hostService();
+    // Disposed meanwhile: the next carrier owns the request handlers now.
+    if (_incoming.isClosed) return;
     if (!_peripheralWired) {
       UniversalBlePeripheral.setWriteRequestHandlers((
         deviceId,

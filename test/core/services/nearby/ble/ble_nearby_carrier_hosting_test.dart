@@ -71,6 +71,18 @@ void main() {
     expect(peripheral.advertising, isTrue);
   });
 
+  test('a carrier disposed while waiting stays down: its handlers would '
+      'replace those of the carrier after it', () async {
+    final carrier = newCarrier();
+    final hosting = carrier.startAdvertising();
+    await carrier.dispose();
+
+    peripheral.powerOn();
+    await hosting;
+
+    expect(peripheral.advertising, isFalse);
+  });
+
   test('advertising again does not add the service again', () async {
     peripheral.powerOn();
     final carrier = newCarrier();
