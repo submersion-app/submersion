@@ -41,40 +41,45 @@ class DiverGasSwitchWriter {
     DateTime? now,
   }) async {
     final at = (now ?? DateTime.now()).millisecondsSinceEpoch;
-    final stored = <String, GasSwitche>{
-      if (loadedIds.isNotEmpty)
-        for (final row in await (_db.select(
-          _db.gasSwitches,
-        )..where((t) => t.diveId.equals(diveId) & t.id.isIn(loadedIds))).get())
-          row.id: row,
-    };
+    // The diff is computed inside the transaction it is applied in, so a
+    // write that lands between the read and the writes cannot be undone
+    // by a stale comparison.
+    final changed = await _db.transaction(() async {
+      final stored = <String, GasSwitche>{
+        if (loadedIds.isNotEmpty)
+          for (final row
+              in await (_db.select(_db.gasSwitches)..where(
+                    (t) => t.diveId.equals(diveId) & t.id.isIn(loadedIds),
+                  ))
+                  .get())
+            row.id: row,
+      };
 
-    final inserts = <GasSwitch>[];
-    final updates = <GasSwitch>[];
-    final keptIds = <String>{};
-    for (final sw in switches) {
-      final row = stored[sw.id];
-      if (row == null) {
-        inserts.add(sw);
-        continue;
+      final inserts = <GasSwitch>[];
+      final updates = <GasSwitch>[];
+      final keptIds = <String>{};
+      for (final sw in switches) {
+        final row = stored[sw.id];
+        if (row == null) {
+          inserts.add(sw);
+          continue;
+        }
+        keptIds.add(sw.id);
+        if (row.timestamp != sw.timestamp ||
+            row.tankId != sw.tankId ||
+            row.depth != sw.depth) {
+          updates.add(sw);
+        }
       }
-      keptIds.add(sw.id);
-      if (row.timestamp != sw.timestamp ||
-          row.tankId != sw.tankId ||
-          row.depth != sw.depth) {
-        updates.add(sw);
-      }
-    }
-    // A loaded id the list no longer holds is a delete whether or not its
-    // row is still there: removing a cylinder cascades its switches away
-    // before this runs, and a peer still needs the tombstone.
-    final deletes = [
-      for (final id in loadedIds)
-        if (!keptIds.contains(id) && !switches.any((s) => s.id == id)) id,
-    ];
-    if (inserts.isEmpty && updates.isEmpty && deletes.isEmpty) return false;
+      // A loaded id the list no longer holds is a delete whether or not its
+      // row is still there: removing a cylinder cascades its switches away
+      // before this runs, and a peer still needs the tombstone.
+      final deletes = [
+        for (final id in loadedIds)
+          if (!keptIds.contains(id) && !switches.any((s) => s.id == id)) id,
+      ];
+      if (inserts.isEmpty && updates.isEmpty && deletes.isEmpty) return false;
 
-    await _db.transaction(() async {
       for (final sw in inserts) {
         final id = sw.id.isEmpty ? _uuid.v4() : sw.id;
         await _db
@@ -131,7 +136,9 @@ class DiverGasSwitchWriter {
       // The review graded the old switches; drop it so the next view
       // recomputes, as re-parse and a profile edit do.
       await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
+      return true;
     });
+    if (!changed) return false;
     SyncEventBus.notifyLocalChange();
     return true;
   }
