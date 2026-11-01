@@ -3,9 +3,14 @@
 
 #include <flutter/binary_messenger.h>
 #include <flutter/plugin_registrar.h>
+#include <flutter/plugin_registrar_windows.h>
+#include <windows.h>
 
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
+#include <queue>
 #include <string>
 #include <thread>
 
@@ -25,7 +30,7 @@ namespace libdivecomputer_plugin {
 class DiveComputerHostApiImpl : public DiveComputerHostApi,
                                 public flutter::Plugin {
  public:
-  explicit DiveComputerHostApiImpl(flutter::BinaryMessenger* messenger);
+  explicit DiveComputerHostApiImpl(flutter::PluginRegistrarWindows* registrar);
   ~DiveComputerHostApiImpl() override;
 
   void GetDeviceDescriptors(
@@ -61,6 +66,22 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   void PerformDownload(const DiscoveredDevice& device,
                        const std::optional<std::string>& fingerprint = std::nullopt,
                        bool sync_clock = false);
+
+  // Scanner and transport callbacks arrive on WinRT thread-pool threads and
+  // the download thread, not the platform thread Flutter requires pigeon
+  // calls to run on (issue #4039: a Perdix 2 connected and downloaded, but
+  // the UI never showed it, because the engine can silently drop a call sent
+  // from the wrong thread). Every call into |flutter_api_| that can happen
+  // off the platform thread must be queued through this and run once the
+  // platform thread's message loop picks up the wakeup message.
+  void PostToPlatformThread(std::function<void()> task);
+  void RunPendingTasks();
+
+  flutter::PluginRegistrarWindows* registrar_ = nullptr;
+  HWND window_ = nullptr;
+  int window_proc_delegate_id_ = -1;
+  std::mutex task_mutex_;
+  std::queue<std::function<void()>> pending_tasks_;
 
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;
   std::unique_ptr<BleScanner> ble_scanner_;

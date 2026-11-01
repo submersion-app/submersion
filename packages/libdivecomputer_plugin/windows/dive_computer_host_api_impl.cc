@@ -13,22 +13,71 @@
 #include <string>
 #include <vector>
 
+namespace {
+
+// A private window message used to wake the platform thread's message loop
+// once a background thread has queued a task for it to run.
+constexpr UINT kRunPendingTasksMessage = WM_APP + 1;
+
+}  // namespace
+
 namespace libdivecomputer_plugin {
 
 DiveComputerHostApiImpl::DiveComputerHostApiImpl(
-    flutter::BinaryMessenger* messenger)
-    : flutter_api_(
-          std::make_unique<DiveComputerFlutterApi>(messenger)) {
+    flutter::PluginRegistrarWindows* registrar)
+    : registrar_(registrar),
+      flutter_api_(
+          std::make_unique<DiveComputerFlutterApi>(registrar->messenger())) {
     NativeLogger::SetFlutterApi(flutter_api_.get());
+    if (registrar_->GetView()) {
+        window_ = registrar_->GetView()->GetNativeWindow();
+    }
+    window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
+        [this](HWND /*hwnd*/, UINT message, WPARAM /*wparam*/,
+               LPARAM /*lparam*/) -> std::optional<LRESULT> {
+            if (message == kRunPendingTasksMessage) {
+                RunPendingTasks();
+                return 0;
+            }
+            return std::nullopt;
+        });
 }
 
 DiveComputerHostApiImpl::~DiveComputerHostApiImpl() {
     if (download_thread_.joinable()) {
         download_thread_.join();
     }
+    registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_delegate_id_);
     // After the download thread is joined, so nothing can be mid-log, and
     // before flutter_api_ is destroyed with this object.
     NativeLogger::SetFlutterApi(nullptr);
+}
+
+void DiveComputerHostApiImpl::PostToPlatformThread(
+    std::function<void()> task) {
+    if (!window_) {
+        // No native window to post a wakeup message to (not expected outside
+        // tests); run inline rather than silently dropping the call.
+        task();
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(task_mutex_);
+        pending_tasks_.push(std::move(task));
+    }
+    PostMessage(window_, kRunPendingTasksMessage, 0, 0);
+}
+
+void DiveComputerHostApiImpl::RunPendingTasks() {
+    std::queue<std::function<void()>> tasks;
+    {
+        std::lock_guard<std::mutex> lock(task_mutex_);
+        std::swap(tasks, pending_tasks_);
+    }
+    while (!tasks.empty()) {
+        tasks.front()();
+        tasks.pop();
+    }
 }
 
 void DiveComputerHostApiImpl::GetDeviceDescriptors(
@@ -89,12 +138,16 @@ void DiveComputerHostApiImpl::StartDiscovery(
             ble_scanner_ = std::make_unique<BleScanner>();
             ble_scanner_->SetOnDeviceDiscovered(
                 [this](DiscoveredDevice device) {
-                    flutter_api_->OnDeviceDiscovered(
-                        device, [] {}, [](const auto&) {});
+                    PostToPlatformThread([this, device = std::move(device)] {
+                        flutter_api_->OnDeviceDiscovered(
+                            device, [] {}, [](const auto&) {});
+                    });
                 });
             ble_scanner_->SetOnComplete([this]() {
-                flutter_api_->OnDiscoveryComplete(
-                    [] {}, [](const auto&) {});
+                PostToPlatformThread([this] {
+                    flutter_api_->OnDiscoveryComplete(
+                        [] {}, [](const auto&) {});
+                });
             });
             std::optional<BleScanner::StartFailure> failure =
                 ble_scanner_->Start();
@@ -122,12 +175,16 @@ void DiveComputerHostApiImpl::StartDiscovery(
             serial_scanner_ = std::make_unique<SerialScanner>();
             serial_scanner_->SetOnDeviceDiscovered(
                 [this](DiscoveredDevice device) {
-                    flutter_api_->OnDeviceDiscovered(
-                        device, [] {}, [](const auto&) {});
+                    PostToPlatformThread([this, device = std::move(device)] {
+                        flutter_api_->OnDeviceDiscovered(
+                            device, [] {}, [](const auto&) {});
+                    });
                 });
             serial_scanner_->SetOnComplete([this]() {
-                flutter_api_->OnDiscoveryComplete(
-                    [] {}, [](const auto&) {});
+                PostToPlatformThread([this] {
+                    flutter_api_->OnDiscoveryComplete(
+                        [] {}, [](const auto&) {});
+                });
             });
             serial_scanner_->Start();
             result(std::nullopt);
@@ -249,10 +306,13 @@ void DiveComputerHostApiImpl::PerformDownload(
     // BLE, so an infrared device would try to connect over Bluetooth.
     // Reject it as Android and Darwin do (issue #2841).
     if (device.transport() == TransportType::kInfrared) {
-        flutter_api_->OnError(
-            DiveComputerError("unsupported_transport",
-                              "Infrared transport is not supported on Windows"),
-            [] {}, [](const auto&) {});
+        PostToPlatformThread([this] {
+            flutter_api_->OnError(
+                DiveComputerError(
+                    "unsupported_transport",
+                    "Infrared transport is not supported on Windows"),
+                [] {}, [](const auto&) {});
+        });
         return;
     }
 
@@ -261,10 +321,12 @@ void DiveComputerHostApiImpl::PerformDownload(
     // calls during multi-port probing — each call creates its own internal state.
     auto* session = libdc_download_session_new();
     if (!session) {
-        flutter_api_->OnError(
-            DiveComputerError("session_failed",
-                              "Failed to create download session"),
-            [] {}, [](const auto&) {});
+        PostToPlatformThread([this] {
+            flutter_api_->OnError(
+                DiveComputerError("session_failed",
+                                  "Failed to create download session"),
+                [] {}, [](const auto&) {});
+        });
         return;
     }
     download_session_ = session;
@@ -283,11 +345,14 @@ void DiveComputerHostApiImpl::PerformDownload(
     dl_callbacks.on_progress = [](unsigned int current, unsigned int maximum,
                                   void* ud) {
         auto* ctx = static_cast<DownloadContext*>(ud);
-        ctx->self->flutter_api_->OnDownloadProgress(
-            DownloadProgress(static_cast<int64_t>(current),
-                             static_cast<int64_t>(maximum),
-                             "downloading"),
-            [] {}, [](const auto&) {});
+        auto* self = ctx->self;
+        self->PostToPlatformThread([self, current, maximum] {
+            self->flutter_api_->OnDownloadProgress(
+                DownloadProgress(static_cast<int64_t>(current),
+                                 static_cast<int64_t>(maximum),
+                                 "downloading"),
+                [] {}, [](const auto&) {});
+        });
     };
     dl_callbacks.on_dive = [](const libdc_parsed_dive_t* dive, void* ud) {
         auto* ctx = static_cast<DownloadContext*>(ud);
@@ -296,8 +361,11 @@ void DiveComputerHostApiImpl::PerformDownload(
         if (ctx->buffer_dives) {
             ctx->buffered_dives.push_back(std::move(parsed));
         } else {
-            ctx->self->flutter_api_->OnDiveDownloaded(
-                parsed, [] {}, [](const auto&) {});
+            auto* self = ctx->self;
+            self->PostToPlatformThread([self, parsed = std::move(parsed)] {
+                self->flutter_api_->OnDiveDownloaded(
+                    parsed, [] {}, [](const auto&) {});
+            });
         }
     };
     dl_callbacks.userdata = &dl_ctx;
@@ -482,9 +550,11 @@ void DiveComputerHostApiImpl::PerformDownload(
                           "and powered on?"
                     : "No USB serial ports found. Is the dive computer "
                       "connected and powered on?";
-            flutter_api_->OnError(
-                DiveComputerError(code, message),
-                [] {}, [](const auto&) {});
+            PostToPlatformThread([this, code, message] {
+                flutter_api_->OnError(
+                    DiveComputerError(code, message),
+                    [] {}, [](const auto&) {});
+            });
             libdc_download_session_free(session);
             download_session_ = nullptr;
             return;
@@ -496,9 +566,11 @@ void DiveComputerHostApiImpl::PerformDownload(
             std::string msg = probe_log.empty()
                 ? "No dive computer found on any USB or serial connection."
                 : "No dive computer found. Tried:\n" + probe_log;
-            flutter_api_->OnError(
-                DiveComputerError("connect_failed", msg),
-                [] {}, [](const auto&) {});
+            PostToPlatformThread([this, msg] {
+                flutter_api_->OnError(
+                    DiveComputerError("connect_failed", msg),
+                    [] {}, [](const auto&) {});
+            });
             libdc_download_session_free(session);
             download_session_ = nullptr;
             return;
@@ -506,8 +578,10 @@ void DiveComputerHostApiImpl::PerformDownload(
 
         // Flush buffered dives to Flutter after a successful probe.
         for (auto& dive : dl_ctx.buffered_dives) {
-            flutter_api_->OnDiveDownloaded(
-                dive, [] {}, [](const auto&) {});
+            PostToPlatformThread([this, dive] {
+                flutter_api_->OnDiveDownloaded(
+                    dive, [] {}, [](const auto&) {});
+            });
         }
         dl_ctx.buffered_dives.clear();
         dl_ctx.buffer_dives = false;
@@ -524,14 +598,18 @@ void DiveComputerHostApiImpl::PerformDownload(
         ble_stream_->SetDeviceAddress(device.address());
         ble_stream_->SetOnPinCodeRequired(
             [this](const std::string& address) {
-                flutter_api_->OnPinCodeRequired(
-                    address, [] {}, [](const auto&) {});
+                PostToPlatformThread([this, address] {
+                    flutter_api_->OnPinCodeRequired(
+                        address, [] {}, [](const auto&) {});
+                });
             });
         if (!ble_stream_->ConnectAndDiscover(ble_address)) {
-            flutter_api_->OnError(
-                DiveComputerError("connect_failed",
-                                  "Failed to connect to device"),
-                [] {}, [](const auto&) {});
+            PostToPlatformThread([this] {
+                flutter_api_->OnError(
+                    DiveComputerError("connect_failed",
+                                      "Failed to connect to device"),
+                    [] {}, [](const auto&) {});
+            });
             libdc_download_session_free(session);
             download_session_ = nullptr;
             ble_stream_.reset();
@@ -584,18 +662,24 @@ void DiveComputerHostApiImpl::PerformDownload(
 
     // Report completion or error.
     if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
-        flutter_api_->OnDownloadComplete(
-            0,
-            serial_str ? &*serial_str : nullptr,
-            firmware_str ? &*firmware_str : nullptr,
-            clock_sync_str ? &*clock_sync_str : nullptr,
-            reported_product ? &*reported_product : nullptr,
-            reported_model ? &*reported_model : nullptr,
-            [] {}, [](const auto&) {});
+        PostToPlatformThread([this, serial_str, firmware_str, clock_sync_str,
+                              reported_product, reported_model] {
+            flutter_api_->OnDownloadComplete(
+                0,
+                serial_str ? &*serial_str : nullptr,
+                firmware_str ? &*firmware_str : nullptr,
+                clock_sync_str ? &*clock_sync_str : nullptr,
+                reported_product ? &*reported_product : nullptr,
+                reported_model ? &*reported_model : nullptr,
+                [] {}, [](const auto&) {});
+        });
     } else {
-        flutter_api_->OnError(
-            DiveComputerError("download_error", std::string(error_buf)),
-            [] {}, [](const auto&) {});
+        std::string error_message(error_buf);
+        PostToPlatformThread([this, error_message] {
+            flutter_api_->OnError(
+                DiveComputerError("download_error", error_message),
+                [] {}, [](const auto&) {});
+        });
     }
 
     // Cleanup.
