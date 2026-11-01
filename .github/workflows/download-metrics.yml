@@ -44,7 +44,7 @@ jobs:
           cd metrics-data
           git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if git ls-remote --exit-code --heads origin metrics; then
-            git fetch origin metrics
+            git fetch --depth=1 origin metrics
             git checkout -B metrics FETCH_HEAD
           fi
 
@@ -59,5 +59,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md downloads
-          git commit -m "Download snapshot $(date -u +%F)"
+          git commit -m "Download snapshot $(jq -r '.history[-1].date' downloads/summary.json)"
           git push origin metrics

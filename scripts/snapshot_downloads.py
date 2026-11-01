@@ -14,9 +14,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import subprocess
 import sys
-import urllib.request
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,8 +23,6 @@ from pathlib import Path
 PLATFORMS = ("macos", "android", "windows", "linux")
 RECENT_LIMIT = 4
 SCHEMA = 1
-PER_PAGE = 100
-REQUEST_TIMEOUT_SECONDS = 30
 
 README = """\
 # Download metrics
@@ -51,9 +48,11 @@ _SUFFIXES = (
     (".rpm", "linux"),
 )
 
-# Left out on purpose. A file matching neither list is reported, so a new
-# installer type cannot drop out of the count unnoticed.
-_EXCLUDED_SUFFIXES = (".xml", ".aab", ".ipa", ".txt", ".html", ".json", ".zip")
+# Left out on purpose. A file matching neither these nor the suffixes above is
+# reported, so a new installer type cannot drop out of the count unnoticed. That
+# is why .zip is not a blanket exclusion: only the demo data's zips are known.
+_EXCLUDED_SUFFIXES = (".xml", ".aab", ".ipa", ".txt", ".html", ".json")
+_DEMO_DATA_PREFIX = "submersion-demo-"
 
 
 def classify_asset(name: str) -> str | None:
@@ -90,38 +89,37 @@ def build_snapshot(releases: list[dict], captured_at: datetime) -> dict:
 
 def _counted_assets(release: dict) -> list[tuple[str, int]]:
     """Return (platform, downloads) for each installer in a snapshot release."""
-    found = []
-    for asset in release["assets"]:
-        platform = classify_asset(asset["name"])
-        if platform is not None:
-            found.append((platform, asset["downloads"]))
-    return found
+    classified = (
+        (classify_asset(asset["name"]), asset["downloads"])
+        for asset in release["assets"]
+    )
+    return [(platform, count) for platform, count in classified if platform]
 
 
 def totals_for(snapshot: dict) -> dict:
     """Add up the counted files, overall and by platform."""
-    platforms = {platform: 0 for platform in PLATFORMS}
-    for release in snapshot["releases"]:
-        for platform, downloads in _counted_assets(release):
-            platforms[platform] += downloads
+    counted = [
+        found for release in snapshot["releases"] for found in _counted_assets(release)
+    ]
+    platforms = {
+        platform: sum(count for name, count in counted if name == platform)
+        for platform in PLATFORMS
+    }
     return {"total": sum(platforms.values()), "platforms": platforms}
 
 
 def recent_releases(snapshot: dict, limit: int = RECENT_LIMIT) -> list[dict]:
     """Return the newest stable releases that have at least one counted file."""
-    counted = []
-    for release in snapshot["releases"]:
-        assets = _counted_assets(release)
-        if assets and not release["prerelease"]:
-            counted.append(
-                {
-                    "tag": release["tag"],
-                    "published_at": release["published_at"],
-                    "downloads": sum(downloads for _, downloads in assets),
-                }
-            )
-    counted.sort(key=lambda release: release["published_at"], reverse=True)
-    return counted[:limit]
+    counted = [
+        {
+            "tag": release["tag"],
+            "published_at": release["published_at"],
+            "downloads": sum(count for _, count in _counted_assets(release)),
+        }
+        for release in snapshot["releases"]
+        if _counted_assets(release) and not release["prerelease"]
+    ]
+    return sorted(counted, key=lambda r: r["published_at"], reverse=True)[:limit]
 
 
 def build_summary(snapshots: list[dict]) -> dict:
@@ -139,43 +137,37 @@ def build_summary(snapshots: list[dict]) -> dict:
     }
 
 
+def _known_exclusion(name: str) -> bool:
+    lowered = name.lower()
+    return lowered.endswith(_EXCLUDED_SUFFIXES) or lowered.startswith(_DEMO_DATA_PREFIX)
+
+
 def unclassified_assets(snapshot: dict) -> list[str]:
     """Return file names that are neither counted nor known to be excluded."""
-    names = set()
-    for release in snapshot["releases"]:
-        for asset in release["assets"]:
-            name = asset["name"]
-            if classify_asset(name) is None and not name.lower().endswith(
-                _EXCLUDED_SUFFIXES
-            ):
-                names.add(name)
-    return sorted(names)
-
-
-def fetch_all_releases(get_page: Callable[[int], list[dict]]) -> list[dict]:
-    """Read every page of releases, stopping at the first page that is not full."""
-    releases = []
-    page = 1
-    while True:
-        batch = get_page(page)
-        releases.extend(batch)
-        if len(batch) < PER_PAGE:
-            return releases
-        page += 1
-
-
-def github_get_page(repo: str, token: str, page: int) -> list[dict]:
-    """Fetch one page of releases from the GitHub API."""
-    request = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/releases"
-        f"?per_page={PER_PAGE}&page={page}",
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-        },
+    return sorted(
+        {
+            asset["name"]
+            for release in snapshot["releases"]
+            for asset in release["assets"]
+            if classify_asset(asset["name"]) is None
+            and not _known_exclusion(asset["name"])
+        }
     )
-    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
-        return json.load(response)
+
+
+def gh_cli(args: list[str]) -> str:
+    """Run gh and return stdout; raises CalledProcessError on failure."""
+    completed = subprocess.run(
+        ["gh", *args], check=True, capture_output=True, text=True
+    )
+    return completed.stdout
+
+
+def fetch_all_releases(gh: Callable[[list[str]], str], repo: str) -> list[dict]:
+    """Read every release, leaving the page walking to gh."""
+    path = f"repos/{repo}/releases?per_page=100"
+    pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
+    return [release for page in pages for release in page]
 
 
 def _snapshot_path(root: Path, date: str) -> Path:
@@ -195,43 +187,35 @@ def _write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def _falling_total_warnings(earlier: list[dict], snapshot: dict) -> list[str]:
+    if not earlier:
+        return []
+    before = totals_for(earlier[-1])["total"]
+    after = totals_for(snapshot)["total"]
+    if after >= before:
+        return []
+    return [
+        f"Download total fell from {before} to {after}. "
+        "Deleting a release removes its counts."
+    ]
+
+
 def write_outputs(root: Path, snapshot: dict) -> list[str]:
     """Store a snapshot and rebuild the summary, returning workflow warnings."""
-    warnings = []
-    earlier = [s for s in load_snapshots(root) if s["date"] < snapshot["date"]]
-    if earlier:
-        before = totals_for(earlier[-1])["total"]
-        after = totals_for(snapshot)["total"]
-        if after < before:
-            warnings.append(
-                f"Download total fell from {before} to {after}. "
-                "Deleting a release removes its counts."
-            )
-
-    _write_json(_snapshot_path(root, snapshot["date"]), snapshot)
+    date = snapshot["date"]
+    stored = [s for s in load_snapshots(root) if s["date"] != date]
+    _write_json(_snapshot_path(root, date), snapshot)
     readme = root / "README.md"
     if not readme.exists():
         readme.write_text(README, encoding="utf-8")
-    _write_json(root / "downloads" / "summary.json", build_summary(load_snapshots(root)))
-    return warnings
-
-
-def _collect(
-    get_page: Callable[[int], list[dict]], now: datetime
-) -> tuple[dict | None, str]:
-    """Fetch before anything is written, so a failure leaves the branch alone."""
-    try:
-        snapshot = build_snapshot(fetch_all_releases(get_page), now)
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        return None, f"Could not read releases: {error!r}"
-    if totals_for(snapshot)["total"] == 0:
-        return None, "GitHub returned no counted downloads."
-    return snapshot, ""
+    snapshots = sorted([*stored, snapshot], key=lambda s: s["date"])
+    _write_json(root / "downloads" / "summary.json", build_summary(snapshots))
+    return _falling_total_warnings([s for s in stored if s["date"] < date], snapshot)
 
 
 def main(
     argv: list[str] | None = None,
-    get_page: Callable[[int], list[dict]] | None = None,
+    gh: Callable[[list[str]], str] | None = None,
     now: datetime | None = None,
 ) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -241,21 +225,30 @@ def main(
     )
     args = parser.parse_args(argv)
 
-    token = os.environ.get("GH_TOKEN")
-    if not token:
-        print("::error::GH_TOKEN is not set.")
+    # Everything is read before anything is written, so a failure leaves the
+    # metrics branch alone.
+    try:
+        releases = fetch_all_releases(gh or gh_cli, args.repo)
+        snapshot = build_snapshot(releases, now or datetime.now(timezone.utc))
+        total = totals_for(snapshot)["total"]
+    except (
+        subprocess.CalledProcessError,
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+    ) as error:
+        print(f"::error::Could not read releases: {error!r}")
         return 1
-    reader = get_page or (lambda page: github_get_page(args.repo, token, page))
-
-    snapshot, problem = _collect(reader, now or datetime.now(timezone.utc))
-    if snapshot is None:
-        print(f"::error::{problem}")
+    if total == 0:
+        print("::error::GitHub returned no counted downloads.")
         return 1
 
-    warnings = write_outputs(args.out, snapshot)
     unknown = unclassified_assets(snapshot)
-    if unknown:
-        warnings.append(f"Files neither counted nor excluded: {', '.join(unknown)}")
+    warnings = [
+        *write_outputs(args.out, snapshot),
+        *([f"Files neither counted nor excluded: {', '.join(unknown)}"] if unknown else []),
+    ]
     for warning in warnings:
         print(f"::warning::{warning}")
     return 0

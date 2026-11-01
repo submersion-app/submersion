@@ -6,9 +6,9 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
 import tempfile
 import unittest
-import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest import mock
@@ -173,42 +173,47 @@ class SummaryTest(unittest.TestCase):
             ["x-macOS.pkg"],
         )
 
+    def test_new_zip_installer_is_reported(self):
+        releases = [dict(RELEASES[0], assets=[asset("x-Windows-portable.zip", 1)])]
+        self.assertEqual(
+            mod.unclassified_assets(mod.build_snapshot(releases, NOW)),
+            ["x-Windows-portable.zip"],
+        )
+
     def test_known_excluded_files_are_not_reported(self):
         self.assertEqual(mod.unclassified_assets(mod.build_snapshot(RELEASES, NOW)), [])
 
 
 class FetchTest(unittest.TestCase):
-    def test_reads_every_page(self):
-        pages = {1: [{"id": i} for i in range(100)], 2: [{"id": 100}]}
-        asked = []
+    def test_flattens_every_page_gh_returns(self):
+        calls = []
 
-        def get_page(number):
-            asked.append(number)
-            return pages[number]
+        def gh(args):
+            calls.append(args)
+            return json.dumps([[{"id": 1}, {"id": 2}], [{"id": 3}]])
 
-        self.assertEqual(len(mod.fetch_all_releases(get_page)), 101)
-        self.assertEqual(asked, [1, 2])
-
-    def test_exactly_full_last_page_stops_on_the_empty_one(self):
-        pages = {1: [{"id": i} for i in range(100)], 2: []}
-        self.assertEqual(len(mod.fetch_all_releases(pages.__getitem__)), 100)
+        self.assertEqual(
+            mod.fetch_all_releases(gh, "o/r"), [{"id": 1}, {"id": 2}, {"id": 3}]
+        )
+        self.assertEqual(
+            calls, [["api", "--paginate", "--slurp", "repos/o/r/releases?per_page=100"]]
+        )
 
     def test_error_propagates(self):
-        def get_page(_):
-            raise urllib.error.URLError("down")
+        def gh(_):
+            raise subprocess.CalledProcessError(1, "gh")
 
-        with self.assertRaises(urllib.error.URLError):
-            mod.fetch_all_releases(get_page)
+        with self.assertRaises(subprocess.CalledProcessError):
+            mod.fetch_all_releases(gh, "o/r")
 
 
-class GitHubPageTest(unittest.TestCase):
-    def test_request_is_authenticated_and_paged(self):
-        response = io.BytesIO(b"[]")
-        with mock.patch("urllib.request.urlopen", return_value=response) as urlopen:
-            self.assertEqual(mod.github_get_page("o/r", "tok", 3), [])
-        request = urlopen.call_args.args[0]
-        self.assertIn("/repos/o/r/releases?per_page=100&page=3", request.full_url)
-        self.assertEqual(request.get_header("Authorization"), "Bearer tok")
+class GhCliTest(unittest.TestCase):
+    def test_returns_stdout_and_fails_loudly(self):
+        finished = subprocess.CompletedProcess([], 0, stdout="[]")
+        with mock.patch("subprocess.run", return_value=finished) as run:
+            self.assertEqual(mod.gh_cli(["api", "x"]), "[]")
+        self.assertEqual(run.call_args.args[0], ["gh", "api", "x"])
+        self.assertTrue(run.call_args.kwargs["check"])
 
 
 class WorkspaceTest(unittest.TestCase):
@@ -269,6 +274,16 @@ class OutputTest(WorkspaceTest):
             ["2026-10-31", "2026-11-01"],
         )
 
+    def test_stored_snapshots_are_read_once(self):
+        mod.write_outputs(self.root, mod.build_snapshot(RELEASES, NOW))
+        later = datetime(2026, 11, 2, 4, 17, tzinfo=timezone.utc)
+        with mock.patch.object(
+            mod, "load_snapshots", wraps=mod.load_snapshots
+        ) as load:
+            mod.write_outputs(self.root, mod.build_snapshot(RELEASES, later))
+        load.assert_called_once()
+        self.assertEqual(len(self.summary()["history"]), 2)
+
     def test_falling_total_warns_and_still_publishes(self):
         mod.write_outputs(self.root, mod.build_snapshot(BIGGER_RELEASES, NOW))
         later = datetime(2026, 11, 2, 4, 17, tzinfo=timezone.utc)
@@ -282,63 +297,66 @@ class OutputTest(WorkspaceTest):
         self.assertEqual(warnings, [])
 
 
+def gh_returning(releases):
+    return lambda _: json.dumps([releases])
+
+
 class MainTest(WorkspaceTest):
-    def run_main(self, get_page):
+    def run_main(self, gh):
         stdout = io.StringIO()
-        with mock.patch.dict(os.environ, {"GH_TOKEN": "tok"}):
-            with contextlib.redirect_stdout(stdout):
-                code = mod.main(
-                    ["--repo", "o/r", "--out", str(self.root)],
-                    get_page=get_page,
-                    now=NOW,
-                )
+        with contextlib.redirect_stdout(stdout):
+            code = mod.main(
+                ["--repo", "o/r", "--out", str(self.root)], gh=gh, now=NOW
+            )
         return code, stdout.getvalue()
 
-    def assert_nothing_written(self):
+    def assert_failed_cleanly(self, result):
+        code, output = result
+        self.assertEqual(code, 1)
+        self.assertIn("::error::", output)
         self.assertEqual(list(self.root.iterdir()), [])
 
     def test_success_writes_files(self):
-        code, _ = self.run_main(lambda page: RELEASES if page == 1 else [])
+        code, _ = self.run_main(gh_returning(RELEASES))
         self.assertEqual(code, 0)
         self.assertEqual(self.summary()["total"], 225)
 
+    def test_default_reader_uses_gh_with_the_requested_repo(self):
+        with mock.patch.object(
+            mod, "gh_cli", return_value=json.dumps([RELEASES])
+        ) as gh:
+            code = mod.main(["--repo", "o/r", "--out", str(self.root)], now=NOW)
+        self.assertEqual(code, 0)
+        self.assertIn("repos/o/r/releases?per_page=100", gh.call_args.args[0])
+        self.assertEqual(self.summary()["total"], 225)
+
     def test_failed_fetch_writes_nothing(self):
-        def get_page(_):
-            raise urllib.error.URLError("down")
+        def gh(_):
+            raise subprocess.CalledProcessError(1, "gh")
 
-        code, output = self.run_main(get_page)
-        self.assertEqual(code, 1)
-        self.assertIn("::error::", output)
-        self.assert_nothing_written()
+        self.assert_failed_cleanly(self.run_main(gh))
 
-    def test_malformed_response_writes_nothing(self):
-        code, output = self.run_main(lambda _: [{"tag_name": "v1"}])
-        self.assertEqual(code, 1)
-        self.assertIn("::error::", output)
-        self.assert_nothing_written()
+    def test_missing_gh_writes_nothing(self):
+        def gh(_):
+            raise FileNotFoundError("gh")
+
+        self.assert_failed_cleanly(self.run_main(gh))
+
+    def test_unreadable_response_writes_nothing(self):
+        self.assert_failed_cleanly(self.run_main(lambda _: "not json"))
+
+    def test_malformed_release_writes_nothing(self):
+        self.assert_failed_cleanly(self.run_main(gh_returning([{"tag_name": "v1"}])))
+
+    def test_missing_count_writes_nothing(self):
+        broken = [release("v1", "2026-10-26T00:00:00Z", [asset("x.dmg", None)])]
+        self.assert_failed_cleanly(self.run_main(gh_returning(broken)))
 
     def test_no_releases_writes_nothing(self):
-        code, _ = self.run_main(lambda _: [])
-        self.assertEqual(code, 1)
-        self.assert_nothing_written()
+        self.assert_failed_cleanly(self.run_main(gh_returning([])))
 
     def test_no_counted_files_writes_nothing(self):
-        code, _ = self.run_main(lambda _: [RELEASES[3]])
-        self.assertEqual(code, 1)
-        self.assert_nothing_written()
-
-    def test_missing_token_writes_nothing(self):
-        stdout = io.StringIO()
-        with mock.patch.dict(os.environ, {}, clear=True):
-            with contextlib.redirect_stdout(stdout):
-                code = mod.main(
-                    ["--repo", "o/r", "--out", str(self.root)],
-                    get_page=lambda _: RELEASES,
-                    now=NOW,
-                )
-        self.assertEqual(code, 1)
-        self.assertIn("GH_TOKEN", stdout.getvalue())
-        self.assert_nothing_written()
+        self.assert_failed_cleanly(self.run_main(gh_returning([RELEASES[3]])))
 
     def test_new_installer_type_prints_a_workflow_warning(self):
         releases = [
@@ -348,7 +366,7 @@ class MainTest(WorkspaceTest):
                 [asset("x-macOS.dmg", 1), asset("x-macOS.pkg", 1)],
             )
         ]
-        code, output = self.run_main(lambda _: releases)
+        code, output = self.run_main(gh_returning(releases))
         self.assertEqual(code, 0)
         self.assertIn("::warning::", output)
         self.assertIn("x-macOS.pkg", output)

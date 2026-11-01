@@ -120,8 +120,9 @@ or branch protection, and is not targeted by `ci.yaml`.
   the full pipeline. That is expected.
 - The first run creates the orphan branch with a short `README.md` explaining
   what the branch is. Later runs add to it.
-- A failed or incomplete fetch fails the job and writes nothing. The script must
-  read every page of releases.
+- A failed or incomplete fetch fails the job and writes nothing. The script reads
+  every page of releases through `gh api --paginate`, as the repo's other GitHub
+  scripts do.
 
 ### Files on the `metrics` branch
 
@@ -131,7 +132,7 @@ downloads/YYYY/MM/YYYY-MM-DD.json   one full per-file snapshot per UTC day
 downloads/summary.json              the one file the website reads
 ```
 
-A daily snapshot is a full per-file record, about 30 KB. The earlier idea of
+A daily snapshot is a full per-file record, about 60 KB. The earlier idea of
 storing only the changes is dropped: git already compresses near-identical
 files well, and full files are simpler to read and repair. A rerun on the same
 UTC day overwrites that day's file.
