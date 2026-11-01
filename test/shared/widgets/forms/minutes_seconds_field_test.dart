@@ -127,4 +127,21 @@ void main() {
 
     expect(find.text('Too late'), findsOneWidget);
   });
+
+  testWidgets('shows a trailing control when given one', (tester) async {
+    await tester.pumpWidget(
+      host(
+        MinutesSecondsField(
+          seconds: 600,
+          onChanged: (_) {},
+          label: 'Time',
+          formatErrorText: 'Use minutes:seconds',
+          suffixIcon: const Icon(Icons.show_chart),
+        ),
+        GlobalKey<FormState>(),
+      ),
+    );
+
+    expect(find.byIcon(Icons.show_chart), findsOneWidget);
+  });
 }

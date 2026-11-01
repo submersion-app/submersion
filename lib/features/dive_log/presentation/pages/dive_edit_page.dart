@@ -109,6 +109,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/conditions_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/experience_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_gear_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switch_time_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/gas_switches_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/rare_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/route_link_sheet.dart';

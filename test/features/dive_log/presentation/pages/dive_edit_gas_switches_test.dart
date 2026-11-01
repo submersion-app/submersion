@@ -57,16 +57,18 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<Dive> seedDive({List<DiveTank> tanks = const [back, deco]}) =>
-      repository.createDive(
-        Dive(
-          id: 'dive-32',
-          dateTime: DateTime.utc(2026, 5, 3, 10),
-          runtime: const Duration(seconds: 1800),
-          tanks: tanks,
-          profile: profile,
-        ),
-      );
+  Future<Dive> seedDive({
+    List<DiveTank> tanks = const [back, deco],
+    List<DiveProfilePoint> samples = profile,
+  }) => repository.createDive(
+    Dive(
+      id: 'dive-32',
+      dateTime: DateTime.utc(2026, 5, 3, 10),
+      runtime: const Duration(seconds: 1800),
+      tanks: tanks,
+      profile: samples,
+    ),
+  );
 
   Future<void> pumpEditor(
     WidgetTester tester,
@@ -460,6 +462,135 @@ void main() {
 
       expect(find.byType(ActionChip), findsNothing);
       expect(timeField, findsOneWidget);
+    });
+  });
+
+  group('picking on the profile', () {
+    Future<void> addSwitch(WidgetTester tester) async {
+      await openGasGear(tester);
+      final add = find.text('Add Switch');
+      await tester.ensureVisible(add);
+      await tester.pumpAndSettle();
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> openPicker(WidgetTester tester, Finder icon) async {
+      await tester.ensureVisible(icon);
+      await tester.pumpAndSettle();
+      await tester.tap(icon);
+      await tester.pumpAndSettle();
+    }
+
+    List<String> times(WidgetTester tester) => [
+      for (final field in tester.widgetList<TextFormField>(
+        find.descendant(
+          of: find.byType(MinutesSecondsField),
+          matching: find.byType(TextFormField),
+        ),
+      ))
+        field.controller!.text,
+    ];
+
+    testWidgets('setting a time fills the row and the depth', (tester) async {
+      final dive = await seedDive();
+      await pumpEditor(tester, dive.id);
+      await addSwitch(tester);
+
+      await openPicker(tester, find.byTooltip('Pick on profile'));
+      tester.widget<Slider>(find.byType(Slider)).onChanged!(900);
+      await tester.pump();
+      await tester.tap(find.text('Set time'));
+      await tester.pumpAndSettle();
+
+      expect(times(tester), ['15:00']);
+      final depth = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(ValueKey('gas-switch-depth-${_onlyRowId(tester)}')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(depth.controller!.text, '30.0');
+    });
+
+    testWidgets('a picked time takes the row to its place in time order', (
+      tester,
+    ) async {
+      final dive = await seedDive();
+      await pumpEditor(tester, dive.id);
+      await addSwitch(tester);
+      await addSwitch(tester);
+      expect(times(tester), ['0:00', '1:00']);
+
+      await openPicker(tester, find.byTooltip('Pick on profile').first);
+      tester.widget<Slider>(find.byType(Slider)).onChanged!(120);
+      await tester.pump();
+      await tester.tap(find.text('Set time'));
+      await tester.pumpAndSettle();
+
+      expect(times(tester), ['1:00', '2:00']);
+    });
+
+    testWidgets('a row past the profile opens the sheet at its end', (
+      tester,
+    ) async {
+      final dive = await seedDive();
+      await pumpEditor(tester, dive.id);
+      await addSwitch(tester);
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(MinutesSecondsField),
+          matching: find.byType(TextFormField),
+        ),
+        '99:00',
+      );
+      await tester.pumpAndSettle();
+
+      await openPicker(tester, find.byTooltip('Pick on profile'));
+
+      expect(find.text('30:00 at 0.0m'), findsOneWidget);
+    });
+
+    testWidgets('Cancel leaves the dive untouched', (tester) async {
+      final dive = await seedDive();
+      await repository.createGasSwitch(
+        GasSwitch(
+          id: 'gs-deco',
+          diveId: dive.id,
+          timestamp: 900,
+          tankId: 'tank-deco',
+          createdAt: DateTime.utc(2026, 5, 3, 11),
+        ),
+      );
+      String? savedId;
+      await pumpEditor(tester, dive.id, onSaved: (id) => savedId = id);
+      await openGasGear(tester);
+
+      await openPicker(tester, find.byTooltip('Pick on profile'));
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      expect(savedId, isNotNull, reason: 'save should complete');
+      expect(await flagged(), isFalse);
+    });
+
+    testWidgets('a dive with no profile offers no picker', (tester) async {
+      final dive = await seedDive(samples: const []);
+      await pumpEditor(tester, dive.id);
+      await addSwitch(tester);
+
+      expect(find.byTooltip('Pick on profile'), findsNothing);
+    });
+
+    testWidgets('a profile of one sample offers no picker', (tester) async {
+      final dive = await seedDive(
+        samples: const [DiveProfilePoint(timestamp: 60, depth: 10)],
+      );
+      await pumpEditor(tester, dive.id);
+      await addSwitch(tester);
+
+      expect(find.byTooltip('Pick on profile'), findsNothing);
     });
   });
 }

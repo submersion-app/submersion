@@ -46,6 +46,7 @@ Future<_Harness> _pump(
   int removedWithTankCount = 0,
   bool imperial = false,
   Map<String, List<int>> breathStarts = const {},
+  ValueChanged<GasSwitch>? onPickTime,
 }) async {
   tester.view.physicalSize = const Size(900, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -71,6 +72,7 @@ Future<_Harness> _pump(
               startingTank: _back,
               removedWithTankCount: removedWithTankCount,
               breathStarts: breathStarts,
+              onPickTime: onPickTime,
               onChanged: (updated, field) =>
                   h.changes.add((updated: updated, field: field)),
               onRemove: h.removed.add,
@@ -308,6 +310,27 @@ void main() {
       await _pump(tester, switches: [_sw('gs-1', 900, 'deco')]);
 
       expect(find.text('Started dropping at'), findsNothing);
+    });
+  });
+
+  group('picking on the profile', () {
+    testWidgets('the icon hands the row\'s switch to the page', (tester) async {
+      GasSwitch? picked;
+      await _pump(
+        tester,
+        switches: [_sw('gs-1', 900, 'deco')],
+        onPickTime: (sw) => picked = sw,
+      );
+
+      await tester.tap(find.byTooltip('Pick on profile'));
+
+      expect(picked?.id, 'gs-1');
+    });
+
+    testWidgets('no callback shows no icon', (tester) async {
+      await _pump(tester, switches: [_sw('gs-1', 900, 'deco')]);
+
+      expect(find.byTooltip('Pick on profile'), findsNothing);
     });
   });
 }

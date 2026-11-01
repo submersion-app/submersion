@@ -41,6 +41,7 @@ class GasSwitchesEditor extends StatelessWidget {
     required this.onAdd,
     this.onTimeSettled,
     this.breathStarts = const {},
+    this.onPickTime,
   });
 
   /// The switches in the order to show them.
@@ -71,6 +72,10 @@ class GasSwitchesEditor extends StatelessWidget {
   /// When each cylinder started being breathed, by tank id, which a row
   /// offers as one-tap fills for its time.
   final Map<String, List<int>> breathStarts;
+
+  /// Opens the profile picker for a row; null when there is no profile to
+  /// pick on, which hides the control.
+  final ValueChanged<GasSwitch>? onPickTime;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +117,7 @@ class GasSwitchesEditor extends StatelessWidget {
             onChanged: onChanged,
             onRemove: onRemove,
             onTimeSettled: onTimeSettled,
+            onPickTime: onPickTime,
           ),
         FormAppendRow(label: l10n.diveLog_edit_gasSwitches_add, onTap: onAdd),
       ],
@@ -143,6 +149,7 @@ class _GasSwitchRow extends StatefulWidget {
     required this.onChanged,
     required this.onRemove,
     required this.onTimeSettled,
+    required this.onPickTime,
   });
 
   final GasSwitch gasSwitch;
@@ -154,6 +161,7 @@ class _GasSwitchRow extends StatefulWidget {
   final void Function(GasSwitch updated, GasSwitchField field) onChanged;
   final ValueChanged<String> onRemove;
   final ValueChanged<String>? onTimeSettled;
+  final ValueChanged<GasSwitch>? onPickTime;
 
   @override
   State<_GasSwitchRow> createState() => _GasSwitchRowState();
@@ -223,6 +231,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
     final l10n = context.l10n;
     final sw = widget.gasSwitch;
     final tankIds = {for (final t in widget.tanks) t.id};
+    final onPickTime = widget.onPickTime;
 
     final time = MinutesSecondsField(
       key: ValueKey('gas-switch-time-${sw.id}'),
@@ -231,6 +240,14 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
       formatErrorText: l10n.diveLog_edit_gasSwitches_timeFormatError,
       validator: (seconds) => _timeError(l10n, seconds),
       onSettled: () => widget.onTimeSettled?.call(sw.id),
+      suffixIcon: onPickTime == null
+          ? null
+          : IconButton(
+              key: ValueKey('gas-switch-pick-${sw.id}'),
+              icon: const Icon(Icons.show_chart),
+              tooltip: l10n.diveLog_edit_gasSwitches_pickOnProfile,
+              onPressed: () => onPickTime(sw),
+            ),
       onChanged: (seconds) {
         if (seconds == null) return;
         widget.onChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);

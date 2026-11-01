@@ -59,6 +59,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
   Widget? _buildGasSwitchesChild(UnitFormatter units) {
     if (!_gasSwitchesVisible) return null;
     final diveId = widget.diveId;
+    final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
     return GasSwitchesEditor(
       switches: _gasSwitches,
       tanks: _tanks,
@@ -74,7 +75,37 @@ extension _GasSwitchEditing on _DiveEditPageState {
           ? const {}
           : ref.watch(cylinderBreathStartsProvider(diveId)).valueOrNull ??
                 const {},
+      onPickTime: canPickOnProfile(profile)
+          ? (sw) => _pickGasSwitchTime(sw, profile, units)
+          : null,
     );
+  }
+
+  /// Picks [sw]'s time on the profile. A picked time is the same edit as a
+  /// typed one followed by leaving the field.
+  Future<void> _pickGasSwitchTime(
+    GasSwitch sw,
+    List<DiveProfilePoint> profile,
+    UnitFormatter units,
+  ) async {
+    final diveId = widget.diveId;
+    final starts = diveId == null
+        ? null
+        : ref.read(cylinderBreathStartsProvider(diveId)).valueOrNull;
+    final seconds = await showGasSwitchTimeSheet(
+      context,
+      profile: profile,
+      initialSeconds: sw.timestamp,
+      units: units,
+      otherSwitchTimes: [
+        for (final other in _gasSwitches)
+          if (other.id != sw.id) other.timestamp,
+      ],
+      breathStarts: starts?[sw.tankId] ?? const [],
+    );
+    if (!mounted || seconds == null || seconds == sw.timestamp) return;
+    _onGasSwitchChanged(sw.copyWith(timestamp: seconds), GasSwitchField.time);
+    _onGasSwitchTimeSettled(sw.id);
   }
 
   /// A time field was left: now the row takes its place in time order,
