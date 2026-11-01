@@ -1037,8 +1037,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
-  /// The top-bar entry point to the filter panel, badged while anything is
-  /// narrowed -- the same affordance the dive and site lists use.
   /// The search row (#3882): the equipment query, which the filter sheet's
   /// query section also edits.
   Widget _buildSearchHeader() => EntitySearchHeader(
@@ -1055,6 +1053,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     },
   );
 
+  /// The top-bar entry point to the filter panel, badged while anything is
+  /// narrowed -- the same affordance the dive and site lists use.
   Widget _buildFilterAction(
     BuildContext context,
     EquipmentFilterState filter, {

@@ -1,4 +1,5 @@
 import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/features/marine_life/presentation/species_ids.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 

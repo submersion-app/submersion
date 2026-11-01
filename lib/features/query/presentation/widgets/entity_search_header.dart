@@ -38,7 +38,6 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
     required this.onChanged,
     this.hintText,
     this.alwaysShown = false,
-    this.onEscape,
   });
 
   final QuerySubject subject;
@@ -53,10 +52,6 @@ class EntitySearchHeader extends ConsumerStatefulWidget {
   /// has always shown its search field; the Close button then clears
   /// rather than hides.
   final bool alwaysShown;
-
-  /// Replaces Escape's close-and-clear while set; a list passes its
-  /// selection exit, so Esc leaves selection mode first.
-  final VoidCallback? onEscape;
 
   @override
   ConsumerState<EntitySearchHeader> createState() => _EntitySearchHeaderState();
@@ -94,6 +89,10 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
       _debounce?.cancel();
       _local = widget.query;
       _text = '';
+      // Close's empty text must not outlive it: a row hidden by Close and
+      // shown again by this query builds a new field, which would apply it
+      // over the printed query.
+      _override = null;
     }
   }
 
@@ -183,7 +182,7 @@ class _EntitySearchHeaderState extends ConsumerState<EntitySearchHeader> {
                   focusNode: _focus,
                   onTextChanged: (text) => setState(() => _text = text),
                   textOverride: _override,
-                  onEscape: widget.onEscape ?? _close,
+                  onEscape: _close,
                 ),
               ),
               IconButton(

@@ -27,7 +27,9 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dives': Color(0xFF1976D2),
       'sites': Color(0xFF388E3C),
       'trips': Color(0xFF7B1FA2),
-      'search': Color(0xFF00796B),
+      // Pink is the hue no other nav destination wears: teal is Insights,
+      // and Search sits in the same rail.
+      'search': Color(0xFFC2185B),
       'media': Color(0xFF6A1B9A),
       // Lime is the one hue the other nav accents leave free: green is
       // sites and teal is statistics, so a kelp tone keeps Species
@@ -83,7 +85,7 @@ class FeatureAccentColors extends ThemeExtension<FeatureAccentColors> {
       'dives': Color(0xFF64B5F6),
       'sites': Color(0xFF81C784),
       'trips': Color(0xFFBA68C8),
-      'search': Color(0xFF4DB6AC),
+      'search': Color(0xFFF06292),
       'media': Color(0xFFCE93D8),
       'species': Color(0xFFDCE775),
       'equipment': Color(0xFFFFB74D),

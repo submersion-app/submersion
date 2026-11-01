@@ -159,6 +159,29 @@ void main() {
     expect(field.controller!.text, 'ann');
   });
 
+  testWidgets('a query set from outside after Close shows in the field', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(_field), 'robin');
+    await tester.pump(kEntitySearchDebounce);
+    await tester.tap(find.byKey(entitySearchCloseKey(_subject)));
+    await tester.pumpAndSettle();
+    expect(find.byKey(_field), findsNothing);
+
+    // The filter sheet, or global search's See all, sets the list's query:
+    // the row comes back with that query in it, not Close's empty text.
+    _container(tester).read(_query.notifier).state = TextNode(['ann']);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byKey(_field)).controller!.text,
+      'ann',
+    );
+  });
+
   testWidgets('always shown where the page asks, Close then clears only', (
     tester,
   ) async {

@@ -350,7 +350,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         subject: QuerySubject.equipment,
         active: ref.watch(equipmentFilterProvider).query != null,
         tooltip: context.l10n.equipment_list_searchTooltip,
-        compact: iconSize == 20,
+        compact: iconSize != null,
       ),
       IconButton(
         key: const ValueKey('equipment_filter_button'),
