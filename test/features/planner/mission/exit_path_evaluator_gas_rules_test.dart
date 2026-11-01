@@ -120,7 +120,7 @@ void main() {
   test('exit gas starts counting at the failure depth', () {
     // SAC 15 everywhere (the plan's deco SAC is 15 too), so the exit is the
     // whole dive's gas minus the outbound's, row for row.
-    final plan = _plan();
+    final plan = _plan().copyWith(problemSolvingMinutes: 0);
     final result = _run(
       plan: plan,
       divers: const [ExitDiver(id: 'a', sacBottom: 15)],
@@ -163,7 +163,11 @@ void main() {
   });
 
   test('travel between stops is breathed at the deco SAC when stressed', () {
-    final plan = _plan().copyWith(sacDeco: 15, sacStressed: 30);
+    final plan = _plan().copyWith(
+      sacDeco: 15,
+      sacStressed: 30,
+      problemSolvingMinutes: 0,
+    );
     final deep = [
       PlanSegment.travel(
         id: 'down',
@@ -222,6 +226,74 @@ void main() {
       byMember['stressed']! - byMember['calm']!,
       closeTo(toFirstStop['back']!, 1e-6),
     );
+  });
+
+  group('problem-solving time (#4059)', () {
+    const diver = ExitDiver(id: 'diver', sacBottom: 15);
+    final atFailure = PlanEngine.environmentFor(_plan()).pressureAtDepth(20);
+
+    double exitLiters(domain.DivePlan plan, {ExitDiver who = diver}) =>
+        _run(plan: plan, divers: [who]).exitLitersByMember[who.id]!;
+
+    test('is charged at the failure depth on the exit', () {
+      final none = exitLiters(_plan().copyWith(problemSolvingMinutes: 0));
+      final some = exitLiters(_plan().copyWith(problemSolvingMinutes: 3));
+      expect(some - none, closeTo(3 * 15 * atFailure, 1e-6));
+    });
+
+    test('a stressed diver pays their stressed rate', () {
+      final plan = _plan().copyWith(sacStressed: 30);
+      const stressed = ExitDiver(id: 'diver', sacBottom: 15, stressed: true);
+      final none = exitLiters(
+        plan.copyWith(problemSolvingMinutes: 0),
+        who: stressed,
+      );
+      final some = exitLiters(
+        plan.copyWith(problemSolvingMinutes: 3),
+        who: stressed,
+      );
+      expect(some - none, closeTo(3 * 30 * atFailure, 1e-6));
+    });
+
+    test('a plan with no setting of its own uses the diver Settings', () {
+      double litersWith(int minutes) =>
+          ExitPathEvaluator(
+                engine: PlanEngine(
+                  config: PlanEngineConfig(problemSolvingMinutes: minutes),
+                ),
+              )
+              .evaluate(
+                plan: _plan(),
+                outboundSegments: _outbound,
+                failureRuntimeSeconds: 667,
+                exitLegs: const [],
+                exitSpeedMps: 0.2,
+                divers: const [diver],
+              )
+              .exitLitersByMember['diver']!;
+
+      expect(litersWith(4) - litersWith(0), closeTo(4 * 15 * atFailure, 1e-6));
+    });
+
+    test('it can take an exit below the reserve', () {
+      // A reserve 1 bar under where the dive ends, and five more minutes at
+      // 3 bar costs about 6 bar from this 40 L cylinder.
+      final ended = const PlanEngine()
+          .compute(
+            _plan().copyWith(segments: _outbound, problemSolvingMinutes: 0),
+          )
+          .tankUsages
+          .single
+          .remainingPressure!;
+      final plan = _plan().copyWith(reservePressure: ended - 1);
+      Set<String> shortOf(int minutes) => _run(
+        plan: plan.copyWith(problemSolvingMinutes: minutes),
+        divers: const [diver],
+      ).gasShortfallMemberIds;
+
+      expect(shortOf(0), isEmpty);
+      expect(shortOf(5), {'diver'});
+    });
   });
 
   test('an exit the plan engine calls not diveable is flagged', () {

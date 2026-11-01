@@ -38,7 +38,7 @@ class ExitPathResult extends Equatable {
   final int ttsSeconds;
 
   /// Surface litres each diver breathes from the failure point to the
-  /// surface, by diver id.
+  /// surface, by diver id, the plan's problem-solving time included.
   final Map<String, double> exitLitersByMember;
 
   /// Divers whose outbound plus exit gas leaves a tank below the plan's
@@ -151,9 +151,20 @@ class ExitPathEvaluator {
           row.startRuntimeSeconds,
     ].firstOrNull;
 
+    // The time to sort out the failure before leaving: the allowance the plan
+    // engine holds back at the bottom, spent here at the failure point.
+    final problemSolvingMinutes = engine.config
+        .resolvedFor(plan)
+        .problemSolvingMinutes;
+    final failureTankId =
+        outboundRows.lastOrNull?.tankId ?? exitRows.firstOrNull?.tankId;
+
     final liters = <String, double>{};
     final shortfall = <String>{};
     for (final diver in divers) {
+      final workingSac = diver.stressed
+          ? stressedSacFor(plan, diver.sacBottom)
+          : diver.sacBottom;
       final outbound = gas.litersByTank(
         rows: outboundRows,
         environment: environment,
@@ -168,13 +179,19 @@ class ExitPathEvaluator {
               row.startRuntimeSeconds >= firstStopStart) {
             return plan.sacDecoEffective;
           }
-          return diver.stressed
-              ? stressedSacFor(plan, diver.sacBottom)
-              : diver.sacBottom;
+          return workingSac;
         },
       );
-      liters[diver.id] = exit.values.fold(0.0, (a, b) => a + b);
-      if (_gasShort(plan, outbound, exit)) shortfall.add(diver.id);
+      final problemSolving =
+          problemSolvingMinutes *
+          workingSac *
+          environment.pressureAtDepth(failureDepth);
+      final charged = {
+        ...exit,
+        ?failureTankId: (exit[failureTankId] ?? 0.0) + problemSolving,
+      };
+      liters[diver.id] = charged.values.fold(0.0, (a, b) => a + b);
+      if (_gasShort(plan, outbound, charged)) shortfall.add(diver.id);
     }
 
     return ExitPathResult(
