@@ -20264,7 +20264,7 @@
     }
   },
   "@universalImport_triage_cancelParsing": {
-    "description": "Button that cancels a running batch parse at the next file boundary"
+    "description": "Button that stops a running file parse straight away, for one file or a batch"
   },
   "@universalImport_triage_allExcluded": {
     "description": "Shown when every selected file was excluded from the batch"

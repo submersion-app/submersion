@@ -54370,7 +54370,7 @@ abstract class AppLocalizations {
   /// **'Parsing file {current} of {total}…'**
   String universalImport_triage_parsing(int current, int total);
 
-  /// Button that cancels a running batch parse at the next file boundary
+  /// Button that stops a running file parse straight away, for one file or a batch
   ///
   /// In en, this message translates to:
   /// **'Cancel'**

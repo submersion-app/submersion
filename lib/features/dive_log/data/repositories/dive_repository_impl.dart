@@ -62,7 +62,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_import/domain/models/dive_match_record.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    show ProfileSeries;
 import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
@@ -297,6 +300,17 @@ class DiveRepository {
   /// either query ticks on all of these plus the filter's own tables, so a
   /// site rename (a `dive_sites`-only write) refreshes the names it shows.
   static const Set<String> statisticsTickTables = {'dives', 'dive_sites'};
+
+  /// The tables a dive comparison reads, by SQL name: the dive and its site
+  /// for the label, the series and source rows for the profile. Narrower than
+  /// the detail tick, so viewing a photo elsewhere does not reload the
+  /// compared profiles.
+  static const Set<String> comparisonTickTables = {
+    'dives',
+    'dive_sites',
+    'dive_profile_series',
+    'dive_data_sources',
+  };
 
   /// The tables the dive list renders from, by SQL name: the summary row,
   /// its site and trip joins, the safety badge, and the row chips (tag
@@ -1589,6 +1603,56 @@ class DiveRepository {
     }
   }
 
+  /// How many samples [getProfilesByDataSource] would give the primary source
+  /// of each of [diveIds], by dive id, for a selection too large to load
+  /// (issue #3856). A dive with no series is absent.
+  ///
+  /// It is that read's answer without its cost: the same series and source
+  /// rows go through the same reduction, with no blob read or decoded and a
+  /// fixed set of statements per [kSeriesIdChunkSize] ids.
+  Future<Map<String, int>> getPrimarySourceSampleCounts(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    try {
+      return await PerfTimer.measure('getPrimarySourceSampleCounts', () async {
+        final seriesByDive = <String, List<ProfileSeries>>{};
+        for (final s in await _profileSeries.getUndecodedSeriesForDives(
+          diveIds,
+        )) {
+          (seriesByDive[s.diveId] ??= []).add(s);
+        }
+        final rowsByDive = await _sourceRowsWithoutBlobs([
+          ...seriesByDive.keys,
+        ]);
+        return {
+          for (final MapEntry(key: diveId, value: series)
+              in seriesByDive.entries)
+            diveId: _primarySampleCount(series, rowsByDive[diveId] ?? const []),
+        };
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count primary source samples',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  int _primarySampleCount(
+    List<ProfileSeries> series,
+    List<DiveDataSourcesData> rows,
+  ) {
+    final shown = _shownSourcesOf(rows);
+    return primaryProfileSampleCount(
+      series: series,
+      shownSources: shown.shownSources,
+      shownIdByRow: shown.shownIdByRow,
+    );
+  }
+
   /// [reduce] over the primary source's profile of each of [diveIds]: the
   /// first entry [getProfilesByDataSource] returns for that dive, samples for
   /// samples, read for every dive at once rather than one dive per round
@@ -1654,6 +1718,38 @@ class DiveRepository {
       ],
       shownIdByRow: shownIdByRow,
     );
+  }
+
+  /// [_sourceRowsInShownOrderForDives] without the raw download columns: a row
+  /// can carry a whole download, which a read over a selection has no use
+  /// for. Those fields read as null, so never write a row back.
+  Future<Map<String, List<DiveDataSourcesData>>> _sourceRowsWithoutBlobs(
+    List<String> diveIds,
+  ) async {
+    final table = _db.diveDataSources;
+    final columns = [
+      for (final column in table.$columns)
+        if (column != table.rawData && column != table.rawFingerprint)
+          column.$name,
+    ].join(', ');
+    final byDive = <String, List<DiveDataSourcesData>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT $columns FROM ${table.actualTableName} '
+            'WHERE dive_id IN ($placeholders) '
+            'ORDER BY dive_id, is_primary DESC, created_at ASC, id ASC',
+            variables: [for (final diveId in chunk) Variable<String>(diveId)],
+            readsFrom: {table},
+          )
+          .get();
+      for (final row in rows) {
+        final source = table.map(row.data);
+        (byDive[source.diveId] ??= []).add(source);
+      }
+    }
+    return byDive;
   }
 
   /// Every source row of each dive of [diveIds], keyed by dive and in shown
@@ -6095,13 +6191,23 @@ class DiveRepository {
   /// [getPreviousDiveTimes]) rather than full hydration: the formula needs
   /// only timestamps and effective runtime, and this method sits on the
   /// residual-decompression lookback hot path (WS2, large-DB performance).
+  ///
+  /// [sameDiverOnly] measures from the dive's own diver's previous dive, as
+  /// [getPreviousDiveTimes] picks it. The lookback passes it: that interval
+  /// off-gasses one person's tissues.
   // stats-scope-exempt: physiological interval between real dives, not a statistic
-  Future<Duration?> getSurfaceInterval(String diveId) async {
+  Future<Duration?> getSurfaceInterval(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     try {
       final current = await getDiveTimes(diveId);
       if (current == null) return null;
 
-      final previous = await getPreviousDiveTimes(diveId);
+      final previous = await getPreviousDiveTimes(
+        diveId,
+        sameDiverOnly: sameDiverOnly,
+      );
       if (previous == null) return null;
 
       // Calculate interval: from previous dive exit to current dive entry
@@ -6161,7 +6267,7 @@ class DiveRepository {
   /// table use [effectiveRuntimeSecondsSql] instead, which resolves the same
   /// chain but short-circuits past the profile scan.
   static final _diveTimesSelect =
-      'SELECT d.id, d.dive_date_time, d.entry_time, d.exit_time, '
+      'SELECT d.id, d.diver_id, d.dive_date_time, d.entry_time, d.exit_time, '
       'd.runtime, d.bottom_time, '
       "${diveUndivedSql('d')} AS is_undived, "
       "${profileSpanSecondsSql('d')} AS profile_span "
@@ -6189,6 +6295,7 @@ class DiveRepository {
       bottomTime: bottom != null ? Duration(seconds: bottom) : null,
       // Matches Dive.calculateRuntimeFromProfile: null unless positive.
       profileSpan: span != null && span > 0 ? Duration(seconds: span) : null,
+      diverId: row.readNullable<String>('diver_id'),
       isUndivedPlan: row.read<int>('is_undived') == 1,
     );
   }
@@ -6212,8 +6319,8 @@ class DiveRepository {
   /// link meant for the real dive) whose effective start (entryTime,
   /// falling back to the legacy diveDateTime) is at or after [notBefore].
   /// Mirrors [getPreviousDiveTimes]'s predicate and ordering in reverse, with
-  /// an explicit diver filter -- unlike [getPreviousDiveTimes], which is used
-  /// for the surface-interval lookback and does not need one.
+  /// an explicit diver filter: [getPreviousDiveTimes] has none by default,
+  /// because the surface interval a shared logbook shows spans every diver.
   ///
   /// Returns only the id, not a hydrated [domain.Dive]: the sole caller,
   /// [ChecklistDiveLinker], only compares identity, and that linker runs
@@ -6260,7 +6367,16 @@ class DiveRepository {
   ///
   /// A plan nobody has dived ([diveUndivedSql]) is the previous dive of another
   /// such plan only: a dive that happened looks past it (issue #3924).
-  Future<domain.DiveTimes?> getPreviousDiveTimes(String diveId) async {
+  ///
+  /// By default this is any diver's dive: the gap a shared logbook shows. A
+  /// residual load is one person's, so the lookback passes [sameDiverOnly] and
+  /// reads the dive's own diver's dives, whichever diver is active (#3923).
+  /// `IS` matches a null owner: unassigned dives are one implicit diver's, as
+  /// in `quality_prefilters.dart`, and never pair with an assigned diver's.
+  Future<domain.DiveTimes?> getPreviousDiveTimes(
+    String diveId, {
+    bool sameDiverOnly = false,
+  }) async {
     final current = await getDiveTimes(diveId);
     if (current == null) return null;
 
@@ -6270,12 +6386,14 @@ class DiveRepository {
           '$_diveTimesSelect '
           'WHERE d.id != ? AND (d.entry_time < ? OR '
           '(d.entry_time IS NULL AND d.dive_date_time < ?)) '
+          '${sameDiverOnly ? 'AND d.diver_id IS ? ' : ''}'
           '${current.isUndivedPlan ? '' : 'AND NOT ${diveUndivedSql('d')} '}'
           'ORDER BY d.entry_time DESC, d.dive_date_time DESC LIMIT 1',
           variables: [
             Variable<String>(diveId),
             Variable<int>(cutoff),
             Variable<int>(cutoff),
+            if (sameDiverOnly) Variable<String>(current.diverId),
           ],
           readsFrom: {_db.dives, _db.diveProfileSeries},
         )
@@ -6374,12 +6492,16 @@ class DiveRepository {
     }
   }
 
-  /// Times-only equivalent of [getDivesInRange] (identical WHERE and
+  /// Times-only equivalent of [getDivesInRange] (identical window and
   /// ordering), for same-day and weekly exposure aggregation.
+  ///
+  /// [diverId] is required because exposure is one person's (#3923), and unlike
+  /// [getDivesInRange] a null one is not "every diver": it reads the unassigned
+  /// dives, for a dive that is itself unassigned.
   Future<List<domain.DiveTimes>> getDiveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
   }) => _diveTimesInRange(start, end, diverId: diverId);
 
   /// [getDiveTimesInRange] for [diverId], excluding plans nobody has dived
@@ -6395,18 +6517,19 @@ class DiveRepository {
   Future<List<domain.DiveTimes>> _diveTimesInRange(
     DateTime start,
     DateTime end, {
-    String? diverId,
+    required String? diverId,
     bool executedOnly = false,
   }) async {
-    final clauses = <String>['d.dive_date_time >= ?', 'd.dive_date_time <= ?'];
+    final clauses = <String>[
+      'd.dive_date_time >= ?',
+      'd.dive_date_time <= ?',
+      'd.diver_id IS ?',
+    ];
     final args = <Variable<Object>>[
       Variable<int>(start.millisecondsSinceEpoch),
       Variable<int>(end.millisecondsSinceEpoch),
+      Variable<String>(diverId),
     ];
-    if (diverId != null) {
-      clauses.add('d.diver_id = ?');
-      args.add(Variable<String>(diverId));
-    }
     if (executedOnly) clauses.add('NOT ${diveUndivedSql('d')}');
     final rows = await _db
         .customSelect(
@@ -8592,15 +8715,11 @@ class DiveRepository {
       for (final MapEntry(key: diveId, value: seriesRows)
           in seriesRowsByDive.entries) {
         final diveRows = rowsByDive[diveId]!;
-        final shownIdByRow = _shownIdByRow(diveRows);
+        final shown = _shownSourcesOf(diveRows);
         final live = liveSeriesBySourceRow(
           series: seriesRows.map(undecodedProfileSeriesRow).toList(),
-          shownSources: [
-            for (final row in diveRows)
-              if (shownIdByRow[row.id] == row.id)
-                (id: row.id, computerId: row.computerId),
-          ],
-          shownIdByRow: shownIdByRow,
+          shownSources: shown.shownSources,
+          shownIdByRow: shown.shownIdByRow,
         );
         final blobById = {for (final row in seriesRows) row.id: row.samples};
         for (final MapEntry(key: rowId, value: series) in live.entries) {
@@ -8726,6 +8845,66 @@ class DiveRepository {
     }
     return result;
   }
+
+  /// What duplicate matching reads of every dive [getAllDives] returns, in
+  /// the same order, so that matching does not hydrate the whole logbook
+  /// (issue #3855). Order matters: a tie on score goes to the first dive met.
+  ///
+  /// When [diverId] is provided, only that diver's dives are returned.
+  // stats-scope-exempt: import dedupe, must see every dive or it re-imports
+  Future<List<DiveMatchRecord>> getDiveMatchRecords({String? diverId}) async {
+    try {
+      return await PerfTimer.measure('getDiveMatchRecords', () async {
+        final dives = _db.dives;
+        final sites = _db.diveSites;
+        final query = _db.selectOnly(dives)
+          ..addColumns([
+            dives.id,
+            dives.diveDateTime,
+            dives.maxDepth,
+            dives.runtime,
+            dives.entryTime,
+            dives.exitTime,
+            dives.bottomTime,
+            sites.name,
+          ])
+          ..orderBy([
+            OrderingTerm.desc(coalesce([dives.entryTime, dives.diveDateTime])),
+            OrderingTerm.desc(dives.diveNumber),
+          ]);
+        query.join([leftOuterJoin(sites, sites.id.equalsExp(dives.siteId))]);
+        if (diverId != null) query.where(dives.diverId.equals(diverId));
+
+        final rows = await query.get();
+        return [
+          for (final row in rows)
+            DiveMatchRecord(
+              id: row.read(dives.id)!,
+              dateTime: wallClockUtcFromMillis(row.read(dives.diveDateTime)!),
+              maxDepth: row.read(dives.maxDepth),
+              runtime: _durationFromSeconds(row.read(dives.runtime)),
+              entryTime: _wallClockOrNull(row.read(dives.entryTime)),
+              exitTime: _wallClockOrNull(row.read(dives.exitTime)),
+              bottomTime: _durationFromSeconds(row.read(dives.bottomTime)),
+              siteName: row.read(sites.name),
+            ),
+        ];
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to load dive match records',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  static Duration? _durationFromSeconds(int? seconds) =>
+      seconds == null ? null : Duration(seconds: seconds);
+
+  static DateTime? _wallClockOrNull(int? millis) =>
+      millis == null ? null : wallClockUtcFromMillis(millis);
 
   /// One-column lookup of a dive's `computer_id`.
   ///

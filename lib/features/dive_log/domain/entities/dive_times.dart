@@ -17,6 +17,9 @@ class DiveTimes {
   final Duration? bottomTime;
   final Duration? profileSpan;
 
+  /// The diver who logged this dive; null for an unassigned dive.
+  final String? diverId;
+
   /// True for a plan nobody has dived: planned, with no logged dive on its
   /// outing (see `diveUndivedSql`).
   final bool isUndivedPlan;
@@ -29,6 +32,7 @@ class DiveTimes {
     this.runtime,
     this.bottomTime,
     this.profileSpan,
+    this.diverId,
     this.isUndivedPlan = false,
   });
 
