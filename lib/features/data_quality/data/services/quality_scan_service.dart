@@ -15,6 +15,7 @@ import 'package:submersion/features/data_quality/domain/detectors/quality_detect
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 class QualityScanSummary {
   const QualityScanSummary({
@@ -78,13 +79,15 @@ class QualityScanService {
     }
     final enabled = _enabled(enabledDetectorIds);
     final expanded = (await _expandNeighbors(diveIds)).toList();
+    // Resolved here so every batch of one scan reads the same clock.
+    final scanNow = now ?? DateTime.now();
     final produced = <QualityFinding>[];
     var errors = 0;
-    for (var i = 0; i < expanded.length; i += batchSize) {
+    for (final batch in seriesIdChunks(expanded, size: batchSize)) {
       final detected = await _detect(
-        expanded.sublist(i, math.min(i + batchSize, expanded.length)),
+        batch,
         detectorsFor: (_) => enabled,
-        now: now,
+        now: scanNow,
       );
       produced.addAll(detected.produced);
       errors += detected.errors;
@@ -212,19 +215,23 @@ class QualityScanService {
   }
 
   Future<Set<String>> _expandNeighbors(Set<String> diveIds) async {
-    final placeholders = List.filled(diveIds.length, '?').join(',');
     final windowMs = QualityThresholds.neighborWindow.inMilliseconds;
-    final rows = await _db
-        .customSelect(
-          'SELECT DISTINCT b.id AS id FROM dives a JOIN dives b '
-          'ON b.id != a.id AND a.diver_id IS b.diver_id '
-          'AND ABS(COALESCE(a.entry_time, a.dive_date_time) - '
-          'COALESCE(b.entry_time, b.dive_date_time)) <= $windowMs '
-          'WHERE a.id IN ($placeholders)',
-          variables: [for (final id in diveIds) Variable.withString(id)],
-        )
-        .get();
-    return {...diveIds, for (final r in rows) r.read<String>('id')};
+    final expanded = {...diveIds};
+    for (final chunk in seriesIdChunks(diveIds.toList())) {
+      final placeholders = List.filled(chunk.length, '?').join(',');
+      final rows = await _db
+          .customSelect(
+            'SELECT DISTINCT b.id AS id FROM dives a JOIN dives b '
+            'ON b.id != a.id AND a.diver_id IS b.diver_id '
+            'AND ABS(COALESCE(a.entry_time, a.dive_date_time) - '
+            'COALESCE(b.entry_time, b.dive_date_time)) <= $windowMs '
+            'WHERE a.id IN ($placeholders)',
+            variables: [for (final id in chunk) Variable.withString(id)],
+          )
+          .get();
+      expanded.addAll(rows.map((r) => r.read<String>('id')));
+    }
+    return expanded;
   }
 }
 

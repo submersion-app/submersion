@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/data_quality/domain/detectors/quality_detect
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -62,9 +64,11 @@ class _OneSidedPairDetector extends QualityDetector {
       : const [];
 }
 
-/// Answers each batch with bare contexts, recording how large it was.
+/// Answers each batch with bare contexts, recording how large it was and the
+/// clock it was given.
 class _RecordingBuilder implements QualityContextBuilder {
   final batches = <int>[];
+  final clocks = <DateTime?>[];
 
   @override
   Future<List<DiveQualityContext>> buildAll(
@@ -72,6 +76,7 @@ class _RecordingBuilder implements QualityContextBuilder {
     DateTime? now,
   }) async {
     batches.add(diveIds.length);
+    clocks.add(now);
     return [
       for (final id in diveIds)
         DiveQualityContext(
@@ -233,6 +238,93 @@ void main() {
 
       final findings = await findingsRepo.getFindings(diveId: 'first');
       expect(findings.single.relatedDiveId, 'last');
+    });
+
+    test('counts detector errors from every batch', () async {
+      final service = QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        findingsRepository: _RecordingFindings(),
+        detectors: const [ThrowingDetector()],
+      );
+
+      final summary = await service.scanDives(ids);
+
+      expect(summary.detectorErrors, overBatch);
+    });
+
+    test('tells sync once', () async {
+      var notified = 0;
+      final sub = SyncEventBus.changes.listen((_) => notified++);
+      addTearDown(sub.cancel);
+      final service = QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        findingsRepository: _RecordingFindings(),
+        detectors: const [_UnprefilteredDetector()],
+      );
+
+      await service.scanDives(ids);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notified, 1);
+    });
+
+    test('judges every batch against one clock', () async {
+      final builder = _RecordingBuilder();
+      final service = QualityScanService(
+        contextBuilder: builder,
+        findingsRepository: _RecordingFindings(),
+        detectors: const [_UnprefilteredDetector()],
+      );
+
+      await service.scanDives(ids);
+
+      expect(builder.clocks, hasLength(3));
+      expect(builder.clocks.first, isNotNull);
+      expect(builder.clocks.toSet(), hasLength(1));
+    });
+  });
+
+  group('a scope past SQLite\'s variable limit (issue #3864)', () {
+    test('still scans and writes', () async {
+      await seedFutureDive('first');
+      await seedFutureDive('last');
+      final service = QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        detectors: const [_OneSidedPairDetector()],
+      );
+
+      final summary = await service.scanDives({
+        'first',
+        for (var i = 0; i < 33000; i++) 'dive-$i',
+        'last',
+      });
+
+      expect(summary.divesScanned, 33002);
+      final findings = await findingsRepo.getFindings(diveId: 'first');
+      expect(findings.single.relatedDiveId, 'last');
+    });
+
+    test('removes a pair once when its dives fall in different chunks of '
+        'the scope', () async {
+      await seedFutureDive('first');
+      await seedFutureDive('last');
+      await QualityScanService(
+        contextBuilder: _RecordingBuilder(),
+        detectors: const [_OneSidedPairDetector()],
+      ).scanDives({'first', 'last'});
+
+      final result = await findingsRepo.applyScanResults(
+        scopeDiveIds: {
+          'first',
+          for (var i = 0; i < kSeriesIdChunkSize; i++) 'dive-$i',
+          'last',
+        },
+        ranDetectorIds: {'one_sided_pair'},
+        produced: const [],
+      );
+
+      expect(result.removed, 1);
+      expect(await findingsRepo.getFindings(diveId: 'first'), isEmpty);
     });
   });
 
