@@ -124,6 +124,31 @@ void main() {
     expect(container.read(divePlanNotifierProvider).linkedDiveId, dive.id);
   });
 
+  testWidgets('Unlink dive asks, then clears the link', (tester) async {
+    final container = await pumpCanvas(tester);
+    final dive = await tester.runAsync(
+      () => DiveRepository().createDive(
+        Dive(id: '', diveNumber: 7, dateTime: DateTime.utc(2026, 1, 1)),
+      ),
+    );
+    container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
+    await save(tester, container);
+    await openMenu(tester);
+
+    await tester.tap(find.text('Unlink dive'));
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(AlertDialog).evaluate().isNotEmpty,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unlink'));
+
+    await pumpUntilRealAsync(
+      tester,
+      () => container.read(divePlanNotifierProvider).linkedDiveId == null,
+    );
+  });
+
   testWidgets('a linked plan offers Change and Unlink', (tester) async {
     final container = await pumpCanvas(tester);
     final dive = await tester.runAsync(

@@ -88,11 +88,11 @@ void main() {
     computerTissue: computerTissue,
   );
 
-  Future<Dive> plannedDive() => dives.createPlannedDive(
+  Future<Dive> plannedDive({DateTime? dateTime}) => dives.createPlannedDive(
     Dive(
       id: '',
       diverId: eric,
-      dateTime: DateTime(2026, 6, 1, 9),
+      dateTime: dateTime ?? DateTime(2026, 6, 1, 9),
       name: 'Blue Hole plan',
       notes: 'bring the camera',
       rating: 4,
@@ -146,55 +146,61 @@ void main() {
     },
   );
 
-  test('a same-day fill keeps the date as planned', () async {
-    final planned = await plannedDive();
+  // Dive times are the wall clock flagged UTC, in the app and so here: a local
+  // DateTime reads back as another day in a zone far from UTC.
+  group('the date of a fill', () {
+    final plannedAt = DateTime.utc(2026, 6, 1, 9);
 
-    await service.fill(
-      plannedDiveId: planned.id,
-      dive: download(),
-      computerId: computerId,
-    );
+    test('a same-day fill keeps the date as planned', () async {
+      final planned = await plannedDive(dateTime: plannedAt);
 
-    final filled = await dives.getDiveById(planned.id);
-    expect(
-      filled?.dateTime.millisecondsSinceEpoch,
-      planned.dateTime.millisecondsSinceEpoch,
-    );
-  });
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(startTime: DateTime.utc(2026, 6, 1, 9, 3)),
+        computerId: computerId,
+      );
 
-  test('a next-day fill moves the dive to the day it was dived', () async {
-    final planned = await plannedDive();
-    final nextDay = DateTime(2026, 6, 2, 0, 30);
+      final filled = await dives.getDiveById(planned.id);
+      expect(
+        filled?.dateTime.millisecondsSinceEpoch,
+        plannedAt.millisecondsSinceEpoch,
+      );
+    });
 
-    await service.fill(
-      plannedDiveId: planned.id,
-      dive: download(startTime: nextDay),
-      computerId: computerId,
-    );
+    test('a next-day fill moves the dive to the day it was dived', () async {
+      final planned = await plannedDive(dateTime: plannedAt);
+      final nextDay = DateTime.utc(2026, 6, 2, 0, 30);
 
-    final filled = await dives.getDiveById(planned.id);
-    expect(
-      filled?.dateTime.millisecondsSinceEpoch,
-      nextDay.millisecondsSinceEpoch,
-    );
-  });
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(startTime: nextDay),
+        computerId: computerId,
+      );
 
-  test('undoing a next-day fill puts the date back', () async {
-    final planned = await plannedDive();
+      final filled = await dives.getDiveById(planned.id);
+      expect(
+        filled?.dateTime.millisecondsSinceEpoch,
+        nextDay.millisecondsSinceEpoch,
+      );
+    });
 
-    final outcome = await service.fill(
-      plannedDiveId: planned.id,
-      dive: download(startTime: DateTime(2026, 6, 2, 0, 30)),
-      computerId: computerId,
-    );
-    await service.undo(outcome);
+    test('undoing a next-day fill puts the date back', () async {
+      final planned = await plannedDive(dateTime: plannedAt);
 
-    final restored = await dives.getDiveById(planned.id);
-    expect(restored?.isPlanned, isTrue);
-    expect(
-      restored?.dateTime.millisecondsSinceEpoch,
-      planned.dateTime.millisecondsSinceEpoch,
-    );
+      final outcome = await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(startTime: DateTime.utc(2026, 6, 2, 0, 30)),
+        computerId: computerId,
+      );
+      await service.undo(outcome);
+
+      final restored = await dives.getDiveById(planned.id);
+      expect(restored?.isPlanned, isTrue);
+      expect(
+        restored?.dateTime.millisecondsSinceEpoch,
+        plannedAt.millisecondsSinceEpoch,
+      );
+    });
   });
 
   test('fill takes the tissue state the computer reported', () async {

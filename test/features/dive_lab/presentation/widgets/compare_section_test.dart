@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_pr
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_table.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/link_plan_sheet.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -30,6 +31,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -154,6 +156,9 @@ void main() {
       testApp(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divePlanSummariesProvider.overrideWith(
+            (ref) async => const <domain.DivePlanSummary>[],
+          ),
           diveProvider.overrideWith((ref, id) async => shown),
           diveProfileProvider.overrideWith((ref, id) async => shown.profile),
           divedColumnProvider.overrideWith((ref, id) async => dived),
@@ -346,6 +351,35 @@ void main() {
 
     expect(find.text('Link a plan'), findsOneWidget);
     expect(find.text('Nothing to compare yet'), findsNothing);
+  });
+
+  testWidgets('Link a plan opens the plan picker', (tester) async {
+    await pump(tester);
+
+    await tester.tap(find.text('Link a plan'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(LinkPlanSheet), findsOneWidget);
+  });
+
+  testWidgets('the chip row links a plan too', (tester) async {
+    await pump(tester, scenarios: [_scenario('s1', 'Slower', DateTime(2026))]);
+
+    await tester.tap(find.widgetWithText(ActionChip, 'Link a plan'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byType(LinkPlanSheet), findsOneWidget);
+  });
+
+  testWidgets('Ask a what-if opens the Compare page', (tester) async {
+    await pump(tester);
+
+    await tester.tap(find.text('Ask a what-if'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(DiveLabPage), findsOneWidget);
   });
 
   testWidgets('a linked dive that cannot branch has no what-if controls', (

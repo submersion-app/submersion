@@ -1,8 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
+import 'package:submersion/features/dive_lab/domain/services/scenario_engine.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -200,6 +208,80 @@ void main() {
 
     expect(column!.ndl, isNotNull);
     expect(column.decoRequiredSeconds, isNotNull);
+  });
+
+  group('whatIfLineProvider', () {
+    final scenario = DiveScenario(
+      id: 'sc',
+      diveId: 'd',
+      name: 'Tighter gradient factors',
+      branchSeconds: 0,
+      mode: ScenarioMode.replay,
+      interventions: const [ChangeGfIntervention(gfLow: 30, gfHigh: 60)],
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
+    ProviderContainer scoped({List<DiveScenario>? scenarios, bool ok = true}) {
+      final local = ProviderContainer(
+        overrides: [
+          diveScenariosForDiveProvider.overrideWith(
+            (ref, id) async => scenarios ?? [scenario],
+          ),
+          savedScenarioOutcomeProvider.overrideWith((ref, key) async {
+            if (!ok) return null;
+            final d = squareDive(depth: 30, bottomMinutes: 10);
+            return const ScenarioEngine().run(
+              ScenarioRequest(
+                diveId: 'd',
+                depths: d.depths,
+                timestamps: d.timestamps,
+                diveMode: DiveMode.oc,
+                tanks: d.tanks,
+                gasSwitches: d.switches,
+                tankPressures: d.tankPressures,
+                startCns: 0,
+                startOtu: 0,
+                settings: const ScenarioSettings(),
+                scenario: scenario,
+              ),
+            );
+          }),
+        ],
+      );
+      addTearDown(local.dispose);
+      return local;
+    }
+
+    const key = (diveId: 'd', scenarioId: 'sc');
+
+    test('gives the outcome and the column', () async {
+      final local = scoped();
+      final sub = local.listen(whatIfLineProvider(key), (_, _) {});
+      addTearDown(sub.close);
+
+      final line = await local.read(whatIfLineProvider(key).future);
+
+      expect(line!.column.id, 'sc');
+      expect(line.column.title, 'Tighter gradient factors');
+      expect(line.outcome.counterfactualDepths, isNotEmpty);
+    });
+
+    test('is null when the scenario has gone', () async {
+      final local = scoped(scenarios: const []);
+      final sub = local.listen(whatIfLineProvider(key), (_, _) {});
+      addTearDown(sub.close);
+
+      expect(await local.read(whatIfLineProvider(key).future), isNull);
+    });
+
+    test('is null when the dive cannot run it', () async {
+      final local = scoped(ok: false);
+      final sub = local.listen(whatIfLineProvider(key), (_, _) {});
+      addTearDown(sub.close);
+
+      expect(await local.read(whatIfLineProvider(key).future), isNull);
+    });
   });
 
   group('compareLineOn', () {
