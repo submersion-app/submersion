@@ -18,7 +18,7 @@ class MemberGasService {
   /// for the first row) and its end depth; a level or stop row at its own
   /// depth. [sacFor] gives the litres per minute in force on a row. Pass
   /// [startDepth] when [rows] are a slice of a dive that does not begin at
-  /// the surface. Travel a row folds into it is charged too, at the row's
+  /// the surface. Travel folded into a row is charged too, at that row's
   /// rate, each stretch at its own mean depth to its own cylinder.
   Map<String, double> litersByTank({
     required List<PlanScheduleRow> rows,
