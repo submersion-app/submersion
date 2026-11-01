@@ -277,6 +277,27 @@ void main() {
       );
     });
 
+    testWidgets('the credential stays out of the widget description', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(const NetworkThumbnail(url: _publicUrl), _realCredentials()),
+      );
+      await _settleLookups(tester);
+
+      await _service(tester).save(
+        hostname: 'public.example',
+        authType: 'bearer',
+        token: 'secret-token',
+      );
+      await _settleLookups(tester);
+      await _settleLookups(tester);
+
+      final image = _image(tester, _publicUrl);
+      expect(image.httpHeaders, isNotNull);
+      expect(image.toStringShort(), isNot(contains('secret-token')));
+    });
+
     testWidgets('saving leaves another host\'s image alone', (tester) async {
       await tester.pumpWidget(
         _app(

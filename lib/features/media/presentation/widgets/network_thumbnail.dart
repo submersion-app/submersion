@@ -53,7 +53,9 @@ class NetworkThumbnail extends ConsumerWidget {
     return CachedNetworkImage(
       // The image provider's identity ignores headers, so without this key an
       // image that failed before the user signed in would never be refetched.
-      key: ValueKey(headers.value?['Authorization']),
+      // ObjectKey because widget descriptions print a key's value, and those
+      // reach the logs: a ValueKey here would write the credential there.
+      key: ObjectKey(headers.value),
       imageUrl: url,
       httpHeaders: headers.value,
       width: size,
