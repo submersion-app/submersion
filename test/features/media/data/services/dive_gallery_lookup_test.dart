@@ -571,4 +571,99 @@ void main() {
       expect(library.metadataReads, isEmpty);
     });
   });
+
+  group('DiveGalleryLookup.correctedForDive', () {
+    Future<List<AssetInfo>> correct(
+      PhotoPickerService library,
+      List<AssetInfo> assets,
+    ) => DiveGalleryLookup.correctedForDive(
+      assets: assets,
+      windowStart: windowStart,
+      windowEnd: windowEnd,
+      photoPickerService: library,
+    );
+
+    test('gives a photo outside the dive its EXIF wall-time when that lands '
+        'in the dive', () async {
+      final palau = _asset('palau', DateTime(2026, 3, 9, 19, 20));
+      final library = _Library(
+        exif: {'palau': _exif(DateTime.utc(2026, 3, 10, 10, 20))},
+      );
+
+      final corrected = await correct(library, [palau]);
+
+      expect(corrected.single.createDateTime, DateTime(2026, 3, 10, 10, 20));
+    });
+
+    test('reads nothing for a photo this device already places in the dive, '
+        'so the usual import downloads nothing', () async {
+      final inDive = _asset('in-dive', DateTime(2026, 3, 10, 10, 20));
+      final library = _Library(
+        exif: {'in-dive': _exif(DateTime.utc(2026, 3, 10, 11))},
+      );
+
+      final corrected = await correct(library, [inDive]);
+
+      expect(corrected.single.createDateTime, DateTime(2026, 3, 10, 10, 20));
+      expect(library.metadataReads, isEmpty);
+    });
+
+    test('leaves a photo alone when its EXIF is not in the dive either, since '
+        'the diver chose this dive and a date fixed in Photos leaves EXIF '
+        'stale', () async {
+      final elsewhere = _asset('elsewhere', DateTime(2026, 3, 9, 19, 20));
+      final library = _Library(
+        exif: {'elsewhere': _exif(DateTime.utc(2026, 3, 10, 18))},
+      );
+
+      final corrected = await correct(library, [elsewhere]);
+
+      expect(corrected.single.createDateTime, DateTime(2026, 3, 9, 19, 20));
+    });
+
+    test('never fetches a video', () async {
+      final clip = _asset(
+        'clip',
+        DateTime(2026, 3, 9, 19, 20),
+        type: AssetType.video,
+      );
+      final library = _Library();
+
+      await correct(library, [clip]);
+
+      expect(library.metadataReads, isEmpty);
+    });
+
+    test('leaves what a file dialog picked as it is, since that time came '
+        'from the file itself', () async {
+      final picked = _asset('picked', DateTime(2026, 3, 9, 19, 20));
+      final library = _Library(
+        supportsGalleryBrowsing: false,
+        exif: {'picked': _exif(DateTime.utc(2026, 3, 10, 10, 20))},
+      );
+
+      final corrected = await correct(library, [picked]);
+
+      expect(corrected.single.createDateTime, DateTime(2026, 3, 9, 19, 20));
+      expect(library.metadataReads, isEmpty);
+    });
+
+    test('keeps every photo, in order, when its time runs out', () {
+      fakeAsync((async) {
+        final stalled = [
+          for (var i = 0; i < 20; i++)
+            _asset('stalled-$i', DateTime(2026, 3, 9, 19, i)),
+        ];
+        final library = _Library(hanging: {for (final a in stalled) a.id});
+        List<AssetInfo>? corrected;
+
+        correct(library, stalled).then((result) => corrected = result);
+        async.elapse(const Duration(minutes: 2));
+
+        expect(corrected, isNotNull);
+        expect(corrected!.map((a) => a.id), stalled.map((a) => a.id));
+        expect(library.metadataReads.length, lessThanOrEqualTo(5));
+      });
+    });
+  });
 }

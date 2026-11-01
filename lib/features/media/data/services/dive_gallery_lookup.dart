@@ -181,6 +181,54 @@ abstract final class DiveGalleryLookup {
       ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
   }
 
+  /// [assets] the diver assigned to a dive by hand, each carrying the time to
+  /// store with it. [windowStart] and [windowEnd] are that dive's window in
+  /// wall-clock-as-UTC.
+  ///
+  /// A review can pair a photo with a dive its device digits never reached,
+  /// so a photo that has moved zones gets its EXIF wall-time here. The same
+  /// rule as [find] applies: EXIF must land in the dive to count. A photo the
+  /// device already places in the dive costs no read, so the usual import
+  /// downloads nothing, and one still unread when time runs out keeps the
+  /// device's digits.
+  static Future<List<AssetInfo>> correctedForDive({
+    required List<AssetInfo> assets,
+    required DateTime windowStart,
+    required DateTime windowEnd,
+    required PhotoPickerService photoPickerService,
+  }) async {
+    // A file dialog's time came from the file itself.
+    if (!photoPickerService.supportsGalleryBrowsing) return assets;
+
+    final start = asWallClockUtc(windowStart);
+    final end = asWallClockUtc(windowEnd);
+
+    var outOfTime = false;
+    final readBudget = Timer(_readBudget, () => outOfTime = true);
+    try {
+      final corrected = <AssetInfo>[];
+      for (final asset in assets) {
+        final worthReading =
+            !outOfTime &&
+            !asset.isVideo &&
+            _gapToWindow(asset, start, end) > Duration.zero;
+        final wallTime = worthReading
+            ? await _captureWallTime(asset, photoPickerService)
+            : null;
+        corrected.add(
+          wallTime != null &&
+                  !wallTime.isBefore(start) &&
+                  !wallTime.isAfter(end)
+              ? asset.copyWith(createDateTime: fromWallClockUtc(wallTime))
+              : asset,
+        );
+      }
+      return corrected;
+    } finally {
+      readBudget.cancel();
+    }
+  }
+
   /// How far [asset]'s digits on this device, moved by [shift], are from the
   /// window; zero inside it. The nearest photo is the likeliest to be from
   /// the same trip.

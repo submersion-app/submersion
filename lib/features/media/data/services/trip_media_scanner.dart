@@ -116,7 +116,7 @@ class TripMediaScanner {
     bool bestIsExact = false;
 
     for (final dive in dives) {
-      final (rawEntry, rawExit) = _getDiveBounds(dive);
+      final (rawEntry, rawExit) = diveBounds(dive);
       final entryTime = toWallClockUtc(rawEntry);
       final exitTime = toWallClockUtc(rawExit);
 
@@ -241,7 +241,7 @@ class TripMediaScanner {
 
     // Build DiveBounds from each dive (normalised to wall-clock-as-UTC).
     final bounds = dives.map((dive) {
-      final (rawEntry, rawExit) = _getDiveBounds(dive);
+      final (rawEntry, rawExit) = diveBounds(dive);
       return DiveBounds(
         diveId: dive.id,
         entryTime: toWallClockUtc(rawEntry),
@@ -366,7 +366,7 @@ class TripMediaScanner {
       return null;
     }
 
-    final (entryTime, exitTime) = _getDiveBounds(dive);
+    final (entryTime, exitTime) = diveBounds(dive);
     final rangeStart = entryTime.subtract(DivePhotoMatcher.preBuffer);
     final rangeEnd = exitTime.add(DivePhotoMatcher.postBuffer);
 
@@ -388,7 +388,7 @@ class TripMediaScanner {
   /// Get the effective entry and exit times for a dive.
   ///
   /// Falls back to dateTime and dateTime + duration if entry/exit times not set.
-  static (DateTime, DateTime) _getDiveBounds(Dive dive) {
+  static (DateTime, DateTime) diveBounds(Dive dive) {
     final entryTime = dive.entryTime ?? dive.dateTime;
     final exitTime =
         dive.exitTime ??
