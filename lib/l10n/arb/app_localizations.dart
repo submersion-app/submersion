@@ -86618,6 +86618,12 @@ abstract class AppLocalizations {
   /// **'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.'**
   String get navTrack_align_scalePinnedHint;
 
+  /// No description provided for @navTrack_align_scaleHandleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to resize the track'**
+  String get navTrack_align_scaleHandleLabel;
+
   /// No description provided for @navTrack_terrain_summary.
   ///
   /// In en, this message translates to:

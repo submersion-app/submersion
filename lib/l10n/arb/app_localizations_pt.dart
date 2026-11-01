@@ -54789,6 +54789,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O fim está fixado e, por isso, define o tamanho da trilha. A escala só altera a forma do percurso entre os pontos.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arraste para redimensionar a trilha';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

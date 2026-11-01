@@ -54843,6 +54843,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del recorrido intermedio.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Arrastra para cambiar el tamaño del track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

@@ -16337,6 +16337,7 @@
   "navTrack_align_rotationLabel": "الدوران:",
   "navTrack_align_scaleLabel": "المقياس:",
   "navTrack_align_scalePinnedHint": "النهاية مثبتة، لذا فهي تحدد حجم المسار. يغيّر المقياس شكل المسار بينهما فقط.",
+  "navTrack_align_scaleHandleLabel": "اسحب لتغيير حجم المسار",
   "navTrack_terrain_summary": "{onLand} نقاط على اليابسة، {below} من {total} تحت قاع البحر{maxPart}، {unknown} غير معروفة{coarsePart}",
   "navTrack_terrain_maxPart": " (بحد أقصى {depth})",
   "navTrack_terrain_coarsePart": " (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)",

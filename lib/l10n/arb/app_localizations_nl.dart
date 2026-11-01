@@ -54439,6 +54439,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het einde ligt vast en bepaalt dus de grootte van de track. De schaal verandert alleen de vorm van het pad ertussen.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Sleep om de track te vergroten of verkleinen';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

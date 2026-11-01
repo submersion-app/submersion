@@ -54670,6 +54670,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Ende ist festgelegt und bestimmt damit die Größe des Tracks. Die Skalierung ändert nur den Verlauf dazwischen.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Ziehen, um die Größe des Tracks zu ändern';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

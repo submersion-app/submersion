@@ -53605,6 +53605,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'הסוף מקובע ולכן הוא קובע את גודל המסלול. קנה המידה משנה רק את צורת הדרך שביניהם.';
 
   @override
+  String get navTrack_align_scaleHandleLabel => 'גררו כדי לשנות את גודל המסלול';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

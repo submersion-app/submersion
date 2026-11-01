@@ -1624,6 +1624,128 @@ void main() {
       expect(find.byKey(hint), findsNothing);
     });
 
+    group('the handle', () {
+      const handle = ValueKey('nav-track-align-scale-handle');
+
+      // An out-and-back about 230 m long, so at the page's opening zoom the
+      // handle clears the start marker and stays inside the test's small map.
+      NavTrack longTrack({
+        NavTrackEndMode endMode = NavTrackEndMode.none,
+        double trustFraction = 0,
+      }) => _route().copyWith(
+        anchorLatitude: 10,
+        anchorLongitude: 20,
+        endMode: endMode,
+        trustFraction: trustFraction,
+        points: [
+          for (var i = 0; i < 20; i++)
+            NavTrackPoint(
+              timestamp: 1755856800 + i * 10,
+              north: i < 10 ? i * 25.0 : (19 - i) * 25.0,
+              east: i < 10 ? i * 5.0 : 100.0 - i * 5.0,
+              depth: 5,
+            ),
+        ],
+      );
+
+      Future<void> dragHandle(WidgetTester tester, Offset by) async {
+        final from = tester.getCenter(find.byKey(handle));
+        final gesture = await tester.startGesture(from);
+        await tester.pump();
+        for (var i = 1; i <= 8; i++) {
+          await gesture.moveTo(from + by * (i / 8));
+          await tester.pump();
+        }
+        await gesture.up();
+        await tester.pump();
+      }
+
+      testWidgets('shows once the track is on the map', (tester) async {
+        await _pump(tester, route: longTrack());
+        expect(find.byKey(handle), findsOneWidget);
+      });
+
+      testWidgets('is hidden with no start point', (tester) async {
+        await _pump(tester, route: _route());
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden on a track under 10 m', (tester) async {
+        await _pump(
+          tester,
+          route: anchored().copyWith(
+            points: const [
+              NavTrackPoint(timestamp: 1755856800, north: 0, east: 0, depth: 5),
+              NavTrackPoint(timestamp: 1755856810, north: 4, east: 3, depth: 5),
+            ],
+          ),
+        );
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden while placing a point', (tester) async {
+        await _pump(tester, route: longTrack());
+        await tester.tap(
+          find.byKey(const ValueKey('nav-track-align-place-start')),
+        );
+        await tester.pump();
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('is hidden while the end is pinned', (tester) async {
+        await _pump(
+          tester,
+          route: longTrack(
+            endMode: NavTrackEndMode.point,
+          ).copyWith(endLatitude: 10.001, endLongitude: 20.001),
+        );
+        expect(find.byKey(handle), findsNothing);
+      });
+
+      testWidgets('a drag updates the scale field live', (tester) async {
+        await _pump(tester, route: longTrack());
+        await dragHandle(tester, const Offset(10, -60));
+        expect(fieldPercent(tester), greaterThan(100));
+      });
+
+      testWidgets('a drag moves the terrain summary with it', (tester) async {
+        final repository = await _pump(tester, route: longTrack());
+        await dragHandle(tester, const Offset(10, -60));
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.pumpAndSettle();
+        expect(repository.lastCorrection!.scaleFactor, greaterThan(1));
+      });
+
+      testWidgets('stays under the pointer with Same as start and trust set', (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          route: longTrack(
+            endMode: NavTrackEndMode.sameAsStart,
+            trustFraction: 0.3,
+          ),
+        );
+        final from = tester.getCenter(find.byKey(handle));
+        final start = tester.getCenter(
+          find.byKey(const ValueKey('nav-track-align-start-marker')),
+        );
+        // Out along the line from the start: the handle reads distance only.
+        final by = (from - start) * 0.4;
+        final gesture = await tester.startGesture(from);
+        await tester.pump();
+        for (var i = 1; i <= 8; i++) {
+          await gesture.moveTo(from + by * (i / 8));
+          await tester.pump();
+        }
+        expect(
+          (tester.getCenter(find.byKey(handle)) - (from + by)).distance,
+          lessThan(2),
+        );
+        await gesture.up();
+      });
+    });
+
     testWidgets('picking Same as start clears the hint', (tester) async {
       await _pump(
         tester,

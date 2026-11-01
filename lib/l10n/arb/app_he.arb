@@ -16337,6 +16337,7 @@
   "navTrack_align_rotationLabel": "סיבוב:",
   "navTrack_align_scaleLabel": "קנה מידה:",
   "navTrack_align_scalePinnedHint": "הסוף מקובע ולכן הוא קובע את גודל המסלול. קנה המידה משנה רק את צורת הדרך שביניהם.",
+  "navTrack_align_scaleHandleLabel": "גררו כדי לשנות את גודל המסלול",
   "navTrack_terrain_summary": "{onLand} נקודות ביבשה, {below} מתוך {total} מתחת לקרקעית הים{maxPart}, {unknown} לא ידועות{coarsePart}",
   "navTrack_terrain_maxPart": " (מקסימום {depth})",
   "navTrack_terrain_coarsePart": " (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)",

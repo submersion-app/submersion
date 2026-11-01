@@ -53920,6 +53920,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'The end is pinned, so it sets the track\'s size. Scale only reshapes the path between.';
 
   @override
+  String get navTrack_align_scaleHandleLabel => 'Drag to resize the track';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

@@ -27,6 +27,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_scale_handle.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -36,6 +37,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_control.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_handle_layer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -106,6 +108,7 @@ class NavTrackAlignPage extends ConsumerStatefulWidget {
 
 class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
   final MapController _mapController = MapController();
+  final GlobalKey _mapKey = GlobalKey();
   Timer? _terrainDebounce;
 
   bool _initialized = false;
@@ -404,6 +407,13 @@ class _AlignPageBody extends ConsumerWidget {
       (activeEnd + 1).clamp(0, corrected.length),
     );
 
+    final endPinned = NavTrackCorrector.endIsPinned(route.points, correction);
+    final scaleHandle = scaleHandleIndex(
+      route.points,
+      start: activeStart,
+      end: activeEnd,
+    );
+
     final initialCenter = anchor != null
         ? LatLng(anchor.latitude, anchor.longitude)
         : const LatLng(0, 0);
@@ -433,6 +443,7 @@ class _AlignPageBody extends ConsumerWidget {
             child: Stack(
               children: [
                 TrackpadZoomMap(
+                  key: state._mapKey,
                   controller: state._mapController,
                   child: FlutterMap(
                     mapController: state._mapController,
@@ -469,6 +480,28 @@ class _AlignPageBody extends ConsumerWidget {
                           trustedDistance: trustedDistance,
                           trustedDistanceLabel: units.formatDistance(
                             trustedDistance,
+                          ),
+                        ),
+                      if (anchor != null &&
+                          scaleHandle != null &&
+                          state._placing == _Placing.none &&
+                          !endPinned)
+                        NavTrackScaleHandleLayer(
+                          mapKey: state._mapKey,
+                          point: offsetToGeoPoint(
+                            anchor,
+                            east: corrected[scaleHandle].east,
+                            north: corrected[scaleHandle].north,
+                          ),
+                          pivot: offsetToGeoPoint(
+                            anchor,
+                            east: corrected[activeStart].east,
+                            north: corrected[activeStart].north,
+                          ),
+                          scaleFactor: correction.scaleFactor,
+                          onChanged: (value) => state._updateCorrection(
+                            (c) => c.copyWith(scaleFactor: value),
+                            route,
                           ),
                         ),
                       if (anchor != null)
@@ -535,6 +568,7 @@ class _AlignPageBody extends ConsumerWidget {
             route: route,
             correction: correction,
             hasPostDiveFix: hasPostDiveFix,
+            endPinned: endPinned,
             activeStart: activeStart,
             cumulative: cumulative,
             totalDistance: totalDistance,
@@ -552,6 +586,7 @@ class _ControlsPanel extends ConsumerWidget {
     required this.route,
     required this.correction,
     required this.hasPostDiveFix,
+    required this.endPinned,
     required this.activeStart,
     required this.cumulative,
     required this.totalDistance,
@@ -562,6 +597,7 @@ class _ControlsPanel extends ConsumerWidget {
   final NavTrack route;
   final NavTrackCorrection correction;
   final bool hasPostDiveFix;
+  final bool endPinned;
   final int activeStart;
 
   /// The trust slider's distance axis over the active range, as the page
@@ -795,7 +831,7 @@ class _ControlsPanel extends ConsumerWidget {
                 ),
               ],
             ),
-            if (NavTrackCorrector.endIsPinned(route.points, correction))
+            if (endPinned)
               Text(
                 key: const ValueKey('nav-track-align-scale-pinned-hint'),
                 l10n.navTrack_align_scalePinnedHint,

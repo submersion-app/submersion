@@ -55445,6 +55445,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'النهاية مثبتة، لذا فهي تحدد حجم المسار. يغيّر المقياس شكل المسار بينهما فقط.';
 
   @override
+  String get navTrack_align_scaleHandleLabel => 'اسحب لتغيير حجم المسار';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

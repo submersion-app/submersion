@@ -16491,6 +16491,7 @@
   "navTrack_align_rotationLabel": "Drehung:",
   "navTrack_align_scaleLabel": "Skalierung:",
   "navTrack_align_scalePinnedHint": "Das Ende ist festgelegt und bestimmt damit die Größe des Tracks. Die Skalierung ändert nur den Verlauf dazwischen.",
+  "navTrack_align_scaleHandleLabel": "Ziehen, um die Größe des Tracks zu ändern",
   "navTrack_terrain_summary": "{onLand} Punkte an Land, {below} von {total} unter dem Meeresboden{maxPart}, {unknown} unbekannt{coarsePart}",
   "navTrack_terrain_maxPart": " (max. {depth})",
   "navTrack_terrain_coarsePart": " (grobe Bathymetrie: nur Landkonflikte geprüft)",

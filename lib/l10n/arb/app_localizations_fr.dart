@@ -54912,6 +54912,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'La fin est fixée et détermine donc la taille de la trace. L\'échelle ne modifie que la forme du parcours entre les deux.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Faites glisser pour redimensionner la trace';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

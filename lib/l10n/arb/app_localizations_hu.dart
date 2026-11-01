@@ -54489,6 +54489,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A vég rögzítve van, ezért ez határozza meg a nyomvonal méretét. A méretezés csak a köztes szakasz alakját változtatja meg.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Húzza a nyomvonal átméretezéséhez';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

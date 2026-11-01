@@ -54798,6 +54798,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'La fine è fissata, quindi determina le dimensioni della traccia. La scala modifica solo la forma del percorso intermedio.';
 
   @override
+  String get navTrack_align_scaleHandleLabel =>
+      'Trascina per ridimensionare la traccia';
+
+  @override
   String navTrack_terrain_summary(
     int onLand,
     int below,

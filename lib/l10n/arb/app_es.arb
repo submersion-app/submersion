@@ -16337,6 +16337,7 @@
   "navTrack_align_rotationLabel": "Rotación:",
   "navTrack_align_scaleLabel": "Escala:",
   "navTrack_align_scalePinnedHint": "El final está fijado, así que determina el tamaño del track. La escala solo cambia la forma del recorrido intermedio.",
+  "navTrack_align_scaleHandleLabel": "Arrastra para cambiar el tamaño del track",
   "navTrack_terrain_summary": "{onLand} puntos en tierra, {below} de {total} bajo el fondo marino{maxPart}, {unknown} desconocidos{coarsePart}",
   "navTrack_terrain_maxPart": " (máx. {depth})",
   "navTrack_terrain_coarsePart": " (batimetría de baja resolución: solo se comprobaron conflictos en tierra)",
