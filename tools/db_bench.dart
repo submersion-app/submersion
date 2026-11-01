@@ -71,7 +71,7 @@ const _summariesSql =
     's.longitude AS site_longitude '
     'FROM dives d '
     'LEFT JOIN dive_sites s ON d.site_id = s.id '
-    'WHERE d.diver_id = ? '
+    'WHERE d.diver_id IS ? '
     'ORDER BY sort_timestamp DESC, COALESCE(d.dive_number, 0) DESC, d.id DESC '
     'LIMIT 50';
 
@@ -100,7 +100,7 @@ const _searchSql = '''
       OR cf.field_key LIKE ?
       OR cf.field_value LIKE ?
     )
-    AND d.diver_id = ?
+    AND d.diver_id IS ?
     ''';
 
 /// QualityThresholds.neighborWindow, in milliseconds.
@@ -123,7 +123,10 @@ const _qualityNeighborsSql =
     'AND COALESCE(entry_time, dive_date_time) BETWEEN ? AND ? '
     'ORDER BY COALESCE(entry_time, dive_date_time) ASC';
 
-({String diverId, String denseDiveId, int denseSamples}) _pickTargets(
+/// [diverId] is null when the largest scope is the unassigned dives, the
+/// common single-diver library. The diver-scoped shapes below compare it with
+/// `IS`, which reads like `=` for a real id and still matches that scope.
+({String? diverId, String denseDiveId, int denseSamples}) _pickTargets(
   Database db,
 ) {
   final diver = db.select(
@@ -168,7 +171,7 @@ const _qualityNeighborsSql =
     exit(65);
   }
   return (
-    diverId: diver.first['diver_id'] as String,
+    diverId: diver.first['diver_id'] as String?,
     denseDiveId: dense.first['dive_id'] as String,
     denseSamples: dense.first['n'] as int,
   );
@@ -188,7 +191,7 @@ List<({String label, String sql, List<Object?> params})> _queries(
   // t.diverId came from dives, so one exists.
   final neighborTarget = db.select(
     'SELECT id, COALESCE(entry_time, dive_date_time) AS start FROM dives '
-    'WHERE diver_id = ? LIMIT 1',
+    'WHERE diver_id IS ? LIMIT 1',
     [t.diverId],
   ).first;
   final neighborStart = neighborTarget['start'] as int;
@@ -215,7 +218,7 @@ List<({String label, String sql, List<Object?> params})> _queries(
     (label: 'summaries_page1', sql: _summariesSql, params: [t.diverId]),
     (
       label: 'dive_count',
-      sql: 'SELECT COUNT(*) AS count FROM dives d WHERE d.diver_id = ?',
+      sql: 'SELECT COUNT(*) AS count FROM dives d WHERE d.diver_id IS ?',
       params: [t.diverId],
     ),
     (
