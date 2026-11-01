@@ -43107,6 +43107,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'الرطوبة';
 
   @override
+  String tableEditor_original(String value) {
+    return 'كان: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'قيمة غير صالحة';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'ليست في القائمة';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'يلزم خط العرض وخط الطول معًا';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'تغيّر في مكان آخر بعد تعديلك';
+
+  @override
+  String get tableEditor_multiChoice_done => 'تم';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'موقع من المكتبة: يمكن هنا تعديل الملاحظات والتقييم فقط';
 

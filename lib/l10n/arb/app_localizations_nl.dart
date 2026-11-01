@@ -42299,6 +42299,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Vocht';
 
   @override
+  String tableEditor_original(String value) {
+    return 'Was: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Geen geldige waarde';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Niet in de lijst';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'Breedte- en lengtegraad nodig';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Elders gewijzigd sinds je bewerking';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Klaar';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'Bibliotheekstek: hier zijn alleen notities en beoordeling te bewerken';
 

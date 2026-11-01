@@ -41874,6 +41874,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Humid';
 
   @override
+  String tableEditor_original(String value) {
+    return 'Was: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Not a valid value';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Not in the list';
+
+  @override
+  String get tableEditor_flag_pairIncomplete =>
+      'Needs both latitude and longitude';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Changed elsewhere since you edited it';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Done';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'Library site: only notes and rating can be edited here';
 

@@ -41530,6 +41530,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'לחות';
 
   @override
+  String tableEditor_original(String value) {
+    return 'היה: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'ערך לא תקין';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'לא ברשימה';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'נדרשים קו רוחב וקו אורך';
+
+  @override
+  String get tableEditor_flag_changedElsewhere => 'השתנה במקום אחר מאז שערכת';
+
+  @override
+  String get tableEditor_multiChoice_done => 'סיום';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'אתר ספרייה: כאן ניתן לערוך רק הערות ודירוג';
 

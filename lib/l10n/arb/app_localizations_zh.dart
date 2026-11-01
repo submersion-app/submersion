@@ -40112,6 +40112,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String tableEditor_original(String value) {
+    return '原值：$value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => '值无效';
+
+  @override
+  String get tableEditor_flag_unknownValue => '不在列表中';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => '需要同时填写纬度和经度';
+
+  @override
+  String get tableEditor_flag_changedElsewhere => '自您编辑后已在别处更改';
+
+  @override
+  String get tableEditor_multiChoice_done => '完成';
+
+  @override
   String get tableEditor_libraryReadOnly => '资料库潜点：此处只能编辑备注和评分';
 
   @override

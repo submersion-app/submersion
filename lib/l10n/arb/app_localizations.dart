@@ -67112,6 +67112,42 @@ abstract class AppLocalizations {
   /// **'Humid'**
   String get enum_diveField_humidity_short;
 
+  /// No description provided for @tableEditor_original.
+  ///
+  /// In en, this message translates to:
+  /// **'Was: {value}'**
+  String tableEditor_original(String value);
+
+  /// No description provided for @tableEditor_flag_unparsable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid value'**
+  String get tableEditor_flag_unparsable;
+
+  /// No description provided for @tableEditor_flag_unknownValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the list'**
+  String get tableEditor_flag_unknownValue;
+
+  /// No description provided for @tableEditor_flag_pairIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs both latitude and longitude'**
+  String get tableEditor_flag_pairIncomplete;
+
+  /// No description provided for @tableEditor_flag_changedElsewhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed elsewhere since you edited it'**
+  String get tableEditor_flag_changedElsewhere;
+
+  /// No description provided for @tableEditor_multiChoice_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tableEditor_multiChoice_done;
+
   /// No description provided for @tableEditor_libraryReadOnly.
   ///
   /// In en, this message translates to:

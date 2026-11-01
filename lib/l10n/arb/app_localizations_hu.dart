@@ -42337,6 +42337,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Pára';
 
   @override
+  String tableEditor_original(String value) {
+    return 'Előtte: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Érvénytelen érték';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Nincs a listában';
+
+  @override
+  String get tableEditor_flag_pairIncomplete =>
+      'Szélesség és hosszúság is kell';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Máshol módosult a szerkesztésed óta';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Kész';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'Könyvtári merülőhely: itt csak a jegyzet és az értékelés szerkeszthető';
 

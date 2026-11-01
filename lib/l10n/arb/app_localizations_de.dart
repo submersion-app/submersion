@@ -42494,6 +42494,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Luftf.';
 
   @override
+  String tableEditor_original(String value) {
+    return 'Vorher: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Kein gültiger Wert';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'Nicht in der Liste';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'Breiten- und Längengrad nötig';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Seit deiner Änderung anderswo geändert';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Fertig';
+
+  @override
   String get tableEditor_libraryReadOnly =>
       'Bibliotheksplatz: hier sind nur Notizen und Bewertung bearbeitbar';
 
