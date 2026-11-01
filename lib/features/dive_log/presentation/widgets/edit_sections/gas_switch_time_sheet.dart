@@ -109,7 +109,6 @@ class _GasSwitchTimeSheetState extends State<_GasSwitchTimeSheet> {
                 diveDuration: Duration(seconds: _span),
                 showTemperature: false,
                 showPressure: true,
-                showZoomControls: false,
                 depthAndPressureOnly: true,
                 tanks: widget.tanks,
                 tankPressures: widget.tankPressures,

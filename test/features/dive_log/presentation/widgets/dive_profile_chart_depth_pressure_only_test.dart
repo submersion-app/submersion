@@ -217,6 +217,56 @@ void main() {
     expect(chosen, isEmpty);
   });
 
+  testWidgets('a pinch chooses nothing', (tester) async {
+    final chosen = <int>[];
+    await _pump(tester, onTimeChosen: chosen.add);
+
+    final center = tester.getCenter(find.byType(LineChart).first);
+    final first = await tester.startGesture(center);
+    await tester.pump(const Duration(milliseconds: 150));
+    final second = await tester.startGesture(center + const Offset(40, 0));
+    await tester.pump();
+    for (var i = 0; i < 5; i++) {
+      await first.moveBy(const Offset(-20, 0));
+      await second.moveBy(const Offset(20, 0));
+      await tester.pump();
+    }
+    await second.up();
+    await tester.pump();
+    await first.up();
+    await tester.pumpAndSettle();
+
+    expect(chosen, isEmpty);
+  });
+
+  testWidgets('a mouse drag that pans a zoomed chart chooses nothing', (
+    tester,
+  ) async {
+    final chosen = <int>[];
+    await _pump(tester, onTimeChosen: chosen.add);
+    final center = tester.getCenter(find.byType(LineChart).first);
+    await tester.tapAt(center);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(center);
+    await tester.pumpAndSettle();
+    chosen.clear();
+
+    final mouse = await tester.startGesture(
+      center,
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    for (var i = 0; i < 5; i++) {
+      await mouse.moveBy(const Offset(-30, 0));
+      await tester.pump();
+    }
+    await mouse.up();
+    await tester.pumpAndSettle();
+    await mouse.removePointer();
+
+    expect(chosen, isEmpty);
+  });
+
   test('the slider inset helpers follow the axis sizes', () {
     expect(
       DiveProfileChart.plotLeftInset(400),

@@ -4493,10 +4493,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     event is FlLongPressEnd ||
                     event is FlTapUpEvent ||
                     event is FlPanEndEvent;
+                // A drag over a zoomed plot pans it, so there only a tap
+                // chooses.
                 final chosen = _selectedSeconds;
                 if (chosen != null &&
-                    event is! FlPointerExitEvent &&
-                    isTouchEnd) {
+                    (event is FlTapUpEvent ||
+                        (isTouchEnd &&
+                            event is! FlPointerExitEvent &&
+                            !_viewport.isZoomed))) {
                   widget.onTimeChosen?.call(chosen);
                 }
                 final spots =

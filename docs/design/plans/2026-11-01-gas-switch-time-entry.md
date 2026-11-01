@@ -4,6 +4,10 @@
 > to implement this plan task-by-task, inline in this session. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
+> **Superseded in part:** Tasks 4 and 5 describe a hand-built chart. Review of the
+> first build replaced it with the dive detail page's own chart; the spec is
+> current.
+
 **Goal:** Offer recorded breathing starts as one-tap times on a gas switch row,
 and let the diver pick a switch time on a profile chart in a sheet.
 
