@@ -18,6 +18,12 @@ class PerdixFaceData {
   final double? temperatureCelsius;
   final String? gasLabel;
   final double? tankPressureBar;
+
+  /// True when the dive has pressure readings at this moment but none to show
+  /// for the cylinder in use, as opposed to a dive with no pressure data. The
+  /// face then holds the TANK cell open with no value, which keeps the cells
+  /// beside it from moving at a gas switch.
+  final bool tankPressureMissing;
   final double? cnsPercent;
   final double? ppO2Bar;
   final bool inDeco;
@@ -32,6 +38,7 @@ class PerdixFaceData {
     this.temperatureCelsius,
     this.gasLabel,
     this.tankPressureBar,
+    this.tankPressureMissing = false,
     this.cnsPercent,
     this.ppO2Bar,
     this.inDeco = false,
@@ -104,6 +111,7 @@ class PerdixFaceResolver {
     );
     final index = indexForTimestamp(_profile, clamped)!;
     final ceiling = sample.ceilingMeters;
+    final tankPressure = _tankPressureAt(clamped, sample.tankPressuresBar);
     return PerdixFaceData(
       diveTimeSeconds: clamped,
       depthMeters: sample.depthMeters,
@@ -113,7 +121,9 @@ class PerdixFaceResolver {
       ttsSeconds: sample.ttsSeconds,
       temperatureCelsius: sample.temperatureCelsius,
       gasLabel: _gasLabelAt(clamped),
-      tankPressureBar: _tankPressureAt(clamped, sample.tankPressuresBar),
+      tankPressureBar: tankPressure,
+      tankPressureMissing:
+          tankPressure == null && sample.tankPressuresBar.isNotEmpty,
       cnsPercent: sample.cnsPercent,
       ppO2Bar: sample.ppO2Bar,
       inDeco: sample.inDeco || ((ceiling ?? 0) > 0),
@@ -132,14 +142,15 @@ class PerdixFaceResolver {
     return t >= _gasSegments.last.endSeconds ? _gasSegments.last.label : null;
   }
 
+  /// The active cylinder's reading, or null when it has none. The face shows
+  /// this beside the active gas, so another cylinder's pressure would read as
+  /// a measurement of that gas (#4006). With no cylinder known to be active,
+  /// a lone reading is all there is to show, and no gas label goes with it;
+  /// among several, picking one would be a guess.
   double? _tankPressureAt(int t, Map<String, double> pressures) {
-    if (pressures.isEmpty) return null;
     final activeTankId = _activeTankIdAt(t);
-    if (activeTankId != null) {
-      final active = pressures[activeTankId];
-      if (active != null) return active;
-    }
-    return pressures.values.first;
+    if (activeTankId != null) return pressures[activeTankId];
+    return pressures.length == 1 ? pressures.values.single : null;
   }
 
   String? _activeTankIdAt(int t) {
