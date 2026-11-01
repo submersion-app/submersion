@@ -337,6 +337,26 @@ void main() {
       },
     );
 
+    test('ends with the dive it came from when that gained an exit', () async {
+      final entry = now.subtract(const Duration(hours: 3));
+      await insertDive(
+        'source',
+        entryTime: entry,
+        exitTime: exit,
+        outingId: 'outing',
+      );
+      await insertDive(
+        'mirror',
+        entryTime: entry,
+        isPlanned: true,
+        outingId: 'outing',
+      );
+
+      final inputs = await repository.getNoFlyDiveInputs(since: since);
+
+      expect(inputs.map((i) => i.endTime), everyElement(exit));
+    });
+
     test('stays out while every dive on its outing is a plan', () async {
       await insertDive(
         'source',

@@ -5855,7 +5855,7 @@ class DiveRepository {
   /// A plan nobody has dived ([diveUndivedSql]) is left out: one whose time
   /// has passed still restricts nothing until it is marked executed (issue
   /// #3924). A dive mirrored from a logged dive counts, since it happened, and
-  /// reads that dive's deco obligation and runtime, having none of its own.
+  /// reads that dive's deco obligation and end, having none of its own.
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
@@ -5863,8 +5863,9 @@ class DiveRepository {
   }) async {
     try {
       final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
-      // A mirrored dive holds neither a profile nor a runtime, so the logged
-      // dive it came from says what it left behind.
+      // A mirrored dive holds no profile or runtime, and an exit time only if
+      // its source had one then, so the logged dive it came from says what it
+      // left behind.
       const loggedSource =
           'd.is_planned = 1 AND source.outing_id = d.outing_id '
           'AND source.is_planned = 0';
@@ -5873,6 +5874,8 @@ class DiveRepository {
           'SELECT source.id FROM dives source WHERE $loggedSource';
       const endMs =
           'COALESCE(d.exit_time, '
+          '(SELECT MAX(source.exit_time) FROM dives source '
+          'WHERE $loggedSource), '
           'COALESCE(d.entry_time, d.dive_date_time) '
           '+ COALESCE(d.runtime, (SELECT MAX(source.runtime) '
           'FROM dives source WHERE $loggedSource), 0) * 1000)';
