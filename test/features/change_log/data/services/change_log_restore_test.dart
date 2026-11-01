@@ -624,4 +624,44 @@ void main() {
       expect(result.keptItems.map((i) => i.event.recordId), contains('reef'));
     });
   });
+
+  group('checklist rows deleted before v336', () {
+    setUp(() async {
+      await db.customStatement(
+        'INSERT INTO trips (id, name, start_date, end_date, created_at, '
+        "updated_at) VALUES ('trip', 'Red Sea', 0, 0, 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO trip_checklists (id, trip_id, name, sort_order, '
+        "created_at, updated_at) VALUES ('list', 'trip', 'Gear', 0, 0, 0)",
+      );
+    });
+
+    for (final (table, columns) in const [
+      ('trip_checklist_items', 'title, sort_order'),
+      ('trip_checklist_sections', 'title, sort_order'),
+    ]) {
+      test('$table is refused, since its copy names no checklist', () async {
+        await db.customStatement(
+          'INSERT INTO $table (id, checklist_id, $columns, created_at, '
+          "updated_at) VALUES ('row', 'list', 'Mask', 0, 0, 0)",
+        );
+        await forget();
+        await db.customStatement("DELETE FROM $table WHERE id = 'row'");
+        final operation = await newestOperation();
+        // What the build before v336 logged: the trip, and no checklist.
+        await db.customStatement(
+          'UPDATE change_log_events SET schema_version = 332',
+        );
+        await db.customStatement(
+          "UPDATE change_log_fields SET column_name = 'trip_id', "
+          "old_value = 'trip' WHERE column_name = 'checklist_id'",
+        );
+
+        final plan = await service.planOperation(operation);
+
+        expect(plan.items.single.block, ChangeLogBlock.rewritten);
+      });
+    }
+  });
 }

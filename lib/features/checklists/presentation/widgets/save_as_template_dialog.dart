@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -71,23 +72,14 @@ class _SaveAsTemplateDialogState extends ConsumerState<_SaveAsTemplateDialog> {
       final messenger = ScaffoldMessenger.of(context);
       final l10n = context.l10n;
       Navigator.of(context).pop();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.checklists_saveTemplate_success),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
-      );
+      showChecklistSnackBar(messenger, l10n.checklists_saveTemplate_success);
     } catch (_) {
       // Surface the failure but keep the dialog open so the user can retry or
       // cancel; the finally re-enables the buttons.
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.common_error_tryAgain),
-          duration: const Duration(seconds: 4),
-          showCloseIcon: true,
-        ),
+      showChecklistSnackBar(
+        ScaffoldMessenger.of(context),
+        context.l10n.common_error_tryAgain,
       );
     } finally {
       if (mounted) setState(() => _saving = false);

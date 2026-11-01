@@ -6,6 +6,7 @@ import 'package:submersion/features/checklists/domain/entities/trip_checklist.da
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_name_dialog.dart';
+import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -129,9 +130,9 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
           onSelected: (value) {
             switch (value) {
               case 'apply':
-                _addChecklistFromTemplate(context);
+                _addChecklistFromTemplate();
               case 'new':
-                _createBlankChecklist(context);
+                _createBlankChecklist();
             }
           },
           itemBuilder: (context) => [
@@ -157,14 +158,14 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     );
   }
 
-  Future<void> _createBlankChecklist(BuildContext context) async {
+  Future<void> _createBlankChecklist() async {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => ChecklistNameDialog(
         title: context.l10n.checklists_newChecklist_title,
       ),
     );
-    if (name == null || !context.mounted) return;
+    if (name == null || !mounted) return;
     final checklist = await ref
         .read(tripChecklistsRepositoryProvider)
         .createChecklist(tripId: widget.trip.id, name: name);
@@ -172,26 +173,19 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     _markJustCreated(checklist.id);
   }
 
-  Future<void> _addChecklistFromTemplate(BuildContext context) async {
+  Future<void> _addChecklistFromTemplate() async {
     final templateId = await showTemplatePickerSheet(context: context);
-    if (templateId == null || !context.mounted) return;
+    if (templateId == null || !mounted) return;
 
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    void showMessage(String message) => messenger.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 4),
-        showCloseIcon: true,
-      ),
-    );
 
     final template = await ref.read(
       checklistTemplateProvider(templateId).future,
     );
-    if (!context.mounted) return;
+    if (!mounted) return;
     if (template == null) {
-      showMessage(l10n.checklists_apply_templateGone);
+      showChecklistSnackBar(messenger, l10n.checklists_apply_templateGone);
       return;
     }
 
@@ -203,15 +197,13 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       tripId: widget.trip.id,
       name: template.name,
     );
+    final ({int added, int skipped}) result;
     try {
-      final result = await itemsRepository.applyTemplate(
+      result = await itemsRepository.applyTemplate(
         templateId: templateId,
         checklistId: checklist.id,
         trip: widget.trip,
       );
-      if (!mounted) return;
-      _markJustCreated(checklist.id);
-      showMessage(l10n.checklists_apply_success(result.added));
     } catch (e) {
       // Nothing was applied, so drop the checklist this just created rather
       // than leaving an empty, template-named orphan the diver would have to
@@ -221,12 +213,20 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       // A StateError means the template vanished between the read above and
       // here (a concurrent sync, say). The repository has logged anything
       // else.
-      showMessage(
+      showChecklistSnackBar(
+        messenger,
         e is StateError
             ? l10n.checklists_apply_templateGone
             : l10n.common_error_tryAgain,
       );
+      return;
     }
+    if (!mounted) return;
+    _markJustCreated(checklist.id);
+    showChecklistSnackBar(
+      messenger,
+      l10n.checklists_apply_success(result.added),
+    );
   }
 
   Future<void> _moveChecklist(

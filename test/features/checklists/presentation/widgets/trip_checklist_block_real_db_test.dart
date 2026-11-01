@@ -298,6 +298,31 @@ void main() {
       expect(items.map((i) => i.title).toList(), ['Swimsuit']);
     });
 
+    testWidgets('items arriving while the picker is open still get the '
+        'warning', (tester) async {
+      await clothingTemplate();
+
+      await pumpBlockReal(tester);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply template...'));
+      await tester.pumpAndSettle();
+      // A sync landing here, after the menu read the checklist as empty.
+      await checklistRepository.createItem(
+        TripChecklistItem(
+          id: '',
+          checklistId: checklist.id,
+          title: 'Synced mask',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await tester.tap(find.text('Clothing'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+    });
+
     testWidgets('a checklist holding only sections still asks first, since '
         'they go too', (tester) async {
       await checklistRepository.createSection(
