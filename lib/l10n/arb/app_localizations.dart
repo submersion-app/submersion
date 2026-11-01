@@ -67112,6 +67112,18 @@ abstract class AppLocalizations {
   /// **'Humid'**
   String get enum_diveField_humidity_short;
 
+  /// No description provided for @tableEditor_libraryReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Library site: only notes and rating can be edited here'**
+  String get tableEditor_libraryReadOnly;
+
+  /// No description provided for @tableEditor_summary_pairClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing one coordinate clears both'**
+  String get tableEditor_summary_pairClear;
+
   /// No description provided for @tableEditor_weightRows.
   ///
   /// In en, this message translates to:

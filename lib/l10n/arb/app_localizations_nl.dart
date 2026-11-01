@@ -42299,6 +42299,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Vocht';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'Bibliotheekstek: hier zijn alleen notities en beoordeling te bewerken';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Eén coördinaat wissen wist beide';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -40112,6 +40112,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_humidity_short => '湿度';
 
   @override
+  String get tableEditor_libraryReadOnly => '资料库潜点：此处只能编辑备注和评分';
+
+  @override
+  String get tableEditor_summary_pairClear => '清除一个坐标会同时清除两个';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

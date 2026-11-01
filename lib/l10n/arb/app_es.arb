@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Nubes",
   "enum_diveField_precipitation_short": "Precip.",
   "enum_diveField_humidity_short": "Hum.",
+  "tableEditor_libraryReadOnly": "Punto de biblioteca: aquí solo se editan notas y valoración",
+  "tableEditor_summary_pairClear": "Borrar una coordenada borra ambas",
   "tableEditor_weightRows": "{count, plural, =1{{count} fila de lastre, edítala en la inmersión} other{{count} filas de lastre, edítalas en la inmersión}}",
   "tableEditor_summary_siteSnap": "Asignar un punto también fija en la inmersión su tipo de agua, entrada, salida y tipos de inmersión",
   "enum_diveField_excludedFromStats": "Excluida de estadísticas",

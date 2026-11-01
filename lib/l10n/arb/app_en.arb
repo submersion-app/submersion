@@ -25948,6 +25948,8 @@
   "enum_diveField_cloudCover_short": "Cloud",
   "enum_diveField_precipitation_short": "Precip",
   "enum_diveField_humidity_short": "Humid",
+  "tableEditor_libraryReadOnly": "Library site: only notes and rating can be edited here",
+  "tableEditor_summary_pairClear": "Clearing one coordinate clears both",
   "tableEditor_weightRows": "{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}",
   "@tableEditor_weightRows": {"placeholders": {"count": {"type": "int"}}},
   "tableEditor_summary_siteSnap": "Setting a site also sets its water type, entry, exit and dive types on the dive",

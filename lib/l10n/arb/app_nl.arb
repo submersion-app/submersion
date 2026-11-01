@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Wolken",
   "enum_diveField_precipitation_short": "Neersl.",
   "enum_diveField_humidity_short": "Vocht",
+  "tableEditor_libraryReadOnly": "Bibliotheekstek: hier zijn alleen notities en beoordeling te bewerken",
+  "tableEditor_summary_pairClear": "Eén coördinaat wissen wist beide",
   "tableEditor_weightRows": "{count, plural, =1{{count} loodregel, bewerk die in de duik} other{{count} loodregels, bewerk ze in de duik}}",
   "tableEditor_summary_siteSnap": "Een stek instellen zet ook het watertype, de in- en uitstap en de duiktypes op de duik",
   "enum_diveField_excludedFromStats": "Uitgesloten van statistieken",

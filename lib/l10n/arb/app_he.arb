@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "עננים",
   "enum_diveField_precipitation_short": "משקעים",
   "enum_diveField_humidity_short": "לחות",
+  "tableEditor_libraryReadOnly": "אתר ספרייה: כאן ניתן לערוך רק הערות ודירוג",
+  "tableEditor_summary_pairClear": "ניקוי קואורדינטה אחת מנקה את שתיהן",
   "tableEditor_weightRows": "{count, plural, =1{{count} שורת משקולת, ערוך אותה בצלילה} other{{count} שורות משקולות, ערוך אותן בצלילה}}",
   "tableEditor_summary_siteSnap": "הגדרת אתר מגדירה גם את סוג המים, הכניסה, היציאה וסוגי הצלילה בצלילה",
   "enum_diveField_excludedFromStats": "לא נכלל בסטטיסטיקה",

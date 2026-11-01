@@ -42337,6 +42337,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Pára';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'Könyvtári merülőhely: itt csak a jegyzet és az értékelés szerkeszthető';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Az egyik koordináta törlése mindkettőt törli';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

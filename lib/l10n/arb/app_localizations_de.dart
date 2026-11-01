@@ -42494,6 +42494,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Luftf.';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'Bibliotheksplatz: hier sind nur Notizen und Bewertung bearbeitbar';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Das Löschen einer Koordinate löscht beide';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

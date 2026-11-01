@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Felhő",
   "enum_diveField_precipitation_short": "Csap.",
   "enum_diveField_humidity_short": "Pára",
+  "tableEditor_libraryReadOnly": "Könyvtári merülőhely: itt csak a jegyzet és az értékelés szerkeszthető",
+  "tableEditor_summary_pairClear": "Az egyik koordináta törlése mindkettőt törli",
   "tableEditor_weightRows": "{count, plural, =1{{count} súlysor, a merülésben szerkeszthető} other{{count} súlysor, a merülésben szerkeszthető}}",
   "tableEditor_summary_siteSnap": "A merülőhely beállítása a víztípust, a be- és kiszállást és a merüléstípusokat is beállítja a merülésen",
   "enum_diveField_excludedFromStats": "Statisztikából kizárva",

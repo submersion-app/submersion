@@ -43107,6 +43107,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveField_humidity_short => 'الرطوبة';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'موقع من المكتبة: يمكن هنا تعديل الملاحظات والتقييم فقط';
+
+  @override
+  String get tableEditor_summary_pairClear => 'مسح إحداثي واحد يمسح الاثنين';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

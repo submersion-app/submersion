@@ -12954,6 +12954,8 @@
   "enum_diveField_cloudCover_short": "Nuvole",
   "enum_diveField_precipitation_short": "Precip.",
   "enum_diveField_humidity_short": "Umid.",
+  "tableEditor_libraryReadOnly": "Sito di libreria: qui si modificano solo note e valutazione",
+  "tableEditor_summary_pairClear": "Cancellare una coordinata le cancella entrambe",
   "tableEditor_weightRows": "{count, plural, =1{{count} riga di zavorra, modificala nell'immersione} other{{count} righe di zavorra, modificale nell'immersione}}",
   "tableEditor_summary_siteSnap": "Impostare un sito imposta anche tipo d'acqua, ingresso, uscita e tipi di immersione sull'immersione",
   "enum_diveField_excludedFromStats": "Esclusa dalle statistiche",

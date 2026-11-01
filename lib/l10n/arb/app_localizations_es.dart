@@ -42609,6 +42609,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_diveField_humidity_short => 'Hum.';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'Punto de biblioteca: aquí solo se editan notas y valoración';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Borrar una coordenada borra ambas';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

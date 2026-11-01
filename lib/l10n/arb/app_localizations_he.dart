@@ -41530,6 +41530,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_humidity_short => 'לחות';
 
   @override
+  String get tableEditor_libraryReadOnly =>
+      'אתר ספרייה: כאן ניתן לערוך רק הערות ודירוג';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'ניקוי קואורדינטה אחת מנקה את שתיהן';
+
+  @override
   String tableEditor_weightRows(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
