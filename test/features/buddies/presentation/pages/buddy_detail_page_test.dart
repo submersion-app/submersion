@@ -699,4 +699,55 @@ void main() {
       );
     });
   });
+
+  group('Lend gear (issue #3790)', () {
+    final buddy = Buddy(
+      id: 'buddy-lend',
+      name: 'Jane Doe',
+      notes: '',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    Future<void> pump(WidgetTester tester, {required bool embedded}) async {
+      final overrides = await tester.runAsync(getBaseOverrides);
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(900, 1400);
+      addTearDown(tester.view.reset);
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides!,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+            diveIdsForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: embedded),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    for (final embedded in [true, false]) {
+      testWidgets('reachable from the menu with no gear, '
+          '${embedded ? 'embedded' : 'full page'}', (tester) async {
+        await pump(tester, embedded: embedded);
+        expect(find.text('Gear with Jane Doe'), findsNothing);
+
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Lend gear'), findsOneWidget);
+      });
+    }
+  });
 }
