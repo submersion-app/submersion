@@ -260,11 +260,14 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
-/// Whether the plan can be saved. A series of more than one dive cannot be
-/// saved until series persistence lands (issue #3565, phase 3).
-final planSaveAllowedProvider = Provider<bool>(
-  (ref) => !ref.watch(planSeriesNotifierProvider).isSeries,
-);
+/// Whether the plan can be saved. Until series persistence lands (issue #3565,
+/// phase 3), a series of more than one dive cannot be, and nor can a plan
+/// following a logged dive: the tissues, CNS and OTU it carries in are never
+/// stored, so it would reopen as a fresh diver with less load than it has.
+final planSaveAllowedProvider = Provider<bool>((ref) {
+  final series = ref.watch(planSeriesNotifierProvider);
+  return !series.isSeries && series.follow == null;
+});
 
 /// Whether the plan can follow a logged dive. A replan cannot: it already
 /// starts from the dive before the one it replans, and its source dive is

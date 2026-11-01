@@ -455,6 +455,15 @@ void main() {
       expect(editor(c).sourceDiveId, isNull);
     });
 
+    test('holds Save back until it stops following', () async {
+      final c = await makeContainer();
+      series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
+      expect(c.read(planSaveAllowedProvider), isFalse);
+
+      series(c).unfollow();
+      expect(c.read(planSaveAllowedProvider), isTrue);
+    });
+
     test('applies from a later dive too', () async {
       final c = await makeContainer();
       series(c).addDive();

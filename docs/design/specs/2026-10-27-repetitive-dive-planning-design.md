@@ -99,10 +99,11 @@ the plan. Removing dives back to one re-enables both.
   not tell them apart. Now the series holds the follow
   (`PlanSeries.follow`), in memory like the rest of the series, and
   `sourceDiveId` is a replan's alone: its compare strip and overlay, and the
-  reset when the planner closes, apply to replans only. A saved one-dive
-  plan keeps its surface interval but not the dive it followed, until phase
-  3 persists series. Plans saved before keep their `sourceDiveId` and open as
-  replans, as they did.
+  reset when the planner closes, apply to replans only. A plan following a
+  logged dive cannot be saved or converted until phase 3 persists series: what
+  it carries in is not stored, so it would reopen as a fresh diver. Stop
+  following gives both back. Plans saved before keep their `sourceDiveId` and
+  open as replans, as they did.
 - **What is followed.** The followed dive and the logged dives before it,
   back to the first gap of 48 hours or more, the window the log uses for
   residual tissue. Planned dives and dives logged after the followed one are

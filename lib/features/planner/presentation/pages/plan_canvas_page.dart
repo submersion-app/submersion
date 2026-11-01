@@ -122,8 +122,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    // A series of dives cannot be saved, or logged, until series
-    // persistence lands (issue #3565).
+    // A series of dives, or a plan following a logged dive, cannot be saved
+    // or logged until series persistence lands (issue #3565).
     final saveAllowed = ref.watch(planSaveAllowedProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     // A series is not a throwaway: leaving must not lose what cannot be saved.

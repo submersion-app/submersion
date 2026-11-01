@@ -528,6 +528,32 @@ void main() {
     });
   });
 
+  testWidgets('a followed plan offers neither Save nor Convert to Dive', (
+    tester,
+  ) async {
+    await pumpPlan(tester, dayDives);
+    await follow(tester, 'd42');
+
+    final save = tester.widget<IconButton>(
+      find.ancestor(
+        of: find.byIcon(Icons.save),
+        matching: find.byType(IconButton),
+      ),
+    );
+    expect(save.onPressed, isNull);
+    expect(save.tooltip, "A series of dives can't be saved yet");
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    final convert = tester.widget<PopupMenuItem<String>>(
+      find.ancestor(
+        of: find.text('Convert to Dive'),
+        matching: find.byType(PopupMenuItem<String>),
+      ),
+    );
+    expect(convert.enabled, isFalse);
+  });
+
   testWidgets('Stop following drops the logged dives', (tester) async {
     await pumpPlan(tester, dayDives);
     await follow(tester, 'd42');
