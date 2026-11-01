@@ -98,7 +98,6 @@ void main() {
 
     final result = await service.save(
       entity: entity,
-      rows: await rows(),
       drafts: [visibility('d1', 15), visibility('d2', 20)],
     );
 
@@ -116,7 +115,6 @@ void main() {
     () async {
       final result = await TableEditorSaveService().save(
         entity: entity,
-        rows: await rows(),
         drafts: [visibility('d1', 15), visibility('d2', 20)],
       );
 
@@ -134,7 +132,6 @@ void main() {
   );
 
   test('stale draft is skipped and the others save', () async {
-    final before = await rows();
     // A sync lands on d2 between drafting and saving.
     await db.customStatement(
       "UPDATE dives SET visibility_meters = 11 WHERE id = 'd2'",
@@ -142,7 +139,6 @@ void main() {
 
     final result = await TableEditorSaveService().save(
       entity: entity,
-      rows: before,
       drafts: [
         visibility('d1', 15),
         visibility('d2', 20),
@@ -161,7 +157,6 @@ void main() {
 
   test('a draft on a cell that became read-only is skipped as changed '
       'elsewhere', () async {
-    final before = await rows();
     // Two weight rows arrive from a sync after the weight was drafted.
     await diveRepo.bulkAddWeights(
       ['d1'],
@@ -183,7 +178,6 @@ void main() {
 
     final result = await TableEditorSaveService().save(
       entity: entity,
-      rows: before,
       drafts: [
         TableDraft(
           entityId: 'd1',
@@ -207,7 +201,6 @@ void main() {
     await expectLater(
       TableEditorSaveService().save(
         entity: failing,
-        rows: await rows(),
         drafts: [visibility('d1', 15), visibility('d2', 20)],
       ),
       throwsStateError,
@@ -222,7 +215,6 @@ void main() {
   test('undo through the change log revert restores the rows', () async {
     final result = await TableEditorSaveService().save(
       entity: entity,
-      rows: await rows(),
       drafts: [visibility('d1', 15), visibility('d2', 20)],
     );
     await changeLog.settleAll();

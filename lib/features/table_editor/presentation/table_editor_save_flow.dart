@@ -59,11 +59,7 @@ class TableEditorSaveFlow {
     try {
       result = await ref
           .read(tableEditorSaveServiceProvider)
-          .save(
-            entity: entity,
-            rows: {for (final r in rows) entity.idOf(r): r},
-            drafts: saveable,
-          );
+          .save(entity: entity, drafts: saveable);
     } catch (e, stackTrace) {
       _log.error('Table editor save failed', error: e, stackTrace: stackTrace);
       messenger.showSnackBar(

@@ -22,6 +22,11 @@ class EditableCell extends StatefulWidget {
   final void Function(Object? value, CellMove move) onCommitValue;
   final VoidCallback onCancel;
 
+  /// The cell was torn down without a commit or cancel (the sheet moved on).
+  /// Called after the frame with what the cell held; the sheet decides
+  /// whether that still applies. Null falls back to a plain commit.
+  final void Function(String text, Object? value)? onTeardown;
+
   const EditableCell({
     super.key,
     required this.kind,
@@ -34,6 +39,7 @@ class EditableCell extends StatefulWidget {
     this.initialChoice,
     this.initialSelection = const [],
     this.doneLabel = '',
+    this.onTeardown,
   });
 
   @override
@@ -80,10 +86,16 @@ class _EditableCellState extends State<EditableCell> {
       final text = _controller.text;
       final value = _currentValue;
       final isText = _isText;
+      final teardown = widget.onTeardown;
       final commitText = widget.onCommitText;
       final commitValue = widget.onCommitValue;
+      // Nothing typed means nothing to keep.
+      final changed = !isText || text != widget.initialText;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (isText) {
+        if (!changed) return;
+        if (teardown != null) {
+          teardown(text, value);
+        } else if (isText) {
           commitText(text, CellMove.none);
         } else {
           commitValue(value, CellMove.none);

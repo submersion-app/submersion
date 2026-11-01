@@ -44,13 +44,17 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   final _lastPaste = <TableEditorTab, PastePlan<EntityField>>{};
   final _focus = FocusNode(debugLabel: 'table editor');
 
+  /// The tab last settled on. TabController.previousIndex goes stale on a
+  /// tap of the selected tab, so the guard reads this instead.
+  var _settled = 0;
+
   TableEditorTab get _tab => TableEditorTab.values[_tabs.index];
 
   @override
   void initState() {
     super.initState();
     _tabs.addListener(() {
-      if (!_tabs.indexIsChanging) setState(() {});
+      if (!_tabs.indexIsChanging) setState(() => _settled = _tabs.index);
     });
   }
 
@@ -63,6 +67,8 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
 
   bool _hasDrafts(TableEditorTab tab) =>
       !ref.read(tableEditorDraftsProvider(tab)).isEmpty;
+
+  bool get _anyDrafts => TableEditorTab.values.any(_hasDrafts);
 
   void _clearDrafts(TableEditorTab tab) =>
       ref.read(tableEditorDraftsProvider(tab).notifier).clear();
@@ -107,9 +113,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
   }
 
   /// The tab bar has already moved to [index] when this runs, so the tab
-  /// being left is the previous one. With drafts there, go back and ask.
+  /// being left is the one last settled on. With drafts there, go back and
+  /// ask.
   Future<void> _onTabTap(int index) async {
-    final from = _tabs.previousIndex;
+    final from = _settled;
     if (index == from || !_hasDrafts(TableEditorTab.values[from])) return;
     _tabs.index = from;
     if (await _confirmDiscard() && mounted) {
@@ -118,7 +125,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     }
   }
 
-  void _openChangeLog() => context.push('/settings/change-log');
+  /// Reached from a snackbar that may outlive the page.
+  void _openChangeLog() {
+    if (mounted) context.push('/settings/change-log');
+  }
 
   /// The active tab's entity, rows and columns, erased of their types so
   /// the toolbar can act on whichever tab is open.
@@ -130,6 +140,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       tableEditorDiveConfigProvider,
       route: (id) => '/dives/$id',
       refresh: () {
+        if (!mounted) return;
         ref.read(diveListNotifierProvider.notifier).refresh();
         ref.invalidate(tableEditorWeightsProvider);
       },
@@ -151,6 +162,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       tableEditorSiteConfigProvider,
       route: (id) => '/sites/$id',
       refresh: () {
+        if (!mounted) return;
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
       },
@@ -170,7 +182,9 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
       ref.watch(tableEditorCentersProvider).value,
       tableEditorCenterConfigProvider,
       route: (id) => '/dive-centers/$id',
-      refresh: () => ref.invalidate(diveCenterListNotifierProvider),
+      refresh: () {
+        if (mounted) ref.invalidate(diveCenterListNotifierProvider);
+      },
       hiddenKeys: () {
         final all = ref.read(diveCenterListNotifierProvider).value ?? const [];
         final shown = ref.read(tableEditorCentersProvider).value ?? const [];
@@ -291,7 +305,10 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
         case _OpenChoice.discard:
           _clearDrafts(_tab);
         case _OpenChoice.save:
-          if (!await handle.saveAll(confirm: false) || !mounted) return;
+          // Whatever the save wrote (flagged drafts stay as they are), the
+          // diver asked to open the record.
+          await handle.saveAll(confirm: false);
+          if (!mounted) return;
       }
     }
     if (mounted) context.push(handle.route(id));
@@ -327,7 +344,7 @@ class _TableEditorPageState extends ConsumerState<TableEditorPage>
     // While a text cell is open its own field handles Ctrl+V.
     final shortcutPaste = canPaste && drafts.editing == null;
     return PopScope(
-      canPop: drafts.isEmpty,
+      canPop: !_anyDrafts,
       onPopInvokedWithResult: (didPop, _) => _handlePop(didPop),
       child: CallbackShortcuts(
         bindings: {

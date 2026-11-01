@@ -44,7 +44,6 @@ class TableEditorSaveService {
 
   Future<TableEditorSaveResult> save<T, F extends EntityField>({
     required TableEditorEntity<T, F> entity,
-    required Map<String, T> rows,
     required List<TableDraft> drafts,
   }) async {
     final ids = drafts.map((d) => d.entityId).toSet().toList();

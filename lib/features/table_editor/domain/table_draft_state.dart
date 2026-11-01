@@ -111,6 +111,11 @@ class TableDraftsNotifier extends StateNotifier<TableDraftState> {
   /// close an editor the sheet has already moved elsewhere.
   bool editingIs(CellPosition cell) => state.editing == cell;
 
+  /// The draft now at [cell], for a deferred commit to compare with what it
+  /// was built from.
+  TableDraft? draftAt(CellPosition cell) =>
+      state.at(cell.entityId, cell.fieldName);
+
   void setSelected(CellPosition? cell) =>
       state = state.copyWith(selected: cell, clearSelected: cell == null);
 

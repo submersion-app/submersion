@@ -57,8 +57,6 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     final rowsById = {for (final r in rows) entity.idOf(r): r};
-    // Movement follows the order on screen, which the table sorts itself.
-    final shown = sortTableEntities(rows, entity.adapter, config, units);
 
     List<EntityTableMenuAction> cellMenu(BuildContext c, T row, F field) {
       final id = entity.idOf(row);
@@ -133,7 +131,6 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
             units: units,
             l10n: l10n,
             config: config,
-            shown: shown,
             rowsById: rowsById,
             drafts: drafts,
             notifier: draftsNotifier,
@@ -261,7 +258,6 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     required UnitFormatter units,
     required AppLocalizations l10n,
     required EntityTableViewConfig<F> config,
-    required List<T> shown,
     required Map<String, T> rowsById,
     required TableDraftState drafts,
     required TableDraftsNotifier notifier,
@@ -272,6 +268,9 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
     final current = draft?.value ?? original;
 
     void move(CellMove m) {
+      // Movement follows the order on screen, which the table sorts itself;
+      // sorted here, on the move, not on every rebuild.
+      final shown = sortTableEntities(rows, entity.adapter, config, units);
       notifier.setEditing(
         nextCell(
           from: position,
@@ -313,6 +312,43 @@ class TableEditorSheet<T, F extends EntityField> extends ConsumerWidget {
       initialSelection: current is List ? current.cast<String>() : const [],
       doneLabel: l10n.tableEditor_multiChoice_done,
       onCancel: () => notifier.setEditing(null),
+      onTeardown: (text, value) {
+        // A paste or another commit may have changed this cell's draft since
+        // the editor was built; what was typed then stands down.
+        if (!notifier.mounted || notifier.draftAt(position) != draft) return;
+        if (column.kind == CellEditorKind.text ||
+            column.kind == CellEditorKind.number ||
+            column.kind == CellEditorKind.integer) {
+          final result = column.parse(text, units, l10n);
+          commit(switch (result) {
+            CellParsed(:final value) => TableDraft(
+              entityId: id,
+              fieldName: column.field.name,
+              original: original,
+              value: value,
+              rawText: text,
+            ),
+            CellRejected(:final flag) => TableDraft(
+              entityId: id,
+              fieldName: column.field.name,
+              original: original,
+              value: original,
+              rawText: text,
+              flag: flag,
+            ),
+          }, CellMove.none);
+        } else {
+          commit(
+            TableDraft(
+              entityId: id,
+              fieldName: column.field.name,
+              original: original,
+              value: value,
+            ),
+            CellMove.none,
+          );
+        }
+      },
       onCommitText: (text, m) {
         final result = column.parse(text, units, l10n);
         commit(switch (result) {
